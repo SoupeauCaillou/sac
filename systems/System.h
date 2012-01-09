@@ -1,7 +1,12 @@
 #pragma once
 
-#include "stdafx.h"
+#include <string>
+#include <vector>
+#include <map>
+
 #include "DebugRenderingManager.h"
+
+#define Entity unsigned long
 
 #define SINGLETON(T) static T& GetInstance() { if (_instance == NULL) _instance = new T(); return (*_instance); } 
 #define INSTANCE_DECL(T) static T* _instance;
@@ -46,30 +51,26 @@
 			static type##System* _instance;
 			
 template <typename T> 
-class ComponentSystem : public MessageListener {
+class ComponentSystem {
 	public:
-		ComponentSystem(const std::string& t) : MessageListener(), tag(t) { 
+		ComponentSystem(const std::string& t) : tag(t) { 
 			Activate();
 		}
 		
-		virtual void ReceiveMessage(Message* m) { }
-				
-		void Add(Actor* actor) {
+		void Add(Entity actor) {
 			components[actor] = new T();
-			actor->Tag(tag);
 		}
 		
-		void Delete(Actor* actor) {
-			if (actor->IsTagged(tag)) {
-				actor->Untag(tag);
-				T* t = Get(actor);
-				components.erase(actor);
-				delete t;
+		void Delete(Entity actor) {
+			typename std::map<Entity, T*>::iterator it = components.find(actor);
+			if (it != components.end()) {
+				components.erase(it);
+				delete *it;
 			}
 		}
 		
-		T* Get(Actor* actor) {
-			typename std::map<Actor*, T*>::iterator it = components.find(actor);
+		T* Get(Entity actor) {
+			typename std::map<Entity, T*>::iterator it = components.find(actor);
 			if (it == components.end()) {
 				// std::cout << "Actor " << actor << " has no component of type " << tag << std::endl;
 				return 0;
@@ -77,8 +78,8 @@ class ComponentSystem : public MessageListener {
 			return (*it).second;
 		}
 		
-		std::vector<Actor*> RetrieveAllActorWithComponent() {
-			std::vector<Actor*> result;
+		std::vector<Entity> RetrieveAllActorWithComponent() {
+			std::vector<Entity> result;
 			for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 				result.push_back((*it).first);
 			}
@@ -87,20 +88,20 @@ class ComponentSystem : public MessageListener {
 		
 		void Clear() { components.clear(); }
 	
-		void Activate() { active = true; activationTime = theWorld.GetCurrentTimeSeconds(); }
+		void Activate() { active = true; }
 		void Deactivate() { active = false; }
 		bool IsActive() const { return active; }
-		const String& GetTag() const { return tag; }
+		const std::string& GetTag() const { return tag; }
 		
 	protected:
 		bool active;
 	
 		std::string tag;
-		std::map<Actor*, T*> components;
+		std::map<Entity, T*> components;
 
-		typedef typename std::map<Actor*, T*> ComponentMap;
-		typedef typename std::map<Actor*, T*>::iterator ComponentIt;
-		typedef typename std::map<Actor*, T*>::const_iterator ComponentConstIt;
+		typedef typename std::map<Entity, T*> ComponentMap;
+		typedef typename std::map<Entity, T*>::iterator ComponentIt;
+		typedef typename std::map<Entity, T*>::const_iterator ComponentConstIt;
 		
 		float activationTime;
 };

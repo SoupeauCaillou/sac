@@ -27,10 +27,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //////////////////////////////////////////////////////////////////////////////
 
-#include "../Util/MathUtil.h"
+#include "MathUtil.h"
 
 #include <math.h>
 #include <time.h>
+#include <cstdlib>
 
 const float MathUtil::E = 2.718282f;
 const float MathUtil::Log10E = 0.4342945f;
@@ -159,39 +160,6 @@ bool MathUtil::FuzzyEquals(Vector2 v1, Vector2 v2, float epsilon)
 		return true;
 	}
 	return false;
-}
-
-MathUtil::AABBSplittingAxis MathUtil::GetMajorAxis(const BoundingBox& source)
-{
-	AABBSplittingAxis retVal = AA_X;
-	float maxAxis = source.Max.X - source.Min.X;
-
-	float yAxis = source.Max.Y - source.Min.Y;
-	if (yAxis > maxAxis)
-	{
-		retVal = AA_Y;
-		maxAxis = yAxis;
-	}
-
-	return retVal;
-}
-
-void MathUtil::SplitBoundingBox(const BoundingBox& source, AABBSplittingAxis axis, BoundingBox& LHS, BoundingBox& RHS)
-{
-	LHS = source;
-	RHS = source;
-
-	switch (axis)
-	{
-	case AA_X:
-		LHS.Max.X = Lerp(LHS.Min.X, LHS.Max.X, 0.5f);
-		RHS.Min.X = LHS.Max.X;
-		break;
-	case AA_Y:
-		LHS.Max.Y = Lerp(LHS.Min.Y, LHS.Max.Y, 0.5f);
-		RHS.Min.Y = LHS.Max.Y;
-		break;
-	}
 }
 
 float MathUtil::DeltaAngle(float A1, float A2)

@@ -204,14 +204,6 @@ Vector2& Vector2::operator/=(float scaleFactor)
 }
 
 
-#include <iostream>
-using namespace std;
-
-ostream& operator<<(ostream& stream, const Vector2& out)
-{
-	return stream << out.X << ", " << out.Y;
-}
-
 //TODO: when we actually make some unit tests, bring this back and put it there
 // /*static*/ void Vector2::UnitTest()
 // {

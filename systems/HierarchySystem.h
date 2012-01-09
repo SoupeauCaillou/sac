@@ -1,7 +1,7 @@
 #pragma once
 
 #include "System.h"
-#include "stdafx.h"
+#include "Vector2.h"
 
 struct HierarchyComponent {
 	HierarchyComponent() {
@@ -10,7 +10,7 @@ struct HierarchyComponent {
 		localRotation = 0;
 		zOffset = 0;
 	}
-	Actor* parent;
+	Entity parent;
 	Vector2 localPosition;
 	float localRotation;
 	int zOffset;

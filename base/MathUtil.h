@@ -30,7 +30,6 @@
 #pragma once
 
 #include "Vector2.h"
-#include "VecStructs.h"
 
 ///A set of static functions that handle typical math needed for games
 /** 
@@ -398,26 +397,6 @@ public:
 		AA_X,
 		AA_Y
 	};
-	
-	/**
-	 * Used internally by the SpatialGraph when it generates. 
-	 * 
-	 * @param source The bounding box to split
-	 * @return The appropriate axis on which to split it
-	 */
-	static AABBSplittingAxis GetMajorAxis(const BoundingBox& source);
-	
-	/**
-	 * Used internally by the SpatialGraph when it generates
-	 * 
-	 * @param source The bounding box to split
-	 * @param axis The axis on which to split it
-	 * @param LHS An out parameter that will be set to the left-hand-side 
-	 *   bounding box resulting from the split
-	 * @param RHS An out parameter that will be set to the right-hand-side
-	 *   bounding box resulting from the split
-	 */
-	static void SplitBoundingBox(const BoundingBox& source, AABBSplittingAxis axis, BoundingBox& LHS, BoundingBox& RHS);
 	
 	/**
 	 * Calculates the difference in two angles (in radians) and remaps it
