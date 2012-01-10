@@ -14,7 +14,7 @@ LOCAL_CXXFLAGS := -DANDROID_NDK \
 LOCAL_SRC_FILES := \
     base/MathUtil.cpp \
     base/Vector2.cpp \
-    systems/HierarchySystem.cpp \
+    systems/TransformationSystem.cpp \
     systems/PlayerSystem.cpp \
 	systems/DebugRenderingManager.cpp
 
