@@ -15,7 +15,7 @@ void TransformationSystem::DoUpdate(float dt) {
 		Entity parent = bc->parent;
 
 		if (parent) {
-			const TransformationComponent* pbc = TRANSFORMATION(bc->parent);
+			const TransformationComponent* pbc = TRANSFORM(bc->parent);
 			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, MathUtil::ToRadians(pbc->worldRotation));
 			bc->worldRotation = pbc->worldRotation + bc->rotation;
 		} else {

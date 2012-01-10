@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <iostream>
+
 ///A two-dimensional floating point vector and associated math functions
 /** 
  * A floating point two-dimensional vector. Can be used either as a traditional
@@ -242,3 +244,9 @@ struct Vector2
     Vector2& operator*=(float f);
     Vector2& operator/=(float f);
 };
+
+inline std::ostream& operator<<(std::ostream& s, const Vector2& v) {
+	s << '{' << v.X << ", " << v.Y << '}';
+	return s;
+}
+

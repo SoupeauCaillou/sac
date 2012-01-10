@@ -3,3 +3,4 @@ Makefile
 CMakeFiles
 CMakeCache.txt
 libsac.a
+sac_tests

@@ -14,7 +14,7 @@ struct TransformationComponent {
 };
 
 #define theTransformationSystem TransformationSystem::GetInstance()
-#define TRANSFORMATION(e) theTransformationSystem.Get(e)
+#define TRANSFORM(e) theTransformationSystem.Get(e)
 
 UPDATABLE_SYSTEM(Transformation)
 };
