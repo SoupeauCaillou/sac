@@ -1,28 +1,84 @@
 #include "RenderingSystem.h"
 #include "../base/MathUtil.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
+
 #include <cstdio>
 #include <cstdlib>
 
 #include "TransformationSystem.h"
 
 INSTANCE_IMPL(RenderingSystem);
+
+enum {
+    ATTRIB_VERTEX = 0,
+    ATTRIB_UV,
+	ATTRIB_COLOR,
+    NUM_ATTRIBS
+};
 	
 RenderingSystem::RenderingSystem() : ComponentSystem<RenderingComponent>("rendering") { 
 	nextValidRef = 1;
 }
 
-void RenderingSystem::setWindowSize(int w, int h) {
+void RenderingSystem::setWindowSize(int width, int height) {
+	w = width;
+	h = height;
+	glViewport(0, 0, w, h);	
+}
 
-	float ratio = w / (float)h;
-	/* setup camera */
-	glMatrixMode(GL_PROJECTION); 
-	glLoadIdentity(); 
-	glOrtho(-1, 1, -1.0 / ratio, 1.0 / ratio, 0, 1); 
+GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
+	GLchar* source = (*loadShaderPtr)(assetName.c_str());
+	GLuint shader = glCreateShader(type);
+	glShaderSource(shader, 1, (const GLchar**)&source, NULL);
+	glCompileShader(shader);
+
+	free(source);
+  	GLint logLength;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength > 1)
+    {
+        GLchar *log = new GLchar[logLength];
+        glGetShaderInfoLog(shader, logLength, &logLength, log);
+        std::cout << "GL shader error: " << log << std::endl;
+ 		delete[] log;
+		return 0;
+    }
+	return shader;
+}
+
+void RenderingSystem::init() {
+	GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
+	GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
+
+	defaultProgram = glCreateProgram();
+	glAttachShader(defaultProgram, vs);
+	glAttachShader(defaultProgram, fs);
+
+	glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition");
+    glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord");
+	glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor");
+
+	glLinkProgram(defaultProgram);
+ 
+    GLint logLength;
+ 	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength > 1)
+    {
+        GLchar *log = new GLchar[logLength];
+ 		glGetProgramInfoLog(defaultProgram, logLength, &logLength, log);
+        std::cout << "GL shader program error: " << log << std::endl;
+        delete[] log;
+    }
+
+	uniformMatrix = glGetUniformLocation(defaultProgram, "uMvp");
+
+	glDeleteShader(vs);
+	glDeleteShader(fs);
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
+	if (assetTextures.find(assetName) != assetTextures.end())
+		return assetTextures[assetName];
+
 	if (!decompressPNG)
 		return 0;
 
@@ -34,11 +90,12 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 
 	/* create GL texture */
 	glEnable(GL_TEXTURE_2D);
+
 	GLuint texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
@@ -46,6 +103,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
                 data);
 
 	textures[nextValidRef] = texture;
+	assetTextures[assetName] = nextValidRef;
 
 	free(data);
 
@@ -53,11 +111,29 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 }
 
 void RenderingSystem::DoUpdate(float dt) {
-	glMatrixMode(GL_MODELVIEW); 
-	glLoadIdentity();
+	static const GLfloat squareVertices[] = {
+		-1.0, -1.0,
+		1., -1.0,
+		-1., 1.,
+		1., 1.
+	};
+	static const GLfloat squareUvs[] = {
+		.0, 0.0,
+		1.0,0.0,
+		.0, 1.0,
+		1.0, 1.0,
+	};
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	glUseProgram(defaultProgram);
+	float ratio = h / (float)w ;
+	GLfloat mat[16];
+	loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
+	glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat);
 
 	/* render */
-	glBegin(GL_QUADS);
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		RenderingComponent* rc = (*it).second;
@@ -72,20 +148,38 @@ void RenderingSystem::DoUpdate(float dt) {
 			glDisable(GL_TEXTURE_2D);
 		}
 
-		// glColor4f(1.0f, 0.5f, 0.0f, 1.0f);
+		glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices);
+		glEnableVertexAttribArray(ATTRIB_VERTEX);
+		glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs);
+		glEnableVertexAttribArray(ATTRIB_UV);
 
-		glPushMatrix();
-		glTranslatef(tc->worldPosition.X, tc->worldPosition.Y, 0.0f);
-		glRotatef(tc->worldRotation, 0, 0, 1);
-		glScalef(rc->size.X, rc->size.Y, 1.0f);
-	
-		glTexCoord2f(1, 1); glVertex2f( 0.5f,  0.5f);
-		glTexCoord2f(0, 1); glVertex2f(-0.5f,  0.5f);
-		glTexCoord2f(0, 0); glVertex2f(-0.5f, -0.5f);
-		glTexCoord2f(1, 0); glVertex2f( 0.5f, -0.5f);
-
-		glPopMatrix();
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
-	glEnd();
+}
+
+void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat)
+{
+    float r_l = right - left;
+    float t_b = top - bottom;
+    float f_n = far - near;
+    float tx = - (right + left) / r_l;
+    float ty = - (top + bottom) / t_b;
+    float tz = - (far + near) / f_n;
+
+    mat[0] = 2.0f / r_l;
+    mat[1] = mat[2] = mat[3] = 0.0f;
+
+    mat[4] = 0.0f;
+    mat[5] = 2.0f / t_b;
+    mat[6] = mat[7] = 0.0f;
+
+    mat[8] = mat[9] = 0.0f;
+    mat[10] = -2.0f / f_n;
+    mat[11] = 0.0f;
+
+    mat[12] = tx;
+    mat[13] = ty;
+    mat[14] = tz;
+    mat[15] = 1.0f;
 }
 
