@@ -59,7 +59,6 @@ void RenderingSystem::init() {
     glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord");
 	glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor");
 	glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot");
-    glBindAttribLocation(defaultProgram, ATTRIB_SCALE, "aScale");
 
 	glLinkProgram(defaultProgram);
  
@@ -115,12 +114,6 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 }
 
 void RenderingSystem::DoUpdate(float dt) {
-	static const GLfloat squareVertices[] = {
-		-1.0, -1.0, 0.,
-		1., -1.0,0.,
-		-1., 1.,0.,
-		1., 1.,0.
-	};
 	static const GLfloat squareUvs[] = {
 		.0, 0.0,
 		1.0,0.0,
@@ -152,6 +145,14 @@ void RenderingSystem::DoUpdate(float dt) {
 			glDisable(GL_TEXTURE_2D);
 		}
 
+		Vector2 hSize(rc->size * 0.5f);
+		const GLfloat squareVertices[] = {
+				-hSize.X, -hSize.Y, 0.,
+				hSize.X, -hSize.Y,0.,
+				-hSize.X, hSize.Y,0.,
+				hSize.X, hSize.Y,0.
+			};
+
 		glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices);
 		glEnableVertexAttribArray(ATTRIB_VERTEX);
 		glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs);
@@ -164,9 +165,6 @@ void RenderingSystem::DoUpdate(float dt) {
 		 };
 		glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot);
 		glEnableVertexAttribArray(ATTRIB_POS_ROT);
-		float scale[] = {rc->size.X, rc->size.Y, rc->size.X, rc->size.Y, rc->size.X, rc->size.Y, rc->size.X, rc->size.Y};
-		glVertexAttribPointer(ATTRIB_SCALE, 2, GL_FLOAT, 0, 0, scale);
-		glEnableVertexAttribArray(ATTRIB_SCALE);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 }
