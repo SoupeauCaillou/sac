@@ -28,9 +28,9 @@ void RenderingSystem::setWindowSize(int width, int height) {
 }
 
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
-	GLchar* source = (*loadShaderPtr)(assetName.c_str());
+	char* source = (*loadShaderPtr)(assetName.c_str());
 	GLuint shader = glCreateShader(type);
-	glShaderSource(shader, 1, (const GLchar**)&source, NULL);
+	glShaderSource(shader, 1, (const char**)&source, NULL);
 	glCompileShader(shader);
 
 	free(source);
@@ -38,7 +38,7 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength > 1)
     {
-        GLchar *log = new GLchar[logLength];
+        char *log = new char[logLength];
         glGetShaderInfoLog(shader, logLength, &logLength, log);
         std::cout << "GL shader error: " << log << std::endl;
  		delete[] log;
@@ -67,7 +67,7 @@ void RenderingSystem::init() {
  	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength > 1)
     {
-        GLchar *log = new GLchar[logLength];
+        char *log = new char[logLength];
  		glGetProgramInfoLog(defaultProgram, logLength, &logLength, log);
         std::cout << "GL shader program error: " << log << std::endl;
         delete[] log;

@@ -15,7 +15,10 @@ LOCAL_SRC_FILES := \
     base/MathUtil.cpp \
     base/Vector2.cpp \
     systems/TransformationSystem.cpp \
+    systems/RenderingSystem.cpp \
     systems/PlayerSystem.cpp \
 	systems/DebugRenderingManager.cpp
+
+LOCAL_LDLIBS    += -lGLESv2 -llog -ldl
 
 include $(BUILD_SHARED_LIBRARY)
