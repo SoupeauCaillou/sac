@@ -13,7 +13,9 @@ class TouchInputManager {
 		static TouchInputManager* Instance();
 		
 		void init(Vector2 worldSize, Vector2 windowSize);
-	
+
+		bool wasTouched() const { return wasTouching; }	
+
 		bool isTouched() const { return touching; }
 		const Vector2& getTouchLastPosition() const { return lastTouchedPosition; }
 
@@ -25,7 +27,7 @@ class TouchInputManager {
 	private:
 		NativeTouchStatePtr ptr;
 
-		bool touching;
+		bool wasTouching, touching;
 		Vector2 lastTouchedPosition;
 
 		Vector2 worldSize, windowSize;	

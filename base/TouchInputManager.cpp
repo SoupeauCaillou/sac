@@ -16,6 +16,7 @@ void TouchInputManager::init(Vector2 pWorldSize, Vector2 pWindowSize) {
 void TouchInputManager::Update(float dt) {
 	Vector2 windowPos;
 
+	wasTouching = touching;
 	touching = ptr(&windowPos);
 	if (touching) {
 		lastTouchedPosition = windowToWorld(windowPos, worldSize, windowSize);
