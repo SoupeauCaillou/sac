@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "GridSystem.h"
-#include "RenderingSystem.h"
+#define TAILLE 8
 
 INSTANCE_IMPL(GridSystem);
 	
@@ -54,11 +54,11 @@ void GridSystem::DoUpdate(float dt) {
 			
 			/* Then on the right*/
 			k = i+1;
-			while (k<8){
+			while (k<TAILLE){
 				Entity next = GetOnPos(k,j);
 
 				if (GRID(next)->type != gc->type) {
-					k=9;
+					k=(TAILLE+1);
 				} else {
 					GRID(next)->checkedV = true;
 					longueurCombi++;
@@ -106,11 +106,11 @@ void GridSystem::DoUpdate(float dt) {
 			
 			/* Then on the top*/
 			k = j+1;
-			while (k<8){
+			while (k<TAILLE){
 				Entity next = GetOnPos(i,k);
 
 				if (GRID(next)->type != gc->type){
-					k=8;
+					k=TAILLE;
 				} else {
 					GRID(next)->checkedH = true;
 					longueurCombi++;
@@ -146,7 +146,7 @@ void GridSystem::DoUpdate(float dt) {
 				else
 					cour = GetOnPos(it->origine.X,it->origine.Y+i);
 
-				RENDERING(cour)->texture = theRenderingSystem.loadTextureFile("1.png");
+			//	RENDERING(cour)->texture = theRenderingSystem.loadTextureFile("1.png");
 			}
 			//it.pop_back()
 		}
