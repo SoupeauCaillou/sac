@@ -2,10 +2,10 @@
 
 #include "System.h"
 #include "base/MathUtil.h"
-typedef struct Vector3 {
+typedef struct Combinais {
 	Vector2 origine;
-	int size;
-} Vector3;
+	int size, type;
+} Combinais;
 
 struct GridComponent {
 	GridComponent() {
@@ -27,6 +27,8 @@ UPDATABLE_SYSTEM(Grid)
 
 public:
 Entity GetOnPos(int i, int j);
+std::vector<Combinais> LookForCombinaison(int nbmin);
+void ResetTest();
 
-
+int GridSize;
 };
