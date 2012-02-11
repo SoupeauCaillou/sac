@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include "GridSystem.h"
 
 INSTANCE_IMPL(GridSystem);
@@ -27,6 +26,53 @@ void GridSystem::ResetTest() {
 	}
 }
 
+bool GridSystem::Intersec(std::vector<Vector2> v1, std::vector<Vector2> v2){
+	for ( size_t i = 0; i < v1.size(); ++i ) {
+		for ( size_t j = 0; j < v2.size(); ++j ) {
+			if (v1[i] == v2[j])
+				return true;
+		}
+	}
+	return false;
+}
+
+bool GridSystem::InVect(std::vector<Vector2> v1, Vector2 v2){
+	for ( size_t i = 0; i < v1.size(); ++i ) {
+		if (v1[i] == v2)
+			return true;
+	}
+	return false;
+}
+
+Combinais GridSystem::MergeVectors(Combinais c1, Combinais c2) {
+	Combinais merged;
+	merged = c1;
+	for (size_t i=0; i<c2.points.size();i++) {
+		if (!InVect(c1.points,c2.points[i]))
+			merged.points.push_back(c2.points[i]);
+	}
+	return merged;
+}
+	
+std::vector<Combinais> GridSystem::MergeCombinaison(std::vector<Combinais> combinaisons) {
+	std::vector<Combinais> combinmerged;
+		
+	for ( size_t i = 0; i < combinaisons.size(); ++i ) {
+		int match = -1;
+		for ( size_t j = i+1; j < combinaisons.size(); ++j ) {
+			if (combinaisons[i].type != combinaisons[j].type || !Intersec(combinaisons[i].points, combinaisons[j].points)) {
+				continue;
+			} else {
+				match = j;
+				combinaisons[j] = MergeVectors(combinaisons[i],combinaisons[j]);
+			}
+		}
+		if (match==-1)
+			combinmerged.push_back(combinaisons[i]);
+	}
+	return combinmerged;
+}
+
 std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) { 
 	std::vector<Combinais> combinaisons;
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
@@ -34,32 +80,27 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 		GridComponent* gc = (*it).second;
 		int i=gc->row;
 		int j=gc->column;
+		Combinais potential;
+		potential.type = gc->type;
 
 		/*Check on column*/
 		if (!gc->checkedV) {
-
-			int longueurCombi=0;
-			Vector2 origine = Vector2::Zero;
-			
+			Combinais potential;
+			potential.type = gc->type;
 			/*Looking for twins on the bottom of the point*/
 			int k=j;
 			while (k>-1){
 				Entity next = GetOnPos(i,k);
 		
 				if (GRID(next)->type != gc->type){
-					origine=Vector2(i,k+1);
 					k=-2;
 				} else {
 					/*Useless to check them later : we already did it now*/
+					potential.points.push_back(Vector2(i,k));
 					GRID(next)->checkedV = true;
-					longueurCombi++;
 					k--;
 				}
 			}
-			/*If the first was good*/
-			if (k==-1)
-				origine=Vector2(i,0);
-				
 			
 			/* Then on the top*/
 			k = j+1;
@@ -70,7 +111,7 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 					k=GridSize;
 				} else {
 					GRID(next)->checkedV = true;
-					longueurCombi++;
+					potential.points.push_back(Vector2(i,k));
 					k++;
 				}
 			}
@@ -79,13 +120,8 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 			/*If there is at least 1 more cell
 			 * We add it to the solutions*/
 			 
-			if (longueurCombi>=nbmin){
-
-				Combinais tmp;
-				tmp.origine = origine;
-				tmp.size = longueurCombi;
-				tmp.type = gc->type;
-				combinaisons.push_back(tmp);
+			if (potential.points.size()>=nbmin){
+				combinaisons.push_back(potential);
 			}
 			
 			gc->checkedV = true;
@@ -93,9 +129,8 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 		
 		/*Check on row*/
 		if (!gc->checkedH) {
-
-			int longueurCombi=0;
-			Vector2 origine = Vector2::Zero;
+			Combinais potential;
+			potential.type = gc->type;
 			
 			/*Looking for twins on the left of the point*/
 			int k=i;
@@ -103,19 +138,14 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 				Entity next = GetOnPos(k,j);
 				
 				if (GRID(next)->type != gc->type) {
-					origine=Vector2(k+1,j);
 					k=-2;
 				} else {
 					/*Useless to check them later : we already did it now*/
 					GRID(next)->checkedH = true;
-					longueurCombi++;
+					potential.points.push_back(Vector2(k,j));
 					k--;
 				}
 			}
-			/*If the first was good*/
-			if (k==-1)
-				origine=Vector2(0,j);
-				
 			
 			/* Then on the right*/
 			k = i+1;
@@ -126,7 +156,7 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 					k=(GridSize+1);
 				} else {
 					GRID(next)->checkedH = true;
-					longueurCombi++;
+					potential.points.push_back(Vector2(k,j));
 					k++;
 				}
 			}			
@@ -136,12 +166,8 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 			 * We add it to the solutions
 			 * longueurCombi < 0 <-> Horizontale */
 			 
-			if (longueurCombi>=nbmin){
-				Combinais tmp;
-				tmp.origine = origine;
-				tmp.size = -longueurCombi;
-				tmp.type = gc->type;
-				combinaisons.push_back(tmp);
+			if (potential.points.size()>=nbmin){
+				combinaisons.push_back(potential);
 			}
 			
 			gc->checkedH = true;
@@ -150,17 +176,27 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 		
 	}
 	
-	return combinaisons;
+	return MergeCombinaison(combinaisons);
 }
 
 void GridSystem::DoUpdate(float dt) {
 	std::vector<Combinais> combinaisons;
-	//combinaisons = LookForCombinaison();
-	
+	combinaisons = LookForCombinaison(2);
+
 	if (combinaisons.size()>0){
 		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
 		{
-			std::cout << "(" <<it->origine.X << ", "<< it->origine.Y << ") :" << it->size << std::endl;
+			std::cout << it->type;
+			for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
+			{
+				std::cout << "\t(" <<itV->X << ", "<< itV->Y << ")";
+			}
+			std::cout << std::endl;
+			
+		}
+	}
+	combinaisons.clear();
+			
 			
 			/*Traitement des combinaions*/
 
@@ -174,8 +210,8 @@ void GridSystem::DoUpdate(float dt) {
 			//	RENDERING(cour)->texture = theRenderingSystem.loadTextureFile("1.png");
 			}
 			//it.pop_back()*/
-		}
-	}	
+		
+	
 	
 	
 }

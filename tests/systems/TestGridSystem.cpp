@@ -32,12 +32,12 @@ TEST(RowCombination)
 	
 	std::vector<Combinais> combinaisons;
 	combinaisons = theGridSystem.LookForCombinaison(3);
-	CHECK(combinaisons.size()==4);
+	CHECK(combinaisons.size()==3);
 	theGridSystem.ResetTest();
 	combinaisons = theGridSystem.LookForCombinaison(2);
-	CHECK(combinaisons.size()==8);
+	CHECK(combinaisons.size()==3);
 	theGridSystem.ResetTest();
 	combinaisons = theGridSystem.LookForCombinaison(1);
-	CHECK(combinaisons.size()==19);
+	CHECK(combinaisons.size()==4);
 }
 
