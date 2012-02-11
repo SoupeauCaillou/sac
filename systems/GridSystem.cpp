@@ -184,7 +184,7 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 
 void GridSystem::DoUpdate(float dt) {
 	std::vector<Combinais> combinaisons;
-	combinaisons = LookForCombinaison(2);
+	combinaisons = LookForCombinaison(3);
 
 	if (combinaisons.size()>0){
 		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
