@@ -65,7 +65,7 @@ class ComponentSystem {
 			typename std::map<Entity, T*>::iterator it = components.find(actor);
 			if (it != components.end()) {
 				components.erase(it);
-				delete *it;
+				delete it->second;
 			}
 		}
 		

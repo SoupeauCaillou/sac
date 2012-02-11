@@ -10,7 +10,7 @@
 INSTANCE_IMPL(GridSystem);
 	
 GridSystem::GridSystem() : ComponentSystem<GridComponent>("Grid") { 
-	GridSize=8;
+	GridSize=10;
 }
 
 Entity GridSystem::GetOnPos(int i, int j) {
@@ -193,7 +193,8 @@ void GridSystem::TileFall() {
 			/* is below is empty, fall down*/
 			if (!GetOnPos(i-1,j)){
 				Entity e =GetOnPos(i,j);
-				GRID(e)->column--;
+				if (e)
+					GRID(e)->column--;
 			}
 		}
 	}
@@ -202,35 +203,38 @@ void GridSystem::DoUpdate(float dt) {
 	std::vector<Combinais> combinaisons;
 	combinaisons = LookForCombinaison(3);
 
-	//if (combinaisons.size()>0){
-		//for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
-		//{
-			//std::cout << it->type;
-			//for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
-			//{
-				//std::cout << "\t(" <<itV->X << ", "<< itV->Y << ")";
-			//}
-			//std::cout << std::endl;
+	if (combinaisons.size()>0){
+		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
+		{
+			std::cout << it->type;
+			for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
+			{
+				std::cout << "\t(" <<itV->X << ", "<< itV->Y << ")";
+			}
+			std::cout << std::endl;
 			
-		//}
-	//}
+		}
+	}
 	if (combinaisons.size()>0){
 		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
 		{
 			for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
 			{
+				std::cout << "suppression en ("<<itV->X<<","<<itV->Y<<")\n";
 				Entity e = GetOnPos(itV->X,itV->Y);
-				theRenderingSystem.Delete(GetOnPos(itV->X,itV->Y));
-				theTransformationSystem.Delete(GetOnPos(itV->X,itV->Y));
-				theADSRSystem.Delete(GetOnPos(itV->X,itV->Y));
-				theGridSystem.Delete(e);
+				if (e){
+					theRenderingSystem.Delete(e);
+					theTransformationSystem.Delete(e);
+					theADSRSystem.Delete(e);
+					theGridSystem.Delete(e);
+				}
 			}
 		}
 	}
 	
 	combinaisons.clear();
 			
-	TileFall();
+	//TileFall();
 			
 
 	
