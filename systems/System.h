@@ -3,10 +3,15 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "DebugRenderingManager.h"
 
 #define Entity unsigned long
+#define EntityInvalidyBit 0x70000000
+
+#define IS_VALID(e) (!(e & EntityInvalidyBit))
+#define DESTROY(e) (e |= EntityInvalidyBit)
 
 #define SINGLETON(T) static T& GetInstance() { if (_instance == NULL) _instance = new T(); return (*_instance); } 
 #define INSTANCE_DECL(T) static T* _instance;
@@ -24,7 +29,7 @@
 	class type##System : public ComponentSystem<type##Component> {	\
 		public:	\
 			static type##System& GetInstance() { if (_instance == NULL) _instance = new type##System(); return (*_instance); } \
-			void Update(float dt) {  if(active) DoUpdate(dt); }	\
+			void Update(float dt) {  RemoveInvalidEntitiesComponent(); if(active) DoUpdate(dt); }	\
 		\
 		protected:\
 			void DoUpdate(float dt); \
@@ -41,7 +46,7 @@
 			} \
 			return (*_instance); \
 			}\
-			void Update(float dt) {  if(active) DoUpdate(dt); }	\
+			void Update(float dt) {  RemoveInvalidEntitiesComponent(); if(active) DoUpdate(dt); }	\
 			void Render(); \
 		\
 		protected:\
@@ -68,14 +73,31 @@ class ComponentSystem {
 				delete *it;
 			}
 		}
-		
+
 		T* Get(Entity actor) {
+			if (!IS_VALID(actor)) {
+				std::cerr << tag << ": invalid entity request: " << actor << std::endl;
+				return 0;
+			}
 			typename std::map<Entity, T*>::iterator it = components.find(actor);
 			if (it == components.end()) {
 				// std::cout << "Actor " << actor << " has no component of type " << tag << std::endl;
 				return 0;
 			}
 			return (*it).second;
+		}
+
+		void RemoveInvalidEntitiesComponent() {
+			for(ComponentIt it=components.begin(); it!=components.end();) {
+				if (!IS_VALID((*it).first)) {
+					ComponentIt jt = it;
+					it++;
+					delete (*jt).second;
+					components.erase(jt);					
+				} else {
+					it++;
+				}
+			}
 		}
 		
 		std::vector<Entity> RetrieveAllActorWithComponent() {
