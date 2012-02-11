@@ -75,6 +75,9 @@ std::vector<Combinais> GridSystem::MergeCombinaison(std::vector<Combinais> combi
 
 std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) { 
 	std::vector<Combinais> combinaisons;
+
+	ResetTest();
+
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		GridComponent* gc = (*it).second;
