@@ -11,8 +11,8 @@ static void initGrid(char* type, int size)
 		for(int i=0; i<size; i++) {
 			Entity e =  i * size + j + 1;
 			theGridSystem.Add(e);
-			GRID(e)->row = i;
-			GRID(e)->column = j;
+			GRID(e)->i = i;
+			GRID(e)->j = j;
 			GRID(e)->type = *type++;
 			//std::cout << "("<<i<<";"<<j<<") : "<<	GRID(e)->type << "\t";
 		}

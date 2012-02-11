@@ -4,23 +4,23 @@
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
 #include "ADSRSystem.h"
-
+#include "HUDManager.h"
 				
 				
 INSTANCE_IMPL(GridSystem);
 	
 GridSystem::GridSystem() : ComponentSystem<GridComponent>("Grid") { 
-	GridSize=10;
+	GridSize=8;
 }
 
 Entity GridSystem::GetOnPos(int i, int j) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		GridComponent* bc = (*it).second;
-		if (bc->row == i && bc->column == j)
+		if (bc->i == i && bc->j == j)
 			return a;
 	}
-	std::cout << "Aucun element en position (" << i << ","<<j<<")\n";
+	//std::cout << "Aucun element en position (" << i << ","<<j<<")\n";
 	return 0;
 }
 	
@@ -86,12 +86,12 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		GridComponent* gc = (*it).second;
-		int i=gc->row;
-		int j=gc->column;
+		int i=gc->i;
+		int j=gc->j;
 		Combinais potential;
 		potential.type = gc->type;
 
-		/*Check on column*/
+		/*Check on j*/
 		if (!gc->checkedV) {
 			Combinais potential;
 			potential.type = gc->type;
@@ -135,7 +135,7 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 			gc->checkedV = true;
 		} 
 		
-		/*Check on row*/
+		/*Check on i*/
 		if (!gc->checkedH) {
 			Combinais potential;
 			potential.type = gc->type;
@@ -188,13 +188,22 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 }
 
 void GridSystem::TileFall() {
-	for (int i=1; i<GridSize; i++) {
+	for (int i=0; i<GridSize; i++) {
 		for (int j=0; j<GridSize; j++) {
-			/* is below is empty, fall down*/
-			if (!GetOnPos(i-1,j)){
-				Entity e =GetOnPos(i,j);
-				if (e)
-					GRID(e)->column--;
+			/* if below is empty, fall down*/
+			if (!GetOnPos(i,j)){
+				//std::cout << i << " " << j << " est vide\n";
+				int k=j+1;
+				while (k<GridSize){
+					Entity e =GetOnPos(i,k);
+					if (e){
+						//std::cout << i << " " << k << " fera l'affaire \n";
+						GRID(e)->j = j;
+						k=GridSize;
+					} else {
+						k++;
+					}
+				}
 			}
 		}
 	}
@@ -206,7 +215,7 @@ void GridSystem::DoUpdate(float dt) {
 	if (combinaisons.size()>0){
 		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
 		{
-			std::cout << it->type;
+			std::cout << it->points.size();
 			for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
 			{
 				std::cout << "\t(" <<itV->X << ", "<< itV->Y << ")";
@@ -218,6 +227,7 @@ void GridSystem::DoUpdate(float dt) {
 	if (combinaisons.size()>0){
 		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
 		{
+			//HUDManager.ScoreCalc(it->points.size());
 			for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
 			{
 				std::cout << "suppression en ("<<itV->X<<","<<itV->Y<<")\n";
@@ -230,11 +240,11 @@ void GridSystem::DoUpdate(float dt) {
 				}
 			}
 		}
+		TileFall();
 	}
 	
 	combinaisons.clear();
 			
-	//TileFall();
 			
 
 	

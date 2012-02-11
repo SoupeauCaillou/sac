@@ -10,13 +10,13 @@ typedef struct Combinais {
 
 struct GridComponent {
 	GridComponent() {
-		row = 0 ;
-		column = 0;
-		type = 0;
+		i = -1 ;
+		j = -1;
+		type = -1;
 		checkedV = false;
 		checkedH = false;
 	}
-	int row, column, type;
+	int i, j, type;
 	bool checkedV, checkedH;
 
 };
