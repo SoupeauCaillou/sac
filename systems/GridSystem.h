@@ -49,5 +49,8 @@ bool InVect(std::vector<Vector2> v1, Vector2 v2);
 /* Merge 2 vector*/
 Combinais MergeVectors(Combinais c1, Combinais c2);
 
+/* Leaves fall if nothing below them */
+void TileFall();
+
 int GridSize;
 };

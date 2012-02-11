@@ -14,6 +14,7 @@ Entity GridSystem::GetOnPos(int i, int j) {
 		if (bc->row == i && bc->column == j)
 			return a;
 	}
+	std::cout << "Aucun element en position (" << i << ","<<j<<")\n";
 	return 0;
 }
 	
@@ -75,8 +76,6 @@ std::vector<Combinais> GridSystem::MergeCombinaison(std::vector<Combinais> combi
 
 std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) { 
 	std::vector<Combinais> combinaisons;
-
-	ResetTest();
 
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
@@ -182,6 +181,17 @@ std::vector<Combinais> GridSystem::LookForCombinaison(int nbmin) {
 	return MergeCombinaison(combinaisons);
 }
 
+void GridSystem::TileFall() {
+	for (int i=1; i<GridSize; i++) {
+		for (int j=0; j<GridSize; j++) {
+			/* is below is empty, fall down*/
+			if (!GetOnPos(i-1,j)){
+				Entity e =GetOnPos(i,j);
+				GRID(e)->column--;
+			}
+		}
+	}
+}
 void GridSystem::DoUpdate(float dt) {
 	std::vector<Combinais> combinaisons;
 	combinaisons = LookForCombinaison(2);
@@ -200,6 +210,7 @@ void GridSystem::DoUpdate(float dt) {
 	}
 	combinaisons.clear();
 			
+	TileFall();
 			
 			/*Traitement des combinaions*/
 
