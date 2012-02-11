@@ -1,6 +1,12 @@
 #include <iostream>
 #include "GridSystem.h"
 
+#include "TransformationSystem.h"
+#include "RenderingSystem.h"
+#include "ADSRSystem.h"
+
+				
+				
 INSTANCE_IMPL(GridSystem);
 	
 GridSystem::GridSystem() : ComponentSystem<GridComponent>("Grid") { 
@@ -196,36 +202,37 @@ void GridSystem::DoUpdate(float dt) {
 	std::vector<Combinais> combinaisons;
 	combinaisons = LookForCombinaison(3);
 
+	//if (combinaisons.size()>0){
+		//for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
+		//{
+			//std::cout << it->type;
+			//for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
+			//{
+				//std::cout << "\t(" <<itV->X << ", "<< itV->Y << ")";
+			//}
+			//std::cout << std::endl;
+			
+		//}
+	//}
 	if (combinaisons.size()>0){
 		for ( std::vector<Combinais>::reverse_iterator it = combinaisons.rbegin(); it != combinaisons.rend(); ++it )
 		{
-			std::cout << it->type;
 			for ( std::vector<Vector2>::reverse_iterator itV = (it->points).rbegin(); itV != (it->points).rend(); ++itV )
 			{
-				std::cout << "\t(" <<itV->X << ", "<< itV->Y << ")";
+				Entity e = GetOnPos(itV->X,itV->Y);
+				theRenderingSystem.Delete(GetOnPos(itV->X,itV->Y));
+				theTransformationSystem.Delete(GetOnPos(itV->X,itV->Y));
+				theADSRSystem.Delete(GetOnPos(itV->X,itV->Y));
+				theGridSystem.Delete(e);
 			}
-			std::cout << std::endl;
-			
 		}
 	}
+	
 	combinaisons.clear();
 			
 	TileFall();
 			
-			/*Traitement des combinaions*/
 
-			/*for (int i=0; i<it->size;i++){
-				Entity cour;
-				if (it->size<0)
-					cour = GetOnPos(it->origine.X+i,it->origine.Y);
-				else
-					cour = GetOnPos(it->origine.X,it->origine.Y+i);
-
-			//	RENDERING(cour)->texture = theRenderingSystem.loadTextureFile("1.png");
-			}
-			//it.pop_back()*/
-		
-	
 	
 	
 }
