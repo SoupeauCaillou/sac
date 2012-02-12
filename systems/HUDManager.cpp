@@ -87,7 +87,7 @@ void HUDManager::Update(float dt) {
 	int minute = ((int)datas->time)/60;
 	int seconde = ((int)datas->time)%60;
 	a << minute << ":" << seconde;
-	std::cout << a.str() << std::endl;
+	// std::cout << a.str() << std::endl;
 	TEXT_RENDERING(datas->eTime)->text = a.str();	
 }
 
