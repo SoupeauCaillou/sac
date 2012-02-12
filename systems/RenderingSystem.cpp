@@ -114,13 +114,6 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 }
 
 void RenderingSystem::DoUpdate(float dt) {
-	static const GLfloat squareUvs[] = {
-		.0, 0.0,
-		1.0,0.0,
-		.0, 1.0,
-		1.0, 1.0,
-	};
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -144,7 +137,7 @@ void RenderingSystem::DoUpdate(float dt) {
 			glBindTexture(GL_TEXTURE_2D, textures[rc->texture]);
 		}
 		else {
-			glDisable(GL_TEXTURE_2D);
+			continue;
 		}
 
 		Vector2 hSize(rc->size * 0.5f);
@@ -154,6 +147,13 @@ void RenderingSystem::DoUpdate(float dt) {
 				-hSize.X, hSize.Y,0.,
 				hSize.X, hSize.Y,0.
 			};
+
+		const GLfloat squareUvs[] = {
+			rc->bottomLeftUV.X, rc->bottomLeftUV.Y,
+			rc->topRightUV.X,rc->bottomLeftUV.Y,
+			rc->bottomLeftUV.X, rc->topRightUV.Y,
+			rc->topRightUV.X, rc->topRightUV.Y
+		};
 
 		glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices);
 		glEnableVertexAttribArray(ATTRIB_VERTEX);
