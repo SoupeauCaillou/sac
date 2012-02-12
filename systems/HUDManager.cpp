@@ -58,7 +58,8 @@ void HUDManager::Update(float dt) {
 	datas->time += dt;
 
 	std::stringstream a;
-	a << datas->score;
+	a.precision(0);
+	a << std::fixed << datas->score;
 	TEXT_RENDERING(datas->eScore)->text = a.str();	
 	//std::cout << datas->score << std::endl;
 }
