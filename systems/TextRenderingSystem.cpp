@@ -27,7 +27,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->bottomLeftUV = jt->second;
 				rc->topRightUV = jt->second + trc->uvSize;
 				rc->size = trc->charSize;
-				TRANSFORM(trc->drawing[i])->worldPosition = tf->worldPosition + Vector2(trc->charSize.X, 0);
+				TRANSFORM(trc->drawing[i])->worldPosition = tf->worldPosition + Vector2(i*trc->charSize.X, 0);
 			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
