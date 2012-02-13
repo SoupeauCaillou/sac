@@ -2,6 +2,8 @@
 #include "systems/TextRenderingSystem.h"
 #include "systems/RenderingSystem.h"
 #include "systems/TransformationSystem.h"
+#include "base/EntityManager.h"
+
 #include <iostream>
 #include <sstream>
 class HUDManager::HUDManagerData {
@@ -28,7 +30,7 @@ class HUDManager::HUDManagerData {
 				char2UV['.'] = Vector2(11 / (float)count, 0);
 				char2UV['s'] = Vector2(12 / (float)count, 0);
 
-				eScore = 10000; // EntityManager.CreateEntity..
+				eScore = theEntityManager.CreateEntity();
 				theTransformationSystem.Add(eScore);
 				theTextRenderingSystem.Add(eScore);
 				TEXT_RENDERING(eScore)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
@@ -37,14 +39,14 @@ class HUDManager::HUDManagerData {
 				TEXT_RENDERING(eScore)->char2UV = char2UV;
 				// max score size 10 numbers
 				for(int i=0; i<10; i++) {
-					Entity e = 10001 + i;
+					Entity e = theEntityManager.CreateEntity();
 					theTransformationSystem.Add(e);
 					TRANSFORM(e)->parent = eScore;
 					theRenderingSystem.Add(e);
 					TEXT_RENDERING(eScore)->drawing.push_back(e);
 				}
 				
-				eTime = 20000;
+				eTime = theEntityManager.CreateEntity();
 				theTransformationSystem.Add(eTime);
 				theTextRenderingSystem.Add(eTime);
 				TEXT_RENDERING(eTime)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
@@ -53,7 +55,7 @@ class HUDManager::HUDManagerData {
 				TEXT_RENDERING(eTime)->char2UV = char2UV;
 				// max time size 10 numbers
 				for(int i=0; i<10; i++) {
-					Entity e = 20001 + i;
+					Entity e = theEntityManager.CreateEntity();
 					theTransformationSystem.Add(e);
 					TRANSFORM(e)->parent = eTime;
 					theRenderingSystem.Add(e);
