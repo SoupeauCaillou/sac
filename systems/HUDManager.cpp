@@ -92,6 +92,7 @@ void HUDManager::Update(float dt) {
 	std::stringstream a;
 	int minute = ((int)datas->time)/60;
 	int seconde= ((int)datas->time)%60;
+	// faudrait que a soit de la forme xx:xx s, meme 01:03 s
 	a << minute << ":" << seconde << " s";
 	TEXT_RENDERING(datas->eTime)->text = a.str();	
 	}
