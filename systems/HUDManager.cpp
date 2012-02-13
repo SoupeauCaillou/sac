@@ -12,34 +12,34 @@ class HUDManager::HUDManagerData {
 				niveau = 1;
 				multiplier = 1;
 
-
+				int count = 13;
 				std::map<char, Vector2> char2UV;
-				char2UV['0'] = Vector2(0, 0);
-				char2UV['1'] = Vector2(1/16., 0);
-				char2UV['2'] = Vector2(2/16., 0);
-				char2UV['3'] = Vector2(3/16., 0);
-				char2UV['4'] = Vector2(4/16., 0);
-				char2UV['5'] = Vector2(5/16., 0);
-				char2UV['6'] = Vector2(6/16., 0);
-				char2UV['7'] = Vector2(7/16., 0);
-				char2UV['8'] = Vector2(8/16., 0);
-				char2UV['9'] = Vector2(9/16., 0);
-				char2UV[':'] = Vector2(10/16., 0);
-				char2UV['.'] = Vector2(11/16., 0);
-								
-				
-				
+				char2UV['0'] = Vector2(0 / (float)count, 0);
+				char2UV['1'] = Vector2(1 / (float)count, 0);
+				char2UV['2'] = Vector2(2 / (float)count, 0);
+				char2UV['3'] = Vector2(3 / (float)count, 0);
+				char2UV['4'] = Vector2(4 / (float)count, 0);
+				char2UV['5'] = Vector2(5 / (float)count, 0);
+				char2UV['6'] = Vector2(6 / (float)count, 0);
+				char2UV['7'] = Vector2(7 / (float)count, 0);
+				char2UV['8'] = Vector2(8 / (float)count, 0);
+				char2UV['9'] = Vector2(9 / (float)count, 0);
+				char2UV[':'] = Vector2(10 / (float)count, 0);
+				char2UV['.'] = Vector2(11 / (float)count, 0);
+				char2UV['s'] = Vector2(12 / (float)count, 0);
+
 				eScore = 10000; // EntityManager.CreateEntity..
 				theTransformationSystem.Add(eScore);
 				theTextRenderingSystem.Add(eScore);
 				TEXT_RENDERING(eScore)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
-				TEXT_RENDERING(eScore)->uvSize = Vector2(0.0625, 1);
-				TEXT_RENDERING(eScore)->charSize = Vector2(1, 1);
+				TEXT_RENDERING(eScore)->uvSize = Vector2(1.0 / count, 1);
+				TEXT_RENDERING(eScore)->charSize = Vector2(0.5, 1);
 				TEXT_RENDERING(eScore)->char2UV = char2UV;
 				// max score size 10 numbers
 				for(int i=0; i<10; i++) {
-					Entity e = 10000 + i;
+					Entity e = 10001 + i;
 					theTransformationSystem.Add(e);
+					TRANSFORM(e)->parent = eScore;
 					theRenderingSystem.Add(e);
 					TEXT_RENDERING(eScore)->drawing.push_back(e);
 				}
@@ -48,13 +48,14 @@ class HUDManager::HUDManagerData {
 				theTransformationSystem.Add(eTime);
 				theTextRenderingSystem.Add(eTime);
 				TEXT_RENDERING(eTime)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
-				TEXT_RENDERING(eTime)->uvSize = Vector2(0.1, 1);
-				TEXT_RENDERING(eTime)->charSize = Vector2(1, 1);
+				TEXT_RENDERING(eTime)->uvSize = Vector2(1.0 / count, 1);
+				TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
 				TEXT_RENDERING(eTime)->char2UV = char2UV;
 				// max time size 10 numbers
 				for(int i=0; i<10; i++) {
-					Entity e = 20000 + i;
+					Entity e = 20001 + i;
 					theTransformationSystem.Add(e);
+					TRANSFORM(e)->parent = eTime;
 					theRenderingSystem.Add(e);
 					TEXT_RENDERING(eTime)->drawing.push_back(e);
 				}				
@@ -79,15 +80,16 @@ void HUDManager::ScoreCalc(int nb) {
 void HUDManager::Update(float dt) {
 	datas->time += dt;
 
+	{
 	std::stringstream a;
 	a.precision(0);
 	a << std::fixed << datas->score;
 	TEXT_RENDERING(datas->eScore)->text = a.str();	
-	
-	int minute = ((int)datas->time)/60;
-	int seconde = ((int)datas->time)%60;
-	a << minute << ":" << seconde;
-	// std::cout << a.str() << std::endl;
+	}
+	{
+	std::stringstream a;
+	a << (int)datas->time << " s";
 	TEXT_RENDERING(datas->eTime)->text = a.str();	
+	}
 }
 
