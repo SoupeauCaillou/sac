@@ -13,7 +13,7 @@
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
 #define SYSTEM(type) \
-	class type##System : public ComponentSystem<type##Component> {	\
+	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
 			static type##System& GetInstance() { if (_instance == NULL) _instance = new type##System(); return (*_instance); } \
 		private:	\
@@ -21,7 +21,7 @@
 			static type##System* _instance;
 			
 #define UPDATABLE_SYSTEM(type) \
-	class type##System : public ComponentSystem<type##Component> {	\
+	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
 			static type##System& GetInstance() { if (_instance == NULL) _instance = new type##System(); return (*_instance); } \
 			void Update(float dt) {  if(active) DoUpdate(dt); }	\
@@ -33,7 +33,7 @@
 			static type##System* _instance;
 
 #define UPDATABLE_RENDERABLE_SYSTEM(type) \
-	class type##System : public ComponentSystem<type##Component>, public Renderable {	\
+	class type##System : public ComponentSystemImpl<type##Component>, public Renderable {	\
 		public:	\
 			static type##System& GetInstance() { if (_instance == NULL) {\
 				_instance = new type##System(); \
@@ -49,11 +49,17 @@
 		private:	\
 			type##System();	\
 			static type##System* _instance;
-			
-template <typename T> 
+		
 class ComponentSystem {
 	public:
-		ComponentSystem(const std::string& t) : tag(t) { 
+		virtual void Add(Entity actor) = 0;
+		virtual void Delete(Entity actor) = 0;
+};
+	
+template <typename T> 
+class ComponentSystemImpl: public ComponentSystem {
+	public:
+		ComponentSystemImpl(const std::string& t) : tag(t) { 
 			Activate();
 		}
 		

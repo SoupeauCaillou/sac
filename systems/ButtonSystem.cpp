@@ -7,7 +7,7 @@
 
 	INSTANCE_IMPL(ButtonSystem);
 	
-	ButtonSystem::ButtonSystem() : ComponentSystem<ButtonComponent>("button") { }
+	ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("button") { }
 	
 	void ButtonSystem::DoUpdate(float dt) {
 		bool touch = theTouchInputManager.isTouched();

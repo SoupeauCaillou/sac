@@ -3,7 +3,7 @@
 
 INSTANCE_IMPL(ADSRSystem);
 	
-ADSRSystem::ADSRSystem() : ComponentSystem<ADSRComponent>("adsr") { }
+ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("adsr") { }
 	
 void ADSRSystem::DoUpdate(float dt) {			
 	for(std::map<Entity, ADSRComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {

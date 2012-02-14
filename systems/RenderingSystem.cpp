@@ -17,7 +17,7 @@ enum {
     NUM_ATTRIBS
 };
 	
-RenderingSystem::RenderingSystem() : ComponentSystem<RenderingComponent>("rendering") { 
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") { 
 	nextValidRef = 1;
 }
 

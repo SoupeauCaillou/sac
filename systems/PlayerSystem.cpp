@@ -2,7 +2,7 @@
 
 INSTANCE_IMPL(PlayerSystem);
 	
-PlayerSystem::PlayerSystem() : ComponentSystem<PlayerComponent>("player_") { 
+PlayerSystem::PlayerSystem() : ComponentSystemImpl<PlayerComponent>("player_") { 
 }
 
 void PlayerSystem::DoUpdate(float dt) {
