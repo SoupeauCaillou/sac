@@ -129,6 +129,10 @@ void RenderingSystem::DoUpdate(float dt) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		RenderingComponent* rc = (*it).second;
+		
+		if (rc->hide)
+			continue;
+
 		const TransformationComponent* tc = TRANSFORM(a);
 
 		if (rc->texture > 0)

@@ -8,11 +8,13 @@
 #include "RenderingSystem.h"
 
 struct TextRenderingComponent {
+	TextRenderingComponent() : text(""), hide(false) {}
 	std::string text;
 	TextureRef fontBitmap;
 	std::map<char, Vector2> char2UV;
 	Vector2 uvSize;
 	Vector2 charSize;
+	bool hide;
 
 	std::vector<Entity> drawing;
 };

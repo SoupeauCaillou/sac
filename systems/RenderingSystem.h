@@ -11,10 +11,11 @@ typedef char* (*DecompressPNGImagePtr) (const char* assetName, int* width, int* 
 typedef char* (*LoadShaderPtr) (const char* assetName);
 
 struct RenderingComponent {
-	RenderingComponent() : size(1.0f, 1.0f), bottomLeftUV(0, 0), topRightUV(1, 1) {}
+	RenderingComponent() : size(1.0f, 1.0f), bottomLeftUV(0, 0), topRightUV(1, 1), hide(false) {}
 	Vector2 size;
 	Vector2 bottomLeftUV, topRightUV;
 	TextureRef texture;
+	bool hide;
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
