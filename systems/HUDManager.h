@@ -1,5 +1,6 @@
 #pragma once
 #include "System.h"
+#include "PlayerSystem.h"
 
 class HUDManager {
 	public:
@@ -10,6 +11,8 @@ class HUDManager {
 		
 		void ScoreCalc(int nb);
 
+		void Hide(bool toHide);
+		
 	private:
 		class HUDManagerData;
 		HUDManagerData* datas;

@@ -23,4 +23,8 @@ struct TextRenderingComponent {
 #define TEXT_RENDERING(e) theTextRenderingSystem.Get(e)
 
 UPDATABLE_SYSTEM(TextRendering)
+
+public :
+	Entity CreateLocalEntity(int maxSymbol);
+
 };
