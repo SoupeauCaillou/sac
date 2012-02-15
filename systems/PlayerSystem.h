@@ -3,6 +3,7 @@
 #include "System.h"
 #include "base/EntityManager.h"
 #include <iostream>
+#include "base/MathUtil.h"
 
 struct PlayerComponent {
 	PlayerComponent() {
@@ -10,10 +11,15 @@ struct PlayerComponent {
 		isReadyToStart = false;
 		time = 0.;
 		level = 1;
-		multiplier = 1.;
+		bonus = MathUtil::RandomInt(8)+1;
+		for (int i=0;i<50;i++)
+			obj[i]=3+i;
+			
+		for (int i=0; i<8;i++)
+			remain[i]=obj[0];
 	}
-	int score, level;
-	float time, multiplier;
+	int score, level, obj[50], remain[8], bonus;
+	float time;
 	bool isReadyToStart;
 };
 
@@ -24,12 +30,24 @@ struct PlayerComponent {
 UPDATABLE_SYSTEM(Player)
 
 public : 
+	void SetTime(float t);
 
 	float GetTime();
 	
 	int GetScore();
-	 
-	void ScoreCalc(int nb);
+	
+	int GetBonus();
+	
+	void ScoreCalc(int nb, int type);
 	
 	void Reset();
+	
+	int GetRemain(int type);
+	
+	int GetObj();
+	
+	void LevelUp();
+
+	int GetLevel();
+
 };

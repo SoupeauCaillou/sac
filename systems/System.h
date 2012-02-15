@@ -112,4 +112,4 @@ class ComponentSystemImpl: public ComponentSystem {
 		float activationTime;
 };
 
-#define TIMELIMIT 60.
+#define TIMELIMIT 45.

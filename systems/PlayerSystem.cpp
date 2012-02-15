@@ -5,6 +5,12 @@ INSTANCE_IMPL(PlayerSystem);
 PlayerSystem::PlayerSystem() : ComponentSystemImpl<PlayerComponent>("player_") { 
 }
 
+int PlayerSystem::GetBonus() {
+	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+	if (vec.size()==1) return PLAYER(vec[0])->bonus;
+	else return 0;
+}	
+
 int PlayerSystem::GetScore() {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
 	if (vec.size()==1) return PLAYER(vec[0])->score;
@@ -17,6 +23,30 @@ float PlayerSystem::GetTime() {
 	else return 0;
 }
 
+void PlayerSystem::SetTime(float nouv) {
+	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+	if (vec.size()==1) PLAYER(vec[0])->time=nouv;
+}
+
+int PlayerSystem::GetRemain(int type) {
+	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+	if (vec.size()==1) return PLAYER(vec[0])->remain[type];
+	else return 0;	
+}
+
+int PlayerSystem::GetObj() {
+	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+	if (vec.size()==1) return PLAYER(vec[0])->obj[PLAYER(vec[0])->level-1];
+	else return 0;	
+}
+
+int PlayerSystem::GetLevel() {
+	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+	if (vec.size()==1) return PLAYER(vec[0])->level;
+	else return 0;	
+}	
+
+
 void PlayerSystem::Reset() {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
 	if (vec.size()==1)
@@ -25,14 +55,29 @@ void PlayerSystem::Reset() {
 	
 	PLAYER(vec[0])->isReadyToStart = false;
 	PLAYER(vec[0])->level = 1;
-	PLAYER(vec[0])->multiplier = 1;
+	PLAYER(vec[0])->bonus = MathUtil::RandomInt(8)+1;
+
+	for (int i=0;i<8;i++) PLAYER(vec[0])->remain[i]=PLAYER(vec[0])->obj[0];
+
 }
 
-void PlayerSystem::ScoreCalc(int nb) {
+void PlayerSystem::ScoreCalc(int nb, int type) {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
 	
-	if (vec.size()==1)		PLAYER(vec[0])->score += PLAYER(vec[0])->level*nb*PLAYER(vec[0])->multiplier;
-	else 	std::cout << "Il y n'y a pas 1 seul personne dans le playersystem\n";
+	if (vec.size()==1) {
+		if (type == PLAYER(vec[0])->bonus)
+			PLAYER(vec[0])->score += 10*PLAYER(vec[0])->level*nb*2;
+		else
+			PLAYER(vec[0])->score += 10*PLAYER(vec[0])->level*nb;
+	
+		PLAYER(vec[0])->remain[type-1] -= nb;
+		PLAYER(vec[0])->time -= 2;
+		if (PLAYER(vec[0])->time < 0)
+			PLAYER(vec[0])->time = 0;
+			
+		if (PLAYER(vec[0])->remain[type-1]<0)
+			PLAYER(vec[0])->remain[type-1]=0;
+	} else 	std::cout << "Il y n'y a pas 1 seul personne dans le playersystem\n";
 }
 
 
@@ -40,4 +85,25 @@ void PlayerSystem::DoUpdate(float dt) {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
 	if (vec.size()==1)		PLAYER(vec[0])->time += dt;
 	else	std::cout << "Il y n'y a pas 1 seul personne dans le playersystem\n";
+	LevelUp();
+}
+
+void PlayerSystem::LevelUp() {
+	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+	if (vec.size()!=1) std::cout << "Il y n'y a pas 1 seul personne dans le playersystem\n";
+	else {
+		int match = 1, i=0;
+		while (match && i<8) {
+			if (PLAYER(vec[0])->remain[i] != 0)
+				match=0;
+			i++;
+		}
+		if (match) {
+			PLAYER(vec[0])->level++;
+			std::cout << "Level up to level " << PLAYER(vec[0])->level << std::endl;
+			PLAYER(vec[0])->bonus = MathUtil::RandomInt(8)+1;
+			for (int i=0;i<8;i++) 
+				PLAYER(vec[0])->remain[i] = PLAYER(vec[0])->obj[PLAYER(vec[0])->level-1];
+		}
+	}	
 }
