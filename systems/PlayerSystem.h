@@ -33,21 +33,20 @@ public :
 	void SetTime(float t);
 
 	float GetTime();
-	
+
 	int GetScore();
-	
+
 	int GetBonus();
 	
 	void ScoreCalc(int nb, int type);
-	
+
 	void Reset();
-	
+
 	int GetRemain(int type);
-	
+
 	int GetObj();
-	
+
 	void LevelUp();
 
 	int GetLevel();
-
 };

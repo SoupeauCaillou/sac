@@ -25,9 +25,9 @@ void HUDManager::Setup() {
 	
 	datas->eScore = theTextRenderingSystem.CreateLocalEntity(10);
 	datas->eTime = theTextRenderingSystem.CreateLocalEntity(10);
-	datas->eFPS = theTextRenderingSystem.CreateLocalEntity(10);		
-	datas->eLevel = theTextRenderingSystem.CreateLocalEntity(10);		
-				
+	datas->eFPS = theTextRenderingSystem.CreateLocalEntity(10);
+	datas->eLevel = theTextRenderingSystem.CreateLocalEntity(10);
+
 	TRANSFORM(datas->eLevel)->position = Vector2(5, 8);
 	TRANSFORM(datas->eScore)->position = Vector2(5, 7);
 	TRANSFORM(datas->eTime)->position = Vector2(0, 7);
@@ -36,7 +36,7 @@ void HUDManager::Setup() {
 	for (int i=0;i<8;i++) {
 		datas->eObj[i] = theTextRenderingSystem.CreateLocalEntity(5);
 		TRANSFORM(datas->eObj[i])->position = Vector2(i-3.5,6);
-		TEXT_RENDERING(datas->eObj[i])->charSize /= 2;		
+		TEXT_RENDERING(datas->eObj[i])->charSize /= 2;
 	}
 
 	datas->fBonus = theEntityManager.CreateEntity();
@@ -47,19 +47,17 @@ void HUDManager::Setup() {
 	TRANSFORM(datas->fBonus)->rotation = -.8;
 
 
-	TEXT_RENDERING(datas->eFPS)->charSize /= 2;		
-
+	TEXT_RENDERING(datas->eFPS)->charSize /= 2;
 }
 
 void HUDManager::Hide(bool toHide) {
-	TEXT_RENDERING(datas->eScore)->hide = toHide;	
-	TEXT_RENDERING(datas->eTime)->hide = toHide;	
-	TEXT_RENDERING(datas->eFPS)->hide = toHide;	
-	TEXT_RENDERING(datas->eLevel)->hide = toHide;	
+	TEXT_RENDERING(datas->eScore)->hide = toHide;
+	TEXT_RENDERING(datas->eTime)->hide = toHide;
+	TEXT_RENDERING(datas->eFPS)->hide = toHide;
+	TEXT_RENDERING(datas->eLevel)->hide = toHide;
 	RENDERING(datas->fBonus)->hide = toHide;
 
-	for (int i=0;i<8;i++) TEXT_RENDERING(datas->eObj[i])->hide = toHide;	
-
+	for (int i=0;i<8;i++) TEXT_RENDERING(datas->eObj[i])->hide = toHide;
 }
 
 
@@ -79,34 +77,35 @@ void HUDManager::Update(float dt) {
 	int seconde= time%60;
 	// faudrait que a soit de la forme xx:xx s, meme 01:03 s
 	a << minute << ":" << seconde << " s";
-	TEXT_RENDERING(datas->eTime)->text = a.str();	
+	TEXT_RENDERING(datas->eTime)->text = a.str();
 	}
 	//FPS
 	{
 	std::stringstream a;
 	datas->nextfps-=dt;
 	datas->frames++;
-	
+
 	if (datas->nextfps<0) {
 		datas->fps = datas->frames/FCRR;
 		datas->nextfps = FCRR;
 		datas->frames = 0;
 	}
 	a << "sss : " << datas->fps;
-	TEXT_RENDERING(datas->eFPS)->text = a.str();	
+	TEXT_RENDERING(datas->eFPS)->text = a.str();
 	}
+
 	//Level
 	{
 	std::stringstream a;
 	a << thePlayerSystem.GetLevel();
-	TEXT_RENDERING(datas->eLevel)->text = a.str();	
-	}	
+	TEXT_RENDERING(datas->eLevel)->text = a.str();
+	}
 	//Objectifs
 	for (int i=0;i<8;i++)
 	{
 	std::stringstream a;
 	a << thePlayerSystem.GetRemain(i) << ":" << thePlayerSystem.GetObj();
-	TEXT_RENDERING(datas->eObj[i])->text = a.str();			
+	TEXT_RENDERING(datas->eObj[i])->text = a.str();
 	}
 	//Feuille Bonus
 	{
@@ -114,6 +113,5 @@ void HUDManager::Update(float dt) {
 	a <<thePlayerSystem.GetBonus()<<".png";	
 	RENDERING(datas->fBonus)->texture = theRenderingSystem.loadTextureFile(a.str());
 	}
-
 }
 
