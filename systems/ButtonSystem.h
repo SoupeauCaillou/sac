@@ -5,7 +5,7 @@
 
 
 	struct ButtonComponent {
-		ButtonComponent() : enabled(true), mouseOver(false) { }
+		ButtonComponent() : enabled(true), mouseOver(false), clicked(false) { }
 		
 		bool enabled;
 		bool mouseOver;
