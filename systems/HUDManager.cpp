@@ -51,7 +51,7 @@ void HUDManager::Update(float dt) {
 	//Temps
 	{
 	std::stringstream a;
-	int time = 10-thePlayerSystem.GetTime();
+	int time = TIMELIMIT-thePlayerSystem.GetTime();
 	int minute = time/60;
 	int seconde= time%60;
 	// faudrait que a soit de la forme xx:xx s, meme 01:03 s
