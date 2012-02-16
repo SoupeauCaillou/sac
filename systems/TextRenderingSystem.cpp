@@ -59,8 +59,8 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 			char2UV[' '+ columnCount*row + column] = Vector2(column / (float)columnCount, row / (float)rowCount);
 
 	Entity eTime = theEntityManager.CreateEntity();
-	theTransformationSystem.Add(eTime);
-	theTextRenderingSystem.Add(eTime);
+	ADD_COMPONENT(eTime, Transformation);
+	ADD_COMPONENT(eTime, TextRendering);
 	TEXT_RENDERING(eTime)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
 	TEXT_RENDERING(eTime)->uvSize = Vector2(1. / columnCount, 1. / rowCount);
 	TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
@@ -68,9 +68,9 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 	// max time size maxSymbol numbers
 	for(int i=0; i<maxSymbol; i++) {
 		Entity e = theEntityManager.CreateEntity();
-		theTransformationSystem.Add(e);
+		ADD_COMPONENT(e, Transformation);
 		TRANSFORM(e)->parent = eTime;
-		theRenderingSystem.Add(e);
+		ADD_COMPONENT(e, Rendering);
 		TEXT_RENDERING(eTime)->drawing.push_back(e);
 	}			
 	return eTime;

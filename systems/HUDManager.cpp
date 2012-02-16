@@ -40,8 +40,11 @@ void HUDManager::Setup() {
 	}
 
 	datas->fBonus = theEntityManager.CreateEntity();
-	theTransformationSystem.Add(datas->fBonus);
-	theRenderingSystem.Add(datas->fBonus);
+	
+	
+	ADD_COMPONENT(datas->fBonus, Transformation);
+	ADD_COMPONENT(datas->fBonus, Rendering);
+
 	RENDERING(datas->fBonus)->size = Vector2(2,2);
 	TRANSFORM(datas->fBonus)->position = Vector2(2,7.5);
 	TRANSFORM(datas->fBonus)->rotation = -.8;
