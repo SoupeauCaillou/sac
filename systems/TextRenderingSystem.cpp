@@ -50,27 +50,19 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 {
-	int count = 13;
+	int columnCount = 13;
+	int rowCount = 8;
 	std::map<char, Vector2> char2UV;
-	char2UV['0'] = Vector2(0 / (float)count, 0);
-	char2UV['1'] = Vector2(1 / (float)count, 0);
-	char2UV['2'] = Vector2(2 / (float)count, 0);
-	char2UV['3'] = Vector2(3 / (float)count, 0);
-	char2UV['4'] = Vector2(4 / (float)count, 0);
-	char2UV['5'] = Vector2(5 / (float)count, 0);
-	char2UV['6'] = Vector2(6 / (float)count, 0);
-	char2UV['7'] = Vector2(7 / (float)count, 0);
-	char2UV['8'] = Vector2(8 / (float)count, 0);
-	char2UV['9'] = Vector2(9 / (float)count, 0);
-	char2UV[':'] = Vector2(10 / (float)count, 0);
-	char2UV['.'] = Vector2(11 / (float)count, 0);
-	char2UV['s'] = Vector2(12 / (float)count, 0);
-	
+
+	for (int row=0; row<rowCount; row++)
+		for (int column=0; column<columnCount; column++)
+			char2UV[' '+ columnCount*row + column] = Vector2(column / (float)columnCount, row / (float)rowCount);
+
 	Entity eTime = theEntityManager.CreateEntity();
 	ADD_COMPONENT(eTime, Transformation);
 	ADD_COMPONENT(eTime, TextRendering);
 	TEXT_RENDERING(eTime)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
-	TEXT_RENDERING(eTime)->uvSize = Vector2(1.0 / count, 1);
+	TEXT_RENDERING(eTime)->uvSize = Vector2(1. / columnCount, 1. / rowCount);
 	TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
 	TEXT_RENDERING(eTime)->char2UV = char2UV;
 	// max time size maxSymbol numbers

@@ -46,7 +46,6 @@ int PlayerSystem::GetLevel() {
 	else return 0;	
 }	
 
-
 void PlayerSystem::Reset() {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
 	if (vec.size()==1)
