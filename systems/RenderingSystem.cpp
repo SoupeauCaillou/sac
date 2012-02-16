@@ -3,6 +3,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <algorithm>
 
 #include "TransformationSystem.h"
 
@@ -113,17 +115,36 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	return nextValidRef++;
 }
 
+struct RenderCommand {
+	float z;
+	TextureRef texture;
+	Vector2 halfSize;
+	Vector2 uv[2];
+	Color color;
+	Vector2 position;
+	float rotation;
+};
+	
+bool sortRender(const RenderCommand& r1, const RenderCommand& r2) {
+	if (r1.z == r2.z)
+		return r1.texture < r2.texture;
+	else
+		return r1.z < r2.z;
+} 
+
 void RenderingSystem::DoUpdate(float dt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_TEXTURE_2D);
 
 	glUseProgram(defaultProgram);
 	float ratio = h / (float)w ;
 	GLfloat mat[16];
 	loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
 	glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat);
+	
+	std::vector<RenderCommand> commands;
 
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
@@ -137,42 +158,81 @@ void RenderingSystem::DoUpdate(float dt) {
 
 		if (rc->texture > 0)
 		{
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, textures[rc->texture]);
+			
 		}
 		else {
 			continue;
 		}
-
-		Vector2 hSize(rc->size * 0.5f);
+		
+		RenderCommand c;
+		c.texture = textures[rc->texture];
+		c.halfSize = rc->size * 0.5f;
+		c.uv[0] = rc->bottomLeftUV;
+		c.uv[1] = rc->topRightUV;
+		c.color = rc->color;
+		c.position = tc->worldPosition;
+		c.rotation = tc->worldRotation;
+		c.z = tc->z;
+		
+		commands.push_back(c);
+	}
+	
+	std::sort(commands.begin(), commands.end(), sortRender);
+	
+	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
+		const RenderCommand& rc = *it;
+		
+		glBindTexture(GL_TEXTURE_2D, rc.texture);
+	
 		const GLfloat squareVertices[] = {
-				-hSize.X, -hSize.Y, 0.,
-				hSize.X, -hSize.Y,0.,
-				-hSize.X, hSize.Y,0.,
-				hSize.X, hSize.Y,0.
+				-rc.halfSize.X, -rc.halfSize.Y, 0.,
+				rc.halfSize.X, -rc.halfSize.Y,0.,
+				-rc.halfSize.X, rc.halfSize.Y,0.,
+				rc.halfSize.X, rc.halfSize.Y,0.
 			};
 
 		const GLfloat squareUvs[] = {
-			rc->bottomLeftUV.X, rc->bottomLeftUV.Y,
-			rc->topRightUV.X,rc->bottomLeftUV.Y,
-			rc->bottomLeftUV.X, rc->topRightUV.Y,
-			rc->topRightUV.X, rc->topRightUV.Y
+			rc.uv[0].X, rc.uv[0].Y,
+			rc.uv[1].X,rc.uv[0].Y,
+			rc.uv[0].X, rc.uv[1].Y,
+			rc.uv[1].X, rc.uv[1].Y
 		};
 
 		glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices);
 		glEnableVertexAttribArray(ATTRIB_VERTEX);
 		glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs);
 		glEnableVertexAttribArray(ATTRIB_UV);
+		float col[16];
+		for(int i=0; i<4; i++)
+			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
+		glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col);
+		glEnableVertexAttribArray(ATTRIB_COLOR);
 		float posRot[] = { 
-			tc->worldPosition.X, tc->worldPosition.Y, 0.0, tc->worldRotation,
-			tc->worldPosition.X, tc->worldPosition.Y, 0.0, tc->worldRotation,
-			tc->worldPosition.X, tc->worldPosition.Y, 0.0, tc->worldRotation,
-			tc->worldPosition.X, tc->worldPosition.Y, 0.0, tc->worldRotation
+			rc.position.X, rc.position.Y, 0, rc.rotation,
+			rc.position.X, rc.position.Y, 0, rc.rotation,
+			rc.position.X, rc.position.Y, 0, rc.rotation,
+			rc.position.X, rc.position.Y, 0, rc.rotation
 		 };
 		glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot);
 		glEnableVertexAttribArray(ATTRIB_POS_ROT);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
+}
+
+bool RenderingSystem::isEntityVisible(Entity e) {
+	const Vector2 halfSize = RENDERING(e)->size * 0.5;
+	const Vector2& pos = TRANSFORM(e)->worldPosition;
+	const float ratio = h / (float)w ;
+	
+	if (pos.X + halfSize.X < -5)
+		return false;
+	if (pos.X - halfSize.X > 5)
+		return false;
+	if (pos.Y + halfSize.Y < -5 * ratio)
+		return false;
+	if (pos.Y - halfSize.Y > 5 * ratio)
+		return false;
+	return true;
 }
 
 void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat)

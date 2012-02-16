@@ -18,6 +18,7 @@ void TransformationSystem::DoUpdate(float dt) {
 			const TransformationComponent* pbc = TRANSFORM(bc->parent);
 			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, MathUtil::ToRadians(pbc->worldRotation));
 			bc->worldRotation = pbc->worldRotation + bc->rotation;
+			bc->z = pbc->z;
 		} else {
 			bc->worldPosition = bc->position;
 			bc->worldRotation = bc->rotation;

@@ -10,11 +10,25 @@ typedef int TextureRef;
 typedef char* (*DecompressPNGImagePtr) (const char* assetName, int* width, int* height);
 typedef char* (*LoadShaderPtr) (const char* assetName);
 
+struct Color {
+	union {
+		struct {
+			float rgba[4];
+		};
+		struct {
+			float r, g, b, a;
+		};
+	};
+	
+	Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0):
+		r(_r), g(_g), b(_b), a(_a) {}
+};
 struct RenderingComponent {
 	RenderingComponent() : size(1.0f, 1.0f), bottomLeftUV(0, 0), topRightUV(1, 1), hide(false) {}
 	Vector2 size;
 	Vector2 bottomLeftUV, topRightUV;
 	TextureRef texture;
+	Color color;
 	bool hide;
 };
 
@@ -36,6 +50,8 @@ void setLoadShaderPtr(LoadShaderPtr ptr) { loadShaderPtr = ptr; }
 public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 GLuint compileShader(const std::string& assetName, GLuint type);
+
+bool isEntityVisible(Entity e);
 
 private:
 int w,h;
