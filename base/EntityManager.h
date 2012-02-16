@@ -5,6 +5,7 @@
 
 #include <map>
 #include <list>
+#define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
 
 class EntityManager {
 	private:
