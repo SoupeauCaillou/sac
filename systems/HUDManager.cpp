@@ -90,7 +90,7 @@ void HUDManager::Update(float dt) {
 		datas->nextfps = FCRR;
 		datas->frames = 0;
 	}
-	a << "sss : " << datas->fps;
+	a << "FPS : " << datas->fps;
 	TEXT_RENDERING(datas->eFPS)->text = a.str();
 	}
 
@@ -104,7 +104,7 @@ void HUDManager::Update(float dt) {
 	for (int i=0;i<8;i++)
 	{
 	std::stringstream a;
-	a << thePlayerSystem.GetRemain(i) << ":" << thePlayerSystem.GetObj();
+	a << thePlayerSystem.GetRemain(i) << "/" << thePlayerSystem.GetObj();
 	TEXT_RENDERING(datas->eObj[i])->text = a.str();
 	}
 	//Feuille Bonus
