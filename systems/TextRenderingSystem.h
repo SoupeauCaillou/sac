@@ -10,6 +10,7 @@
 struct TextRenderingComponent {
 	TextRenderingComponent() : text(""), hide(false) {}
 	std::string text;
+	Color color;
 	TextureRef fontBitmap;
 	std::map<char, Vector2> char2UV;
 	Vector2 uvSize;
