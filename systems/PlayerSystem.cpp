@@ -99,6 +99,9 @@ void PlayerSystem::LevelUp() {
 		}
 		if (match) {
 			PLAYER(vec[0])->level++;
+			PLAYER(vec[0])->time -= 20;
+			if (PLAYER(vec[0])->time < 0)
+				PLAYER(vec[0])->time = 0; 
 			std::cout << "Level up to level " << PLAYER(vec[0])->level << std::endl;
 			PLAYER(vec[0])->bonus = MathUtil::RandomInt(8)+1;
 			for (int i=0;i<8;i++) 
