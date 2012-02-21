@@ -30,7 +30,7 @@ struct PlayerComponent {
 UPDATABLE_SYSTEM(Player)
 
 public : 
-	void SetTime(float t);
+	void SetTime(float t, bool r);
 
 	float GetTime();
 

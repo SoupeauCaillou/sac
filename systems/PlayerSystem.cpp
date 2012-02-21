@@ -23,9 +23,12 @@ float PlayerSystem::GetTime() {
 	else return 0;
 }
 
-void PlayerSystem::SetTime(float nouv) {
+void PlayerSystem::SetTime(float nouv, bool reset) {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
-	if (vec.size()==1) PLAYER(vec[0])->time=nouv;
+	if (vec.size()==1) {
+		if (reset) PLAYER(vec[0])->time=nouv;
+		else PLAYER(vec[0])->time += nouv;
+	}
 }
 
 int PlayerSystem::GetRemain(int type) {
@@ -81,9 +84,6 @@ void PlayerSystem::ScoreCalc(int nb, int type) {
 
 
 void PlayerSystem::DoUpdate(float dt) {
-	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
-	if (vec.size()==1)		PLAYER(vec[0])->time += dt;
-	else	std::cout << "Il y n'y a pas 1 seul personne dans le playersystem\n";
 	LevelUp();
 }
 
