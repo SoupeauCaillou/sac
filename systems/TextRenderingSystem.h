@@ -8,14 +8,14 @@
 #include "RenderingSystem.h"
 
 struct TextRenderingComponent {
-	TextRenderingComponent() : text(""), hide(false) {}
+	TextRenderingComponent() : text(""), hide(false), alignL(false) {}
 	std::string text;
 	Color color;
 	TextureRef fontBitmap;
 	std::map<char, Vector2> char2UV;
 	Vector2 uvSize;
 	Vector2 charSize;
-	bool hide;
+	bool hide, alignL;
 
 	std::vector<Entity> drawing;
 };

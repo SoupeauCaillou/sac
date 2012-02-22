@@ -36,7 +36,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					}
 					rc->size = trc->charSize;
 					rc->color = trc->color;
-					TRANSFORM(trc->drawing[i])->position = Vector2(i*trc->charSize.X-MathUtil::Min(trc->text.length(),trc->drawing.size())*trc->charSize.X, 0);
+					if (!trc->alignL) TRANSFORM(trc->drawing[i])->position = Vector2(i*trc->charSize.X-MathUtil::Min(trc->text.length(),trc->drawing.size())*trc->charSize.X, 0);
+					else TRANSFORM(trc->drawing[i])->position = Vector2(i*trc->charSize.X, 0);
+
 				}
 			}
 		}
@@ -76,4 +78,6 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 	}			
 	return eTime;
 }
+
+
 
