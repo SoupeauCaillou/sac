@@ -14,11 +14,16 @@ LOCAL_CXXFLAGS := -DANDROID_NDK \
 LOCAL_SRC_FILES := \
     base/MathUtil.cpp \
     base/Vector2.cpp \
+    base/EntityManager.cpp \
+    base/TouchInputManager.cpp \
     systems/TransformationSystem.cpp \
     systems/RenderingSystem.cpp \
     systems/PlayerSystem.cpp \
-	systems/DebugRenderingManager.cpp
+    systems/ADSRSystem.cpp \
+    systems/ButtonSystem.cpp \
+    systems/TextRenderingSystem.cpp \
+    systems/HUDManager.cpp
 
-LOCAL_LDLIBS    += -lGLESv2 -llog -ldl
+#LOCAL_LDLIBS    += -lGLESv2 -llog
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

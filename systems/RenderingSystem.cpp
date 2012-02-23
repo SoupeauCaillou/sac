@@ -1,5 +1,6 @@
 #include "RenderingSystem.h"
 #include "../base/MathUtil.h"
+#include "../base/Log.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -42,7 +43,7 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
     {
         char *log = new char[logLength];
         glGetShaderInfoLog(shader, logLength, &logLength, log);
-        std::cout << "GL shader error: " << log << std::endl;
+        LOGW("GL shader error: %s\n", log);
  		delete[] log;
 		return 0;
     }
@@ -50,18 +51,20 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 }
 
 void RenderingSystem::init() {
+	LOGI("Compiling shaders\n");
 	GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
 	GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
-
+	
 	defaultProgram = glCreateProgram();
 	glAttachShader(defaultProgram, vs);
 	glAttachShader(defaultProgram, fs);
-
+	LOGI("Binding GLSL attribs\n");
 	glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition");
     glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord");
 	glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor");
 	glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot");
 
+	LOGI("Linking GLSL program\n");
 	glLinkProgram(defaultProgram);
  
     GLint logLength;
@@ -137,6 +140,7 @@ void RenderingSystem::DoUpdate(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
 
 	glUseProgram(defaultProgram);
 	float ratio = h / (float)w ;
@@ -151,8 +155,10 @@ void RenderingSystem::DoUpdate(float dt) {
 		Entity a = (*it).first;			
 		RenderingComponent* rc = (*it).second;
 		
-		if (rc->hide)
+		if (rc->hide) {
+			//LOGI("entity %d hidden\n", a);
 			continue;
+		}
 
 		const TransformationComponent* tc = TRANSFORM(a);
 
@@ -161,6 +167,7 @@ void RenderingSystem::DoUpdate(float dt) {
 			
 		}
 		else {
+			//LOGI("entity %d has no texture\n", a);
 			continue;
 		}
 		
@@ -213,6 +220,7 @@ void RenderingSystem::DoUpdate(float dt) {
 			rc.position.X, rc.position.Y, 0, rc.rotation,
 			rc.position.X, rc.position.Y, 0, rc.rotation
 		 };
+		 //LOGI("[%d %d] tex:%d {%.2f %.2f} {%.2f %.2f}\n", w, h, rc.texture, rc.position.X, rc.position.Y, rc.halfSize.X, rc.halfSize.Y);
 		glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot);
 		glEnableVertexAttribArray(ATTRIB_POS_ROT);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

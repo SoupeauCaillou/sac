@@ -1,4 +1,5 @@
 #include "TouchInputManager.h"
+#include "Log.h"
 
 TouchInputManager* TouchInputManager::instance = 0;
 
