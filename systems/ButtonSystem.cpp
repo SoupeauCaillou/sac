@@ -3,7 +3,7 @@
 #include "base/MathUtil.h"
 #include "RenderingSystem.h"
 #include "TransformationSystem.h"
-
+#include "base/Log.h"
 
 	INSTANCE_IMPL(ButtonSystem);
 	
@@ -13,6 +13,8 @@
 		bool touch = theTouchInputManager.isTouched();
 		const Vector2& pos = theTouchInputManager.getTouchLastPosition();
 				
+		if (touch)
+			LOGI("pos: %f %f\n", pos.X, pos.Y);
 		for(std::map<Entity, ButtonComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
 			UpdateButton((*jt).first, (*jt).second, touch, pos);
 		}
