@@ -13,8 +13,6 @@
 		bool touch = theTouchInputManager.isTouched();
 		const Vector2& pos = theTouchInputManager.getTouchLastPosition();
 				
-		if (touch)
-			LOGI("pos: %f %f\n", pos.X, pos.Y);
 		for(std::map<Entity, ButtonComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
 			UpdateButton((*jt).first, (*jt).second, touch, pos);
 		}
