@@ -52,6 +52,8 @@ void HUDManager::Setup() {
 
 	TEXT_RENDERING(datas->eFPS)->charSize /= 2;
 	TEXT_RENDERING(datas->eFPS)->color = Color(0.1, 0.5, 0.4);
+	
+	Hide(true);
 }
 
 void HUDManager::Hide(bool toHide) {
