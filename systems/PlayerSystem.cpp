@@ -5,6 +5,14 @@ INSTANCE_IMPL(PlayerSystem);
 PlayerSystem::PlayerSystem() : ComponentSystemImpl<PlayerComponent>("player_") { 
 }
 
+bool PlayerSystem::LeveledUp() {
+		std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
+
+		bool bid = PLAYER(vec[0])->levelUp;
+		PLAYER(vec[0])->levelUp = false;
+		return bid;
+}
+
 int PlayerSystem::GetBonus() {
 	std::vector<Entity> vec = thePlayerSystem.RetrieveAllActorWithComponent();
 	if (vec.size()==1) return PLAYER(vec[0])->bonus;
@@ -97,8 +105,10 @@ void PlayerSystem::LevelUp() {
 				match=0;
 			i++;
 		}
+		//si on a tous les objectifs
 		if (match) {
 			PLAYER(vec[0])->level++;
+			PLAYER(vec[0])->levelUp = true;
 			PLAYER(vec[0])->time -= 20;
 			if (PLAYER(vec[0])->time < 0)
 				PLAYER(vec[0])->time = 0; 

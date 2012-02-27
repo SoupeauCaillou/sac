@@ -8,6 +8,7 @@
 struct PlayerComponent {
 	PlayerComponent() {
 		score=0;
+		levelUp = false;
 		isReadyToStart = false;
 		time = 0.;
 		level = 1;
@@ -20,7 +21,7 @@ struct PlayerComponent {
 	}
 	int score, level, obj[50], remain[8], bonus;
 	float time;
-	bool isReadyToStart;
+	bool isReadyToStart, levelUp;
 };
 
 
@@ -38,6 +39,10 @@ public :
 
 	int GetBonus();
 	
+	void LevelUp();
+	//permet de savoir si on a change de niveau
+	bool LeveledUp();
+	
 	void ScoreCalc(int nb, int type);
 
 	void Reset();
@@ -46,7 +51,6 @@ public :
 
 	int GetObj();
 
-	void LevelUp();
 
 	int GetLevel();
 };
