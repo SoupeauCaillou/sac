@@ -30,6 +30,10 @@ void RenderingSystem::setWindowSize(int width, int height) {
 	glViewport(0, 0, w, h);
 }
 
+void RenderingSystem::reset() {
+	assetTextures.clear();
+}
+
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
 	char* source = assetLoader->loadShaderFile(assetName);
 	GLuint shader = glCreateShader(type);
@@ -51,6 +55,8 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 }
 
 void RenderingSystem::init() {
+	reset();
+
 	LOGI("Compiling shaders\n");
 	GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
 	GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
@@ -97,7 +103,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		return 0;
 
 	/* create GL texture */
-	glEnable(GL_TEXTURE_2D);
+	//glEnable(GL_TEXTURE_2D);
 
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -139,7 +145,7 @@ void RenderingSystem::DoUpdate(float dt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_TEXTURE_2D);
+	//glEnable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
 
 	glUseProgram(defaultProgram);

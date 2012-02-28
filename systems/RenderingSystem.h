@@ -56,6 +56,8 @@ GLuint compileShader(const std::string& assetName, GLuint type);
 
 bool isEntityVisible(Entity e);
 
+void reset();
+
 private:
 int w,h;
 /* textures cache */
