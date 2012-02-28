@@ -19,24 +19,24 @@ enum {
 	ATTRIB_SCALE,
     NUM_ATTRIBS
 };
-	
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") { 
+
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") {
 	nextValidRef = 1;
 }
 
 void RenderingSystem::setWindowSize(int width, int height) {
 	w = width;
 	h = height;
-	glViewport(0, 0, w, h);	
+	glViewport(0, 0, w, h);
 }
 
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
-	char* source = (*loadShaderPtr)(assetName.c_str());
+	char* source = assetLoader->loadShaderFile(assetName);
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, (const char**)&source, NULL);
 	glCompileShader(shader);
 
-	free(source);
+	delete[] source;
   	GLint logLength;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength > 1)
@@ -54,7 +54,7 @@ void RenderingSystem::init() {
 	LOGI("Compiling shaders\n");
 	GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
 	GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
-	
+
 	defaultProgram = glCreateProgram();
 	glAttachShader(defaultProgram, vs);
 	glAttachShader(defaultProgram, fs);
@@ -66,7 +66,7 @@ void RenderingSystem::init() {
 
 	LOGI("Linking GLSL program\n");
 	glLinkProgram(defaultProgram);
- 
+
     GLint logLength;
  	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength > 1)
@@ -87,11 +87,11 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	if (assetTextures.find(assetName) != assetTextures.end())
 		return assetTextures[assetName];
 
-	if (!decompressPNG)
+	if (!assetLoader)
 		return 0;
 
 	int w, h;
-	char* data = (*decompressPNG)(assetName.c_str(), &w, &h);
+	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
 
 	if (!data)
 		return 0;
@@ -127,13 +127,13 @@ struct RenderCommand {
 	Vector2 position;
 	float rotation;
 };
-	
+
 bool sortRender(const RenderCommand& r1, const RenderCommand& r2) {
 	if (r1.z == r2.z)
 		return r1.texture < r2.texture;
 	else
 		return r1.z < r2.z;
-} 
+}
 
 void RenderingSystem::DoUpdate(float dt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -147,14 +147,14 @@ void RenderingSystem::DoUpdate(float dt) {
 	GLfloat mat[16];
 	loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
 	glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat);
-	
+
 	std::vector<RenderCommand> commands;
 
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;			
+		Entity a = (*it).first;
 		RenderingComponent* rc = (*it).second;
-		
+
 		if (rc->hide) {
 			//LOGI("entity %d hidden\n", a);
 			continue;
@@ -164,13 +164,13 @@ void RenderingSystem::DoUpdate(float dt) {
 
 		if (rc->texture > 0)
 		{
-			
+
 		}
 		else {
 			//LOGI("entity %d has no texture\n", a);
 			continue;
 		}
-		
+
 		RenderCommand c;
 		c.texture = textures[rc->texture];
 		c.halfSize = rc->size * 0.5f;
@@ -180,17 +180,17 @@ void RenderingSystem::DoUpdate(float dt) {
 		c.position = tc->worldPosition;
 		c.rotation = tc->worldRotation;
 		c.z = tc->z;
-		
+
 		commands.push_back(c);
 	}
-	
+
 	std::sort(commands.begin(), commands.end(), sortRender);
-	
+
 	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		const RenderCommand& rc = *it;
-		
+
 		glBindTexture(GL_TEXTURE_2D, rc.texture);
-	
+
 		const GLfloat squareVertices[] = {
 				-rc.halfSize.X, -rc.halfSize.Y, 0.,
 				rc.halfSize.X, -rc.halfSize.Y,0.,
@@ -214,7 +214,7 @@ void RenderingSystem::DoUpdate(float dt) {
 			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
 		glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col);
 		glEnableVertexAttribArray(ATTRIB_COLOR);
-		float posRot[] = { 
+		float posRot[] = {
 			rc.position.X, rc.position.Y, 0, rc.rotation,
 			rc.position.X, rc.position.Y, 0, rc.rotation,
 			rc.position.X, rc.position.Y, 0, rc.rotation,
@@ -231,7 +231,7 @@ bool RenderingSystem::isEntityVisible(Entity e) {
 	const Vector2 halfSize = RENDERING(e)->size * 0.5;
 	const Vector2& pos = TRANSFORM(e)->worldPosition;
 	const float ratio = h / (float)w ;
-	
+
 	if (pos.X + halfSize.X < -5)
 		return false;
 	if (pos.X - halfSize.X > 5)
@@ -268,4 +268,3 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     mat[14] = tz;
     mat[15] = 1.0f;
 }
-

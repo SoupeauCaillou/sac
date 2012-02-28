@@ -3,7 +3,7 @@
 
 TouchInputManager* TouchInputManager::instance = 0;
 
-				
+
 TouchInputManager* TouchInputManager::Instance() {
 	if (instance == 0) instance = new TouchInputManager();
 	return instance;
@@ -18,7 +18,7 @@ void TouchInputManager::Update(float dt) {
 	Vector2 windowPos;
 
 	wasTouching = touching;
-	touching = ptr(&windowPos);
+	touching = ptr->isTouching(&windowPos);
 	if (touching) {
 		lastTouchedPosition = windowToWorld(windowPos, worldSize, windowSize);
 	}
@@ -29,4 +29,3 @@ Vector2 TouchInputManager::windowToWorld(const Vector2& windowCoords, const Vect
 	float y = ((windowSize.Y - windowCoords.Y) / windowSize.Y) * worldSize.Y - worldSize.Y * 0.5f;
 	return Vector2(x, y);
 }
-

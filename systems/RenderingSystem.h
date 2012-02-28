@@ -7,8 +7,12 @@
 
 typedef int TextureRef;
 
-typedef char* (*DecompressPNGImagePtr) (const char* assetName, int* width, int* height);
-typedef char* (*LoadShaderPtr) (const char* assetName);
+class NativeAssetLoader {
+	public:
+		virtual char* decompressPngImage(const std::string& assetName, int* width, int* height) = 0;
+
+		virtual char* loadShaderFile(const std::string& assetName) = 0;
+};
 
 struct Color {
 	union {
@@ -19,7 +23,7 @@ struct Color {
 			float r, g, b, a;
 		};
 	};
-	
+
 	Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0):
 		r(_r), g(_g), b(_b), a(_a) {}
 };
@@ -44,8 +48,7 @@ void setWindowSize(int w, int h);
 
 TextureRef loadTextureFile(const std::string& assetName);
 
-void setDecompressPNGImagePtr(DecompressPNGImagePtr ptr) { decompressPNG = ptr; }
-void setLoadShaderPtr(LoadShaderPtr ptr) { loadShaderPtr = ptr; }
+void setNativeAssetLoader(NativeAssetLoader* ptr) { assetLoader = ptr; }
 
 public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
@@ -60,10 +63,9 @@ TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
 std::map<TextureRef, GLuint> textures;
 
-DecompressPNGImagePtr decompressPNG;
-LoadShaderPtr loadShaderPtr;
+NativeAssetLoader* assetLoader;
 
-/* default (and only) shader */ 
+/* default (and only) shader */
 GLuint defaultProgram;
 GLuint uniformMatrix;
 };
