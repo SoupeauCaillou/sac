@@ -1,9 +1,5 @@
 #include "TextRenderingSystem.h"
-#include "../base/MathUtil.h"
 
-#include "RenderingSystem.h"
-#include "TransformationSystem.h"
-#include "base/EntityManager.h"
 
 
 INSTANCE_IMPL(TextRenderingSystem);

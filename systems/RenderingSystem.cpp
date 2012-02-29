@@ -1,13 +1,5 @@
 #include "RenderingSystem.h"
-#include "../base/MathUtil.h"
-#include "../base/Log.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <algorithm>
-
-#include "TransformationSystem.h"
 
 INSTANCE_IMPL(RenderingSystem);
 

@@ -1,9 +1,18 @@
 #pragma once
 
-#include "System.h"
-#include "../base/Vector2.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
 #include <GLES2/gl2.h>
 #include <map>
+
+#include "base/Vector2.h"
+#include "base/MathUtil.h"
+#include "base/Log.h"
+
+#include "System.h"
+#include "TransformationSystem.h"
 
 typedef int TextureRef;
 

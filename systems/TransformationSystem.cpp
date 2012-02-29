@@ -1,5 +1,4 @@
 #include "TransformationSystem.h"
-#include "../base/MathUtil.h"
 
 INSTANCE_IMPL(TransformationSystem);
 	

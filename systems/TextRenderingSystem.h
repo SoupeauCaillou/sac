@@ -1,10 +1,14 @@
 #pragma once
 
-#include "System.h"
-#include "../base/Vector2.h"
 #include <GLES2/gl2.h>
 #include <map>
 
+#include "base/Vector2.h"
+#include "base/EntityManager.h"
+#include "base/MathUtil.h"
+
+#include "TransformationSystem.h"
+#include "System.h"
 #include "RenderingSystem.h"
 
 struct TextRenderingComponent {
