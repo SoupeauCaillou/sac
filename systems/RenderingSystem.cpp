@@ -1,5 +1,5 @@
 #include "RenderingSystem.h"
-
+#include <GLES/gl.h>
 
 INSTANCE_IMPL(RenderingSystem);
 
@@ -14,6 +14,7 @@ enum {
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") {
 	nextValidRef = 1;
+	opengles2 = true;
 }
 
 void RenderingSystem::setWindowSize(int width, int height) {
@@ -49,36 +50,40 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 void RenderingSystem::init() {
 	reset();
 
-	LOGI("Compiling shaders\n");
-	GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
-	GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
+	if (opengles2) {
+		LOGI("Compiling shaders\n");
+		GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
+		GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
 
-	defaultProgram = glCreateProgram();
-	glAttachShader(defaultProgram, vs);
-	glAttachShader(defaultProgram, fs);
-	LOGI("Binding GLSL attribs\n");
-	glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition");
-    glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord");
-	glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor");
-	glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot");
+		defaultProgram = glCreateProgram();
+		glAttachShader(defaultProgram, vs);
+		glAttachShader(defaultProgram, fs);
+		LOGI("Binding GLSL attribs\n");
+		glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition");
+		 glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord");
+		glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor");
+		glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot");
 
-	LOGI("Linking GLSL program\n");
-	glLinkProgram(defaultProgram);
+		LOGI("Linking GLSL program\n");
+		glLinkProgram(defaultProgram);
 
-    GLint logLength;
- 	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
-    if (logLength > 1)
-    {
-        char *log = new char[logLength];
- 		glGetProgramInfoLog(defaultProgram, logLength, &logLength, log);
-        std::cout << "GL shader program error: " << log << std::endl;
-        delete[] log;
-    }
+		 GLint logLength;
+	 	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
+		 if (logLength > 1)
+		 {
+		     char *log = new char[logLength];
+	 		glGetProgramInfoLog(defaultProgram, logLength, &logLength, log);
+		     std::cout << "GL shader program error: " << log << std::endl;
+		     delete[] log;
+		 }
 
-	uniformMatrix = glGetUniformLocation(defaultProgram, "uMvp");
+		uniformMatrix = glGetUniformLocation(defaultProgram, "uMvp");
 
-	glDeleteShader(vs);
-	glDeleteShader(fs);
+		glDeleteShader(vs);
+		glDeleteShader(fs);
+	} else {
+		glClearColor(0.2, 0.5, 0.1, 1.0);
+	}
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
@@ -95,7 +100,8 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		return 0;
 
 	/* create GL texture */
-	//glEnable(GL_TEXTURE_2D);
+	if (!opengles2)
+		glEnable(GL_TEXTURE_2D);
 
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -137,14 +143,25 @@ void RenderingSystem::DoUpdate(float dt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
-
-	glUseProgram(defaultProgram);
 	float ratio = h / (float)w ;
-	GLfloat mat[16];
-	loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
-	glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat);
+	if (opengles2) {
+		glUseProgram(defaultProgram);
+		GLfloat mat[16];
+		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
+		glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat);
+	} else {
+	#if ANDROID
+		glEnable(GL_TEXTURE_2D);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrthof(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	#endif
+	}
 
 	std::vector<RenderCommand> commands;
 
@@ -198,30 +215,46 @@ void RenderingSystem::DoUpdate(float dt) {
 
 		const GLfloat squareUvs[] = {
 			rc.uv[0].X, rc.uv[0].Y,
-			rc.uv[1].X,rc.uv[0].Y,
+			rc.uv[1].X, rc.uv[0].Y,
 			rc.uv[0].X, rc.uv[1].Y,
 			rc.uv[1].X, rc.uv[1].Y
 		};
-
-		glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices);
-		glEnableVertexAttribArray(ATTRIB_VERTEX);
-		glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs);
-		glEnableVertexAttribArray(ATTRIB_UV);
 		float col[16];
 		for(int i=0; i<4; i++)
 			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
-		glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col);
-		glEnableVertexAttribArray(ATTRIB_COLOR);
 		float posRot[] = {
 			rc.position.X, rc.position.Y, 0, rc.rotation,
 			rc.position.X, rc.position.Y, 0, rc.rotation,
 			rc.position.X, rc.position.Y, 0, rc.rotation,
 			rc.position.X, rc.position.Y, 0, rc.rotation
-		 };
-		 //LOGI("[%d %d] tex:%d {%.2f %.2f} {%.2f %.2f}\n", w, h, rc.texture, rc.position.X, rc.position.Y, rc.halfSize.X, rc.halfSize.Y);
-		glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot);
-		glEnableVertexAttribArray(ATTRIB_POS_ROT);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		};
+		if (opengles2) {
+			glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices);
+			glEnableVertexAttribArray(ATTRIB_VERTEX);
+			glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs);
+			glEnableVertexAttribArray(ATTRIB_UV);
+			glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col);
+			glEnableVertexAttribArray(ATTRIB_COLOR);
+			glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot);
+			glEnableVertexAttribArray(ATTRIB_POS_ROT);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		} else {
+			glPushMatrix();
+			glTranslatef(rc.position.X, rc.position.Y, 0.0f);
+			glRotatef(rc.rotation, 0, 0, 1);
+			glScalef(rc.halfSize.X * 2, rc.halfSize.Y * 2, 1.0f);
+			glColor4f(rc.color.r, rc.color.g, rc.color.b, rc.color.a);
+			float vertexBuffer[] = {
+				 -0.5f,  -0.5f,
+				 0.5f,   -0.5f,
+				 -0.5f,  0.5f,
+				 0.5f,  0.5f,
+			};
+			glVertexPointer(2, GL_FLOAT, 0, vertexBuffer);
+			glTexCoordPointer(2, GL_FLOAT, 0, squareUvs);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			glPopMatrix();
+		}
 	}
 }
 

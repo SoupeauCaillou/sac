@@ -5,6 +5,7 @@
 #include <cstring>
 #include <algorithm>
 #include <GLES2/gl2.h>
+#include <EGL/egl.h>
 #include <map>
 
 #include "base/Vector2.h"
@@ -67,6 +68,8 @@ bool isEntityVisible(Entity e);
 
 void reset();
 
+bool opengles2;
+
 private:
 int w,h;
 /* textures cache */
@@ -79,4 +82,7 @@ NativeAssetLoader* assetLoader;
 /* default (and only) shader */
 GLuint defaultProgram;
 GLuint uniformMatrix;
+
+/* open gl es1 var */
+
 };

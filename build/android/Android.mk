@@ -18,11 +18,9 @@ LOCAL_SRC_FILES := \
     base/TouchInputManager.cpp \
     systems/TransformationSystem.cpp \
     systems/RenderingSystem.cpp \
-    systems/PlayerSystem.cpp \
     systems/ADSRSystem.cpp \
     systems/ButtonSystem.cpp \
     systems/TextRenderingSystem.cpp \
-    systems/HUDManager.cpp
 
 #LOCAL_LDLIBS    += -lGLESv2 -llog
 
