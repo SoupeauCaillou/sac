@@ -14,6 +14,8 @@
 
 typedef int SoundRef;
 
+#define InvalidSoundRef -1
+
 class NativeSoundAssetLoader {
 	public:
 		virtual char* decompressOggSound(const std::string& assetName) = 0;
@@ -22,6 +24,7 @@ class NativeSoundAssetLoader {
 struct SoundComponent {
 	SoundRef sound;
 	float position;
+	bool repeat; /* si repeat est faux: qd le son a été joué en plein, on passe sound à InvalidSoundRef */
 	/* openal specific datas : openAL source ? */
 };
 
