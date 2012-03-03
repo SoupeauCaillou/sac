@@ -18,8 +18,13 @@ class EntityManager {
 		Entity CreateEntity();
 		void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system);
+		void deleteAllEntities();
+		std::vector<Entity> allEntities();
+
+		int serialize(uint8_t** result);
+		void deserialize(uint8_t* in, int size);
 
 	private:
 		unsigned long nextEntity;
-		std::map<Entity, std::list<ComponentSystem*> > entityComponents; 
+		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
 };

@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifdef ANDROID
 #include <android/log.h>
 
@@ -9,4 +11,3 @@
 #define LOGI(...) printf(__VA_ARGS__);
 #define LOGW(...) printf(__VA_ARGS__);
 #endif
-
