@@ -16,6 +16,7 @@ LOCAL_SRC_FILES := \
     base/Vector2.cpp \
     base/EntityManager.cpp \
     base/TouchInputManager.cpp \
+    systems/System.cpp \
     systems/TransformationSystem.cpp \
     systems/RenderingSystem.cpp \
     systems/ADSRSystem.cpp \

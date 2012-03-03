@@ -65,7 +65,7 @@ class ComponentSystem {
 		virtual void deserialize(Entity entity, uint8_t* out, int size) = 0;
 
 		static ComponentSystem* Named(const std::string& n) {
-			typename std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
+			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
 				std::cout << "System with name: '" << n << " does not exist" << std::endl;
 				return 0;

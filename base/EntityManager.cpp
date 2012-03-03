@@ -2,6 +2,13 @@
 #include "MathUtil.h"
 #include <cstring>
 
+#ifdef ANDROID
+void* mempcpy(void* dst, const void* src, size_t size) {
+	memcpy(dst, src, size);
+	return (uint8_t*)dst + size;
+}
+#endif
+
 EntityManager* EntityManager::instance = 0;
 
 EntityManager::EntityManager() : nextEntity(1) {
