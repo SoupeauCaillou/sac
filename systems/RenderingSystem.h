@@ -16,6 +16,7 @@
 #include "TransformationSystem.h"
 
 typedef int TextureRef;
+#define InvalidTextureRef -1
 
 class NativeAssetLoader {
 	public:
@@ -54,6 +55,9 @@ UPDATABLE_SYSTEM(Rendering)
 public:
 void init();
 
+int saveInternalState(uint8_t** out);
+void restoreInternalState(const uint8_t* in, int size);
+
 void setWindowSize(int w, int h);
 
 TextureRef loadTextureFile(const std::string& assetName);
@@ -70,7 +74,7 @@ void reset();
 
 bool opengles2;
 
-private:
+public:
 int w,h;
 /* textures cache */
 TextureRef nextValidRef;

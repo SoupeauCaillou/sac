@@ -87,11 +87,17 @@ void RenderingSystem::init() {
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
-	if (assetTextures.find(assetName) != assetTextures.end())
-		return assetTextures[assetName];
+	TextureRef result = InvalidTextureRef;
 
-	if (!assetLoader)
-		return 0;
+	if (assetTextures.find(assetName) != assetTextures.end()) {
+		result = assetTextures[assetName];
+	} else {
+		result = nextValidRef++;
+		assetTextures[assetName] = result;
+	}
+
+	if (textures.find(result) != textures.end())
+		return result;
 
 	int w, h;
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
@@ -114,12 +120,11 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
                 h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data);
 
-	textures[nextValidRef] = texture;
-	assetTextures[assetName] = nextValidRef;
+	textures[result] = texture;
 
 	free(data);
 
-	return nextValidRef++;
+	return result;
 }
 
 struct RenderCommand {
@@ -298,4 +303,39 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     mat[13] = ty;
     mat[14] = tz;
     mat[15] = 1.0f;
+}
+
+
+int RenderingSystem::saveInternalState(uint8_t** out) {
+	int size = 0;
+	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+		size += (*it).first.length() + 1;
+		size += sizeof(TextureRef);
+	}
+
+	*out = new uint8_t[size];
+	uint8_t* ptr = *out;
+	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
+		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
+	}
+	return size;
+}
+
+void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
+	assetTextures.clear();
+
+	int idx = 0;
+	while (idx < size) {
+		char name[128];
+		int i=0;
+		do {
+			name[i] = in[idx++];
+		} while (name[i++] != '\0');
+		TextureRef ref;
+		memcpy(&ref, &in[idx], sizeof(TextureRef));
+		idx += sizeof(TextureRef);
+
+		assetTextures[name] = ref;
+	}
 }
