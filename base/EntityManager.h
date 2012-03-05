@@ -22,7 +22,7 @@ class EntityManager {
 		std::vector<Entity> allEntities();
 
 		int serialize(uint8_t** result);
-		void deserialize(uint8_t* in, int size);
+		void deserialize(const uint8_t* in, int size);
 
 	private:
 		unsigned long nextEntity;

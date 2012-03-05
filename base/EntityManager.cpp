@@ -101,9 +101,8 @@ int EntityManager::serialize(uint8_t** result) {
 		int cCount = saves[i].components.size();
 		out = (uint8_t*)mempcpy(out, &cCount, sizeof(int));
 		for (int j=0; j<cCount; j++) {
-			out = (uint8_t*)mempcpy(out, saves[i].components[j].name.c_str(), saves[i].components[j].name.length());
-			*out = '\0';
-			out = (uint8_t*)mempcpy(out + 1, &saves[i].components[j].contentSize, sizeof(int));
+			out = (uint8_t*)mempcpy(out, saves[i].components[j].name.c_str(), saves[i].components[j].name.length()+1);
+			out = (uint8_t*)mempcpy(out, &saves[i].components[j].contentSize, sizeof(int));
 			out = (uint8_t*)mempcpy(out, saves[i].components[j].content, saves[i].components[j].contentSize);
 		}
 	}
@@ -111,7 +110,7 @@ int EntityManager::serialize(uint8_t** result) {
 }
 
 
-void EntityManager::deserialize(uint8_t* in, int length) {
+void EntityManager::deserialize(const uint8_t* in, int length) {
 	int index = 0;
 	while (index < length) {
 		Entity e;
