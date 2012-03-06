@@ -85,7 +85,7 @@ NativeAssetLoader* assetLoader;
 
 /* default (and only) shader */
 GLuint defaultProgram;
-GLuint uniformMatrix, useTexturing;
+GLuint uniformMatrix;
 
 /* open gl es1 var */
 

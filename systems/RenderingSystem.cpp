@@ -78,7 +78,6 @@ void RenderingSystem::init() {
 		 }
 
 		uniformMatrix = glGetUniformLocation(defaultProgram, "uMvp");
-		useTexturing = glGetUniformLocation(defaultProgram, "useTexturing");
 
 		glDeleteShader(vs);
 		glDeleteShader(fs);
@@ -183,8 +182,17 @@ void RenderingSystem::DoUpdate(float dt) {
 
 		const TransformationComponent* tc = TRANSFORM(a);
 
+		if (rc->texture > 0)
+		{
+
+		}
+		else {
+			//LOGI("entity %d has no texture\n", a);
+			continue;
+		}
+
 		RenderCommand c;
-		c.texture = (rc->texture > 0) ? textures[rc->texture] : 0;
+		c.texture = textures[rc->texture];
 		c.halfSize = rc->size * 0.5f;
 		c.uv[0] = rc->bottomLeftUV;
 		c.uv[1] = rc->topRightUV;
@@ -202,7 +210,6 @@ void RenderingSystem::DoUpdate(float dt) {
 		const RenderCommand& rc = *it;
 
 		glBindTexture(GL_TEXTURE_2D, rc.texture);
-		glUniform1i(useTexturing, rc.texture > 0);
 
 		const GLfloat squareVertices[] = {
 				-rc.halfSize.X, -rc.halfSize.Y, 0.,
