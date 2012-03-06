@@ -324,6 +324,7 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 
 void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	assetTextures.clear();
+	nextValidRef = 1;
 
 	int idx = 0;
 	while (idx < size) {
@@ -337,5 +338,6 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		idx += sizeof(TextureRef);
 
 		assetTextures[name] = ref;
+		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);
 	}
 }
