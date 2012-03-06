@@ -31,5 +31,6 @@ UPDATABLE_SYSTEM(TextRendering)
 
 public :
 	Entity CreateLocalEntity(int maxSymbol);
+	void DestroyLocalEntity(Entity e);
 
 };

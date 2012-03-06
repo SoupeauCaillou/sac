@@ -4,8 +4,8 @@
 
 INSTANCE_IMPL(TextRenderingSystem);
 
-TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("textrendering") { 
-	
+TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("textrendering") {
+
 }
 
 
@@ -20,7 +20,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			if (!rc->hide) {
 				std::map<char, Vector2>::iterator jt = trc->char2UV.find(trc->text[i]);
 				if (trc->text[i] != ' ' && jt == trc->char2UV.end()) {
-					std::cout << "Char '" << trc->text[i] << "'" << " not found in font bitmap" << std::endl; 
+					std::cout << "Char '" << trc->text[i] << "'" << " not found in font bitmap" << std::endl;
 					rc->texture = -1;
 				} else {
 					if (trc->text[i] == ' ') {
@@ -71,9 +71,17 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 		TRANSFORM(e)->parent = eTime;
 		ADD_COMPONENT(e, Rendering);
 		TEXT_RENDERING(eTime)->drawing.push_back(e);
-	}			
+	}
 	return eTime;
 }
 
-
-
+void TextRenderingSystem::DestroyLocalEntity(Entity e) {
+	TextRenderingComponent* tc = TEXT_RENDERING(e);
+	if (!tc)
+		return;
+	for (int i=0; i<tc->drawing.size(); i++) {
+		theEntityManager.DeleteEntity(tc->drawing[i]);
+	}
+	tc->drawing.clear();
+	theEntityManager.DeleteEntity(e);
+}
