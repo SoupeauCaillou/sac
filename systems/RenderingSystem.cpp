@@ -1,6 +1,5 @@
 #include "RenderingSystem.h"
 #include <GLES/gl.h>
-#include "base/EntityManager.h"
 
 INSTANCE_IMPL(RenderingSystem);
 
@@ -203,8 +202,7 @@ void RenderingSystem::DoUpdate(float dt) {
 		const RenderCommand& rc = *it;
 
 		glBindTexture(GL_TEXTURE_2D, rc.texture);
-		if (opengles2)
-			glUniform1i(useTexturing, rc.texture > 0);
+		glUniform1i(useTexturing, rc.texture > 0);
 
 		const GLfloat squareVertices[] = {
 				-rc.halfSize.X, -rc.halfSize.Y, 0.,
