@@ -1,5 +1,6 @@
 #include "RenderingSystem.h"
 #include <GLES/gl.h>
+#include "base/EntityManager.h"
 
 INSTANCE_IMPL(RenderingSystem);
 
@@ -82,8 +83,21 @@ void RenderingSystem::init() {
 		glDeleteShader(vs);
 		glDeleteShader(fs);
 	} else {
+		glEnable(GL_TEXTURE_2D);
 		glClearColor(0.2, 0.5, 0.1, 1.0);
 	}
+
+	// create 1px white texture
+	uint8_t data[] = {255, 255, 255, 255};
+	glGenTextures(1, &whiteTexture);
+	glBindTexture(GL_TEXTURE_2D, whiteTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
+                1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                data);
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
@@ -182,17 +196,8 @@ void RenderingSystem::DoUpdate(float dt) {
 
 		const TransformationComponent* tc = TRANSFORM(a);
 
-		if (rc->texture > 0)
-		{
-
-		}
-		else {
-			//LOGI("entity %d has no texture\n", a);
-			continue;
-		}
-
 		RenderCommand c;
-		c.texture = textures[rc->texture];
+		c.texture = (rc->texture > 0) ?textures[rc->texture] : whiteTexture;
 		c.halfSize = rc->size * 0.5f;
 		c.uv[0] = rc->bottomLeftUV;
 		c.uv[1] = rc->topRightUV;
