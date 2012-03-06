@@ -28,3 +28,7 @@ class EntityManager {
 		unsigned long nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
 };
+
+#ifdef ANDROID
+void* mempcpy(void* dst, const void* src, size_t size);
+#endif
