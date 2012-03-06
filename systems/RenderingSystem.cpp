@@ -24,8 +24,37 @@ void RenderingSystem::setWindowSize(int width, int height) {
 	glViewport(0, 0, w, h);
 }
 
-void RenderingSystem::reset() {
-	assetTextures.clear();
+GLuint RenderingSystem::loadTexture(const std::string& assetName) {
+	int w, h;
+	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
+
+	if (!data)
+		return 0;
+
+	/* create GL texture */
+	if (!opengles2)
+		glEnable(GL_TEXTURE_2D);
+
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
+                h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                data);
+
+	free(data);
+
+	return texture;
+}
+
+void RenderingSystem::reloadTextures() {
+	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+		textures[it->second] = loadTexture(it->first);
+	}
 }
 
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
@@ -49,8 +78,6 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 }
 
 void RenderingSystem::init() {
-	reset();
-
 	if (opengles2) {
 		LOGI("Compiling shaders\n");
 		GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
@@ -113,30 +140,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	if (textures.find(result) != textures.end())
 		return result;
 
-	int w, h;
-	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
-
-	if (!data)
-		return 0;
-
-	/* create GL texture */
-	if (!opengles2)
-		glEnable(GL_TEXTURE_2D);
-
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
-                h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                data);
-
-	textures[result] = texture;
-
-	free(data);
+	textures[result] = loadTexture(assetName);
 
 	return result;
 }

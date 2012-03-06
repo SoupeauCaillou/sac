@@ -70,9 +70,12 @@ GLuint compileShader(const std::string& assetName, GLuint type);
 
 bool isEntityVisible(Entity e);
 
-void reset();
+void reloadTextures();
 
 bool opengles2;
+
+private:
+GLuint loadTexture(const std::string& assetName);
 
 public:
 int w,h;
