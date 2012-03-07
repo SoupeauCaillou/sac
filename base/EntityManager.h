@@ -13,6 +13,8 @@ class EntityManager {
 		EntityManager();
 	public:
 		static EntityManager* Instance();
+		static void CreateInstance();
+		static void DestroyInstance();
 
 		enum EntityType {
 			Volatile,

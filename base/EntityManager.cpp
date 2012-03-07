@@ -18,10 +18,17 @@ EntityManager::EntityManager() : nextEntity(1) {
 }
 
 EntityManager* EntityManager::Instance() {
-	if (!instance) {
-		instance = new EntityManager();
-	}
 	return instance;
+}
+
+void EntityManager::CreateInstance() {
+	if (instance)
+		LOGW("Recreating EntityManager");
+	instance = new EntityManager;
+}
+
+void EntityManager::DestroyInstance() {
+	delete instance;
 }
 
 Entity EntityManager::CreateEntity(EntityType type) {
