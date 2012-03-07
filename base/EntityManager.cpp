@@ -9,6 +9,8 @@ void* mempcpy(void* dst, const void* src, size_t size) {
 }
 #endif
 
+#define EntityTypeMask 0x8000000000000000
+
 EntityManager* EntityManager::instance = 0;
 
 EntityManager::EntityManager() : nextEntity(1) {
@@ -22,8 +24,19 @@ EntityManager* EntityManager::Instance() {
 	return instance;
 }
 
-Entity EntityManager::CreateEntity() {
-	return nextEntity++;
+Entity EntityManager::CreateEntity(EntityType type) {
+	Entity e = nextEntity++;
+
+	switch (type) {
+		case Volatile:
+			e &= ~((unsigned long)EntityTypeMask);
+			break;
+		case Persistent:
+			e |= EntityTypeMask;
+			break;
+	}
+	// maybe hide the TypeBit from the rest of the world...
+	return e;
 }
 
 void EntityManager::DeleteEntity(Entity e) {
@@ -78,6 +91,9 @@ int EntityManager::serialize(uint8_t** result) {
 		EntitySave e;
 		e.e = (*it).first;
 
+		if (!(e.e & EntityTypeMask))
+			continue;
+
 		totalLength += sizeof(Entity) + sizeof(int);
 
 		for(std::list<ComponentSystem*>::iterator jt=(*it).second.begin();
@@ -115,6 +131,11 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 	while (index < length) {
 		Entity e;
 		memcpy(&e, &in[index], sizeof(e)); index += sizeof(e);
+
+		if (!(e & EntityTypeMask)) {
+			LOGW("EntityManager deserializing a non-persistent entity");
+		}
+
 		int cCount = 0;
 		memcpy(&cCount, &in[index], sizeof(int)); index += sizeof(int);
 

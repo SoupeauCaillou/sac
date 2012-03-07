@@ -14,8 +14,13 @@ class EntityManager {
 	public:
 		static EntityManager* Instance();
 
+		enum EntityType {
+			Volatile,
+			Persistent
+		};
+
 	public:
-		Entity CreateEntity();
+		Entity CreateEntity(EntityType type = Volatile);
 		void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system);
 		void deleteAllEntities();

@@ -8,6 +8,6 @@
 #else
 #include <cstdio>
 
-#define LOGI(...) printf(__VA_ARGS__);
-#define LOGW(...) printf(__VA_ARGS__);
+#define LOGI(...) (printf(__VA_ARGS__) & printf("\n"))
+#define LOGW(...) (printf(__VA_ARGS__) & printf("\n"))
 #endif
