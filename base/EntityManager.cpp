@@ -9,12 +9,14 @@ void* mempcpy(void* dst, const void* src, size_t size) {
 }
 #endif
 
-#define EntityTypeMask 0x8000000000000000
+static Entity EntityTypeMask;
 
 EntityManager* EntityManager::instance = 0;
 
 EntityManager::EntityManager() : nextEntity(1) {
-
+	EntityTypeMask = 1;
+	EntityTypeMask <<= (sizeof(Entity) * 8 - 1);
+	LOGI("EntityTypeMask: %lx (sizeof Entity: %d, %d)", EntityTypeMask, sizeof(Entity), sizeof(Entity) * 8 - 1);
 }
 
 EntityManager* EntityManager::Instance() {
