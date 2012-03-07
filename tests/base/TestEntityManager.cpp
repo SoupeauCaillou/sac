@@ -6,6 +6,8 @@
 
 TEST(DeleteSystems)
 {
+	TransformationSystem::CreateInstance();
+	ADSRSystem::CreateInstance();
 	Entity e = theEntityManager.CreateEntity();
 	theEntityManager.AddComponent(e, &theTransformationSystem);
 	theEntityManager.AddComponent(e, &theADSRSystem);
@@ -14,10 +16,13 @@ TEST(DeleteSystems)
 	theEntityManager.DeleteEntity(e);
 	CHECK(theTransformationSystem.Get(e) == NULL);
 	CHECK(theADSRSystem.Get(e) == NULL);
+	TransformationSystem::DestroyInstance();
+	ADSRSystem::DestroyInstance();
 }
 
 TEST(Serialization)
 {
+	TransformationSystem::CreateInstance();
 	theEntityManager.deleteAllEntities();
 
 	int eCount = MathUtil::RandomInt(1 + 20);
@@ -46,4 +51,5 @@ TEST(Serialization)
 	}
 
 	delete[] dump;
+	TransformationSystem::DestroyInstance();
 }

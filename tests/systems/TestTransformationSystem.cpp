@@ -5,6 +5,7 @@
 
 TEST(TransformationPropagationToWorldTransformWithoutParent)
 {
+	TransformationSystem::CreateInstance();
 	Entity e;
 	theTransformationSystem.Add(e);
 	TransformationComponent* tc = TRANSFORM(e);
@@ -14,4 +15,5 @@ TEST(TransformationPropagationToWorldTransformWithoutParent)
 	theTransformationSystem.Update(1.0f);
 	CHECK_EQUAL(tc->position, tc->worldPosition);
 	CHECK_EQUAL(tc->rotation, tc->worldRotation);
+	TransformationSystem::DestroyInstance();
 }

@@ -3,6 +3,7 @@
 
 TEST(SimpleFloatADSR)
 {
+	ADSRSystem::CreateInstance();
 	Entity e = 1;
 	theADSRSystem.Add(e);
 	ADSRComponent* ac = ADSR(e);
@@ -28,4 +29,5 @@ TEST(SimpleFloatADSR)
 	CHECK_CLOSE(0.5, ac->value, 0.0001);
 	theADSRSystem.Update(0.25);
 	CHECK_CLOSE(0.0, ac->value, 0.0001);
+	ADSRSystem::DestroyInstance();
 }

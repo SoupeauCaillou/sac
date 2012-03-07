@@ -12,14 +12,15 @@
 
 #define Entity unsigned long
 
-#define SINGLETON(T) static T& GetInstance() { if (_instance == NULL) _instance = new T(); return (*_instance); }
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
 #define SYSTEM(type) \
 	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
-			static type##System& GetInstance() { if (_instance == NULL) _instance = new type##System(); return (*_instance); } \
+			static type##System& GetInstance() { return (*_instance); } \
+			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
+			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
 		private:	\
 			type##System();	\
 			static type##System* _instance;
@@ -27,7 +28,9 @@
 #define UPDATABLE_SYSTEM(type) \
 	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
-			static type##System& GetInstance() { if (_instance == NULL) _instance = new type##System(); return (*_instance); } \
+			static type##System& GetInstance() { return (*_instance); } \
+			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
+			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
 			void Update(float dt) {  if(active) DoUpdate(dt); }	\
 		\
 		protected:\

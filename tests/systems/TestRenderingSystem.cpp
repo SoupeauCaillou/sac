@@ -6,6 +6,7 @@
 
 TEST(save_restore_internalState)
 {
+	RenderingSystem::CreateInstance();
 	std::map<std::string, TextureRef> initial;
 	initial["plop"] = MathUtil::RandomInt(1000);
 	initial["carnaval"] = MathUtil::RandomInt(1000);
@@ -25,4 +26,5 @@ TEST(save_restore_internalState)
 		CHECK(jt != theRenderingSystem.assetTextures.end());
 		CHECK_EQUAL(it->second, jt->second);
 	}
+	RenderingSystem::DestroyInstance();
 }
