@@ -39,7 +39,7 @@ struct Color {
 		r(_r), g(_g), b(_b), a(_a) {}
 };
 struct RenderingComponent {
-	RenderingComponent() : size(1.0f, 1.0f), bottomLeftUV(0, 0), topRightUV(1, 1), hide(false) {}
+	RenderingComponent() : size(1.0f, 1.0f), bottomLeftUV(0, 0), topRightUV(1, 1), hide(true) {}
 	Vector2 size;
 	Vector2 bottomLeftUV, topRightUV;
 	TextureRef texture;

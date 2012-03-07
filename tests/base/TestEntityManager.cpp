@@ -20,7 +20,7 @@ TEST(Serialization)
 {
 	theEntityManager.deleteAllEntities();
 
-	int eCount = MathUtil::RandomInt(20);
+	int eCount = MathUtil::RandomInt(1 + 20);
 	for (int i=0; i<eCount; i++) {
 		Entity e = theEntityManager.CreateEntity(EntityManager::Persistent);
 		ADD_COMPONENT(e, Transformation);
