@@ -11,7 +11,7 @@ enum Mode {
 
 
 struct ADSRComponent {
-	ADSRComponent() : active(false), value(0), activationTime(0), attackMode(Linear) {}
+	ADSRComponent() : active(false), value(0), activationTime(0), attackMode(Linear), decayMode(Linear), releaseMode(Linear) {}
 	bool active;
 
 	float value;
