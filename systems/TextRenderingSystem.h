@@ -20,7 +20,7 @@ struct TextRenderingComponent {
 	Vector2 uvSize;
 	Vector2 charSize;
 	bool hide, alignL;
-
+	// managed by systems
 	std::vector<Entity> drawing;
 };
 
@@ -33,4 +33,6 @@ public :
 	Entity CreateLocalEntity(int maxSymbol);
 	void DestroyLocalEntity(Entity e);
 
+private:
+	std::list<Entity> renderingEntitiesPool;
 };
