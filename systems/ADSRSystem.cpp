@@ -26,8 +26,6 @@ void ADSRSystem::DoUpdate(float dt) {
 			adsr->activationTime += dt;
 			// phase A
 			if (adsr->activationTime < adsr->attackTiming) {
-
-					
 				if (adsr->attackMode == Linear) {
 				adsr->value = MathUtil::Lerp(
 					adsr->idleValue,
@@ -35,11 +33,14 @@ void ADSRSystem::DoUpdate(float dt) {
 					adsr->activationTime / adsr->attackTiming);
 				} else if (adsr->attackMode == Quadratic) {
 					float z = adsr->activationTime / adsr->attackTiming;
-					adsr->value = adsr->idleValue + z * z * (adsr->attackValue - adsr->idleValue); 	  
+					adsr->value = adsr->idleValue + z * z * (adsr->attackValue - adsr->idleValue); 
 				}
 
 			// phase D
 			} else if (adsr->activationTime < (adsr->attackTiming + adsr->decayTiming)) {
+				if (adsr->decayTiming && adsr->attackValue < adsr->sustainValue) {
+					LOGW("Entity '%d' -> ADSR decay timing %.2f used with attack value %.2f < sustain value %.2f", jt->first, adsr->decayTiming, adsr->attackValue, adsr->sustainValue);
+				}
 				if (adsr->decayMode == Linear) {
 				adsr->value = MathUtil::Lerp(
 					adsr->attackValue,
@@ -47,7 +48,7 @@ void ADSRSystem::DoUpdate(float dt) {
 					(adsr->activationTime - adsr->attackTiming) / adsr->decayTiming);
 				} else if (adsr->decayMode == Quadratic) {
 					float z = (adsr->activationTime-adsr->attackTiming) / adsr->decayTiming;
-					adsr->value = adsr->attackValue + z * z * (adsr->sustainValue - adsr->attackValue); 	  
+					adsr->value = adsr->attackValue + z * z * (adsr->sustainValue - adsr->attackValue); 
 				}
 
 			// phase S

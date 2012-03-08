@@ -5,13 +5,13 @@
 #include "System.h"
 
 enum Mode {
-	Linear, 
+	Linear = 0, 
 	Quadratic
 };
 
 
 struct ADSRComponent {
-	//ADSRComponent() : attackMode(Linear) {}
+	ADSRComponent() : active(false), value(0), activationTime(0), attackMode(Linear) {}
 	bool active;
 
 	float value;
