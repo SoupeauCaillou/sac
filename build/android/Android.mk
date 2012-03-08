@@ -23,6 +23,7 @@ LOCAL_SRC_FILES := \
     systems/ButtonSystem.cpp \
     systems/TextRenderingSystem.cpp \
     systems/SoundSystem.cpp \
+    systems/ContainerSystem.cpp
 
 #LOCAL_LDLIBS    += -lGLESv2 -llog
 
