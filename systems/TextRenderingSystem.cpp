@@ -31,7 +31,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 						rc->bottomLeftUV = jt->second;
 						rc->topRightUV = jt->second + trc->uvSize;
 					}
-					rc->size = trc->charSize;
+					TRANSFORM(trc->drawing[i])->size = trc->charSize;
 					rc->color = trc->color;
 					if (!trc->alignL) TRANSFORM(trc->drawing[i])->position = Vector2(i*trc->charSize.X-MathUtil::Min(trc->text.length(),trc->drawing.size())*trc->charSize.X, 0);
 					else TRANSFORM(trc->drawing[i])->position = Vector2(i*trc->charSize.X, 0);

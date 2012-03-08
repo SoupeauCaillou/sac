@@ -7,9 +7,9 @@
 
 
 struct TransformationComponent {
-	TransformationComponent(): position(Vector2::Zero), rotation(0), z(0), parent(0) {
+	TransformationComponent(): size(1.0f, 1.0f), position(Vector2::Zero), rotation(0), z(0), parent(0) {
 	}
-	Vector2 position, worldPosition;
+	Vector2 position, worldPosition, size;
 	float rotation, worldRotation;
 	float z;
 

@@ -192,7 +192,7 @@ void RenderingSystem::DoUpdate(float dt) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
 		RenderingComponent* rc = (*it).second;
-
+		
 		if (rc->hide) {
 			//LOGI("entity %d hidden\n", a);
 			continue;
@@ -201,8 +201,8 @@ void RenderingSystem::DoUpdate(float dt) {
 		const TransformationComponent* tc = TRANSFORM(a);
 
 		RenderCommand c;
-		c.texture = (rc->texture > 0) ?textures[rc->texture] : whiteTexture;
-		c.halfSize = rc->size * 0.5f;
+		c.texture = (rc->texture != InvalidTextureRef) ?textures[rc->texture] : whiteTexture;
+		c.halfSize = tc->size * 0.5f;
 		c.uv[0] = rc->bottomLeftUV;
 		c.uv[1] = rc->topRightUV;
 		c.color = rc->color;
@@ -273,7 +273,7 @@ void RenderingSystem::DoUpdate(float dt) {
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
-	const Vector2 halfSize = RENDERING(e)->size * 0.5;
+	const Vector2 halfSize = TRANSFORM(e)->size * 0.5;
 	const Vector2& pos = TRANSFORM(e)->worldPosition;
 	const float ratio = h / (float)w ;
 
