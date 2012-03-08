@@ -11,7 +11,7 @@ enum Mode {
 
 
 struct ADSRComponent {
-	//ADSRComponent() : moding(Linear) {}
+	//ADSRComponent() : attackMode(Linear) {}
 	bool active;
 
 	float value;
@@ -23,7 +23,7 @@ struct ADSRComponent {
 	float sustainValue;
 	float decayTiming;
 	float releaseTiming;
-	Mode moding;
+	Mode attackMode, decayMode, releaseMode;
 };
 	
 #define theADSRSystem ADSRSystem::GetInstance()

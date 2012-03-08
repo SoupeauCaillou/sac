@@ -28,34 +28,28 @@ void ADSRSystem::DoUpdate(float dt) {
 			if (adsr->activationTime < adsr->attackTiming) {
 
 					
-				if (adsr->moding == Linear) {
+				if (adsr->attackMode == Linear) {
 				adsr->value = MathUtil::Lerp(
 					adsr->idleValue,
 					adsr->attackValue,
 					adsr->activationTime / adsr->attackTiming);
-				} else if (adsr->moding == Quadratic) {
-					/*
-					float tgt = 10;
-					float a = -(10*adsr->attackTiming-adsr->attackValue+adsr->idleValue)/adsr->attackTiming;
-					float b = tgt - 2*adsr->attackTiming*a;
-					float c = adsr->idleValue;
-					float x = adsr->activationTime;
-					adsr->value = a*x*x+b*x+c;
-					LOGI("%f", adsr->value);
-					* */
-					
+				} else if (adsr->attackMode == Quadratic) {
 					float z = adsr->activationTime / adsr->attackTiming;
-					//float pol = adsr->idleValue + z * ( z * 8 - 5) * (adsr->attackValue-adsr->idleValue) / 3 ;
-					float pol = adsr->idleValue + z * z * (adsr->attackValue - adsr->idleValue); 	  
-					adsr->value =pol;
+					adsr->value = adsr->idleValue + z * z * (adsr->attackValue - adsr->idleValue); 	  
 				}
 
 			// phase D
 			} else if (adsr->activationTime < (adsr->attackTiming + adsr->decayTiming)) {
+				if (adsr->decayMode == Linear) {
 				adsr->value = MathUtil::Lerp(
 					adsr->attackValue,
 					adsr->sustainValue,
 					(adsr->activationTime - adsr->attackTiming) / adsr->decayTiming);
+				} else if (adsr->decayMode == Quadratic) {
+					float z = (adsr->activationTime-adsr->attackTiming) / adsr->decayTiming;
+					adsr->value = adsr->attackValue + z * z * (adsr->sustainValue - adsr->attackValue); 	  
+				}
+
 			// phase S
 			} else {
 				adsr->value = adsr->sustainValue;
@@ -64,11 +58,16 @@ void ADSRSystem::DoUpdate(float dt) {
 		} else {
 			adsr->activationTime = MathUtil::Min(adsr->activationTime, adsr->releaseTiming);
 			adsr->activationTime -= dt;
+			if (adsr->releaseMode == Linear) {
 
 			adsr->value = MathUtil::Lerp(
 					adsr->idleValue,
 					adsr->sustainValue,
 					adsr->activationTime / adsr->releaseTiming);
+			} else if (adsr->releaseMode == Quadratic) {
+					float z = (adsr->activationTime-adsr->attackTiming-adsr->decayTiming) / adsr->releaseTiming;
+					adsr->value = adsr->sustainValue + z * z * (adsr->idleValue - adsr->sustainValue); 	  
+			}
 		}
 	}
 }
