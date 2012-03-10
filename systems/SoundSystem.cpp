@@ -10,7 +10,11 @@ void SoundSystem::init() {
 }
 
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
+#ifdef ANDROID
+	if (!music && assetSounds.find(assetName) != assetSounds.end())
+#else
 	if (assetSounds.find(assetName) != assetSounds.end())
+#endif
 		return assetSounds[assetName];
 
 #ifdef ANDROID
@@ -36,7 +40,7 @@ void SoundSystem::DoUpdate(float dt) {
 				rc->started = true;
 			} else if (rc->type == SoundComponent::MUSIC) {
 				float newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
-				if (newPos == rc->position && newPos >= 0.99) {
+				if (newPos >= 0.999) {
 					LOGW("sound ended (%d)", rc->sound);
 					rc->position = 0;
 					rc->sound = InvalidSoundRef;

@@ -25,7 +25,7 @@ TEST(Serialization)
 	TransformationSystem::CreateInstance();
 	theEntityManager.deleteAllEntities();
 
-	int eCount = MathUtil::RandomInt(1 + 20);
+	int eCount = MathUtil::RandomInt(20) + 1;
 	for (int i=0; i<eCount; i++) {
 		Entity e = theEntityManager.CreateEntity(EntityManager::Persistent);
 		ADD_COMPONENT(e, Transformation);
