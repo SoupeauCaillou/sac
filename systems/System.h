@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include "base/Log.h"
+#include "base/TimeUtil.h"
 
 #include "DebugRenderingManager.h"
 
@@ -31,7 +32,8 @@
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
 			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
-			void Update(float dt) {  if(active) DoUpdate(dt); }	\
+			void Update(float dt) {  float time = TimeUtil::getTime(NULL); if(active) DoUpdate(dt); timeSpent = TimeUtil::getTime(NULL) - time; } \
+			float timeSpent; \
 		\
 		protected:\
 			void DoUpdate(float dt); \
