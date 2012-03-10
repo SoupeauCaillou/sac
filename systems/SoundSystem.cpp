@@ -6,7 +6,7 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("sound"), nextV
 }
 
 void SoundSystem::init() {
-	/* preload sound effects */
+
 }
 
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
@@ -44,6 +44,9 @@ void SoundSystem::DoUpdate(float dt) {
 				} else {
 					rc->position = newPos;
 				}
+			} else if (rc->type == SoundComponent::EFFECT) {
+				rc->sound = InvalidSoundRef;
+				rc->started = false;
 			}
 		}	
 	}
