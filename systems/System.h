@@ -32,7 +32,7 @@
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
 			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
-			void Update(float dt) {  float time = TimeUtil::getTime(NULL); if(active) DoUpdate(dt); timeSpent = TimeUtil::getTime(NULL) - time; } \
+			void Update(float dt) {  float time = TimeUtil::getTime(); if(active) DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; } \
 			float timeSpent; \
 		\
 		protected:\

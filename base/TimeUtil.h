@@ -5,7 +5,7 @@
 class TimeUtil
 {
 	public :
-		static void init();
+		static void init(); // plantage de la graine
 		static float timeconverter(struct timeval tv);
 		static float getTime();
 		
