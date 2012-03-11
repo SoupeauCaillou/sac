@@ -19,11 +19,14 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 
 #ifdef ANDROID
 	int soundID = androidSoundAPI->loadSound(assetName, music);
-#endif
 	sounds[nextValidRef] = soundID;
+#endif
+
 	assetSounds[assetName] = nextValidRef;
+#ifdef ANDROID
 	
 	LOGW("Sound : %s -> %d -> %d", assetName.c_str(), nextValidRef, soundID);
+#endif
 
 	return nextValidRef++;
 }
@@ -36,10 +39,15 @@ void SoundSystem::DoUpdate(float dt) {
 		if (rc->sound != InvalidSoundRef) {
 			if (!rc->started) {
 				LOGW("sound started (%d)", rc->sound);
+				#ifdef ANDROID
 				androidSoundAPI->play (sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
+				#endif
 				rc->started = true;
 			} else if (rc->type == SoundComponent::MUSIC) {
-				float newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
+				float newPos;
+				#ifdef ANDROID
+				newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
+				#endif
 				if (newPos >= 0.999) {
 					LOGW("sound ended (%d)", rc->sound);
 					rc->position = 0;

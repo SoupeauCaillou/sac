@@ -88,3 +88,4 @@ public:
 	JavaSoundAPI* androidSoundAPI;
 #endif
 };
+
