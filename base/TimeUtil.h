@@ -5,6 +5,10 @@
 class TimeUtil
 {
 	public :
+		static void init();
 		static float timeconverter(struct timeval tv);
-		static float getTime(struct timeval *startup_time);
+		static float getTime();
+		
+	private:
+		static struct timeval startup_time;
 };
