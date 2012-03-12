@@ -16,45 +16,14 @@
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
-#define SYSTEM(type) \
-	class type##System : public ComponentSystemImpl<type##Component> {	\
-		public:	\
-			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
-			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
-		private:	\
-			type##System();	\
-			static type##System* _instance;
-
 #define UPDATABLE_SYSTEM(type) \
 	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
 			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
-			void Update(float dt) {  float time = TimeUtil::getTime(); if(active) DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; } \
-			float timeSpent; \
-		\
-		protected:\
 			void DoUpdate(float dt); \
-		private:	\
-			type##System();	\
-			static type##System* _instance;
-
-#define UPDATABLE_RENDERABLE_SYSTEM(type) \
-	class type##System : public ComponentSystemImpl<type##Component>, public Renderable {	\
-		public:	\
-			static type##System& GetInstance() { if (_instance == NULL) {\
-				_instance = new type##System(); \
-				DebugRenderingManager::Instance().RegisterDebugRenderer(#type"SystemDebugRenderMsg", _instance);\
-			} \
-			return (*_instance); \
-			}\
-			void Update(float dt) {  if(active) DoUpdate(dt); }	\
-			void Render(); \
 		\
-		protected:\
-			void DoUpdate(float dt); \
 		private:	\
 			type##System();	\
 			static type##System* _instance;
@@ -69,6 +38,9 @@ class ComponentSystem {
 		virtual int serialize(Entity entity, uint8_t** out) = 0;
 		virtual void deserialize(Entity entity, uint8_t* out, int size) = 0;
 
+		void Update(float dt) {  float time = TimeUtil::getTime(); DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; }
+		float timeSpent;
+			
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
@@ -77,8 +49,11 @@ class ComponentSystem {
 			}
 			return (*it).second;
 		}
+		
+		static std::vector<std::string> registeredSystemNames();
 
 	protected:
+		virtual void DoUpdate(float dt) = 0;
 		static std::map<std::string, ComponentSystem*> registry;
 		std::string name;
 };
