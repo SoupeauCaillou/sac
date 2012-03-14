@@ -28,7 +28,7 @@ static void check_GL_errors(const char* context) {
     }
 }
 
-#define CHECK_GL_ERROR
+// #define CHECK_GL_ERROR
 
 #ifdef CHECK_GL_ERROR
 	#define GL_OPERATION(x)	\
