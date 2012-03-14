@@ -283,18 +283,21 @@ void RenderingSystem::DoUpdate(float dt) {
 		commands.push_back(c);
 	}
 
+	GLuint boundTexture = 0;
 	std::sort(commands.begin(), commands.end(), sortRender);
-
 	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		const RenderCommand& rc = *it;
 
-		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
+		if (boundTexture != rc.texture) {
+			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
+			boundTexture = rc.texture;
+		}
 
 		const GLfloat squareVertices[] = {
-				-rc.halfSize.X, -rc.halfSize.Y, 0.,
-				rc.halfSize.X, -rc.halfSize.Y,0.,
-				-rc.halfSize.X, rc.halfSize.Y,0.,
-				rc.halfSize.X, rc.halfSize.Y,0.
+				-rc.halfSize.X, -rc.halfSize.Y ,
+				rc.halfSize.X, -rc.halfSize.Y,
+				-rc.halfSize.X, rc.halfSize.Y,
+				rc.halfSize.X, rc.halfSize.Y
 			};
 
 		const GLfloat squareUvs[] = {
@@ -307,25 +310,26 @@ void RenderingSystem::DoUpdate(float dt) {
 		for(int i=0; i<4; i++)
 			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
 		float posRot[] = {
-			rc.position.X, rc.position.Y, 0, rc.rotation,
-			rc.position.X, rc.position.Y, 0, rc.rotation,
-			rc.position.X, rc.position.Y, 0, rc.rotation,
-			rc.position.X, rc.position.Y, 0, rc.rotation
+			rc.position.X, rc.position.Y, rc.rotation,
+			rc.position.X, rc.position.Y, rc.rotation,
+			rc.position.X, rc.position.Y, rc.rotation,
+			rc.position.X, rc.position.Y, rc.rotation
 		};
 		if (opengles2) {
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices))
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices))
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
 			GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs))
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
 			GL_OPERATION(glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col))
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_COLOR))
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot))
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 3, GL_FLOAT, 0, 0, posRot))
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 		} else {
 			GL_OPERATION(glPushMatrix())
 			GL_OPERATION(glTranslatef(rc.position.X, rc.position.Y, 0.0f))
-			GL_OPERATION(glRotatef(rc.rotation, 0, 0, 1))
+			#define PI 3.14159265f
+			GL_OPERATION(glRotatef(180 * rc.rotation / PI , 0, 0, 1))
 			GL_OPERATION(glScalef(rc.halfSize.X * 2, rc.halfSize.Y * 2, 1.0f))
 			GL_OPERATION(glColor4f(rc.color.r, rc.color.g, rc.color.b, rc.color.a))
 			float vertexBuffer[] = {
@@ -340,6 +344,8 @@ void RenderingSystem::DoUpdate(float dt) {
 			GL_OPERATION(glPopMatrix())
 		}
 	}
+	
+	glFinish();
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
