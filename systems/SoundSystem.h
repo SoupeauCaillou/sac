@@ -29,7 +29,10 @@ struct JavaSoundAPI {
 	jmethodID jresumeSounds;
 	
 	int loadSound(const std::string& assetName, bool music) {
+		LOGI("loadSound: '%s' (music:%d, env:%p)", assetName.c_str(), music, env);
 		jstring asset = env->NewStringUTF(assetName.c_str());
+		LOGI("jstring: %p", asset);
+		LOGI("class: %p method: %p", javaSoundApi, jloadSound);
 		int result = env->CallStaticIntMethod(javaSoundApi, jloadSound, assetManager, asset, music);
 		return result;
 	}

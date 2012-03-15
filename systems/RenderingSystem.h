@@ -73,15 +73,16 @@ void reloadTextures();
 
 bool opengles2;
 
-private:
-GLuint loadTexture(const std::string& assetName);
-
 public:
 int w,h;
 /* textures cache */
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
-std::map<TextureRef, GLuint> textures;
+struct TextureInfo {
+	GLuint glref;
+	Vector2 region;
+};
+std::map<TextureRef, TextureInfo> textures;
 
 NativeAssetLoader* assetLoader;
 
@@ -91,5 +92,8 @@ GLuint uniformMatrix;
 GLuint whiteTexture;
 
 /* open gl es1 var */
+
+private:
+TextureInfo loadTexture(const std::string& assetName);
 
 };

@@ -4,6 +4,41 @@
 
 INSTANCE_IMPL(RenderingSystem);
 
+static void check_GL_errors(const char* context) {
+	 int maxIterations=10;
+    GLenum error;
+    while (((error = glGetError()) != GL_NO_ERROR) && maxIterations > 0)
+    {
+        switch(error)
+        {
+            case GL_INVALID_ENUM:
+            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_ENUM\n", maxIterations, context); break;
+            case GL_INVALID_VALUE:
+            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_VALUE\n", maxIterations, context); break;
+            case GL_INVALID_OPERATION:
+            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_OPERATION\n", maxIterations, context); break;
+            case GL_OUT_OF_MEMORY:
+            	LOGW("[%2d]GL error: '%s' -> GL_OUT_OF_MEMORY\n", maxIterations, context); break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_FRAMEBUFFER_OPERATION\n", maxIterations, context); break;
+            default:
+            	LOGW("[%2d]GL error: '%s' -> %x\n", maxIterations, context, error);
+        }
+		  maxIterations--;
+    }
+}
+
+// #define CHECK_GL_ERROR
+
+#ifdef CHECK_GL_ERROR
+	#define GL_OPERATION(x)	\
+		(x); \
+		check_GL_errors(#x);
+#else
+	#define GL_OPERATION(x) \
+		(x);
+#endif
+
 enum {
     ATTRIB_VERTEX = 0,
     ATTRIB_UV,
@@ -21,34 +56,51 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("re
 void RenderingSystem::setWindowSize(int width, int height) {
 	w = width;
 	h = height;
-	glViewport(0, 0, w, h);
+	GL_OPERATION(glViewport(0, 0, w, h))
 }
 
-GLuint RenderingSystem::loadTexture(const std::string& assetName) {
+static unsigned int alignOnPowerOf2(unsigned int value) {
+	for(int i=0; i<32; i++) {
+		unsigned int c = 1 << i;
+		if (value <= c)
+			return c;
+	}
+	return 0;
+}
+
+RenderingSystem::TextureInfo RenderingSystem::loadTexture(const std::string& assetName) {
 	int w, h;
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
 
 	if (!data)
-		return 0;
+		return TextureInfo();
 
 	/* create GL texture */
 	if (!opengles2)
-		glEnable(GL_TEXTURE_2D);
+		GL_OPERATION(glEnable(GL_TEXTURE_2D))
+
+	int powerOf2W = alignOnPowerOf2(w);
+	int powerOf2H = alignOnPowerOf2(h);
 
 	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
-                h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                data);
+	GL_OPERATION(glGenTextures(1, &texture))
+	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST))
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
+                powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                NULL))
+   GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
+                data))
 
+	TextureInfo info;
+	info.glref = texture;
+	info.region = Vector2(w/(float)powerOf2W, h/(float)powerOf2H);
 	free(data);
 
-	return texture;
+	return info;
 }
 
 void RenderingSystem::reloadTextures() {
@@ -60,16 +112,16 @@ void RenderingSystem::reloadTextures() {
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
 	char* source = assetLoader->loadShaderFile(assetName);
 	GLuint shader = glCreateShader(type);
-	glShaderSource(shader, 1, (const char**)&source, NULL);
-	glCompileShader(shader);
+	GL_OPERATION(glShaderSource(shader, 1, (const char**)&source, NULL))
+	GL_OPERATION(glCompileShader(shader))
 
 	delete[] source;
   	GLint logLength;
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+   GL_OPERATION(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength))
     if (logLength > 1)
     {
         char *log = new char[logLength];
-        glGetShaderInfoLog(shader, logLength, &logLength, log);
+        GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
         LOGW("GL shader error: %s\n", log);
  		delete[] log;
 		return 0;
@@ -79,21 +131,26 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 
 void RenderingSystem::init() {
 	if (opengles2) {
+		defaultProgram = 0;
+		LOGW("default prog: %u before", defaultProgram);
+		defaultProgram = glCreateProgram();
+		check_GL_errors("");
+		LOGW("default prog: %u after", defaultProgram);
+		
 		LOGI("Compiling shaders\n");
 		GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
 		GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
 
-		defaultProgram = glCreateProgram();
-		glAttachShader(defaultProgram, vs);
-		glAttachShader(defaultProgram, fs);
+		GL_OPERATION(glAttachShader(defaultProgram, vs))
+		GL_OPERATION(glAttachShader(defaultProgram, fs))
 		LOGI("Binding GLSL attribs\n");
-		glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition");
-		 glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord");
-		glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor");
-		glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot");
+		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition"))
+		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord"))
+		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor"))
+		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot"))
 
 		LOGI("Linking GLSL program\n");
-		glLinkProgram(defaultProgram);
+		GL_OPERATION(glLinkProgram(defaultProgram))
 
 		 GLint logLength;
 	 	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
@@ -110,21 +167,37 @@ void RenderingSystem::init() {
 		glDeleteShader(vs);
 		glDeleteShader(fs);
 	} else {
-		glEnable(GL_TEXTURE_2D);
-		glClearColor(0.2, 0.5, 0.1, 1.0);
+		float ratio = h / (float)w ;
+		GL_OPERATION(glEnable(GL_TEXTURE_2D))
+		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
+	
+	#if ANDROID
+		GL_OPERATION(glEnable(GL_TEXTURE_2D))
+		GL_OPERATION(glMatrixMode(GL_PROJECTION))
+		GL_OPERATION(glLoadIdentity())
+		GL_OPERATION(glOrthof(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1))
+		GL_OPERATION(glMatrixMode(GL_MODELVIEW))
+		GL_OPERATION(glLoadIdentity())
+		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
+		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
+	#endif
 	}
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};
-	glGenTextures(1, &whiteTexture);
-	glBindTexture(GL_TEXTURE_2D, whiteTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
+	GL_OPERATION(glGenTextures(1, &whiteTexture))
+	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, whiteTexture))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST))
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                data);
+                data))
+                
+	GL_OPERATION(glEnable(GL_BLEND))
+	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
+	GL_OPERATION(glDisable(GL_DEPTH_TEST))
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
@@ -163,27 +236,15 @@ bool sortRender(const RenderCommand& r1, const RenderCommand& r2) {
 }
 
 void RenderingSystem::DoUpdate(float dt) {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
-	float ratio = h / (float)w ;
+	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+
+	
 	if (opengles2) {
-		glUseProgram(defaultProgram);
+		float ratio = h / (float)w ;
+		GL_OPERATION(glUseProgram(defaultProgram))
 		GLfloat mat[16];
 		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
-		glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat);
-	} else {
-	#if ANDROID
-		glEnable(GL_TEXTURE_2D);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrthof(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	#endif
+		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
 	}
 
 	std::vector<RenderCommand> commands;
@@ -201,10 +262,19 @@ void RenderingSystem::DoUpdate(float dt) {
 		const TransformationComponent* tc = TRANSFORM(a);
 
 		RenderCommand c;
-		c.texture = (rc->texture != InvalidTextureRef) ?textures[rc->texture] : whiteTexture;
-		c.halfSize = tc->size * 0.5f;
 		c.uv[0] = rc->bottomLeftUV;
 		c.uv[1] = rc->topRightUV;
+		if (rc->texture != InvalidTextureRef) {
+			TextureInfo info = textures[rc->texture];
+			c.texture = info.glref;
+			c.uv[0].X *= info.region.X;
+			c.uv[1].X *= info.region.X;
+			c.uv[0].Y *= info.region.Y;
+			c.uv[1].Y *= info.region.Y;
+		} else {
+			c.texture = whiteTexture;
+		}
+		c.halfSize = tc->size * 0.5f;
 		c.color = rc->color;
 		c.position = tc->worldPosition;
 		c.rotation = tc->worldRotation;
@@ -213,18 +283,21 @@ void RenderingSystem::DoUpdate(float dt) {
 		commands.push_back(c);
 	}
 
+	GLuint boundTexture = 0;
 	std::sort(commands.begin(), commands.end(), sortRender);
-
 	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		const RenderCommand& rc = *it;
 
-		glBindTexture(GL_TEXTURE_2D, rc.texture);
+		if (boundTexture != rc.texture) {
+			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
+			boundTexture = rc.texture;
+		}
 
 		const GLfloat squareVertices[] = {
-				-rc.halfSize.X, -rc.halfSize.Y, 0.,
-				rc.halfSize.X, -rc.halfSize.Y,0.,
-				-rc.halfSize.X, rc.halfSize.Y,0.,
-				rc.halfSize.X, rc.halfSize.Y,0.
+				-rc.halfSize.X, -rc.halfSize.Y ,
+				rc.halfSize.X, -rc.halfSize.Y,
+				-rc.halfSize.X, rc.halfSize.Y,
+				rc.halfSize.X, rc.halfSize.Y
 			};
 
 		const GLfloat squareUvs[] = {
@@ -237,39 +310,42 @@ void RenderingSystem::DoUpdate(float dt) {
 		for(int i=0; i<4; i++)
 			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
 		float posRot[] = {
-			rc.position.X, rc.position.Y, 0, rc.rotation,
-			rc.position.X, rc.position.Y, 0, rc.rotation,
-			rc.position.X, rc.position.Y, 0, rc.rotation,
-			rc.position.X, rc.position.Y, 0, rc.rotation
+			rc.position.X, rc.position.Y, rc.rotation,
+			rc.position.X, rc.position.Y, rc.rotation,
+			rc.position.X, rc.position.Y, rc.rotation,
+			rc.position.X, rc.position.Y, rc.rotation
 		};
 		if (opengles2) {
-			glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, squareVertices);
-			glEnableVertexAttribArray(ATTRIB_VERTEX);
-			glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs);
-			glEnableVertexAttribArray(ATTRIB_UV);
-			glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col);
-			glEnableVertexAttribArray(ATTRIB_COLOR);
-			glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot);
-			glEnableVertexAttribArray(ATTRIB_POS_ROT);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices))
+			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs))
+			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col))
+			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_COLOR))
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 3, GL_FLOAT, 0, 0, posRot))
+			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
+			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 		} else {
-			glPushMatrix();
-			glTranslatef(rc.position.X, rc.position.Y, 0.0f);
-			glRotatef(rc.rotation, 0, 0, 1);
-			glScalef(rc.halfSize.X * 2, rc.halfSize.Y * 2, 1.0f);
-			glColor4f(rc.color.r, rc.color.g, rc.color.b, rc.color.a);
+			GL_OPERATION(glPushMatrix())
+			GL_OPERATION(glTranslatef(rc.position.X, rc.position.Y, 0.0f))
+			#define PI 3.14159265f
+			GL_OPERATION(glRotatef(180 * rc.rotation / PI , 0, 0, 1))
+			GL_OPERATION(glScalef(rc.halfSize.X * 2, rc.halfSize.Y * 2, 1.0f))
+			GL_OPERATION(glColor4f(rc.color.r, rc.color.g, rc.color.b, rc.color.a))
 			float vertexBuffer[] = {
 				 -0.5f,  -0.5f,
 				 0.5f,   -0.5f,
 				 -0.5f,  0.5f,
 				 0.5f,  0.5f,
 			};
-			glVertexPointer(2, GL_FLOAT, 0, vertexBuffer);
-			glTexCoordPointer(2, GL_FLOAT, 0, squareUvs);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-			glPopMatrix();
+			GL_OPERATION(glVertexPointer(2, GL_FLOAT, 0, vertexBuffer))
+			GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, squareUvs))
+			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
+			GL_OPERATION(glPopMatrix())
 		}
 	}
+	
+	glFinish();
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
