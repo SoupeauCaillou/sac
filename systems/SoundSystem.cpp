@@ -6,27 +6,31 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("sound"), nextV
 }
 
 void SoundSystem::init() {
-
+	#ifndef ANDROID
+	ALCdevice* Device = alcOpenDevice(NULL);
+	ALCcontext* Context = alcCreateContext(Device, NULL);
+	if (!(Device && Context && alcMakeContextCurrent(Context)))
+		LOGI("probleme initialisation du son");
+	#endif
 }
 
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
-#ifdef ANDROID
+	#ifdef ANDROID
 	if (!music && assetSounds.find(assetName) != assetSounds.end())
-#else
+	#else
 	if (assetSounds.find(assetName) != assetSounds.end())
-#endif
+	#endif
 		return assetSounds[assetName];
 
-#ifdef ANDROID
+	#ifdef ANDROID
 	int soundID = androidSoundAPI->loadSound(assetName, music);
-	sounds[nextValidRef] = soundID;
-#endif
+	#else
+	ALuint soundID = linuxSoundAPI->loadSound(assetName);
+	#endif
 
+	sounds[nextValidRef] = soundID;
 	assetSounds[assetName] = nextValidRef;
-#ifdef ANDROID
-	
 	LOGW("Sound : %s -> %d -> %d", assetName.c_str(), nextValidRef, soundID);
-#endif
 
 	return nextValidRef++;
 }
@@ -40,13 +44,16 @@ void SoundSystem::DoUpdate(float dt) {
 			if (!rc->started) {
 				LOGW("sound started (%d)", rc->sound);
 				#ifdef ANDROID
-				androidSoundAPI->play (sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
+				androidSoundAPI->play(sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
+				#else
+				linuxSoundAPI->play(sounds[rc->sound]);
 				#endif
 				rc->started = true;
 			} else if (rc->type == SoundComponent::MUSIC) {
-				float newPos;
-				#ifdef ANDROID
-				newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
+				 #ifdef ANDROID
+				float newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
+				#else
+				ALfloat newPos = linuxSoundAPI->musicPos(sounds[rc->sound]);
 				#endif
 				if (newPos >= 0.999) {
 					LOGW("sound ended (%d)", rc->sound);
@@ -60,6 +67,6 @@ void SoundSystem::DoUpdate(float dt) {
 				rc->sound = InvalidSoundRef;
 				rc->started = false;
 			}
-		}	
+		}
 	}
 }
