@@ -53,12 +53,12 @@ Vector2::Vector2()
 , Y(0)
 {}
 
-float Vector2::Length()
+float Vector2::Length() const
 {
 	return sqrt(LengthSquared());
 }
 
-float Vector2::LengthSquared()
+float Vector2::LengthSquared() const
 {
 	return (X * X) + (Y * Y);
 }
