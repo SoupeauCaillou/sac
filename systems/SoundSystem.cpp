@@ -53,7 +53,7 @@ void SoundSystem::DoUpdate(float dt) {
 				 #ifdef ANDROID
 				float newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
 				#else
-				ALfloat newPos = linuxSoundAPI->musicPos(rc->source);
+				ALfloat newPos = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
 				#endif
 				if (newPos >= 0.999) {
 					LOGW("sound ended (%d)", rc->sound);

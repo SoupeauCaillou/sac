@@ -100,10 +100,13 @@ struct OpenAlSoundAPI {
 		return Source;
 	}
 
-	ALfloat musicPos(ALuint Source) {
-	    ALfloat Seconds = 0.f;
-	    alGetSourcef(Source, AL_SEC_OFFSET, &Seconds);
-	    return Seconds;
+	ALfloat musicPos(ALuint Source, ALuint buffer) {
+	    ALfloat pos = 0.f;
+	    ALint tot = 0;
+		alGetSourcef(Source, AL_BYTE_OFFSET, &pos);
+		alGetBufferi(buffer, AL_SIZE, &tot);
+
+		return pos/tot;
 	}
 
 	void pauseAll() {
