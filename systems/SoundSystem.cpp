@@ -46,14 +46,14 @@ void SoundSystem::DoUpdate(float dt) {
 				#ifdef ANDROID
 				androidSoundAPI->play(sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
 				#else
-				linuxSoundAPI->play(sounds[rc->sound]);
+				rc->source = linuxSoundAPI->play(sounds[rc->sound]);
 				#endif
 				rc->started = true;
 			} else if (rc->type == SoundComponent::MUSIC) {
 				 #ifdef ANDROID
 				float newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
 				#else
-				ALfloat newPos = linuxSoundAPI->musicPos(sounds[rc->sound]);
+				ALfloat newPos = linuxSoundAPI->musicPos(rc->source);
 				#endif
 				if (newPos >= 0.999) {
 					LOGW("sound ended (%d)", rc->sound);

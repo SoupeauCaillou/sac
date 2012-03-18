@@ -64,9 +64,6 @@ struct JavaSoundAPI {
 #else
 #include <sstream>
 struct OpenAlSoundAPI {
-
-	ALuint Source;
-
 	ALuint loadSound(const std::string& Filename) {
 		SF_INFO FileInfos;
 		std::stringstream a;
@@ -96,35 +93,40 @@ struct OpenAlSoundAPI {
 		return Buffer;
 	}
 	ALuint play(ALuint soundId) {
+		ALuint Source = 0;
 		alGenSources(1, &Source);
 		alSourcei(Source, AL_BUFFER, soundId);
 		alSourcePlay(Source);
+		return Source;
 	}
 
-	ALfloat musicPos(ALuint soundID) {
+	ALfloat musicPos(ALuint Source) {
 	    ALfloat Seconds = 0.f;
 	    alGetSourcef(Source, AL_SEC_OFFSET, &Seconds);
 	    return Seconds;
 	}
 
 	void pauseAll() {
-		alSourcePause(Source);
+		//alSourcePause(it->second.source);
 	}
 
 	void resumeAll() {
-		alSourcePlay(Source);
+		//alSourcePlay(it->second.source);
 	}
 };
 #endif
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), position(0), started(false) {}
+	SoundComponent() : sound(InvalidSoundRef), position(0), started(false), source(0) {}
 	SoundRef sound;
 	enum { MUSIC, EFFECT } type;
 	float position;
 	bool repeat; /* si repeat est faux: qd le son a été joué en plein, on passe sound à InvalidSoundRef */
 	/* openal specific datas : openAL source ? */
 	bool started;
+	#ifndef ANDROID
+	ALuint source;
+	#endif
 };
 
 #define theSoundSystem SoundSystem::GetInstance()
