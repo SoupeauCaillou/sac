@@ -19,7 +19,7 @@ typedef int SoundRef;
 #ifdef ANDROID
 #include <jni.h>
 #else
-
+#include <sndfile.h>
 #include <AL/al.h>
 #include <AL/alc.h>
 
@@ -62,15 +62,18 @@ struct JavaSoundAPI {
 	}
 };
 #else
+#include <sstream>
 struct OpenAlSoundAPI {
 
 	ALuint Source;
 
 	ALuint loadSound(const std::string& Filename) {
 		SF_INFO FileInfos;
-		SNDFILE* File = sf_open(Filename.c_str(), SFM_READ, &FileInfos);
+		std::stringstream a;
+		a << "assets/" << Filename;
+		SNDFILE* File = sf_open(a.str().c_str(), SFM_READ, &FileInfos);
 		if (!File) {
-			LOGI("le fichier %s n'existe pas", Filename);
+			LOGI("le fichier %s n'existe pas", Filename.c_str());
 			return 0;
 		}
 		ALsizei NbSamples  = static_cast<ALsizei>(FileInfos.channels * FileInfos.frames);
@@ -144,8 +147,8 @@ std::map<SoundRef, int> sounds;
 std::map<SoundRef, ALuint> sounds;
 #endif
 
-#ifdef ANDROID
 public:
+#ifdef ANDROID
 	JavaSoundAPI* androidSoundAPI;
 #else
 	OpenAlSoundAPI* linuxSoundAPI;

@@ -22,7 +22,7 @@ include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories("/usr/include/unittest++/")
 add_executable(sac_tests ${tests_files})
-target_link_libraries(sac_tests sac UnitTest++ GL)
+target_link_libraries(sac_tests sac UnitTest++ GL  openal sndfile)
 
 add_custom_command(
 	TARGET sac_tests
