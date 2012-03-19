@@ -69,10 +69,12 @@ void SoundSystem::DoUpdate(float dt) {
 				if (newPos >= 0.995) {
 					LOGW("sound ended (%d)", rc->sound);
 					rc->position = 0;
+					#ifndef ANDROID
 					activeSources.remove(rc->source);
 					availableSources.push_back(rc->source);
-					rc->sound = InvalidSoundRef;
 					rc->source = 0;
+					#endif
+					rc->sound = InvalidSoundRef;
 					rc->started = false;
 				} else {
 					rc->position = newPos;

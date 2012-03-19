@@ -344,8 +344,6 @@ void RenderingSystem::DoUpdate(float dt) {
 			GL_OPERATION(glPopMatrix())
 		}
 	}
-	
-	glFinish();
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {

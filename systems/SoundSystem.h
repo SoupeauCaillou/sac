@@ -121,7 +121,11 @@ struct OpenAlSoundAPI {
 #endif
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), position(0), started(false), source(0) {}
+	SoundComponent() : sound(InvalidSoundRef), position(0), started(false) {
+		#ifndef ANDROID
+		source = 0;
+		#endif
+	}
 	SoundRef sound;
 	enum { MUSIC, EFFECT } type;
 	float position;
