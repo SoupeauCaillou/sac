@@ -29,7 +29,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				} else {
 					trc->drawing.push_back(createRenderingEntity());
 				}
-			}
+			} 
+				
 			RenderingComponent* rc = RENDERING(trc->drawing[i]);
 			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
 			tc->parent = it->first;
@@ -61,6 +62,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
+			RENDERING(trc->drawing[i])->texture = -1;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
 		trc->drawing.resize(trc->text.length());
