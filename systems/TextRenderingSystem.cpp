@@ -42,7 +42,6 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			std::map<char, Vector2>::iterator jt = trc->char2UV.find(trc->text[i]);
 			if (trc->text[i] != ' ' && jt == trc->char2UV.end()) {
 				std::cout << "Char '" << trc->text[i] << "'" << " not found in font bitmap" << std::endl;
-				rc->texture = -1;
 				rc->hide = true;
 			} else {
 				if (trc->text[i] == ' ') {
@@ -62,7 +61,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
-			RENDERING(trc->drawing[i])->texture = -1;
+			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
 		trc->drawing.resize(trc->text.length());
