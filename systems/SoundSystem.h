@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <list>
 #include <algorithm>
 #include <map>
 
@@ -64,6 +65,7 @@ struct JavaSoundAPI {
 #else
 #include <sstream>
 struct OpenAlSoundAPI {
+	/* return an OpenAL buffer */
 	ALuint loadSound(const std::string& Filename) {
 		SF_INFO FileInfos;
 		std::stringstream a;
@@ -92,21 +94,20 @@ struct OpenAlSoundAPI {
 			return 0;
 		return Buffer;
 	}
-	ALuint play(ALuint soundId) {
-		ALuint Source = 0;
-		alGenSources(1, &Source);
-		alSourcei(Source, AL_BUFFER, soundId);
-		alSourcePlay(Source);
-		return Source;
+	/* return the OpenAL source used to play the sound */
+	ALuint play(ALuint buffer, ALuint source) {
+		alSourcei(source, AL_BUFFER, buffer);
+		alSourcePlay(source);
+		return source;
 	}
-
+	
 	ALfloat musicPos(ALuint Source, ALuint buffer) {
-	    ALfloat pos = 0.f;
-	    ALint tot = 0;
+	   ALfloat pos = 0;
+	   ALint tot = 0;
 		alGetSourcef(Source, AL_BYTE_OFFSET, &pos);
 		alGetBufferi(buffer, AL_SIZE, &tot);
 
-		return pos/tot;
+		return pos/(float)tot;
 	}
 
 	void pauseAll() {
@@ -125,10 +126,9 @@ struct SoundComponent {
 	enum { MUSIC, EFFECT } type;
 	float position;
 	bool repeat; /* si repeat est faux: qd le son a été joué en plein, on passe sound à InvalidSoundRef */
-	/* openal specific datas : openAL source ? */
 	bool started;
 	#ifndef ANDROID
-	ALuint source;
+	ALuint source; // openAL source
 	#endif
 };
 
@@ -149,7 +149,10 @@ std::map<std::string, SoundRef> assetSounds;
 #ifdef ANDROID
 std::map<SoundRef, int> sounds;
 #else
+// SoundRef -> OpenAL buffer mapping
 std::map<SoundRef, ALuint> sounds;
+std::list<ALuint> availableSources;
+std::list<ALuint> activeSources;
 #endif
 
 public:
