@@ -46,6 +46,16 @@ struct RenderingComponent {
 	bool hide;
 };
 
+struct RenderCommand {
+	float z;
+	TextureRef texture;
+	Vector2 halfSize;
+	Vector2 uv[2];
+	Color color;
+	Vector2 position;
+	float rotation;
+};
+
 #define theRenderingSystem RenderingSystem::GetInstance()
 #define RENDERING(e) theRenderingSystem.Get(e)
 
@@ -86,6 +96,8 @@ std::map<TextureRef, TextureInfo> textures;
 
 NativeAssetLoader* assetLoader;
 
+int currentBuffer;
+std::vector<RenderCommand> previousRenderCommandsForBuffer[2];
 /* default (and only) shader */
 GLuint defaultProgram;
 GLuint uniformMatrix;
@@ -95,5 +107,6 @@ GLuint whiteTexture;
 
 private:
 TextureInfo loadTexture(const std::string& assetName);
+void drawRenderCommands(std::vector<RenderCommand>& commands);
 
 };
