@@ -197,7 +197,10 @@ void RenderingSystem::init() {
                 
 	GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
-	GL_OPERATION(glDisable(GL_DEPTH_TEST))
+	GL_OPERATION(glEnable(GL_DEPTH_TEST))
+	GL_OPERATION(glDepthFunc(GL_GEQUAL))
+	GL_OPERATION(glClearDepthf(0.0))
+	// GL_OPERATION(glDepthRangef(0, 1))
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
@@ -228,11 +231,11 @@ struct RenderCommand {
 	float rotation;
 };
 
-bool sortRender(const RenderCommand& r1, const RenderCommand& r2) {
+bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
 	if (r1.z == r2.z)
 		return r1.texture < r2.texture;
 	else
-		return r1.z < r2.z;
+		return r1.z > r2.z;
 }
 
 void RenderingSystem::DoUpdate(float dt) {
@@ -247,15 +250,14 @@ void RenderingSystem::DoUpdate(float dt) {
 		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
 	}
 
-	std::vector<RenderCommand> commands;
-
+	std::vector<RenderCommand> commands, semiOpaqueCommands;
+	
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
 		RenderingComponent* rc = (*it).second;
 		
-		if (rc->hide) {
-			//LOGI("entity %d hidden\n", a);
+		if (rc->hide || rc->color.a <= 0) {
 			continue;
 		}
 
@@ -280,11 +282,14 @@ void RenderingSystem::DoUpdate(float dt) {
 		c.rotation = tc->worldRotation;
 		c.z = tc->z;
 
-		commands.push_back(c);
+		if (true || c.color.a >= 1)
+			commands.push_back(c);
+		else
+			semiOpaqueCommands.push_back(c);
 	}
 
 	GLuint boundTexture = 0;
-	std::sort(commands.begin(), commands.end(), sortRender);
+	std::sort(commands.begin(), commands.end(), sortFrontToBack);
 	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		const RenderCommand& rc = *it;
 
@@ -292,13 +297,12 @@ void RenderingSystem::DoUpdate(float dt) {
 			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
 			boundTexture = rc.texture;
 		}
-
 		const GLfloat squareVertices[] = {
-				-rc.halfSize.X, -rc.halfSize.Y ,
+				-rc.halfSize.X, -rc.halfSize.Y,
 				rc.halfSize.X, -rc.halfSize.Y,
 				-rc.halfSize.X, rc.halfSize.Y,
 				rc.halfSize.X, rc.halfSize.Y
-			};
+							};
 
 		const GLfloat squareUvs[] = {
 			rc.uv[0].X, rc.uv[0].Y,
@@ -310,10 +314,10 @@ void RenderingSystem::DoUpdate(float dt) {
 		for(int i=0; i<4; i++)
 			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
 		float posRot[] = {
-			rc.position.X, rc.position.Y, rc.rotation,
-			rc.position.X, rc.position.Y, rc.rotation,
-			rc.position.X, rc.position.Y, rc.rotation,
-			rc.position.X, rc.position.Y, rc.rotation
+			rc.position.X, rc.position.Y, rc.z, rc.rotation,
+			rc.position.X, rc.position.Y, rc.z, rc.rotation,
+			rc.position.X, rc.position.Y, rc.z, rc.rotation,
+			rc.position.X, rc.position.Y, rc.z, rc.rotation
 		};
 		if (opengles2) {
 			GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices))
@@ -322,12 +326,12 @@ void RenderingSystem::DoUpdate(float dt) {
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
 			GL_OPERATION(glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col))
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_COLOR))
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 3, GL_FLOAT, 0, 0, posRot))
+			GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot))
 			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 		} else {
 			GL_OPERATION(glPushMatrix())
-			GL_OPERATION(glTranslatef(rc.position.X, rc.position.Y, 0.0f))
+			GL_OPERATION(glTranslatef(rc.position.X, rc.position.Y, rc.z))
 			#define PI 3.14159265f
 			GL_OPERATION(glRotatef(180 * rc.rotation / PI , 0, 0, 1))
 			GL_OPERATION(glScalef(rc.halfSize.X * 2, rc.halfSize.Y * 2, 1.0f))
