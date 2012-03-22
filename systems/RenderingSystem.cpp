@@ -247,21 +247,42 @@ static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
 		return r1.z < r2.z;
 }
 
+static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, vertices))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, colors))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_COLOR))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
+	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
+
+	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+}
+
 static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengles2) {
+#define MAX_BATCH_SIZE 2
+	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 2];
+	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
+	static GLfloat colors[MAX_BATCH_SIZE * 4 * 4];
+	static GLfloat posrot[MAX_BATCH_SIZE * 4 * 4];
+	static unsigned short indices[MAX_BATCH_SIZE * 6];
+	int batchSize = 0;
+
 	GLuint boundTexture = 0;
 	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		const RenderCommand& rc = *it;
 
 		if (boundTexture != rc.texture) {
+			if (opengles2 && batchSize > 0) {
+				// execute batch
+				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+				batchSize = 0;
+			}
 			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
 			boundTexture = rc.texture;
 		}
-		const GLfloat squareVertices[] = {
-				-rc.halfSize.X, -rc.halfSize.Y,
-				rc.halfSize.X, -rc.halfSize.Y,
-				-rc.halfSize.X, rc.halfSize.Y,
-				rc.halfSize.X, rc.halfSize.Y
-							};
 
 		const GLfloat squareUvs[] = {
 			rc.uv[0].X, rc.uv[0].Y,
@@ -269,26 +290,55 @@ static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengl
 			rc.uv[0].X, rc.uv[1].Y,
 			rc.uv[1].X, rc.uv[1].Y
 		};
-		float col[16];
-		for(int i=0; i<4; i++)
-			memcpy(&col[4*i], rc.color.rgba, 4 * sizeof(float));
-		float posRot[] = {
-			rc.position.X, rc.position.Y, rc.z, rc.rotation,
-			rc.position.X, rc.position.Y, rc.z, rc.rotation,
-			rc.position.X, rc.position.Y, rc.z, rc.rotation,
-			rc.position.X, rc.position.Y, rc.z, rc.rotation
-		};
+		
 		if (opengles2) {
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices))
-			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, squareUvs))
-			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, col))
-			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_COLOR))
-			GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posRot))
-			GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
-			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
+			// fill batch
+			const int baseIdx = 4 * batchSize;
+			vertices[baseIdx * 2 + 0] = -rc.halfSize.X;
+			vertices[baseIdx * 2 + 1] = -rc.halfSize.Y;
+			vertices[baseIdx * 2 + 2] =  rc.halfSize.X;
+			vertices[baseIdx * 2 + 3] = -rc.halfSize.Y;
+			vertices[baseIdx * 2 + 4] = -rc.halfSize.X;
+			vertices[baseIdx * 2 + 5] =  rc.halfSize.Y;
+			vertices[baseIdx * 2 + 6] =  rc.halfSize.X;
+			vertices[baseIdx * 2 + 7] =  rc.halfSize.Y;
+			
+			uvs[baseIdx * 2 + 0] = rc.uv[0].X;
+			uvs[baseIdx * 2 + 1] = rc.uv[0].Y;
+			uvs[baseIdx * 2 + 2] = rc.uv[1].X;
+			uvs[baseIdx * 2 + 3] = rc.uv[0].Y;
+			uvs[baseIdx * 2 + 4] = rc.uv[0].X;
+			uvs[baseIdx * 2 + 5] = rc.uv[1].Y;
+			uvs[baseIdx * 2 + 6] = rc.uv[1].X;
+			uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
+			
+			memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
+			memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
+			memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
+			memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
+			
+			for (int i=0; i<4; i++) {
+				posrot[(baseIdx + i) * 4 + 0] = rc.position.X;
+				posrot[(baseIdx + i) * 4 + 1] = rc.position.Y;
+				posrot[(baseIdx + i) * 4 + 2] = rc.z;
+				posrot[(baseIdx + i) * 4 + 3] = rc.rotation;
+			}
+			
+			indices[batchSize * 6 + 0] = baseIdx + 0;
+			indices[batchSize * 6 + 1] = baseIdx + 1;
+			indices[batchSize * 6 + 2] = baseIdx + 2;
+			indices[batchSize * 6 + 3] = baseIdx + 1;
+			indices[batchSize * 6 + 4] = baseIdx + 3;
+			indices[batchSize * 6 + 5] = baseIdx + 2;
+			
+			batchSize++;
+			
+			if (batchSize == MAX_BATCH_SIZE) {
+				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+				batchSize = 0;
+			}
 		} else {
+		#if 1
 			GL_OPERATION(glPushMatrix())
 			GL_OPERATION(glTranslatef(rc.position.X, rc.position.Y, -rc.z))
 			#define PI 3.14159265f
@@ -305,8 +355,13 @@ static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengl
 			GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, squareUvs))
 			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 			GL_OPERATION(glPopMatrix())
+		#endif
 		}
 	}
+	
+	if (batchSize > 0)
+		drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+		
 }
 
 void RenderingSystem::DoUpdate(float dt) {
