@@ -51,7 +51,6 @@ enum {
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") {
 	nextValidRef = 1;
 	opengles2 = true;
-	currentBuffer = 0;
 }
 
 void RenderingSystem::setWindowSize(int width, int height) {
@@ -222,27 +221,75 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	return result;
 }
 
-static bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
+struct RenderCommand {
+	float z;
+	TextureRef texture;
+	Vector2 halfSize;
+	Vector2 uv[2];
+	Color color;
+	Vector2 position;
+	float rotation;
+};
+
+bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
 	if (r1.z == r2.z)
 		return r1.texture < r2.texture;
 	else
 		return r1.z > r2.z;
 }
 
-static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
-	if (r1.z == r2.z)
-		return r1.texture < r2.texture;
-	else
-		return r1.z < r2.z;
-}
+void RenderingSystem::DoUpdate(float dt) {
+	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
 
-static bool sameRenderCommand(const RenderCommand& r1, const RenderCommand& r2) {
-	return memcmp(&r1, &r2, sizeof(RenderCommand)) == 0;
-}
+	
+	if (opengles2) {
+		float ratio = h / (float)w ;
+		GL_OPERATION(glUseProgram(defaultProgram))
+		GLfloat mat[16];
+		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
+		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
+	}
 
-void RenderingSystem::drawRenderCommands(std::vector<RenderCommand>& commands) {
+	std::vector<RenderCommand> commands, semiOpaqueCommands;
+	
+	/* render */
+	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+		Entity a = (*it).first;
+		RenderingComponent* rc = (*it).second;
+		
+		if (rc->hide || rc->color.a <= 0) {
+			continue;
+		}
+
+		const TransformationComponent* tc = TRANSFORM(a);
+
+		RenderCommand c;
+		c.uv[0] = rc->bottomLeftUV;
+		c.uv[1] = rc->topRightUV;
+		if (rc->texture != InvalidTextureRef) {
+			TextureInfo info = textures[rc->texture];
+			c.texture = info.glref;
+			c.uv[0].X *= info.region.X;
+			c.uv[1].X *= info.region.X;
+			c.uv[0].Y *= info.region.Y;
+			c.uv[1].Y *= info.region.Y;
+		} else {
+			c.texture = whiteTexture;
+		}
+		c.halfSize = tc->size * 0.5f;
+		c.color = rc->color;
+		c.position = tc->worldPosition;
+		c.rotation = tc->worldRotation;
+		c.z = tc->z;
+
+		if (true || c.color.a >= 1)
+			commands.push_back(c);
+		else
+			semiOpaqueCommands.push_back(c);
+	}
+
 	GLuint boundTexture = 0;
-
+	std::sort(commands.begin(), commands.end(), sortFrontToBack);
 	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		const RenderCommand& rc = *it;
 
@@ -301,82 +348,6 @@ void RenderingSystem::drawRenderCommands(std::vector<RenderCommand>& commands) {
 			GL_OPERATION(glPopMatrix())
 		}
 	}
-}
-
-void RenderingSystem::DoUpdate(float dt) {
-	GL_OPERATION(glClear(GL_DEPTH_BUFFER_BIT))
-
-	
-	if (opengles2) {
-		float ratio = h / (float)w ;
-		GL_OPERATION(glUseProgram(defaultProgram))
-		GLfloat mat[16];
-		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
-		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
-	}
-
-	std::vector<RenderCommand> commands, semiOpaqueCommands, skipped;
-	
-	/* render */
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;
-		RenderingComponent* rc = (*it).second;
-		
-		if (rc->hide || rc->color.a <= 0) {
-			continue;
-		}
-
-		const TransformationComponent* tc = TRANSFORM(a);
-
-		RenderCommand c;
-		c.uv[0] = rc->bottomLeftUV;
-		c.uv[1] = rc->topRightUV;
-		if (rc->texture != InvalidTextureRef) {
-			TextureInfo info = textures[rc->texture];
-			c.texture = info.glref;
-			c.uv[0].X *= info.region.X;
-			c.uv[1].X *= info.region.X;
-			c.uv[0].Y *= info.region.Y;
-			c.uv[1].Y *= info.region.Y;
-		} else {
-			c.texture = whiteTexture;
-		}
-		c.halfSize = tc->size * 0.5f;
-		c.color = rc->color;
-		c.position = tc->worldPosition;
-		c.rotation = tc->worldRotation;
-		c.z = tc->z;
-
-		bool keep = true;
-		for (std::vector<RenderCommand>::iterator jt=previousRenderCommandsForBuffer[currentBuffer].begin();
-			keep && jt!=previousRenderCommandsForBuffer[currentBuffer].end(); ++jt) {
-			if (sameRenderCommand(*jt, c))
-				keep = false;	
-		}
-
-		if (keep) {
-			if (c.color.a >= 1)
-				commands.push_back(c);
-			else
-				semiOpaqueCommands.push_back(c);
-		} else {
-			skipped.push_back(c);
-		}
-	}
-
-	std::sort(commands.begin(), commands.end(), sortFrontToBack);
-	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
-	
-	std::cout << currentBuffer << " -> " << previousRenderCommandsForBuffer[currentBuffer].size() << std::endl;
-	drawRenderCommands(commands);
-	drawRenderCommands(semiOpaqueCommands);
-	
-	previousRenderCommandsForBuffer[currentBuffer].clear();
-	previousRenderCommandsForBuffer[currentBuffer].reserve(commands.size() + semiOpaqueCommands.size() + skipped.size());
-	previousRenderCommandsForBuffer[currentBuffer].insert(previousRenderCommandsForBuffer[currentBuffer].begin(), commands.begin(), commands.end());
-	previousRenderCommandsForBuffer[currentBuffer].insert(previousRenderCommandsForBuffer[currentBuffer].begin() + commands.size(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
-	previousRenderCommandsForBuffer[currentBuffer].insert(previousRenderCommandsForBuffer[currentBuffer].begin() + commands.size() + semiOpaqueCommands.size(), skipped.begin(), skipped.end());
-	currentBuffer = (currentBuffer + 1) % 2;
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
