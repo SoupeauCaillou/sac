@@ -89,7 +89,7 @@ RenderingSystem::TextureInfo RenderingSystem::loadTexture(const std::string& ass
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
    GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
