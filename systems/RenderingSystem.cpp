@@ -51,6 +51,7 @@ enum {
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") {
 	nextValidRef = 1;
 	opengles2 = true;
+	current = 0;
 }
 
 void RenderingSystem::setWindowSize(int width, int height) {
@@ -89,7 +90,7 @@ RenderingSystem::TextureInfo RenderingSystem::loadTexture(const std::string& ass
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, powerOf2W,
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
    GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -223,16 +224,6 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	return result;
 }
 
-struct RenderCommand {
-	float z;
-	TextureRef texture;
-	Vector2 halfSize;
-	Vector2 uv[2];
-	Color color;
-	Vector2 position;
-	float rotation;
-};
-
 static bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
 	if (r1.z == r2.z)
 		return r1.texture < r2.texture;
@@ -365,9 +356,6 @@ static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengl
 }
 
 void RenderingSystem::DoUpdate(float dt) {
-	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
-
-	
 	if (opengles2) {
 		float ratio = h / (float)w ;
 		GL_OPERATION(glUseProgram(defaultProgram))
@@ -376,7 +364,8 @@ void RenderingSystem::DoUpdate(float dt) {
 		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
 	}
 
-	std::vector<RenderCommand> commands, semiOpaqueCommands;
+	std::vector<RenderCommand>& commands = renderCommands[current];
+	std::vector<RenderCommand> semiOpaqueCommands;
 	
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
@@ -417,8 +406,17 @@ void RenderingSystem::DoUpdate(float dt) {
 	std::sort(commands.begin(), commands.end(), sortFrontToBack);
 	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 	
+	commands.insert(commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
+	
+	current = (current + 1) % 2;
+}
+
+void RenderingSystem::render() {
+	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+
+	std::vector<RenderCommand>& commands = renderCommands[(current + 1) % 2];	
 	drawRenderCommands(commands, opengles2);
-	drawRenderCommands(semiOpaqueCommands, opengles2);
+	commands.clear();
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {

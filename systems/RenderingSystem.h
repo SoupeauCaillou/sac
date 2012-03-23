@@ -46,6 +46,16 @@ struct RenderingComponent {
 	bool hide;
 };
 
+struct RenderCommand {
+	float z;
+	TextureRef texture;
+	Vector2 halfSize;
+	Vector2 uv[2];
+	Color color;
+	Vector2 position;
+	float rotation;
+};
+
 #define theRenderingSystem RenderingSystem::GetInstance()
 #define RENDERING(e) theRenderingSystem.Get(e)
 
@@ -73,6 +83,8 @@ void reloadTextures();
 
 bool opengles2;
 
+void render();
+
 public:
 int w,h;
 /* textures cache */
@@ -85,6 +97,9 @@ struct TextureInfo {
 std::map<TextureRef, TextureInfo> textures;
 
 NativeAssetLoader* assetLoader;
+
+int current;
+std::vector<RenderCommand> renderCommands[2];
 
 /* default (and only) shader */
 GLuint defaultProgram;
