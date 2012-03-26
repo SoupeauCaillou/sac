@@ -1,6 +1,7 @@
 #include "RenderingSystem.h"
 #include <GLES/gl.h>
 #include "base/EntityManager.h"
+#include <cmath>
 
 INSTANCE_IMPL(RenderingSystem);
 
@@ -28,7 +29,7 @@ static void check_GL_errors(const char* context) {
     }
 }
 
-// #define CHECK_GL_ERROR
+#define CHECK_GL_ERROR
 
 #ifdef CHECK_GL_ERROR
 	#define GL_OPERATION(x)	\
@@ -38,6 +39,8 @@ static void check_GL_errors(const char* context) {
 	#define GL_OPERATION(x) \
 		(x);
 #endif
+
+#include <pthread.h>
 
 enum {
     ATTRIB_VERTEX = 0,
@@ -52,6 +55,9 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("re
 	nextValidRef = 1;
 	opengles2 = true;
 	current = 0;
+	frameToRender = 0;
+	pthread_mutex_init(&mutexes[0], 0);
+	pthread_mutex_init(&mutexes[1], 0);
 }
 
 void RenderingSystem::setWindowSize(int width, int height) {
@@ -125,8 +131,11 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
         GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
         LOGW("GL shader error: %s\n", log);
  		delete[] log;
-		return 0;
     }
+    
+   if (!glIsShader(shader)) {
+   	LOGW("Weird; %d is not a shader");
+   }
 	return shader;
 }
 
@@ -135,8 +144,8 @@ void RenderingSystem::init() {
 		defaultProgram = 0;
 		LOGW("default prog: %u before", defaultProgram);
 		defaultProgram = glCreateProgram();
-		check_GL_errors("");
-		LOGW("default prog: %u after", defaultProgram);
+		check_GL_errors("glCreateProgram");
+		LOGW("default prog: %u after [isAProgram = %d]", defaultProgram, glIsProgram(defaultProgram));
 		
 		LOGI("Compiling shaders\n");
 		GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
@@ -159,7 +168,7 @@ void RenderingSystem::init() {
 		 {
 		     char *log = new char[logLength];
 	 		glGetProgramInfoLog(defaultProgram, logLength, &logLength, log);
-		     std::cout << "GL shader program error: " << log << std::endl;
+		     LOGW("GL shader program error: '%s'", log);
 		     delete[] log;
 		 }
 
@@ -200,7 +209,7 @@ void RenderingSystem::init() {
                 
 	GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
-	GL_OPERATION(glEnable(GL_DEPTH_TEST))
+	// GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GEQUAL))
 	GL_OPERATION(glClearDepthf(0.0))
 	// GL_OPERATION(glDepthRangef(0, 1))
@@ -215,12 +224,9 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		result = nextValidRef++;
 		assetTextures[assetName] = result;
 	}
-
-	if (textures.find(result) != textures.end())
-		return result;
-
-	textures[result] = loadTexture(assetName);
-
+	if (textures.find(result) == textures.end())
+		delayedLoads.insert(assetName);
+		
 	return result;
 }
 
@@ -238,32 +244,53 @@ static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
 		return r1.z < r2.z;
 }
 
+static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, Vector2* out);
+
 static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
-	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, vertices))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
 	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
 	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
 	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
 	GL_OPERATION(glVertexAttribPointer(ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, colors))
 	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_COLOR))
-	GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
-	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
+	// GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
+	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 }
 
-static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengles2) {
-#define MAX_BATCH_SIZE 2
-	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 2];
+void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
+#define MAX_BATCH_SIZE 64
+	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static GLfloat colors[MAX_BATCH_SIZE * 4 * 4];
 	static GLfloat posrot[MAX_BATCH_SIZE * 4 * 4];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 
+	GL_OPERATION(glDepthMask(true))
 	GLuint boundTexture = 0;
-	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
-		const RenderCommand& rc = *it;
+	while (!commands.empty()) {
+	// for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
+		RenderCommand& rc = commands.front();
+		commands.pop();
+		
+		if (rc.texture == EndFrameMarker)
+			break;
+		else if (rc.texture == DisableZWriteMarker)
+			GL_OPERATION(glDepthMask(false))
+		
+		if (rc.texture != InvalidTextureRef) {
+			TextureInfo info = textures[rc.texture];
+			rc.texture = info.glref;
+			rc.uv[0].X *= info.region.X;
+			rc.uv[1].X *= info.region.X;
+			rc.uv[0].Y *= info.region.Y;
+			rc.uv[1].Y *= info.region.Y;
+		} else {
+			rc.texture = whiteTexture;
+		}
 
 		if (boundTexture != rc.texture) {
 			if (opengles2 && batchSize > 0) {
@@ -284,16 +311,16 @@ static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengl
 		
 		if (opengles2) {
 			// fill batch
-			const int baseIdx = 4 * batchSize;
-			vertices[baseIdx * 2 + 0] = -rc.halfSize.X;
-			vertices[baseIdx * 2 + 1] = -rc.halfSize.Y;
-			vertices[baseIdx * 2 + 2] =  rc.halfSize.X;
-			vertices[baseIdx * 2 + 3] = -rc.halfSize.Y;
-			vertices[baseIdx * 2 + 4] = -rc.halfSize.X;
-			vertices[baseIdx * 2 + 5] =  rc.halfSize.Y;
-			vertices[baseIdx * 2 + 6] =  rc.halfSize.X;
-			vertices[baseIdx * 2 + 7] =  rc.halfSize.Y;
+			Vector2 onScreenVertices[4];
+			computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, onScreenVertices);
 			
+			const int baseIdx = 4 * batchSize;
+			for (int i=0; i<4; i++) {
+				vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
+				vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
+				vertices[(baseIdx + i) * 3 + 2] = -rc.z;
+			}
+
 			uvs[baseIdx * 2 + 0] = rc.uv[0].X;
 			uvs[baseIdx * 2 + 1] = rc.uv[0].Y;
 			uvs[baseIdx * 2 + 2] = rc.uv[1].X;
@@ -307,14 +334,7 @@ static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengl
 			memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
 			memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
 			memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
-			
-			for (int i=0; i<4; i++) {
-				posrot[(baseIdx + i) * 4 + 0] = rc.position.X;
-				posrot[(baseIdx + i) * 4 + 1] = rc.position.Y;
-				posrot[(baseIdx + i) * 4 + 2] = rc.z;
-				posrot[(baseIdx + i) * 4 + 3] = rc.rotation;
-			}
-			
+
 			indices[batchSize * 6 + 0] = baseIdx + 0;
 			indices[batchSize * 6 + 1] = baseIdx + 1;
 			indices[batchSize * 6 + 2] = baseIdx + 2;
@@ -356,15 +376,9 @@ static void drawRenderCommands(std::vector<RenderCommand>& commands, bool opengl
 }
 
 void RenderingSystem::DoUpdate(float dt) {
-	if (opengles2) {
-		float ratio = h / (float)w ;
-		GL_OPERATION(glUseProgram(defaultProgram))
-		GLfloat mat[16];
-		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
-		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
-	}
-
-	std::vector<RenderCommand>& commands = renderCommands[current];
+	pthread_mutex_lock(&mutexes[current]);
+	
+	std::vector<RenderCommand> commands;
 	std::vector<RenderCommand> semiOpaqueCommands;
 	
 	/* render */
@@ -381,6 +395,8 @@ void RenderingSystem::DoUpdate(float dt) {
 		RenderCommand c;
 		c.uv[0] = rc->bottomLeftUV;
 		c.uv[1] = rc->topRightUV;
+		c.texture = rc->texture;
+		#if 0
 		if (rc->texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc->texture];
 			c.texture = info.glref;
@@ -391,13 +407,14 @@ void RenderingSystem::DoUpdate(float dt) {
 		} else {
 			c.texture = whiteTexture;
 		}
+		#endif
 		c.halfSize = tc->size * 0.5f;
 		c.color = rc->color;
 		c.position = tc->worldPosition;
 		c.rotation = tc->worldRotation;
 		c.z = tc->z;
 
-		if (c.color.a >= 1)
+		if (c.color.a >= 1 && rc->drawGroup == RenderingComponent::FrontToBack)
 			commands.push_back(c);
 		else
 			semiOpaqueCommands.push_back(c);
@@ -406,17 +423,64 @@ void RenderingSystem::DoUpdate(float dt) {
 	std::sort(commands.begin(), commands.end(), sortFrontToBack);
 	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 	
-	commands.insert(commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
+	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
+		renderQueue.push(*it);
+	}
+	RenderCommand dummy;
+	dummy.texture = DisableZWriteMarker;
+	renderQueue.push(dummy);
+	for(std::vector<RenderCommand>::iterator it=semiOpaqueCommands.begin(); it!=semiOpaqueCommands.end(); it++) {
+		renderQueue.push(*it);
+	}
+	dummy.texture = EndFrameMarker;
+	renderQueue.push(dummy);
+	frameToRender++;
+	// LOGW("Added: %d + %d + 1 elt (%d frames)", commands.size(), semiOpaqueCommands.size(), frameToRender);
 	
-	current = (current + 1) % 2;
+	pthread_mutex_unlock(&mutexes[current]);
+	
+	//current = (current + 1) % 2;
 }
 
 void RenderingSystem::render() {
-	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+	pthread_mutex_lock(&mutexes[current]);
+	// LOGW("redner queue size: %d IN - frame count: %d", renderQueue.size(), frameToRender);	
+	if (renderQueue.empty() || frameToRender == 0)
+		goto end;
+	
+	// drop the late fram
+	while (frameToRender > 1) {
+		while (renderQueue.front().texture != EndFrameMarker)
+			renderQueue.pop();
+		renderQueue.pop();
+		frameToRender--;
+		// LOGW("\t %d left / %d frames", renderQueue.size(), frameToRender);
+	}
 
-	std::vector<RenderCommand>& commands = renderCommands[(current + 1) % 2];	
-	drawRenderCommands(commands, opengles2);
-	commands.clear();
+	if (opengles2) {
+		float ratio = h / (float)w ;
+		GL_OPERATION(glUseProgram(defaultProgram))
+		GLfloat mat[16];
+		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
+		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
+	}
+
+	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
+		LOGI("Delayed loading of: %s", (*it).c_str());
+		textures[assetTextures[*it]] = loadTexture(*it);
+	}
+	delayedLoads.clear();
+	
+	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT*/))
+
+	
+	// std::vector<RenderCommand>& commands = renderCommands[cmd];	
+	drawRenderCommands(renderQueue /*commands*/, opengles2);
+	// commands.clear();
+	// LOGW("redner queue size: %d OUT", renderQueue.size());	
+	frameToRender--;
+end:
+	pthread_mutex_unlock(&mutexes[0]);
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
@@ -433,6 +497,25 @@ bool RenderingSystem::isEntityVisible(Entity e) {
 	if (pos.Y - halfSize.Y > 5 * ratio)
 		return false;
 	return true;
+}
+
+void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, Vector2* out) {
+	const float cr = cos(rotation);
+	const float sr = sin(rotation);
+	
+	const float crX = cr * hSize.X;
+	const float crY = cr * hSize.Y;
+	const float srX = sr * hSize.X;
+	const float srY = sr * hSize.Y;
+	
+	// -x -y
+	out[0] = Vector2(-crX - srY + position.X,  -(-srX) - crY + position.Y);
+	// +x -y
+	out[1] = Vector2(crX - srY + position.X, -srX - crY + position.Y);
+	// -x +y
+	out[2] = Vector2(-crX + srY + position.X, -(-srX) + crY + position.Y);
+	// +x +y
+	out[3] = Vector2(crX + srY + position.X, -srX + crY + position.Y); 
 }
 
 void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat)

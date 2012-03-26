@@ -7,6 +7,8 @@
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #include <map>
+#include <set>
+#include <queue>
 
 #include "base/Vector2.h"
 #include "base/MathUtil.h"
@@ -17,6 +19,8 @@
 
 typedef int TextureRef;
 #define InvalidTextureRef -1
+#define EndFrameMarker -10
+#define DisableZWriteMarker -11
 
 class NativeAssetLoader {
 	public:
@@ -39,10 +43,13 @@ struct Color {
 		r(_r), g(_g), b(_b), a(_a) {}
 };
 struct RenderingComponent {
-	RenderingComponent() : bottomLeftUV(0, 0), topRightUV(1, 1), hide(true), texture(InvalidTextureRef) {}
+	RenderingComponent() : bottomLeftUV(0, 0), topRightUV(1, 1), hide(true), texture(InvalidTextureRef), drawGroup(BackToFront) {}
 	Vector2 bottomLeftUV, topRightUV;
 	TextureRef texture;
 	Color color;
+	enum {
+		BackToFront, FrontToBack
+	} drawGroup;
 	bool hide;
 };
 
@@ -95,11 +102,14 @@ struct TextureInfo {
 	Vector2 region;
 };
 std::map<TextureRef, TextureInfo> textures;
+std::set<std::string> delayedLoads;
 
 NativeAssetLoader* assetLoader;
 
 int current;
-std::vector<RenderCommand> renderCommands[2];
+int frameToRender;
+std::queue<RenderCommand> renderQueue;
+pthread_mutex_t mutexes[2];
 
 /* default (and only) shader */
 GLuint defaultProgram;
@@ -110,5 +120,6 @@ GLuint whiteTexture;
 
 private:
 TextureInfo loadTexture(const std::string& assetName);
+void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 
 };
