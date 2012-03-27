@@ -10,6 +10,13 @@ file(
         ../../systems/*
 )
 
+file(
+        GLOB_RECURSE
+        texture_packer_source_files
+        ../../tools/texture_packer/*
+)
+
+
 add_library(sac ${base_source_files} ${systems_source_files})
 
 # build test app
@@ -23,8 +30,10 @@ include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories("/usr/include/unittest++/")
 add_executable(sac_tests ${tests_files})
 target_link_libraries(sac_tests sac UnitTest++ GL  openal sndfile)
-
+add_executable(texture_packer ${texture_packer_source_files})
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/sac/bin)
+target_link_libraries(texture_packer png)
 add_custom_command(
 	TARGET sac_tests
 	POST_BUILD
-	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sac_tests)
+	COMMAND ${PROJECT_BINARY_DIR}/sac/bin/sac_tests)
