@@ -1,9 +1,18 @@
 #!/bin/sh
 
-output=/tmp/atlas.png
+if [ $# -ne 1 ]
+then
+	echo "Usage: texture_packer atlas_to_create"
+	exit 1
+fi
+
+output=/tmp/${1}.png
+desc=/tmp/${1}.desc
 tmp_image=/tmp/tmp___.png
 
-# Take the output of texture packer as input and then use image magick to compose the atlas
+rm ${desc}
+
+# Take the output of texture_packer as input and then use image magick to compose the atlas
 while read data; do
 	if echo $data | grep -q Atlas
 	then
@@ -20,7 +29,7 @@ while read data; do
 		h=`echo $data | cut -d, -f5`
 		rot=`echo $data | cut -d, -f6`
 		
-		if [ ${rot} ]
+		if [ ${rot} -ne "0" ]
 		then
 			convert -rotate 90 ${image} ${tmp_image}
 		else
@@ -29,5 +38,7 @@ while read data; do
 
 		echo "Adding ${image} at ${w}x${h}+${x}+${y} (rotation:${rot})"
 		convert -geometry ${w}x${h}+${x}+${y} -composite $output $tmp_image $output
+		image=`echo ${image} | sed 's/assets\///'`
+		echo "${image},${x},${y},${w},${h},${rot}" >> ${desc}
 	fi
 done

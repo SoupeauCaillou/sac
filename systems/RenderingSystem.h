@@ -43,8 +43,8 @@ struct Color {
 		r(_r), g(_g), b(_b), a(_a) {}
 };
 struct RenderingComponent {
-	RenderingComponent() : bottomLeftUV(0, 0), topRightUV(1, 1), hide(true), texture(InvalidTextureRef), drawGroup(BackToFront) {}
-	Vector2 bottomLeftUV, topRightUV;
+	RenderingComponent() : /*bottomLeftUV(0, 0), topRightUV(1, 1),*/ hide(true), texture(InvalidTextureRef), drawGroup(BackToFront) {}
+	// Vector2 bottomLeftUV, topRightUV;
 	TextureRef texture;
 	Color color;
 	enum {
@@ -56,8 +56,9 @@ struct RenderingComponent {
 struct RenderCommand {
 	float z;
 	TextureRef texture;
-	Vector2 halfSize;
+	unsigned int rotateUV;
 	Vector2 uv[2];
+	Vector2 halfSize;
 	Color color;
 	Vector2 position;
 	float rotation;
@@ -70,6 +71,8 @@ UPDATABLE_SYSTEM(Rendering)
 
 public:
 void init();
+
+void loadAtlas(const std::string& atlasName);
 
 int saveInternalState(uint8_t** out);
 void restoreInternalState(const uint8_t* in, int size);
@@ -99,7 +102,11 @@ TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
 struct TextureInfo {
 	GLuint glref;
-	Vector2 region;
+	unsigned int rotateUV;
+	Vector2 uv[2];
+	
+	TextureInfo (GLuint r = 0, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero);
+
 };
 std::map<TextureRef, TextureInfo> textures;
 std::set<std::string> delayedLoads;
@@ -119,7 +126,7 @@ GLuint whiteTexture;
 /* open gl es1 var */
 
 private:
-TextureInfo loadTexture(const std::string& assetName);
+GLuint loadTexture(const std::string& assetName, int& w, int& h);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 
 };

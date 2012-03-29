@@ -48,8 +48,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					rc->hide = true;
 				} else {
 					rc->texture = trc->fontBitmap;
-					rc->bottomLeftUV = jt->second;
-					rc->topRightUV = jt->second + trc->uvSize;
+					
 				}
 				tc->size = trc->charSize;
 				rc->color = trc->color;
@@ -72,21 +71,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 {
-	int columnCount = 13;
-	int rowCount = 8;
-	std::map<char, Vector2> char2UV;
-
-	for (int row=0; row<rowCount; row++)
-		for (int column=0; column<columnCount; column++)
-			char2UV[' '+ columnCount*row + column] = Vector2(column / (float)columnCount, row / (float)rowCount);
-
 	Entity eTime = theEntityManager.CreateEntity();
 	ADD_COMPONENT(eTime, Transformation);
 	ADD_COMPONENT(eTime, TextRendering);
 	TEXT_RENDERING(eTime)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
-	TEXT_RENDERING(eTime)->uvSize = Vector2(1. / columnCount, 1. / rowCount);
 	TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
-	TEXT_RENDERING(eTime)->char2UV = char2UV;
 
 	return eTime;
 }

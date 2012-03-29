@@ -2,7 +2,29 @@
 #include <GLES/gl.h>
 #include "base/EntityManager.h"
 #include <cmath>
+#include <cassert>
+#include <sstream>
 
+RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h, bool rot, const Vector2& size) {
+	glref = r;		
+	if (size == Vector2::Zero) {
+		uv[0].X = uv[0].Y = 0;
+		uv[1].X = uv[1].Y = 1;
+		rotateUV = 0;
+	} else {
+		float blX = x / size.X;
+		float trX = (x+w) / size.X;
+		float blY = 1 - (y+h) / size.Y;
+		float trY = 1 - y / size.Y;
+
+		uv[0].X = blX;
+		uv[1].X = trX;
+		uv[0].Y = blY;
+		uv[1].Y = trY;
+		rotateUV = rot;
+	}
+} 
+	
 INSTANCE_IMPL(RenderingSystem);
 
 static void check_GL_errors(const char* context) {
@@ -66,6 +88,58 @@ void RenderingSystem::setWindowSize(int width, int height) {
 	GL_OPERATION(glViewport(0, 0, w, h))
 }
 
+#include <fstream>
+
+static void parse(const std::string& line, std::string& assetName, int& x, int& y, int& w, int& h, bool& rot) {
+	std::string substrings[6];
+	int from = 0, to = 0;
+	for (int i=0; i<6; i++) {
+		to = line.find_first_of(',', from);
+		substrings[i] = line.substr(from, to - from);
+		from = to + 1;
+	}
+	assetName = substrings[0];
+	x = atoi(substrings[1].c_str());
+	y = atoi(substrings[2].c_str());
+	w = atoi(substrings[3].c_str());
+	h = atoi(substrings[4].c_str());
+	rot = atoi(substrings[5].c_str());
+}
+
+void RenderingSystem::loadAtlas(const std::string& atlasName) {
+	std::string atlasDesc = atlasName + ".desc";
+	std::string atlasImage = atlasName + ".png";
+	
+	const char* desc = assetLoader->loadShaderFile(atlasDesc);
+	if (!desc) {
+		LOGW("Unable to load atlas desc %s", atlasDesc.c_str());
+		return;
+	}
+	
+	int w, h;
+	GLuint glref = loadTexture(atlasImage, w,h );
+	Vector2 atlasSize(w, h);
+	
+	std::stringstream f(std::string(desc), std::ios_base::in);
+	std::string s;
+	f >> s;
+	while(!s.empty()) {
+		std::cout << "line:'" << s << "'" << std::endl;
+		std::string assetName;
+		int x, y, w, h;
+		bool rot;
+
+		parse(s, assetName, x, y, w, h, rot);
+
+		TextureRef result = nextValidRef++;
+		assetTextures[assetName] = result;
+		textures[result] = TextureInfo(glref, x, y, w, h, rot, atlasSize);
+		
+		s.clear();
+		f >> s;
+	}
+}
+
 static unsigned int alignOnPowerOf2(unsigned int value) {
 	for(int i=0; i<32; i++) {
 		unsigned int c = 1 << i;
@@ -75,12 +149,11 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 	return 0;
 }
 
-RenderingSystem::TextureInfo RenderingSystem::loadTexture(const std::string& assetName) {
-	int w, h;
+GLuint RenderingSystem::loadTexture(const std::string& assetName, int& w, int& h) {
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
 
 	if (!data)
-		return TextureInfo();
+		return 0;
 
 	/* create GL texture */
 	if (!opengles2)
@@ -99,20 +172,16 @@ RenderingSystem::TextureInfo RenderingSystem::loadTexture(const std::string& ass
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
-   GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
-                data))
-
-	TextureInfo info;
-	info.glref = texture;
-	info.region = Vector2(w/(float)powerOf2W, h/(float)powerOf2H);
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
+                h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data))
 	free(data);
-
-	return info;
+	return texture;
 }
 
 void RenderingSystem::reloadTextures() {
+	int w, h;
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
-		textures[it->second] = loadTexture(it->first);
+		textures[it->second] = loadTexture(it->first, w, h);
 	}
 }
 
@@ -244,7 +313,7 @@ static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
 		return r1.z < r2.z;
 }
 
-static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, Vector2* out);
+static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
 static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
 	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
@@ -284,12 +353,14 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		if (rc.texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc.texture];
 			rc.texture = info.glref;
-			rc.uv[0].X *= info.region.X;
-			rc.uv[1].X *= info.region.X;
-			rc.uv[0].Y *= info.region.Y;
-			rc.uv[1].Y *= info.region.Y;
+			rc.uv[0] = info.uv[0];
+			rc.uv[1] = info.uv[1];
+			rc.rotateUV = info.rotateUV;
 		} else {
 			rc.texture = whiteTexture;
+			rc.uv[0] = Vector2::Zero;
+			rc.uv[1] = Vector2(1,1);
+			rc.rotateUV = 0;
 		}
 
 		if (boundTexture != rc.texture) {
@@ -312,7 +383,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		if (opengles2) {
 			// fill batch
 			Vector2 onScreenVertices[4];
-			computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, onScreenVertices);
+			computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
 			
 			const int baseIdx = 4 * batchSize;
 			for (int i=0; i<4; i++) {
@@ -393,21 +464,7 @@ void RenderingSystem::DoUpdate(float dt) {
 		const TransformationComponent* tc = TRANSFORM(a);
 
 		RenderCommand c;
-		c.uv[0] = rc->bottomLeftUV;
-		c.uv[1] = rc->topRightUV;
 		c.texture = rc->texture;
-		#if 0
-		if (rc->texture != InvalidTextureRef) {
-			TextureInfo info = textures[rc->texture];
-			c.texture = info.glref;
-			c.uv[0].X *= info.region.X;
-			c.uv[1].X *= info.region.X;
-			c.uv[0].Y *= info.region.Y;
-			c.uv[1].Y *= info.region.Y;
-		} else {
-			c.texture = whiteTexture;
-		}
-		#endif
 		c.halfSize = tc->size * 0.5f;
 		c.color = rc->color;
 		c.position = tc->worldPosition;
@@ -467,7 +524,8 @@ void RenderingSystem::render() {
 
 	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
 		LOGI("Delayed loading of: %s", (*it).c_str());
-		textures[assetTextures[*it]] = loadTexture(*it);
+		int w,h;
+		textures[assetTextures[*it]] = loadTexture(*it, w, h);
 	}
 	delayedLoads.clear();
 	
@@ -499,7 +557,7 @@ bool RenderingSystem::isEntityVisible(Entity e) {
 	return true;
 }
 
-void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, Vector2* out) {
+void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
 	const float cr = cos(rotation);
 	const float sr = sin(rotation);
 	
@@ -509,13 +567,13 @@ void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, flo
 	const float srY = sr * hSize.Y;
 	
 	// -x -y
-	out[0] = Vector2(-crX - srY + position.X,  -(-srX) - crY + position.Y);
+	out[rotateUV ? 2 : 0] = Vector2(-crX - srY + position.X,  -(-srX) - crY + position.Y);
 	// +x -y
-	out[1] = Vector2(crX - srY + position.X, -srX - crY + position.Y);
+	out[rotateUV ? 0 : 1] = Vector2(crX - srY + position.X, -srX - crY + position.Y);
 	// -x +y
-	out[2] = Vector2(-crX + srY + position.X, -(-srX) + crY + position.Y);
+	out[rotateUV ? 3 : 2] = Vector2(-crX + srY + position.X, -(-srX) + crY + position.Y);
 	// +x +y
-	out[3] = Vector2(crX + srY + position.X, -srX + crY + position.Y); 
+	out[rotateUV ? 1 : 3] = Vector2(crX + srY + position.X, -srX + crY + position.Y); 
 }
 
 void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat)
