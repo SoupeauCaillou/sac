@@ -22,6 +22,17 @@ typedef int TextureRef;
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
 
+#define CHECK_GL_ERROR
+
+#ifdef CHECK_GL_ERROR
+	#define GL_OPERATION(x)	\
+		(x); \
+		RenderingSystem::check_GL_errors(#x);
+#else
+	#define GL_OPERATION(x) \
+		(x);
+#endif
+
 class NativeAssetLoader {
 	public:
 		virtual char* decompressPngImage(const std::string& assetName, int* width, int* height) = 0;
@@ -129,4 +140,15 @@ private:
 GLuint loadTexture(const std::string& assetName, int& w, int& h);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 
+public:
+static void check_GL_errors(const char* context);
+
+enum {
+    ATTRIB_VERTEX = 0,
+    ATTRIB_UV,
+	ATTRIB_COLOR,
+	ATTRIB_POS_ROT,
+	ATTRIB_SCALE,
+    NUM_ATTRIBS
+};
 };

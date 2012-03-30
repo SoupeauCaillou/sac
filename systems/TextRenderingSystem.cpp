@@ -39,24 +39,18 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			if (rc->hide)
 				continue;
 				
-			std::map<char, Vector2>::iterator jt = trc->char2UV.find(trc->text[i]);
-			if (trc->text[i] != ' ' && jt == trc->char2UV.end()) {
-				std::cout << "Char '" << trc->text[i] << "'" << " not found in font bitmap" << std::endl;
+			if (trc->text[i] == ' ') {
 				rc->hide = true;
+				continue;
 			} else {
-				if (trc->text[i] == ' ') {
-					rc->hide = true;
-				} else {
-					rc->texture = trc->fontBitmap;
-					
-				}
-				tc->size = trc->charSize;
-				rc->color = trc->color;
-				if (!trc->alignL) {
-					tc->position = Vector2(i*trc->charSize.X-MathUtil::Min(trc->text.length(),trc->drawing.size())*trc->charSize.X, 0);
-				} else {
-					tc->position = Vector2(i*trc->charSize.X, 0);
-				}
+				rc->texture = theRenderingSystem.loadTextureFile(std::string(&trc->text[i], 1));
+			}
+			tc->size = trc->charSize;
+			rc->color = trc->color;
+			if (!trc->alignL) {
+				tc->position = Vector2(i*trc->charSize.X-MathUtil::Min(trc->text.length(),trc->drawing.size())*trc->charSize.X, 0);
+			} else {
+				tc->position = Vector2(i*trc->charSize.X, 0);
 			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
