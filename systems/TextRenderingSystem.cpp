@@ -39,7 +39,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			if (rc->hide)
 				continue;
 				
-			if (trc->text[i] == ' ') {
+			if (!isalnum(trc->text[i])) {
 				rc->hide = true;
 				continue;
 			} else {
@@ -68,7 +68,6 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 	Entity eTime = theEntityManager.CreateEntity();
 	ADD_COMPONENT(eTime, Transformation);
 	ADD_COMPONENT(eTime, TextRendering);
-	TEXT_RENDERING(eTime)->fontBitmap = theRenderingSystem.loadTextureFile("figures.png");
 	TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
 
 	return eTime;

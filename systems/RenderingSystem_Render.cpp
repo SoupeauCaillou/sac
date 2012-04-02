@@ -79,7 +79,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 
-	GL_OPERATION(glDepthMask(true))
+	// GL_OPERATION(glDepthMask(true))
 	GLuint boundTexture = 0;
 	while (!commands.empty()) {
 	// for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
@@ -88,8 +88,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		
 		if (rc.texture == EndFrameMarker)
 			break;
-		else if (rc.texture == DisableZWriteMarker)
-			GL_OPERATION(glDepthMask(false))
+		//else if (rc.texture == DisableZWriteMarker)
+			// GL_OPERATION(glDepthMask(false))
 		
 		if (rc.texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc.texture];

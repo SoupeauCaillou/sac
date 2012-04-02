@@ -20,6 +20,8 @@ LOCAL_SRC_FILES := \
     systems/System.cpp \
     systems/TransformationSystem.cpp \
     systems/RenderingSystem.cpp \
+    systems/RenderingSystem_Texture.cpp \
+    systems/RenderingSystem_Render.cpp \
     systems/ADSRSystem.cpp \
     systems/ButtonSystem.cpp \
     systems/TextRenderingSystem.cpp \

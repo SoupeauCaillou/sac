@@ -60,8 +60,9 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	std::stringstream f(std::string(desc), std::ios_base::in);
 	std::string s;
 	f >> s;
+	int count = 0;
 	while(!s.empty()) {
-		std::cout << "line:'" << s << "'" << std::endl;
+		LOGI("atlas - line: %s", s.c_str());
 		std::string assetName;
 		int x, y, w, h;
 		bool rot;
@@ -74,7 +75,9 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 		
 		s.clear();
 		f >> s;
+		count++;
 	}
+	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
 
 static unsigned int alignOnPowerOf2(unsigned int value) {
