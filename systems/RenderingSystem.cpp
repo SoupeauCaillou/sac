@@ -76,6 +76,7 @@ void RenderingSystem::init() {
 		GL_OPERATION(glMatrixMode(GL_MODELVIEW))
 		GL_OPERATION(glLoadIdentity())
 		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
+		GL_OPERATION(glEnableClientState(GL_COLOR_ARRAY))
 		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
 	#endif
 	}

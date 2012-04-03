@@ -70,6 +70,17 @@ static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfl
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 }
 
+static void drawBatchES1(const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
+	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
+	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
+	GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
+	GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
+	GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
+	GL_OPERATION(glEnableClientState(GL_COLOR_ARRAY))
+
+	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+}
+
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
 #define MAX_BATCH_SIZE 64
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
@@ -121,70 +132,54 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[1].X, rc.uv[1].Y
 		};
 		
-		if (opengles2) {
-			// fill batch
-			Vector2 onScreenVertices[4];
-			computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
+		// fill batch
+		Vector2 onScreenVertices[4];
+		computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
 	
-			const int baseIdx = 4 * batchSize;
-			for (int i=0; i<4; i++) {
-				vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
-				vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
-				vertices[(baseIdx + i) * 3 + 2] = -rc.z;
-			}
+		const int baseIdx = 4 * batchSize;
+		for (int i=0; i<4; i++) {
+			vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
+			vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
+			vertices[(baseIdx + i) * 3 + 2] = -rc.z;
+		}
 
-			uvs[baseIdx * 2 + 0] = rc.uv[0].X;
-			uvs[baseIdx * 2 + 1] = rc.uv[0].Y;
-			uvs[baseIdx * 2 + 2] = rc.uv[1].X;
-			uvs[baseIdx * 2 + 3] = rc.uv[0].Y;
-			uvs[baseIdx * 2 + 4] = rc.uv[0].X;
-			uvs[baseIdx * 2 + 5] = rc.uv[1].Y;
-			uvs[baseIdx * 2 + 6] = rc.uv[1].X;
-			uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
+		uvs[baseIdx * 2 + 0] = rc.uv[0].X;
+		uvs[baseIdx * 2 + 1] = rc.uv[0].Y;
+		uvs[baseIdx * 2 + 2] = rc.uv[1].X;
+		uvs[baseIdx * 2 + 3] = rc.uv[0].Y;
+		uvs[baseIdx * 2 + 4] = rc.uv[0].X;
+		uvs[baseIdx * 2 + 5] = rc.uv[1].Y;
+		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
+		uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
 			
-			memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
-			memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
-			memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
-			memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
+		memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
+		memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
+		memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
+		memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
 
-			indices[batchSize * 6 + 0] = baseIdx + 0;
-			indices[batchSize * 6 + 1] = baseIdx + 1;
-			indices[batchSize * 6 + 2] = baseIdx + 2;
-			indices[batchSize * 6 + 3] = baseIdx + 1;
-			indices[batchSize * 6 + 4] = baseIdx + 3;
-			indices[batchSize * 6 + 5] = baseIdx + 2;
+		indices[batchSize * 6 + 0] = baseIdx + 0;
+		indices[batchSize * 6 + 1] = baseIdx + 1;
+		indices[batchSize * 6 + 2] = baseIdx + 2;
+		indices[batchSize * 6 + 3] = baseIdx + 1;
+		indices[batchSize * 6 + 4] = baseIdx + 3;
+		indices[batchSize * 6 + 5] = baseIdx + 2;
 			
-			batchSize++;
+		batchSize++;
 			
-			if (batchSize == MAX_BATCH_SIZE) {
+		if (batchSize == MAX_BATCH_SIZE) {
+			if (opengles2)
 				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
-				batchSize = 0;
-			}
-		} else {
-		#if 1
-			GL_OPERATION(glPushMatrix())
-			GL_OPERATION(glTranslatef(rc.position.X, rc.position.Y, -rc.z))
-			#define PI 3.14159265f
-			GL_OPERATION(glRotatef(180 * rc.rotation / PI , 0, 0, 1))
-			GL_OPERATION(glScalef(rc.halfSize.X * 2, rc.halfSize.Y * 2, 1.0f))
-			GL_OPERATION(glColor4f(rc.color.r, rc.color.g, rc.color.b, rc.color.a))
-			float vertexBuffer[] = {
-				 -0.5f,  -0.5f,
-				 0.5f,   -0.5f,
-				 -0.5f,  0.5f,
-				 0.5f,  0.5f,
-			};
-			GL_OPERATION(glVertexPointer(2, GL_FLOAT, 0, vertexBuffer))
-			GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, squareUvs))
-			GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
-			GL_OPERATION(glPopMatrix())
-		#endif
+			else
+				drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
+			batchSize = 0;
 		}
 	}
 	
 	if (batchSize > 0)
-		drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
-		
+		if (opengles2)
+			drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+		else
+			drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
 }
 
 void RenderingSystem::render() {

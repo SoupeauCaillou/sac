@@ -1,5 +1,5 @@
 #include "TextRenderingSystem.h"
-
+#include <ctype.h>
 
 
 INSTANCE_IMPL(TextRenderingSystem);
