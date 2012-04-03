@@ -99,8 +99,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		
 		if (rc.texture == EndFrameMarker)
 			break;
-		//else if (rc.texture == DisableZWriteMarker)
-			// GL_OPERATION(glDepthMask(false))
+		else if (rc.texture == DisableZWriteMarker)
+			continue;
 		
 		if (rc.texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc.texture];

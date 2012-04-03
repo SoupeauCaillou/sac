@@ -189,6 +189,7 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		size += (*it).first.length() + 1;
 		size += sizeof(TextureRef);
+		size += sizeof(TextureInfo);
 	}
 
 	*out = new uint8_t[size];
@@ -196,12 +197,14 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
 		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
+		ptr = (uint8_t*) mempcpy(ptr, &(textures[it->second]), sizeof(TextureInfo));
 	}
 	return size;
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	assetTextures.clear();
+	textures.clear();
 	nextValidRef = 1;
 
 	int idx = 0;
@@ -214,8 +217,15 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		TextureRef ref;
 		memcpy(&ref, &in[idx], sizeof(TextureRef));
 		idx += sizeof(TextureRef);
-
+		TextureInfo info;
+		memcpy(&info, &in[idx], sizeof(TextureInfo));
+		idx += sizeof(TextureInfo);
+		
 		assetTextures[name] = ref;
+		if (info.atlasIndex >= 0) {
+			info.glref = atlas[info.atlasIndex].texture;
+			textures[ref] = info;
+		}
 		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);
 	}
 }

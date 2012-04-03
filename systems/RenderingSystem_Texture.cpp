@@ -57,12 +57,12 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	int w, h;
 	GLuint glref = loadTexture(atlasImage, w,h );
 	Atlas a;
-	a.name = atlasName;
+	a.name = atlasImage;
 	a.texture = glref;
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
 	Vector2 atlasSize(w, h);
-	LOGW("atlas '%s' -> index %d", atlasName.c_str(), atlasIndex);
+	LOGW("atlas '%s' -> index: %d, glref: %u", atlasName.c_str(), atlasIndex, glref);
 	
 	std::stringstream f(std::string(desc), std::ios_base::in);
 	std::string s;
