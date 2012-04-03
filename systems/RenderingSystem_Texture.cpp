@@ -5,7 +5,7 @@
 #include <cassert>
 #include <sstream>
 
-RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h, bool rot, const Vector2& size) {
+RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
 	glref = r;		
 	if (size == Vector2::Zero) {
 		uv[0].X = uv[0].Y = 0;
@@ -23,6 +23,7 @@ RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h,
 		uv[1].Y = trY;
 		rotateUV = rot;
 	}
+	atlasIndex = atlasIdx;
 }
 
 #include <fstream>
@@ -55,14 +56,20 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	
 	int w, h;
 	GLuint glref = loadTexture(atlasImage, w,h );
+	Atlas a;
+	a.name = atlasName;
+	a.texture = glref;
+	atlas.push_back(a);
+	int atlasIndex = atlas.size() - 1;
 	Vector2 atlasSize(w, h);
+	LOGW("atlas '%s' -> index %d", atlasName.c_str(), atlasIndex);
 	
 	std::stringstream f(std::string(desc), std::ios_base::in);
 	std::string s;
 	f >> s;
 	int count = 0;
 	while(!s.empty()) {
-		LOGI("atlas - line: %s", s.c_str());
+		// LOGI("atlas - line: %s", s.c_str());
 		std::string assetName;
 		int x, y, w, h;
 		bool rot;
@@ -71,7 +78,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 
 		TextureRef result = nextValidRef++;
 		assetTextures[assetName] = result;
-		textures[result] = TextureInfo(glref, x, y, w, h, rot, atlasSize);
+		textures[result] = TextureInfo(glref, x, y, w, h, rot, atlasSize, atlasIndex);
 		
 		s.clear();
 		f >> s;
@@ -120,8 +127,18 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, int& w, int& h
 
 void RenderingSystem::reloadTextures() {
 	int w, h;
+	
+	// reload atlas texture
+	for (int i=0; i<atlas.size(); i++) {
+		atlas[i].texture = loadTexture(atlas[i].name, w, h);
+	}
+	// todo: atlas handling
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
-		textures[it->second] = loadTexture(it->first, w, h);
+		TextureInfo& info = textures[it->second];
+		if (info.atlasIndex >= 0)
+			info.glref = atlas[info.atlasIndex].texture;
+		else
+			textures[it->second] = loadTexture(it->first, w, h);
 	}
 }
 

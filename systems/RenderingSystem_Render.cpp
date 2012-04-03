@@ -116,9 +116,13 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 
 		if (boundTexture != rc.texture) {
-			if (opengles2 && batchSize > 0) {
+			if (batchSize > 0) {
 				// execute batch
-				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+				if (opengles2)
+					drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+				else
+					drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
+				
 				batchSize = 0;
 			}
 			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))

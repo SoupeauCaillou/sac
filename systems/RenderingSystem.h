@@ -115,12 +115,19 @@ struct TextureInfo {
 	GLuint glref;
 	unsigned int rotateUV;
 	Vector2 uv[2];
+	int atlasIndex;
 	
-	TextureInfo (GLuint r = 0, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero);
+	TextureInfo (GLuint r = 0, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
 
 };
+struct Atlas {
+	std::string name;
+	GLuint texture;
+};
+
 std::map<TextureRef, TextureInfo> textures;
 std::set<std::string> delayedLoads;
+std::vector<Atlas> atlas;
 
 NativeAssetLoader* assetLoader;
 

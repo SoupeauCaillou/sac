@@ -66,13 +66,14 @@ void RenderingSystem::init() {
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
 		glAlphaFunc(GL_GREATER, 0.1);
-		glEnable(GL_ALPHA_TEST);
+		//glEnable(GL_ALPHA_TEST);
 	
 	#if ANDROID
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glMatrixMode(GL_PROJECTION))
 		GL_OPERATION(glLoadIdentity())
 		GL_OPERATION(glOrthof(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1))
+		LOGW("ratio: %f", ratio);
 		GL_OPERATION(glMatrixMode(GL_MODELVIEW))
 		GL_OPERATION(glLoadIdentity())
 		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
