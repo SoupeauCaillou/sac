@@ -20,6 +20,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		TextRenderingComponent* trc = (*it).second;
+		TransformationComponent* trans = TRANSFORM(it->first);
+		trans->size = Vector2::Zero;
 		for(int i=0; i<trc->text.length(); i++) {
 			// add sub-entity if needed
 			if (i >= trc->drawing.size()) {
