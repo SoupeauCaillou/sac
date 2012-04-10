@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F40E7387-A655-400F-944A-D45BE3E037EA}</ProjectGuid>
+    <Target>Bin</Target>
+    <Language>CPP</Language>
+    <Compiler>
+      <Compiler ctype="GppCompiler" />
+    </Compiler>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineSymbols>DEBUG MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <OutputName>sac</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <DefineSymbols>MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <OptimizationLevel>3</OptimizationLevel>
+    <OutputName>sac</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="base\EntityManager.cpp" />
+    <Compile Include="base\MathUtil.cpp" />
+    <Compile Include="base\TimeUtil.cpp" />
+    <Compile Include="base\TouchInputManager.cpp" />
+    <Compile Include="base\Vector2.cpp" />
+    <Compile Include="systems\ADSRSystem.cpp" />
+    <Compile Include="systems\ButtonSystem.cpp" />
+    <Compile Include="systems\ContainerSystem.cpp" />
+    <Compile Include="systems\DebugRenderingManager.cpp" />
+    <Compile Include="systems\RenderingSystem.cpp" />
+    <Compile Include="systems\RenderingSystem_Render.cpp" />
+    <Compile Include="systems\RenderingSystem_Texture.cpp" />
+    <Compile Include="systems\SoundSystem.cpp" />
+    <Compile Include="systems\System.cpp" />
+    <Compile Include="systems\TextRenderingSystem.cpp" />
+    <Compile Include="systems\TransformationSystem.cpp" />
+    <Compile Include="tests\base\TestEntityManager.cpp" />
+    <Compile Include="tests\base\TestTouchInputManager.cpp" />
+    <Compile Include="tests\systems\TestADSRSystem.cpp" />
+    <Compile Include="tests\systems\TestButtonSystem.cpp" />
+    <Compile Include="tests\systems\TestRenderingSystem.cpp" />
+    <Compile Include="tests\systems\TestTransformationSystem.cpp" />
+    <Compile Include="tests\tests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="base\EntityManager.h" />
+    <None Include="base\Log.h" />
+    <None Include="base\MathUtil.h" />
+    <None Include="base\TimeUtil.h" />
+    <None Include="base\TouchInputManager.h" />
+    <None Include="base\Vector2.h" />
+    <None Include="systems\ADSRSystem.h" />
+    <None Include="systems\ButtonSystem.h" />
+    <None Include="systems\ContainerSystem.h" />
+    <None Include="systems\DebugRenderingManager.h" />
+    <None Include="systems\RenderingSystem.h" />
+    <None Include="systems\SoundSystem.h" />
+    <None Include="systems\System.h" />
+    <None Include="systems\TextRenderingSystem.h" />
+    <None Include="systems\TransformationSystem.h" />
+  </ItemGroup>
+</Project>
