@@ -3,7 +3,7 @@
 
 INSTANCE_IMPL(PhysicsSystem);
  
-PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("container") {
+PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("physics") {
  
 }
 

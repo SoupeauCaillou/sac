@@ -231,6 +231,8 @@ struct Vector2
 	 * @return The rotated vector
 	 */
 	static Vector2 Rotate(const Vector2& value, const float radians);
+
+    static Vector2 VectorFromAngle(float radians);
 	
 	bool operator==(const Vector2 &v) const;
 	bool operator!=(const Vector2 &v) const;

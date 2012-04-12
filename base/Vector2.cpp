@@ -208,6 +208,11 @@ Vector2& Vector2::operator/=(float scaleFactor)
     return *this;
 }
 
+Vector2 Vector2::VectorFromAngle(float radians) {
+    return Vector2(cos(radians), sin(radians));
+}
+
+
 
 //TODO: when we actually make some unit tests, bring this back and put it there
 // /*static*/ void Vector2::UnitTest()

@@ -53,6 +53,7 @@
     <Compile Include="tests\systems\TestTransformationSystem.cpp" />
     <Compile Include="tests\tests.cpp" />
     <Compile Include="systems\PhysicsSystem.cpp" />
+    <Compile Include="systems\ParticuleSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -71,5 +72,7 @@
     <None Include="systems\TextRenderingSystem.h" />
     <None Include="systems\TransformationSystem.h" />
     <None Include="systems\PhysicsSystem.h" />
+    <None Include="systems\ParticuleSystem.h" />
+    <None Include="base\Interval.h" />
   </ItemGroup>
 </Project>
