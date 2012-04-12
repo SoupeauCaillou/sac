@@ -128,6 +128,11 @@ void Vector2::Normalize()
 {
 	return Vector2( MathUtil::Lerp( value1.X, value2.X, amount ), MathUtil::Lerp( value1.Y, value2.Y, amount ) );
 }
+
+Vector2 Vector2::Perp() const {
+    return Vector2(-Y, X);
+}
+
 /*static*/ Vector2 Vector2::Negate(const Vector2& value)
 {
 	return -value;

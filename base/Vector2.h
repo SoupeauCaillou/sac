@@ -114,6 +114,8 @@ struct Vector2
 	 * @return The length (magnitude) of the vector
 	 */
 	float Length() const;
+
+    Vector2 Perp() const;
 	
 	/**
 	 * Get the squared magnitude of the vector -- if all you care about is
