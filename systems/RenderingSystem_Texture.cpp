@@ -4,6 +4,16 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
+#include <sys/select.h>
+#include <sys/inotify.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 
 RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
 	glref = r;		
@@ -99,6 +109,17 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 GLuint RenderingSystem::loadTexture(const std::string& assetName, int& w, int& h) {
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
 
+#ifndef ANDROID
+{
+    std::stringstream s;
+    s << "./assets/" << assetName;
+    NotifyInfo info;
+    info.wd = inotify_add_watch(inotifyFd, s.str().c_str(), IN_CLOSE_WRITE | IN_ONESHOT);
+    info.asset = assetName;
+    notifyList.push_back(info);
+}
+#endif
+
 	if (!data)
 		return 0;
 
@@ -122,6 +143,7 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, int& w, int& h
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
                 h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data))
 	free(data);
+
 	return texture;
 }
 

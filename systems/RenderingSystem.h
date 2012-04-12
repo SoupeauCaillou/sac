@@ -151,6 +151,15 @@ GLuint whiteTexture;
 
 /* open gl es1 var */
 
+#ifndef ANDROID
+int inotifyFd;
+struct NotifyInfo {
+    int wd;
+    std::string asset;
+};
+std::vector<NotifyInfo> notifyList;
+#endif
+
 private:
 GLuint loadTexture(const std::string& assetName, int& w, int& h);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);

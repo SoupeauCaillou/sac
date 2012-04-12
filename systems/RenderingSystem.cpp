@@ -4,6 +4,9 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
+#ifndef ANDROID
+#include <sys/inotify.h>
+#endif
 
 INSTANCE_IMPL(RenderingSystem);
 
@@ -14,6 +17,9 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("re
 	frameToRender = 0;
 	pthread_mutex_init(&mutexes[0], 0);
 	pthread_mutex_init(&mutexes[1], 0);
+    #ifndef ANDROID
+    inotifyFd = inotify_init();
+    #endif
 }
 
 void RenderingSystem::setWindowSize(int width, int height) {
@@ -166,6 +172,45 @@ void RenderingSystem::DoUpdate(float dt) {
 	pthread_mutex_unlock(&mutexes[current]);
 	
 	//current = (current + 1) % 2;
+#ifndef ANDROID
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(inotifyFd, &fds);
+    int w,h;
+    struct timeval tv;
+    memset(&tv, 0, sizeof(tv));
+    if (select(inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
+        char buffer[8192];
+        struct inotify_event *event;
+
+        if (read(inotifyFd, buffer, sizeof(buffer)) > 0) {
+            event = (struct inotify_event *) buffer;
+
+
+            for (int i=0; i<notifyList.size(); i++) {
+                if (event->wd == notifyList[i].wd) {
+                    // reload asset
+                    GLuint r =  loadTexture(notifyList[i].asset, w, h);
+                    if (r > 0) {
+                        for (int j=0; j<atlas.size(); j++) {
+                            if (notifyList[i].asset == atlas[j].name) {
+                                for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
+                                    if (it->second.glref == atlas[j].texture)
+                                        it->second.glref  = r;
+                                }
+                             atlas[j].texture = r;
+                            }
+                        }
+                        if (assetTextures.find(notifyList[i].asset) != assetTextures.end()) {
+                            textures[assetTextures[notifyList[i].asset]].glref = r;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+#endif
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
