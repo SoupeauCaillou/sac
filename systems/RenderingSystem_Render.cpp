@@ -66,7 +66,6 @@ static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfl
 	// GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
 	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
-
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 }
 
@@ -112,6 +111,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[1] = info.uv[1];
 			rc.rotateUV = info.rotateUV;
 		} else {
+			rc.texture = whiteTexture;
 			rc.uv[0] = Vector2::Zero;
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
