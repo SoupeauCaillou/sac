@@ -72,8 +72,8 @@ class ComponentSystemImpl: public ComponentSystem {
 		void Delete(Entity entity) {
 			typename std::map<Entity, T*>::iterator it = components.find(entity);
 			if (it != components.end()) {
-				components.erase(it);
 				delete it->second;
+				components.erase(it);
 			}
 		}
 

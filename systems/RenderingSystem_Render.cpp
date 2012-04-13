@@ -95,12 +95,15 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	while (!commands.empty()) {
 	// for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		RenderCommand& rc = commands.front();
-		commands.pop();
 		
-		if (rc.texture == EndFrameMarker)
+		if (rc.texture == EndFrameMarker) {
+			commands.pop();
 			break;
-		else if (rc.texture == DisableZWriteMarker)
+		}
+		else if (rc.texture == DisableZWriteMarker) {
+			commands.pop();
 			continue;
+		}
 		
 		if (rc.texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc.texture];
@@ -109,7 +112,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[1] = info.uv[1];
 			rc.rotateUV = info.rotateUV;
 		} else {
-			rc.texture = whiteTexture;
 			rc.uv[0] = Vector2::Zero;
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
@@ -177,6 +179,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
 			batchSize = 0;
 		}
+		commands.pop();
 	}
 	
 	if (batchSize > 0)

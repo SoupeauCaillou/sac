@@ -10,6 +10,7 @@ INSTANCE_IMPL(ParticuleSystem);
 ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("particule") {
     particules = new InternalParticule[MAX_PARTICULE_COUNT];
     minUsedIdx = maxUsedIdx = 0;
+    memset(particules, 0, MAX_PARTICULE_COUNT * sizeof(InternalParticule));
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
