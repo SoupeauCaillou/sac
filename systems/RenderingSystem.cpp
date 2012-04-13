@@ -17,6 +17,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("re
 	frameToRender = 0;
 	pthread_mutex_init(&mutexes[0], 0);
 	pthread_mutex_init(&mutexes[1], 0);
+	pthread_cond_init(&cond, 0);
     #ifndef ANDROID
     inotifyFd = inotify_init();
     #endif
@@ -168,7 +169,7 @@ void RenderingSystem::DoUpdate(float dt) {
 	renderQueue.push(dummy);
 	frameToRender++;
 	// LOGW("Added: %d + %d + 1 elt (%d frames)", commands.size(), semiOpaqueCommands.size(), frameToRender);
-	
+	pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutexes[current]);
 	
 	//current = (current + 1) % 2;

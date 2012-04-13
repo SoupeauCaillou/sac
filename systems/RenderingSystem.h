@@ -22,7 +22,9 @@ typedef int TextureRef;
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
 
+#ifndef ANDROID
 #define CHECK_GL_ERROR
+#endif
 
 #ifdef CHECK_GL_ERROR
 	#define GL_OPERATION(x)	\
@@ -143,6 +145,7 @@ int current;
 int frameToRender;
 std::queue<RenderCommand> renderQueue;
 pthread_mutex_t mutexes[2];
+pthread_cond_t cond;
 
 /* default (and only) shader */
 GLuint defaultProgram;

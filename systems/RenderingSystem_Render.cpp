@@ -189,10 +189,12 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 void RenderingSystem::render() {
 	pthread_mutex_lock(&mutexes[current]);
 	// LOGW("redner queue size: %d IN - frame count: %d", renderQueue.size(), frameToRender);	
-	if (renderQueue.empty() || frameToRender == 0)
-		goto end;
-	
-	// drop the late fram
+	if (renderQueue.empty() || frameToRender == 0) {
+		pthread_cond_wait(&cond, &mutexes[current]);
+		// LOGW("DAMNED nothing to render %d", frameToRender);
+	}
+
+	// drop the late frames
 	while (frameToRender > 1) {
 		while (renderQueue.front().texture != EndFrameMarker)
 			renderQueue.pop();
