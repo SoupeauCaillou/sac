@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 #ifdef ANDROID
@@ -7,7 +9,8 @@
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "tilematchC", __VA_ARGS__))
 #else
 #include <cstdio>
+extern bool __log_enabled;
 
-#define LOGI(...) (printf(__VA_ARGS__) & printf("\n"))
-#define LOGW(...) (printf(__VA_ARGS__) & printf("\n"))
+#define LOGI(...) (__log_enabled & printf(__VA_ARGS__) & printf("\n"))
+#define LOGW(...) (__log_enabled & printf(__VA_ARGS__) & printf("\n"))
 #endif
