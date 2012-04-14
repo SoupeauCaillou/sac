@@ -5,6 +5,13 @@
 
 INSTANCE_IMPL(ScrollingSystem);
  
+static Color debugColors[] = {
+	Color(0.5, 0, 0, 1),
+	Color(0, 0.5, 0, 1),
+	Color(0, 0, 0.5, 1),
+	Color(0, 0.5, 0.5, 1)
+};
+
 ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("scrolling") {
  
 }
@@ -33,8 +40,9 @@ void ScrollingSystem::DoUpdate(float dt) {
 		        	Vector2 normS = -Vector2::Normalize(sc->speed);
 			    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
 			    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-			    	tc->position = Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
+			    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
 			    	se.hasBeenVisible[i] = false;
+			    	//RENDERING(se.e[i])->color = debugColors[se.imageIndex[i]];
 		        }
 	        }
         }
@@ -60,7 +68,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		rc->hide = false;
 		se.imageIndex[i] = i % sc->images.size();
 		rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-		// rc->color = Color(0, 1 - i, 1, 1);
+		//rc->color = debugColors[se.imageIndex[i]];
 		se.hasBeenVisible[i] = false;
 	}
 	elements[e] = se;
