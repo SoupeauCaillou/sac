@@ -1,6 +1,6 @@
 #include "TextRenderingSystem.h"
 #include <ctype.h>
-
+#include <sstream>
 
 INSTANCE_IMPL(TextRenderingSystem);
 
@@ -40,12 +40,15 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			if (rc->hide)
 				continue;
+			
+			std::stringstream a;
+			a << (int)trc->text[i] << "_" << trc->fontName << ".png";
 				
 			if (!isalnum(trc->text[i])) {
 				rc->hide = true;
 				continue;
 			} else {
-				rc->texture = theRenderingSystem.loadTextureFile(std::string(&trc->text[i], 1));
+				rc->texture = theRenderingSystem.loadTextureFile(a.str());
 			}
 			tc->size = trc->charSize;
 			rc->color = trc->color;
@@ -71,7 +74,7 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 	ADD_COMPONENT(eTime, Transformation);
 	ADD_COMPONENT(eTime, TextRendering);
 	TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
-
+	TEXT_RENDERING(eTime)->fontName = "typo";
 	return eTime;
 }
 

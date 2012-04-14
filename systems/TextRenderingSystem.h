@@ -19,6 +19,7 @@ struct TextRenderingComponent {
 	std::map<char, Vector2> char2UV;
 	Vector2 uvSize;
 	Vector2 charSize;
+	std::string fontName;
 	bool hide, alignL;
 	// managed by systems
 	std::vector<Entity> drawing;
