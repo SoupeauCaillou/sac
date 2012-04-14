@@ -17,11 +17,11 @@
 
 RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
 	glref = r;		
-	if (size == Vector2::Zero) {
+	if (true||size == Vector2::Zero) {
 		uv[0].X = uv[0].Y = 0;
 		uv[1].X = uv[1].Y = 1;
 		rotateUV = 0;
-	} else {
+	} else if (atlasIndex >= 0) {
 		float blX = x / size.X;
 		float trX = (x+w) / size.X;
 		float blY = 1 - (y+h) / size.Y;
@@ -32,6 +32,11 @@ RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h,
 		uv[0].Y = blY;
 		uv[1].Y = trY;
 		rotateUV = rot;
+	} else {
+		uv[0].X = uv[0].Y = 0;
+		uv[1].X = w / size.X;
+		uv[1].Y = h / size.Y;
+		rotateUV = 0;
 	}
 	atlasIndex = atlasIdx;
 }
@@ -64,14 +69,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 		return;
 	}
 	
-	int w, h;
-	GLuint glref = loadTexture(atlasImage, w,h );
+	Vector2 atlasSize, pow2Size;
+	GLuint glref = loadTexture(atlasImage, atlasSize, pow2Size);
 	Atlas a;
 	a.name = atlasImage;
 	a.texture = glref;
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
-	Vector2 atlasSize(w, h);
 	LOGW("atlas '%s' -> index: %d, glref: %u", atlasName.c_str(), atlasIndex, glref);
 	
 	std::stringstream f(std::string(desc), std::ios_base::in);
@@ -106,7 +110,8 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 	return 0;
 }
 
-GLuint RenderingSystem::loadTexture(const std::string& assetName, int& w, int& h) {
+GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size) {
+	int w,h;
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
 
 #ifndef ANDROID
@@ -143,24 +148,31 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, int& w, int& h
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
                 h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data))
 	free(data);
-
+	
+	realSize.X = w;
+	realSize.Y = h;
+	pow2Size.X = powerOf2W;
+	pow2Size.Y = powerOf2H;
+	
 	return texture;
 }
 
 void RenderingSystem::reloadTextures() {
-	int w, h;
+	Vector2 size, psize;
 	
 	// reload atlas texture
 	for (int i=0; i<atlas.size(); i++) {
-		atlas[i].texture = loadTexture(atlas[i].name, w, h);
+		atlas[i].texture = loadTexture(atlas[i].name, size, psize);
 	}
-	// todo: atlas handling
+
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		TextureInfo& info = textures[it->second];
 		if (info.atlasIndex >= 0)
 			info.glref = atlas[info.atlasIndex].texture;
-		else
-			textures[it->second] = loadTexture(it->first, w, h);
+		else {
+			GLuint ref = loadTexture(it->first, size, psize);
+			textures[it->second] = TextureInfo(ref, 0, 0, size.X, size.Y, false, psize);
+		}
 	}
 }
 

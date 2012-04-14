@@ -216,8 +216,9 @@ void RenderingSystem::render() {
 
 	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
 		LOGI("Delayed loading of: %s", (*it).c_str());
-		int w,h;
-		textures[assetTextures[*it]] = loadTexture(*it, w, h);
+		Vector2 size, powSize;
+		GLuint ref = loadTexture(*it, size, powSize);
+		textures[assetTextures[*it]] = TextureInfo(ref, 0, 0, size.X, size.Y, false, powSize);
 	}
 	delayedLoads.clear();
 	

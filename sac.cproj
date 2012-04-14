@@ -55,6 +55,7 @@
     <Compile Include="systems\PhysicsSystem.cpp" />
     <Compile Include="systems\ParticuleSystem.cpp" />
     <Compile Include="base\Log.cpp" />
+    <Compile Include="systems\ScrollingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -75,5 +76,6 @@
     <None Include="systems\PhysicsSystem.h" />
     <None Include="systems\ParticuleSystem.h" />
     <None Include="base\Interval.h" />
+    <None Include="systems\ScrollingSystem.h" />
   </ItemGroup>
 </Project>

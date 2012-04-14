@@ -177,7 +177,7 @@ void RenderingSystem::DoUpdate(float dt) {
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(inotifyFd, &fds);
-    int w,h;
+    Vector2 s1, s2;
     struct timeval tv;
     memset(&tv, 0, sizeof(tv));
     if (select(inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
@@ -191,7 +191,7 @@ void RenderingSystem::DoUpdate(float dt) {
             for (int i=0; i<notifyList.size(); i++) {
                 if (event->wd == notifyList[i].wd) {
                     // reload asset
-                    GLuint r =  loadTexture(notifyList[i].asset, w, h);
+                    GLuint r =  loadTexture(notifyList[i].asset, s1, s2);
                     if (r > 0) {
                         for (int j=0; j<atlas.size(); j++) {
                             if (notifyList[i].asset == atlas[j].name) {
@@ -215,8 +215,12 @@ void RenderingSystem::DoUpdate(float dt) {
 }
 
 bool RenderingSystem::isEntityVisible(Entity e) {
-	const Vector2 halfSize = TRANSFORM(e)->size * 0.5;
-	const Vector2& pos = TRANSFORM(e)->worldPosition;
+	return isVisible(TRANSFORM(e));
+}
+	
+bool RenderingSystem::isVisible(TransformationComponent* tc) {
+	const Vector2 halfSize = tc->size * 0.5;
+	const Vector2& pos = tc->worldPosition;
 	const float ratio = h / (float)w ;
 
 	if (pos.X + halfSize.X < -5)

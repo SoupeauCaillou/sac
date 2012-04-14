@@ -109,6 +109,7 @@ static void loadOrthographicMatrix(float left, float right, float bottom, float 
 GLuint compileShader(const std::string& assetName, GLuint type);
 
 bool isEntityVisible(Entity e);
+bool isVisible(TransformationComponent* tc);
 
 void reloadTextures();
 
@@ -164,7 +165,7 @@ std::vector<NotifyInfo> notifyList;
 #endif
 
 private:
-GLuint loadTexture(const std::string& assetName, int& w, int& h);
+GLuint loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 
 public:
