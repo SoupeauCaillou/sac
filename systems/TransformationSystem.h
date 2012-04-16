@@ -20,4 +20,12 @@ struct TransformationComponent {
 #define TRANSFORM(e) theTransformationSystem.Get(e)
 
 UPDATABLE_SYSTEM(Transformation)
+
+public:
+	enum PositionReference {
+		NW, N, NE,
+		W , C, E ,
+		SW, S, SE
+	};
+	static void setPosition(TransformationComponent* tc, const Vector2& p, PositionReference ref=C);
 };
