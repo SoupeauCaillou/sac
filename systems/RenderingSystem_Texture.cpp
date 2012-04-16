@@ -33,9 +33,10 @@ RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h,
 		uv[1].Y = trY;
 		rotateUV = rot;
 	} else {
-		uv[0].X = uv[0].Y = 0;
-		uv[1].X = w / size.X;
-		uv[1].Y = h / size.Y;
+		uv[0].X = x / size.X;
+		uv[0].Y = y / size.Y;
+		uv[1].X = (x+w) / size.X;
+		uv[1].Y = (y+h) / size.Y;
 		rotateUV = 0;
 	}
 	atlasIndex = atlasIdx;
@@ -134,6 +135,24 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 
 	int powerOf2W = alignOnPowerOf2(w);
 	int powerOf2H = alignOnPowerOf2(h);
+	int border = 0;
+	
+	// hmm hmm: hacky stuff to add a border
+	if (w != powerOf2W || h != powerOf2H) {
+		border = 1;
+		powerOf2W = alignOnPowerOf2(w + 2);
+		powerOf2H = alignOnPowerOf2(h + 2);
+		
+		int stride1 = (w)*4*sizeof(char);
+		int stride2 = (w+4)*4*sizeof(char);
+		char* pdatas = (char*) malloc(stride2 * (h+4));
+		memset(pdatas, 0, stride2 * (h+4));
+		for (int i=2; i<(h+2); i++) {
+			memcpy(&pdatas[i * stride2 + 4*sizeof(char)], &data[(i-2) * stride1], stride1);
+		}
+		free(data);
+		data = pdatas;
+	}
 
 	GLuint texture;
 	GL_OPERATION(glGenTextures(1, &texture))
@@ -145,8 +164,8 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
-	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w,
-                h, GL_RGBA, GL_UNSIGNED_BYTE, data))
+	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w + 4*border,
+                h + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, data))
 	free(data);
 	
 	realSize.X = w;

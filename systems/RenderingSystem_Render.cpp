@@ -217,7 +217,7 @@ void RenderingSystem::render() {
 		LOGI("Delayed loading of: %s", (*it).c_str());
 		Vector2 size, powSize;
 		GLuint ref = loadTexture(*it, size, powSize);
-		textures[assetTextures[*it]] = TextureInfo(ref, 0, 0, size.X, size.Y, false, powSize);
+		textures[assetTextures[*it]] = TextureInfo(ref, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
 	}
 	delayedLoads.clear();
 	
