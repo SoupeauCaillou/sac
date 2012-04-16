@@ -56,6 +56,7 @@
     <Compile Include="systems\ParticuleSystem.cpp" />
     <Compile Include="base\Log.cpp" />
     <Compile Include="systems\ScrollingSystem.cpp" />
+    <Compile Include="systems\MorphingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -77,5 +78,6 @@
     <None Include="systems\ParticuleSystem.h" />
     <None Include="base\Interval.h" />
     <None Include="systems\ScrollingSystem.h" />
+    <None Include="systems\MorphingSystem.h" />
   </ItemGroup>
 </Project>
