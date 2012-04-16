@@ -18,7 +18,10 @@ Entity createRenderingEntity() {
 
 static float computeStringWidth(TextRenderingComponent* trc) {
 	// assume monospace ...
-	return trc->text.length() * trc->charSize.X;
+	float numberSpacing = 0;
+	if (trc->isANumber)
+		numberSpacing += (int) (trc->text.length() - 1) / 3;
+	return (trc->text.length() + numberSpacing * 0.5) * trc->charSize.X;
 }
 
 static float computeStartX(TextRenderingComponent* trc) {
@@ -41,8 +44,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		trans->size = Vector2::Zero;
 		
 		float x = computeStartX(trc);
+		const int length = trc->text.length();
 		
-		for(int i=0; i<trc->text.length(); i++) {
+		for(int i=0; i<length; i++) {
 			// add sub-entity if needed
 			if (i >= trc->drawing.size()) {
 				if (renderingEntitiesPool.size() > 0) {
@@ -73,6 +77,10 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			tc->size = trc->charSize;
 			tc->position = Vector2(x, 0);
 			x += trc->charSize.X;
+			
+			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
+				x += trc->charSize.X * 0.5;
+			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
