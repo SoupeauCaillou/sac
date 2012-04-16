@@ -23,9 +23,11 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("re
     #endif
 }
 
-void RenderingSystem::setWindowSize(int width, int height) {
+void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	w = width;
 	h = height;
+	screenW = sW;
+	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, w, h))
 }
 
@@ -79,7 +81,7 @@ void RenderingSystem::init() {
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glMatrixMode(GL_PROJECTION))
 		GL_OPERATION(glLoadIdentity())
-		GL_OPERATION(glOrthof(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1))
+		GL_OPERATION(glOrthof(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1))
 		LOGW("ratio: %f", ratio);
 		GL_OPERATION(glMatrixMode(GL_MODELVIEW))
 		GL_OPERATION(glLoadIdentity())
@@ -221,15 +223,14 @@ bool RenderingSystem::isEntityVisible(Entity e) {
 bool RenderingSystem::isVisible(TransformationComponent* tc) {
 	const Vector2 halfSize = tc->size * 0.5;
 	const Vector2& pos = tc->worldPosition;
-	const float ratio = h / (float)w ;
 
-	if (pos.X + halfSize.X < -5)
+	if (pos.X + halfSize.X < -screenW*0.5)
 		return false;
-	if (pos.X - halfSize.X > 5)
+	if (pos.X - halfSize.X > screenW*0.5)
 		return false;
-	if (pos.Y + halfSize.Y < -5 * ratio)
+	if (pos.Y + halfSize.Y < -screenH * 0.5)
 		return false;
-	if (pos.Y - halfSize.Y > 5 * ratio)
+	if (pos.Y - halfSize.Y > screenW * 0.5)
 		return false;
 	return true;
 }

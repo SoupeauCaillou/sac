@@ -207,10 +207,9 @@ void RenderingSystem::render() {
 	}
 
 	if (opengles2) {
-		float ratio = h / (float)w ;
 		GL_OPERATION(glUseProgram(defaultProgram))
 		GLfloat mat[16];
-		loadOrthographicMatrix(-5., 5.0f, -5. * ratio, 5. * ratio, 0, 1, mat);
+		loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
 		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
 	}
 

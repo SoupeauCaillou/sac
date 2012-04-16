@@ -98,7 +98,7 @@ void loadAtlas(const std::string& atlasName);
 int saveInternalState(uint8_t** out);
 void restoreInternalState(const uint8_t* in, int size);
 
-void setWindowSize(int w, int h);
+void setWindowSize(int w, int h, float sW, float sH);
 
 TextureRef loadTextureFile(const std::string& assetName);
 
@@ -119,6 +119,7 @@ void render();
 
 public:
 int w,h;
+float screenW, screenH;
 /* textures cache */
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;

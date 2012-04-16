@@ -17,11 +17,11 @@
 
 RenderingSystem::TextureInfo::TextureInfo (GLuint r, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
 	glref = r;		
-	if (true||size == Vector2::Zero) {
+	if (size == Vector2::Zero) {
 		uv[0].X = uv[0].Y = 0;
 		uv[1].X = uv[1].Y = 1;
 		rotateUV = 0;
-	} else if (atlasIndex >= 0) {
+	} else if (atlasIdx >= 0) {
 		float blX = x / size.X;
 		float trX = (x+w) / size.X;
 		float blY = 1 - (y+h) / size.Y;
@@ -145,8 +145,8 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w,
-                h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data))
+	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w,
+                h, GL_RGBA, GL_UNSIGNED_BYTE, data))
 	free(data);
 	
 	realSize.X = w;
