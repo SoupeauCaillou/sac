@@ -12,7 +12,7 @@
 #include "RenderingSystem.h"
 
 struct TextRenderingComponent {
-	TextRenderingComponent() : text(""), hide(false), alignL(false) {}
+	TextRenderingComponent() : text(""), hide(false), positioning(CENTER), isANumber(false) {}
 	std::string text;
 	Color color;
 	TextureRef fontBitmap;
@@ -20,7 +20,12 @@ struct TextRenderingComponent {
 	Vector2 uvSize;
 	Vector2 charSize;
 	std::string fontName;
-	bool hide, alignL;
+	enum Positionning {
+		CENTER,
+		LEFT,
+		RIGHT
+	} positioning;
+	bool hide, isANumber;
 	// managed by systems
 	std::vector<Entity> drawing;
 };

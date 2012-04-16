@@ -16,12 +16,32 @@ Entity createRenderingEntity() {
 	return e;
 }
 
+static float computeStringWidth(TextRenderingComponent* trc) {
+	// assume monospace ...
+	return trc->text.length() * trc->charSize.X;
+}
+
+static float computeStartX(TextRenderingComponent* trc) {
+	switch (trc->positioning) {	
+		case TextRenderingComponent::LEFT:
+			return trc->charSize.X * 0.5;
+		case TextRenderingComponent::RIGHT:
+			return -computeStringWidth(trc) + trc->charSize.X * 0.5;
+		case TextRenderingComponent::CENTER:
+		default:
+			return -(computeStringWidth(trc) - trc->charSize.X) * 0.5;
+	}
+}
+
 void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		TextRenderingComponent* trc = (*it).second;
 		TransformationComponent* trans = TRANSFORM(it->first);
 		trans->size = Vector2::Zero;
+		
+		float x = computeStartX(trc);
+		
 		for(int i=0; i<trc->text.length(); i++) {
 			// add sub-entity if needed
 			if (i >= trc->drawing.size()) {
@@ -46,22 +66,19 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				
 			if (!isalnum(trc->text[i])) {
 				rc->hide = true;
-				continue;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
+				rc->color = trc->color;
 			}
 			tc->size = trc->charSize;
-			rc->color = trc->color;
-			if (!trc->alignL) {
-				tc->position = Vector2(i*trc->charSize.X-MathUtil::Min(trc->text.length(),trc->drawing.size())*trc->charSize.X, 0);
-			} else {
-				tc->position = Vector2(i*trc->charSize.X, 0);
-			}
+			tc->position = Vector2(x, 0);
+			x += trc->charSize.X;
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
+		trans->size = Vector2::Zero;
 		trc->drawing.resize(trc->text.length());
 	}
 }

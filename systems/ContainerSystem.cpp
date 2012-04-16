@@ -9,6 +9,8 @@ ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("co
 }
 
 static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, TransformationComponent* tc) {
+	if (tc->size == Vector2::Zero)
+		return;
 	minX = MathUtil::Min(minX, tc->worldPosition.X - tc->size.X * 0.5f);
 	minY = MathUtil::Min(minY, tc->worldPosition.Y - tc->size.Y * 0.5f);
 	maxX = MathUtil::Max(maxX, tc->worldPosition.X + tc->size.X * 0.5f);
