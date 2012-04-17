@@ -100,7 +100,7 @@ struct OpenAlSoundAPI {
 		alSourcePlay(source);
 		return source;
 	}
-	
+
 	ALfloat musicPos(ALuint Source, ALuint buffer) {
 	   ALfloat pos = 0;
 	   ALint tot = 0;
@@ -165,5 +165,7 @@ public:
 #else
 	OpenAlSoundAPI* linuxSoundAPI;
 #endif
+bool mute;
+
 };
 

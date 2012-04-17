@@ -2,7 +2,7 @@
 
 INSTANCE_IMPL(SoundSystem);
 
-SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("sound"), nextValidRef(1) {
+SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("sound"), nextValidRef(1), mute(false) {
 }
 
 void SoundSystem::init() {
@@ -11,7 +11,6 @@ void SoundSystem::init() {
 	ALCcontext* Context = alcCreateContext(Device, NULL);
 	if (!(Device && Context && alcMakeContextCurrent(Context)))
 		LOGI("probleme initialisation du son");
-		
 	for (int i=0; i<16; i++) {
 		ALuint source;
 		alGenSources(1, &source);
@@ -42,11 +41,57 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 }
 
 void SoundSystem::DoUpdate(float dt) {
+	if (mute) {
+		#ifdef ANDROID
+		for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+			Entity a = (*it).first;
+			SoundComponent* rc = (*it).second;
+			if (rc->type == SoundComponent::MUSIC) {
+				pauseAll(); // faut mettre pause
+			} else {
+				rc->sound = InvalidSoundRef;
+				rc->started = false;
+			}
+		}
+		#else
+		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
+			std::list<ALuint>::iterator jt = it++;
+			ALuint source = *jt;
+			for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+				Entity a = (*it).first;
+				SoundComponent* rc = (*it).second;
+				if (rc->source==source) {
+					if (rc->type == SoundComponent::MUSIC) {
+						alSourcePause(source);
+					} else {
+						availableSources.push_back(source);
+						activeSources.erase(jt);
+					}
+					break;
+				}
+			}
+		}
+		#endif
+	} else {
+		#ifdef ANDROID
+		resumeAll();
+		#else
+		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
+			std::list<ALuint>::iterator jt = it++;
+			ALuint source = *jt;
+			ALint v;
+			alGetSourcei(source, AL_SOURCE_STATE, &v);
+			if (v == AL_PAUSED	) {
+				alSourcePlay(source);
+			}
+		}
+		#endif
+	}
 	/* play component with a valid sound ref */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
 		SoundComponent* rc = (*it).second;
-		if (rc->sound != InvalidSoundRef) {
+		if (rc->sound != InvalidSoundRef && !mute) {
 			if (!rc->started) {
 				LOGW("%d / sound started (%d)", a, rc->sound);
 				#ifdef ANDROID
@@ -85,18 +130,18 @@ void SoundSystem::DoUpdate(float dt) {
 			}
 		}
 	}
-	
+
 	#ifndef ANDROID
-	// browse active source
+	// browse active source and destroy ended sounds
 	for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
 		std::list<ALuint>::iterator jt = it++;
 		ALuint source = *jt;
 		ALint v;
 		alGetSourcei(source, AL_SOURCE_STATE, &v);
-		if (v != AL_PLAYING) {
+		if (v != AL_PLAYING && v != AL_PAUSED) {
 			availableSources.push_back(source);
 			activeSources.erase(jt);
-		} 
+		}
 	}
 	#endif
 }
