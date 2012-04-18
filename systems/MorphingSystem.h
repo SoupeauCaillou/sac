@@ -5,7 +5,9 @@
 #include "System.h"
 
 struct MorphElement {
+	MorphElement() : ended(false) {};
     virtual void lerp(float t)=0;
+    bool ended;
 };
 
 template<typename T>
@@ -14,7 +16,6 @@ struct TypedMorphElement : public MorphElement{
 
     T* output;
     T from, to;
-
     void lerp(float t) {
         *output = to * t + from * (1-t);
     }
