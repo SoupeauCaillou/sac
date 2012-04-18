@@ -4,13 +4,29 @@
 
 #include "System.h"
 
+struct MorphElement {
+    virtual void lerp(float t)=0;
+};
+
+template<typename T>
+struct TypedMorphElement : public MorphElement{
+    TypedMorphElement(T* _output, const T& _from, const T& _to) : output(_output), from(_from), to(_to) {}
+
+    T* output;
+    T from, to;
+
+    void lerp(float t) {
+        *output = to * t + from * (1-t);
+    }
+};
+
 struct MorphingComponent {
-	MorphingComponent() : active(false), value(0), timing(0), activationTime(0), from(Vector2::Zero), to(Vector2::Zero), pos(Vector2::Zero) {}
+	MorphingComponent() : active(false), value(0), activationTime(0), timing(0) {}
 	bool active;
 
-	Vector2 from, to, pos;
+	std::vector<MorphElement*> elements;
 
-	float value;
+    float value;
 	float activationTime;
 	float timing;
 };

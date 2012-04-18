@@ -57,6 +57,7 @@
     <Compile Include="base\Log.cpp" />
     <Compile Include="systems\ScrollingSystem.cpp" />
     <Compile Include="systems\MorphingSystem.cpp" />
+    <Compile Include="tests\systems\TestMorphingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />

@@ -15,8 +15,15 @@ void MorphingSystem::DoUpdate(float dt) {
 		}
 		if (m->active) {
 			m->activationTime += dt;
-			m->value = m->activationTime/m->timing;
-			m->pos = MathUtil::Lerp(m->from, m->to, m->value);
+			m->value = MathUtil::Min(1.0f, m->activationTime/m->timing);
+            for (int i=0; i<m->elements.size(); i++) {
+                m->elements[i]->lerp(m->value);
+                if (m->value == 1) {
+                    delete m->elements[i];
+                    m->elements.erase(m->elements.begin() + i);
+                    i--;
+                }
+            }
 		}
 	}
 }
