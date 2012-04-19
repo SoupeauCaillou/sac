@@ -121,7 +121,7 @@ struct OpenAlSoundAPI {
 #endif
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), position(0), started(false) {
+	SoundComponent() : sound(InvalidSoundRef), position(0), started(false), mainMusic(false) {
 		#ifndef ANDROID
 		source = 0;
 		#endif
@@ -131,6 +131,7 @@ struct SoundComponent {
 	float position;
 	bool repeat; /* si repeat est faux: qd le son a été joué en plein, on passe sound à InvalidSoundRef */
 	bool started;
+	bool mainMusic;
 	#ifndef ANDROID
 	ALuint source; // openAL source
 	#endif

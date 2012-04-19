@@ -47,7 +47,7 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
         LOGW("GL shader error: %s\n", log);
  		delete[] log;
     }
-    
+
    if (!glIsShader(shader)) {
    	LOGW("Weird; %d is not a shader");
    }
@@ -94,7 +94,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	while (!commands.empty()) {
 	// for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		RenderCommand& rc = commands.front();
-		
+
 		if (rc.texture == EndFrameMarker) {
 			commands.pop();
 			break;
@@ -103,7 +103,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			commands.pop();
 			continue;
 		}
-		
+
 		if (rc.texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc.texture];
 			rc.texture = info.glref;
@@ -124,7 +124,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 					drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
 				else
 					drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
-				
+
 				batchSize = 0;
 			}
 			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
@@ -137,11 +137,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[0].X, rc.uv[1].Y,
 			rc.uv[1].X, rc.uv[1].Y
 		};
-		
+
 		// fill batch
 		Vector2 onScreenVertices[4];
 		computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
-	
+
 		const int baseIdx = 4 * batchSize;
 		for (int i=0; i<4; i++) {
 			vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
@@ -157,7 +157,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		uvs[baseIdx * 2 + 5] = rc.uv[1].Y;
 		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
 		uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
-			
+
 		memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
 		memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
 		memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
@@ -169,9 +169,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		indices[batchSize * 6 + 3] = baseIdx + 1;
 		indices[batchSize * 6 + 4] = baseIdx + 3;
 		indices[batchSize * 6 + 5] = baseIdx + 2;
-			
+
 		batchSize++;
-			
+
 		if (batchSize == MAX_BATCH_SIZE) {
 			if (opengles2)
 				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
@@ -181,7 +181,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 		commands.pop();
 	}
-	
+
 	if (batchSize > 0)
 		if (opengles2)
 			drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
@@ -191,7 +191,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 void RenderingSystem::render() {
 	pthread_mutex_lock(&mutexes[current]);
-	// LOGW("redner queue size: %d IN - frame count: %d", renderQueue.size(), frameToRender);	
+	// LOGW("redner queue size: %d IN - frame count: %d", renderQueue.size(), frameToRender);
 	if (renderQueue.empty() || frameToRender == 0) {
 		pthread_cond_wait(&cond, &mutexes[current]);
 		// LOGW("DAMNED nothing to render %d", frameToRender);
@@ -214,20 +214,20 @@ void RenderingSystem::render() {
 	}
 
 	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
-		LOGI("Delayed loading of: %s", (*it).c_str());
+		//LOGI("Delayed loading of: %s", (*it).c_str());
 		Vector2 size, powSize;
 		GLuint ref = loadTexture(*it, size, powSize);
 		textures[assetTextures[*it]] = TextureInfo(ref, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
 	}
 	delayedLoads.clear();
-	
+
 	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT*/))
 
-	
-	// std::vector<RenderCommand>& commands = renderCommands[cmd];	
+
+	// std::vector<RenderCommand>& commands = renderCommands[cmd];
 	drawRenderCommands(renderQueue /*commands*/, opengles2);
 	// commands.clear();
-	// LOGW("redner queue size: %d OUT", renderQueue.size());	
+	// LOGW("redner queue size: %d OUT", renderQueue.size());
 	frameToRender--;
 end:
 	pthread_mutex_unlock(&mutexes[0]);
@@ -236,12 +236,12 @@ end:
 void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
 	const float cr = cos(rotation);
 	const float sr = sin(rotation);
-	
+
 	const float crX = cr * hSize.X;
 	const float crY = cr * hSize.Y;
 	const float srX = sr * hSize.X;
 	const float srY = sr * hSize.Y;
-	
+
 	// -x -y
 	out[rotateUV ? 2 : 0] = Vector2(-crX - srY + position.X,  -(-srX) - crY + position.Y);
 	// +x -y
@@ -249,7 +249,7 @@ void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, flo
 	// -x +y
 	out[rotateUV ? 3 : 2] = Vector2(-crX + srY + position.X, -(-srX) + crY + position.Y);
 	// +x +y
-	out[rotateUV ? 1 : 3] = Vector2(crX + srY + position.X, -srX + crY + position.Y); 
+	out[rotateUV ? 1 : 3] = Vector2(crX + srY + position.X, -srX + crY + position.Y);
 }
 
 void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat)
