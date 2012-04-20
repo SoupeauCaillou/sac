@@ -31,7 +31,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 Entity e = internal.e = theEntityManager.CreateEntity();
                 ADD_COMPONENT(e, Transformation);
                 TransformationComponent* tc = TRANSFORM(e);
-                tc->position = ptc->worldPosition;
+                tc->position = ptc->worldPosition + Vector2(MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.X, MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.Y);
                 tc->size = pc->initialSize.random();
                 tc->z = ptc->z;
 
@@ -44,7 +44,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 if (pc->mass) {
                     ADD_COMPONENT(e, Physics);
                     PhysicsComponent* ppc = PHYSICS(e);
-                    ppc->gravity = Vector2(0, -1);
+                    ppc->gravity = Vector2(0, -10);
                     ppc->mass = pc->mass;
                     float angle = pc->forceDirection.random();
                     ppc->forces.push_back(Force(Vector2::VectorFromAngle(angle) * pc->forceAmplitude.random(), tc->size * MathUtil::RandomFloat()));
