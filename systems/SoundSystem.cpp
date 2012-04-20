@@ -30,7 +30,10 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 	#ifdef ANDROID
 	int soundID = androidSoundAPI->loadSound(assetName, music);
 	#else
-	ALuint soundID = linuxSoundAPI->loadSound(assetName);
+	ALuint soundID;
+	if (!linuxSoundAPI->loadSound(assetName, &soundID)) {
+		return InvalidSoundRef;	
+	}
 	#endif
 
 	sounds[nextValidRef] = soundID;
