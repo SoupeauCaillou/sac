@@ -47,7 +47,7 @@ void SoundSystem::DoUpdate(float dt) {
 			Entity a = (*it).first;
 			SoundComponent* rc = (*it).second;
 			if (rc->type == SoundComponent::EFFECT) { //on supprime tous les sons (pas les musics)
-				rc->sound = InvalidSoundRef; 
+				rc->sound = InvalidSoundRef;
 				rc->started = false;
 			}
 		}
@@ -113,15 +113,17 @@ void SoundSystem::DoUpdate(float dt) {
 				if (newPos >= 0.995 || (rc->stop && newPos!=0)) {
 					LOGW("sound ended (%d)", rc->sound);
 					rc->position = 0;
-					#ifndef ANDROID
-					if (rc->stop && newPos!=0) alSourcePause(rc->source);
-					activeSources.remove(rc->source);
-					availableSources.push_back(rc->source);
-					rc->source = 0;
-					#endif
-					rc->sound = InvalidSoundRef;
-					rc->started = false;
-					rc->stop = false;
+					if (!rc->repeat) {
+						#ifndef ANDROID
+						if (rc->stop && newPos!=0) alSourcePause(rc->source);
+						activeSources.remove(rc->source);
+						availableSources.push_back(rc->source);
+						rc->source = 0;
+						#endif
+						rc->sound = InvalidSoundRef;
+						rc->started = false;
+						rc->stop = false;
+					}
 				} else {
 					rc->position = newPos;
 				}
