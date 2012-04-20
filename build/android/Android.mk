@@ -16,19 +16,26 @@ LOCAL_SRC_FILES := \
     base/Vector2.cpp \
     base/EntityManager.cpp \
     base/TouchInputManager.cpp \
+    base/Log.cpp \
     base/TimeUtil.cpp \
-    systems/System.cpp \
-    systems/TransformationSystem.cpp \
+    systems/ADSRSystem.cpp \
+    systems/ButtonSystem.cpp \
+    systems/ContainerSystem.cpp \
+    systems/MorphingSystem.cpp \
+    systems/ParticuleSystem.cpp \
+    systems/PhysicsSystem.cpp \
     systems/RenderingSystem.cpp \
     systems/RenderingSystem_Texture.cpp \
     systems/RenderingSystem_Render.cpp \
-    systems/ADSRSystem.cpp \
-    systems/ButtonSystem.cpp \
-    systems/TextRenderingSystem.cpp \
+    systems/ScrollingSystem.cpp \
     systems/SoundSystem.cpp \
-    systems/ContainerSystem.cpp \
-    systems/PhysicsSystem.cpp \
-    systems/ParticuleSystem.cpp
+    systems/System.cpp \
+    systems/TransformationSystem.cpp \
+    systems/TextRenderingSystem.cpp \
+
+
+
+
 
 
 #LOCAL_LDLIBS    += -lGLESv2 -llog
