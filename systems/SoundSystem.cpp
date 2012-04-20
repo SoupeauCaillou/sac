@@ -46,13 +46,12 @@ void SoundSystem::DoUpdate(float dt) {
 		for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 			Entity a = (*it).first;
 			SoundComponent* rc = (*it).second;
-			if (rc->type == SoundComponent::MUSIC) {
-				pauseAll(); // faut mettre pause
-			} else {
-				rc->sound = InvalidSoundRef;
+			if (rc->type == SoundComponent::EFFECT) { //on supprime tous les sons (pas les musics)
+				rc->sound = InvalidSoundRef; 
 				rc->started = false;
 			}
 		}
+		pauseAll();
 		#else
 		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
 			std::list<ALuint>::iterator jt = it++;
@@ -91,15 +90,15 @@ void SoundSystem::DoUpdate(float dt) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
 		SoundComponent* rc = (*it).second;
-		if (rc->sound != InvalidSoundRef && !mute) {
-			if (!rc->started) {
-				LOGW("%d / sound started (%d)", a, rc->sound);
+		if (rc->sound != InvalidSoundRef && !mute ) {
+			if (!rc->started && !rc->stop) {
+				LOGW("%d / sound started (%d)", a, rc->sound, rc->stop);
 				#ifdef ANDROID
 				androidSoundAPI->play(sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
 				#else
 				// use 1st available source
 				if (availableSources.size() > 0) {
-					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front());
+					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front(), rc->position);
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
 				}
@@ -111,16 +110,18 @@ void SoundSystem::DoUpdate(float dt) {
 				#else
 				ALfloat newPos = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
 				#endif
-				if (newPos >= 0.995) {
+				if (newPos >= 0.995 || (rc->stop && newPos!=0)) {
 					LOGW("sound ended (%d)", rc->sound);
 					rc->position = 0;
 					#ifndef ANDROID
+					if (rc->stop && newPos!=0) alSourcePause(rc->source);
 					activeSources.remove(rc->source);
 					availableSources.push_back(rc->source);
 					rc->source = 0;
 					#endif
 					rc->sound = InvalidSoundRef;
 					rc->started = false;
+					rc->stop = false;
 				} else {
 					rc->position = newPos;
 				}

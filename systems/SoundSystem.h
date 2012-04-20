@@ -95,33 +95,33 @@ struct OpenAlSoundAPI {
 		return Buffer;
 	}
 	/* return the OpenAL source used to play the sound */
-	ALuint play(ALuint buffer, ALuint source) {
+	ALuint play(ALuint buffer, ALuint source, ALfloat seek) {
 		alSourcei(source, AL_BUFFER, buffer);
+		moveToSeek(source, buffer, seek); // on joue la musique à partir de seek secs
 		alSourcePlay(source);
 		return source;
 	}
 
 	ALfloat musicPos(ALuint Source, ALuint buffer) {
-	   ALfloat pos = 0;
-	   ALint tot = 0;
+		ALfloat pos = 0;
+		ALint tot = 0;
 		alGetSourcef(Source, AL_BYTE_OFFSET, &pos);
 		alGetBufferi(buffer, AL_SIZE, &tot);
 
 		return pos/(float)tot;
 	}
 
-	void pauseAll() {
-		//alSourcePause(it->second.source);
-	}
-
-	void resumeAll() {
-		//alSourcePlay(it->second.source);
+	void moveToSeek(ALuint source, ALuint buffer, ALfloat seek) {
+		//seek in secs
+		ALint tot = 0;
+		alGetBufferi(buffer, AL_SIZE, &tot);
+		alSourcei(source, AL_BYTE_OFFSET, seek);	
 	}
 };
 #endif
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), position(0), started(false), mainMusic(false) {
+	SoundComponent() : sound(InvalidSoundRef), position(0), started(false), mainMusic(false), seek(0), stop(false) {
 		#ifndef ANDROID
 		source = 0;
 		#endif
@@ -129,8 +129,9 @@ struct SoundComponent {
 	SoundRef sound;
 	enum { MUSIC, EFFECT } type;
 	float position;
-	bool repeat; /* si repeat est faux: qd le son a été joué en plein, on passe sound à InvalidSoundRef */
-	bool started;
+	bool repeat; /* si repeat est faux: qd le son a été joué entiérement, on passe sound à InvalidSoundRef */
+	bool started, stop;
+	float seek;
 	bool mainMusic;
 	#ifndef ANDROID
 	ALuint source; // openAL source
