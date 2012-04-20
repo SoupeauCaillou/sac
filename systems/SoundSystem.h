@@ -116,7 +116,7 @@ struct OpenAlSoundAPI {
 		//seek in secs
 		ALint tot = 0;
 		alGetBufferi(buffer, AL_SIZE, &tot);
-		alSourcei(source, AL_BYTE_OFFSET, seek);	
+		alSourcei(source, AL_SEC_OFFSET, seek);	
 	}
 };
 #endif

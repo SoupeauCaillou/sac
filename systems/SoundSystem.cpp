@@ -102,6 +102,7 @@ void SoundSystem::DoUpdate(float dt) {
 				// use 1st available source
 				if (availableSources.size() > 0) {
 					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front(), rc->position);
+					rc->position = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
 				}
