@@ -66,33 +66,34 @@ struct JavaSoundAPI {
 #include <sstream>
 struct OpenAlSoundAPI {
 	/* return an OpenAL buffer */
-	ALuint loadSound(const std::string& Filename) {
+	bool loadSound(const std::string& Filename, ALuint* out) {
 		SF_INFO FileInfos;
 		std::stringstream a;
 		a << "assets/" << Filename;
 		SNDFILE* File = sf_open(a.str().c_str(), SFM_READ, &FileInfos);
 		if (!File) {
 			LOGI("le fichier %s n'existe pas", Filename.c_str());
-			return 0;
+			return false;
 		}
 		ALsizei NbSamples  = static_cast<ALsizei>(FileInfos.channels * FileInfos.frames);
 		ALsizei SampleRate = static_cast<ALsizei>(FileInfos.samplerate);
 		std::vector<ALshort> Samples(NbSamples);
 		if (sf_read_short(File, &Samples[0], NbSamples) < NbSamples)
-			return 0;
+			return false;
 		sf_close(File);
 		ALenum Format;
 		switch (FileInfos.channels) {
 			case 1 :  Format = AL_FORMAT_MONO16;   break;
 			case 2 :  Format = AL_FORMAT_STEREO16; break;
-			default : return 0;
+			default : return false;
 		}
 		ALuint Buffer;
 		alGenBuffers(1, &Buffer);
 		alBufferData(Buffer, Format, &Samples[0], NbSamples * sizeof(ALushort), SampleRate);
 		if (alGetError() != AL_NO_ERROR)
-			return 0;
-		return Buffer;
+			return false;
+		*out = Buffer;
+		return true;
 	}
 	/* return the OpenAL source used to play the sound */
 	ALuint play(ALuint buffer, ALuint source, ALfloat seek) {
