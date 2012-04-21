@@ -16,23 +16,28 @@ Entity createRenderingEntity() {
 	return e;
 }
 
-static float computeStringWidth(TextRenderingComponent* trc) {
+static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
 	// assume monospace ...
-	float numberSpacing = 0;
-	if (trc->isANumber)
-		numberSpacing += (int) (trc->text.length() - 1) / 3;
-	return (trc->text.length() + numberSpacing * 0.5) * trc->charSize.X;
+	float width = 0;
+	if (trc->isANumber) {
+		float spaceW = charH2Wratio['.'] * trc->charHeight;
+		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
+	}
+	for (int i=0; i<trc->text.length(); i++) {
+		width += charH2Wratio[trc->text[i]] * trc->charHeight;
+	}
+	return width;
 }
 
-static float computeStartX(TextRenderingComponent* trc) {
+static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
 	switch (trc->positioning) {	
 		case TextRenderingComponent::LEFT:
-			return trc->charSize.X * 0.5;
+			return charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
 		case TextRenderingComponent::RIGHT:
-			return -computeStringWidth(trc) + trc->charSize.X * 0.5;
+			return -computeStringWidth(trc, charH2Wratio) + charH2Wratio[trc->text[trc->text.length() - 1]] * 0.5;
 		case TextRenderingComponent::CENTER:
 		default:
-			return -(computeStringWidth(trc) - trc->charSize.X) * 0.5;
+			return -(computeStringWidth(trc, charH2Wratio) - charH2Wratio[trc->text[0]]) * 0.5;
 	}
 }
 
@@ -43,8 +48,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		TransformationComponent* trans = TRANSFORM(it->first);
 		trans->size = Vector2::Zero;
 		
-		float x = computeStartX(trc);
 		const int length = trc->text.length();
+		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
+		float x = computeStartX(trc, charH2Wratio);
 		
 		for(int i=0; i<length; i++) {
 			// add sub-entity if needed
@@ -74,12 +80,12 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
 				rc->color = trc->color;
 			}
-			tc->size = trc->charSize;
+			tc->size = Vector2(trc->charHeight * charH2Wratio[trc->text[i]], trc->charHeight);
 			tc->position = Vector2(x, 0);
-			x += trc->charSize.X;
+			x += tc->size.X;
 			
 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
-				x += trc->charSize.X * 0.5;
+				x += tc->size.X * 0.5;
 			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
@@ -98,7 +104,7 @@ Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
 	Entity eTime = theEntityManager.CreateEntity();
 	ADD_COMPONENT(eTime, Transformation);
 	ADD_COMPONENT(eTime, TextRendering);
-	TEXT_RENDERING(eTime)->charSize = Vector2(0.5, 1);
+	TEXT_RENDERING(eTime)->charHeight = 0.5;
 	TEXT_RENDERING(eTime)->fontName = "typo";
 	return eTime;
 }
