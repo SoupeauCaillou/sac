@@ -74,7 +74,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			std::stringstream a;
 			a << (int)trc->text[i] << "_" << trc->fontName << ".png";
 				
-			if (!isalnum(trc->text[i])) {
+			if (trc->text[i] == ' ') {
 				rc->hide = true;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
