@@ -103,6 +103,11 @@ void SoundSystem::DoUpdate(float dt) {
 				if (availableSources.size() > 0) {
 					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front(), rc->position);
 					rc->position = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
+					if (rc->masterTrack) {
+						ALint pos;
+						alGetSourcei(rc->masterTrack->source, AL_BYTE_OFFSET, &pos);
+						alSourcei(rc->source, AL_BYTE_OFFSET, pos);
+					}
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
 				}

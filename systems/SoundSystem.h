@@ -122,12 +122,13 @@ struct OpenAlSoundAPI {
 #endif
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), position(0), started(false), seek(0), stop(false), repeat(false) {
+	SoundComponent() : sound(InvalidSoundRef), masterTrack(0), position(0), started(false), seek(0), stop(false), repeat(false) {
 		#ifndef ANDROID
 		source = 0;
 		#endif
 	}
 	SoundRef sound;
+	SoundComponent* masterTrack;
 	enum { MUSIC, EFFECT } type;
 	float position; // in [0,1]
 	bool repeat; /* si repeat est faux: qd le son a été joué entiérement, on passe sound à InvalidSoundRef */
