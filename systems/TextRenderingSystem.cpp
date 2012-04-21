@@ -20,7 +20,7 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 	// assume monospace ...
 	float width = 0;
 	if (trc->isANumber) {
-		float spaceW = charH2Wratio['.'] * trc->charHeight;
+		float spaceW = charH2Wratio['a'] * trc->charHeight * 0.75;
 		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
 	}
 	for (int i=0; i<trc->text.length(); i++) {
@@ -34,10 +34,10 @@ static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, 
 		case TextRenderingComponent::LEFT:
 			return charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
 		case TextRenderingComponent::RIGHT:
-			return -computeStringWidth(trc, charH2Wratio) + charH2Wratio[trc->text[trc->text.length() - 1]] * 0.5;
+			return -computeStringWidth(trc, charH2Wratio) + 0*charH2Wratio[trc->text[trc->text.length() - 1]] * 0.5;
 		case TextRenderingComponent::CENTER:
 		default:
-			return -(computeStringWidth(trc, charH2Wratio) - charH2Wratio[trc->text[0]]) * 0.5;
+			return -(computeStringWidth(trc, charH2Wratio) - 0*charH2Wratio[trc->text[0]]) * 0.5;
 	}
 }
 
@@ -86,7 +86,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			x += tc->size.X * 0.5;
 			
 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
-				x += tc->size.X * 0.5;
+				x += charH2Wratio['a'] * trc->charHeight * 0.75;
 			}
 		}
 		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
