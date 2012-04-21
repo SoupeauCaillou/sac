@@ -32,7 +32,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 	#else
 	ALuint soundID;
 	if (!linuxSoundAPI->loadSound(assetName, &soundID)) {
-		return InvalidSoundRef;	
+		return InvalidSoundRef;
 	}
 	#endif
 
@@ -95,7 +95,7 @@ void SoundSystem::DoUpdate(float dt) {
 		SoundComponent* rc = (*it).second;
 		if (rc->sound != InvalidSoundRef && !mute ) {
 			if (!rc->started && !rc->stop) {
-				LOGW("%d / sound started (%d)", a, rc->sound, rc->stop);
+				if (!rc->stop) LOGW("sound(%d) started (%d) at %f", a, rc->sound, rc->position);
 				#ifdef ANDROID
 				androidSoundAPI->play(sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
 				#else
