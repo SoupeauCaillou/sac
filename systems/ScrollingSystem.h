@@ -10,6 +10,7 @@ struct ScrollingComponent {
     std::vector<std::string> images;
     Vector2 speed;
     Vector2 displaySize;
+    bool hide;
 };
 
 #define theScrollingSystem ScrollingSystem::GetInstance()

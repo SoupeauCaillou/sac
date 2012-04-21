@@ -58,6 +58,8 @@
     <Compile Include="systems\ScrollingSystem.cpp" />
     <Compile Include="systems\MorphingSystem.cpp" />
     <Compile Include="tests\systems\TestMorphingSystem.cpp" />
+    <Compile Include="tools\texture_packer\Main.cpp" />
+    <Compile Include="tools\texture_packer\TexturePacker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -80,5 +82,8 @@
     <None Include="base\Interval.h" />
     <None Include="systems\ScrollingSystem.h" />
     <None Include="systems\MorphingSystem.h" />
+    <None Include="tools\font_desc_generator.sh" />
+    <None Include="tools\texture_packer\texture_packer.sh" />
+    <None Include="tools\texture_packer\TexturePacker.h" />
   </ItemGroup>
 </Project>
