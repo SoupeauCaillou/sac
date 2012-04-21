@@ -30,3 +30,8 @@ void MorphingSystem::DoUpdate(float dt) {
 	}
 }
 
+void MorphingSystem::reverse(MorphingComponent* mc) {
+	for (int i=0; i<mc->elements.size(); i++) {
+		mc->elements[i]->reverse();
+	}
+}

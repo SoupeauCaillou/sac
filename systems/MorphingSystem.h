@@ -7,6 +7,7 @@
 struct MorphElement {
 	MorphElement() : ended(false) {};
     virtual void lerp(float t)=0;
+    virtual void reverse() = 0;
     bool ended;
 };
 
@@ -18,6 +19,12 @@ struct TypedMorphElement : public MorphElement{
     T from, to;
     void lerp(float t) {
         *output = to * t + from * (1-t);
+    }
+    
+    void reverse() {
+	    T c = to;
+	    to = from;
+	    from = c;
     }
 };
 
@@ -37,6 +44,6 @@ struct MorphingComponent {
 
 UPDATABLE_SYSTEM(Morphing)
 
+public:
+	void reverse(MorphingComponent* mc);
 };
-
-
