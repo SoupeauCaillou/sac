@@ -54,7 +54,7 @@ void SoundSystem::DoUpdate(float dt) {
 				rc->started = false;
 			}
 		}
-		pauseAll();
+		androidSoundAPI->pauseAll();
 		#else
 		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
 			std::list<ALuint>::iterator jt = it++;
@@ -76,7 +76,7 @@ void SoundSystem::DoUpdate(float dt) {
 		#endif
 	} else {
 		#ifdef ANDROID
-		resumeAll();
+		androidSoundAPI->resumeAll();
 		#else
 		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
 			std::list<ALuint>::iterator jt = it++;
@@ -102,6 +102,7 @@ void SoundSystem::DoUpdate(float dt) {
 				// use 1st available source
 				if (availableSources.size() > 0) {
 					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front(), rc->position);
+					rc->position = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
 				}

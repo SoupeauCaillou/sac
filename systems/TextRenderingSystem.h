@@ -18,7 +18,7 @@ struct TextRenderingComponent {
 	TextureRef fontBitmap;
 	std::map<char, Vector2> char2UV;
 	Vector2 uvSize;
-	Vector2 charSize;
+	float charHeight;
 	std::string fontName;
 	enum Positionning {
 		CENTER,
@@ -38,7 +38,12 @@ UPDATABLE_SYSTEM(TextRendering)
 public :
 	Entity CreateLocalEntity(int maxSymbol);
 	void DestroyLocalEntity(Entity e);
+	
+	void registerFont(const std::string& fontName, const std::map<unsigned char, float>& charH2Wratio) {
+		fontRegistry[fontName] = charH2Wratio;
+	}
 
 private:
 	std::list<Entity> renderingEntitiesPool;
+	std::map<std::string, std::map<unsigned char, float> > fontRegistry;
 };

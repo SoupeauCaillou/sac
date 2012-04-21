@@ -20,7 +20,11 @@ void ScrollingSystem::DoUpdate(float dt) {
     for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
         Entity a = (*it).first;
         ScrollingComponent* sc = (*it).second;
-        
+
+		if (sc->speed == Vector2::Zero) {
+			continue;
+		}
+		
         EltIt iter = elements.find(a);
         if (iter == elements.end()) {
 	        initScrolling(a, sc);
