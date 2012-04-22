@@ -95,7 +95,7 @@ void SoundSystem::DoUpdate(float dt) {
 		SoundComponent* rc = (*it).second;
 		if (rc->sound != InvalidSoundRef && !mute ) {
 			if (!rc->started && !rc->stop) {
-				if (!rc->stop) LOGW("sound(%d) started (%d) at %f", a, rc->sound, rc->position);
+				LOGW("sound(%d) started (%d) at %f", a, rc->sound, rc->position);
 				#ifdef ANDROID
 				androidSoundAPI->play(sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
 				#else
@@ -160,4 +160,14 @@ void SoundSystem::DoUpdate(float dt) {
 		}
 	}
 	#endif
+	
+	//debug test
+	//~ #ifndef ANDROID
+	//~ int cpt;
+	//~ for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+		//~ if 	(linuxSoundAPI->musicPos(it->second->source, sounds[it->second->sound])>0.f && !mute) 
+			//~ cpt++;
+	//~ }
+	//~ LOGI("%d playing (%d busy - %d availables sources) from %d entities", cpt, activeSources.size(), availableSources.size(), components.size());
+	//~ #endif
 }
