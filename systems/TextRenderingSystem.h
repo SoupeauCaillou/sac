@@ -1,6 +1,11 @@
 #pragma once
 
+#ifdef ANDROID
 #include <GLES2/gl2.h>
+#else
+#include <GL/glew.h>
+#endif
+
 #include <map>
 
 #include "base/Vector2.h"

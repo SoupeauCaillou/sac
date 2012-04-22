@@ -1,18 +1,20 @@
 #include "RenderingSystem.h"
-#include <GLES/gl.h>
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
 #include <sstream>
 #ifndef ANDROID
 #include <sys/inotify.h>
+#include <GL/glew.h>
+#else
+#include <GLES/gl.h>
 #endif
 
 INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") {
 	nextValidRef = 1;
-	opengles2 = true;
+	opengles2 = false;
 	current = 0;
 	frameToRender = 0;
 	pthread_mutex_init(&mutexes[0], 0);
@@ -77,18 +79,19 @@ void RenderingSystem::init() {
 		glAlphaFunc(GL_GREATER, 0.1);
 		//glEnable(GL_ALPHA_TEST);
 	
-	#if ANDROID
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glMatrixMode(GL_PROJECTION))
 		GL_OPERATION(glLoadIdentity())
-		GL_OPERATION(glOrthof(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1))
-		LOGW("ratio: %f", ratio);
+     #ifdef ANDROID
+        GL_OPERATION(glOrthof(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1))
+     #else
+		GL_OPERATION(glOrtho(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1))
+     #endif
 		GL_OPERATION(glMatrixMode(GL_MODELVIEW))
 		GL_OPERATION(glLoadIdentity())
 		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
 		GL_OPERATION(glEnableClientState(GL_COLOR_ARRAY))
 		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
-	#endif
 	}
 
 	// create 1px white texture
@@ -107,7 +110,11 @@ void RenderingSystem::init() {
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	// GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GEQUAL))
+ #ifdef ANDROID
 	GL_OPERATION(glClearDepthf(0.0))
+ #else
+    GL_OPERATION(glClearDepth(0.0))
+ #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 }
 static bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
