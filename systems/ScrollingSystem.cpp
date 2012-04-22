@@ -55,7 +55,8 @@ void ScrollingSystem::DoUpdate(float dt) {
 			    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
 			    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 			    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
-			    	se.hasBeenVisible[i] = false;
+                    tc->z = ptc->z - 0.005;
+                    se.hasBeenVisible[i] = false;
 			    	//RENDERING(se.e[i])->color = debugColors[se.imageIndex[i]];
 		        }
 	        }
@@ -76,7 +77,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		tc->parent = e;
 		tc->size = sc->displaySize;//
 		tc->position = Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y) * i;
-		tc->z = ptc->z;
+		tc->z = ptc->z - i * 0.005;
 		
 		RenderingComponent* rc = RENDERING(se.e[i]);
 		rc->hide = false;
