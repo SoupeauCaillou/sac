@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <iostream>
 #include <cstring>
+#ifndef ANDROID
+#include <cassert>
+#endif
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 
@@ -81,6 +84,10 @@ class ComponentSystemImpl: public ComponentSystem {
 			typename std::map<Entity, T*>::iterator it = components.find(entity);
 			if (it == components.end()) {
 				std::cout << "Entity " << entity << " has no component of type '" << name << "'" << std::endl;
+                #ifndef ANDROID
+                // crash here
+                assert (false);
+                #endif
 				return 0;
 			}
 			return (*it).second;
