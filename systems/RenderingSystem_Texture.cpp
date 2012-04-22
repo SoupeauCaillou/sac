@@ -140,8 +140,8 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 	// hmm hmm: hacky stuff to add a border
 	if (w != powerOf2W || h != powerOf2H) {
 		border = 1;
-		powerOf2W = alignOnPowerOf2(w + 2);
-		powerOf2H = alignOnPowerOf2(h + 2);
+		powerOf2W = alignOnPowerOf2(w + 4);
+		powerOf2H = alignOnPowerOf2(h + 4);
 		
 		int stride1 = (w)*4*sizeof(char);
 		int stride2 = (w+4)*4*sizeof(char);
