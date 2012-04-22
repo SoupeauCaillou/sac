@@ -36,9 +36,9 @@ struct TextRenderingComponent {
 UPDATABLE_SYSTEM(TextRendering)
 
 public :
-	Entity CreateLocalEntity(int maxSymbol);
+	Entity CreateEntity();
 	void DestroyLocalEntity(Entity e);
-	
+
 	void registerFont(const std::string& fontName, const std::map<unsigned char, float>& charH2Wratio) {
 		fontRegistry[fontName] = charH2Wratio;
 	}

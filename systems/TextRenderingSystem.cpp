@@ -30,7 +30,7 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 }
 
 static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
-	switch (trc->positioning) {	
+	switch (trc->positioning) {
 		case TextRenderingComponent::LEFT:
 			return charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
 		case TextRenderingComponent::RIGHT:
@@ -47,11 +47,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		TextRenderingComponent* trc = (*it).second;
 		TransformationComponent* trans = TRANSFORM(it->first);
 		trans->size = Vector2::Zero;
-		
+
 		const int length = trc->text.length();
 		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
 		float x = computeStartX(trc, charH2Wratio);
-		
+
 		for(int i=0; i<length; i++) {
 			// add sub-entity if needed
 			if (i >= trc->drawing.size()) {
@@ -61,8 +61,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				} else {
 					trc->drawing.push_back(createRenderingEntity());
 				}
-			} 
-				
+			}
+
 			RenderingComponent* rc = RENDERING(trc->drawing[i]);
 			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
 			tc->parent = it->first;
@@ -70,10 +70,10 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			if (rc->hide)
 				continue;
-			
+
 			std::stringstream a;
 			a << (int)trc->text[i] << "_" << trc->fontName << ".png";
-				
+
 			if (trc->text[i] == ' ') {
 				rc->hide = true;
 			} else {
@@ -84,7 +84,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
 			x += tc->size.X * 0.5;
-			
+
 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
 			}
@@ -100,7 +100,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 
 
-Entity TextRenderingSystem::CreateLocalEntity(int maxSymbol)
+Entity TextRenderingSystem::CreateEntity()
 {
 	Entity eTime = theEntityManager.CreateEntity();
 	ADD_COMPONENT(eTime, Transformation);
