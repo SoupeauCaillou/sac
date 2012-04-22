@@ -39,10 +39,11 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        continue;
         }
         
-        if (sc->speed != Vector2::Zero) {
-	        ScrollingElement& se = iter->second;
-	        for (int i=0; i<2; i++) {
-		        RENDERING(se.e[i])->hide = false;
+	    ScrollingElement& se = iter->second;
+	    for (int i=0; i<2; i++) {
+		    if (RENDERING(se.e[i])->hide)
+		    	RENDERING(se.e[i])->hide = false;
+		    if (sc->speed != Vector2::Zero) {
 		        TransformationComponent* tc = TRANSFORM(se.e[i]);
 		        tc->position += sc->speed * dt;
 		        bool isVisible = theRenderingSystem.isVisible(tc);
@@ -81,7 +82,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		rc->hide = false;
 		se.imageIndex[i] = i % sc->images.size();
 		rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-		// rc->color = debugColors[se.imageIndex[i]];
+		//rc->color = debugColors[se.imageIndex[i]];
 		se.hasBeenVisible[i] = false;
 	}
 	elements[e] = se;
