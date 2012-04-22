@@ -128,6 +128,10 @@ void SoundSystem::DoUpdate(float dt) {
 						activeSources.remove(rc->source);
 						availableSources.push_back(rc->source);
 						rc->source = 0;
+                        #else
+                        if (rc->stop) {
+                            androidSoundAPI->stop(sounds[rc->sound], true);
+                        }
 						#endif
 						rc->sound = InvalidSoundRef;
 						rc->started = false;

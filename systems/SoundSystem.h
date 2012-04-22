@@ -33,6 +33,7 @@ struct JavaSoundAPI {
 	jclass javaSoundApi;
 	jmethodID jloadSound;
 	jmethodID jplaySound;
+    jmethodID jstopSound;
 	jmethodID jmusicPos;
 	jmethodID jpauseSounds;
 	jmethodID jresumeSounds;
@@ -49,6 +50,10 @@ struct JavaSoundAPI {
 	int play(int soundId, bool music) {
 		return env->CallStaticIntMethod(javaSoundApi, jplaySound, soundId, music);
 	}
+
+    void stop(int soundId, bool music) {
+        env->CallStaticIntMethod(javaSoundApi, jstopSound, soundId, music);
+    }
 
 	float musicPos(int soundId) {
 		return env->CallStaticFloatMethod(javaSoundApi, jmusicPos, soundId);
