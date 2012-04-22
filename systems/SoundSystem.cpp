@@ -15,6 +15,7 @@ void SoundSystem::init() {
 		ALuint source;
 		alGenSources(1, &source);
 		availableSources.push_back(source);
+		LOGI("AL source #%d created: %d", i, source);
 	}
 	#endif
 }
@@ -32,6 +33,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 	#else
 	ALuint soundID;
 	if (!linuxSoundAPI->loadSound(assetName, &soundID)) {
+		LOGW("Error loading sound: '%s'", assetName.c_str());
 		return InvalidSoundRef;
 	}
 	#endif
@@ -45,6 +47,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 
 void SoundSystem::DoUpdate(float dt) {
 	if (mute) {
+		LOGW("Sondsystem muted");
 		#ifdef ANDROID
 		for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 			Entity a = (*it).first;
@@ -124,7 +127,9 @@ void SoundSystem::DoUpdate(float dt) {
 					rc->position = 0;
 					if (!rc->repeat) {
 						#ifndef ANDROID
-						if (rc->stop && newPos!=0) alSourcePause(rc->source);
+						if (rc->stop && newPos!=0) {
+							alSourceStop(rc->source);
+						}
 						activeSources.remove(rc->source);
 						availableSources.push_back(rc->source);
 						rc->source = 0;
