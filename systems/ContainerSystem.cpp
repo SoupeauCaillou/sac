@@ -4,7 +4,7 @@
 
 INSTANCE_IMPL(ContainerSystem);
 	
-ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("container") { 
+ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("Container") { 
 	
 }
 

@@ -2,7 +2,7 @@
 
 INSTANCE_IMPL(SoundSystem);
 
-SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("sound"), nextValidRef(1), mute(false) {
+SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextValidRef(1), mute(false) {
 }
 
 void SoundSystem::init() {

@@ -2,7 +2,7 @@
 
 INSTANCE_IMPL(TransformationSystem);
 	
-TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("transformation") { 
+TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") { 
 	
 }
 

@@ -16,6 +16,10 @@
 
 #define Entity unsigned long
 
+#define COMPONENT(x) struct x##Component
+#define PERSISTENT_PROP 
+#define RUNTIME_PROP 
+
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 

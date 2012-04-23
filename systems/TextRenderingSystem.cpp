@@ -4,7 +4,7 @@
 
 INSTANCE_IMPL(TextRenderingSystem);
 
-TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("textrendering") {
+TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
 
 }
 

@@ -69,11 +69,106 @@ static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfl
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 }
 
-static void drawBatchES1(const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
+static void setupTexturing(GLint m_textureId, bool enableDesaturation, const float* uvs) {
+	if (!enableDesaturation) {
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, m_textureId);
+		glClientActiveTexture(GL_TEXTURE0);
+		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
+		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glActiveTexture(GL_TEXTURE1);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE2);
+		glDisable(GL_TEXTURE_2D);
+	} else {
+		//Enable texture unit 0 to divide RGB values in our texture by 2
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, m_textureId);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glClientActiveTexture(GL_TEXTURE0);
+		
+		//GL_MODULATE is Arg0 * Arg1    
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+		
+		//Configure Arg0
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_TEXTURE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		
+		//Configure Arg1
+		float multipliers[4] = {.5, .5, .5, 0.0};
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&multipliers);
+		
+		//Remember to set your texture coordinates if you need them
+		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
+			GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
+		
+		//Enable texture unit 1 to increase RGB values by .5
+		glActiveTexture(GL_TEXTURE1);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, m_textureId);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glClientActiveTexture(GL_TEXTURE1);
+		
+		//GL_ADD is Arg0 + Arg1
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		
+		//Configure Arg0
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		
+		//Configure Arg1
+		GLfloat additions[4] = {.5, .5, .5, 0.0};
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&additions);
+		
+		//Set your texture coordinates if you need them
+		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
+			GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
+		
+		//Enable texture combiner 2 to get a DOT3_RGB product of your RGB values
+		glActiveTexture(GL_TEXTURE2);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, m_textureId);
+		glClientActiveTexture(GL_TEXTURE2);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		
+		//GL_DOT3_RGB is 4*((Arg0r - 0.5) * (Arg1r - 0.5) + (Arg0g - 0.5) * (Arg1g - 0.5) + (Arg0b - 0.5) * (Arg1b - 0.5))
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB);   
+		
+		//Configure Arg0
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		
+		//Configure Arg1
+		//We want this to adjust our DOT3 by R*0.3 + G*0.59 + B*0.11
+		//So, our actual adjustment will need to take into consideration
+		//the fact that OpenGL will subtract .5 from our Arg1
+		//and we need to also take into consideration that we have divided 
+		//our RGB values by 2 and we are multiplying the entire
+		//DOT3 product by 4
+		//So, for Red adjustment you will get :
+		//   .65 = (4*(0.3))/2 + 0.5  = (0.3/2) + 0.5
+		GLfloat weights[4] = {.65, .795, .555, 1.};
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&weights);
+		
+		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
+		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))		
+	}
+}
+
+static bool desaturate = false;
+static void drawBatchES1(GLint m_textureId, const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
+	setupTexturing(m_textureId, desaturate, uvs);
 	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
-	GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
-	GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
 	GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
 	GL_OPERATION(glEnableClientState(GL_COLOR_ARRAY))
 
@@ -88,7 +183,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static GLfloat posrot[MAX_BATCH_SIZE * 4 * 4];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
-
+	desaturate = false;
+	GLint t;
 	// GL_OPERATION(glDepthMask(true))
 	GLuint boundTexture = 0;
 	while (!commands.empty()) {
@@ -102,6 +198,17 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		else if (rc.texture == DisableZWriteMarker) {
 			commands.pop();
 			continue;
+		} else if (rc.desaturate != desaturate) {
+			if (batchSize > 0) {
+				// execute batch
+				if (opengles2)
+					drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+				else
+					drawBatchES1(boundTexture, vertices, uvs, colors, posrot, indices, batchSize);
+
+				batchSize = 0;
+			}
+			desaturate = !desaturate;
 		}
 
 		if (rc.texture != InvalidTextureRef) {
@@ -116,18 +223,18 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
 		}
-
+		t = rc.texture;
 		if (boundTexture != rc.texture) {
 			if (batchSize > 0) {
 				// execute batch
 				if (opengles2)
 					drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
 				else
-					drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, colors, posrot, indices, batchSize);
 
 				batchSize = 0;
 			}
-			GL_OPERATION(glBindTexture(GL_TEXTURE_2D, rc.texture))
+			// glBindTexture(GL_TEXTURE_2D, rc.texture);
 			boundTexture = rc.texture;
 		}
 
@@ -176,7 +283,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (opengles2)
 				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
 			else
-				drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
+				drawBatchES1(rc.texture, vertices, uvs, colors, posrot, indices, batchSize);
 			batchSize = 0;
 		}
 		commands.pop();
@@ -186,7 +293,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		if (opengles2)
 			drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
 		else
-			drawBatchES1(vertices, uvs, colors, posrot, indices, batchSize);
+			drawBatchES1(t, vertices, uvs, colors, posrot, indices, batchSize);
 }
 
 void RenderingSystem::render() {

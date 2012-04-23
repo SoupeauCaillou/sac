@@ -60,6 +60,7 @@
     <Compile Include="tests\systems\TestMorphingSystem.cpp" />
     <Compile Include="tools\texture_packer\Main.cpp" />
     <Compile Include="tools\texture_packer\TexturePacker.cpp" />
+    <Compile Include="base\SqlExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -85,5 +86,6 @@
     <None Include="tools\font_desc_generator.sh" />
     <None Include="tools\texture_packer\texture_packer.sh" />
     <None Include="tools\texture_packer\TexturePacker.h" />
+    <None Include="base\SqlExporter.h" />
   </ItemGroup>
 </Project>

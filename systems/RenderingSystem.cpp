@@ -12,7 +12,7 @@
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("rendering") {
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
 	nextValidRef = 1;
 	opengles2 = false;
 	current = 0;
@@ -136,7 +136,7 @@ void RenderingSystem::DoUpdate(float dt) {
 	
 	std::vector<RenderCommand> commands;
 	std::vector<RenderCommand> semiOpaqueCommands;
-	
+
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
@@ -155,7 +155,8 @@ void RenderingSystem::DoUpdate(float dt) {
 		c.position = tc->worldPosition;
 		c.rotation = tc->worldRotation;
 		c.z = tc->z;
-
+		c.desaturate = rc->desaturate;
+		
 		if (c.color.a >= 1 && rc->drawGroup == RenderingComponent::FrontToBack)
 			commands.push_back(c);
 		else

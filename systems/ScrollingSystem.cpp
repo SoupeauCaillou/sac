@@ -12,7 +12,7 @@ static Color debugColors[] = {
 	Color(0, 0.5, 0.5, 1)
 };
 
-ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("scrolling") {
+ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("Scrolling") {
  
 }
 

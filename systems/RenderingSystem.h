@@ -25,6 +25,7 @@ typedef int TextureRef;
 #define InvalidTextureRef -1
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
+#define ToggleDesaturationMarker -12
 
 #ifndef ANDROID
 #define CHECK_GL_ERROR
@@ -68,14 +69,14 @@ struct Color {
 
 };
 struct RenderingComponent {
-	RenderingComponent() : /*bottomLeftUV(0, 0), topRightUV(1, 1),*/ hide(true), texture(InvalidTextureRef), drawGroup(BackToFront) {}
+	RenderingComponent() : /*bottomLeftUV(0, 0), topRightUV(1, 1),*/ hide(true), texture(InvalidTextureRef), drawGroup(BackToFront), desaturate(false) {}
 	// Vector2 bottomLeftUV, topRightUV;
 	TextureRef texture;
 	Color color;
 	enum {
 		BackToFront, FrontToBack
 	} drawGroup;
-	bool hide;
+	bool hide, desaturate;
 };
 
 struct RenderCommand {
@@ -87,6 +88,7 @@ struct RenderCommand {
 	Color color;
 	Vector2 position;
 	float rotation;
+	bool desaturate;
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
