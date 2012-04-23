@@ -13,7 +13,7 @@ void SoundSystem::init() {
 		LOGI("probleme initialisation du son");
 	for (int i=0; i<16; i++) {
 		ALuint source;
-		alGenSources(1, &source);
+		AL_OPERATION(alGenSources(1, &source))
 		availableSources.push_back(source);
 		LOGI("AL source #%d created: %d", i, source);
 	}
@@ -66,7 +66,7 @@ void SoundSystem::DoUpdate(float dt) {
 				SoundComponent* rc = (*it).second;
 				if (rc->source==source) {
 					if (rc->type == SoundComponent::MUSIC) {
-						alSourcePause(source);
+						AL_OPERATION(alSourcePause(source))
 					} else {
 						availableSources.push_back(source);
 						activeSources.erase(jt);
@@ -84,7 +84,7 @@ void SoundSystem::DoUpdate(float dt) {
 			std::list<ALuint>::iterator jt = it++;
 			ALuint source = *jt;
 			ALint v;
-			alGetSourcei(source, AL_SOURCE_STATE, &v);
+			AL_OPERATION(alGetSourcei(source, AL_SOURCE_STATE, &v))
 			if (v == AL_PAUSED	) {
 				alSourcePlay(source);
 			}
@@ -107,13 +107,14 @@ void SoundSystem::DoUpdate(float dt) {
 					rc->position = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
 					if (rc->masterTrack) {
 						ALint pos;
-						alGetSourcei(rc->masterTrack->source, AL_BYTE_OFFSET, &pos);
-						alSourcei(rc->source, AL_BYTE_OFFSET, pos);
+						AL_OPERATION(alGetSourcei(rc->masterTrack->source, AL_BYTE_OFFSET, &pos))
+						AL_OPERATION(alSourcei(rc->source, AL_BYTE_OFFSET, pos))
 					}
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
 				}
 				#endif
+				rc->volume = 1.0;
 				rc->started = true;
 			} else if (rc->type == SoundComponent::MUSIC) {
 				 #ifdef ANDROID
@@ -121,21 +122,45 @@ void SoundSystem::DoUpdate(float dt) {
 				#else
 				ALfloat newPos = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
 				#endif
-				if (newPos >= 0.995 || (rc->stop && newPos!=0)) {
-					LOGW("sound ended (%d)", rc->sound);
-					rc->position = 0;
-					if (!rc->repeat) {
+				
+				if (rc->stop && newPos != 0) {
+					if (rc->fadeOut > 0) {
+						rc->volume -= dt / rc->fadeOut;
+					} else {
+						rc->volume = 0;
+					}
+					// really stop only when volume is null
+					if (rc->volume <= 0) {
+						LOGW("sound ended with fade out (%d)", rc->sound);
 						#ifndef ANDROID
-						if (rc->stop && newPos!=0) {
-							alSourceStop(rc->source);
-						}
+						AL_OPERATION(alSourceStop(rc->source))
 						activeSources.remove(rc->source);
 						availableSources.push_back(rc->source);
 						rc->source = 0;
                         #else
-                        if (rc->stop) {
-                            androidSoundAPI->stop(sounds[rc->sound], true);
-                        }
+                        androidSoundAPI->stop(sounds[rc->sound], true);
+						#endif
+						rc->sound = InvalidSoundRef;
+						rc->started = false;
+						rc->stop = false;
+					} else {
+						// adjust volume
+						#ifndef ANDROID
+						AL_OPERATION(alSourcef(rc->source, AL_GAIN, rc->volume))
+						#else
+						LOGW("todo: volume adjust");
+						#endif
+					}
+				}
+
+				if (newPos >= 0.995) {
+					LOGW("sound ended (%d)", rc->sound);
+					rc->position = 0;
+					if (!rc->repeat) {
+						#ifndef ANDROID
+						activeSources.remove(rc->source);
+						availableSources.push_back(rc->source);
+						rc->source = 0;
 						#endif
 						rc->sound = InvalidSoundRef;
 						rc->started = false;
@@ -157,7 +182,7 @@ void SoundSystem::DoUpdate(float dt) {
 		std::list<ALuint>::iterator jt = it++;
 		ALuint source = *jt;
 		ALint v;
-		alGetSourcei(source, AL_SOURCE_STATE, &v);
+		AL_OPERATION(alGetSourcei(source, AL_SOURCE_STATE, &v))
 		if (v != AL_PLAYING && v != AL_PAUSED) {
 			availableSources.push_back(source);
 			activeSources.erase(jt);

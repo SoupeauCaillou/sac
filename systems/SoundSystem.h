@@ -71,12 +71,13 @@ struct JavaSoundAPI {
 #include <sstream>
 #include <cassert>
 
-struct OpenAlSoundAPI {
-	#define AL_OPERATION(x)	\
+#define AL_OPERATION(x)	\
 		(x); \
-		check_AL_errors(#x);
+		OpenAlSoundAPI::check_AL_errors(#x);
 		
-	void check_AL_errors(const char* context) {
+struct OpenAlSoundAPI {
+		
+	static void check_AL_errors(const char* context) {
 		int maxIterations=10;
     	ALenum error;
     	bool err = false;
@@ -88,7 +89,7 @@ struct OpenAlSoundAPI {
     	assert(!err);
     }
 		
-	const char* errToString(ALenum err) {
+	static const char* errToString(ALenum err) {
 		switch (err) {
 			case AL_NO_ERROR: return "AL(No error)";
 			case AL_INVALID_NAME: return "AL(Invalid name)";
@@ -161,7 +162,7 @@ struct OpenAlSoundAPI {
 #endif
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), masterTrack(0), position(0), started(false), seek(0), stop(false), repeat(false) {
+	SoundComponent() : sound(InvalidSoundRef), masterTrack(0), position(0), started(false), seek(0), stop(false), repeat(false), fadeOut(0.7) {
 		#ifndef ANDROID
 		source = 0;
 		#endif
@@ -173,6 +174,8 @@ struct SoundComponent {
 	bool repeat; /* si repeat est faux: qd le son a été joué entiérement, on passe sound à InvalidSoundRef */
 	bool started, stop;
 	float seek;
+	float fadeOut; // durée en sec
+	float volume;
 	#ifndef ANDROID
 	ALuint source; // openAL source
 	#endif
