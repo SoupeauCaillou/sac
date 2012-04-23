@@ -47,7 +47,6 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 
 void SoundSystem::DoUpdate(float dt) {
 	if (mute) {
-		LOGW("Sondsystem muted");
 		#ifdef ANDROID
 		for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 			Entity a = (*it).first;
