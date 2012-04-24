@@ -47,12 +47,12 @@ struct JavaSoundAPI {
 		return result;
 	}
 
-	int play(int soundId, bool music) {
-		return env->CallStaticIntMethod(javaSoundApi, jplaySound, soundId, music);
+	int play(int soundId, bool music, int soundMaster, int offset_ms) {
+		return env->CallStaticIntMethod(javaSoundApi, jplaySound, soundId, music, soundMaster, offset_ms);
 	}
 
     void stop(int soundId, bool music) {
-        env->CallStaticIntMethod(javaSoundApi, jstopSound, soundId, music);
+        env->CallStaticVoidMethod(javaSoundApi, jstopSound, soundId, music);
     }
 
 	float musicPos(int soundId) {
@@ -60,11 +60,11 @@ struct JavaSoundAPI {
 	}
 
 	void pauseAll() {
-		env->CallStaticObjectMethod(javaSoundApi, jpauseSounds);
+		env->CallStaticVoidMethod(javaSoundApi, jpauseSounds);
 	}
 
 	void resumeAll() {
-		env->CallStaticObjectMethod(javaSoundApi, jresumeSounds);
+		env->CallStaticVoidMethod(javaSoundApi, jresumeSounds);
 	}
 };
 #else
@@ -169,6 +169,7 @@ struct SoundComponent {
 	}
 	SoundRef sound;
 	SoundComponent* masterTrack;
+	float masterTrackOffsetMs;
 	enum { MUSIC, EFFECT } type;
 	float position; // in [0,1]
 	bool repeat; /* si repeat est faux: qd le son a été joué entiérement, on passe sound à InvalidSoundRef */

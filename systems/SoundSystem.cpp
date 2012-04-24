@@ -99,19 +99,27 @@ void SoundSystem::DoUpdate(float dt) {
 			if (!rc->started && !rc->stop) {
 				LOGW("sound(%d) started (%d) at %f", a, rc->sound, rc->position);
 				#ifdef ANDROID
-				androidSoundAPI->play(sounds[rc->sound], (rc->type == SoundComponent::MUSIC));
+				if (rc->type == SoundComponent::MUSIC) {
+					androidSoundAPI->play(sounds[rc->sound], true, rc->masterTrack ? sounds[rc->masterTrack->sound] : -1, rc->masterTrackOffsetMs);
+				} else {
+					androidSoundAPI->play(sounds[rc->sound], false, -1, 0);
+				}
 				#else
 				// use 1st available source
 				if (availableSources.size() > 0) {
 					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front(), rc->position);
 					rc->position = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
-					if (rc->masterTrack) {
-						ALint pos;
-						AL_OPERATION(alGetSourcei(rc->masterTrack->source, AL_BYTE_OFFSET, &pos))
-						AL_OPERATION(alSourcei(rc->source, AL_BYTE_OFFSET, pos))
+					if (rc->masterTrack && rc->masterTrack->source > 0) {
+						ALfloat pos;
+						AL_OPERATION(alGetSourcef(rc->masterTrack->source, AL_SEC_OFFSET, &pos))
+						pos += rc->masterTrackOffsetMs * 0.001;
+						AL_OPERATION(alSourcef(rc->source, AL_SEC_OFFSET, pos))
 					}
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
+				} else {
+					LOGW("No availble source found");
+					assert (false);
 				}
 				#endif
 				rc->volume = 1.0;
