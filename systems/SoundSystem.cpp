@@ -31,7 +31,11 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
 	#else
 	if (assetSounds.find(assetName) != assetSounds.end())
 	#endif
-		return assetSounds[assetName];
+		{
+		SoundRef r = assetSounds[assetName];
+		LOGW("load sound (from cache) : %s -> %d", assetName.c_str(), r);
+		return r;
+	}
 
 	#ifdef ANDROID
 	int soundID = androidSoundAPI->loadSound(assetName, music);
@@ -120,6 +124,7 @@ void SoundSystem::DoUpdate(float dt) {
 						pos += rc->masterTrackOffsetMs * 0.001;
 						AL_OPERATION(alSourcef(rc->source, AL_SEC_OFFSET, pos))
 					}
+					AL_OPERATION(alSourcef(rc->source, AL_GAIN, 1))
 					activeSources.push_back(availableSources.front());
 					availableSources.pop_front();
 				} else {
@@ -156,6 +161,7 @@ void SoundSystem::DoUpdate(float dt) {
 						rc->sound = InvalidSoundRef;
 						rc->started = false;
 						rc->stop = false;
+						rc->position = 0;
 					} else {
 						// adjust volume
 						#ifndef ANDROID
@@ -164,6 +170,8 @@ void SoundSystem::DoUpdate(float dt) {
 						LOGW("todo: volume adjust");
 						#endif
 					}
+				} else {
+					rc->position = newPos;
 				}
 
 				if (newPos >= 0.995) {
@@ -179,8 +187,6 @@ void SoundSystem::DoUpdate(float dt) {
 						rc->started = false;
 						rc->stop = false;
 					}
-				} else {
-					rc->position = newPos;
 				}
 			} else if (rc->type == SoundComponent::EFFECT) {
 				rc->sound = InvalidSoundRef;
