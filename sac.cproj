@@ -61,6 +61,7 @@
     <Compile Include="tools\texture_packer\Main.cpp" />
     <Compile Include="tools\texture_packer\TexturePacker.cpp" />
     <Compile Include="base\SqlExporter.cpp" />
+    <Compile Include="base\PlacementHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -87,5 +88,6 @@
     <None Include="tools\texture_packer\texture_packer.sh" />
     <None Include="tools\texture_packer\TexturePacker.h" />
     <None Include="base\SqlExporter.h" />
+    <None Include="base\PlacementHelper.h" />
   </ItemGroup>
 </Project>

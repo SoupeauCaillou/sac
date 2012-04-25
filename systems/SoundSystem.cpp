@@ -1,4 +1,9 @@
 #include "SoundSystem.h"
+#ifdef MUSIC_VISU
+#include "RenderingSystem.h"
+#include "base/PlacementHelper.h"
+#include "base/EntityManager.h"
+#endif
 
 INSTANCE_IMPL(SoundSystem);
 
@@ -195,6 +200,40 @@ void SoundSystem::DoUpdate(float dt) {
 			availableSources.push_back(source);
 			activeSources.erase(jt);
 		}
+	}
+	#endif
+	
+	#ifdef MUSIC_VISU
+	int idx = 0;
+	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+		Entity a = (*it).first;
+		SoundComponent* rc = (*it).second;
+		
+		if (rc->type == SoundComponent::EFFECT)
+			continue;
+		if (visualisationEntities.find(a) == visualisationEntities.end()) {
+			int size = visualisationEntities.size();
+			Entity e = theEntityManager.CreateEntity();
+			ADD_COMPONENT(e, Rendering);
+			RENDERING(e)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
+			RENDERING(e)->hide = false;
+			ADD_COMPONENT(e, Transformation);
+			TRANSFORM(e)->size = Vector2(1, 1);
+			TRANSFORM(e)->z = 0.75;
+			visualisationEntities[a] = e;
+		}
+		float VisuWidth = PlacementHelper::GimpWidthToScreen(50);
+		Entity e = visualisationEntities[a];
+		TRANSFORM(e)->size = Vector2(VisuWidth, SOUND(a)->position * PlacementHelper::GimpHeightToScreen(1280));
+		TransformationSystem::setPosition(TRANSFORM(e), 
+			Vector2(
+				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth, PlacementHelper::GimpYToScreen(0)), 
+			TransformationSystem::NW);
+		if (rc->stop)
+			RENDERING(e)->color = Color(0.3, 0, 0, 0.5);
+		else
+			RENDERING(e)->color = Color(0, 0.3, 0, 0.5);
+		idx++;
 	}
 	#endif
 	

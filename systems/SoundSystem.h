@@ -26,6 +26,8 @@ typedef int SoundRef;
 
 #endif
 
+#define MUSIC_VISU 
+
 #ifdef ANDROID
 struct JavaSoundAPI {
 	JNIEnv* env;
@@ -203,6 +205,10 @@ std::map<SoundRef, int> sounds;
 std::map<SoundRef, ALuint> sounds;
 std::list<ALuint> availableSources;
 std::list<ALuint> activeSources;
+#endif
+
+#ifdef MUSIC_VISU
+std::map<Entity, Entity> visualisationEntities;
 #endif
 
 public:
