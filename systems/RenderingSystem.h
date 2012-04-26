@@ -100,6 +100,7 @@ public:
 void init();
 
 void loadAtlas(const std::string& atlasName);
+void unloadAtlas(const std::string& atlasName);
 
 int saveInternalState(uint8_t** out);
 void restoreInternalState(const uint8_t* in, int size);
@@ -107,6 +108,8 @@ void restoreInternalState(const uint8_t* in, int size);
 void setWindowSize(int w, int h, float sW, float sH);
 
 TextureRef loadTextureFile(const std::string& assetName);
+
+void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
 void setNativeAssetLoader(NativeAssetLoader* ptr) { assetLoader = ptr; }
 
@@ -145,6 +148,7 @@ struct Atlas {
 
 std::map<TextureRef, TextureInfo> textures;
 std::set<std::string> delayedLoads;
+std::set<TextureRef> delayedDeletes;
 std::vector<Atlas> atlas;
 
 NativeAssetLoader* assetLoader;
@@ -174,6 +178,7 @@ std::vector<NotifyInfo> notifyList;
 private:
 GLuint loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
+void processDelayedTextureJobs();
 
 public:
 static void check_GL_errors(const char* context);

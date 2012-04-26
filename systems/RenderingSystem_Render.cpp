@@ -320,13 +320,7 @@ void RenderingSystem::render() {
 		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
 	}
 
-	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
-		//LOGI("Delayed loading of: %s", (*it).c_str());
-		Vector2 size, powSize;
-		GLuint ref = loadTexture(*it, size, powSize);
-		textures[assetTextures[*it]] = TextureInfo(ref, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
-	}
-	delayedLoads.clear();
+    processDelayedTextureJobs();
 
 	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT*/))
 

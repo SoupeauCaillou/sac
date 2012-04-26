@@ -102,6 +102,23 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
 
+void RenderingSystem::unloadAtlas(const std::string& atlasName) {
+    for (int i=0; i<atlas.size(); i++) {
+        if (atlasName == atlas[i].name) {
+            for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end();) {
+                std::map<TextureRef, TextureInfo>::iterator next = ++it;
+                if (it->second.glref == atlas[i].texture) {
+                    textures.erase(it);
+                }
+                it = next;
+            }
+            unloadTexture(atlas[i].texture, true);
+            atlas.erase(atlas.begin() + i);
+            break;
+        }
+    }
+}
+
 static unsigned int alignOnPowerOf2(unsigned int value) {
 	for(int i=0; i<32; i++) {
 		unsigned int c = 1 << i;
@@ -195,6 +212,23 @@ void RenderingSystem::reloadTextures() {
 	}
 }
 
+void RenderingSystem::processDelayedTextureJobs() {
+    // load textures
+    for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
+        Vector2 size, powSize;
+        GLuint ref = loadTexture(*it, size, powSize);
+        textures[assetTextures[*it]] = TextureInfo(ref, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
+    }
+    delayedLoads.clear();
+
+    // delete textures
+    for (std::set<TextureRef>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
+        GLuint r = textures[*it].glref;
+        glDeleteTextures(1, &r);
+    }
+    delayedDeletes.clear();
+}
+
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	TextureRef result = InvalidTextureRef;
 	std::string name(assetName);
@@ -212,5 +246,18 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		delayedLoads.insert(name);
 		
 	return result;
+}
+
+void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
+    if (ref != InvalidTextureRef) {
+        TextureInfo i = textures[ref];
+        if (i.atlasIndex >= 0 && !allowUnloadAtlas) {
+            LOGW("Cannot delete texture '%d' (is an atlas)", ref);
+            return;
+        }
+        delayedDeletes.insert(ref);
+    } else {
+        LOGW("Tried to delete an InvalidTextureRef");
+    }
 }
 
