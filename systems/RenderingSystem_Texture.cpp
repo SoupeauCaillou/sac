@@ -255,6 +255,12 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
             LOGW("Cannot delete texture '%d' (is an atlas)", ref);
             return;
         }
+        for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+            if (it->second == ref) {
+                assetTextures.erase(it);
+                break;
+            }
+        }
         delayedDeletes.insert(ref);
     } else {
         LOGW("Tried to delete an InvalidTextureRef");
