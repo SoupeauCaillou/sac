@@ -70,6 +70,7 @@ class ComponentSystemImpl: public ComponentSystem {
 	public:
 		ComponentSystemImpl(const std::string& t) : ComponentSystem(t) {
 			Activate();
+            previous = 0;
 		}
 
 		void Add(Entity entity) {
@@ -85,16 +86,20 @@ class ComponentSystemImpl: public ComponentSystem {
 		}
 
 		T* Get(Entity entity) {
-			typename std::map<Entity, T*>::iterator it = components.find(entity);
-			if (it == components.end()) {
-				std::cout << "Entity " << entity << " has no component of type '" << name << "'" << std::endl;
-                #ifndef ANDROID
-                // crash here
-                assert (false);
-                #endif
-				return 0;
-			}
-			return (*it).second;
+            if (entity != previous) {
+    			typename std::map<Entity, T*>::iterator it = components.find(entity);
+    			if (it == components.end()) {
+    				std::cout << "Entity " << entity << " has no component of type '" << name << "'" << std::endl;
+                    #ifndef ANDROID
+                    // crash here
+                    assert (false);
+                    #endif
+    				return 0;
+    			}
+                previous = entity;
+                previousComp = (*it).second;
+            }
+			return previousComp;
 		}
 
 		std::vector<Entity> RetrieveAllEntityWithComponent() {
@@ -131,6 +136,8 @@ class ComponentSystemImpl: public ComponentSystem {
 		bool active;
 
 		std::map<Entity, T*> components;
+        Entity previous;
+        T* previousComp;
 
 		typedef typename std::map<Entity, T*> ComponentMap;
 		typedef typename std::map<Entity, T*>::iterator ComponentIt;
