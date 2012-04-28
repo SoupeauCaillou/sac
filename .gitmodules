@@ -1,0 +1,3 @@
+[submodule "libs/tremor"]
+	path = libs/tremor
+	url = git://git.xiph.org/tremor.git

@@ -17,6 +17,7 @@ LOCAL_SRC_FILES := \
     base/EntityManager.cpp \
     base/TouchInputManager.cpp \
     base/Log.cpp \
+    base/PlacementHelper.cpp \
     base/TimeUtil.cpp \
     systems/ADSRSystem.cpp \
     systems/ButtonSystem.cpp \
