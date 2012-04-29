@@ -1,8 +1,7 @@
 #include "MusicSystem.h"
 
-#define MUSIC_FREQ 8000
-#define SEC_TO_BYTE(s) (int)(s * MUSIC_FREQ * 2)
-#define MUSIC_CHUNK_SIZE SEC_TO_BYTE(0.5)
+#define SEC_TO_BYTE(s, freq) (int)(s * freq * 2)
+#define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -43,6 +42,7 @@ void MusicSystem::DoUpdate(float dt) {
                 m->opaque[0] = 0;
             }
 
+            int sampleRate0 = musics[m->music].sampleRate;
             if (m->opaque[1]) {
                 feed(m->opaque[1], m->loopNext);
                 if (!musicAPI->isPlaying(m->opaque[1])) {
@@ -50,16 +50,16 @@ void MusicSystem::DoUpdate(float dt) {
                     m->opaque[1] = 0;
                     LOGI("Player 1 has finished");
                 }
-            } else if (m->loopAt > 0 && m->position >= SEC_TO_BYTE(m->loopAt)) {
+            } else if (m->loopAt > 0 && m->position >= SEC_TO_BYTE(m->loopAt, sampleRate0)) {
                 LOGI("Begin loop");
                 m->opaque[1] = m->opaque[0];
                 MusicRef r = m->music;
                 m->music = m->loopNext;
                 m->loopNext = r;
                 m->opaque[0] = startOpaque(m->music);
-                int offset = m->position - SEC_TO_BYTE(m->loopAt);
+                int offset = m->position - SEC_TO_BYTE(m->loopAt, sampleRate0);
                 // queue necessary data
-                int amount = (int) (offset / MUSIC_CHUNK_SIZE) + 1;
+                int amount = (int) (offset / MUSIC_CHUNK_SIZE(sampleRate0)) + 1;
                 for (int i=1; i<amount; i++) {
                     feed(m->opaque[0], m->music);
                 }
@@ -72,22 +72,23 @@ void MusicSystem::DoUpdate(float dt) {
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m) {
     MusicInfo info = musics[m];
 
-    while (musicAPI->needData(ptr)) {
+    while (musicAPI->needData(ptr, info.sampleRate)) {
         int8_t* data = 0;
-        int size = decompressNextChunk(info.ovf, &data);
+        int size = decompressNextChunk(info.ovf, &data, MUSIC_CHUNK_SIZE(info.sampleRate));
         if (size == 0) { // EOF
             return false;
         }
-        musicAPI->queueMusicData(ptr, data, size);
+        musicAPI->queueMusicData(ptr, data, size, info.sampleRate);
     }
     return true;
 }
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicRef r) {
     OpaqueMusicPtr* ptr = musicAPI->createPlayer();
+    MusicInfo info = musics[r];
     int8_t* data = 0;
-    int size = decompressNextChunk(musics[r].ovf, &data);
-    musicAPI->queueMusicData(ptr, data, size);
+    int size = decompressNextChunk(musics[r].ovf, &data, MUSIC_CHUNK_SIZE(info.sampleRate));
+    musicAPI->queueMusicData(ptr, data, size, info.sampleRate);
     musicAPI->startPlaying(ptr);
     return ptr;
 }
@@ -132,16 +133,18 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     MusicInfo info;
     info.ovf = f;
     info.totalTime = ov_time_total(f, -1) * 0.001;
+    vorbis_info* inf = ov_info(f, -1);
+    info.sampleRate = inf->rate * inf->channels;
     musics[nextValidRef] = info;
     return nextValidRef++;
 }
 
-int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t** data) {
-    *data = new int8_t[MUSIC_CHUNK_SIZE];
+int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t** data, int chunkSize) {
+    *data = new int8_t[chunkSize];
     int bitstream;
     int read = 0;
-    while (read < MUSIC_CHUNK_SIZE) {
-        int n = ov_read(file, (char*) &(*data)[read], MUSIC_CHUNK_SIZE - read, &bitstream);
+    while (read < chunkSize) {
+        int n = ov_read(file, (char*) &(*data)[read], chunkSize - read, &bitstream);
         if (n == 0) {
             // EOF
             break;

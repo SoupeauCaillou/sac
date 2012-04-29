@@ -51,6 +51,7 @@ std::map<std::string, MusicRef> assetSounds;
 struct MusicInfo {
     OggVorbis_File* ovf;
     float totalTime;
+    int sampleRate;
 };
 
 std::map<MusicRef, MusicInfo> musics;
@@ -62,7 +63,7 @@ std::map<std::string, FileBuffer> name2buffer;
 std::map<Entity, Entity> visualisationEntities;
 #endif
 
-int decompressNextChunk(OggVorbis_File* file, int8_t** data);
+int decompressNextChunk(OggVorbis_File* file, int8_t** data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m);
 OpaqueMusicPtr* startOpaque(MusicRef r);
 

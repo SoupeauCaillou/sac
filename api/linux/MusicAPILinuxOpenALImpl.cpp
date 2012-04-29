@@ -35,12 +35,12 @@ OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer() {
     return result;
 }
 
-void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size) {
+void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     // create buffer
     ALuint buffer;
     AL_OPERATION(alGenBuffers(1, &buffer))
-    AL_OPERATION(alBufferData(buffer, AL_FORMAT_MONO16, data, size, 8000))
+    AL_OPERATION(alBufferData(buffer, AL_FORMAT_MONO16, data, size, sampleRate))
 
     AL_OPERATION(alSourceQueueBuffers(openalptr->source, 1, &buffer))
     openalptr->queuedBuffers.push_back(buffer);
@@ -48,10 +48,10 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
     delete[] data;
 }
 
-bool MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr) {
+bool MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     int pos = getPosition(ptr);
-    return ((pos - openalptr->queuedSize) < 4000);
+    return ((pos - openalptr->queuedSize) < (0.5 * sampleRate * 2));
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr) {
