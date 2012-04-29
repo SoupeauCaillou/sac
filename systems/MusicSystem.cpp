@@ -40,6 +40,7 @@ void MusicSystem::DoUpdate(float dt) {
                 m->position = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
+                m->music = InvalidMusicRef;
             }
 
             int sampleRate0 = musics[m->music].sampleRate;
@@ -48,6 +49,7 @@ void MusicSystem::DoUpdate(float dt) {
                 if (!musicAPI->isPlaying(m->opaque[1])) {
                     musicAPI->deletePlayer(m->opaque[1]);
                     m->opaque[1] = 0;
+                    m->loopNext = InvalidMusicRef;
                     LOGI("Player 1 has finished");
                 }
             } else if (m->loopAt > 0 && m->position >= SEC_TO_BYTE(m->loopAt, sampleRate0)) {
