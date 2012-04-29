@@ -11,6 +11,7 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextV
 }
 
 void SoundSystem::init() {
+ return;
 	#ifndef ANDROID
 	ALCdevice* Device = alcOpenDevice(NULL);
 	ALCcontext* Context = alcCreateContext(Device, NULL);
@@ -26,6 +27,7 @@ void SoundSystem::init() {
 }
 
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
+ return InvalidSoundRef;
 	#ifdef ANDROID
 	if (!music && assetSounds.find(assetName) != assetSounds.end())
 	#else

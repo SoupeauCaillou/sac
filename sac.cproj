@@ -62,6 +62,9 @@
     <Compile Include="tools\texture_packer\TexturePacker.cpp" />
     <Compile Include="base\SqlExporter.cpp" />
     <Compile Include="base\PlacementHelper.cpp" />
+    <Compile Include="systems\MusicSystem.cpp" />
+    <Compile Include="api\linux\AssetAPILinuxImpl.cpp" />
+    <Compile Include="api\linux\MusicAPILinuxOpenALImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -89,5 +92,10 @@
     <None Include="tools\texture_packer\TexturePacker.h" />
     <None Include="base\SqlExporter.h" />
     <None Include="base\PlacementHelper.h" />
+    <None Include="systems\MusicSystem.h" />
+    <None Include="api\AssetAPI.h" />
+    <None Include="api\MusicAPI.h" />
+    <None Include="api\linux\AssetAPILinuxImpl.h" />
+    <None Include="api\linux\MusicAPILinuxOpenALImpl.h" />
   </ItemGroup>
 </Project>
