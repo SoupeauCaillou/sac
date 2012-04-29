@@ -27,7 +27,8 @@ struct MusicComponent {
         Start, Stop
     } control;
 
-    struct OpaqueMusicPtr* opaque;
+    // 2 opaque structure to allow overlapping looping
+    struct OpaqueMusicPtr* opaque[2];
 };
 
 #define theMusicSystem MusicSystem::GetInstance()
@@ -46,7 +47,13 @@ private:
 /* textures cache */
 MusicRef nextValidRef;
 std::map<std::string, MusicRef> assetSounds;
-std::map<MusicRef, OggVorbis_File*> musics;
+
+struct MusicInfo {
+    OggVorbis_File* ovf;
+    float totalTime;
+};
+
+std::map<MusicRef, MusicInfo> musics;
 bool mute;
 
 std::map<std::string, FileBuffer> name2buffer;
@@ -56,6 +63,8 @@ std::map<Entity, Entity> visualisationEntities;
 #endif
 
 int decompressNextChunk(OggVorbis_File* file, int8_t** data);
+bool feed(OpaqueMusicPtr* ptr, MusicRef m);
+OpaqueMusicPtr* startOpaque(MusicRef r);
 
 public:
 MusicAPI* musicAPI;

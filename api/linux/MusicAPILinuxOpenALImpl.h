@@ -14,4 +14,5 @@ class MusicAPILinuxOpenALImpl : public MusicAPI {
         void setPosition(OpaqueMusicPtr* ptr, int pos);
         void setVolume(OpaqueMusicPtr* ptr, float v);
         void deletePlayer(OpaqueMusicPtr* ptr);
+        bool isPlaying(OpaqueMusicPtr* ptr);
 };

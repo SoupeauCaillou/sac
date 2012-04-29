@@ -1,7 +1,8 @@
 #include "MusicSystem.h"
 
-// 500 ms 8000Hz 16b/s
-#define MUSIC_CHUNK_SIZE 8000
+#define MUSIC_FREQ 8000
+#define SEC_TO_BYTE(s) (int)(s * MUSIC_FREQ * 2)
+#define MUSIC_CHUNK_SIZE SEC_TO_BYTE(0.5)
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -15,33 +16,80 @@ void MusicSystem::DoUpdate(float dt) {
     for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
         MusicComponent* m = (*jt).second;
 
-        if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque) {
+        if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
-            m->opaque = musicAPI->createPlayer();
-            int8_t* data = 0;
-            int size = decompressNextChunk(musics[m->music], &data);
-            musicAPI->queueMusicData(m->opaque, data, size);
-            musicAPI->startPlaying(m->opaque);
-        } else if (m->control == MusicComponent::Stop && m->opaque) {
+            m->opaque[0] = startOpaque(m->music);
+            m->opaque[1] = 0;
+        } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
             // stop
-            musicAPI->stopPlayer(m->opaque);
-            musicAPI->deletePlayer(m->opaque);
-            m->opaque = 0;
+            for (int i=0; i<2; i++) {
+                if (m->opaque[i]) {
+                    musicAPI->stopPlayer(m->opaque[i]);
+                    musicAPI->deletePlayer(m->opaque[i]);
+                    m->opaque[i] = 0;
+                }
+            }
         }
 
         // playing
-        if (m->opaque) {
+        if (m->opaque[0]) {
             // need to queue more data ?
-            while (musicAPI->needData(m->opaque)) {
-                int8_t* data = 0;
-                int size = decompressNextChunk(musics[m->music], &data);
-                if (size == 0) { // EOF
-                    break;
+            feed(m->opaque[0], m->music);
+            m->position = musicAPI->getPosition(m->opaque[0]);
+            if (!musicAPI->isPlaying(m->opaque[0])) {
+                LOGI("Player 0 has finished");
+                m->position = 0;
+                musicAPI->deletePlayer(m->opaque[0]);
+                m->opaque[0] = 0;
+            }
+
+            if (m->opaque[1]) {
+                feed(m->opaque[1], m->loopNext);
+                if (!musicAPI->isPlaying(m->opaque[1])) {
+                    musicAPI->deletePlayer(m->opaque[1]);
+                    m->opaque[1] = 0;
+                    LOGI("Player 1 has finished");
                 }
-                musicAPI->queueMusicData(m->opaque, data, size);
+            } else if (m->loopAt > 0 && m->position >= SEC_TO_BYTE(m->loopAt)) {
+                LOGI("Begin loop");
+                m->opaque[1] = m->opaque[0];
+                MusicRef r = m->music;
+                m->music = m->loopNext;
+                m->loopNext = r;
+                m->opaque[0] = startOpaque(m->music);
+                int offset = m->position - SEC_TO_BYTE(m->loopAt);
+                // queue necessary data
+                int amount = (int) (offset / MUSIC_CHUNK_SIZE) + 1;
+                for (int i=1; i<amount; i++) {
+                    feed(m->opaque[0], m->music);
+                }
+                musicAPI->setPosition(m->opaque[0], offset);
             }
         }
     }
+}
+
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m) {
+    MusicInfo info = musics[m];
+
+    while (musicAPI->needData(ptr)) {
+        int8_t* data = 0;
+        int size = decompressNextChunk(info.ovf, &data);
+        if (size == 0) { // EOF
+            return false;
+        }
+        musicAPI->queueMusicData(ptr, data, size);
+    }
+    return true;
+}
+
+OpaqueMusicPtr* MusicSystem::startOpaque(MusicRef r) {
+    OpaqueMusicPtr* ptr = musicAPI->createPlayer();
+    int8_t* data = 0;
+    int size = decompressNextChunk(musics[r].ovf, &data);
+    musicAPI->queueMusicData(ptr, data, size);
+    musicAPI->startPlaying(ptr);
+    return ptr;
 }
 
 void MusicSystem::toggleMute(bool enable) {
@@ -81,7 +129,10 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     OggVorbis_File* f = new OggVorbis_File();
     ov_open_callbacks(dataSource, f, 0, 0, cb);
 
-    musics[nextValidRef] = f;
+    MusicInfo info;
+    info.ovf = f;
+    info.totalTime = ov_time_total(f, -1) * 0.001;
+    musics[nextValidRef] = info;
     return nextValidRef++;
 }
 

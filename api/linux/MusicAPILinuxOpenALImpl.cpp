@@ -45,6 +45,7 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
     AL_OPERATION(alSourceQueueBuffers(openalptr->source, 1, &buffer))
     openalptr->queuedBuffers.push_back(buffer);
     openalptr->queuedSize += size;
+    delete[] data;
 }
 
 bool MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr) {
@@ -78,7 +79,13 @@ void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
 void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     AL_OPERATION(alSourcef(openalptr->source, AL_GAIN, volume))
+}
 
+bool MusicAPILinuxOpenALImpl::isPlaying(OpaqueMusicPtr* ptr) {
+    OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+    ALint state;
+    AL_OPERATION(alGetSourcei(openalptr->source, AL_SOURCE_STATE, &state))
+    return state == AL_PLAYING;
 }
 
 void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
@@ -86,6 +93,7 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     stopPlayer(ptr);
     // destroy buffers
     for (int i=0; i<openalptr->queuedBuffers.size(); i++) {
+        AL_OPERATION(alSourceUnqueueBuffers(openalptr->source, 1, &openalptr->queuedBuffers[i]))
         AL_OPERATION(alDeleteBuffers(1, &openalptr->queuedBuffers[i]))
     }
     // destroy source
