@@ -5,16 +5,15 @@
 #include "base/EntityManager.h"
 #endif
 
+#ifdef ANDROID
 
-#define SAMPLES_TO_SEC(nb, freq) ((nb) / (float)freq)
-#define SEC_TO_SAMPLES(s, freq) (int) ((s) * freq)
-#define SEC_TO_BYTE(s, freq) (int)((s) * freq * 2)
-#define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
-#define SAMPLES_TO_BYTE(nb, freq) SEC_TO_BYTE(SAMPLES_TO_SEC(nb, freq), freq)
+#define assert(x) x
+
+#endif
 
 INSTANCE_IMPL(MusicSystem);
 
-MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music") { }
+MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) { }
 
 void MusicSystem::init() {
     musicAPI->init();
@@ -138,6 +137,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
         int8_t* data = 0;
         int size = decompressNextChunk(info.ovf, &data, MUSIC_CHUNK_SIZE(info.sampleRate));
         if (size == 0) { // EOF
+        	// LOGW("Feed failed");
             return false;
         }
         musicAPI->queueMusicData(ptr, data, size, info.sampleRate);
@@ -147,8 +147,8 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
 }
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, int offset) {
-    OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer();
-    MusicInfo info = musics[r];
+	MusicInfo info = musics[r];
+    OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(info.sampleRate);
         
    	// queue necessary data
     int amount = (int) (SAMPLES_TO_BYTE(offset, info.sampleRate) / MUSIC_CHUNK_SIZE(info.sampleRate)) + 1;
@@ -156,8 +156,9 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, int offs
     for (int i=0; i<amount; i++) {
     	assert (feed(m->opaque[0], r, 1));
 	}
+	musicAPI->setPosition(m->opaque[0], offset);
 	musicAPI->startPlaying(ptr);
-    musicAPI->setPosition(m->opaque[0], offset);
+    
                 
     return ptr;
 }
@@ -177,6 +178,10 @@ struct DataSource {
 };
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
+	LOGW("assAPI : %p", assetAPI);
+	if (!assetAPI)
+		return InvalidMusicRef;
+		
     FileBuffer b;
     int size;
     if (name2buffer.find(assetName) == name2buffer.end()) {

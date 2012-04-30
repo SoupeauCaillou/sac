@@ -9,7 +9,8 @@ LOCAL_CFLAGS := -DANDROID_NDK \
 
 LOCAL_CXXFLAGS := -DANDROID_NDK \
                 -I$(LOCAL_PATH)/base \
-				-I$(LOCAL_PATH)/systems
+				-I$(LOCAL_PATH)/systems \
+				-I$(LOCAL_PATH)/libs \
 
 LOCAL_SRC_FILES := \
     base/MathUtil.cpp \
@@ -23,6 +24,7 @@ LOCAL_SRC_FILES := \
     systems/ButtonSystem.cpp \
     systems/ContainerSystem.cpp \
     systems/MorphingSystem.cpp \
+    systems/MusicSystem.cpp \
     systems/ParticuleSystem.cpp \
     systems/PhysicsSystem.cpp \
     systems/RenderingSystem.cpp \
@@ -33,7 +35,8 @@ LOCAL_SRC_FILES := \
     systems/System.cpp \
     systems/TransformationSystem.cpp \
     systems/TextRenderingSystem.cpp \
-
+    api/android/AssetAPIAndroidImpl.cpp \
+    api/android/MusicAPIAndroidImpl.cpp \
 
 
 

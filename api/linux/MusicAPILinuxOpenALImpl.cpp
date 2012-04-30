@@ -28,7 +28,7 @@ void MusicAPILinuxOpenALImpl::init() {
         LOGW("probleme initialisation du son");
 }
 
-OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer() {
+OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int sampleRate) {
     OpenALOpaqueMusicPtr* result = new OpenALOpaqueMusicPtr();
     // create source
     AL_OPERATION(alGenSources(1, &result->source))

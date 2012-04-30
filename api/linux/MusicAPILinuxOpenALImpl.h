@@ -5,7 +5,7 @@
 class MusicAPILinuxOpenALImpl : public MusicAPI {
     public:
         void init();
-        OpaqueMusicPtr* createPlayer();
+        OpaqueMusicPtr* createPlayer(int sampleRate);
         void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
         bool needData(OpaqueMusicPtr* ptr, int sampleRate);
         void startPlaying(OpaqueMusicPtr* ptr);

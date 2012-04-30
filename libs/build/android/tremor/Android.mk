@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)/../../../tremor
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := tremor
+LOCAL_MODULE := libtremor
 
 LOCAL_CFLAGS := -DANDROID_NDK \
 				-I$(BASE_PATH) \
@@ -11,6 +11,7 @@ LOCAL_CFLAGS := -DANDROID_NDK \
 				-DBYTE_ORDER=LITTLE_ENDIAN
 
 LOCAL_SRC_FILES = bitwiseARM.s \
+	bitwise.c \
 	codebook.c \
 	dpenARM.s \
 	dsp.c \
