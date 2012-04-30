@@ -49,6 +49,9 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
 }
 
 bool MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr, int sampleRate) {
+	if (!isPlaying(ptr))
+		return false;
+
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     int pos = getPosition(ptr);
     return ((pos - openalptr->queuedSize) < (0.5 * sampleRate * 2));
@@ -67,13 +70,13 @@ void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
 int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     int pos;
-    AL_OPERATION(alGetSourcei(openalptr->source, AL_BYTE_OFFSET, &pos))
+    AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
     return pos;
 }
 
 void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-    AL_OPERATION(alSourcei(openalptr->source, AL_BYTE_OFFSET, pos))
+    AL_OPERATION(alSourcei(openalptr->source, AL_SAMPLE_OFFSET, pos))
 }
 
 void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {

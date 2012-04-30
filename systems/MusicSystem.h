@@ -18,11 +18,18 @@ typedef int MusicRef;
 #define MUSIC_VISU
 
 struct MusicComponent {
+	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), master(0), control(Stop) {
+		opaque[0] = opaque[1] = 0;
+	}
+
     MusicRef music, loopNext;
+    MusicComponent* master;
     float loopAt; // sec
-    float position; // in [0,1]
+    int positionI; // in [0,1]
+    float positionF;
     float fadeOut; // sec
     float volume;
+    bool looped;
     enum {
         Start, Stop
     } control;
@@ -51,6 +58,7 @@ std::map<std::string, MusicRef> assetSounds;
 struct MusicInfo {
     OggVorbis_File* ovf;
     float totalTime;
+    int nbSamples;
     int sampleRate;
 };
 
@@ -64,8 +72,8 @@ std::map<Entity, Entity> visualisationEntities;
 #endif
 
 int decompressNextChunk(OggVorbis_File* file, int8_t** data, int chunkSize);
-bool feed(OpaqueMusicPtr* ptr, MusicRef m);
-OpaqueMusicPtr* startOpaque(MusicRef r);
+bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount);
+OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, int offset);
 
 public:
 MusicAPI* musicAPI;

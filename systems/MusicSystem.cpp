@@ -1,7 +1,16 @@
 #include "MusicSystem.h"
+#ifdef MUSIC_VISU
+#include "RenderingSystem.h"
+#include "base/PlacementHelper.h"
+#include "base/EntityManager.h"
+#endif
 
-#define SEC_TO_BYTE(s, freq) (int)(s * freq * 2)
+
+#define SAMPLES_TO_SEC(nb, freq) ((nb) / (float)freq)
+#define SEC_TO_SAMPLES(s, freq) (int) ((s) * freq)
+#define SEC_TO_BYTE(s, freq) (int)((s) * freq * 2)
 #define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
+#define SAMPLES_TO_BYTE(nb, freq) SEC_TO_BYTE(SAMPLES_TO_SEC(nb, freq), freq)
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -15,9 +24,12 @@ void MusicSystem::DoUpdate(float dt) {
     for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
         MusicComponent* m = (*jt).second;
 
+		m->looped = false;
+		
         if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
-            m->opaque[0] = startOpaque(m->music);
+            int offset = m->master ? m->master->positionI : 0;
+            m->opaque[0] = startOpaque(m, m->music, offset);
             m->opaque[1] = 0;
         } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
             // stop
@@ -33,65 +45,120 @@ void MusicSystem::DoUpdate(float dt) {
         // playing
         if (m->opaque[0]) {
             // need to queue more data ?
-            feed(m->opaque[0], m->music);
-            m->position = musicAPI->getPosition(m->opaque[0]);
+            feed(m->opaque[0], m->music, 0);
+            m->positionI = musicAPI->getPosition(m->opaque[0]);
             if (!musicAPI->isPlaying(m->opaque[0])) {
-                LOGI("Player 0 has finished");
-                m->position = 0;
+                LOGI("%p Player 0 has finished", m);
+                m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
                 m->music = InvalidMusicRef;
+                m->control = MusicComponent::Stop;
             }
 
             int sampleRate0 = musics[m->music].sampleRate;
             if (m->opaque[1]) {
-                feed(m->opaque[1], m->loopNext);
+                feed(m->opaque[1], m->loopNext, 0);
                 if (!musicAPI->isPlaying(m->opaque[1])) {
                     musicAPI->deletePlayer(m->opaque[1]);
                     m->opaque[1] = 0;
                     m->loopNext = InvalidMusicRef;
-                    LOGI("Player 1 has finished");
+                    LOGI("%p Player 1 has finished", m);
                 }
-            } else if (m->loopAt > 0 && m->position >= SEC_TO_BYTE(m->loopAt, sampleRate0)) {
-                LOGI("Begin loop");
+                else {
+	                int p1 = musicAPI->getPosition(m->opaque[0]);
+	                int p2 = musicAPI->getPosition(m->opaque[1]);
+                	LOGI("%d __ %d : %.3f", p1, p2, SAMPLES_TO_SEC(p2 - p1, sampleRate0));
+                }
+            } else if (m->loopNext != InvalidMusicRef && m->loopAt > 0 && m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)) {
+                LOGI("%p Begin loop", m);
+                m->looped = true;
                 m->opaque[1] = m->opaque[0];
                 MusicRef r = m->music;
                 m->music = m->loopNext;
                 m->loopNext = r;
-                m->opaque[0] = startOpaque(m->music);
-                int offset = m->position - SEC_TO_BYTE(m->loopAt, sampleRate0);
-                // queue necessary data
-                int amount = (int) (offset / MUSIC_CHUNK_SIZE(sampleRate0)) + 1;
-                for (int i=1; i<amount; i++) {
-                    feed(m->opaque[0], m->music);
+                int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
+                if (m->master) {
+	                offset = m->master->positionI;
                 }
-                musicAPI->setPosition(m->opaque[0], offset);
+                m->opaque[0] = startOpaque(m, m->music, offset);
+                m->positionI = musicAPI->getPosition(m->opaque[0]);
             }
+        } else if (m->control == MusicComponent::Start && m->master) {
+	        if (m->master->looped) {
+		        LOGI("Restarting because master has looped");
+		        m->music = m->loopNext;
+		        m->loopNext = InvalidMusicRef;
+		        m->opaque[0] = startOpaque(m, m->music, m->master->positionI);
+	        }
+        }
+        
+        if (m->music != InvalidMusicRef) {
+        	m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
     }
+    
+	#ifdef MUSIC_VISU
+	int idx = 0;
+	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+		Entity a = (*it).first;
+		MusicComponent* rc = (*it).second;
+		
+		if (visualisationEntities.find(a) == visualisationEntities.end()) {
+			int size = visualisationEntities.size();
+			Entity e = theEntityManager.CreateEntity();
+			ADD_COMPONENT(e, Rendering);
+			RENDERING(e)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
+			RENDERING(e)->hide = false;
+			ADD_COMPONENT(e, Transformation);
+			TRANSFORM(e)->size = Vector2(1, 1);
+			TRANSFORM(e)->z = 0.75;
+			visualisationEntities[a] = e;
+		}
+		float VisuWidth = PlacementHelper::GimpWidthToScreen(50);
+		Entity e = visualisationEntities[a];
+		TRANSFORM(e)->size = Vector2(VisuWidth, rc->positionF * PlacementHelper::GimpHeightToScreen(1280));
+		TransformationSystem::setPosition(TRANSFORM(e), 
+			Vector2(
+				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth, PlacementHelper::GimpYToScreen(0)), 
+			TransformationSystem::NW);
+		if (rc->control == MusicComponent::Stop)
+			RENDERING(e)->color = Color(0.3, 0, 0, 0.5);
+		else
+			RENDERING(e)->color = Color(0, 0.3, 0, 0.5);
+		idx++;
+	}
+	#endif
 }
 
-bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m) {
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
     MusicInfo info = musics[m];
 
-    while (musicAPI->needData(ptr, info.sampleRate)) {
+    while (forceFeedCount > 0 || musicAPI->needData(ptr, info.sampleRate)) {
         int8_t* data = 0;
         int size = decompressNextChunk(info.ovf, &data, MUSIC_CHUNK_SIZE(info.sampleRate));
         if (size == 0) { // EOF
             return false;
         }
         musicAPI->queueMusicData(ptr, data, size, info.sampleRate);
+        forceFeedCount--;
     }
     return true;
 }
 
-OpaqueMusicPtr* MusicSystem::startOpaque(MusicRef r) {
-    OpaqueMusicPtr* ptr = musicAPI->createPlayer();
+OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, int offset) {
+    OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer();
     MusicInfo info = musics[r];
-    int8_t* data = 0;
-    int size = decompressNextChunk(musics[r].ovf, &data, MUSIC_CHUNK_SIZE(info.sampleRate));
-    musicAPI->queueMusicData(ptr, data, size, info.sampleRate);
-    musicAPI->startPlaying(ptr);
+        
+   	// queue necessary data
+    int amount = (int) (SAMPLES_TO_BYTE(offset, info.sampleRate) / MUSIC_CHUNK_SIZE(info.sampleRate)) + 1;
+    LOGI("Start: %d queued", amount);
+    for (int i=0; i<amount; i++) {
+    	assert (feed(m->opaque[0], r, 1));
+	}
+	musicAPI->startPlaying(ptr);
+    musicAPI->setPosition(m->opaque[0], offset);
+                
     return ptr;
 }
 
@@ -137,6 +204,8 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.totalTime = ov_time_total(f, -1) * 0.001;
     vorbis_info* inf = ov_info(f, -1);
     info.sampleRate = inf->rate * inf->channels;
+    info.nbSamples = ov_pcm_total(f, -1);
+    LOGI("File: %s / rate: %d duration: %.3f nbSample: %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples);
     musics[nextValidRef] = info;
     return nextValidRef++;
 }
