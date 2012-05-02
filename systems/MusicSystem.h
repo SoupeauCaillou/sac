@@ -79,7 +79,7 @@ std::map<Entity, Entity> visualisationEntities;
 
 int decompressNextChunk(OggVorbis_File* file, int8_t** data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount);
-OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, int offset);
+OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
 
 public:
 MusicAPI* musicAPI;

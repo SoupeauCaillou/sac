@@ -11,7 +11,7 @@ class MusicAPI {
         virtual void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate)=0;
         virtual bool needData(OpaqueMusicPtr* ptr, int sampleRate)=0;
         virtual bool isPlaying(OpaqueMusicPtr* ptr)=0;
-        virtual void startPlaying(OpaqueMusicPtr* ptr)=0;
+        virtual void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset)=0;
         virtual void stopPlayer(OpaqueMusicPtr* ptr)=0;
         virtual int getPosition(OpaqueMusicPtr* ptr)=0;
         virtual void setPosition(OpaqueMusicPtr* ptr, int pos)=0;

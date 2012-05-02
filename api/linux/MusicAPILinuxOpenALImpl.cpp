@@ -57,8 +57,13 @@ bool MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr, int sampleRate) {
     return ((pos - openalptr->queuedSize) < (0.5 * sampleRate * 2));
 }
 
-void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr) {
+void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+    if (master) {
+	    int pos;
+	    AL_OPERATION(alGetSourcei((static_cast<OpenALOpaqueMusicPtr*>(master))->source, AL_SAMPLE_OFFSET, &pos))
+	    setPosition(ptr, pos + offset);
+    }
     AL_OPERATION(alSourcePlay(openalptr->source))
 }
 

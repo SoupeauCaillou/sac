@@ -30,7 +30,7 @@ void MusicAPIAndroidImpl::init() {
 	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
 	datas->createPlayer = env->GetStaticMethodID(datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
 	datas->queueMusicData = env->GetStaticMethodID(datas->javaMusicApi, "queueMusicData", "(Ljava/lang/Object;[BII)V");
-	datas->startPlaying = env->GetStaticMethodID(datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;)V");
+	datas->startPlaying = env->GetStaticMethodID(datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;Ljava/lang/Object;I)V");
 	datas->stopPlayer = env->GetStaticMethodID(datas->javaMusicApi, "stopPlayer", "(Ljava/lang/Object;)V");
 	datas->getPosition = env->GetStaticMethodID(datas->javaMusicApi, "getPosition", "(Ljava/lang/Object;)I");
 	datas->setPosition = env->GetStaticMethodID(datas->javaMusicApi, "setPosition", "(Ljava/lang/Object;I)V");
@@ -68,9 +68,14 @@ bool MusicAPIAndroidImpl::needData(OpaqueMusicPtr* _ptr, int sampleRate) {
     return result;
 }
 
-void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr) {
+void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr, OpaqueMusicPtr* master, int offset) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
-	env->CallStaticVoidMethod(datas->javaMusicApi, datas->startPlaying, ptr->audioTrack);
+	env->CallStaticVoidMethod(
+		datas->javaMusicApi, 
+		datas->startPlaying, 
+		ptr->audioTrack, 
+		master ? (static_cast<AndroidOpaquePtr*>(master))->audioTrack : 0, 
+		offset);
 }
 
 void MusicAPIAndroidImpl::stopPlayer(OpaqueMusicPtr* _ptr) {
@@ -103,5 +108,9 @@ void MusicAPIAndroidImpl::deletePlayer(OpaqueMusicPtr* _ptr) {
 
 bool MusicAPIAndroidImpl::isPlaying(OpaqueMusicPtr* _ptr) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
+	int p = getPosition(_ptr);
+	LOGI("%d / %d = ratio: %.3f", p, ptr->queuedSize, (2*p / (float)ptr->queuedSize));
+	if (p && ((2*p / (float)ptr->queuedSize) >= 0.99))
+		return false;
 	return env->CallStaticBooleanMethod(datas->javaMusicApi, datas->isPlaying, ptr->audioTrack);
 }
