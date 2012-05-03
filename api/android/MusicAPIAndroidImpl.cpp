@@ -62,10 +62,10 @@ bool MusicAPIAndroidImpl::needData(OpaqueMusicPtr* _ptr, int sampleRate) {
 		return false;
 
     AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
+    int queuedSamples = ptr->queuedSize / 2;
     int pos = getPosition(ptr);
-    bool result = (MathUtil::Abs(SAMPLES_TO_BYTE(pos, sampleRate) - ptr->queuedSize) <= SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.5, sampleRate), sampleRate));
-    // LOGW("%d - %d <= %d -> %d", SAMPLES_TO_BYTE(pos, sampleRate), ptr->queuedSize, SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.5, sampleRate), sampleRate), result);
-    return result;
+    //LOGI("%p) NEED DATA: (%d + %d) >= %d", ptr, pos, SEC_TO_SAMPLES(0.5, sampleRate), queuedSamples);
+    return (pos + SEC_TO_SAMPLES(0.5, sampleRate) >= queuedSamples);
 }
 
 void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr, OpaqueMusicPtr* master, int offset) {
@@ -109,8 +109,8 @@ void MusicAPIAndroidImpl::deletePlayer(OpaqueMusicPtr* _ptr) {
 bool MusicAPIAndroidImpl::isPlaying(OpaqueMusicPtr* _ptr) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
 	int p = getPosition(_ptr);
-	LOGI("%d / %d = ratio: %.3f", p, ptr->queuedSize, (2*p / (float)ptr->queuedSize));
-	if (p && ((2*p / (float)ptr->queuedSize) >= 0.99))
+	// LOGI("%p) %d / %d = ratio: %.3f", ptr, p, ptr->queuedSize, (2*p / (float)ptr->queuedSize));
+	if (p && ((2*p / (float)ptr->queuedSize) >= 0.999))
 		return false;
 	return env->CallStaticBooleanMethod(datas->javaMusicApi, datas->isPlaying, ptr->audioTrack);
 }

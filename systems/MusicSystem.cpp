@@ -69,7 +69,7 @@ void MusicSystem::DoUpdate(float dt) {
                 	LOGI("%d __ %d : %.3f", p1, p2, SAMPLES_TO_SEC(p2 - p1, sampleRate0));*/
                 }
             } else if (m->loopNext != InvalidMusicRef && m->loopAt > 0 && m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)) {
-                LOGI("%p Begin loop", m);
+                LOGI("%p Begin loop (%d >= %d)", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0));
                 m->looped = true;
                 m->opaque[1] = m->opaque[0];
                 MusicRef r = m->music;
@@ -156,7 +156,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 	   offset += master->positionI; 
     }
    	// queue necessary data
-    int amount = (int) (SAMPLES_TO_BYTE(offset, info.sampleRate) / MUSIC_CHUNK_SIZE(info.sampleRate)) + 1;
+    int amount = 1; //(int) (SAMPLES_TO_BYTE(offset, info.sampleRate) / MUSIC_CHUNK_SIZE(info.sampleRate)) + 1;
     LOGI("Start: %d queued", amount);
     for (int i=0; i<amount; i++) {
     	assert (feed(m->opaque[0], r, 1));

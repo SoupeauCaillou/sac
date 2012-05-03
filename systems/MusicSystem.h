@@ -24,7 +24,7 @@ typedef int MusicRef;
 #define SAMPLES_TO_BYTE(nb, freq) SEC_TO_BYTE(SAMPLES_TO_SEC(nb, freq), freq)
 
 struct MusicComponent {
-	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), master(0), control(Stop) {
+	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), control(Stop) {
 		opaque[0] = opaque[1] = 0;
 	}
 
