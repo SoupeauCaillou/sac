@@ -13,7 +13,7 @@ file(
 file(
         GLOB_RECURSE
         api_source_files
-        ../../api/*
+        ../../api/linux/*
 )
 
 file(

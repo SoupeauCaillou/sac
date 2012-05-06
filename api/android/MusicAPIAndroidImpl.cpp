@@ -57,15 +57,24 @@ void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int
 	ptr->queuedSize += size;
 }
 
-bool MusicAPIAndroidImpl::needData(OpaqueMusicPtr* _ptr, int sampleRate) {
-	if (!isPlaying(_ptr))
+int MusicAPIAndroidImpl::needData(OpaqueMusicPtr* _ptr, int sampleRate, bool firstCall) {
+    if (firstCall) {
+        // we need to fill audio track buffer before calling start
+        return sampleRate * 2;
+    } else if (!isPlaying(_ptr)) {
 		return false;
+    }
 
     AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
     int queuedSamples = ptr->queuedSize / 2;
     int pos = getPosition(ptr);
-    //LOGI("%p) NEED DATA: (%d + %d) >= %d", ptr, pos, SEC_TO_SAMPLES(0.5, sampleRate), queuedSamples);
-    return (pos + SEC_TO_SAMPLES(0.5, sampleRate) >= queuedSamples);
+    // LOGI("%p) NEED DATA: (%d + %d) >= %d", ptr, pos, SEC_TO_SAMPLES(0.1, sampleRate), queuedSamples);
+    if (pos + SEC_TO_SAMPLES(0.1, sampleRate) >= queuedSamples) {
+        // pos is 0.1 before end of bufferized data, request 0.5s
+        return SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.5, sampleRate), sampleRate);
+    } else {
+        return 0;
+    }
 }
 
 void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr, OpaqueMusicPtr* master, int offset) {
@@ -76,6 +85,7 @@ void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr, OpaqueMusicPtr* mas
 		ptr->audioTrack, 
 		master ? (static_cast<AndroidOpaquePtr*>(master))->audioTrack : 0, 
 		offset);
+     ptr->queuedSize = 0;
 }
 
 void MusicAPIAndroidImpl::stopPlayer(OpaqueMusicPtr* _ptr) {
@@ -109,8 +119,5 @@ void MusicAPIAndroidImpl::deletePlayer(OpaqueMusicPtr* _ptr) {
 bool MusicAPIAndroidImpl::isPlaying(OpaqueMusicPtr* _ptr) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
 	int p = getPosition(_ptr);
-	// LOGI("%p) %d / %d = ratio: %.3f", ptr, p, ptr->queuedSize, (2*p / (float)ptr->queuedSize));
-	if (p && ((2*p / (float)ptr->queuedSize) >= 0.999))
-		return false;
 	return env->CallStaticBooleanMethod(datas->javaMusicApi, datas->isPlaying, ptr->audioTrack);
 }

@@ -14,6 +14,7 @@ static void check_AL_errors(const char* context);
      (x); \
      check_AL_errors(#x);
 
+#define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
     ALuint source;
@@ -48,13 +49,24 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
     delete[] data;
 }
 
-bool MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr, int sampleRate) {
+int MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr, int sampleRate, bool firstCall) {
+    if (firstCall)
+        goto fill_buffer;
 	if (!isPlaying(ptr))
-		return false;
+		return 0;
 
-    OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-    int pos = getPosition(ptr);
-    return ((pos - openalptr->queuedSize) < (0.5 * sampleRate * 2));
+    {
+        OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+        int pos = getPosition(ptr);
+        int queuedSamples = openalptr->queuedSize * 0.5;
+
+        if (queuedSamples - pos > SEC_TO_SAMPLES(0.1, sampleRate)) {
+            return 0;
+        }
+    }
+
+    fill_buffer:
+    return SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.5, sampleRate), sampleRate);
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {

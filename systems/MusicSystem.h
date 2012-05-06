@@ -17,12 +17,6 @@ typedef int MusicRef;
 
 #define MUSIC_VISU
 
-#define SAMPLES_TO_SEC(nb, freq) ((nb) / (float)freq)
-#define SEC_TO_SAMPLES(s, freq) (int) ((s) * freq)
-#define SEC_TO_BYTE(s, freq) (int)((s) * freq * 2)
-#define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
-#define SAMPLES_TO_BYTE(nb, freq) SEC_TO_BYTE(SAMPLES_TO_SEC(nb, freq), freq)
-
 struct MusicComponent {
 	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), control(Stop) {
 		opaque[0] = opaque[1] = 0;
