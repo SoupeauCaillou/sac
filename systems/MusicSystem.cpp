@@ -151,8 +151,11 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
 
     int count = musicAPI->needData(ptr, info.sampleRate, forceFeedCount > 0);
 
+    if (!count)
+        return true;
+
     int8_t* data = 0;
-    int size = decompressNextChunk(info.ovf, &data, count);
+    int size = decompressNextChunk(ptr, info.ovf, &data, count);
     if (size == 0) { // EOF
         return false;
     }
@@ -231,8 +234,8 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     return nextValidRef++;
 }
 
-int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t** data, int chunkSize) {
-    *data = new int8_t[chunkSize];
+int MusicSystem::decompressNextChunk(OpaqueMusicPtr* ptr, OggVorbis_File* file, int8_t** data, int chunkSize) {
+    *data = musicAPI->allocate(ptr, chunkSize);
     int bitstream;
     int read = 0;
     while (read < chunkSize) {

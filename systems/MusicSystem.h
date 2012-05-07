@@ -71,7 +71,7 @@ std::map<std::string, FileBuffer> name2buffer;
 std::map<Entity, Entity> visualisationEntities;
 #endif
 
-int decompressNextChunk(OggVorbis_File* file, int8_t** data, int chunkSize);
+int decompressNextChunk(OpaqueMusicPtr* ptr, OggVorbis_File* file, int8_t** data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount);
 OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
 

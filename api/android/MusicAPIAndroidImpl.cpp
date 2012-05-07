@@ -2,14 +2,17 @@
 #include "../../base/Log.h"
 #include "../../base/MathUtil.h"
 #include "../../systems/MusicSystem.h"
+#include <map>
 
 struct AndroidOpaquePtr : public OpaqueMusicPtr {
 	jobject audioTrack;
 	int queuedSize;
+    jbyteArray jdata;
 };
 struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {	
 	jclass javaMusicApi;
 	jmethodID createPlayer;
+    jmethodID allocate;
     jmethodID queueMusicData;
     jmethodID startPlaying;
     jmethodID stopPlayer;
@@ -18,42 +21,75 @@ struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {
     jmethodID setVolume;
     jmethodID deletePlayer;
     jmethodID isPlaying;
+
+    std::map<int8_t*, jbyteArray> ptr2array;
 };
 
 MusicAPIAndroidImpl::MusicAPIAndroidImpl(JNIEnv *pEnv) : env(pEnv) {
 	
 }
 
+static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
+    jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
+    if (!mId) {
+        LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
+    }
+    return mId;
+}
+
 void MusicAPIAndroidImpl::init() {
 	datas = new MusicAPIAndroidImplData();
 
 	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
-	datas->createPlayer = env->GetStaticMethodID(datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
-	datas->queueMusicData = env->GetStaticMethodID(datas->javaMusicApi, "queueMusicData", "(Ljava/lang/Object;[BII)V");
-	datas->startPlaying = env->GetStaticMethodID(datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;Ljava/lang/Object;I)V");
-	datas->stopPlayer = env->GetStaticMethodID(datas->javaMusicApi, "stopPlayer", "(Ljava/lang/Object;)V");
-	datas->getPosition = env->GetStaticMethodID(datas->javaMusicApi, "getPosition", "(Ljava/lang/Object;)I");
-	datas->setPosition = env->GetStaticMethodID(datas->javaMusicApi, "setPosition", "(Ljava/lang/Object;I)V");
-	datas->setVolume = env->GetStaticMethodID(datas->javaMusicApi, "setVolume", "(Ljava/lang/Object;F)V");
-	datas->isPlaying = env->GetStaticMethodID(datas->javaMusicApi, "isPlaying", "(Ljava/lang/Object;)Z");
-	datas->deletePlayer = env->GetStaticMethodID(datas->javaMusicApi, "deletePlayer", "(Ljava/lang/Object;)V");
+	datas->createPlayer = jniMethodLookup(env, datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
+	datas->allocate = jniMethodLookup(env, datas->javaMusicApi, "allocate", "(Ljava/lang/Object;I)[B");
+    datas->queueMusicData = jniMethodLookup(env, datas->javaMusicApi, "queueMusicData", "(Ljava/lang/Object;[BII)V");
+	datas->startPlaying = jniMethodLookup(env, datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;Ljava/lang/Object;I)V");
+	datas->stopPlayer = jniMethodLookup(env, datas->javaMusicApi, "stopPlayer", "(Ljava/lang/Object;)V");
+	datas->getPosition = jniMethodLookup(env, datas->javaMusicApi, "getPosition", "(Ljava/lang/Object;)I");
+	datas->setPosition = jniMethodLookup(env, datas->javaMusicApi, "setPosition", "(Ljava/lang/Object;I)V");
+	datas->setVolume = jniMethodLookup(env, datas->javaMusicApi, "setVolume", "(Ljava/lang/Object;F)V");
+	datas->isPlaying = jniMethodLookup(env, datas->javaMusicApi, "isPlaying", "(Ljava/lang/Object;)Z");
+	datas->deletePlayer = jniMethodLookup(env, datas->javaMusicApi, "deletePlayer", "(Ljava/lang/Object;)V");
 }
 
 OpaqueMusicPtr* MusicAPIAndroidImpl::createPlayer(int sampleRate) {
 	AndroidOpaquePtr* ptr = new AndroidOpaquePtr();
 	ptr->audioTrack = env->NewGlobalRef(env->CallStaticObjectMethod(datas->javaMusicApi, datas->createPlayer, sampleRate));
 	ptr->queuedSize = 0;
+    LOGI("jdata size= %d",sampleRate * 2);
+    ptr->jdata = env->NewByteArray(sampleRate * 2); // max size
+
 	return ptr;
+}
+
+int8_t* MusicAPIAndroidImpl::allocate(OpaqueMusicPtr* _ptr, int size) {
+    AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
+    // LOGI("%s -> %p %d", __PRETTY_FUNCTION__, ptr, size);
+
+    // retrieve byte[] from Java
+    jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, ptr->audioTrack, size);
+    // buffer is either a copy or a direct pointer to underlying byte[] storage
+    jbyte* buffer = env->GetByteArrayElements(b, 0);
+    datas->ptr2array[buffer] = b;
+     // LOGI("%s <- %p %p", __PRETTY_FUNCTION__, ptr, b);
+
+    return buffer;
 }
 
 void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int size, int sampleRate) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
-	
-	jbyteArray jdata;
-	jdata = env->NewByteArray(size);
-	env->SetByteArrayRegion(jdata, 0,  size, (jbyte *)data);
-	env->CallStaticVoidMethod(datas->javaMusicApi, datas->queueMusicData, ptr->audioTrack, jdata, size, sampleRate);
-	env->DeleteLocalRef(jdata);
+
+    // reuse ze same one again and again
+	// jbyteArray jdata;
+	// jdata = env->NewByteArray(size);
+	// env->SetByteArrayRegion(ptr->jdata, 0,  size, (jbyte *)data);
+
+    // commit change to byte* buffer
+    env->ReleaseByteArrayElements(datas->ptr2array[data], data, 0);
+	env->CallStaticVoidMethod(datas->javaMusicApi, datas->queueMusicData, ptr->audioTrack, datas->ptr2array[data], size, sampleRate);
+	datas->ptr2array.erase(data);
+    // env->DeleteLocalRef(jdata);
 	ptr->queuedSize += size;
 }
 
