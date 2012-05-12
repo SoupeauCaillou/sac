@@ -14,6 +14,7 @@ struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {
 	jmethodID createPlayer;
     jmethodID pcmBufferSize;
     jmethodID allocate;
+    jmethodID deallocate;
     jmethodID queueMusicData;
     jmethodID startPlaying;
     jmethodID stopPlayer;
@@ -45,6 +46,7 @@ void MusicAPIAndroidImpl::init() {
 	datas->createPlayer = jniMethodLookup(env, datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
     datas->pcmBufferSize = jniMethodLookup(env, datas->javaMusicApi, "pcmBufferSize", "(I)I");
     datas->allocate = jniMethodLookup(env, datas->javaMusicApi, "allocate", "(I)[B");
+    datas->deallocate = jniMethodLookup(env, datas->javaMusicApi, "deallocate", "([B)V");
     datas->queueMusicData = jniMethodLookup(env, datas->javaMusicApi, "queueMusicData", "(Ljava/lang/Object;[BII)V");
 	datas->startPlaying = jniMethodLookup(env, datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;Ljava/lang/Object;I)V");
 	datas->stopPlayer = jniMethodLookup(env, datas->javaMusicApi, "stopPlayer", "(Ljava/lang/Object;)V");
@@ -70,17 +72,16 @@ int MusicAPIAndroidImpl::pcmBufferSize(int sampleRate) {
 }
 
 int8_t* MusicAPIAndroidImpl::allocate(int size) {
-    // AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
-    // LOGI("%s -> %p %d", __PRETTY_FUNCTION__, ptr, size);
-
     // retrieve byte[] from Java
     jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, size);
     // buffer is either a copy or a direct pointer to underlying byte[] storage
     jbyte* buffer = env->GetByteArrayElements(b, 0);
     datas->ptr2array[buffer] = b;
-     // LOGI("%s <- %p %p", __PRETTY_FUNCTION__, ptr, b);
-
     return buffer;
+}
+
+void MusicAPIAndroidImpl::deallocate(int8_t* b) {
+    env->CallStaticVoidMethod(datas->javaMusicApi, datas->allocate, datas->ptr2array[b]);
 }
 
 void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int size, int sampleRate) {

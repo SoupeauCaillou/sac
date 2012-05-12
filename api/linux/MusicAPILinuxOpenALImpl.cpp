@@ -43,6 +43,11 @@ int MusicAPILinuxOpenALImpl::pcmBufferSize(int sampleRate) {
 int8_t* MusicAPILinuxOpenALImpl::allocate(int size) {
     return new int8_t[size];
 }
+
+void MusicAPILinuxOpenALImpl::deallocate(int8_t* b) {
+    delete[] b;
+}
+
 void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     // create buffer

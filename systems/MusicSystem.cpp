@@ -40,6 +40,8 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     pthread_mutex_lock(&mutex);
     if (it->second.ovf)
         ov_clear(it->second.ovf);
+    if (it->second.nextPcmBuffer)
+        musicAPI->deallocate(it->second.nextPcmBuffer);
     // deallocate nextPcmBuffer to
     musics.erase(it);
     pthread_mutex_unlock(&mutex);
