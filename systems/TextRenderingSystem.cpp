@@ -110,7 +110,7 @@ Entity TextRenderingSystem::CreateEntity()
 	return eTime;
 }
 
-void TextRenderingSystem::DestroyLocalEntity(Entity e) {
+void TextRenderingSystem::DeleteEntity(Entity e) {
 	TextRenderingComponent* tc = TEXT_RENDERING(e);
 	if (!tc)
 		return;
