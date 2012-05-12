@@ -36,7 +36,11 @@ OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int sampleRate) {
     return result;
 }
 
-int8_t* MusicAPILinuxOpenALImpl::allocate(OpaqueMusicPtr* _ptr, int size) {
+int MusicAPILinuxOpenALImpl::pcmBufferSize(int sampleRate) {
+    return SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.5, sampleRate), sampleRate);
+}
+
+int8_t* MusicAPILinuxOpenALImpl::allocate(int size) {
     return new int8_t[size];
 }
 void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {

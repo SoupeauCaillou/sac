@@ -12,6 +12,7 @@ struct AndroidOpaquePtr : public OpaqueMusicPtr {
 struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {	
 	jclass javaMusicApi;
 	jmethodID createPlayer;
+    jmethodID pcmBufferSize;
     jmethodID allocate;
     jmethodID queueMusicData;
     jmethodID startPlaying;
@@ -42,7 +43,8 @@ void MusicAPIAndroidImpl::init() {
 
 	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
 	datas->createPlayer = jniMethodLookup(env, datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
-	datas->allocate = jniMethodLookup(env, datas->javaMusicApi, "allocate", "(Ljava/lang/Object;I)[B");
+    datas->pcmBufferSize = jniMethodLookup(env, datas->javaMusicApi, "pcmBufferSize", "(I)I");
+    datas->allocate = jniMethodLookup(env, datas->javaMusicApi, "allocate", "(I)[B");
     datas->queueMusicData = jniMethodLookup(env, datas->javaMusicApi, "queueMusicData", "(Ljava/lang/Object;[BII)V");
 	datas->startPlaying = jniMethodLookup(env, datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;Ljava/lang/Object;I)V");
 	datas->stopPlayer = jniMethodLookup(env, datas->javaMusicApi, "stopPlayer", "(Ljava/lang/Object;)V");
@@ -63,12 +65,16 @@ OpaqueMusicPtr* MusicAPIAndroidImpl::createPlayer(int sampleRate) {
 	return ptr;
 }
 
-int8_t* MusicAPIAndroidImpl::allocate(OpaqueMusicPtr* _ptr, int size) {
-    AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
+int MusicAPIAndroidImpl::pcmBufferSize(int sampleRate) {
+    return env->CallStaticIntMethod(datas->javaMusicApi, datas->pcmBufferSize, sampleRate);
+}
+
+int8_t* MusicAPIAndroidImpl::allocate(int size) {
+    // AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
     // LOGI("%s -> %p %d", __PRETTY_FUNCTION__, ptr, size);
 
     // retrieve byte[] from Java
-    jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, ptr->audioTrack, size);
+    jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, size);
     // buffer is either a copy or a direct pointer to underlying byte[] storage
     jbyte* buffer = env->GetByteArrayElements(b, 0);
     datas->ptr2array[buffer] = b;
@@ -80,16 +86,27 @@ int8_t* MusicAPIAndroidImpl::allocate(OpaqueMusicPtr* _ptr, int size) {
 void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int size, int sampleRate) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
 
-    // reuse ze same one again and again
-	// jbyteArray jdata;
-	// jdata = env->NewByteArray(size);
-	// env->SetByteArrayRegion(ptr->jdata, 0,  size, (jbyte *)data);
+    jbyteArray jdata;
 
-    // commit change to byte* buffer
-    env->ReleaseByteArrayElements(datas->ptr2array[data], data, 0);
-	env->CallStaticVoidMethod(datas->javaMusicApi, datas->queueMusicData, ptr->audioTrack, datas->ptr2array[data], size, sampleRate);
-	datas->ptr2array.erase(data);
-    // env->DeleteLocalRef(jdata);
+    std::map<int8_t*, jbyteArray>::iterator it = datas->ptr2array.find(data);
+    if (it == datas->ptr2array.end()) {
+        LOGW("THIS IS AN ERROR /o\\");
+        // c++ array, must build a jbyteArray
+        jdata = env->NewByteArray(size);
+        env->SetByteArrayRegion(ptr->jdata, 0,  size, (jbyte *)data);
+    } else {
+        // jni case : commit change to byte[] buffer
+        jdata = it->second;
+        env->ReleaseByteArrayElements(jdata, data, 0);
+    }
+
+	env->CallStaticVoidMethod(datas->javaMusicApi, datas->queueMusicData, ptr->audioTrack, jdata, size, sampleRate);
+
+    if (it == datas->ptr2array.end()) {
+        env->DeleteLocalRef(jdata);
+    } else {
+	    datas->ptr2array.erase(it);
+    }
 	ptr->queuedSize += size;
 }
 

@@ -10,6 +10,7 @@
 #include "System.h"
 #include "../api/AssetAPI.h"
 #include "../api/MusicAPI.h"
+#include <pthread.h>
 
 typedef int MusicRef;
 
@@ -56,27 +57,39 @@ MusicRef nextValidRef;
 std::map<std::string, MusicRef> assetSounds;
 
 struct MusicInfo {
+    MusicInfo() : ovf(0) {}
     OggVorbis_File* ovf;
+    // track info
     float totalTime;
     int nbSamples;
     int sampleRate;
+    // raw data
+    int pcmBufferSize;
+    int8_t* nextPcmBuffer;
+    bool newBufferRequested;
 };
 
 std::map<MusicRef, MusicInfo> musics;
-bool mute;
-
+bool muted;
+pthread_t oggDecompressionThread;
+pthread_mutex_t mutex;
+pthread_cond_t cond;
+// map<filename, audio_compressed_content>
 std::map<std::string, FileBuffer> name2buffer;
 
 #ifdef MUSIC_VISU
 std::map<Entity, Entity> visualisationEntities;
 #endif
 
-int decompressNextChunk(OpaqueMusicPtr* ptr, OggVorbis_File* file, int8_t** data, int chunkSize);
+int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount);
 OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
-
+void stopMusic(MusicComponent* m);
+void clearAndRemoveInfo(MusicRef ref);
 public:
 MusicAPI* musicAPI;
 AssetAPI* assetAPI;
+
+void oggDecompRunLoop();
 };
 

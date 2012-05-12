@@ -15,11 +15,59 @@ INSTANCE_IMPL(MusicSystem);
 
 MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) { }
 
+static void* _startOggThread(void* arg) {
+    static_cast<MusicSystem*>(arg)->oggDecompRunLoop();
+    return 0;
+}
+
 void MusicSystem::init() {
     musicAPI->init();
+
+    muted = false;
+    nextValidRef = 1;
+
+    pthread_mutex_init(&mutex, 0);
+    pthread_cond_init(&cond, 0);
+
+    pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
+}
+
+void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
+    std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
+    if (it == musics.end())
+        return;
+    LOGW("Erase music ref: %d", ref);
+    pthread_mutex_lock(&mutex);
+    if (it->second.ovf)
+        ov_clear(it->second.ovf);
+    // deallocate nextPcmBuffer to
+    musics.erase(it);
+    pthread_mutex_unlock(&mutex);
+}
+
+void MusicSystem::stopMusic(MusicComponent* m) {
+    for (int i=0; i<2; i++) {
+        if (m->opaque[i]) {
+            musicAPI->stopPlayer(m->opaque[i]);
+            musicAPI->deletePlayer(m->opaque[i]);
+            m->opaque[i] = 0;
+            m->positionI = m->positionF = 0;
+            clearAndRemoveInfo(m->music);
+            clearAndRemoveInfo(m->loopNext);
+            m->music = m->loopNext = InvalidMusicRef;
+        }
+    }
 }
 
 void MusicSystem::DoUpdate(float dt) {
+    if (muted) {
+         for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
+            MusicComponent* m = (*jt).second;
+            stopMusic(m);
+        }
+        return;
+    }
+
     for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
         MusicComponent* m = (*jt).second;
 
@@ -30,15 +78,7 @@ void MusicSystem::DoUpdate(float dt) {
             m->opaque[0] = startOpaque(m, m->music, m->master, 0);
             m->opaque[1] = 0;
         } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
-            // stop
-            for (int i=0; i<2; i++) {
-                if (m->opaque[i]) {
-                    musicAPI->stopPlayer(m->opaque[i]);
-                    musicAPI->deletePlayer(m->opaque[i]);
-                    m->opaque[i] = 0;
-                    m->positionI = 0;
-                }
-            }
+            stopMusic(m);
         }
 
         // playing
@@ -51,6 +91,8 @@ void MusicSystem::DoUpdate(float dt) {
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
+                // remove m->music from musics
+                clearAndRemoveInfo(m->music);
                 m->music = InvalidMusicRef;
                 m->control = MusicComponent::Stop;
             }
@@ -61,6 +103,8 @@ void MusicSystem::DoUpdate(float dt) {
                 if (musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples || !musicAPI->isPlaying(m->opaque[1])) {
                     musicAPI->deletePlayer(m->opaque[1]);
                     m->opaque[1] = 0;
+                    // remove m->loopNext from musics
+                    clearAndRemoveInfo(m->loopNext);
                     m->loopNext = InvalidMusicRef;
                     LOGI("%p Player 1 has finished", m);
                 }
@@ -98,9 +142,9 @@ void MusicSystem::DoUpdate(float dt) {
             }
         } else if (m->control == MusicComponent::Start && m->master) {
 	        if (m->master->looped) {
-		        LOGI("Restarting because master has looped");
+		        LOGI("Restarting because master has looped (current: %d -> next: %d)", m->music, m->loopNext);
 		        m->music = m->loopNext;
-		        m->loopNext = InvalidMusicRef;
+                m->loopNext = InvalidMusicRef;
 		        m->opaque[0] = startOpaque(m, m->music, m->master, 0);
 	        }
         }
@@ -146,49 +190,85 @@ void MusicSystem::DoUpdate(float dt) {
 	#endif
 }
 
+void MusicSystem::oggDecompRunLoop() {
+    pthread_mutex_lock(&mutex);
+
+    while (true) {
+        // LOGW("OGG DECOMP LOOP STARTED");
+        for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
+            MusicInfo& info = it->second;
+
+            if (info.nextPcmBuffer != 0 && info.newBufferRequested) {
+                // LOGW("decode 1 buffer : %p", info.nextPcmBuffer);
+                decompressNextChunk(info.ovf, info.nextPcmBuffer, info.pcmBufferSize);
+                info.newBufferRequested = false;
+            }
+        }
+        // release mutex while waiting
+        //  LOGW("OGG DECOMP WAIT");
+        pthread_cond_wait(&cond, &mutex);
+        // mutex is auto acquired
+    }
+}
+
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
-    MusicInfo info = musics[m];
-
+    MusicInfo& info = musics[m];
     int count = musicAPI->needData(ptr, info.sampleRate, forceFeedCount > 0);
-
     if (!count)
         return true;
 
-    int8_t* data = 0;
-    int size = decompressNextChunk(ptr, info.ovf, &data, count);
-    if (size == 0) { // EOF
-        return false;
+    pthread_mutex_lock(&mutex);
+    if (!info.nextPcmBuffer) {
+        LOGW("No audio data available - crap");
+    } else {
+        // LOGW("using buffer: %p", info.nextPcmBuffer);
+        musicAPI->queueMusicData(ptr, info.nextPcmBuffer, info.pcmBufferSize, info.sampleRate);
+        info.nextPcmBuffer = musicAPI->allocate(info.pcmBufferSize);
+        info.newBufferRequested = true;
+        pthread_cond_signal(&cond);
     }
-    musicAPI->queueMusicData(ptr, data, size, info.sampleRate);
+    pthread_mutex_unlock(&mutex);
+
     return true;
 }
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
 	MusicInfo info = musics[r];
+    if (info.sampleRate <=0) {
+        LOGW("Invalid sample rate: %d", info.sampleRate);
+    }
     OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(info.sampleRate);
-        
-    /*if (master) {
-	   offset += master->positionI; 
-    }*/
-   	// queue necessary data
-    int amount = 1; //(int) (SAMPLES_TO_BYTE(offset, info.sampleRate) / MUSIC_CHUNK_SIZE(info.sampleRate)) + 1;
-    LOGI("Start: %d queued", amount);
-    for (int i=0; i<amount; i++) {
-    	assert (feed(m->opaque[0], r, 1));
-	}
-	
+
+    // init with 2 silence pkt
+    int8_t* buffer0 = musicAPI->allocate(info.pcmBufferSize);
+    memset(buffer0, 0,  info.pcmBufferSize);
+    musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
+
+    int8_t* buffer1 = musicAPI->allocate(info.pcmBufferSize);
+    memset(buffer1, 0,  info.pcmBufferSize);
+    musicAPI->queueMusicData(ptr, buffer1, info.pcmBufferSize, info.sampleRate);
+
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
-                
     return ptr;
 }
 
 void MusicSystem::toggleMute(bool enable) {
+    if (enable && !muted) {
+        muted = true;
+        for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
+            MusicComponent* m = (*jt).second;
+            stopMusic(m);
+        }
+    } else if (!enable && muted) {
+        muted = false;
+    }
     LOGI("todo");
 }
 
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource);
 static int seek_func(void* datasource, ogg_int64_t offset, int whence);
 static long int tell_func(void* datasource);
+static int close_func(void *datasource);
 
 struct DataSource {
     uint8_t* datas;
@@ -217,7 +297,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     ov_callbacks cb;
     cb.read_func = &read_func;
     cb.seek_func = &seek_func;
-    cb.close_func = 0;
+    cb.close_func = &close_func;
     cb.tell_func = &tell_func;
 
     OggVorbis_File* f = new OggVorbis_File();
@@ -225,21 +305,27 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 
     MusicInfo info;
     info.ovf = f;
-    info.totalTime = ov_time_total(f, -1) * 0.001;
+    info.totalTime = ov_time_total(f, -1) * 0.001 + 1; // hum hum
     vorbis_info* inf = ov_info(f, -1);
     info.sampleRate = inf->rate * inf->channels;
     info.nbSamples = ov_pcm_total(f, -1);
-    LOGI("File: %s / rate: %d duration: %.3f nbSample: %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples);
+    info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
+    info.nextPcmBuffer = musicAPI->allocate(info.pcmBufferSize);
+    info.newBufferRequested = true;
+    LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
+    pthread_mutex_lock(&mutex);
     musics[nextValidRef] = info;
+    pthread_mutex_unlock(&mutex);
+    pthread_cond_signal(&cond);
+
     return nextValidRef++;
 }
 
-int MusicSystem::decompressNextChunk(OpaqueMusicPtr* ptr, OggVorbis_File* file, int8_t** data, int chunkSize) {
-    *data = musicAPI->allocate(ptr, chunkSize);
+int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize) {
     int bitstream;
     int read = 0;
     while (read < chunkSize) {
-        int n = ov_read(file, (char*) &(*data)[read], chunkSize - read, &bitstream);
+        int n = ov_read(file, (char*) &data[read], chunkSize - read, &bitstream);
         if (n == 0) {
             // EOF
             break;
@@ -253,10 +339,9 @@ int MusicSystem::decompressNextChunk(OpaqueMusicPtr* ptr, OggVorbis_File* file, 
 
     if (read < chunkSize) {
         LOGI("Producing %d/%d bytes of silence", chunkSize - read - 1, chunkSize);
-        memset(&(*data)[read], 0, chunkSize - read - 1);
+        memset(&data[read], 0, chunkSize - read - 1);
     }
     return chunkSize;
-    return read;
 }
 
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
@@ -290,4 +375,11 @@ static int seek_func(void* datasource, ogg_int64_t offset, int whence) {
 static long int tell_func(void* datasource) {
     DataSource* src = static_cast<DataSource*> (datasource);
     return src->cursor;
+}
+
+static int close_func(void *datasource) {
+    LOGW("close_func : %p", datasource);
+    DataSource* src = static_cast<DataSource*> (datasource);
+    delete src;
+    return 0;
 }
