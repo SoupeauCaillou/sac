@@ -86,7 +86,9 @@ void MusicSystem::DoUpdate(float dt) {
             // need to queue more data ?
             feed(m->opaque[0], m->music, 0);
             m->positionI = musicAPI->getPosition(m->opaque[0]);
-            if (m->positionI >= musics[m->music].nbSamples || !musicAPI->isPlaying(m->opaque[0])) {
+            assert (m->music != InvalidMusicRef);
+            int sampleRate0 = musics[m->music].sampleRate;
+            if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
                 LOGI("%p Player 0 has finished", m);
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
@@ -97,10 +99,10 @@ void MusicSystem::DoUpdate(float dt) {
                 m->control = MusicComponent::Stop;
             }
 
-            int sampleRate0 = musics[m->music].sampleRate;
             if (m->opaque[1]) {
+                assert(m->loopNext != InvalidMusicRef);
                 feed(m->opaque[1], m->loopNext, 0);
-                if (musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples || !musicAPI->isPlaying(m->opaque[1])) {
+                if ((m->loopNext != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
                     musicAPI->deletePlayer(m->opaque[1]);
                     m->opaque[1] = 0;
                     // remove m->loopNext from musics
@@ -198,8 +200,9 @@ void MusicSystem::oggDecompRunLoop() {
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
             MusicInfo& info = it->second;
 
+            assert(it->first != InvalidMusicRef);
             if (info.nextPcmBuffer != 0 && info.newBufferRequested) {
-                // LOGW("decode 1 buffer : %p", info.nextPcmBuffer);
+                // LOGW("decode 1 buffer : %d -> %p", it->first, info.ovf);
                 decompressNextChunk(info.ovf, info.nextPcmBuffer, info.pcmBufferSize);
                 info.newBufferRequested = false;
             }
@@ -212,6 +215,7 @@ void MusicSystem::oggDecompRunLoop() {
 }
 
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
+    assert (m != InvalidMusicRef);
     MusicInfo& info = musics[m];
     int count = musicAPI->needData(ptr, info.sampleRate, forceFeedCount > 0);
     if (!count)
@@ -233,6 +237,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
 }
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
+    assert (r != InvalidMusicRef);
 	MusicInfo info = musics[r];
     if (info.sampleRate <=0) {
         LOGW("Invalid sample rate: %d", info.sampleRate);
