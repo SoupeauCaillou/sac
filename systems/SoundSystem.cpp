@@ -11,247 +11,41 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextV
 }
 
 void SoundSystem::init() {
- return;
-	#ifndef ANDROID
-	ALCdevice* Device = alcOpenDevice(NULL);
-	ALCcontext* Context = alcCreateContext(Device, NULL);
-	if (!(Device && Context && alcMakeContextCurrent(Context)))
-		LOGI("probleme initialisation du son");
-	for (int i=0; i<16; i++) {
-		ALuint source;
-		AL_OPERATION(alGenSources(1, &source))
-		availableSources.push_back(source);
-		LOGI("AL source #%d created: %d", i, source);
-	}
-	#endif
+    soundAPI->init();
 }
 
-SoundRef SoundSystem::loadSoundFile(const std::string& assetName, bool music) {
- return InvalidSoundRef;
-	#ifdef ANDROID
-	if (!music && assetSounds.find(assetName) != assetSounds.end())
-	#else
-	if (assetSounds.find(assetName) != assetSounds.end())
-	#endif
-		{
-		SoundRef r = assetSounds[assetName];
-		LOGW("load sound (from cache) : %s -> %d", assetName.c_str(), r);
-		return r;
-	}
-
-	#ifdef ANDROID
-	int soundID = androidSoundAPI->loadSound(assetName, music);
-	#else
-	ALuint soundID;
-	if (!linuxSoundAPI->loadSound(assetName, &soundID)) {
-		LOGW("Error loading sound: '%s'", assetName.c_str());
-		return InvalidSoundRef;
-	}
-	#endif
-
-	sounds[nextValidRef] = soundID;
-	assetSounds[assetName] = nextValidRef;
-	LOGW("Sound : %s -> %d -> %d", assetName.c_str(), nextValidRef, soundID);
-
-	return nextValidRef++;
+SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
+    if (assetSounds.find(assetName) != assetSounds.end()) {
+        return assetSounds[assetName];
+    } else {
+        OpaqueSoundPtr* ptr = soundAPI->loadSound(assetName);
+        if (!ptr) {
+            LOGW("Unable to load sound file: '%s'", assetName.c_str());
+            return InvalidSoundRef;
+        } else {
+            sounds[nextValidRef] = ptr;
+            assetSounds[assetName] = nextValidRef;
+            return nextValidRef++;
+        }
+    }
 }
 
 void SoundSystem::DoUpdate(float dt) {
 	if (mute) {
-		#ifdef ANDROID
 		for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-			Entity a = (*it).first;
 			SoundComponent* rc = (*it).second;
-			if (rc->type == SoundComponent::EFFECT) { //on supprime tous les sons (pas les musics)
-				rc->sound = InvalidSoundRef;
-				rc->started = false;
-			}
-		}
-		androidSoundAPI->pauseAll();
-		#else
-		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
-			std::list<ALuint>::iterator jt = it++;
-			ALuint source = *jt;
-			for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-				Entity a = (*it).first;
-				SoundComponent* rc = (*it).second;
-				if (rc->source==source) {
-					if (rc->type == SoundComponent::MUSIC) {
-						AL_OPERATION(alSourcePause(source))
-					} else {
-						availableSources.push_back(source);
-						activeSources.erase(jt);
-					}
-					break;
-				}
-			}
-		}
-		#endif
-	} else {
-		#ifdef ANDROID
-		androidSoundAPI->resumeAll();
-		#else
-		for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
-			std::list<ALuint>::iterator jt = it++;
-			ALuint source = *jt;
-			ALint v;
-			AL_OPERATION(alGetSourcei(source, AL_SOURCE_STATE, &v))
-			if (v == AL_PAUSED	) {
-				alSourcePlay(source);
-			}
-		}
-		#endif
-	}
+            rc->sound = InvalidSoundRef;
+        }
+        return;
+    }
+
 	/* play component with a valid sound ref */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
 		SoundComponent* rc = (*it).second;
 		if (rc->sound != InvalidSoundRef && !mute ) {
-			if (!rc->started && !rc->stop) {
-				LOGW("sound(%d) started (%d) at %f", a, rc->sound, rc->position);
-				#ifdef ANDROID
-				if (rc->type == SoundComponent::MUSIC) {
-					androidSoundAPI->play(sounds[rc->sound], true, rc->masterTrack ? sounds[rc->masterTrack->sound] : -1, rc->masterTrackOffsetMs);
-				} else {
-					androidSoundAPI->play(sounds[rc->sound], false, -1, 0);
-				}
-				#else
-				// use 1st available source
-				if (availableSources.size() > 0) {
-					rc->source = linuxSoundAPI->play(sounds[rc->sound], availableSources.front(), rc->position);
-					rc->position = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
-					if (rc->masterTrack && rc->masterTrack->source > 0) {
-						ALfloat pos;
-						AL_OPERATION(alGetSourcef(rc->masterTrack->source, AL_SEC_OFFSET, &pos))
-						pos += rc->masterTrackOffsetMs * 0.001;
-						AL_OPERATION(alSourcef(rc->source, AL_SEC_OFFSET, pos))
-					}
-					AL_OPERATION(alSourcef(rc->source, AL_GAIN, 1))
-					activeSources.push_back(availableSources.front());
-					availableSources.pop_front();
-				} else {
-					LOGW("No availble source found");
-					assert (false);
-				}
-				#endif
-				rc->volume = 1.0;
-				rc->started = true;
-			} else if (rc->type == SoundComponent::MUSIC) {
-				 #ifdef ANDROID
-				float newPos = androidSoundAPI->musicPos(sounds[rc->sound]);
-				#else
-				ALfloat newPos = linuxSoundAPI->musicPos(rc->source, sounds[rc->sound]);
-				#endif
-				
-				if (rc->stop && newPos != 0) {
-					if (rc->fadeOut > 0) {
-						rc->volume -= dt / rc->fadeOut;
-					} else {
-						rc->volume = 0;
-					}
-					// really stop only when volume is null
-					if (rc->volume <= 0) {
-						LOGW("sound ended with fade out (%d)", rc->sound);
-						#ifndef ANDROID
-						AL_OPERATION(alSourceStop(rc->source))
-						activeSources.remove(rc->source);
-						availableSources.push_back(rc->source);
-						rc->source = 0;
-                        #else
-                        androidSoundAPI->stop(sounds[rc->sound], true);
-						#endif
-						rc->sound = InvalidSoundRef;
-						rc->started = false;
-						rc->stop = false;
-						rc->position = 0;
-					} else {
-						// adjust volume
-						#ifndef ANDROID
-						AL_OPERATION(alSourcef(rc->source, AL_GAIN, rc->volume))
-						#else
-						LOGW("todo: volume adjust");
-						#endif
-					}
-				} else {
-					rc->position = newPos;
-				}
-
-				if (newPos >= 0.995) {
-					LOGW("sound ended (%d)", rc->sound);
-					rc->position = 0;
-					if (!rc->repeat) {
-						#ifndef ANDROID
-						activeSources.remove(rc->source);
-						availableSources.push_back(rc->source);
-						rc->source = 0;
-						#endif
-						rc->sound = InvalidSoundRef;
-						rc->started = false;
-						rc->stop = false;
-					}
-				}
-			} else if (rc->type == SoundComponent::EFFECT) {
-				rc->sound = InvalidSoundRef;
-				rc->started = false;
-			}
-		}
-	}
-
-	#ifndef ANDROID
-	// browse active source and destroy ended sounds
-	for (std::list<ALuint>::iterator it=activeSources.begin(); it!=activeSources.end();) {
-		std::list<ALuint>::iterator jt = it++;
-		ALuint source = *jt;
-		ALint v;
-		AL_OPERATION(alGetSourcei(source, AL_SOURCE_STATE, &v))
-		if (v != AL_PLAYING && v != AL_PAUSED) {
-			availableSources.push_back(source);
-			activeSources.erase(jt);
-		}
-	}
-	#endif
-	
-	#ifdef MUSIC_VISU
-	int idx = 0;
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;
-		SoundComponent* rc = (*it).second;
-		
-		if (rc->type == SoundComponent::EFFECT)
-			continue;
-		if (visualisationEntities.find(a) == visualisationEntities.end()) {
-			int size = visualisationEntities.size();
-			Entity e = theEntityManager.CreateEntity();
-			ADD_COMPONENT(e, Rendering);
-			RENDERING(e)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
-			RENDERING(e)->hide = false;
-			ADD_COMPONENT(e, Transformation);
-			TRANSFORM(e)->size = Vector2(1, 1);
-			TRANSFORM(e)->z = 0.75;
-			visualisationEntities[a] = e;
-		}
-		float VisuWidth = PlacementHelper::GimpWidthToScreen(50);
-		Entity e = visualisationEntities[a];
-		TRANSFORM(e)->size = Vector2(VisuWidth, SOUND(a)->position * PlacementHelper::GimpHeightToScreen(1280));
-		TransformationSystem::setPosition(TRANSFORM(e), 
-			Vector2(
-				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth, PlacementHelper::GimpYToScreen(0)), 
-			TransformationSystem::NW);
-		if (rc->stop)
-			RENDERING(e)->color = Color(0.3, 0, 0, 0.5);
-		else
-			RENDERING(e)->color = Color(0, 0.3, 0, 0.5);
-		idx++;
-	}
-	#endif
-	
-	//debug test
-	//~ #ifndef ANDROID
-	//~ int cpt;
-	//~ for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		//~ if 	(linuxSoundAPI->musicPos(it->second->source, sounds[it->second->sound])>0.f && !mute) 
-			//~ cpt++;
-	//~ }
-	//~ LOGI("%d playing (%d busy - %d availables sources) from %d entities", cpt, activeSources.size(), availableSources.size(), components.size());
-	//~ #endif
+            soundAPI->play(sounds[rc->sound], rc->volume);
+            rc->sound = InvalidSoundRef;
+        }
+    }
 }

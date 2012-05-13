@@ -67,6 +67,8 @@
     <Compile Include="api\linux\MusicAPILinuxOpenALImpl.cpp" />
     <Compile Include="api\android\AssetAPIAndroidImpl.cpp" />
     <Compile Include="api\android\MusicAPIAndroidImpl.cpp" />
+    <Compile Include="api\linux\SoundAPILinuxOpenALImpl.cpp" />
+    <Compile Include="api\android\SoundAPIAndroidImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -101,7 +103,6 @@
     <None Include="api\linux\MusicAPILinuxOpenALImpl.h" />
     <None Include="build\android\Android.mk" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\api\linux\AssetAPILinuxImpl.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\api\linux\MusicAPILinuxOpenALImpl.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\EntityManager.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\Log.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\MathUtil.cpp.o" />
@@ -115,7 +116,6 @@
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ContainerSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\DebugRenderingManager.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\MorphingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\MusicSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ParticuleSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\PhysicsSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\RenderingSystem.cpp.o" />
@@ -136,14 +136,6 @@
     <None Include="build\cmake\CMakeFiles\sac.dir\flags.make" />
     <None Include="build\cmake\CMakeFiles\sac.dir\link.txt" />
     <None Include="build\cmake\CMakeFiles\sac.dir\progress.make" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\base\TestEntityManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\base\TestTouchInputManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\systems\TestADSRSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\systems\TestButtonSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\systems\TestMorphingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\systems\TestRenderingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\systems\TestTransformationSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\__\__\tests\tests.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac_tests.dir\build.make" />
     <None Include="build\cmake\CMakeFiles\sac_tests.dir\cmake_clean.cmake" />
     <None Include="build\cmake\CMakeFiles\sac_tests.dir\CXX.includecache" />
@@ -174,6 +166,9 @@
     <None Include="libs\build\android\tremor\Android.mk" />
     <None Include="api\android\AssetAPIAndroidImpl.h" />
     <None Include="api\android\MusicAPIAndroidImpl.h" />
+    <None Include="api\SoundAPI.h" />
+    <None Include="api\linux\SoundAPILinuxOpenALImpl.h" />
+    <None Include="api\android\SoundAPIAndroidImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
