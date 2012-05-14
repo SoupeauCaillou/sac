@@ -19,7 +19,7 @@ typedef int MusicRef;
 #define MUSIC_VISU
 
 struct MusicComponent {
-	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), control(Stop) {
+	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), volume(1), control(Stop) {
 		opaque[0] = opaque[1] = 0;
 	}
 
@@ -29,7 +29,7 @@ struct MusicComponent {
     int positionI; // in [0,1]
     float positionF;
     float fadeOut; // sec
-    float volume;
+    float volume, currentVolume;
     bool looped;
     enum {
         Start, Stop

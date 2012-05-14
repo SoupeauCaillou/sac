@@ -61,10 +61,10 @@ void ADSRSystem::DoUpdate(float dt) {
 			adsr->activationTime -= dt;
 			if (adsr->releaseMode == Linear) {
 
-			adsr->value = MathUtil::Lerp(
+			adsr->value = MathUtil::Max(adsr->idleValue, MathUtil::Lerp(
 					adsr->idleValue,
 					adsr->sustainValue,
-					adsr->activationTime / adsr->releaseTiming);
+					adsr->activationTime / adsr->releaseTiming));
 			} else if (adsr->releaseMode == Quadratic) {
 					float z = (adsr->activationTime-adsr->attackTiming-adsr->decayTiming) / adsr->releaseTiming;
 					adsr->value = adsr->sustainValue + z * z * (adsr->idleValue - adsr->sustainValue); 	  

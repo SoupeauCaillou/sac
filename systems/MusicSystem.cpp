@@ -85,6 +85,9 @@ void MusicSystem::DoUpdate(float dt) {
 
         // playing
         if (m->opaque[0]) {
+	        if (m->currentVolume != m->volume) {
+	            musicAPI->setVolume(m->opaque[0], m->volume);
+            }
             // need to queue more data ?
             feed(m->opaque[0], m->music, 0);
             m->positionI = musicAPI->getPosition(m->opaque[0]);
@@ -103,6 +106,9 @@ void MusicSystem::DoUpdate(float dt) {
 
             if (m->opaque[1]) {
                 assert(m->loopNext != InvalidMusicRef);
+                if (m->currentVolume != m->volume) {
+	            	musicAPI->setVolume(m->opaque[1], m->volume);
+            	}
                 feed(m->opaque[1], m->loopNext, 0);
                 if ((m->loopNext != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
                     musicAPI->deletePlayer(m->opaque[1]);
@@ -152,6 +158,7 @@ void MusicSystem::DoUpdate(float dt) {
 		        m->opaque[0] = startOpaque(m, m->music, m->master, 0);
 	        }
         }
+        m->currentVolume = m->volume;
         
         if (m->music != InvalidMusicRef) {
         	m->positionF = m->positionI / (float)musics[m->music].nbSamples;
@@ -256,6 +263,10 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
     musicAPI->queueMusicData(ptr, buffer1, info.pcmBufferSize, info.sampleRate);
 
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
+	
+	// set volume
+	musicAPI->setVolume(ptr, m->volume);
+	m->currentVolume = m->volume;
     return ptr;
 }
 
