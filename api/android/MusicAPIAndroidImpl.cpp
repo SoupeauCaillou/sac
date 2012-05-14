@@ -65,7 +65,7 @@ OpaqueMusicPtr* MusicAPIAndroidImpl::createPlayer(int sampleRate) {
     ptr->jdata = env->NewByteArray(sampleRate * 2); // max size
 
 	return ptr;
-}
+} 
 
 int MusicAPIAndroidImpl::pcmBufferSize(int sampleRate) {
     return env->CallStaticIntMethod(datas->javaMusicApi, datas->pcmBufferSize, sampleRate);
@@ -81,7 +81,7 @@ int8_t* MusicAPIAndroidImpl::allocate(int size) {
 }
 
 void MusicAPIAndroidImpl::deallocate(int8_t* b) {
-    env->CallStaticVoidMethod(datas->javaMusicApi, datas->allocate, datas->ptr2array[b]);
+    env->CallStaticVoidMethod(datas->javaMusicApi, datas->deallocate, datas->ptr2array[b]);
 }
 
 void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int size, int sampleRate) {
