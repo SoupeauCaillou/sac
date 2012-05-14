@@ -2,7 +2,7 @@
 #include "base/Log.h"
 
 struct AndroidSoundOpaquePtr : public OpaqueSoundPtr {
-    jobject player;
+    jint soundID;
 };
 struct SoundAPIAndroidImpl::SoundAPIAndroidImplData {
     jclass javaSoundApi;
@@ -27,20 +27,19 @@ void SoundAPIAndroidImpl::init() {
     datas = new SoundAPIAndroidImplData();
 
     datas->javaSoundApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
-    datas->jloadSound = jniMethodLookup(env, datas->javaSoundApi, "createPlayer", "(I)Ljava/lang/Object;");
-    datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "pcmBufferSize", "(I)I");
+    datas->jloadSound = jniMethodLookup(env, datas->javaSoundApi, "loadSound", "(Landroid/content/res/AssetManager;Ljava/lang/String;)I");
+    datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "playSound", "(IF)V");
 }
 
 OpaqueSoundPtr* SoundAPIAndroidImpl::loadSound(const std::string& asset) {
     LOGI("loadSound: '%s'", asset.c_str());
     jstring jasset = env->NewStringUTF(asset.c_str());
-    jobject player = env->CallStaticObjectMethod(datas->javaSoundApi, datas->jloadSound, assetManager, jasset);
     AndroidSoundOpaquePtr* out = new AndroidSoundOpaquePtr();
-    out->player = (jobject)env->NewGlobalRef(player);
+    out->soundID = env->CallStaticIntMethod(datas->javaSoundApi, datas->jloadSound, assetManager, jasset);
     return out;
 }
 
 void SoundAPIAndroidImpl::play(OpaqueSoundPtr* p, float volume) {
     AndroidSoundOpaquePtr* ptr = static_cast<AndroidSoundOpaquePtr*>(p);
-    return env->CallStaticVoidMethod(datas->javaSoundApi, datas->jplaySound, ptr->player, volume);
+    env->CallStaticVoidMethod(datas->javaSoundApi, datas->jplaySound, ptr->soundID, volume);
 }
