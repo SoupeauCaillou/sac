@@ -37,6 +37,7 @@ LOCAL_SRC_FILES := \
     systems/TextRenderingSystem.cpp \
     api/android/AssetAPIAndroidImpl.cpp \
     api/android/MusicAPIAndroidImpl.cpp \
+    api/android/SoundAPIAndroidImpl.cpp \
 
 
 
