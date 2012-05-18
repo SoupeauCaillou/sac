@@ -6,6 +6,7 @@
 #ifndef ANDROID
 #include <sys/inotify.h>
 #include <GL/glew.h>
+#include <unistd.h>
 #else
 #include <GLES/gl.h>
 #endif

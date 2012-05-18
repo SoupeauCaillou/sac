@@ -52,9 +52,9 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.color = Interval<Color> (rc->color, pc->finalColor.random());
                 internal.size = Interval<float> (tc->size.X, pc->finalSize.random());
 
-                int i;
-                for (i=0; i<MAX_PARTICULE_COUNT; i++) {
-                    int idx = (i + maxUsedIdx) % MAX_PARTICULE_COUNT;
+                int j;
+                for (j=0; j<MAX_PARTICULE_COUNT; j++) {
+                    int idx = (j + maxUsedIdx) % MAX_PARTICULE_COUNT;
                     if(particules[idx].e == 0) {
                         particules[idx] = internal;
                         maxUsedIdx = MathUtil::Max(maxUsedIdx, idx);

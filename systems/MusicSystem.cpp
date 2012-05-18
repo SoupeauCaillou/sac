@@ -11,6 +11,8 @@
 
 #endif
 
+#include <linux/sched.h>
+
 INSTANCE_IMPL(MusicSystem);
 
 MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) { }
@@ -30,6 +32,8 @@ void MusicSystem::init() {
     pthread_cond_init(&cond, 0);
 
     pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
+    // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
+    sched_setscheduler(oggDecompressionThread, SCHED_BATCH, 0);
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {

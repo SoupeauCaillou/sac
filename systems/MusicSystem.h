@@ -16,7 +16,7 @@ typedef int MusicRef;
 
 #define InvalidMusicRef -1
 
-#define MUSIC_VISU
+// #define MUSIC_VISU
 
 struct MusicComponent {
 	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), volume(1), control(Stop) {
