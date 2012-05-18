@@ -330,8 +330,8 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.totalTime = ov_time_total(f, -1) * 0.001 + 1; // hum hum
     vorbis_info* inf = ov_info(f, -1);
     info.sampleRate = inf->rate * inf->channels;
-    info.nbSamples = ov_pcm_total(f, -1);
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
+    info.nbSamples = ov_pcm_total(f, -1) + (2 * info.pcmBufferSize) / 2;
     info.nextPcmBuffer = musicAPI->allocate(info.pcmBufferSize);
     info.newBufferRequested = true;
     LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
