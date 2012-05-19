@@ -46,6 +46,7 @@ UPDATABLE_SYSTEM(Music)
 
 public:
 void init();
+bool isMuted() const { return muted; }
 
 MusicRef loadMusicFile(const std::string& assetName);
 
