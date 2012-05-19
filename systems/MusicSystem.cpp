@@ -58,11 +58,11 @@ void MusicSystem::stopMusic(MusicComponent* m) {
             musicAPI->deletePlayer(m->opaque[i]);
             m->opaque[i] = 0;
             m->positionI = m->positionF = 0;
-            clearAndRemoveInfo(m->music);
-            clearAndRemoveInfo(m->loopNext);
-            m->music = m->loopNext = InvalidMusicRef;
         }
     }
+	clearAndRemoveInfo(m->music);
+	clearAndRemoveInfo(m->loopNext);
+	m->music = m->loopNext = InvalidMusicRef;
 }
 
 void MusicSystem::DoUpdate(float dt) {
@@ -84,7 +84,16 @@ void MusicSystem::DoUpdate(float dt) {
             m->opaque[0] = startOpaque(m, m->music, m->master, 0);
             m->opaque[1] = 0;
         } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
-            stopMusic(m);
+	        if (m->fadeOut > 0) {
+		        const float step = dt / m->fadeOut;
+		        if (m->volume > step) {
+		        	m->volume -= step;
+		        } else {
+					stopMusic(m);
+		        }
+	        } else {
+		        stopMusic(m);
+	        }
         }
 
         // playing
@@ -154,7 +163,7 @@ void MusicSystem::DoUpdate(float dt) {
                     m->positionI = musicAPI->getPosition(m->opaque[0]);
                 }
             }
-        } else if (m->control == MusicComponent::Start && m->master) {
+        } else if (m->control == MusicComponent::Start && m->master && m->loopNext != InvalidMusicRef) {
 	        if (m->master->looped) {
 		        LOGI("Restarting because master has looped (current: %d -> next: %d)", m->music, m->loopNext);
 		        m->music = m->loopNext;
