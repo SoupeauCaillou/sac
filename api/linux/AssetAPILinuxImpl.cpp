@@ -1,5 +1,9 @@
 #include "AssetAPILinuxImpl.h"
 
+void AssetAPILinuxImpl::init() {
+	
+}
+
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
     std::string full = "assets/" + asset;

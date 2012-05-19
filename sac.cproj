@@ -69,6 +69,8 @@
     <Compile Include="api\android\MusicAPIAndroidImpl.cpp" />
     <Compile Include="api\linux\SoundAPILinuxOpenALImpl.cpp" />
     <Compile Include="api\android\SoundAPIAndroidImpl.cpp" />
+    <Compile Include="api\linux\LocalizeAPILinuxImpl.cpp" />
+    <Compile Include="api\android\LocalizeAPIAndroidImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -169,6 +171,9 @@
     <None Include="api\SoundAPI.h" />
     <None Include="api\linux\SoundAPILinuxOpenALImpl.h" />
     <None Include="api\android\SoundAPIAndroidImpl.h" />
+    <None Include="api\LocalizeAPI.h" />
+    <None Include="api\linux\LocalizeAPILinuxImpl.h" />
+    <None Include="api\android\LocalizeAPIAndroidImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

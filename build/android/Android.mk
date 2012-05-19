@@ -38,7 +38,7 @@ LOCAL_SRC_FILES := \
     api/android/AssetAPIAndroidImpl.cpp \
     api/android/MusicAPIAndroidImpl.cpp \
     api/android/SoundAPIAndroidImpl.cpp \
-
+    api/android/LocalizeAPIAndroidImpl.cpp \
 
 
 

@@ -10,5 +10,6 @@ struct FileBuffer {
 
 class AssetAPI {
     public:
+    	virtual void init() = 0;
         virtual FileBuffer loadAsset(const std::string& asset) = 0;
 };
