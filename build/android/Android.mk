@@ -39,6 +39,7 @@ LOCAL_SRC_FILES := \
     api/android/MusicAPIAndroidImpl.cpp \
     api/android/SoundAPIAndroidImpl.cpp \
     api/android/LocalizeAPIAndroidImpl.cpp \
+    api/android/NameInputAPIAndroidImpl.cpp \
 
 
 
