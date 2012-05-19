@@ -5,5 +5,5 @@
 class LocalizeAPI {
 	public :
 		virtual void init() = 0;
-		virtual std::string text(const std::string& s) = 0;
+		virtual std::string text(const std::string& s, const std::string& spc) = 0;
 };

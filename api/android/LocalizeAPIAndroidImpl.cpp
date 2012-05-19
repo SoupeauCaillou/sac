@@ -28,7 +28,7 @@ void LocalizeAPIAndroidImpl::init() {
 	datas->localize = jniMethodLookup(env, datas->javaLocApi, "localize", "(Ljava/lang/String;)Ljava/lang/String;");
 }
 
-std::string LocalizeAPIAndroidImpl::text(const std::string& s) {
+std::string LocalizeAPIAndroidImpl::text(const std::string& s, const std::string& spc) {
 	std::map<std::string, std::string>::iterator it = datas->cache.find(s);
 	if (it != datas->cache.end()) {
 		return it->second;
