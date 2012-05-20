@@ -129,7 +129,7 @@ int MusicAPIAndroidImpl::needData(OpaqueMusicPtr* _ptr, int sampleRate, bool fir
     int queuedSamples = ptr->queuedSize / 2;
     int pos = getPosition(ptr);
     // LOGI("%p) NEED DATA: (%d + %d) >= %d", ptr, pos, SEC_TO_SAMPLES(0.1, sampleRate), queuedSamples);
-    if (pos + SEC_TO_SAMPLES(0.1, sampleRate) >= queuedSamples) {
+    if (pos + SEC_TO_SAMPLES(0.5, sampleRate) >= queuedSamples) {
         // pos is 0.1 before end of bufferized data, request 0.5s
         return SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.5, sampleRate), sampleRate);
     } else {

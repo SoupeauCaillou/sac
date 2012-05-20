@@ -242,7 +242,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
     int count = musicAPI->needData(ptr, info.sampleRate, forceFeedCount > 0);
     if (!count)
         return true;
-LOGW("FEED");
+//LOGW("FEED");
     pthread_mutex_lock(&mutex);
     if (!info.nextPcmBuffer) {
         LOGW("No audio data available - crap");
