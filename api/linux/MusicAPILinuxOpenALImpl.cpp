@@ -48,7 +48,11 @@ void MusicAPILinuxOpenALImpl::deallocate(int8_t* b) {
     delete[] b;
 }
 
-void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
+int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr* ptr) {
+    return 1;
+}
+
+int8_t* MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     // create buffer
     ALuint buffer;
@@ -59,6 +63,8 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
     openalptr->queuedBuffers.push_back(buffer);
     openalptr->queuedSize += size;
     delete[] data;
+
+    return allocate(size);
 }
 
 int MusicAPILinuxOpenALImpl::needData(OpaqueMusicPtr* ptr, int sampleRate, bool firstCall) {

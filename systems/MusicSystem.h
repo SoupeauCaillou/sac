@@ -55,7 +55,6 @@ void toggleMute(bool enable);
 private:
 /* textures cache */
 MusicRef nextValidRef;
-std::map<std::string, MusicRef> assetSounds;
 
 struct MusicInfo {
     MusicInfo() : ovf(0) {}

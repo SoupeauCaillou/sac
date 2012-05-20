@@ -12,7 +12,8 @@ class MusicAPIAndroidImpl : public MusicAPI {
         int pcmBufferSize(int sampleRate);
         int8_t* allocate(int size);
         void deallocate(int8_t* b);
-        void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
+        int initialPacketCount(OpaqueMusicPtr* ptr);
+        int8_t* queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
         int needData(OpaqueMusicPtr* ptr, int sampleRate, bool firstCall);
         void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
         void stopPlayer(OpaqueMusicPtr* ptr);

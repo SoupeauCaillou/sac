@@ -242,14 +242,14 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
     int count = musicAPI->needData(ptr, info.sampleRate, forceFeedCount > 0);
     if (!count)
         return true;
-
+LOGW("FEED");
     pthread_mutex_lock(&mutex);
     if (!info.nextPcmBuffer) {
         LOGW("No audio data available - crap");
     } else {
         // LOGW("using buffer: %p", info.nextPcmBuffer);
-        musicAPI->queueMusicData(ptr, info.nextPcmBuffer, info.pcmBufferSize, info.sampleRate);
-        info.nextPcmBuffer = musicAPI->allocate(info.pcmBufferSize);
+        info.nextPcmBuffer = musicAPI->queueMusicData(ptr, info.nextPcmBuffer, info.pcmBufferSize, info.sampleRate);
+        // musicAPI->allocate(info.pcmBufferSize);
         info.newBufferRequested = true;
         pthread_cond_signal(&cond);
     }
@@ -266,14 +266,13 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
     }
     OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(info.sampleRate);
 
-    // init with 2 silence pkt
-    int8_t* buffer0 = musicAPI->allocate(info.pcmBufferSize);
-    memset(buffer0, 0,  info.pcmBufferSize);
-    musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
-
-    int8_t* buffer1 = musicAPI->allocate(info.pcmBufferSize);
-    memset(buffer1, 0,  info.pcmBufferSize);
-    musicAPI->queueMusicData(ptr, buffer1, info.pcmBufferSize, info.sampleRate);
+    int initialNeededCount = musicAPI->initialPacketCount(ptr);
+    for (int i=0; i<initialNeededCount; i++) {
+        // init with silence pkts
+        int8_t* buffer0 = musicAPI->allocate(info.pcmBufferSize);
+        memset(buffer0, 0,  info.pcmBufferSize);
+        musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
+    }
 
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
 	
@@ -307,14 +306,14 @@ struct DataSource {
 };
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
-	LOGW("assAPI : %p", assetAPI);
 	if (!assetAPI)
 		return InvalidMusicRef;
 		
     FileBuffer b;
     int size;
     if (name2buffer.find(assetName) == name2buffer.end()) {
-        name2buffer[assetName] = b = assetAPI->loadAsset(assetName);
+        b = assetAPI->loadAsset(assetName);
+        name2buffer[assetName] = b;
     } else {
         b = name2buffer[assetName];
     }
