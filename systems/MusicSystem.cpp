@@ -34,7 +34,7 @@ void MusicSystem::init() {
 
     pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
     // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
-    sched_setscheduler(oggDecompressionThread, SCHED_BATCH, 0);
+    sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
@@ -68,7 +68,7 @@ void MusicSystem::DoUpdate(float dt) {
         }
         return;
     }
-
+    
     for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
         MusicComponent* m = (*jt).second;
 
@@ -99,7 +99,7 @@ void MusicSystem::DoUpdate(float dt) {
 	            musicAPI->setVolume(m->opaque[0], m->volume);
             }
             // need to queue more data ?
-            feed(m->opaque[0], m->music, 0);
+            feed(m->opaque[0], m->music, 0, dt);
             m->positionI = musicAPI->getPosition(m->opaque[0]);
            
            /*	bool desyncFromMaster = (m->master && MathUtil::Abs(1 - m->positionI / (float)m->master->positionI) > 0.05);
@@ -124,7 +124,7 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->currentVolume != m->volume) {
 	            	musicAPI->setVolume(m->opaque[1], m->volume);
             	}
-                feed(m->opaque[1], m->loopNext, 0);
+                feed(m->opaque[1], m->loopNext, 0, dt);
                 if ((m->loopNext != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
                     musicAPI->deletePlayer(m->opaque[1]);
                     m->opaque[1] = 0;
@@ -250,6 +250,7 @@ void MusicSystem::oggDecompRunLoop() {
     int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
 
     while (true) {
+	    bool roomForImprovement = false;
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ) {
             assert(it->first != InvalidMusicRef);
             MusicInfo& info = it->second;
@@ -271,23 +272,34 @@ void MusicSystem::oggDecompRunLoop() {
             int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
             
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
-             	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
+             	LOGW("%d] decompress %d bytes", it->first, chunkSize);
                 decompressNextChunk(info.ovf, tempBuffer, chunkSize);
+                LOGW("decomp done");
                 info.buffer->write(tempBuffer, chunkSize);
+            }
+            if (info.buffer->writeSpaceAvailable() >= chunkSize) {
+            	roomForImprovement = true;
             }
         }
         // release mutex while waiting
-        //  LOGW("OGG DECOMP WAIT");
-        pthread_cond_wait(&cond, &mutex);
+        if (!roomForImprovement) {
+        	pthread_cond_wait(&cond, &mutex);
+        }
         // mutex is auto acquired
     }
 }
 
-bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
     assert (m != InvalidMusicRef);
     MusicInfo& info = musics[m];
 
-	while (musicAPI->needData(ptr, info.sampleRate, false)) {
+	dt += info.leftOver;
+	float chunkDuration = (info.pcmBufferSize / 2) / (float)info.sampleRate;
+	LOGW("timeDiff: %.3f / chunk: %.3f / %.3f / %d", dt, chunkDuration, info.leftOver, info.buffer->readDataAvailable());
+
+	while (dt >= chunkDuration) {
+		
+	// while (musicAPI->needData(ptr, info.sampleRate, false)) {
 	    int count = info.buffer->readDataAvailable();
 	    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
 	    if (count < info.pcmBufferSize * 3) {
@@ -298,9 +310,14 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
 		    int8_t* b = musicAPI->allocate(info.pcmBufferSize);
 		    info.buffer->read(b, info.pcmBufferSize);
 		    musicAPI->queueMusicData(ptr, b, info.pcmBufferSize, info.sampleRate);
+		    dt -= chunkDuration;
+	    } else {
+		    LOGW("Fcuk, not enough data: %d < %d", count, info.pcmBufferSize);
+		    break;
 	    }
-	    break; // pourqoi sans ce break ça déconne :'( ?
 	}
+	info.leftOver = dt;
+
     return true;
 }
 
@@ -322,7 +339,6 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
     }
 
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
-	
 	// set volume
 	musicAPI->setVolume(ptr, m->volume);
 	m->currentVolume = m->volume;
@@ -387,6 +403,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.sampleRate = inf->rate * inf->channels;
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
     info.nbSamples = ov_pcm_total(f, -1);
+    info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
     LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     pthread_mutex_lock(&mutex);

@@ -72,6 +72,8 @@ int MusicAPIAndroidImpl::pcmBufferSize(int sampleRate) {
 }
 
 int8_t* MusicAPIAndroidImpl::allocate(int size) {
+	return new int8_t[size];
+	
     // retrieve byte[] from Java
     jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, size);
     // buffer is either a copy or a direct pointer to underlying byte[] storage
@@ -92,6 +94,14 @@ void MusicAPIAndroidImpl::deallocate(int8_t* b) {
 int8_t* MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int size, int sampleRate) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
 
+#if 1
+	// retrieve byte[] from Java
+    jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, size);
+    env->SetByteArrayRegion(b, 0, size, (jbyte*)data);
+    delete[] data;
+    
+    env->CallStaticObjectMethod(datas->javaMusicApi, datas->queueMusicData, ptr->audioTrack, b, size, sampleRate);
+#else
     jbyteArray jdata;
 
     std::map<int8_t*, jbyteArray>::iterator it = datas->ptr2array.find(data);
@@ -111,10 +121,9 @@ int8_t* MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, 
 	    datas->ptr2array.erase(it);
     }
 	ptr->queuedSize += size;
-return 0;
-    jbyte* buffer = env->GetByteArrayElements(b, 0);
-    datas->ptr2array[buffer] = b;
-    return buffer;
+#endif
+
+	return 0;
 }
 
 int MusicAPIAndroidImpl::needData(OpaqueMusicPtr* _ptr, int sampleRate, bool firstCall) {

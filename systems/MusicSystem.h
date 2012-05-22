@@ -69,6 +69,7 @@ struct MusicInfo {
     // raw data
     int pcmBufferSize;
     CircularBuffer* buffer;
+    float leftOver;
     bool toRemove;
 };
 
@@ -85,7 +86,7 @@ std::map<Entity, std::pair<Entity, Entity> > visualisationEntities;
 #endif
 
 int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);
-bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount);
+bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount, float dt);
 OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
 void stopMusic(MusicComponent* m);
 void clearAndRemoveInfo(MusicRef ref);
