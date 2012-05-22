@@ -15,11 +15,12 @@
 typedef int MusicRef;
 
 #define InvalidMusicRef -1
+class CircularBuffer;
 
 #define MUSIC_VISU
 
 struct MusicComponent {
-	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), volume(1), control(Stop) {
+	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), master(0), volume(1), control(Stop) {
 		opaque[0] = opaque[1] = 0;
 	}
 
@@ -27,7 +28,9 @@ struct MusicComponent {
     MusicComponent* master;
     float loopAt; // sec
     int positionI; // in [0,1]
+    #ifdef MUSIC_VISU
     float positionF;
+    #endif
     float fadeOut; // sec
     float volume, currentVolume;
     bool looped;
@@ -65,8 +68,7 @@ struct MusicInfo {
     int sampleRate;
     // raw data
     int pcmBufferSize;
-    int8_t* nextPcmBuffer;
-    bool newBufferRequested;
+    CircularBuffer* buffer;
 };
 
 std::map<MusicRef, MusicInfo> musics;

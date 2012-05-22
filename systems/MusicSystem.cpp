@@ -4,6 +4,7 @@
 #include "base/PlacementHelper.h"
 #include "base/EntityManager.h"
 #endif
+#include "base/CircularBuffer.h"
 
 #ifdef ANDROID
 
@@ -44,8 +45,8 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     pthread_mutex_lock(&mutex);
     if (it->second.ovf)
         ov_clear(it->second.ovf);
-    if (it->second.nextPcmBuffer)
-        musicAPI->deallocate(it->second.nextPcmBuffer);
+    if (it->second.buffer)
+    	delete it->second.buffer;
     // deallocate nextPcmBuffer to
     musics.erase(it);
     pthread_mutex_unlock(&mutex);
@@ -175,9 +176,11 @@ void MusicSystem::DoUpdate(float dt) {
         }
         m->currentVolume = m->volume;
         
+        #ifdef MUSIC_VISU
         if (m->music != InvalidMusicRef) {
         	m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
+        #endif
     }
     
 	#ifdef MUSIC_VISU
@@ -244,49 +247,20 @@ void MusicSystem::oggDecompRunLoop() {
     typedef std::map<MusicRef, std::pair<int8_t*, int> >::iterator ChunkIt;
     pthread_mutex_lock(&mutex);
 
-    // chunk size (sec)
-    const float chunk = 1.0f; //
+    // one static buffer to rule them all
+    int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
 
     while (true) {
-        // LOGW("OGG DECOMP LOOP STARTED");
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
             assert(it->first != InvalidMusicRef);
 
             MusicInfo& info = it->second;
-            int8_t* buffer = 0;
-            int pos = 0;
-            int chunkSize = chunk * info.sampleRate * 2;
-            // entry
-            ChunkIt jt = bigChunks.find(it->first);
-            if (jt == bigChunks.end()) {
-                buffer = new int8_t[chunkSize];
-                pos = chunkSize;
-                jt = bigChunks.insert(std::make_pair(it->first, std::make_pair(buffer, pos))).first;
-            } else {
-                buffer = (jt->second).first;
-                pos = (jt->second).second;
-            }
-
-
-            //
-            if ((pos + info.pcmBufferSize) > chunkSize) {
-                pthread_mutex_unlock(&mutex);
-
-             LOGW("decompress %d bytes to %p", chunkSize, buffer);
-                decompressNextChunk(info.ovf, buffer, chunkSize);
-                pthread_mutex_lock(&mutex);
-
-                (jt->second).second = 0;
-            }
-
-            if (info.nextPcmBuffer != 0 && info.newBufferRequested) {
-                memcpy(info.nextPcmBuffer, &buffer[(jt->second).second], info.pcmBufferSize);
-                (jt->second).second += info.pcmBufferSize;
-
-                LOGW("new pos: %d (+%d)",(jt->second).second, info.pcmBufferSize);
-                // LOGW("decode 1 buffer : %d -> %p", it->first, info.ovf);
-                // decompressNextChunk(info.ovf, info.nextPcmBuffer, info.pcmBufferSize);
-                info.newBufferRequested = false;
+            int chunkSize = info.buffer->getBufferSize() * 0.5;
+            
+            if (info.buffer->writeSpaceAvailable() >= chunkSize) {
+             	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
+                decompressNextChunk(info.ovf, tempBuffer, chunkSize);
+                info.buffer->write(tempBuffer, chunkSize);
             }
         }
         // release mutex while waiting
@@ -299,22 +273,22 @@ void MusicSystem::oggDecompRunLoop() {
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
     assert (m != InvalidMusicRef);
     MusicInfo& info = musics[m];
-    int count = musicAPI->needData(ptr, info.sampleRate, forceFeedCount > 0);
-    if (!count)
-        return true;
-//LOGW("FEED");
-    pthread_mutex_lock(&mutex);
-    if (!info.nextPcmBuffer) {
-        LOGW("No audio data available - crap");
-    } else {
-        // LOGW("using buffer: %p", info.nextPcmBuffer);
-        info.nextPcmBuffer = musicAPI->queueMusicData(ptr, info.nextPcmBuffer, info.pcmBufferSize, info.sampleRate);
-        // musicAPI->allocate(info.pcmBufferSize);
-        info.newBufferRequested = true;
-        pthread_cond_signal(&cond);
-    }
-    pthread_mutex_unlock(&mutex);
 
+	if (!musicAPI->needData(ptr, info.sampleRate, false)) {
+		return false;
+	}
+
+    int count = info.buffer->readDataAvailable();
+    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
+    if (count < info.pcmBufferSize * 2) {
+	    // wake-up decomp thread via notify
+	    pthread_cond_signal(&cond);
+    }
+    if (count >= info.pcmBufferSize) {
+	    int8_t* b = musicAPI->allocate(info.pcmBufferSize);
+	    info.buffer->read(b, info.pcmBufferSize);
+	    musicAPI->queueMusicData(ptr, b, info.pcmBufferSize, info.sampleRate);
+    }
     return true;
 }
 
@@ -400,12 +374,12 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.sampleRate = inf->rate * inf->channels;
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
     info.nbSamples = ov_pcm_total(f, -1);
-    info.nextPcmBuffer = musicAPI->allocate(info.pcmBufferSize);
-    info.newBufferRequested = true;
+    info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
     LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     pthread_mutex_lock(&mutex);
     musics[nextValidRef] = info;
     pthread_mutex_unlock(&mutex);
+    // wake-up decompression thread
     pthread_cond_signal(&cond);
 
     return nextValidRef++;
@@ -417,6 +391,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
     while (read < chunkSize) {
         int n = ov_read(file, (char*) &data[read], chunkSize - read, &bitstream);
         if (n == 0) {
+	        LOGI("%p] EOF (read: %d/%d)", file, read, chunkSize);
             // EOF
             break;
         } else if (n < 0) {
@@ -428,8 +403,8 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
     }
 
     if (read < chunkSize) {
-        LOGI("Producing %d/%d bytes of silence", chunkSize - read - 1, chunkSize);
-        memset(&data[read], 0, chunkSize - read - 1);
+        LOGI("%p] Producing %d/%d bytes of silence", file, chunkSize - read, chunkSize);
+        memset(&data[read], 0, chunkSize - read);
     }
     return chunkSize;
 }

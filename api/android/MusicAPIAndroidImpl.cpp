@@ -111,7 +111,7 @@ int8_t* MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, 
 	    datas->ptr2array.erase(it);
     }
 	ptr->queuedSize += size;
-
+return 0;
     jbyte* buffer = env->GetByteArrayElements(b, 0);
     datas->ptr2array[buffer] = b;
     return buffer;

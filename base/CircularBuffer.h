@@ -8,6 +8,8 @@ class CircularBuffer {
 		CircularBuffer(unsigned int pBufferSize);
 		~CircularBuffer();
 		
+		unsigned int getBufferSize() const { return bufferSize; }
+		
 		// byte count available for reading
 		unsigned int readDataAvailable() const;
 		
