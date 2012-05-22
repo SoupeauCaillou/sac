@@ -73,6 +73,8 @@
     <Compile Include="api\android\LocalizeAPIAndroidImpl.cpp" />
     <Compile Include="api\linux\NameInputAPILinuxImpl.cpp" />
     <Compile Include="api\android\NameInputAPIAndroidImpl.cpp" />
+    <Compile Include="base\CircularBuffer.cpp" />
+    <Compile Include="tests\base\TestCircularBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -179,6 +181,7 @@
     <None Include="api\NameInputAPI.h" />
     <None Include="api\linux\NameInputAPILinuxImpl.h" />
     <None Include="api\android\NameInputAPIAndroidImpl.h" />
+    <None Include="base\CircularBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
