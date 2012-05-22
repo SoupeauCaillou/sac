@@ -16,7 +16,7 @@ typedef int MusicRef;
 
 #define InvalidMusicRef -1
 
-// #define MUSIC_VISU
+#define MUSIC_VISU
 
 struct MusicComponent {
 	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), positionI(0), positionF(0), master(0), volume(1), control(Stop) {
@@ -78,7 +78,7 @@ pthread_cond_t cond;
 std::map<std::string, FileBuffer> name2buffer;
 
 #ifdef MUSIC_VISU
-std::map<Entity, Entity> visualisationEntities;
+std::map<Entity, std::pair<Entity, Entity> > visualisationEntities;
 #endif
 
 int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);

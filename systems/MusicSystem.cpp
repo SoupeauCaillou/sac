@@ -78,6 +78,8 @@ void MusicSystem::DoUpdate(float dt) {
         MusicComponent* m = (*jt).second;
 
 		m->looped = false;
+
+        //LOGW("%d -> %p/%p", jt->first, m->opaque[0], m->opaque[1]);
 		
         if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
@@ -186,28 +188,50 @@ void MusicSystem::DoUpdate(float dt) {
 		
 		if (visualisationEntities.find(a) == visualisationEntities.end()) {
 			int size = visualisationEntities.size();
+
 			Entity e = theEntityManager.CreateEntity();
 			ADD_COMPONENT(e, Rendering);
 			RENDERING(e)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
 			RENDERING(e)->hide = false;
 			ADD_COMPONENT(e, Transformation);
-			TRANSFORM(e)->size = Vector2(1, 1);
+			TRANSFORM(e)->size = Vector2(0.5, 1);
 			TRANSFORM(e)->z = 0.75;
-			visualisationEntities[a] = e;
+
+            Entity f = theEntityManager.CreateEntity();
+             ADD_COMPONENT(f, Rendering);
+             RENDERING(f)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
+             RENDERING(f)->hide = false;
+             ADD_COMPONENT(f, Transformation);
+             TRANSFORM(f)->size = Vector2(0.5, 1);
+             TRANSFORM(f)->z = 0.75;
+
+			visualisationEntities[a] = std::make_pair(e, f);
 		}
 		float VisuWidth = PlacementHelper::GimpWidthToScreen(50);
-		Entity e = visualisationEntities[a];
-		TRANSFORM(e)->size = Vector2(VisuWidth, rc->positionF * PlacementHelper::GimpHeightToScreen(1280));
+		Entity e = visualisationEntities[a].first;
+        Entity f = visualisationEntities[a].second;
+		TRANSFORM(e)->size = Vector2(VisuWidth * 0.5, rc->positionF * PlacementHelper::GimpHeightToScreen(1280));
 		TransformationSystem::setPosition(TRANSFORM(e), 
 			Vector2(
 				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth, PlacementHelper::GimpYToScreen(0)), 
 			TransformationSystem::NW);
+         if (rc->opaque[1] && rc->loopNext != InvalidMusicRef) {
+         float pF = musicAPI->getPosition(rc->opaque[1]) / (float)musics[rc->loopNext].nbSamples;
+        TRANSFORM(f)->size = Vector2(VisuWidth * 0.5, pF * PlacementHelper::GimpHeightToScreen(1280));
+     TransformationSystem::setPosition(TRANSFORM(f),
+         Vector2(
+             PlacementHelper::GimpXToScreen(0) + idx * VisuWidth + TRANSFORM(e)->size.X * 0.5, PlacementHelper::GimpYToScreen(0)),
+         TransformationSystem::NW);
+            RENDERING(f)->hide = false;
+         } else {
+            RENDERING(f)->hide = true;
+         }
 		if (rc->control == MusicComponent::Stop) {
-			RENDERING(e)->color = Color(0.3, 0, 0, 0.5);
+			RENDERING(e)->color = RENDERING(f)->color = Color(0.3, 0, 0, 0.5);
 		} else if (rc->opaque[0]) {
-			RENDERING(e)->color = Color(0, 0.3, 0, 0.5);
+			RENDERING(e)->color = RENDERING(f)->color = Color(0, 0.3, 0, 0.5);
         } else {
-            RENDERING(e)->color = Color(0.9, 0.9, 0, 0.5);
+            RENDERING(e)->color = RENDERING(f)->color = Color(0.9, 0.9, 0, 0.5);
         }
 		idx++;
 	}
@@ -215,17 +239,53 @@ void MusicSystem::DoUpdate(float dt) {
 }
 
 void MusicSystem::oggDecompRunLoop() {
+    // who cares
+    std::map<MusicRef, std::pair<int8_t*, int> > bigChunks;
+    typedef std::map<MusicRef, std::pair<int8_t*, int> >::iterator ChunkIt;
     pthread_mutex_lock(&mutex);
+
+    // chunk size (sec)
+    const float chunk = 1.0f; //
 
     while (true) {
         // LOGW("OGG DECOMP LOOP STARTED");
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
-            MusicInfo& info = it->second;
-
             assert(it->first != InvalidMusicRef);
+
+            MusicInfo& info = it->second;
+            int8_t* buffer = 0;
+            int pos = 0;
+            int chunkSize = chunk * info.sampleRate * 2;
+            // entry
+            ChunkIt jt = bigChunks.find(it->first);
+            if (jt == bigChunks.end()) {
+                buffer = new int8_t[chunkSize];
+                pos = chunkSize;
+                jt = bigChunks.insert(std::make_pair(it->first, std::make_pair(buffer, pos))).first;
+            } else {
+                buffer = (jt->second).first;
+                pos = (jt->second).second;
+            }
+
+
+            //
+            if ((pos + info.pcmBufferSize) > chunkSize) {
+                pthread_mutex_unlock(&mutex);
+
+             LOGW("decompress %d bytes to %p", chunkSize, buffer);
+                decompressNextChunk(info.ovf, buffer, chunkSize);
+                pthread_mutex_lock(&mutex);
+
+                (jt->second).second = 0;
+            }
+
             if (info.nextPcmBuffer != 0 && info.newBufferRequested) {
+                memcpy(info.nextPcmBuffer, &buffer[(jt->second).second], info.pcmBufferSize);
+                (jt->second).second += info.pcmBufferSize;
+
+                LOGW("new pos: %d (+%d)",(jt->second).second, info.pcmBufferSize);
                 // LOGW("decode 1 buffer : %d -> %p", it->first, info.ovf);
-                decompressNextChunk(info.ovf, info.nextPcmBuffer, info.pcmBufferSize);
+                // decompressNextChunk(info.ovf, info.nextPcmBuffer, info.pcmBufferSize);
                 info.newBufferRequested = false;
             }
         }
@@ -260,13 +320,14 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
     assert (r != InvalidMusicRef);
-	MusicInfo info = musics[r];
+	MusicInfo& info = musics[r];
     if (info.sampleRate <=0) {
         LOGW("Invalid sample rate: %d", info.sampleRate);
     }
     OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(info.sampleRate);
 
     int initialNeededCount = musicAPI->initialPacketCount(ptr);
+    info.nbSamples += initialNeededCount * info.pcmBufferSize / 2;
     for (int i=0; i<initialNeededCount; i++) {
         // init with silence pkts
         int8_t* buffer0 = musicAPI->allocate(info.pcmBufferSize);
@@ -338,7 +399,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     vorbis_info* inf = ov_info(f, -1);
     info.sampleRate = inf->rate * inf->channels;
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
-    info.nbSamples = ov_pcm_total(f, -1) + (2 * info.pcmBufferSize) / 2;
+    info.nbSamples = ov_pcm_total(f, -1);
     info.nextPcmBuffer = musicAPI->allocate(info.pcmBufferSize);
     info.newBufferRequested = true;
     LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
