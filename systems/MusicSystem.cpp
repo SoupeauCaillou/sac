@@ -41,15 +41,9 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
     if (it == musics.end())
         return;
-    LOGW("Erase music ref: %d", ref);
-    pthread_mutex_lock(&mutex);
-    if (it->second.ovf)
-        ov_clear(it->second.ovf);
-    if (it->second.buffer)
-    	delete it->second.buffer;
-    // deallocate nextPcmBuffer to
-    musics.erase(it);
-    pthread_mutex_unlock(&mutex);
+    LOGW("Delayed erase music ref: %d", ref);
+    it->second.toRemove = true;
+    pthread_cond_signal(&cond);
 }
 
 void MusicSystem::stopMusic(MusicComponent* m) {
@@ -107,6 +101,11 @@ void MusicSystem::DoUpdate(float dt) {
             // need to queue more data ?
             feed(m->opaque[0], m->music, 0);
             m->positionI = musicAPI->getPosition(m->opaque[0]);
+           
+           /*	bool desyncFromMaster = (m->master && MathUtil::Abs(1 - m->positionI / (float)m->master->positionI) > 0.05);
+            if (desyncFromMaster) {
+	            LOGW("Slave track is out of sync : kill it");
+            }*/
             assert (m->music != InvalidMusicRef);
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
@@ -149,7 +148,7 @@ void MusicSystem::DoUpdate(float dt) {
                 }
 
                 if (loop) {
-                    LOGI("%p Begin loop (%d >= %d)", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0));
+                    LOGI("%p Begin loop (%d >= %d) [master=%d]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->master);
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
                     MusicRef r = m->music;
@@ -251,11 +250,25 @@ void MusicSystem::oggDecompRunLoop() {
     int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
 
     while (true) {
-        for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
+        for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ) {
             assert(it->first != InvalidMusicRef);
-
             MusicInfo& info = it->second;
-            int chunkSize = info.buffer->getBufferSize() * 0.5;
+            
+            if (info.toRemove) {
+	            if (info.ovf)
+        			ov_clear(info.ovf);
+    			if (info.buffer)
+    			delete info.buffer;
+    			// deallocate nextPcmBuffer to
+    			std::map<MusicRef, MusicInfo>::iterator jt = it;
+    			++it;
+    			musics.erase(jt);
+    			continue;
+            } else {
+	            ++it;
+            }
+            
+            int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
             
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
              	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
@@ -274,21 +287,20 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount) {
     assert (m != InvalidMusicRef);
     MusicInfo& info = musics[m];
 
-	if (!musicAPI->needData(ptr, info.sampleRate, false)) {
-		return false;
+	while (musicAPI->needData(ptr, info.sampleRate, false)) {
+	    int count = info.buffer->readDataAvailable();
+	    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
+	    if (count < info.pcmBufferSize * 3) {
+		    // wake-up decomp thread via notify
+		    pthread_cond_signal(&cond);
+	    }
+	    if (count >= info.pcmBufferSize) {
+		    int8_t* b = musicAPI->allocate(info.pcmBufferSize);
+		    info.buffer->read(b, info.pcmBufferSize);
+		    musicAPI->queueMusicData(ptr, b, info.pcmBufferSize, info.sampleRate);
+	    }
+	    break; // pourqoi sans ce break ça déconne :'( ?
 	}
-
-    int count = info.buffer->readDataAvailable();
-    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
-    if (count < info.pcmBufferSize * 2) {
-	    // wake-up decomp thread via notify
-	    pthread_cond_signal(&cond);
-    }
-    if (count >= info.pcmBufferSize) {
-	    int8_t* b = musicAPI->allocate(info.pcmBufferSize);
-	    info.buffer->read(b, info.pcmBufferSize);
-	    musicAPI->queueMusicData(ptr, b, info.pcmBufferSize, info.sampleRate);
-    }
     return true;
 }
 
@@ -371,6 +383,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.ovf = f;
     info.totalTime = ov_time_total(f, -1) * 0.001 + 1; // hum hum
     vorbis_info* inf = ov_info(f, -1);
+    info.toRemove = false;
     info.sampleRate = inf->rate * inf->channels;
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
     info.nbSamples = ov_pcm_total(f, -1);

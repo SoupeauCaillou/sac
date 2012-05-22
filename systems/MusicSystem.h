@@ -69,6 +69,7 @@ struct MusicInfo {
     // raw data
     int pcmBufferSize;
     CircularBuffer* buffer;
+    bool toRemove;
 };
 
 std::map<MusicRef, MusicInfo> musics;
