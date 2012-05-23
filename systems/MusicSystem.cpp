@@ -52,7 +52,10 @@ void MusicSystem::stopMusic(MusicComponent* m) {
             musicAPI->stopPlayer(m->opaque[i]);
             musicAPI->deletePlayer(m->opaque[i]);
             m->opaque[i] = 0;
-            m->positionI = m->positionF = 0;
+            m->positionI = 0;
+            #ifdef MUSIC_VISU
+            m->positionF = 0;
+            #endif
         }
     }
 	clearAndRemoveInfo(m->music);
