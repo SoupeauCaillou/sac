@@ -8,8 +8,9 @@ LOCAL_CFLAGS := -DANDROID_NDK \
 				-I$(BASE_PATH) \
 				-DLITTLE_ENDIAN=1 \
 				-DBIG_ENDIAN=2 \
-				-DBYTE_ORDER=LITTLE_ENDIAN
-
+				-DBYTE_ORDER=LITTLE_ENDIAN \
+				-D_ARM_ASSEM_
+LOCAL_ARM_MODE := arm
 LOCAL_SRC_FILES = bitwiseARM.s \
 	bitwise.c \
 	codebook.c \
