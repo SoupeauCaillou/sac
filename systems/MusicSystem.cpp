@@ -114,32 +114,14 @@ void MusicSystem::DoUpdate(float dt) {
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
                 // remove m->music from musics
+                LOGW("Delete m->music: %d", m->music);
                 clearAndRemoveInfo(m->music);
                 m->music = InvalidMusicRef;
                 m->control = MusicComponent::Stop;
             }
 
-            if (m->opaque[1]) {
-                assert(m->loopNext != InvalidMusicRef);
-                if (m->currentVolume != m->volume) {
-	            	musicAPI->setVolume(m->opaque[1], m->volume);
-            	}
-                feed(m->opaque[1], m->loopNext, 0, dt);
-                if ((m->loopNext != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
-                    musicAPI->deletePlayer(m->opaque[1]);
-                    m->opaque[1] = 0;
-                    // remove m->loopNext from musics
-                    clearAndRemoveInfo(m->loopNext);
-                    m->loopNext = InvalidMusicRef;
-                    LOGI("%p Player 1 has finished", m);
-                }
-                else {
-	                /*int p1 = musicAPI->getPosition(m->opaque[0]);
-	                int p2 = musicAPI->getPosition(m->opaque[1]);
-                	LOGI("%d __ %d : %.3f", p1, p2, SAMPLES_TO_SEC(p2 - p1, sampleRate0));*/
-                }
-            }
-            else if (m->loopNext != InvalidMusicRef) {
+			// if [0] is valid, and [1] not, and [0] can loop
+            if (m->opaque[0] && !m->opaque[1] && m->loopNext != InvalidMusicRef) {
                 bool loop = false;
                 if (m->master) {
                     loop = m->master->looped;
@@ -148,7 +130,7 @@ void MusicSystem::DoUpdate(float dt) {
                 }
 
                 if (loop) {
-                    LOGI("%p Begin loop (%d >= %d) [master=%lu]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->master);
+                    LOGI("%p Begin loop (%d >= %d) - m->music:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->master);
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
                     MusicRef r = m->music;
@@ -165,10 +147,34 @@ void MusicSystem::DoUpdate(float dt) {
                     m->positionI = musicAPI->getPosition(m->opaque[0]);
                 }
             }
-        } else if (m->control == MusicComponent::Start && m->master && m->loopNext != InvalidMusicRef) {
+        } 
+        
+        if (m->opaque[1]) {
+            assert(m->loopNext != InvalidMusicRef);
+            if (m->currentVolume != m->volume) {
+            	musicAPI->setVolume(m->opaque[1], m->volume);
+        	}
+            feed(m->opaque[1], m->loopNext, 0, dt);
+            if ((m->loopNext != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
+                musicAPI->deletePlayer(m->opaque[1]);
+                m->opaque[1] = 0;
+                // remove m->loopNext from musics
+                LOGW("Delete m->loopNext:: %d", m->loopNext);
+                clearAndRemoveInfo(m->loopNext);
+                m->loopNext = InvalidMusicRef;
+                LOGI("%p Player 1 has finished", m);
+            }
+		}
+
+        if (!m->opaque[0] && m->control == MusicComponent::Start && m->master && m->loopNext != InvalidMusicRef) {
 	        if (m->master->looped) {
-		        LOGI("Restarting because master has looped (current: %d -> next: %d)", m->music, m->loopNext);
+		        LOGI("Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
 		        m->music = m->loopNext;
+		        if (m->opaque[1]) {
+			        LOGW("Weird, shouldn't happen");
+			        musicAPI->deletePlayer(m->opaque[1]);
+                	m->opaque[1] = 0;
+		        }
                 m->loopNext = InvalidMusicRef;
 		        m->opaque[0] = startOpaque(m, m->music, m->master, 0);
 	        }
@@ -260,8 +266,11 @@ void MusicSystem::oggDecompRunLoop() {
         			ov_clear(info.ovf);
         			delete info.ovf;
 	            }
-    			if (info.buffer)
-    			delete info.buffer;
+    			if (info.buffer) {
+	    			LOGW("delete %p", info.buffer);
+    				delete info.buffer;
+    				info.buffer = 0;
+    			}
     			// deallocate nextPcmBuffer to
     			std::map<MusicRef, MusicInfo>::iterator jt = it;
     			++it;
@@ -286,13 +295,18 @@ void MusicSystem::oggDecompRunLoop() {
         // release mutex while waiting
         if (!roomForImprovement) {
         	pthread_cond_wait(&cond, &mutex);
+        	// mutex is auto acquired on wake up
         }
-        // mutex is auto acquired
     }
 }
 
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
     assert (m != InvalidMusicRef);
+    if (musics.find(m) == musics.end()) {
+	    LOGW("Achtung, musicref : %d not found", m);
+	    return false;
+    }
+    
     MusicInfo& info = musics[m];
 
 	dt += info.leftOver;

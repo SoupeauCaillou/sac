@@ -187,6 +187,5 @@ void MusicAPIAndroidImpl::deletePlayer(OpaqueMusicPtr* _ptr) {
 
 bool MusicAPIAndroidImpl::isPlaying(OpaqueMusicPtr* _ptr) {
 	AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
-	int p = getPosition(_ptr);
 	return env->CallStaticBooleanMethod(datas->javaMusicApi, datas->isPlaying, ptr->audioTrack);
 }
