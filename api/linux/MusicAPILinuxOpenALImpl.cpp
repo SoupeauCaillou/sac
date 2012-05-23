@@ -49,7 +49,7 @@ void MusicAPILinuxOpenALImpl::deallocate(int8_t* b) {
 }
 
 int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr* ptr) {
-    return 1;
+    return 10;
 }
 
 int8_t* MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {

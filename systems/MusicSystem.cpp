@@ -34,7 +34,7 @@ void MusicSystem::init() {
 
     pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
     // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
-    sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
+    // sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
@@ -109,7 +109,7 @@ void MusicSystem::DoUpdate(float dt) {
             assert (m->music != InvalidMusicRef);
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
-                LOGI("%p Player 0 has finished", m);
+                LOGI("%p Player 0 has finished (isPlaying:%d)", m, musicAPI->isPlaying(m->opaque[0]));
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
@@ -256,8 +256,10 @@ void MusicSystem::oggDecompRunLoop() {
             MusicInfo& info = it->second;
             
             if (info.toRemove) {
-	            if (info.ovf)
+	            if (info.ovf) {
         			ov_clear(info.ovf);
+        			delete info.ovf;
+	            }
     			if (info.buffer)
     			delete info.buffer;
     			// deallocate nextPcmBuffer to
@@ -272,9 +274,9 @@ void MusicSystem::oggDecompRunLoop() {
             int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
             
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
-             	LOGW("%d] decompress %d bytes", it->first, chunkSize);
+             	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
                 decompressNextChunk(info.ovf, tempBuffer, chunkSize);
-                LOGW("decomp done");
+                // LOGW("decomp done");
                 info.buffer->write(tempBuffer, chunkSize);
             }
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
@@ -295,12 +297,12 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, floa
 
 	dt += info.leftOver;
 	float chunkDuration = (info.pcmBufferSize / 2) / (float)info.sampleRate;
-	LOGW("timeDiff: %.3f / chunk: %.3f / %.3f / %d", dt, chunkDuration, info.leftOver, info.buffer->readDataAvailable());
+	// LOGW("timeDiff: %.3f / chunk: %.3f / %.3f / %d", dt, chunkDuration, info.leftOver, info.buffer->readDataAvailable());
 
 	while (dt >= chunkDuration) {
 		
 	// while (musicAPI->needData(ptr, info.sampleRate, false)) {
-	    int count = info.buffer->readDataAvailable();
+	    unsigned int count = info.buffer->readDataAvailable();
 	    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
 	    if (count < info.pcmBufferSize * 3) {
 		    // wake-up decomp thread via notify
@@ -312,7 +314,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, floa
 		    musicAPI->queueMusicData(ptr, b, info.pcmBufferSize, info.sampleRate);
 		    dt -= chunkDuration;
 	    } else {
-		    LOGW("Fcuk, not enough data: %d < %d", count, info.pcmBufferSize);
+		    LOGW("Fcuk, not enough data: %u < %d", count, info.pcmBufferSize);
 		    break;
 	    }
 	}
@@ -421,7 +423,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
     while (read < chunkSize) {
         int n = ov_read(file, (char*) &data[read], chunkSize - read, &bitstream);
         if (n == 0) {
-	        LOGI("%p] EOF (read: %d/%d)", file, read, chunkSize);
+	        // LOGI("%p] EOF (read: %d/%d)", file, read, chunkSize);
             // EOF
             break;
         } else if (n < 0) {
@@ -433,7 +435,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
     }
 
     if (read < chunkSize) {
-        LOGI("%p] Producing %d/%d bytes of silence", file, chunkSize - read, chunkSize);
+        // LOGI("%p] Producing %d/%d bytes of silence", file, chunkSize - read, chunkSize);
         memset(&data[read], 0, chunkSize - read);
     }
     return chunkSize;

@@ -74,7 +74,8 @@ class ComponentSystemImpl: public ComponentSystem {
 		}
 
 		void Add(Entity entity) {
-			components[entity] = new T();
+			assert (components.find(entity) == components.end());
+			components.insert(std::make_pair(entity, new T()));
 		}
 
 		void Delete(Entity entity) {

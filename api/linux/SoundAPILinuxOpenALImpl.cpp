@@ -53,6 +53,8 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
     AL_OPERATION(alGenBuffers(1, &out->buffer))
     AL_OPERATION(alBufferData(out->buffer, AL_FORMAT_MONO16, data, sizeInBytes, ov_info(&vf, -1)->rate))
+    
+    delete[] data;
 
     ov_clear(&vf);
     return out;

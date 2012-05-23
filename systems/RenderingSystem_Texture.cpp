@@ -99,6 +99,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 		f >> s;
 		count++;
 	}
+	delete[] desc;
 	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
 
