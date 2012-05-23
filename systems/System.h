@@ -6,9 +6,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <cstring>
-#ifndef ANDROID
 #include <cassert>
-#endif
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 

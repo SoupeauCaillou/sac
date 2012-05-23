@@ -148,7 +148,7 @@ void MusicSystem::DoUpdate(float dt) {
                 }
 
                 if (loop) {
-                    LOGI("%p Begin loop (%d >= %d) [master=%d]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->master);
+                    LOGI("%p Begin loop (%d >= %d) [master=%lu]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->master);
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
                     MusicRef r = m->music;
