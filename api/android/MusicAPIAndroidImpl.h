@@ -13,8 +13,7 @@ class MusicAPIAndroidImpl : public MusicAPI {
         int8_t* allocate(int size);
         void deallocate(int8_t* b);
         int initialPacketCount(OpaqueMusicPtr* ptr);
-        int8_t* queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
-        int needData(OpaqueMusicPtr* ptr, int sampleRate, bool firstCall);
+        void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
         void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
         void stopPlayer(OpaqueMusicPtr* ptr);
         int getPosition(OpaqueMusicPtr* ptr);

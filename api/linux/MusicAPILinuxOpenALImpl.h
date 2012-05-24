@@ -9,9 +9,8 @@ class MusicAPILinuxOpenALImpl : public MusicAPI {
         int8_t* allocate(int size);
         void deallocate(int8_t* b);
         int pcmBufferSize(int sampleRate);
-        int8_t* queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
+        void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
         int initialPacketCount(OpaqueMusicPtr* ptr);
-        int needData(OpaqueMusicPtr* ptr, int sampleRate, bool firstCall);
         void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
         void stopPlayer(OpaqueMusicPtr* ptr);
         int getPosition(OpaqueMusicPtr* ptr);
