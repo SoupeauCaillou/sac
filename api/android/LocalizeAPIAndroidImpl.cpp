@@ -21,6 +21,12 @@ LocalizeAPIAndroidImpl::LocalizeAPIAndroidImpl(JNIEnv *pEnv) : env(pEnv) {
 	
 }
 
+LocalizeAPIAndroidImpl::~LocalizeAPIAndroidImpl() {
+    env->DeleteGlobalRef(datas->javaLocApi);
+    delete datas;
+}
+
+
 void LocalizeAPIAndroidImpl::init() {
 	datas = new LocalizeAPIAndroidImplData();
 	

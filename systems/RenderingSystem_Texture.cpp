@@ -131,6 +131,7 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 
 GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size) {
 	int w,h;
+    // LOGW("loadTexture: %s", assetName.c_str());
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
 
 #ifndef ANDROID
@@ -196,12 +197,13 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 
 void RenderingSystem::reloadTextures() {
 	Vector2 size, psize;
-	
+	LOGW("Reloading textures begin");
+    LOGW("\t- atlas : %d", atlas.size());
 	// reload atlas texture
 	for (int i=0; i<atlas.size(); i++) {
 		atlas[i].texture = loadTexture(atlas[i].name, size, psize);
 	}
-
+    LOGW("\t - textures: %d", assetTextures.size());
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		TextureInfo& info = textures[it->second];
 		if (info.atlasIndex >= 0)
@@ -211,6 +213,7 @@ void RenderingSystem::reloadTextures() {
 			textures[it->second] = TextureInfo(ref, 0, 0, size.X, size.Y, false, psize);
 		}
 	}
+    LOGW("Reloading textures done");
 }
 
 void RenderingSystem::processDelayedTextureJobs() {

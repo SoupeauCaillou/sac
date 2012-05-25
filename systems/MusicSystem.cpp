@@ -37,6 +37,13 @@ void MusicSystem::init() {
     // sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
 }
 
+void MusicSystem::uninit() {
+    runDecompLoop = false;
+     pthread_cond_signal(&cond);
+    pthread_join(oggDecompressionThread, 0);
+    LOGW("MusicSystem uninitinalized");
+}
+
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
     if (it == musics.end())
@@ -250,15 +257,14 @@ void MusicSystem::DoUpdate(float dt) {
 }
 
 void MusicSystem::oggDecompRunLoop() {
-    // who cares
-    std::map<MusicRef, std::pair<int8_t*, int> > bigChunks;
-    typedef std::map<MusicRef, std::pair<int8_t*, int> >::iterator ChunkIt;
+    runDecompLoop = true;
+
     pthread_mutex_lock(&mutex);
 
     // one static buffer to rule them all
     int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
 
-    while (true) {
+    while (runDecompLoop) {
 	    bool roomForImprovement = false;
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ) {
             assert(it->first != InvalidMusicRef);

@@ -32,6 +32,11 @@ MusicAPIAndroidImpl::MusicAPIAndroidImpl(JNIEnv *pEnv) : env(pEnv) {
 	
 }
 
+MusicAPIAndroidImpl::~MusicAPIAndroidImpl() {
+    env->DeleteGlobalRef(datas->javaMusicApi);
+    delete datas;
+}
+
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
     jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
     if (!mId) {

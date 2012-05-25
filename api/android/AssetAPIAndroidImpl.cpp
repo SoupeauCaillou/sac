@@ -18,6 +18,11 @@ AssetAPIAndroidImpl::AssetAPIAndroidImpl(JNIEnv *pEnv, jobject pAssetManager) : 
 	
 }
 
+AssetAPIAndroidImpl::~AssetAPIAndroidImpl() {
+    env->DeleteGlobalRef(datas->javaAssetApi);
+    delete datas;
+}
+
 void AssetAPIAndroidImpl::init() {
 	datas = new AssetAPIAndroidImplData();
 

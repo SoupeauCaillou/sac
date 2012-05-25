@@ -31,6 +31,7 @@ void EntityManager::CreateInstance() {
 
 void EntityManager::DestroyInstance() {
 	delete instance;
+    instance = NULL;
 }
 
 Entity EntityManager::CreateEntity(EntityType type) {
@@ -63,11 +64,12 @@ void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
 }
 
 void EntityManager::deleteAllEntities() {
-	for (std::map<Entity, std::list<ComponentSystem*> >::iterator it=entityComponents.begin();
-		it!=entityComponents.end(); ++it) {
-		DeleteEntity(it->first);
+    std::vector<Entity> entities = allEntities();
+    for (int i=0; i<entities.size(); i++) {
+		DeleteEntity(entities[i]);
 	}
 	nextEntity = 1;
+    assert (entityComponents.size() == 0);
 }
 
 std::vector<Entity> EntityManager::allEntities() {

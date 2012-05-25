@@ -23,6 +23,11 @@ SoundAPIAndroidImpl::SoundAPIAndroidImpl(JNIEnv *pEnv, jobject assetMgr) : env(p
 
 }
 
+SoundAPIAndroidImpl::~SoundAPIAndroidImpl() {
+    env->DeleteGlobalRef(datas->javaSoundApi);
+    delete datas;
+}
+
 void SoundAPIAndroidImpl::init() {
     datas = new SoundAPIAndroidImplData();
 

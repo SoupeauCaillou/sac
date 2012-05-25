@@ -5,6 +5,7 @@
 
 class NameInputAPIAndroidImpl : public NameInputAPI {
     public:
+        ~NameInputAPIAndroidImpl();
         void init(JNIEnv* env);
         void show();
         bool done(std::string& name);

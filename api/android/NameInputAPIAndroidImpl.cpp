@@ -18,6 +18,11 @@ struct NameInputAPIAndroidImpl::NameInputAPIAndroidImplDatas {
     jmethodID done;
 };
 
+NameInputAPIAndroidImpl::~NameInputAPIAndroidImpl() {
+    env->DeleteGlobalRef(datas->javaNameApi);
+    delete datas;
+}
+
 void NameInputAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
     datas = new NameInputAPIAndroidImplDatas();

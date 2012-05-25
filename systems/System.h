@@ -25,8 +25,8 @@
 	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
 			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); } \
-			static void DestroyInstance() { if (_instance) delete _instance; _instance = NULL; } \
+			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); LOGW(#type "System new instance created: %p", _instance);} \
+			static void DestroyInstance() { if (_instance) delete _instance; LOGW(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
 			void DoUpdate(float dt); \
 		\
 		private:	\
@@ -35,7 +35,8 @@
 
 class ComponentSystem {
 	public:
-		ComponentSystem(const std::string& n) : name(n) { registry[name] = this; }
+		ComponentSystem(const std::string& n) : name(n) { assert(registry.insert(std::make_pair(name, this)).second); }
+        ~ComponentSystem() { registry.erase(name); }
 
 		virtual const std::string& getName() const { return name; }
 		virtual void Add(Entity entity) = 0;

@@ -6,6 +6,7 @@
 class LocalizeAPIAndroidImpl : public LocalizeAPI {
 	public:
 		LocalizeAPIAndroidImpl(JNIEnv *env);
+        ~LocalizeAPIAndroidImpl();
 		void init();
 		std::string text(const std::string& s, const std::string& spc);
 	

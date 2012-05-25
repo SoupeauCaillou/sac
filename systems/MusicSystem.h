@@ -49,6 +49,7 @@ UPDATABLE_SYSTEM(Music)
 
 public:
 void init();
+void uninit();
 bool isMuted() const { return muted; }
 
 MusicRef loadMusicFile(const std::string& assetName);
@@ -95,5 +96,6 @@ MusicAPI* musicAPI;
 AssetAPI* assetAPI;
 
 void oggDecompRunLoop();
+bool runDecompLoop;
 };
 
