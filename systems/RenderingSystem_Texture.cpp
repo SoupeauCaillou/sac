@@ -71,17 +71,20 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	}
 	
 	Vector2 atlasSize, pow2Size;
-	GLuint glref = loadTexture(atlasImage, atlasSize, pow2Size);
+	GLuint glref = 0; // delayed load loadTexture(atlasImage, atlasSize, pow2Size);
 	Atlas a;
 	a.name = atlasImage;
 	a.texture = glref;
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
-	LOGW("atlas '%s' -> index: %d, glref: %u", atlasName.c_str(), atlasIndex, glref);
-	
+
 	std::stringstream f(std::string(desc), std::ios_base::in);
 	std::string s;
 	f >> s;
+
+    // read texture size
+    assert (2 == sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y));
+    LOGW("atlas '%s' -> index: %d, glref: %u, size:[%f,%f]", atlasName.c_str(), atlasIndex, glref, atlasSize.X, atlasSize.Y);
 	int count = 0;
 	while(!s.empty()) {
 		// LOGI("atlas - line: %s", s.c_str());
@@ -201,7 +204,7 @@ void RenderingSystem::reloadTextures() {
     LOGW("\t- atlas : %d", atlas.size());
 	// reload atlas texture
 	for (int i=0; i<atlas.size(); i++) {
-		atlas[i].texture = loadTexture(atlas[i].name, size, psize);
+		atlas[i].texture = 0;//loadTexture(atlas[i].name, size, psize);
 	}
     LOGW("\t - textures: %d", assetTextures.size());
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
@@ -217,6 +220,23 @@ void RenderingSystem::reloadTextures() {
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
+    // load atlas
+    for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
+        int atlasIndex = *it;
+        Vector2 atlasSize, pow2Size;
+        GLuint glref = loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size);
+        atlas[atlasIndex].texture = glref;
+        LOGW("Atlas '%s' loaded : %u", atlas[atlasIndex].name.c_str(), glref);
+
+        for (std::map<std::string, TextureRef>::iterator jt=assetTextures.begin(); jt!=assetTextures.end(); ++jt) {
+            TextureInfo& info = textures[jt->second];
+            if (info.atlasIndex == atlasIndex) {
+                info.glref = glref;
+            }
+        }
+    }
+    delayedAtlasIndexLoad.clear();
+
     // load textures
     for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
         Vector2 size, powSize;

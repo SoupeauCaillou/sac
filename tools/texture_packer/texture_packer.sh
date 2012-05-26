@@ -21,6 +21,7 @@ while read data; do
 		h=`echo $data | cut -d, -f2`
 		echo "Atlas size: $w x $h"
 		convert -size ${w}x${h} xc:transparent ${output}
+		echo "$w,$h" > ${desc}
 	else
 		image=`echo $data | cut -d, -f1`
 		x=`echo $data | cut -d, -f2`

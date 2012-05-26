@@ -157,6 +157,16 @@ void RenderingSystem::DoUpdate(float dt) {
 		c.rotation = tc->worldRotation;
 		c.z = tc->z;
 		c.desaturate = rc->desaturate;
+
+        if (c.texture != InvalidTextureRef) {
+            TextureInfo& info = textures[c.texture];
+            int atlasIdx = info.atlasIndex;
+            if (atlasIdx >= 0 && atlas[atlasIdx].texture == 0) {
+                if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
+                    LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
+                }
+            }
+         }
 		
 		if (c.color.a >= 1 && rc->drawGroup == RenderingComponent::FrontToBack)
 			commands.push_back(c);

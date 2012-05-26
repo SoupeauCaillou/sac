@@ -148,6 +148,7 @@ struct Atlas {
 
 std::map<TextureRef, TextureInfo> textures;
 std::set<std::string> delayedLoads;
+std::set<int> delayedAtlasIndexLoad;
 std::set<TextureRef> delayedDeletes;
 std::vector<Atlas> atlas;
 
