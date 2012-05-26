@@ -67,6 +67,13 @@ struct Color {
         return Color(r+c.r, g+c.g, b+c.b, a+c.a);
      }
 
+     bool operator!=(const Color& c) const {
+        return memcmp(rgba, c.rgba, sizeof(rgba)) != 0;
+     }
+     bool operator<(const Color& c) const {
+        return memcmp(rgba, c.rgba, sizeof(rgba)) < 0;
+     }
+
 };
 struct RenderingComponent {
 	RenderingComponent() : /*bottomLeftUV(0, 0), topRightUV(1, 1),*/ hide(true), texture(InvalidTextureRef), drawGroup(BackToFront), desaturate(false) {}

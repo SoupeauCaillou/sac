@@ -126,10 +126,15 @@ static bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
 }
 
 static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
-	if (r1.z == r2.z)
-		return r1.texture < r2.texture;
-	else
+	if (r1.z == r2.z) {
+		if (r1.texture == r2.texture) {
+            return r1.color < r2.color;
+        } else {
+            return r1.texture < r2.texture;
+        }
+	} else {
 		return r1.z < r2.z;
+    }
 }
 
 void RenderingSystem::DoUpdate(float dt) {

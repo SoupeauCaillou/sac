@@ -169,8 +169,8 @@ static void drawBatchES1(GLint m_textureId, const GLfloat* vertices, const GLflo
 	setupTexturing(m_textureId, desaturate, uvs);
 	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
-	GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
-	GL_OPERATION(glEnableClientState(GL_COLOR_ARRAY))
+	// GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
+	GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
 
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 }
@@ -187,7 +187,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	GLint t;
 	// GL_OPERATION(glDepthMask(true))
 	GLuint boundTexture = 0;
-	while (!commands.empty()) {
+    Color currentColor(1,1,1,1);
+    glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
+    while (!commands.empty()) {
 	// for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		RenderCommand& rc = commands.front();
 
@@ -224,7 +226,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.rotateUV = 0;
 		}
 		t = rc.texture;
-		if (boundTexture != rc.texture) {
+		if (boundTexture != rc.texture || currentColor != rc.color) {
 			if (batchSize > 0) {
 				// execute batch
 				if (opengles2)
@@ -234,8 +236,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 				batchSize = 0;
 			}
-			// glBindTexture(GL_TEXTURE_2D, rc.texture);
 			boundTexture = rc.texture;
+            currentColor = rc.color;
+            glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 		}
 
 		const GLfloat squareUvs[] = {
@@ -265,10 +268,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
 		uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
 
-		memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
-		memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
-		memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
-		memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
+		// memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
+		// memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
+		// memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
+		// memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
 
 		indices[batchSize * 6 + 0] = baseIdx + 0;
 		indices[batchSize * 6 + 1] = baseIdx + 1;
