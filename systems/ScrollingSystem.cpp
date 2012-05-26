@@ -6,8 +6,8 @@
 INSTANCE_IMPL(ScrollingSystem);
  
 static Color debugColors[] = {
-	Color(0.5, 0, 0, 1),
-	Color(0, 0.5, 0, 1),
+	Color(0.5, 0.5, 0.5, 1),
+	Color(1, 0, 0, 1),
 	Color(0, 0, 0.5, 1),
 	Color(0, 0.5, 0.5, 1)
 };
@@ -55,12 +55,30 @@ void ScrollingSystem::DoUpdate(float dt) {
 			    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
 			    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 			    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
+                    if (i == 0) {
+                        tc->position += sc->speed * dt;
+                    }
                     tc->z = ptc->z - 0.005;
                     se.hasBeenVisible[i] = false;
 			    	//RENDERING(se.e[i])->color = debugColors[se.imageIndex[i]];
 		        }
 	        }
         }
+        TransformationComponent* ptc = TRANSFORM(a);
+                 Vector2 normS = -Vector2::Normalize(sc->speed);
+
+        if (TRANSFORM(se.e[0])->position.X > TRANSFORM(se.e[1])->position.X) {
+            TRANSFORM(se.e[0])->position.X = TRANSFORM(se.e[1])->position.X + normS.X * ptc->size.X;
+        } else {
+            TRANSFORM(se.e[1])->position.X = TRANSFORM(se.e[0])->position.X + normS.X * ptc->size.X;
+
+        }
+        /*
+        std::cout << "Diff: " <<
+            MathUtil::Abs(TRANSFORM(se.e[0])->position.X - TRANSFORM(se.e[1])->position.X) <<
+            ","<<TRANSFORM(se.e[0])->z << "," << TRANSFORM(se.e[1])->z << "," <<
+            ptc->size.X << " * " << normS.X << " / " << TRANSFORM(se.e[0])->size.X << "," << TRANSFORM(se.e[1])->size.X << std::endl;
+        */
     }
 }
 
@@ -77,13 +95,13 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		tc->parent = e;
 		tc->size = sc->displaySize;//
 		tc->position = Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y) * i;
-		tc->z = ptc->z - i * 0.005;
+		tc->z = ptc->z + i * 0.05;
 		
 		RenderingComponent* rc = RENDERING(se.e[i]);
 		rc->hide = false;
 		se.imageIndex[i] = i % sc->images.size();
 		rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-		//rc->color = debugColors[se.imageIndex[i]];
+		// rc->color = debugColors[se.imageIndex[i]];
 		se.hasBeenVisible[i] = false;
 	}
 	elements[e] = se;
