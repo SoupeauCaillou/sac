@@ -2,6 +2,11 @@
 #include <ctype.h>
 #include <sstream>
 
+const float TextRenderingComponent::LEFT = 0.0f;
+const float TextRenderingComponent::CENTER = 0.5f;
+const float TextRenderingComponent::RIGHT = 1.0f;
+
+
 INSTANCE_IMPL(TextRenderingSystem);
 
 TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
@@ -30,6 +35,8 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 }
 
 static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
+    return -computeStringWidth(trc, charH2Wratio) * trc->positioning + trc->charHeight * 0.5;
+/*
 	switch (trc->positioning) {
 		case TextRenderingComponent::LEFT:
 			return charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
@@ -39,6 +46,7 @@ static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, 
 		default:
 			return -(computeStringWidth(trc, charH2Wratio) - 0*charH2Wratio[trc->text[0]]) * 0.5;
 	}
+*/
 }
 
 void TextRenderingSystem::DoUpdate(float dt) {

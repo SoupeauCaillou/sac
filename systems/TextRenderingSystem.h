@@ -17,6 +17,10 @@
 #include "RenderingSystem.h"
 
 struct TextRenderingComponent {
+    const static float LEFT;
+    const static float CENTER;
+    const static float RIGHT;
+
 	TextRenderingComponent() : text(""), hide(false), positioning(CENTER), isANumber(false) {}
 	std::string text;
 	Color color;
@@ -25,11 +29,7 @@ struct TextRenderingComponent {
 	Vector2 uvSize;
 	float charHeight;
 	std::string fontName;
-	enum Positionning {
-		CENTER,
-		LEFT,
-		RIGHT
-	} positioning;
+	float positioning;
 	bool hide, isANumber;
 	// managed by systems
 	std::vector<Entity> drawing;
