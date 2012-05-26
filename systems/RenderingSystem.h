@@ -108,6 +108,7 @@ void init();
 
 void loadAtlas(const std::string& atlasName);
 void unloadAtlas(const std::string& atlasName);
+void invalidateAtlasTextures();
 
 int saveInternalState(uint8_t** out);
 void restoreInternalState(const uint8_t* in, int size);

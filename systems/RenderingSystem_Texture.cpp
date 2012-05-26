@@ -106,6 +106,12 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
 
+void RenderingSystem::invalidateAtlasTextures() {
+    for (int i=0; i<atlas.size(); i++) {
+        atlas[i].texture = 0;
+    }
+}
+
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     for (int i=0; i<atlas.size(); i++) {
         if (atlasName == atlas[i].name) {

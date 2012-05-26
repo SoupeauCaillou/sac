@@ -24,6 +24,7 @@
 #define UPDATABLE_SYSTEM(type) \
 	class type##System : public ComponentSystemImpl<type##Component> {	\
 		public:	\
+            static type##System* GetInstancePointer() { return _instance; } \
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); LOGW(#type "System new instance created: %p", _instance);} \
 			static void DestroyInstance() { if (_instance) delete _instance; LOGW(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
