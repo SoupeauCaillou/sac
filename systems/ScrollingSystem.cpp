@@ -98,7 +98,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		tc->z = ptc->z + i * 0.05;
 		
 		RenderingComponent* rc = RENDERING(se.e[i]);
-		rc->hide = false;
+		// rc->hide = false;
 		se.imageIndex[i] = i % sc->images.size();
 		rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 		// rc->color = debugColors[se.imageIndex[i]];
