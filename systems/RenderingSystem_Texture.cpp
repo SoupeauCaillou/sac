@@ -83,8 +83,8 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	f >> s;
 
     // read texture size
-    assert (2 == sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y));
-    LOGW("atlas '%s' -> index: %d, glref: %u, size:[%f,%f]", atlasName.c_str(), atlasIndex, glref, atlasSize.X, atlasSize.Y);
+    sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
+    LOGW("atlas '%s' -> index: %d, glref: %u, size:[%f,%f] ('%s')", atlasName.c_str(), atlasIndex, glref, atlasSize.X, atlasSize.Y, s.c_str());
 	int count = 0;
 	while(!s.empty()) {
 		// LOGI("atlas - line: %s", s.c_str());
