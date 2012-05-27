@@ -37,9 +37,6 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
     float result = -computeStringWidth(trc, charH2Wratio) * trc->positioning;
 
-    if (!trc->text.empty()) {
-        result += charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
-    }
     return result;
 }
 
@@ -84,8 +81,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->color = trc->color;
 			}
 			tc->size = Vector2(trc->charHeight * charH2Wratio[trc->text[i]], trc->charHeight);
+			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
-			x += tc->size.X;
+			x += tc->size.X * 0.5;
 
 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
