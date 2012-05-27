@@ -23,9 +23,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	const Vector2& pos = TRANSFORM(entity)->worldPosition;
 	const Vector2& size = TRANSFORM(entity)->size;
 
-	bool over = inside(touchPos, pos, size);
+	bool over = inside(touchPos, pos, size * comp->overSize);
 	comp->clicked = false;
-	
+
 	if (comp->enabled) {
 		if (comp->mouseOver) {
 			if (touching) {
