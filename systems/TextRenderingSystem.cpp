@@ -35,18 +35,12 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 }
 
 static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
-    return -computeStringWidth(trc, charH2Wratio) * trc->positioning + trc->charHeight * 0.5;
-/*
-	switch (trc->positioning) {
-		case TextRenderingComponent::LEFT:
-			return charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
-		case TextRenderingComponent::RIGHT:
-			return -computeStringWidth(trc, charH2Wratio) + 0*charH2Wratio[trc->text[trc->text.length() - 1]] * 0.5;
-		case TextRenderingComponent::CENTER:
-		default:
-			return -(computeStringWidth(trc, charH2Wratio) - 0*charH2Wratio[trc->text[0]]) * 0.5;
-	}
-*/
+    float result = -computeStringWidth(trc, charH2Wratio) * trc->positioning;
+
+    if (!trc->text.empty()) {
+        result += charH2Wratio[trc->text[0]] * trc->charHeight * 0.5;
+    }
+    return result;
 }
 
 void TextRenderingSystem::DoUpdate(float dt) {
@@ -57,6 +51,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		trans->size = Vector2::Zero;
 
 		const int length = trc->text.length();
+
 		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
 		float x = computeStartX(trc, charH2Wratio);
 
