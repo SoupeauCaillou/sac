@@ -84,9 +84,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->color = trc->color;
 			}
 			tc->size = Vector2(trc->charHeight * charH2Wratio[trc->text[i]], trc->charHeight);
-			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
-			x += tc->size.X * 0.5;
+			x += tc->size.X;
 
 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
