@@ -43,29 +43,25 @@ void ScrollingSystem::DoUpdate(float dt) {
 	    for (int i=0; i<2; i++) {
 		    if (RENDERING(se.e[i])->hide)
 		    	RENDERING(se.e[i])->hide = false;
-		    if (sc->speed != Vector2::Zero) {
-		        TransformationComponent* tc = TRANSFORM(se.e[i]);
-		        tc->position += sc->speed * dt;
-		        bool isVisible = theRenderingSystem.isVisible(tc);
-		        if (!se.hasBeenVisible[i] && isVisible) {
-			        se.hasBeenVisible[i] = true;
-		        } else if (se.hasBeenVisible[i] && !isVisible) {
-		        	TransformationComponent* ptc = TRANSFORM(a);
-		        	Vector2 normS = -Vector2::Normalize(sc->speed);
-			    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
-			    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-			    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
-                    if (i == 0) {
-                        tc->position += sc->speed * dt;
-                    }
-                    tc->z = ptc->z - 0.005;
-                    se.hasBeenVisible[i] = false;
-			    	//RENDERING(se.e[i])->color = debugColors[se.imageIndex[i]];
-		        }
+		    
+	        TransformationComponent* tc = TRANSFORM(se.e[i]);
+	        tc->position += sc->speed * dt;
+	        bool isVisible = theRenderingSystem.isVisible(tc);
+	        if (!se.hasBeenVisible[i] && isVisible) {
+		        se.hasBeenVisible[i] = true;
+	        } else if (se.hasBeenVisible[i] && !isVisible) {
+	        	TransformationComponent* ptc = TRANSFORM(a);
+	        	Vector2 normS = -Vector2::Normalize(sc->speed);
+		    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
+		    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
+		    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
+                tc->z = ptc->z - 0.005;
+                se.hasBeenVisible[i] = false;
+		    	//RENDERING(se.e[i])->color = debugColors[se.imageIndex[i]];
 	        }
         }
         TransformationComponent* ptc = TRANSFORM(a);
-                 Vector2 normS = -Vector2::Normalize(sc->speed);
+		Vector2 normS = -Vector2::Normalize(sc->speed);
 
         if (TRANSFORM(se.e[0])->position.X > TRANSFORM(se.e[1])->position.X) {
             TRANSFORM(se.e[0])->position.X = TRANSFORM(se.e[1])->position.X + normS.X * ptc->size.X;

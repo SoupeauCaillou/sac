@@ -159,6 +159,9 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 					break;
 			}
 			ComponentSystem* system = ComponentSystem::Named(tmp);
+			if (system == 0) {
+				LOGE("Failed to properly restore state: index=%d/%d i=%d/%d entity=%lu", index, length, i, cCount, e & ~EntityTypeMask );
+			}
 			int size = 0;
 			memcpy(&size, &in[index], sizeof(int)); index += sizeof(int);
 			uint8_t* b = new uint8_t[size];

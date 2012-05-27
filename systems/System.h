@@ -51,7 +51,7 @@ class ComponentSystem {
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
-				std::cout << "System with name: '" << n << " does not exist" << std::endl;
+				LOGE("System with name: '%s' does not exist");
 				return 0;
 			}
 			return (*it).second;
