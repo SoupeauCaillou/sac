@@ -158,7 +158,9 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 		return 0;
 
 	/* create GL texture */
+#ifdef GLES2_SUPPORT
 	if (!opengles2)
+#endif
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 
 	int powerOf2W = alignOnPowerOf2(w);

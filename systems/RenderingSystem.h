@@ -40,6 +40,9 @@ typedef int TextureRef;
 		(x);
 #endif
 
+#undef GLES2_SUPPORT
+
+
 class NativeAssetLoader {
 	public:
 		virtual char* decompressPngImage(const std::string& assetName, int* width, int* height) = 0;

@@ -35,6 +35,7 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 }
 
 void RenderingSystem::init() {
+#ifdef GLES2_SUPPORT
 	if (opengles2) {
 		defaultProgram = 0;
 		LOGW("default prog: %u before", defaultProgram);
@@ -73,7 +74,9 @@ void RenderingSystem::init() {
 		glDeleteShader(fs);
 		
 		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
-	} else {
+	} else 
+#endif	
+			{
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
 		glAlphaFunc(GL_GREATER, 0.1);

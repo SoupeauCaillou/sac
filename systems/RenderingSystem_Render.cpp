@@ -31,6 +31,7 @@ void RenderingSystem::check_GL_errors(const char* context) {
 
 #include <pthread.h>
 
+#ifdef GLES2_SUPPORT
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
 	char* source = assetLoader->loadShaderFile(assetName);
 	GLuint shader = glCreateShader(type);
@@ -53,9 +54,11 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
    }
 	return shader;
 }
+#endif
 
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
+#ifdef GLES2_SUPPORT
 static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
@@ -68,6 +71,7 @@ static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfl
 	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 }
+#endif
 
 static void setupTexturing(GLint m_textureId, bool enableDesaturation, const float* uvs) {
 	if (!enableDesaturation) {
@@ -202,9 +206,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		} else if (rc.desaturate != desaturate) {
 			if (batchSize > 0) {
 				// execute batch
+				#ifdef GLES2_SUPPORT
 				if (opengles2)
 					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
+				#endif
 					drawBatchES1(boundTexture, vertices, uvs, posrot, indices, batchSize);
 
 				batchSize = 0;
@@ -228,9 +234,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		if (boundTexture != rc.texture || currentColor != rc.color) {
 			if (batchSize > 0) {
 				// execute batch
+				#ifdef GLES2_SUPPORT
 				if (opengles2)
 					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
+				#endif
 					drawBatchES1(boundTexture, vertices, uvs, posrot, indices, batchSize);
 
 				batchSize = 0;
@@ -270,9 +278,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
+			#ifdef GLES2_SUPPORT
 			if (opengles2)
 				drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 			else
+			#endif
 				drawBatchES1(rc.texture, vertices, uvs, posrot, indices, batchSize);
 			batchSize = 0;
 		}
@@ -280,9 +290,12 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	}
 
 	if (batchSize > 0) {
+		#ifdef GLES2_SUPPORT
 		if (opengles2) {
 			drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
-		} else {
+		} else 
+		#endif	
+		{
 			drawBatchES1(t, vertices, uvs, posrot, indices, batchSize);
 		}
 	}
