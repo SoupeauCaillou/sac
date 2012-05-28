@@ -29,7 +29,10 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
 	}
 	for (unsigned int i=0; i<trc->text.length(); i++) {
-		width += charH2Wratio[trc->text[i]] * trc->charHeight;
+		char letter = trc->text[i];
+		if (letter != (char)0xC3) {
+			width += charH2Wratio[trc->text[i]] * trc->charHeight;
+		}
 	}
 	return width;
 }
@@ -72,7 +75,14 @@ void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 				continue;
 
 			std::stringstream a;
-			a << (int)trc->text[i] << "_" << trc->fontName << ".png";
+			char letter = trc->text[i];
+			// Unicode control caracter, skipping
+			if (letter == (char)0xC3) {
+				rc->hide = true;
+				continue;
+			} else {
+				a << (int) ((letter < 0) ? (unsigned char)letter : letter) << "_" << trc->fontName << ".png";
+			}
 
 			if (trc->text[i] == ' ') {
 				rc->hide = true;
