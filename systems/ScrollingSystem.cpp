@@ -63,7 +63,7 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        }
         }
         TransformationComponent* ptc = TRANSFORM(a);
-		Vector2 normS = -Vector2::Normalize(sc->speed);
+		Vector2 normS = Vector2(1, 0);//-Vector2::Normalize(sc->speed);
 
         if (TRANSFORM(se.e[0])->position.X > TRANSFORM(se.e[1])->position.X) {
             TRANSFORM(se.e[0])->position.X = TRANSFORM(se.e[1])->position.X + normS.X * ptc->size.X;

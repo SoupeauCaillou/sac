@@ -47,4 +47,5 @@ UPDATABLE_SYSTEM(Morphing)
 
 public:
 	void reverse(MorphingComponent* mc);
+	void clear(MorphingComponent* mc);
 };

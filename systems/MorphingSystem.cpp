@@ -35,3 +35,10 @@ void MorphingSystem::reverse(MorphingComponent* mc) {
 		mc->elements[i]->reverse();
 	}
 }
+
+void MorphingSystem::clear(MorphingComponent* mc) {
+	for (unsigned int i=0; i<mc->elements.size(); i++) {
+		delete mc->elements[i];
+	}
+	mc->elements.clear();
+}
