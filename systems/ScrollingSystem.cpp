@@ -21,9 +21,6 @@ void ScrollingSystem::DoUpdate(float dt) {
         Entity a = (*it).first;
         ScrollingComponent* sc = (*it).second;
 
-		if (sc->speed.LengthSquared() < 0.0001) {
-			continue;
-		}
 		
         EltIt iter = elements.find(a);
         if (iter == elements.end()) {
@@ -39,6 +36,10 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        continue;
         }
         
+		/*if (sc->speed.LengthSquared() < 0.0001) {
+			continue;
+		}*/
+        
 	    ScrollingElement& se = iter->second;
 	    for (int i=0; i<2; i++) {
 		    if (RENDERING(se.e[i])->hide)
@@ -51,7 +52,8 @@ void ScrollingSystem::DoUpdate(float dt) {
 		        se.hasBeenVisible[i] = true;
 	        } else if (se.hasBeenVisible[i] && !isVisible) {
 	        	TransformationComponent* ptc = TRANSFORM(a);
-	        	Vector2 normS = -Vector2::Normalize(sc->speed);
+	        	// HACK
+	        	Vector2 normS = Vector2(1, 0); //-Vector2::Normalize(sc->speed);
 		    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
 		    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 		    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
@@ -83,7 +85,8 @@ void ScrollingSystem::DoUpdate(float dt) {
 
 void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 	ScrollingElement se;
-	Vector2 normS = -Vector2::Normalize(sc->speed);
+	Vector2 normS = Vector2(1, 0); // -Vector2::Normalize(sc->speed);
+	// TEMP HACK
 	TransformationComponent* ptc = TRANSFORM(e);
 	for (int i=0; i<2; i++) {
 		se.e[i] = theEntityManager.CreateEntity();
