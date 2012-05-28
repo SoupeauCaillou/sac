@@ -193,11 +193,23 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, powerOf2W,
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
 	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w + 4*border,
                 h + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, data))
+                
+	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out[1]))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, powerOf2W,
+                powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                NULL))
+	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w + 4*border,
+                h + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, data))
+
 	free(data);
 	
 	realSize.X = w;
