@@ -88,7 +88,12 @@ void MusicSystem::DoUpdate(float dt) {
 		
         if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
-            m->opaque[0] = startOpaque(m, m->music, m->master, 0);
+            m->opaque[0] = startOpaque(m, m->music, m->master, 0);            	
+            if (m->opaque[1]) {
+	            musicAPI->stopPlayer(m->opaque[1]);
+				musicAPI->deletePlayer(m->opaque[1]);
+				clearAndRemoveInfo(m->loopNext);
+            }
             m->opaque[1] = 0;
         } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
 	        if (m->fadeOut > 0) {
@@ -124,7 +129,6 @@ void MusicSystem::DoUpdate(float dt) {
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
                 // remove m->music from musics
-                LOGW("Delete m->music: %d", m->music);
                 clearAndRemoveInfo(m->music);
                 m->music = InvalidMusicRef;
                 m->control = MusicComponent::Stop;
@@ -169,7 +173,6 @@ void MusicSystem::DoUpdate(float dt) {
                 musicAPI->deletePlayer(m->opaque[1]);
                 m->opaque[1] = 0;
                 // remove m->loopNext from musics
-                LOGW("Delete m->loopNext:: %d", m->loopNext);
                 clearAndRemoveInfo(m->loopNext);
                 m->loopNext = InvalidMusicRef;
                 LOGI("%p Player 1 has finished", m);
@@ -497,7 +500,6 @@ static long int tell_func(void* datasource) {
 }
 
 static int close_func(void *datasource) {
-    LOGW("close_func : %p", datasource);
     DataSource* src = static_cast<DataSource*> (datasource);
     delete src;
     return 0;
