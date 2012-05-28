@@ -11,14 +11,14 @@ void MorphingSystem::DoUpdate(float dt) {
 		if (!m->active || m->activationTime>m->timing) {
 			m->active = false;
 			m->activationTime = 0;
-            for (int i=0; i<m->elements.size(); i++)
+            for (unsigned int i=0; i<m->elements.size(); i++)
                 m->elements[i]->ended = false;
 			continue;
 		}
 		if (m->active) {
 			m->activationTime += dt;
 			m->value = MathUtil::Min(1.0f, m->activationTime/m->timing);
-            for (int i=0; i<m->elements.size(); i++) {
+            for (unsigned int i=0; i<m->elements.size(); i++) {
                 if (!m->elements[i]->ended) {
 					m->elements[i]->lerp(m->value);
 					if (m->value == 1) {
@@ -31,7 +31,7 @@ void MorphingSystem::DoUpdate(float dt) {
 }
 
 void MorphingSystem::reverse(MorphingComponent* mc) {
-	for (int i=0; i<mc->elements.size(); i++) {
+	for (unsigned int i=0; i<mc->elements.size(); i++) {
 		mc->elements[i]->reverse();
 	}
 }

@@ -40,7 +40,7 @@ static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, 
     return result;
 }
 
-void TextRenderingSystem::DoUpdate(float dt) {
+void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		TextRenderingComponent* trc = (*it).second;

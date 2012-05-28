@@ -289,7 +289,7 @@ void MusicSystem::oggDecompRunLoop() {
 	            ++it;
             }
             
-            int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
+            unsigned int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
             
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
              	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
@@ -325,7 +325,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, floa
 	while (dt >= chunkDuration) {
 		
 	// while (musicAPI->needData(ptr, info.sampleRate, false)) {
-	    unsigned int count = info.buffer->readDataAvailable();
+	    int count = info.buffer->readDataAvailable();
 	    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
 	    if (count < info.pcmBufferSize * 3) {
 		    // wake-up decomp thread via notify
@@ -398,7 +398,6 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 		return InvalidMusicRef;
 		
     FileBuffer b;
-    int size;
     if (name2buffer.find(assetName) == name2buffer.end()) {
         b = assetAPI->loadAsset(assetName);
         name2buffer[assetName] = b;
@@ -467,7 +466,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
     DataSource* src = static_cast<DataSource*> (datasource);
     size_t r = 0;
-    for (int i=0; i<nmemb && src->cursor < src->size; i++) {
+    for (unsigned int i=0; i<nmemb && src->cursor < src->size; i++) {
         size_t a = MathUtil::Min(src->size - src->cursor + 1, (int)size);
         memcpy(&((char*)ptr)[i * size], &src->datas[src->cursor], a);
         src->cursor += a;

@@ -17,7 +17,7 @@ static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, Tra
 	maxY = MathUtil::Max(maxY, tc->worldPosition.Y + tc->size.Y * 0.5f);
 }
 
-void ContainerSystem::DoUpdate(float dt) {
+void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		ContainerComponent* bc = (*it).second;

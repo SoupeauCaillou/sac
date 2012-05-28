@@ -30,7 +30,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
     }
 }
 
-void SoundSystem::DoUpdate(float dt) {
+void SoundSystem::DoUpdate(float dt __attribute__((unused))) {
 	if (mute) {
 		for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 			SoundComponent* rc = (*it).second;
@@ -41,7 +41,6 @@ void SoundSystem::DoUpdate(float dt) {
 
 	/* play component with a valid sound ref */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;
 		SoundComponent* rc = (*it).second;
 		if (rc->sound != InvalidSoundRef && !mute ) {
             soundAPI->play(sounds[rc->sound], rc->volume);

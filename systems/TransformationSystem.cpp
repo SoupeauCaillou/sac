@@ -6,9 +6,8 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
 	
 }
 
-void TransformationSystem::DoUpdate(float dt) {
+void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;			
 		TransformationComponent* bc = (*it).second;
 
 		Entity parent = bc->parent;

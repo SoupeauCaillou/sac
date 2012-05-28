@@ -14,7 +14,7 @@ void TouchInputManager::init(Vector2 pWorldSize, Vector2 pWindowSize) {
 	windowSize = pWindowSize;
 }
 
-void TouchInputManager::Update(float dt) {
+void TouchInputManager::Update(float dt __attribute__((unused)) ) {
 	Vector2 windowPos;
 
 	wasTouching = touching;

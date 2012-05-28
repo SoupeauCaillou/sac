@@ -136,7 +136,7 @@ static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
     }
 }
 
-void RenderingSystem::DoUpdate(float dt) {
+void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	pthread_mutex_lock(&mutexes[current]);
 	
 	std::vector<RenderCommand> commands;

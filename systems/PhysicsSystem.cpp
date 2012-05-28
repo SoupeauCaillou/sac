@@ -20,13 +20,13 @@ void PhysicsSystem::DoUpdate(float dt) {
 
         // linear accel
         Vector2 linearAccel(pc->gravity);
-        for (int i=0; i<pc->forces.size(); i++) {
+        for (unsigned int i=0; i<pc->forces.size(); i++) {
             linearAccel += pc->forces[i].vector;
         }
         linearAccel /= pc->mass;
         // angular accel
         float angAccel = 0;
-        for (int i=0; i<pc->forces.size(); i++) {
+        for (unsigned int i=0; i<pc->forces.size(); i++) {
 	        const Force& force = pc->forces[i];
 	        if (force.point != Vector2::Zero) {
 		        angAccel += Vector2::Dot(force.point.Perp(), force.vector);

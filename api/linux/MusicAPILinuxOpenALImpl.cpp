@@ -108,7 +108,7 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     stopPlayer(ptr);
     // destroy buffers
-    for (int i=0; i<openalptr->queuedBuffers.size(); i++) {
+    for (unsigned int i=0; i<openalptr->queuedBuffers.size(); i++) {
         AL_OPERATION(alSourceUnqueueBuffers(openalptr->source, 1, &openalptr->queuedBuffers[i]))
         AL_OPERATION(alDeleteBuffers(1, &openalptr->queuedBuffers[i]))
     }

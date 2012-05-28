@@ -6,6 +6,7 @@
 
 struct MorphElement {
 	MorphElement() : ended(false) {};
+	virtual ~MorphElement() {}
     virtual void lerp(float t)=0;
     virtual void reverse() = 0;
     bool ended;
