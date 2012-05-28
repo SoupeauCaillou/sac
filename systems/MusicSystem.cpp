@@ -45,11 +45,15 @@ void MusicSystem::uninit() {
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
+	pthread_mutex_lock(&mutex);
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
-    if (it == musics.end())
-        return;
-    LOGW("Delayed erase music ref: %d", ref);
-    it->second.toRemove = true;
+    if (it == musics.end()) {
+	    LOGW("Weird, cannot find: %d music ref", ref);
+    } else {
+    	// LOGW("Delayed erase music ref: %d", ref);
+    	it->second.toRemove = true;
+    }
+    pthread_mutex_unlock(&mutex);
     pthread_cond_signal(&cond);
 }
 
@@ -65,12 +69,39 @@ void MusicSystem::stopMusic(MusicComponent* m) {
             #endif
         }
     }
-	clearAndRemoveInfo(m->music);
-	clearAndRemoveInfo(m->loopNext);
+    if (m->music != InvalidMusicRef)
+		clearAndRemoveInfo(m->music);
+	if (m->loopNext != InvalidMusicRef)
+		clearAndRemoveInfo(m->loopNext);
 	m->music = m->loopNext = InvalidMusicRef;
 }
 
 void MusicSystem::DoUpdate(float dt) {
+	#if 0
+    static int stt = 0;
+    if (++stt == 200) {
+	    std::cout << "############################################### " << musics.size() << std::endl;
+	    for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
+		    bool used = false;
+		    for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
+		        MusicComponent* m = (*jt).second;
+		        if (m->music == it->first) {
+			        std::cout << it->first << "[M], ";
+			        used = true;
+		        } else if (m->loopNext == it->first) {
+			        std::cout << it->first << "[L], ";
+			        used = true;
+		        }
+		    }
+				
+		    if (!used)
+		    	std::cout << it->first << "[?], ";
+		    	
+	    }
+	    std::cout << std::endl;
+	    stt = 0;
+    }	
+    #endif
     if (muted) {
          for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
             MusicComponent* m = (*jt).second;
@@ -287,6 +318,7 @@ void MusicSystem::oggDecompRunLoop() {
     			std::map<MusicRef, MusicInfo>::iterator jt = it;
     			++it;
     			musics.erase(jt);
+    			// LOGW("------------------------------------- remove %d => %lu", jt->first, musics.size());
     			continue;
             } else {
 	            ++it;
@@ -435,6 +467,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     pthread_mutex_lock(&mutex);
     musics[nextValidRef] = info;
+    // LOGI("================================ ++ %d => %lu", nextValidRef, musics.size());
     pthread_mutex_unlock(&mutex);
     // wake-up decompression thread
     pthread_cond_signal(&cond);
