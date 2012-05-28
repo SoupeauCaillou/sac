@@ -74,7 +74,6 @@ void RenderingSystem::init() {
 		
 		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
 	} else {
-		float ratio = h / (float)w ;
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
 		glAlphaFunc(GL_GREATER, 0.1);
@@ -214,12 +213,12 @@ void RenderingSystem::DoUpdate(float dt) {
             event = (struct inotify_event *) buffer;
 
 
-            for (int i=0; i<notifyList.size(); i++) {
+            for (unsigned int i=0; i<notifyList.size(); i++) {
                 if (event->wd == notifyList[i].wd) {
                     // reload asset
                     GLuint r =  loadTexture(notifyList[i].asset, s1, s2);
                     if (r > 0) {
-                        for (int j=0; j<atlas.size(); j++) {
+                        for (unsigned int j=0; j<atlas.size(); j++) {
                             if (notifyList[i].asset == atlas[j].name) {
                                 for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
                                     if (it->second.glref == atlas[j].texture)

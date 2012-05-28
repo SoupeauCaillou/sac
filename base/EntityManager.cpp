@@ -16,7 +16,7 @@ EntityManager* EntityManager::instance = 0;
 EntityManager::EntityManager() : nextEntity(1) {
 	EntityTypeMask = 1;
 	EntityTypeMask <<= (sizeof(Entity) * 8 - 1);
-	LOGI("EntityTypeMask: %lx (sizeof Entity: %d, %d)", EntityTypeMask, sizeof(Entity), sizeof(Entity) * 8 - 1);
+	LOGI("EntityTypeMask: %lx (sizeof Entity: %lu, %lu)", EntityTypeMask, sizeof(Entity), sizeof(Entity) * 8 - 1);
 }
 
 EntityManager* EntityManager::Instance() {
@@ -65,7 +65,7 @@ void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
 
 void EntityManager::deleteAllEntities() {
     std::vector<Entity> entities = allEntities();
-    for (int i=0; i<entities.size(); i++) {
+    for (unsigned int i=0; i<entities.size(); i++) {
 		DeleteEntity(entities[i]);
 	}
 	nextEntity = 1;
@@ -123,7 +123,7 @@ int EntityManager::serialize(uint8_t** result) {
 
 	*result = new uint8_t[totalLength];
 	uint8_t* out = *result;
-	for(int i=0; i<saves.size(); i++) {
+	for(unsigned int i=0; i<saves.size(); i++) {
 		out = (uint8_t*)mempcpy(out, &saves[i].e, sizeof(Entity));
 		int cCount = saves[i].components.size();
 		out = (uint8_t*)mempcpy(out, &cCount, sizeof(int));

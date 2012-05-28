@@ -37,7 +37,7 @@
 class ComponentSystem {
 	public:
 		ComponentSystem(const std::string& n) : name(n) { assert(registry.insert(std::make_pair(name, this)).second); }
-        ~ComponentSystem() { registry.erase(name); }
+        virtual ~ComponentSystem() { registry.erase(name); }
 
 		virtual const std::string& getName() const { return name; }
 		virtual void Add(Entity entity) = 0;
@@ -51,7 +51,7 @@ class ComponentSystem {
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
-				LOGE("System with name: '%s' does not exist");
+				LOGE("System with name: '%s' does not exist", n.c_str());
 				return 0;
 			}
 			return (*it).second;
@@ -121,7 +121,7 @@ class ComponentSystemImpl: public ComponentSystem {
 		void deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = new T();
 			if (size != sizeof(T)) {
-				LOGW("error in size: %d != %d", size, sizeof(*component));
+				LOGW("error in size: %d != %lu", size, sizeof(*component));
 			}
 			memcpy(component, in, size);
 			components[entity] = component;

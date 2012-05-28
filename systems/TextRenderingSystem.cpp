@@ -28,7 +28,7 @@ static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned c
 		float spaceW = charH2Wratio['a'] * trc->charHeight * 0.75;
 		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
 	}
-	for (int i=0; i<trc->text.length(); i++) {
+	for (unsigned int i=0; i<trc->text.length(); i++) {
 		width += charH2Wratio[trc->text[i]] * trc->charHeight;
 	}
 	return width;
@@ -47,12 +47,12 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		TransformationComponent* trans = TRANSFORM(it->first);
 		trans->size = Vector2::Zero;
 
-		const int length = trc->text.length();
+		const unsigned int length = trc->text.length();
 
 		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
 		float x = computeStartX(trc, charH2Wratio);
 
-		for(int i=0; i<length; i++) {
+		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
 			if (i >= trc->drawing.size()) {
 				if (renderingEntitiesPool.size() > 0) {
@@ -89,7 +89,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
 			}
 		}
-		for(int i=trc->text.length(); i < trc->drawing.size(); i++) {
+		for(unsigned int i=trc->text.length(); i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
@@ -114,7 +114,7 @@ void TextRenderingSystem::DeleteEntity(Entity e) {
 	TextRenderingComponent* tc = TEXT_RENDERING(e);
 	if (!tc)
 		return;
-	for (int i=0; i<tc->drawing.size(); i++) {
+	for (unsigned int i=0; i<tc->drawing.size(); i++) {
 		renderingEntitiesPool.push_back(tc->drawing[i]);
 	}
 	tc->drawing.clear();

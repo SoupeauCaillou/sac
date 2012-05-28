@@ -76,8 +76,8 @@ struct Color {
 
 };
 struct RenderingComponent {
-	RenderingComponent() : /*bottomLeftUV(0, 0), topRightUV(1, 1),*/ hide(true), texture(InvalidTextureRef), drawGroup(BackToFront), desaturate(false) {}
-	// Vector2 bottomLeftUV, topRightUV;
+	RenderingComponent() : texture(InvalidTextureRef), color(Color()), drawGroup(BackToFront), hide(true), desaturate(false) {}
+	
 	TextureRef texture;
 	Color color;
 	enum {

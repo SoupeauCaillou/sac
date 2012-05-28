@@ -107,13 +107,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
-    for (int i=0; i<atlas.size(); i++) {
+    for (unsigned int i=0; i<atlas.size(); i++) {
         atlas[i].texture = 0;
     }
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
-    for (int i=0; i<atlas.size(); i++) {
+    for (unsigned int i=0; i<atlas.size(); i++) {
         if (atlasName == atlas[i].name) {
             for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end();) {
                 std::map<TextureRef, TextureInfo>::iterator next = ++it;
@@ -207,12 +207,12 @@ GLuint RenderingSystem::loadTexture(const std::string& assetName, Vector2& realS
 void RenderingSystem::reloadTextures() {
 	Vector2 size, psize;
 	LOGW("Reloading textures begin");
-    LOGW("\t- atlas : %d", atlas.size());
+    LOGW("\t- atlas : %lu", atlas.size());
 	// reload atlas texture
-	for (int i=0; i<atlas.size(); i++) {
+	for (unsigned int i=0; i<atlas.size(); i++) {
 		atlas[i].texture = 0;//loadTexture(atlas[i].name, size, psize);
 	}
-    LOGW("\t - textures: %d", assetTextures.size());
+    LOGW("\t - textures: %lu", assetTextures.size());
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		TextureInfo& info = textures[it->second];
 		if (info.atlasIndex >= 0)
@@ -262,7 +262,7 @@ void RenderingSystem::processDelayedTextureJobs() {
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	TextureRef result = InvalidTextureRef;
 	std::string name(assetName);
-	if (assetName.find(".png") == -1) {
+	if (assetName.find(".png") == std::string::npos) {
 		name = name + ".png";
 	}
 

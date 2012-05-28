@@ -21,7 +21,7 @@ void ScrollingSystem::DoUpdate(float dt) {
         Entity a = (*it).first;
         ScrollingComponent* sc = (*it).second;
 
-		if (sc->speed == Vector2::Zero) {
+		if (sc->speed.LengthSquared() < 0.0001) {
 			continue;
 		}
 		
@@ -67,7 +67,10 @@ void ScrollingSystem::DoUpdate(float dt) {
             TRANSFORM(se.e[0])->position.X = TRANSFORM(se.e[1])->position.X + normS.X * ptc->size.X;
         } else {
             TRANSFORM(se.e[1])->position.X = TRANSFORM(se.e[0])->position.X + normS.X * ptc->size.X;
-
+        }
+        
+        if (MathUtil::Abs(TRANSFORM(se.e[1])->position.X - TRANSFORM(se.e[0])->position.X) < ptc->size.X * 0.9) {
+	        LOGE("BUGGY SCROLLING POS: %.2f - %.2f (%.2f)", TRANSFORM(se.e[0])->position.X, TRANSFORM(se.e[1])->position.X, ptc->size.X);
         }
         /*
         std::cout << "Diff: " <<

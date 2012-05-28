@@ -49,7 +49,7 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
     }
 
    if (!glIsShader(shader)) {
-   	LOGW("Weird; %d is not a shader");
+   	LOGW("Weird; %d is not a shader", shader);
    }
 	return shader;
 }
@@ -165,7 +165,7 @@ static void setupTexturing(GLint m_textureId, bool enableDesaturation, const flo
 }
 
 static bool desaturate = false;
-static void drawBatchES1(GLint m_textureId, const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
+static void drawBatchES1(GLint m_textureId, const GLfloat* vertices, const GLfloat* uvs, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
 	setupTexturing(m_textureId, desaturate, uvs);
 	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
@@ -179,7 +179,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 #define MAX_BATCH_SIZE 64
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
-	static GLfloat colors[MAX_BATCH_SIZE * 4 * 4];
 	static GLfloat posrot[MAX_BATCH_SIZE * 4 * 4];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
@@ -204,9 +203,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				if (opengles2)
-					drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
-					drawBatchES1(boundTexture, vertices, uvs, colors, posrot, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, posrot, indices, batchSize);
 
 				batchSize = 0;
 			}
@@ -230,9 +229,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				if (opengles2)
-					drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
-					drawBatchES1(boundTexture, vertices, uvs, colors, posrot, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, posrot, indices, batchSize);
 
 				batchSize = 0;
 			}
@@ -240,13 +239,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
             currentColor = rc.color;
             glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 		}
-
-		const GLfloat squareUvs[] = {
-			rc.uv[0].X, rc.uv[0].Y,
-			rc.uv[1].X, rc.uv[0].Y,
-			rc.uv[0].X, rc.uv[1].Y,
-			rc.uv[1].X, rc.uv[1].Y
-		};
 
 		// fill batch
 		Vector2 onScreenVertices[4];
@@ -268,11 +260,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
 		uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
 
-		// memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
-		// memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
-		// memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
-		// memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
-
 		indices[batchSize * 6 + 0] = baseIdx + 0;
 		indices[batchSize * 6 + 1] = baseIdx + 1;
 		indices[batchSize * 6 + 2] = baseIdx + 2;
@@ -284,19 +271,21 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 		if (batchSize == MAX_BATCH_SIZE) {
 			if (opengles2)
-				drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
+				drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 			else
-				drawBatchES1(rc.texture, vertices, uvs, colors, posrot, indices, batchSize);
+				drawBatchES1(rc.texture, vertices, uvs, posrot, indices, batchSize);
 			batchSize = 0;
 		}
 		commands.pop();
 	}
 
-	if (batchSize > 0)
-		if (opengles2)
-			drawBatchES2(vertices, uvs, colors, posrot, indices, batchSize);
-		else
-			drawBatchES1(t, vertices, uvs, colors, posrot, indices, batchSize);
+	if (batchSize > 0) {
+		if (opengles2) {
+			drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
+		} else {
+			drawBatchES1(t, vertices, uvs, posrot, indices, batchSize);
+		}
+	}
 }
 
 void RenderingSystem::render() {
@@ -333,7 +322,7 @@ void RenderingSystem::render() {
 	// commands.clear();
 	// LOGW("redner queue size: %d OUT", renderQueue.size());
 	frameToRender--;
-end:
+
 	pthread_mutex_unlock(&mutexes[0]);
 }
 
