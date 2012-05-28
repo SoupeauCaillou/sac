@@ -169,7 +169,7 @@ static void setupTexturing(GLint m_textureId, bool enableDesaturation, const flo
 }
 
 static bool desaturate = false;
-static void drawBatchES1(GLint m_textureId, const GLfloat* vertices, const GLfloat* uvs, const GLfloat* posrot, const unsigned short* indices, int batchSize) {
+static void drawBatchES1(GLint m_textureId, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 	setupTexturing(m_textureId, desaturate, uvs);
 	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
@@ -183,7 +183,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 #define MAX_BATCH_SIZE 64
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
+#ifdef GLES2_SUPPORT
 	static GLfloat posrot[MAX_BATCH_SIZE * 4 * 4];
+#endif
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 	desaturate = false;
@@ -211,7 +213,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
 				#endif
-					drawBatchES1(boundTexture, vertices, uvs, posrot, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
@@ -239,7 +241,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
 				#endif
-					drawBatchES1(boundTexture, vertices, uvs, posrot, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
@@ -283,7 +285,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 			else
 			#endif
-				drawBatchES1(rc.texture, vertices, uvs, posrot, indices, batchSize);
+				drawBatchES1(rc.texture, vertices, uvs, indices, batchSize);
 			batchSize = 0;
 		}
 		commands.pop();
@@ -296,7 +298,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		} else 
 		#endif	
 		{
-			drawBatchES1(t, vertices, uvs, posrot, indices, batchSize);
+			drawBatchES1(t, vertices, uvs, indices, batchSize);
 		}
 	}
 }

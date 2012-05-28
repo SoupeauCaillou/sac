@@ -110,6 +110,10 @@ class ComponentSystemImpl: public ComponentSystem {
 			}
 			return result;
 		}
+		
+		long unsigned entityCount() const {
+			return components.size();
+		}
 
 		int serialize(Entity entity, uint8_t** out) {
 			T* component = Get(entity);
