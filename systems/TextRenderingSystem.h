@@ -21,7 +21,7 @@ struct TextRenderingComponent {
     const static float CENTER;
     const static float RIGHT;
 
-	TextRenderingComponent() : text(""), positioning(CENTER), hide(false), isANumber(false) {}
+	TextRenderingComponent() : text(""), fontName("typo"), positioning(CENTER), hide(false), isANumber(false) {}
 	std::string text;
 	Color color;
 	TextureRef fontBitmap;
