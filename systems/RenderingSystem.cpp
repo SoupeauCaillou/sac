@@ -168,7 +168,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         if (c.texture != InvalidTextureRef) {
             TextureInfo& info = textures[c.texture];
             int atlasIdx = info.atlasIndex;
-            if (atlasIdx >= 0 && atlas[atlasIdx].texture == 0) {
+            if (atlasIdx >= 0 && atlas[atlasIdx].texture[0] == 0) {
                 if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
                     LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                 }
@@ -219,19 +219,20 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             for (unsigned int i=0; i<notifyList.size(); i++) {
                 if (event->wd == notifyList[i].wd) {
                     // reload asset
-                    GLuint r =  loadTexture(notifyList[i].asset, s1, s2);
-                    if (r > 0) {
+                    GLuint r[2];
+                    loadTexture(notifyList[i].asset, s1, s2, r);
+                    if (r[0] > 0) {
                         for (unsigned int j=0; j<atlas.size(); j++) {
                             if (notifyList[i].asset == atlas[j].name) {
                                 for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
                                     if (it->second.glref == atlas[j].texture)
-                                        it->second.glref  = r;
+                                        memcpy(it->second.glref, r, sizeof(r));
                                 }
-                             atlas[j].texture = r;
+                             memcpy(atlas[j].texture, r, sizeof(r));
                             }
                         }
                         if (assetTextures.find(notifyList[i].asset) != assetTextures.end()) {
-                            textures[assetTextures[notifyList[i].asset]].glref = r;
+	                        memcpy(textures[assetTextures[notifyList[i].asset]].glref, r, sizeof(r));
                         }
                     }
                     break;
@@ -300,7 +301,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		
 		assetTextures[name] = ref;
 		if (info.atlasIndex >= 0) {
-			info.glref = atlas[info.atlasIndex].texture;
+			memcpy(info.glref, atlas[info.atlasIndex].texture, sizeof(info.glref));
 			textures[ref] = info;
 		}
 		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);

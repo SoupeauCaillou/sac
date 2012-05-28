@@ -222,7 +222,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 		if (rc.texture != InvalidTextureRef) {
 			TextureInfo info = textures[rc.texture];
-			rc.texture = info.glref;
+			memcpy(rc.glref, info.glref, sizeof(rc.glref));
 			rc.uv[0] = info.uv[0];
 			rc.uv[1] = info.uv[1];
 			rc.rotateUV = info.rotateUV;
@@ -232,8 +232,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
 		}
-		t = rc.texture;
-		if (boundTexture != rc.texture || currentColor != rc.color) {
+		t = rc.glref[0];
+		if (boundTexture != rc.glref[0] || currentColor != rc.color) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
@@ -245,7 +245,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 				batchSize = 0;
 			}
-			boundTexture = rc.texture;
+			boundTexture = rc.glref[0];
             currentColor = rc.color;
             glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 		}
@@ -285,7 +285,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 			else
 			#endif
-				drawBatchES1(rc.texture, vertices, uvs, indices, batchSize);
+				drawBatchES1(rc.glref[0], vertices, uvs, indices, batchSize);
 			batchSize = 0;
 		}
 		commands.pop();
@@ -320,12 +320,14 @@ void RenderingSystem::render() {
 		// LOGW("\t %d left / %d frames", renderQueue.size(), frameToRender);
 	}
 
+#ifdef GLES2_SUPPORT
 	if (opengles2) {
 		GL_OPERATION(glUseProgram(defaultProgram))
 		GLfloat mat[16];
 		loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
 		GL_OPERATION(glUniformMatrix4fv(uniformMatrix, 1, GL_FALSE, mat))
 	}
+#endif
 
     processDelayedTextureJobs();
 

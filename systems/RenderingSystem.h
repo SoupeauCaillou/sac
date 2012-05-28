@@ -91,7 +91,10 @@ struct RenderingComponent {
 
 struct RenderCommand {
 	float z;
-	TextureRef texture;
+	union {
+		TextureRef texture;
+		GLuint glref[2];
+	};
 	unsigned int rotateUV;
 	Vector2 uv[2];
 	Vector2 halfSize;
@@ -144,17 +147,17 @@ float screenW, screenH;
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
 struct TextureInfo {
-	GLuint glref;
+	GLuint glref[2];
 	unsigned int rotateUV;
 	Vector2 uv[2];
 	int atlasIndex;
 	
-	TextureInfo (GLuint r = 0, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
+	TextureInfo (GLuint color = 0, GLuint alpha = 0, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
 
 };
 struct Atlas {
 	std::string name;
-	GLuint texture;
+	GLuint texture[2];
 };
 
 std::map<TextureRef, TextureInfo> textures;
@@ -188,7 +191,7 @@ std::vector<NotifyInfo> notifyList;
 #endif
 
 private:
-GLuint loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size);
+void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, GLuint* out);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 void processDelayedTextureJobs();
 
