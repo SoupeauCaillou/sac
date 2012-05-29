@@ -119,19 +119,11 @@
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\TouchInputManager.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\Vector2.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ADSRSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ButtonSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ContainerSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\DebugRenderingManager.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\MorphingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ParticuleSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\PhysicsSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\RenderingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\RenderingSystem_Render.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\RenderingSystem_Texture.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ScrollingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\SoundSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\System.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\TextRenderingSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\TransformationSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\build.make" />
     <None Include="build\cmake\CMakeFiles\sac.dir\cmake_clean.cmake" />
@@ -185,8 +177,10 @@
     <None Include="base\CircularBuffer.h" />
     <None Include="api\AdAPI.h" />
     <None Include="api\android\AdAPIAndroidImpl.h" />
+    <None Include="util\ImageLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
+    <Folder Include="util\" />
   </ItemGroup>
 </Project>
