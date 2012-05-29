@@ -175,7 +175,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             }
          }
 		
-		if (c.color.a >= 1 && rc->drawGroup == RenderingComponent::FrontToBack)
+		if (c.color.a >= 1)
 			commands.push_back(c);
 		else
 			semiOpaqueCommands.push_back(c);

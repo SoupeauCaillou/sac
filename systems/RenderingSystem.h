@@ -79,13 +79,10 @@ struct Color {
 
 };
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), color(Color()), drawGroup(BackToFront), hide(true), desaturate(false) {}
+	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false) {}
 	
 	TextureRef texture;
 	Color color;
-	enum {
-		BackToFront, FrontToBack
-	} drawGroup;
 	bool hide, desaturate;
 };
 
