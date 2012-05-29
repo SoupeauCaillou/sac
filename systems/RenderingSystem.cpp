@@ -11,6 +11,8 @@
 #include <GLES/gl.h>
 #endif
 
+RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
+
 INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
@@ -24,6 +26,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     #ifndef ANDROID
     inotifyFd = inotify_init();
     #endif
+    InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
@@ -120,14 +123,14 @@ void RenderingSystem::init() {
  #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 }
-static bool sortFrontToBack(const RenderCommand& r1, const RenderCommand& r2) {
+static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
 	if (r1.z == r2.z)
 		return r1.texture < r2.texture;
 	else
 		return r1.z > r2.z;
 }
 
-static bool sortBackToFront(const RenderCommand& r1, const RenderCommand& r2) {
+static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
 	if (r1.z == r2.z) {
 		if (r1.texture == r2.texture) {
             return r1.color < r2.color;
@@ -168,7 +171,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         if (c.texture != InvalidTextureRef) {
             TextureInfo& info = textures[c.texture];
             int atlasIdx = info.atlasIndex;
-            if (atlasIdx >= 0 && atlas[atlasIdx].texture[0] == 0) {
+            if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
                 if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
                     LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                 }
@@ -210,20 +213,20 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             for (unsigned int i=0; i<notifyList.size(); i++) {
                 if (event->wd == notifyList[i].wd) {
                     // reload asset
-                    GLuint r[2];
+                    InternalTexture r;
                     loadTexture(notifyList[i].asset, s1, s2, r);
-                    if (r[0] > 0) {
+                    if (r != InternalTexture::Invalid) {
                         for (unsigned int j=0; j<atlas.size(); j++) {
                             if (notifyList[i].asset == atlas[j].name) {
                                 for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
-                                    if (it->second.glref == atlas[j].texture)
-                                        memcpy(it->second.glref, r, sizeof(r));
+                                    if (it->second.glref == atlas[j].glref)
+                                        it->second.glref = r;
                                 }
-                             memcpy(atlas[j].texture, r, sizeof(r));
+                             atlas[j].glref = r;
                             }
                         }
                         if (assetTextures.find(notifyList[i].asset) != assetTextures.end()) {
-	                        memcpy(textures[assetTextures[notifyList[i].asset]].glref, r, sizeof(r));
+	                        textures[assetTextures[notifyList[i].asset]].glref = r;
                         }
                     }
                     break;
@@ -292,7 +295,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		
 		assetTextures[name] = ref;
 		if (info.atlasIndex >= 0) {
-			memcpy(info.glref, atlas[info.atlasIndex].texture, sizeof(info.glref));
+			info.glref = atlas[info.atlasIndex].glref;
 			textures[ref] = info;
 		}
 		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);

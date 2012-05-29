@@ -73,13 +73,12 @@ static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfl
 }
 #endif
 
-static void setupTexturing(GLint colorTex, GLint alphaTex, bool enableDesaturation, const float* uvs) {
+static void setupTexturing(const RenderingSystem::InternalTexture& glref, bool enableDesaturation, const float* uvs) {
 	if (!enableDesaturation) {
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, colorTex);
+		glBindTexture(GL_TEXTURE_2D, glref.color);
 		glClientActiveTexture(GL_TEXTURE0);
-
 
 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
@@ -95,7 +94,7 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		
 glActiveTexture(GL_TEXTURE1);//we only care about ALPHA
 glEnable(GL_TEXTURE_2D);
-glBindTexture(GL_TEXTURE_2D, alphaTex);
+glBindTexture(GL_TEXTURE_2D, glref.alpha);
 glClientActiveTexture(GL_TEXTURE1);
 
 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -120,7 +119,7 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		//Enable texture unit 0 to divide RGB values in our texture by 2
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, colorTex);
+		glBindTexture(GL_TEXTURE_2D, glref.color);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glClientActiveTexture(GL_TEXTURE0);
 		
@@ -144,7 +143,7 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		//Enable texture unit 1 to increase RGB values by .5
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, colorTex);
+		glBindTexture(GL_TEXTURE_2D, glref.color);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glClientActiveTexture(GL_TEXTURE1);
 		
@@ -168,7 +167,7 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		//Enable texture combiner 2 to get a DOT3_RGB product of your RGB values
 		glActiveTexture(GL_TEXTURE2);
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, colorTex);
+		glBindTexture(GL_TEXTURE_2D, glref.color);
 		glClientActiveTexture(GL_TEXTURE2);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		
@@ -199,8 +198,8 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 }
 
 static bool desaturate = false;
-static void drawBatchES1(GLint colorTex,GLint alphaTex, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
-	setupTexturing(colorTex, alphaTex, desaturate, uvs);
+static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
+	setupTexturing(glref, desaturate, uvs);
 	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
 	// GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
@@ -219,13 +218,13 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 	desaturate = false;
-	GLint t[2];
+	
 	// GL_OPERATION(glDepthMask(true))
-	GLuint boundTexture[2];
+	InternalTexture boundTexture = InternalTexture::Invalid, t;
     Color currentColor(1,1,1,1);
     glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
+   
     while (!commands.empty()) {
-	// for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
 		RenderCommand& rc = commands.front();
 
 		if (rc.texture == EndFrameMarker) {
@@ -243,7 +242,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
 				#endif
-					drawBatchES1(boundTexture[0], boundTexture[1], vertices, uvs, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
@@ -251,19 +250,21 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 
 		if (rc.texture != InvalidTextureRef) {
-			TextureInfo info = textures[rc.texture];
-			memcpy(rc.glref, info.glref, sizeof(rc.glref));
+			const TextureInfo& info = textures[rc.texture];
+			rc.glref = info.glref;
 			rc.uv[0] = info.uv[0];
 			rc.uv[1] = info.uv[1];
 			rc.rotateUV = info.rotateUV;
 		} else {
-			rc.texture = whiteTexture;
+			rc.glref = InternalTexture::Invalid;
+			rc.glref.color = whiteTexture;
+			rc.glref.alpha = whiteTexture;
 			rc.uv[0] = Vector2::Zero;
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
 		}
-		memcpy(t, rc.glref, sizeof(t));
-		if (boundTexture[0] != rc.glref[0] || currentColor != rc.color) {
+		t = rc.glref;
+		if (boundTexture != rc.glref || currentColor != rc.color) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
@@ -271,11 +272,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 					drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 				else
 				#endif
-					drawBatchES1(boundTexture[0], boundTexture[1], vertices, uvs, indices, batchSize);
+					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
-			memcpy(boundTexture, rc.glref, sizeof(rc.glref));
+			boundTexture = rc.glref;
             currentColor = rc.color;
             glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 		}
@@ -315,7 +316,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				drawBatchES2(vertices, uvs, 0, posrot, indices, batchSize);
 			else
 			#endif
-				drawBatchES1(rc.glref[0], rc.glref[1], vertices, uvs, indices, batchSize);
+				drawBatchES1(rc.glref, vertices, uvs, indices, batchSize);
 			batchSize = 0;
 		}
 		commands.pop();
@@ -328,7 +329,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		} else 
 		#endif	
 		{
-			drawBatchES1(t[0], t[1], vertices, uvs, indices, batchSize);
+			drawBatchES1(t, vertices, uvs, indices, batchSize);
 		}
 	}
 }

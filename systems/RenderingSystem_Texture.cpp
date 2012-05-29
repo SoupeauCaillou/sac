@@ -15,9 +15,8 @@
 #include <fcntl.h>
 
 
-RenderingSystem::TextureInfo::TextureInfo (GLuint color, GLuint alpha, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
-	glref[0] = color;
-	glref[1] = alpha;
+RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
+	glref = ref;
 
 	if (size == Vector2::Zero) {
 		uv[0].X = uv[0].Y = 0;
@@ -73,10 +72,9 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	}
 	
 	Vector2 atlasSize, pow2Size;
-	GLuint glref = 0; // delayed load loadTexture(atlasImage, atlasSize, pow2Size);
 	Atlas a;
 	a.name = atlasImage;
-	a.texture[0] = a.texture[1] = glref;
+	a.glref = 0;
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
 
@@ -86,7 +84,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 
     // read texture size
     sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-    LOGW("atlas '%s' -> index: %d, glref: %u, size:[%f,%f] ('%s')", atlasName.c_str(), atlasIndex, glref, atlasSize.X, atlasSize.Y, s.c_str());
+    LOGW("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f,%f] ('%s')", atlasName.c_str(), atlasIndex, a.glref.color, a.glref.alpha, atlasSize.X, atlasSize.Y, s.c_str());
 	int count = 0;
 	while(!s.empty()) {
 		// LOGI("atlas - line: %s", s.c_str());
@@ -98,7 +96,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 
 		TextureRef result = nextValidRef++;
 		assetTextures[assetName] = result;
-		textures[result] = TextureInfo(0, 0, x, y, w, h, rot, atlasSize, atlasIndex);
+		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, atlasIndex);
 		
 		s.clear();
 		f >> s;
@@ -110,7 +108,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 
 void RenderingSystem::invalidateAtlasTextures() {
     for (unsigned int i=0; i<atlas.size(); i++) {
-        memset(atlas[i].texture, 0, sizeof(atlas[i].texture));
+        atlas[i].glref = 0;
     }
 }
 
@@ -119,13 +117,12 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
         if (atlasName == atlas[i].name) {
             for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end();) {
                 std::map<TextureRef, TextureInfo>::iterator next = ++it;
-                if (memcmp(it->second.glref, atlas[i].texture, sizeof(atlas[i].texture)) == 0) {
+                if (it->second.glref == atlas[i].glref) {
                     textures.erase(it);
                 }
                 it = next;
             }
-            unloadTexture(atlas[i].texture[0], true);
-            unloadTexture(atlas[i].texture[1], true);
+            delayedDeletes.insert(atlas[i].glref);
             atlas.erase(atlas.begin() + i);
             break;
         }
@@ -141,7 +138,7 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 	return 0;
 }
 
-void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, GLuint* out) {
+void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
 	int w,h;
     // LOGW("loadTexture: %s", assetName.c_str());
 	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
@@ -187,8 +184,8 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 		data = pdatas;
 	}
 
-	GL_OPERATION(glGenTextures(2, out))
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out[0]))
+	GL_OPERATION(glGenTextures(1, &out.color))
+	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out.color))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
@@ -198,8 +195,9 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
                 NULL))
 	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w + 4*border,
                 h + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, data))
-                
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out[1]))
+
+	GL_OPERATION(glGenTextures(1, &out.alpha))
+	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out.alpha))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
@@ -224,17 +222,17 @@ void RenderingSystem::reloadTextures() {
     LOGW("\t- atlas : %lu", atlas.size());
 	// reload atlas texture
 	for (unsigned int i=0; i<atlas.size(); i++) {
-		memset(atlas[i].texture, 0, sizeof(atlas[i].texture));
+		atlas[i].glref = 0;
 	}
     LOGW("\t - textures: %lu", assetTextures.size());
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		TextureInfo& info = textures[it->second];
 		if (info.atlasIndex >= 0) {
-			memcpy(info.glref, atlas[info.atlasIndex].texture, sizeof(info.glref));
+			info.glref = atlas[info.atlasIndex].glref;
 		} else {
-			GLuint ref[2];
-			loadTexture(it->first, size, psize, ref);
-			textures[it->second] = TextureInfo(ref[0], ref[1], 0, 0, size.X, size.Y, false, psize);
+			InternalTexture t;
+			loadTexture(it->first, size, psize, t);
+			textures[it->second] = TextureInfo(t, 0, 0, size.X, size.Y, false, psize);
 		}
 	}
     LOGW("Reloading textures done");
@@ -245,13 +243,13 @@ void RenderingSystem::processDelayedTextureJobs() {
     for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
         int atlasIndex = *it;
         Vector2 atlasSize, pow2Size;
-        loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].texture);
-        LOGW("Atlas '%s' loaded (%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].texture[0]);
+        loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
+        LOGW("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
 
         for (std::map<std::string, TextureRef>::iterator jt=assetTextures.begin(); jt!=assetTextures.end(); ++jt) {
             TextureInfo& info = textures[jt->second];
             if (info.atlasIndex == atlasIndex) {
-                memcpy(info.glref, atlas[atlasIndex].texture, sizeof(info.glref));
+                info.glref = atlas[atlasIndex].glref;
             }
         }
     }
@@ -260,15 +258,22 @@ void RenderingSystem::processDelayedTextureJobs() {
     // load textures
     for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
         Vector2 size, powSize;
-        GLuint ref[2];
-        loadTexture(*it, size, powSize, ref);
-        textures[assetTextures[*it]] = TextureInfo(ref[0], ref[1], 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
+        InternalTexture t;
+        loadTexture(*it, size, powSize, t);
+        textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
     }
     delayedLoads.clear();
 
     // delete textures
-    for (std::set<TextureRef>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
-        glDeleteTextures(2, textures[*it].glref);
+    for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
+	    if (it->color != whiteTexture) {
+		    LOGW("Color texture delete: %u", it->color);
+        	glDeleteTextures(1, &it->color);
+	    }
+	    if (it->alpha > 0) {
+	    	LOGW("Alpha texture delete: %u", it->alpha);
+        	glDeleteTextures(1, &it->alpha);
+	    }
     }
     delayedDeletes.clear();
 }
@@ -302,10 +307,10 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
         for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
             if (it->second == ref) {
                 assetTextures.erase(it);
+                delayedDeletes.insert(textures[ref].glref);
                 break;
             }
         }
-        delayedDeletes.insert(ref);
     } else {
         LOGW("Tried to delete an InvalidTextureRef");
     }

@@ -78,27 +78,13 @@ struct Color {
      }
 
 };
+
 struct RenderingComponent {
 	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false) {}
 	
 	TextureRef texture;
 	Color color;
 	bool hide, desaturate;
-};
-
-struct RenderCommand {
-	float z;
-	union {
-		TextureRef texture;
-		GLuint glref[2];
-	};
-	unsigned int rotateUV;
-	Vector2 uv[2];
-	Vector2 halfSize;
-	Color color;
-	Vector2 position;
-	float rotation;
-	bool desaturate;
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
@@ -143,24 +129,59 @@ float screenW, screenH;
 /* textures cache */
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
+
+struct InternalTexture {
+	GLuint color;
+	GLuint alpha;
+	
+	void operator=(GLuint r) {
+		color = alpha = r;
+	}
+	bool operator==(const InternalTexture& t) const {
+		return color == t.color && alpha == t.alpha;
+	}
+	bool operator!=(const InternalTexture& t) const {
+		return color != t.color || alpha != t.alpha;
+	}
+	bool operator<(const InternalTexture& t) const {
+		return color < t.color;
+	}
+	
+	static InternalTexture Invalid; 
+};
+
+struct RenderCommand {
+	float z;
+	union {
+		TextureRef texture;
+		InternalTexture glref;
+	};
+	unsigned int rotateUV;
+	Vector2 uv[2];
+	Vector2 halfSize;
+	Color color;
+	Vector2 position;
+	float rotation;
+	bool desaturate;
+};
+
 struct TextureInfo {
-	GLuint glref[2];
+	InternalTexture glref;
 	unsigned int rotateUV;
 	Vector2 uv[2];
 	int atlasIndex;
 	
-	TextureInfo (GLuint color = 0, GLuint alpha = 0, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
-
+	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
 };
 struct Atlas {
 	std::string name;
-	GLuint texture[2];
+	InternalTexture glref;
 };
 
 std::map<TextureRef, TextureInfo> textures;
 std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
-std::set<TextureRef> delayedDeletes;
+std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
 
 NativeAssetLoader* assetLoader;
@@ -188,7 +209,7 @@ std::vector<NotifyInfo> notifyList;
 #endif
 
 private:
-void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, GLuint* out);
+void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 void processDelayedTextureJobs();
 
