@@ -175,24 +175,15 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             }
          }
 		
-		if (c.color.a >= 1)
-			commands.push_back(c);
-		else
-			semiOpaqueCommands.push_back(c);
+		semiOpaqueCommands.push_back(c);
 	}
 
-	std::sort(commands.begin(), commands.end(), sortFrontToBack);
 	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 	
-	for(std::vector<RenderCommand>::iterator it=commands.begin(); it!=commands.end(); it++) {
-		renderQueue.push(*it);
-	}
-	RenderCommand dummy;
-	dummy.texture = DisableZWriteMarker;
-	renderQueue.push(dummy);
 	for(std::vector<RenderCommand>::iterator it=semiOpaqueCommands.begin(); it!=semiOpaqueCommands.end(); it++) {
 		renderQueue.push(*it);
 	}
+	RenderCommand dummy;
 	dummy.texture = EndFrameMarker;
 	renderQueue.push(dummy);
 	frameToRender++;
