@@ -76,6 +76,7 @@
     <Compile Include="base\CircularBuffer.cpp" />
     <Compile Include="tests\base\TestCircularBuffer.cpp" />
     <Compile Include="api\android\AdAPIAndroidImpl.cpp" />
+    <Compile Include="util\ImageLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />

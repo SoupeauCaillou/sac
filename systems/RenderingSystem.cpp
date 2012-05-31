@@ -30,11 +30,11 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
-	w = width;
-	h = height;
+	windowW = width;
+	windowH = height;
 	screenW = sW;
 	screenH = sH;
-	GL_OPERATION(glViewport(0, 0, w, h))
+	GL_OPERATION(glViewport(0, 0, windowW, windowH))
 }
 
 void RenderingSystem::init() {

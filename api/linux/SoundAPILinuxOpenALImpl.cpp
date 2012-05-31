@@ -26,7 +26,8 @@ void SoundAPILinuxOpenALImpl::init() {
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     std::stringstream a;
     a << "./assets/" << asset;
-    const char* nm = a.str().c_str();
+    std::string s = a.str();
+    const char* nm = s.c_str();
     FILE* fd = fopen(nm, "rb");
     if (!fd) {
         LOGW("Cannot open %s", nm);

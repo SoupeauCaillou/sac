@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include "../util/ImageLoader.h"
 
 RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
 	glref = ref;
@@ -65,8 +65,8 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	std::string atlasDesc = atlasName + ".desc";
 	std::string atlasImage = atlasName + ".png";
 	
-	const char* desc = assetLoader->loadShaderFile(atlasDesc);
-	if (!desc) {
+	FileBuffer file = assetAPI->loadAsset(atlasDesc);
+	if (!file.data) {
 		LOGW("Unable to load atlas desc %s", atlasDesc.c_str());
 		return;
 	}
@@ -78,7 +78,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
 
-	std::stringstream f(std::string(desc), std::ios_base::in);
+	std::stringstream f(std::string((const char*)file.data, file.size), std::ios_base::in);
 	std::string s;
 	f >> s;
 
@@ -102,7 +102,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 		f >> s;
 		count++;
 	}
-	delete[] desc;
+	delete[] file.data;
 	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
 
@@ -139,22 +139,29 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 }
 
 void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
-	int w,h;
-    // LOGW("loadTexture: %s", assetName.c_str());
-	char* data = assetLoader->decompressPngImage(assetName, &w, &h);
+    LOGW("loadTexture: %s", assetName.c_str());
+	FileBuffer file = assetAPI->loadAsset(assetName);
+LOGW("PTR = %p", file.data);
+	if (!file.data) {
+		return;
+	}	
+	ImageDesc image = ImageLoader::loadPng(assetName, file);
+LOGW("DELETE %p", file.data);
+	delete[] file.data;
 
 #ifndef ANDROID
 {
     std::stringstream s;
     s << "./assets/" << assetName;
+    std::string name = s.str();
     NotifyInfo info;
-    info.wd = inotify_add_watch(inotifyFd, s.str().c_str(), IN_CLOSE_WRITE | IN_ONESHOT);
+    info.wd = inotify_add_watch(inotifyFd, name.c_str(), IN_CLOSE_WRITE | IN_ONESHOT);
     info.asset = assetName;
     notifyList.push_back(info);
 }
 #endif
 
-	if (!data)
+	if (!image.datas)
 		return;
 
 	/* create GL texture */
@@ -163,26 +170,28 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 #endif
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 
-	int powerOf2W = alignOnPowerOf2(w);
-	int powerOf2H = alignOnPowerOf2(h);
+	int powerOf2W = alignOnPowerOf2(image.width);
+	int powerOf2H = alignOnPowerOf2(image.height);
 	int border = 0;
 	
+#if 0
 	// hmm hmm: hacky stuff to add a border
-	if (w != powerOf2W || h != powerOf2H) {
+	if (image.width != powerOf2W || image.height != powerOf2H) {
 		border = 1;
-		powerOf2W = alignOnPowerOf2(w + 4);
-		powerOf2H = alignOnPowerOf2(h + 4);
+		powerOf2W = alignOnPowerOf2(image.width + 4);
+		powerOf2H = alignOnPowerOf2(image.height + 4);
 		
-		int stride1 = (w)*4*sizeof(char);
-		int stride2 = (w+4)*4*sizeof(char);
-		char* pdatas = (char*) malloc(stride2 * (h+4));
-		memset(pdatas, 0, stride2 * (h+4));
-		for (int i=2; i<(h+2); i++) {
-			memcpy(&pdatas[i * stride2 + 4*sizeof(char)], &data[(i-2) * stride1], stride1);
+		int stride1 = (image.width)*4*sizeof(char);
+		int stride2 = (image.width+4)*4*sizeof(char);
+		char* pdatas = (char*) malloc(stride2 * (image.height+4));
+		memset(pdatas, 0, stride2 * (image.height+4));
+		for (int i=2; i<(image.height+2); i++) {
+			memcpy(&pdatas[i * stride2 + 4*sizeof(char)], &image.datas[(i-2) * stride1], stride1);
 		}
-		free(data);
-		data = pdatas;
+		delete[] image.datas;
+		image.datas = pdatas;
 	}
+#endif
 
 	GL_OPERATION(glGenTextures(1, &out.color))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out.color))
@@ -193,8 +202,8 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
-	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w + 4*border,
-                h + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, data))
+	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width + 4*border,
+                image.height + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, image.datas))
 
 	GL_OPERATION(glGenTextures(1, &out.alpha))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out.alpha))
@@ -205,13 +214,13 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, powerOf2W,
                 powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 NULL))
-	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w + 4*border,
-                h + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, data))
-
-	free(data);
+	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width + 4*border,
+                image.height + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, image.datas))
+LOGW("Delete img ptr: %p", image.datas);
+	free(image.datas);
 	
-	realSize.X = w;
-	realSize.Y = h;
+	realSize.X = image.width;
+	realSize.Y = image.height;
 	pow2Size.X = powerOf2W;
 	pow2Size.Y = powerOf2H;
 }
@@ -270,7 +279,7 @@ void RenderingSystem::processDelayedTextureJobs() {
 		    LOGW("Color texture delete: %u", it->color);
         	glDeleteTextures(1, &it->color);
 	    }
-	    if (it->alpha > 0) {
+	    if (it->alpha > 0 && it->alpha != whiteTexture) {
 	    	LOGW("Alpha texture delete: %u", it->alpha);
         	glDeleteTextures(1, &it->alpha);
 	    }

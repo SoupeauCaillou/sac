@@ -1,19 +1,8 @@
 # build library
 file(
         GLOB_RECURSE
-        base_source_files
-        ../../base/*
-)
-file(
-        GLOB_RECURSE
-        systems_source_files
-        ../../systems/*
-)
-
-file(
-        GLOB_RECURSE
-        api_source_files
-        ../../api/linux/*
+        source_files
+        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../libs/libpng/jni/*.c
 )
 
 file(
@@ -23,7 +12,7 @@ file(
 )
 
 
-add_library(sac ${base_source_files} ${systems_source_files} ${api_source_files})
+add_library(sac ${source_files})
 
 # build test app
 file(
@@ -33,9 +22,10 @@ file(
 )
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories("/usr/include/unittest++/")
 add_executable(sac_tests ${tests_files})
-target_link_libraries(sac_tests sac UnitTest++ GLEW glfw openal sndfile vorbis)
+target_link_libraries(sac_tests sac UnitTest++ GLEW glfw openal sndfile vorbis z)
 add_executable(texture_packer ${texture_packer_source_files})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/sac/bin)
 target_link_libraries(texture_packer png)

@@ -3,7 +3,7 @@
 void AssetAPILinuxImpl::init() {
 	
 }
-
+#include <iostream>
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
     std::string full = "assets/" + asset;
@@ -12,7 +12,12 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     fb.size = ftell(file);
     rewind(file);
     fb.data = new uint8_t[fb.size];
-    fread(fb.data, fb.size, 1, file);
+    int count = 0;
+do {
+count += fread(&fb.data[count], 1, fb.size - count, file);
+} while (count < fb.size);
+
     fclose(file);
+    std::cout << asset << ":" << fb.size  << "/" << count << std::endl;
     return fb;
 }

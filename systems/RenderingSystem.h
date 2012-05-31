@@ -17,6 +17,7 @@
 #include "base/Vector2.h"
 #include "base/MathUtil.h"
 #include "base/Log.h"
+#include "../api/AssetAPI.h"
 
 #include "System.h"
 #include "TransformationSystem.h"
@@ -42,13 +43,6 @@ typedef int TextureRef;
 
 #undef GLES2_SUPPORT
 
-
-class NativeAssetLoader {
-	public:
-		virtual char* decompressPngImage(const std::string& assetName, int* width, int* height) = 0;
-
-		virtual char* loadShaderFile(const std::string& assetName) = 0;
-};
 
 struct Color {
 	union {
@@ -108,9 +102,9 @@ TextureRef loadTextureFile(const std::string& assetName);
 
 void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
-void setNativeAssetLoader(NativeAssetLoader* ptr) { assetLoader = ptr; }
-
 public:
+AssetAPI* assetAPI;
+
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 GLuint compileShader(const std::string& assetName, GLuint type);
 
@@ -124,7 +118,7 @@ bool opengles2;
 void render();
 
 public:
-int w,h;
+int windowW, windowH;
 float screenW, screenH;
 /* textures cache */
 TextureRef nextValidRef;
@@ -183,8 +177,6 @@ std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
-
-NativeAssetLoader* assetLoader;
 
 int current;
 int frameToRender;
