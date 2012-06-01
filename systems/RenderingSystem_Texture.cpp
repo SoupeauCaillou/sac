@@ -63,7 +63,7 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 
 void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	std::string atlasDesc = atlasName + ".desc";
-	std::string atlasImage = atlasName + ".png";
+	std::string atlasImage = atlasName;
 	
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
@@ -138,31 +138,63 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 	return 0;
 }
 
+GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size) {
+    FileBuffer file;
+    bool png = false;
+
+    file = assetAPI->loadAsset(basename + ".pkm");
+    if (!file.data) {
+        file = assetAPI->loadAsset(basename + ".png");
+        if (!file.data)
+            return 0;
+        png = true;
+    }
+
+    // load image
+    ImageDesc image = png ? ImageLoader::loadPng(basename, file) : ImageLoader::loadEct1(basename, file);
+    delete[] file.data;
+    if (!image.datas) {
+        return 0;
+    }
+
+    // for now, just assume power of 2 size
+    GLuint out;
+    GL_OPERATION(glGenTextures(1, &out))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+
+    GLenum internalFormat;
+    switch (image.channels) {
+        case 1:
+            internalFormat = GL_ALPHA;
+            break;
+        case 2:
+            internalFormat = GL_LUMINANCE_ALPHA;
+            break;
+        case 3:
+            internalFormat = GL_RGB;
+            break;
+        case 4:
+            internalFormat = GL_RGBA;
+            break;
+    }
+
+    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, internalFormat, GL_UNSIGNED_BYTE, NULL))
+    GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, internalFormat, GL_UNSIGNED_BYTE, image.datas))
+
+    free (image.datas);
+    pow2Size.X = realSize.X = image.width;
+    pow2Size.Y = realSize.Y = image.height;
+
+    return out;
+}
+
+
 void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
     LOGW("loadTexture: %s", assetName.c_str());
-	FileBuffer file = assetAPI->loadAsset(assetName);
-LOGW("PTR = %p", file.data);
-	if (!file.data) {
-		return;
-	}	
-	ImageDesc image = ImageLoader::loadPng(assetName, file);
-LOGW("DELETE %p", file.data);
-	delete[] file.data;
-
-#ifndef ANDROID
-{
-    std::stringstream s;
-    s << "./assets/" << assetName;
-    std::string name = s.str();
-    NotifyInfo info;
-    info.wd = inotify_add_watch(inotifyFd, name.c_str(), IN_CLOSE_WRITE | IN_ONESHOT);
-    info.asset = assetName;
-    notifyList.push_back(info);
-}
-#endif
-
-	if (!image.datas)
-		return;
 
 	/* create GL texture */
 #ifdef GLES2_SUPPORT
@@ -170,59 +202,8 @@ LOGW("DELETE %p", file.data);
 #endif
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 
-	int powerOf2W = alignOnPowerOf2(image.width);
-	int powerOf2H = alignOnPowerOf2(image.height);
-	int border = 0;
-	
-#if 0
-	// hmm hmm: hacky stuff to add a border
-	if (image.width != powerOf2W || image.height != powerOf2H) {
-		border = 1;
-		powerOf2W = alignOnPowerOf2(image.width + 4);
-		powerOf2H = alignOnPowerOf2(image.height + 4);
-		
-		int stride1 = (image.width)*4*sizeof(char);
-		int stride2 = (image.width+4)*4*sizeof(char);
-		char* pdatas = (char*) malloc(stride2 * (image.height+4));
-		memset(pdatas, 0, stride2 * (image.height+4));
-		for (int i=2; i<(image.height+2); i++) {
-			memcpy(&pdatas[i * stride2 + 4*sizeof(char)], &image.datas[(i-2) * stride1], stride1);
-		}
-		delete[] image.datas;
-		image.datas = pdatas;
-	}
-#endif
-
-	GL_OPERATION(glGenTextures(1, &out.color))
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out.color))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, powerOf2W,
-                powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                NULL))
-	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width + 4*border,
-                image.height + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, image.datas))
-
-	GL_OPERATION(glGenTextures(1, &out.alpha))
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out.alpha))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, powerOf2W,
-                powerOf2H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                NULL))
-	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width + 4*border,
-                image.height + 4*border, GL_RGBA, GL_UNSIGNED_BYTE, image.datas))
-LOGW("Delete img ptr: %p", image.datas);
-	free(image.datas);
-	
-	realSize.X = image.width;
-	realSize.Y = image.height;
-	pow2Size.X = powerOf2W;
-	pow2Size.Y = powerOf2H;
+	out.color = createGLTexture(assetName, true, realSize, pow2Size);
+    out.alpha = createGLTexture(assetName, false, realSize, pow2Size);
 }
 
 void RenderingSystem::reloadTextures() {

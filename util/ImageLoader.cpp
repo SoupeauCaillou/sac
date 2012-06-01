@@ -64,23 +64,19 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	bit_depth = png_get_bit_depth(PNG_reader, PNG_info);
 	color_type = png_get_color_type(PNG_reader, PNG_info);
 
-	int bytepp = 0;
+	result.channels = 0;
 	if (color_type == PNG_COLOR_TYPE_GRAY)
 	{
 		if (bit_depth < 8) {
 			png_set_expand_gray_1_2_4_to_8(PNG_reader);
 		}
-		result.format = ImageDesc::ALPHA;
-		bytepp = 1;
+		result.channels = 1;
 	} else if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-		result.format = ImageDesc::ALPHA;
-		bytepp = 2;
+		result.channels = 2;
 	} else if (color_type == PNG_COLOR_TYPE_RGB) {
-		result.format = ImageDesc::RGB;
-		bytepp = 3;
+		result.channels = 3;
 	} else if (color_type == PNG_COLOR_TYPE_RGBA) {
-		result.format = ImageDesc::RGBA;
-		bytepp = 4;
+		result.channels = 4;
 	} else {
 		LOGW("%s INVALID color type: %u", context.c_str(), color_type);
 		assert(false);

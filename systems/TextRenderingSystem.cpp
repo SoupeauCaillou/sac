@@ -81,7 +81,7 @@ void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 				rc->hide = true;
 				continue;
 			} else {
-				a << (int) ((letter < 0) ? (unsigned char)letter : letter) << "_" << trc->fontName << ".png";
+				a << (int) ((letter < 0) ? (unsigned char)letter : letter) << "_" << trc->fontName;
 			}
 
 			if (trc->text[i] == ' ') {

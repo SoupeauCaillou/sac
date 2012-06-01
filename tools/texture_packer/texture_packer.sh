@@ -29,7 +29,7 @@ while read data; do
 		w=`echo $data | cut -d, -f4`
 		h=`echo $data | cut -d, -f5`
 		rot=`echo $data | cut -d, -f6`
-		
+
 		if [ ${rot} -ne "0" ]
 		then
 			convert -rotate 90 ${image} ${tmp_image}
@@ -42,7 +42,7 @@ while read data; do
 		convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -composite $output $tmp_image $output
 		# copy the real image
 		convert -geometry ${w}x${h}+${x}+${y} -composite $output $tmp_image $output
-		image=`echo ${image} | sed 's/assets\///'`
+		image=`basename ${image} .png`
 		echo "${image},${x},${y},${w},${h},${rot}" >> ${desc}
 	fi
 done

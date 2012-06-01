@@ -204,7 +204,7 @@ private:
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
 void processDelayedTextureJobs();
-
+GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
 static void check_GL_errors(const char* context);
 

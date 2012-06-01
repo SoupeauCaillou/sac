@@ -6,11 +6,7 @@
 struct ImageDesc {
 	char* datas;
 	int width, height;
-	enum {
-		RGBA, // 32 bpp
-		RGB,  // 24 bpp
-		ALPHA //  8 bpp
-	} format;
+    int channels;
 	enum {
 		RAW,
 		ECT1
