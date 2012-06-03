@@ -128,9 +128,9 @@ struct InternalTexture {
 	GLuint color;
 	GLuint alpha;
 	
-	void operator=(GLuint r) {
+	/*void operator=(GLuint r) {
 		color = alpha = r;
-	}
+	}*/
 	bool operator==(const InternalTexture& t) const {
 		return color == t.color && alpha == t.alpha;
 	}

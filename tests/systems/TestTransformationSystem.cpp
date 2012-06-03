@@ -6,7 +6,7 @@
 TEST(TransformationPropagationToWorldTransformWithoutParent)
 {
 	TransformationSystem::CreateInstance();
-	Entity e;
+	Entity e = 1;
 	theTransformationSystem.Add(e);
 	TransformationComponent* tc = TRANSFORM(e);
 	CHECK(tc);

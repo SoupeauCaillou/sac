@@ -28,7 +28,7 @@ add_executable(sac_tests ${tests_files})
 target_link_libraries(sac_tests sac UnitTest++ GLEW glfw openal sndfile vorbis z)
 add_executable(texture_packer ${texture_packer_source_files})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/sac/bin)
-target_link_libraries(texture_packer png)
+target_link_libraries(texture_packer sac z)
 add_custom_command(
 	TARGET sac_tests
 	POST_BUILD

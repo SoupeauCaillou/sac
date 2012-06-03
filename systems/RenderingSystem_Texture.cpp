@@ -74,7 +74,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	Vector2 atlasSize, pow2Size;
 	Atlas a;
 	a.name = atlasImage;
-	a.glref = 0;
+	a.glref = InternalTexture::Invalid;
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
 
@@ -108,7 +108,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 
 void RenderingSystem::invalidateAtlasTextures() {
     for (unsigned int i=0; i<atlas.size(); i++) {
-        atlas[i].glref = 0;
+        atlas[i].glref = InternalTexture::Invalid;
     }
 }
 
@@ -123,7 +123,7 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
                 it = next;
             }
             delayedDeletes.insert(atlas[i].glref);
-            atlas.erase(atlas.begin() + i);
+            // atlas.erase(atlas.begin() + i);
             break;
         }
     }
@@ -166,24 +166,24 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
     GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
 
-    GLenum internalFormat;
+    GLenum format;
     switch (image.channels) {
         case 1:
-            internalFormat = GL_ALPHA;
+            format = GL_ALPHA;
             break;
         case 2:
-            internalFormat = GL_LUMINANCE_ALPHA;
+            format = GL_LUMINANCE_ALPHA;
             break;
         case 3:
-            internalFormat = GL_RGB;
+            format = GL_RGB;
             break;
         case 4:
-            internalFormat = GL_RGBA;
+            format = GL_RGBA;
             break;
     }
-
-    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, internalFormat, GL_UNSIGNED_BYTE, NULL))
-    GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, internalFormat, GL_UNSIGNED_BYTE, image.datas))
+std::cout << "nb channels: " << image.channels << std::endl;
+    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+    GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
 
     free (image.datas);
     pow2Size.X = realSize.X = image.width;
@@ -203,7 +203,7 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 
 	out.color = createGLTexture(assetName, true, realSize, pow2Size);
-    out.alpha = createGLTexture(assetName, false, realSize, pow2Size);
+	out.alpha = createGLTexture(assetName, false, realSize, pow2Size);
 }
 
 void RenderingSystem::reloadTextures() {
@@ -212,7 +212,7 @@ void RenderingSystem::reloadTextures() {
     LOGW("\t- atlas : %lu", atlas.size());
 	// reload atlas texture
 	for (unsigned int i=0; i<atlas.size(); i++) {
-		atlas[i].glref = 0;
+		atlas[i].glref = InternalTexture::Invalid;
 	}
     LOGW("\t - textures: %lu", assetTextures.size());
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
@@ -271,9 +271,6 @@ void RenderingSystem::processDelayedTextureJobs() {
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	TextureRef result = InvalidTextureRef;
 	std::string name(assetName);
-	if (assetName.find(".png") == std::string::npos) {
-		name = name + ".png";
-	}
 
 	if (assetTextures.find(name) != assetTextures.end()) {
 		result = assetTextures[name];

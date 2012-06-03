@@ -199,6 +199,8 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
 static bool desaturate = false;
 static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
+	if (glref == RenderingSystem::InternalTexture::Invalid)
+		return;
 	setupTexturing(glref, desaturate, uvs);
 	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
@@ -209,7 +211,7 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 }
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
-#define MAX_BATCH_SIZE 64
+#define MAX_BATCH_SIZE 1
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 #ifdef GLES2_SUPPORT

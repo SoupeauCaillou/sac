@@ -6,7 +6,7 @@
 #define MAX_PARTICULE_COUNT 4096
 
 INSTANCE_IMPL(ParticuleSystem);
- 
+
 ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Particule") {
     particules = new InternalParticule[MAX_PARTICULE_COUNT];
     minUsedIdx = maxUsedIdx = 0;
