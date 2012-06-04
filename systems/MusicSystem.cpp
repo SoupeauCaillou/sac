@@ -142,8 +142,17 @@ void MusicSystem::DoUpdate(float dt) {
 
         // playing
         if (m->opaque[0]) {
-	        if (m->currentVolume != m->volume) {
-	            musicAPI->setVolume(m->opaque[0], m->volume);
+	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
+		        const float step = dt / m->fadeOut;
+		        m->currentVolume += step;
+		        m->currentVolume = MathUtil::Min(m->currentVolume, m->volume);
+		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
+	        } else {
+	        	m->fadeIn = 0;
+	        	if (m->currentVolume != m->volume) {
+	            	musicAPI->setVolume(m->opaque[0], m->volume);
+	            	m->currentVolume = m->volume;
+	        	}
             }
             // need to queue more data ?
             feed(m->opaque[0], m->music, 0, dt);
@@ -224,7 +233,6 @@ void MusicSystem::DoUpdate(float dt) {
 		        m->opaque[0] = startOpaque(m, m->music, m->master, 0);
 	        }
         }
-        m->currentVolume = m->volume;
         
         #ifdef MUSIC_VISU
         if (m->music != InvalidMusicRef) {
@@ -399,9 +407,16 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
         musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
     }
 	// set volume
+	if (m->fadeIn > 0) {
+		musicAPI->setVolume(ptr, 0);
+		m->currentVolume = 0;
+	} else {
+		musicAPI->setVolume(ptr, 0);
+		m->currentVolume = m->volume;
+	}
 	musicAPI->setVolume(ptr, m->volume);
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
-	m->currentVolume = m->volume;
+	
     return ptr;
 }
 

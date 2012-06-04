@@ -22,6 +22,7 @@ class CircularBuffer;
 struct MusicComponent {
 	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), master(0), positionI(0), volume(1), control(Stop) {
 		opaque[0] = opaque[1] = 0;
+		fadeOut = fadeIn = 0;
 	}
 
     MusicRef music, loopNext;
@@ -31,7 +32,7 @@ struct MusicComponent {
     #ifdef MUSIC_VISU
     float positionF;
     #endif
-    float fadeOut; // sec
+    float fadeOut, fadeIn; // sec
     float volume, currentVolume;
     bool looped;
     enum {
