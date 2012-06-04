@@ -19,6 +19,7 @@ struct ParticuleComponent {
     Interval<float> finalSize;
     Interval<float> forceDirection;
     Interval<float> forceAmplitude;
+    Interval<float> moment;
     float spawnLeftOver;
     float mass;
 };

@@ -43,3 +43,9 @@ void PhysicsSystem::DoUpdate(float dt) {
     }
 }
 
+void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
+	// add 2 opposed forces
+	pc->forces.push_back(Force(Vector2(0, m * 0.5), Vector2(1, 0)));
+	pc->forces.push_back(Force(Vector2(0, -m * 0.5), Vector2(-1, 0)));
+}
+

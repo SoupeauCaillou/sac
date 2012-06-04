@@ -48,6 +48,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                     ppc->mass = pc->mass;
                     float angle = pc->forceDirection.random();
                     ppc->forces.push_back(Force(Vector2::VectorFromAngle(angle) * pc->forceAmplitude.random(), tc->size * MathUtil::RandomFloat()));
+                    PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }
                 internal.color = Interval<Color> (rc->color, pc->finalColor.random());
                 internal.size = Interval<float> (tc->size.X, pc->finalSize.random());

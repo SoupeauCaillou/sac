@@ -26,5 +26,8 @@ struct PhysicsComponent {
 #define thePhysicsSystem PhysicsSystem::GetInstance()
 #define PHYSICS(actor) thePhysicsSystem.Get(actor)
 UPDATABLE_SYSTEM(Physics)
+
+public:
+	static void addMoment(PhysicsComponent* pc, float m);
 };
 
