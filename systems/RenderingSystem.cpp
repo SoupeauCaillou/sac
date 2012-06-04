@@ -122,6 +122,7 @@ void RenderingSystem::init() {
     GL_OPERATION(glClearDepth(0.0))
  #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
+	GL_OPERATION(glDepthMask(false))
 }
 static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
 	if (r1.z == r2.z)

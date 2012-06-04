@@ -215,17 +215,19 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 	if (glref == RenderingSystem::InternalTexture::Invalid)
 		return;
 	setupTexturing(glref, desaturate, uvs);
-	GL_OPERATION(glVertexPointer(3, GL_FLOAT, 0, vertices))
+	GL_OPERATION(glVertexPointer(2, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
 	// GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
 	GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
 
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+	
+	GL_OPERATION(glEnable(GL_BLEND))
 }
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
-#define MAX_BATCH_SIZE 64
-	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
+#define MAX_BATCH_SIZE 128
+	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 2];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 #ifdef GLES2_SUPPORT
 	static GLfloat posrot[MAX_BATCH_SIZE * 4 * 4];
@@ -234,6 +236,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	int batchSize = 0;
 	desaturate = false;
 	
+	// will be enabled by first batch (aka background)
+	GL_OPERATION(glDisable(GL_BLEND))
 	// GL_OPERATION(glDepthMask(true))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
     Color currentColor(1,1,1,1);
@@ -302,9 +306,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 		const int baseIdx = 4 * batchSize;
 		for (int i=0; i<4; i++) {
-			vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
-			vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
-			vertices[(baseIdx + i) * 3 + 2] = -rc.z;
+			vertices[(baseIdx + i) * 2 + 0] = onScreenVertices[i].X;
+			vertices[(baseIdx + i) * 2 + 1] = onScreenVertices[i].Y;
+			// vertices[(baseIdx + i) * 3 + 2] = -rc.z;
 		}
 
 		uvs[baseIdx * 2 + 0] = rc.uv[0].X;
@@ -348,9 +352,18 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 	}
 }
-
+#include <errno.h>
 void RenderingSystem::render() {
-	pthread_mutex_lock(&mutexes[current]);
+	// static float begin = TimeUtil::getTime();
+	// static float end = TimeUtil::getTime();
+	
+	// begin = TimeUtil::getTime();
+	// LOGW("time out: %.3f", begin - end);
+	
+	if (pthread_mutex_trylock(&mutexes[current]) != 0) {
+		// LOGW("HMM Busy render lock");
+		pthread_mutex_lock(&mutexes[current]);
+	}
 	// LOGW("redner queue size: %d IN - frame count: %d", renderQueue.size(), frameToRender);
 	if (renderQueue.empty() || frameToRender == 0) {
 		pthread_cond_wait(&cond, &mutexes[current]);
@@ -387,6 +400,9 @@ void RenderingSystem::render() {
 	frameToRender--;
 
 	pthread_mutex_unlock(&mutexes[0]);
+	// glFinish();
+	// end = TimeUtil::getTime();
+	// LOGW("time in : %.3f", end - begin);
 }
 
 void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {

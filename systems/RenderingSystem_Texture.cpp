@@ -151,7 +151,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     if (!file.data) {
         file = assetAPI->loadAsset(basename + ".png");
         if (!file.data)
-            return 0;
+            return whiteTexture;
         png = true;
     }
 
