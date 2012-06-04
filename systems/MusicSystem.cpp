@@ -74,6 +74,7 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 	if (m->loopNext != InvalidMusicRef)
 		clearAndRemoveInfo(m->loopNext);
 	m->music = m->loopNext = InvalidMusicRef;
+	m->currentVolume = 0;
 }
 
 void MusicSystem::DoUpdate(float dt) {
@@ -397,10 +398,9 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
         memset(buffer0, 0,  info.pcmBufferSize);
         musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
     }
-
-	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
 	// set volume
 	musicAPI->setVolume(ptr, m->volume);
+	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
 	m->currentVolume = m->volume;
     return ptr;
 }
