@@ -32,7 +32,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 ADD_COMPONENT(e, Transformation);
                 TransformationComponent* tc = TRANSFORM(e);
                 tc->position = ptc->worldPosition + Vector2(MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.X, MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.Y);
-                tc->size = pc->initialSize.random();
+                tc->size.X = tc->size.Y = pc->initialSize.random();
                 tc->z = ptc->z;
 
                 ADD_COMPONENT(e, Rendering);
@@ -82,7 +82,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                     minUsedIdx = i+1;
             } else {
                 RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
-                TRANSFORM(internal.e)->size = internal.size.lerp(internal.time / internal.lifetime);
+                TRANSFORM(internal.e)->size.X = TRANSFORM(internal.e)->size.Y = internal.size.lerp(internal.time / internal.lifetime);
             }
         }
     }

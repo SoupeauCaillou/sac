@@ -99,7 +99,7 @@ struct Vector2
 	 * 
 	 * @param value The value to use for both the X and Y dimension
 	 */
-	Vector2(float value);
+	explicit Vector2(float value);
 	
 	/**
 	 * Constructor to initialize a zero-length vector (0, 0)
