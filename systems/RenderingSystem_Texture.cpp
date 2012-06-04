@@ -181,10 +181,17 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
             format = GL_RGBA;
             break;
     }
-std::cout << "nb channels: " << image.channels << std::endl;
-    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
-    GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
-
+    
+    if (png) {
+    	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+    	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
+    } else {
+	#ifdef ANDROID
+	    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8_OES, image.width, image.height, 0, image.size, image.datas))
+    #else
+    	assert (false && "ETC compression not supported");
+    #endif
+    }
     free (image.datas);
     pow2Size.X = realSize.X = image.width;
     pow2Size.Y = realSize.Y = image.height;

@@ -125,10 +125,7 @@ class ComponentSystemImpl: public ComponentSystem {
 		void deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = new T();
 			if (size != sizeof(T)) {
-				int s = sizeof(T);
-				bool b = LOGW("error in size: %d != %d", size, s);
-				if (b) {
-				}
+				LOGW("error in size: %d != %d", size, sizeof(T));
 			}
 			memcpy(component, in, size);
 			components[entity] = component;
