@@ -75,44 +75,48 @@ static void drawBatchES2(const GLfloat* vertices, const GLfloat* uvs, const GLfl
 
 static void setupTexturing(const RenderingSystem::InternalTexture& glref, bool enableDesaturation, const float* uvs) {
 	if (!enableDesaturation) {
+		//// # TEXTURE STAGE 1
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, glref.color);
 		glClientActiveTexture(GL_TEXTURE0);
 
-glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
-glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		// color: modulate TEXTURE color with glColor
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+		// alpha: use glColor value
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		
 		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
 		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
 		
-glActiveTexture(GL_TEXTURE1);//we only care about ALPHA
-glEnable(GL_TEXTURE_2D);
-glBindTexture(GL_TEXTURE_2D, glref.alpha);
-glClientActiveTexture(GL_TEXTURE1);
-
-glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
-glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-
-		
-		
+		//// # TEXTURE STAGE 2
+		glActiveTexture(GL_TEXTURE1);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, glref.alpha);
+		glClientActiveTexture(GL_TEXTURE1);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		// use previous stage color
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		// combine previous alpha with TEXTURE alpha
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 		
 		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
 		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
 
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//// # TEXTURE STAGE 3 (disabled)
 		glActiveTexture(GL_TEXTURE2);
 		glDisable(GL_TEXTURE_2D);
 	} else {
@@ -125,13 +129,15 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		
 		//GL_MODULATE is Arg0 * Arg1    
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		
-		//Configure Arg0
 		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_TEXTURE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 		
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+		
 		//Configure Arg1
-		float multipliers[4] = {.5, .5, .5, 0.0};
+		float multipliers[4] = {.5, .5, .5, 1.0};
 		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
 		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&multipliers);
@@ -143,12 +149,19 @@ glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 		//Enable texture unit 1 to increase RGB values by .5
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, glref.color);
+		glBindTexture(GL_TEXTURE_2D, glref.alpha);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glClientActiveTexture(GL_TEXTURE1);
 		
 		//GL_ADD is Arg0 + Arg1
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		
+		// combine previous alpha with TEXTURE alpha
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 		
 		//Configure Arg0
 		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
@@ -211,7 +224,7 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 }
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
-#define MAX_BATCH_SIZE 1
+#define MAX_BATCH_SIZE 64
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 #ifdef GLES2_SUPPORT
@@ -295,13 +308,13 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 
 		uvs[baseIdx * 2 + 0] = rc.uv[0].X;
-		uvs[baseIdx * 2 + 1] = rc.uv[0].Y;
+		uvs[baseIdx * 2 + 1] = 1-rc.uv[0].Y;
 		uvs[baseIdx * 2 + 2] = rc.uv[1].X;
-		uvs[baseIdx * 2 + 3] = rc.uv[0].Y;
+		uvs[baseIdx * 2 + 3] = 1-rc.uv[0].Y;
 		uvs[baseIdx * 2 + 4] = rc.uv[0].X;
-		uvs[baseIdx * 2 + 5] = rc.uv[1].Y;
+		uvs[baseIdx * 2 + 5] = 1-rc.uv[1].Y;
 		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
-		uvs[baseIdx * 2 + 7] = rc.uv[1].Y;
+		uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
 
 		indices[batchSize * 6 + 0] = baseIdx + 0;
 		indices[batchSize * 6 + 1] = baseIdx + 1;

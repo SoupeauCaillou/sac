@@ -1,5 +1,6 @@
 #include "RenderingSystem.h"
 #include <GLES/gl.h>
+#include <GLES/glext.h>
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
@@ -141,8 +142,12 @@ static unsigned int alignOnPowerOf2(unsigned int value) {
 GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size) {
     FileBuffer file;
     bool png = false;
-
-    file = assetAPI->loadAsset(basename + ".pkm");
+    file.data = 0;
+#ifdef ANDROID
+	if (colorOrAlpha) {
+    	file = assetAPI->loadAsset(basename + ".pkm");
+	}
+#endif
     if (!file.data) {
         file = assetAPI->loadAsset(basename + ".png");
         if (!file.data)
@@ -183,11 +188,14 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     }
     
     if (png) {
+	    LOGW("Using PNG texture version");
     	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
     	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
+	    LOGW("Using ETC texture version");
 	#ifdef ANDROID
-	    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8_OES, image.width, image.height, 0, image.size, image.datas))
+		#define ECT1_HEADER_SIZE 16
+	    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
     #else
     	assert (false && "ETC compression not supported");
     #endif
@@ -210,7 +218,7 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 
 	out.color = createGLTexture(assetName, true, realSize, pow2Size);
-	out.alpha = createGLTexture(assetName, false, realSize, pow2Size);
+	out.alpha = createGLTexture(assetName + "_alpha", false, realSize, pow2Size);
 }
 
 void RenderingSystem::reloadTextures() {

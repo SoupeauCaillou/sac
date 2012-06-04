@@ -11,6 +11,7 @@ LOCAL_CXXFLAGS := -DANDROID_NDK \
                 -I$(LOCAL_PATH)/base \
 				-I$(LOCAL_PATH)/systems \
 				-I$(LOCAL_PATH)/libs \
+				-I$(LOCAL_PATH)/libs/libpng/jni
 
 LOCAL_SRC_FILES := \
     base/MathUtil.cpp \
