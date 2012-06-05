@@ -1,5 +1,5 @@
 #include "ButtonSystem.h"
-
+#include "base/TimeUtil.h"
 
 INSTANCE_IMPL(ButtonSystem);
 
@@ -32,8 +32,12 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 				comp->mouseOver = over;
 			} else {
 				if (!comp->touchStartOutside) {
-					std::cout << entity << ": clicked" << std::endl;
-					comp->clicked = true;
+					float t =TimeUtil::getTime();
+					// at least 500 ms between 2 clicks
+					if (t - comp->lastClick > .5) {
+						comp->lastClick = t;
+						comp->clicked = true;
+					}
 				}
 				comp->mouseOver = false;
 			}

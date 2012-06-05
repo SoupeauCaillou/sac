@@ -10,12 +10,13 @@
 
 
 struct ButtonComponent {
-	ButtonComponent() : enabled(true), mouseOver(false), clicked(false), overSize(1) { }
+	ButtonComponent() : enabled(true), mouseOver(false), clicked(false), overSize(1) , lastClick(0) { }
 	
 	bool enabled;
 	bool mouseOver;
 	bool clicked, touchStartOutside;
     float overSize;
+    float lastClick;
 };
 
 #define theButtonSystem ButtonSystem::GetInstance()

@@ -72,9 +72,11 @@ void ScrollingSystem::DoUpdate(float dt) {
             TRANSFORM(se.e[1])->position.X = TRANSFORM(se.e[0])->position.X + normS.X * ptc->size.X;
         }
         
+        /*
         if (MathUtil::Abs(TRANSFORM(se.e[1])->position.X - TRANSFORM(se.e[0])->position.X) < ptc->size.X * 0.9) {
 	        LOGE("BUGGY SCROLLING POS: %.2f - %.2f (%.2f)", TRANSFORM(se.e[0])->position.X, TRANSFORM(se.e[1])->position.X, ptc->size.X);
         }
+        */
         /*
         std::cout << "Diff: " <<
             MathUtil::Abs(TRANSFORM(se.e[0])->position.X - TRANSFORM(se.e[1])->position.X) <<
