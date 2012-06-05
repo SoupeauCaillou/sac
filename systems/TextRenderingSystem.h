@@ -47,6 +47,8 @@ public :
 	void registerFont(const std::string& fontName, const std::map<unsigned char, float>& charH2Wratio) {
 		fontRegistry[fontName] = charH2Wratio;
 	}
+	
+	float computeTextRenderingComponentWidth(TextRenderingComponent* trc);
 
 private:
 	std::list<Entity> renderingEntitiesPool;

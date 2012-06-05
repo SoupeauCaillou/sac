@@ -43,6 +43,11 @@ static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, 
     return result;
 }
 
+float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingComponent* trc) {
+	std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
+	return computeStringWidth(trc, charH2Wratio);
+}
+
 void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
@@ -94,7 +99,7 @@ void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
 			x += tc->size.X * 0.5;
-
+ // if (letter == 'C' && it->first == 19) std::cout << it->first << ":" << x /*+ TRANSFORM(tc->parent)->position.X*/ << ", " << trc->text << ", " << trc->charHeight << ", " << trc->positioning << std::endl;
 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
 			}

@@ -20,7 +20,7 @@ void MorphingSystem::DoUpdate(float dt) {
 			m->value = MathUtil::Min(1.0f, m->activationTime/m->timing);
             for (unsigned int i=0; i<m->elements.size(); i++) {
                 if (!m->elements[i]->ended) {
-					m->elements[i]->lerp(m->value);
+					m->elements[i]->lerp(MathUtil::Min(1.0f, m->value * m->elements[i]->coeff));
 					if (m->value == 1) {
 						m->elements[i]->ended = true;
 					}

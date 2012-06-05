@@ -5,11 +5,12 @@
 #include "System.h"
 
 struct MorphElement {
-	MorphElement() : ended(false) {};
+	MorphElement() : ended(false), coeff(1) {};
 	virtual ~MorphElement() {}
     virtual void lerp(float t)=0;
     virtual void reverse() = 0;
     bool ended;
+    float coeff;
 };
 
 template<typename T>
