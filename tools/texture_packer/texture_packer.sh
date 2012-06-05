@@ -7,6 +7,7 @@ then
 fi
 
 output=/tmp/${1}.png
+output_alpha=/tmp/${1}_alpha.png
 desc=/tmp/${1}.desc
 tmp_image=/tmp/tmp___.png
 
@@ -21,6 +22,7 @@ while read data; do
 		h=`echo $data | cut -d, -f2`
 		echo "Atlas size: $w x $h"
 		convert -size ${w}x${h} xc:transparent ${output}
+		convert -size ${w}x${h} xc:transparent ${output_alpha}
 		echo "$w,$h" > ${desc}
 	else
 		image=`echo $data | cut -d, -f1`
@@ -42,6 +44,7 @@ while read data; do
 		convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -composite $output $tmp_image $output
 		# copy the real image
 		convert -geometry ${w}x${h}+${x}+${y} -composite $output $tmp_image $output
+		convert -geometry ${w}x${h}+${x}+${y} -composite $output_alpha $tmp_image $output_alpha
 		image=`basename ${image} .png`
 		echo "${image},${x},${y},${w},${h},${rot}" >> ${desc}
 	fi
