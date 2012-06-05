@@ -53,7 +53,7 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        } else if (se.hasBeenVisible[i] && !isVisible) {
 	        	TransformationComponent* ptc = TRANSFORM(a);
 	        	// HACK
-	        	Vector2 normS = Vector2(1, 0); //-Vector2::Normalize(sc->speed);
+	        	Vector2 normS = /* Vector2(1, 0); */-Vector2::Normalize(sc->speed);
 		    	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
 		    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 		    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(normS.X * ptc->size.X, normS.Y * ptc->size.Y);
@@ -63,9 +63,10 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        }
         }
         TransformationComponent* ptc = TRANSFORM(a);
-		Vector2 normS = Vector2(1, 0);//-Vector2::Normalize(sc->speed);
+		Vector2 normS = /*Vector2(1, 0);*/-Vector2::Normalize(sc->speed);
 
-        if (TRANSFORM(se.e[0])->position.X > TRANSFORM(se.e[1])->position.X) {
+        if (((normS.X > 0 && TRANSFORM(se.e[0])->position.X > TRANSFORM(se.e[1])->position.X)) ||
+        	((normS.X < 0 && TRANSFORM(se.e[0])->position.X < TRANSFORM(se.e[1])->position.X))) {
             TRANSFORM(se.e[0])->position.X = TRANSFORM(se.e[1])->position.X + normS.X * ptc->size.X;
         } else {
             TRANSFORM(se.e[1])->position.X = TRANSFORM(se.e[0])->position.X + normS.X * ptc->size.X;
@@ -85,7 +86,7 @@ void ScrollingSystem::DoUpdate(float dt) {
 
 void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 	ScrollingElement se;
-	Vector2 normS = Vector2(1, 0); // -Vector2::Normalize(sc->speed);
+	Vector2 normS = /*Vector2(1, 0); */ -Vector2::Normalize(sc->speed);
 	// TEMP HACK
 	TransformationComponent* ptc = TRANSFORM(e);
 	for (int i=0; i<2; i++) {
