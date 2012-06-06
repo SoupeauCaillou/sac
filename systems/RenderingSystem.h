@@ -89,7 +89,7 @@ UPDATABLE_SYSTEM(Rendering)
 public:
 void init();
 
-void loadAtlas(const std::string& atlasName);
+void loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading = false);
 void unloadAtlas(const std::string& atlasName);
 void invalidateAtlasTextures();
 

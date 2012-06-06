@@ -62,7 +62,7 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 	rot = atoi(substrings[5].c_str());
 }
 
-void RenderingSystem::loadAtlas(const std::string& atlasName) {
+void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
 	std::string atlasDesc = atlasName + ".desc";
 	std::string atlasImage = atlasName;
 	
@@ -75,7 +75,11 @@ void RenderingSystem::loadAtlas(const std::string& atlasName) {
 	Vector2 atlasSize, pow2Size;
 	Atlas a;
 	a.name = atlasImage;
-	a.glref = InternalTexture::Invalid;
+	if (forceImmediateTextureLoading) {
+		loadTexture(atlasName, atlasSize, pow2Size, a.glref);
+	} else {
+		a.glref = InternalTexture::Invalid;
+	}
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
 
@@ -117,11 +121,11 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     for (unsigned int i=0; i<atlas.size(); i++) {
         if (atlasName == atlas[i].name) {
             for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end();) {
-                std::map<TextureRef, TextureInfo>::iterator next = ++it;
-                if (it->second.glref == atlas[i].glref) {
-                    textures.erase(it);
+	            if (it->second.glref == atlas[i].glref) {
+	                textures.erase(it++);
+                } else {
+	                it++;
                 }
-                it = next;
             }
             delayedDeletes.insert(atlas[i].glref);
             // atlas.erase(atlas.begin() + i);
@@ -293,8 +297,11 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		result = nextValidRef++;
 		assetTextures[name] = result;
 	}
-	if (textures.find(result) == textures.end())
+	if (textures.find(result) == textures.end()) {
+		pthread_mutex_lock(&mutexes[current]);
 		delayedLoads.insert(name);
+		pthread_mutex_unlock(&mutexes[current]);
+	}
 		
 	return result;
 }
@@ -309,7 +316,9 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
         for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
             if (it->second == ref) {
                 assetTextures.erase(it);
+                pthread_mutex_lock(&mutexes[current]);
                 delayedDeletes.insert(textures[ref].glref);
+                pthread_mutex_unlock(&mutexes[current]);
                 break;
             }
         }
