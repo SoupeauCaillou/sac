@@ -26,7 +26,7 @@ AssetAPIAndroidImpl::~AssetAPIAndroidImpl() {
 void AssetAPIAndroidImpl::init() {
 	datas = new AssetAPIAndroidImplData();
 
-	datas->javaAssetApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
+	datas->javaAssetApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->assetToByteArray = jniMethodLookup(env, datas->javaAssetApi, "assetToByteArray", "(Landroid/content/res/AssetManager;Ljava/lang/String;)[B");
 }
 

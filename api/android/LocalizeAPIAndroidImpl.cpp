@@ -30,7 +30,7 @@ LocalizeAPIAndroidImpl::~LocalizeAPIAndroidImpl() {
 void LocalizeAPIAndroidImpl::init() {
 	datas = new LocalizeAPIAndroidImplData();
 	
-	datas->javaLocApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
+	datas->javaLocApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->localize = jniMethodLookup(env, datas->javaLocApi, "localize", "(Ljava/lang/String;)Ljava/lang/String;");
 }
 

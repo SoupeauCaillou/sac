@@ -48,7 +48,7 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 void MusicAPIAndroidImpl::init() {
 	datas = new MusicAPIAndroidImplData();
 
-	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
+	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->createPlayer = jniMethodLookup(env, datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
     datas->pcmBufferSize = jniMethodLookup(env, datas->javaMusicApi, "pcmBufferSize", "(I)I");
     datas->allocate = jniMethodLookup(env, datas->javaMusicApi, "allocate", "(I)[B");

@@ -25,7 +25,7 @@ void AdAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
     datas = new AdAPIAndroidImplData();
 
-    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/tilematch/TilematchJNILib"));
+    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
     datas->showAd = jniMethodLookup(env, datas->cls, "showAd", "()V");
     datas->done = jniMethodLookup(env, datas->cls, "done", "()Z");
 }
