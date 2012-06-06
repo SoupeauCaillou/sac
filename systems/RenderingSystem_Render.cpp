@@ -222,7 +222,7 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 	
-	GL_OPERATION(glEnable(GL_BLEND))
+	// GL_OPERATION(glEnable(GL_BLEND))
 }
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
@@ -237,7 +237,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	desaturate = false;
 	
 	// will be enabled by first batch (aka background)
-	GL_OPERATION(glDisable(GL_BLEND))
+	// GL_OPERATION(glDisable(GL_BLEND))
 	// GL_OPERATION(glDepthMask(true))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
     Color currentColor(1,1,1,1);

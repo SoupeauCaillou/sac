@@ -65,7 +65,7 @@ void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 			if (i >= trc->drawing.size()) {
 				if (renderingEntitiesPool.size() > 0) {
 					trc->drawing.push_back(renderingEntitiesPool.back());
-					renderingEntitiesPool.pop_back();
+					renderingEntitiesPool.pop_back();					
 				} else {
 					trc->drawing.push_back(createRenderingEntity());
 				}
@@ -131,6 +131,7 @@ void TextRenderingSystem::DeleteEntity(Entity e) {
 		return;
 	for (unsigned int i=0; i<tc->drawing.size(); i++) {
 		renderingEntitiesPool.push_back(tc->drawing[i]);
+		RENDERING(tc->drawing[i])->hide = true;
 	}
 	tc->drawing.clear();
 	theEntityManager.DeleteEntity(e);
