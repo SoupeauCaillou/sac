@@ -39,7 +39,6 @@ void ScrollingSystem::DoUpdate(float dt) {
         }
         
         assert (sc->speed >= 0);
-
 	    ScrollingElement& se = iter->second;
 	    for (int i=0; i<2; i++) {
 		    if (RENDERING(se.e[i])->hide)
@@ -54,7 +53,7 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        } else if (se.hasBeenVisible[i] && !isVisible) {
 	        	se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();  
 		    	RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-		    	tc->position = TRANSFORM(se.e[(i+1)%2])->position + Vector2(sc->direction.X * ptc->size.X, sc->direction.Y * ptc->size.Y);
+		    	tc->position = TRANSFORM(se.e[(i+1)%2])->position - Vector2(sc->direction.X * ptc->size.X, sc->direction.Y * ptc->size.Y);
                 tc->z = ptc->z - 0.005;
                 se.hasBeenVisible[i] = false;
 	        }
