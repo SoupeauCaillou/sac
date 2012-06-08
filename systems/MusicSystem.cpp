@@ -319,7 +319,7 @@ void MusicSystem::oggDecompRunLoop() {
         			delete info.ovf;
 	            }
     			if (info.buffer) {
-	    			LOGW("delete %p", info.buffer);
+	    			// LOGW("delete %p", info.buffer);
     				delete info.buffer;
     				info.buffer = 0;
     			}
@@ -478,7 +478,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
     info.nbSamples = ov_pcm_total(f, -1);
     info.leftOver = 0;
-    info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
+    info.buffer = new CircularBuffer(info.pcmBufferSize * 5);
     LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     pthread_mutex_lock(&mutex);
     musics[nextValidRef] = info;
