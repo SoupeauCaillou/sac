@@ -7,7 +7,7 @@ LOCAL_MODULE := sac
 LOCAL_CFLAGS := -DANDROID_NDK \
 				-I$(BASE_PATH)
 
-LOCAL_CXXFLAGS := -DANDROID_NDK \
+LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG \
                 -I$(LOCAL_PATH)/base \
 				-I$(LOCAL_PATH)/systems \
 				-I$(LOCAL_PATH)/libs \
@@ -43,6 +43,7 @@ LOCAL_SRC_FILES := \
     api/android/SoundAPIAndroidImpl.cpp \
     api/android/LocalizeAPIAndroidImpl.cpp \
     api/android/NameInputAPIAndroidImpl.cpp \
+    api/android/ExitAPIAndroidImpl.cpp \
 	util/ImageLoader.cpp \
 
 

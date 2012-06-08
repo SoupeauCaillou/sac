@@ -77,6 +77,8 @@
     <Compile Include="tests\base\TestCircularBuffer.cpp" />
     <Compile Include="api\android\AdAPIAndroidImpl.cpp" />
     <Compile Include="util\ImageLoader.cpp" />
+    <Compile Include="api\linux\ExitAPILinuxImpl.cpp" />
+    <Compile Include="api\android\ExitAPIAndroidImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -179,6 +181,9 @@
     <None Include="api\AdAPI.h" />
     <None Include="api\android\AdAPIAndroidImpl.h" />
     <None Include="util\ImageLoader.h" />
+    <None Include="api\ExitAPI.h" />
+    <None Include="api\linux\ExitAPILinuxImpl.h" />
+    <None Include="api\android\ExitAPIAndroidImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
