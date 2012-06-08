@@ -54,6 +54,7 @@ void uninit();
 bool isMuted() const { return muted; }
 
 MusicRef loadMusicFile(const std::string& assetName);
+void unloadMusic(MusicRef ref);
 
 void toggleMute(bool enable);
 

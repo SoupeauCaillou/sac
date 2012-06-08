@@ -57,6 +57,10 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     pthread_cond_signal(&cond);
 }
 
+void MusicSystem::unloadMusic(MusicRef ref) {
+	clearAndRemoveInfo(ref);
+}
+
 void MusicSystem::stopMusic(MusicComponent* m) {
     for (int i=0; i<2; i++) {
         if (m->opaque[i]) {
