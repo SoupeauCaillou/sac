@@ -76,14 +76,13 @@ void RenderingSystem::init() {
 		glDeleteShader(vs);
 		glDeleteShader(fs);
 		
-		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
+		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
 	} else 
 #endif	
 			{
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
-		GL_OPERATION(glClearColor(0.2, 0.5, 0.1, 1.0))
-		glAlphaFunc(GL_GREATER, 0.1);
-		//glEnable(GL_ALPHA_TEST);
+		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
+		glDisable(GL_ALPHA_TEST);
 	
 		GL_OPERATION(glEnable(GL_TEXTURE_2D))
 		GL_OPERATION(glMatrixMode(GL_PROJECTION))

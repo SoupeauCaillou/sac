@@ -215,6 +215,7 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 	if (glref == RenderingSystem::InternalTexture::Invalid)
 		return;
 	setupTexturing(glref, desaturate, uvs);
+	
 	GL_OPERATION(glVertexPointer(2, GL_FLOAT, 0, vertices))
 	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
 	// GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
@@ -236,9 +237,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	int batchSize = 0;
 	desaturate = false;
 	
-	// will be enabled by first batch (aka background)
-	// GL_OPERATION(glDisable(GL_BLEND))
-	// GL_OPERATION(glDepthMask(true))
+	GL_OPERATION(glEnable(GL_BLEND))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
     Color currentColor(1,1,1,1);
     glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);

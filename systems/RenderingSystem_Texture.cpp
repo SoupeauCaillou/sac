@@ -91,7 +91,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
     sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
     LOGW("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f,%f] ('%s')", atlasName.c_str(), atlasIndex, a.glref.color, a.glref.alpha, atlasSize.X, atlasSize.Y, s.c_str());
 	int count = 0;
-	while(!s.empty()) {
+	
+	do {
+		s.clear();
+		f >> s;
+		if (s.empty())
+			break;
+		count++;
 		// LOGI("atlas - line: %s", s.c_str());
 		std::string assetName;
 		int x, y, w, h;
@@ -100,13 +106,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		parse(s, assetName, x, y, w, h, rot);
 
 		TextureRef result = nextValidRef++;
+		LOGW("----- %s -> %d", assetName.c_str(), result);
 		assetTextures[assetName] = result;
 		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, atlasIndex);
 		
-		s.clear();
-		f >> s;
-		count++;
-	}
+		
+	} while (!s.empty());
+	
 	delete[] file.data;
 	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
@@ -118,17 +124,16 @@ void RenderingSystem::invalidateAtlasTextures() {
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
-    for (unsigned int i=0; i<atlas.size(); i++) {
-        if (atlasName == atlas[i].name) {
-            for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end();) {
-	            if (it->second.glref == atlas[i].glref) {
-	                textures.erase(it++);
-                } else {
-	                it++;
+	LOGW("Unload atlas '%s' texture", atlasName.c_str());
+    for (unsigned int idx=0; idx<atlas.size(); idx++) {
+        if (atlasName == atlas[idx].name) {
+            for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
+	            if (it->second.atlasIndex == idx) {
+		            it->second.glref = InternalTexture::Invalid;
                 }
             }
-            delayedDeletes.insert(atlas[i].glref);
-            // atlas.erase(atlas.begin() + i);
+            delayedDeletes.insert(atlas[idx].glref);
+            atlas[idx].glref = InternalTexture::Invalid;
             break;
         }
     }
@@ -296,6 +301,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	} else {
 		result = nextValidRef++;
 		assetTextures[name] = result;
+		LOGW("Texture '%s' doesn't belong to any atlas. Will be loaded individually", assetName.c_str());
 	}
 	if (textures.find(result) == textures.end()) {
 		pthread_mutex_lock(&mutexes[current]);
