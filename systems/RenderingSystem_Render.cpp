@@ -217,13 +217,13 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 	setupTexturing(glref, desaturate, uvs);
 	
 	GL_OPERATION(glVertexPointer(2, GL_FLOAT, 0, vertices))
-	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
+	
 	// GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
-	GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
+	
 
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 	
-	// GL_OPERATION(glEnable(GL_BLEND))
+	GL_OPERATION(glEnable(GL_BLEND))
 }
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
@@ -236,8 +236,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 	desaturate = false;
-	
-	GL_OPERATION(glEnable(GL_BLEND))
+	GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
+	GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
+	GL_OPERATION(glDisable(GL_BLEND))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
     Color currentColor(1,1,1,1);
     glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
