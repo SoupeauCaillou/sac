@@ -147,13 +147,14 @@ void MusicSystem::DoUpdate(float dt) {
         // playing
         if (m->opaque[0]) {
 	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
-		        const float step = dt / m->fadeOut;
+		        const float step = dt / m->fadeIn;
 		        m->currentVolume += step;
 		        m->currentVolume = MathUtil::Min(m->currentVolume, m->volume);
 		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
 	        } else {
 	        	m->fadeIn = 0;
 	        	if (m->currentVolume != m->volume) {
+		      		LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
 	            	musicAPI->setVolume(m->opaque[0], m->volume);
 	            	m->currentVolume = m->volume;
 	        	}
@@ -410,15 +411,19 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
         memset(buffer0, 0,  info.pcmBufferSize);
         musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
     }
+    
+    m->volume = 1;
 	// set volume
 	if (m->fadeIn > 0) {
 		musicAPI->setVolume(ptr, 0);
 		m->currentVolume = 0;
+		LOGW("volume - Start with fading: %.2f - %.2f", m->fadeIn, m->volume);
 	} else {
-		musicAPI->setVolume(ptr, 0);
+		LOGW("volume - Start without fading: %.2f - %.2f", m->fadeIn, m->volume);
+		musicAPI->setVolume(ptr, m->volume);
 		m->currentVolume = m->volume;
 	}
-	musicAPI->setVolume(ptr, m->volume);
+	//musicAPI->setVolume(ptr, m->volume);
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
 	
     return ptr;

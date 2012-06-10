@@ -17,7 +17,7 @@ typedef int MusicRef;
 #define InvalidMusicRef -1
 class CircularBuffer;
 
-// #define MUSIC_VISU
+#define MUSIC_VISU
 
 struct MusicComponent {
 	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), master(0), positionI(0), volume(1), control(Stop) {
