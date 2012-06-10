@@ -20,12 +20,13 @@ class CircularBuffer;
 #define MUSIC_VISU
 
 struct MusicComponent {
-	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), master(0), positionI(0), volume(1), control(Stop) {
+	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(Stop) {
 		opaque[0] = opaque[1] = 0;
 		fadeOut = fadeIn = 0;
 	}
 
     MusicRef music, loopNext;
+    MusicRef previousEnding;
     MusicComponent* master;
     float loopAt; // sec
     int positionI; // in [0,1]
@@ -74,6 +75,9 @@ struct MusicInfo {
     CircularBuffer* buffer;
     float leftOver;
     bool toRemove;
+    #ifdef MUSIC_VISU
+    std::string name;
+    #endif
 };
 
 std::map<MusicRef, MusicInfo> musics;

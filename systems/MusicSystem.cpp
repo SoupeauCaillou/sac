@@ -1,5 +1,6 @@
 #include "MusicSystem.h"
 #ifdef MUSIC_VISU
+#include "TextRenderingSystem.h"
 #include "RenderingSystem.h"
 #include "base/PlacementHelper.h"
 #include "base/EntityManager.h"
@@ -45,6 +46,8 @@ void MusicSystem::uninit() {
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
+	if (ref == InvalidMusicRef)
+		return;
 	pthread_mutex_lock(&mutex);
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
     if (it == musics.end()) {
@@ -77,36 +80,13 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 		clearAndRemoveInfo(m->music);
 	if (m->loopNext != InvalidMusicRef)
 		clearAndRemoveInfo(m->loopNext);
-	m->music = m->loopNext = InvalidMusicRef;
+	if (m->previousEnding != InvalidMusicRef)
+		clearAndRemoveInfo(m->previousEnding);
+	m->music = m->loopNext = m->previousEnding = InvalidMusicRef;
 	m->currentVolume = 0;
 }
 
 void MusicSystem::DoUpdate(float dt) {
-	#if 0
-    static int stt = 0;
-    if (++stt == 200) {
-	    std::cout << "############################################### " << musics.size() << std::endl;
-	    for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
-		    bool used = false;
-		    for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		        MusicComponent* m = (*jt).second;
-		        if (m->music == it->first) {
-			        std::cout << it->first << "[M], ";
-			        used = true;
-		        } else if (m->loopNext == it->first) {
-			        std::cout << it->first << "[L], ";
-			        used = true;
-		        }
-		    }
-				
-		    if (!used)
-		    	std::cout << it->first << "[?], ";
-		    	
-	    }
-	    std::cout << std::endl;
-	    stt = 0;
-    }	
-    #endif
     if (muted) {
          for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
             MusicComponent* m = (*jt).second;
@@ -120,8 +100,7 @@ void MusicSystem::DoUpdate(float dt) {
 
 		m->looped = false;
 
-        //LOGW("%d -> %p/%p", jt->first, m->opaque[0], m->opaque[1]);
-		
+		// Music is not started and is startable => launch opaque[0] player		
         if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
             m->opaque[0] = startOpaque(m, m->music, m->master, 0);            	
@@ -129,6 +108,7 @@ void MusicSystem::DoUpdate(float dt) {
 	            musicAPI->stopPlayer(m->opaque[1]);
 				musicAPI->deletePlayer(m->opaque[1]);
 				clearAndRemoveInfo(m->loopNext);
+				clearAndRemoveInfo(m->previousEnding);
             }
             m->opaque[1] = 0;
         } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
@@ -154,7 +134,7 @@ void MusicSystem::DoUpdate(float dt) {
 	        } else {
 	        	m->fadeIn = 0;
 	        	if (m->currentVolume != m->volume) {
-		      		LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
+		      		// LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
 	            	musicAPI->setVolume(m->opaque[0], m->volume);
 	            	m->currentVolume = m->volume;
 	        	}
@@ -162,22 +142,17 @@ void MusicSystem::DoUpdate(float dt) {
             // need to queue more data ?
             feed(m->opaque[0], m->music, 0, dt);
             m->positionI = musicAPI->getPosition(m->opaque[0]);
-           
-           /*	bool desyncFromMaster = (m->master && MathUtil::Abs(1 - m->positionI / (float)m->master->positionI) > 0.05);
-            if (desyncFromMaster) {
-	            LOGW("Slave track is out of sync : kill it");
-            }*/
+
             assert (m->music != InvalidMusicRef);
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
-                LOGI("%p Player 0 has finished (isPlaying:%d)", m, musicAPI->isPlaying(m->opaque[0]));
+                LOGI("(music) %p Player 0 has finished (isPlaying:%d pos:%d m->music:%d)", m, musicAPI->isPlaying(m->opaque[0]), m->positionI, m->music);
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
                 // remove m->music from musics
                 clearAndRemoveInfo(m->music);
                 m->music = InvalidMusicRef;
-                m->control = MusicComponent::Stop;
             }
 
 			// if [0] is valid, and [1] not, and [0] can loop
@@ -190,12 +165,15 @@ void MusicSystem::DoUpdate(float dt) {
                 }
 
                 if (loop) {
-                    LOGI("%p Begin loop (%d >= %d) - m->music:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->master);
+                    LOGI("(music) %p Begin loop (%d >= %d) - m->music:%d becomas loopNext:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->loopNext, m->master);
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
-                    MusicRef r = m->music;
+                    // memorize ending music 
+                    m->previousEnding = m->music;
+                    // start new loop
                     m->music = m->loopNext;
-                    m->loopNext = r;
+                    // clear new loop selection
+                    m->loopNext = InvalidMusicRef;
                     
                     if (m->master) {
     	                m->opaque[0] = startOpaque(m, m->music, m->master, 0);
@@ -210,28 +188,30 @@ void MusicSystem::DoUpdate(float dt) {
         } 
         
         if (m->opaque[1]) {
-            assert(m->loopNext != InvalidMusicRef);
+            assert(m->previousEnding != InvalidMusicRef);
             if (m->currentVolume != m->volume) {
             	musicAPI->setVolume(m->opaque[1], m->volume);
         	}
-            feed(m->opaque[1], m->loopNext, 0, dt);
-            if ((m->loopNext != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->loopNext].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
+            feed(m->opaque[1], m->previousEnding, 0, dt);
+            if ((m->previousEnding != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->previousEnding].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
                 musicAPI->deletePlayer(m->opaque[1]);
                 m->opaque[1] = 0;
                 // remove m->loopNext from musics
-                clearAndRemoveInfo(m->loopNext);
-                m->loopNext = InvalidMusicRef;
-                LOGI("%p Player 1 has finished", m);
+                clearAndRemoveInfo(m->previousEnding);
+                m->previousEnding = InvalidMusicRef;
+                LOGI("(music) %p Player 1 has finished", m);
             }
 		}
 
         if (!m->opaque[0] && m->control == MusicComponent::Start && m->master && m->loopNext != InvalidMusicRef) {
 	        if (m->master->looped) {
-		        LOGI("Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
+		        LOGI("(music) Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
 		        m->music = m->loopNext;
 		        if (m->opaque[1]) {
-			        LOGW("Weird, shouldn't happen");
+			        LOGW("(music) Weird, shouldn't happen");
 			        musicAPI->deletePlayer(m->opaque[1]);
+			        clearAndRemoveInfo(m->previousEnding);
+			        m->previousEnding = InvalidMusicRef;
                 	m->opaque[1] = 0;
 		        }
                 m->loopNext = InvalidMusicRef;
@@ -262,6 +242,11 @@ void MusicSystem::DoUpdate(float dt) {
 			ADD_COMPONENT(e, Transformation);
 			TRANSFORM(e)->size = Vector2(0.5, 1);
 			TRANSFORM(e)->z = 0.75;
+			ADD_COMPONENT(e, TextRendering);
+			TEXT_RENDERING(e)->charHeight = 0.4;
+			TEXT_RENDERING(e)->color = Color(0,0,0);
+			TEXT_RENDERING(e)->text = "A";
+			TEXT_RENDERING(e)->hide = false;
 
             Entity f = theEntityManager.CreateEntity();
              ADD_COMPONENT(f, Rendering);
@@ -270,6 +255,10 @@ void MusicSystem::DoUpdate(float dt) {
              ADD_COMPONENT(f, Transformation);
              TRANSFORM(f)->size = Vector2(0.5, 1);
              TRANSFORM(f)->z = 0.75;
+			ADD_COMPONENT(f, TextRendering);
+			TEXT_RENDERING(f)->charHeight = 0.3;
+			TEXT_RENDERING(f)->color = Color(0,0,0);
+			TEXT_RENDERING(f)->text = "B";
 
 			visualisationEntities[a] = std::make_pair(e, f);
 		}
@@ -279,23 +268,48 @@ void MusicSystem::DoUpdate(float dt) {
 		TRANSFORM(e)->size = Vector2(VisuWidth * 0.5, rc->positionF * PlacementHelper::GimpHeightToScreen(1280));
 		TransformationSystem::setPosition(TRANSFORM(e), 
 			Vector2(
-				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth, PlacementHelper::GimpYToScreen(0)), 
+				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth * 2, PlacementHelper::GimpYToScreen(0)), 
 			TransformationSystem::NW);
-         if (rc->opaque[1] && rc->loopNext != InvalidMusicRef) {
-         float pF = musicAPI->getPosition(rc->opaque[1]) / (float)musics[rc->loopNext].nbSamples;
-        TRANSFORM(f)->size = Vector2(VisuWidth * 0.5, pF * PlacementHelper::GimpHeightToScreen(1280));
-     TransformationSystem::setPosition(TRANSFORM(f),
-         Vector2(
-             PlacementHelper::GimpXToScreen(0) + idx * VisuWidth + TRANSFORM(e)->size.X * 0.5, PlacementHelper::GimpYToScreen(0)),
-         TransformationSystem::NW);
-            RENDERING(f)->hide = false;
+         if (rc->previousEnding != InvalidMusicRef) {
+	        float pF = rc->opaque[1] ? (musicAPI->getPosition(rc->opaque[1]) / (float)musics[rc->previousEnding].nbSamples) : 1;
+	        TRANSFORM(f)->size = Vector2(VisuWidth * 0.5, pF * PlacementHelper::GimpHeightToScreen(1280));
+	     	TransformationSystem::setPosition(TRANSFORM(f),
+	         Vector2(
+	             PlacementHelper::GimpXToScreen(0) + idx * VisuWidth * 2 + TRANSFORM(e)->size.X * 0.5, PlacementHelper::GimpYToScreen(0)),
+	        TransformationSystem::NW);
+	        RENDERING(f)->hide = rc->opaque[1] ? false : true;
          } else {
-            RENDERING(f)->hide = true;
+			RENDERING(f)->hide = true;
          }
+         
+         if (rc->music != InvalidMusicRef) {
+	         if (rc->loopNext != InvalidMusicRef) {
+		        TEXT_RENDERING(e)->text = musics[rc->music].name + "}" + musics[rc->loopNext].name;
+	         } else {
+	         	TEXT_RENDERING(e)->text = musics[rc->music].name;
+	         }
+	         TEXT_RENDERING(e)->hide = false;
+         } else if (rc->loopNext != InvalidMusicRef) {
+	         TEXT_RENDERING(e)->text = "}" + musics[rc->loopNext].name;
+	         TEXT_RENDERING(e)->hide = false;
+         } else {
+	         TEXT_RENDERING(e)->hide = true;
+         }
+         if (rc->previousEnding != InvalidMusicRef) {
+	         TEXT_RENDERING(f)->text = musics[rc->previousEnding].name;
+	         TEXT_RENDERING(f)->hide = false;
+         } else {
+	         TEXT_RENDERING(f)->hide = true;
+         }
+         
 		if (rc->control == MusicComponent::Stop) {
 			RENDERING(e)->color = RENDERING(f)->color = Color(0.3, 0, 0, 0.5);
 		} else if (rc->opaque[0]) {
-			RENDERING(e)->color = RENDERING(f)->color = Color(0, 0.3, 0, 0.5);
+			if (rc->loopNext != InvalidMusicRef) {
+				RENDERING(e)->color = RENDERING(f)->color = Color(0, 0.8, 0, 0.5);
+			} else {
+				RENDERING(e)->color = RENDERING(f)->color = Color(0, 0.3, 0.5, 0.5);
+			}
         } else {
             RENDERING(e)->color = RENDERING(f)->color = Color(0.9, 0.9, 0, 0.5);
         }
@@ -417,9 +431,9 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 	if (m->fadeIn > 0) {
 		musicAPI->setVolume(ptr, 0);
 		m->currentVolume = 0;
-		LOGW("volume - Start with fading: %.2f - %.2f", m->fadeIn, m->volume);
+		LOGW("(music) volume - Start with fading: %.2f - %.2f", m->fadeIn, m->volume);
 	} else {
-		LOGW("volume - Start without fading: %.2f - %.2f", m->fadeIn, m->volume);
+		LOGW("(music) volume - Start without fading: %.2f - %.2f", m->fadeIn, m->volume);
 		musicAPI->setVolume(ptr, m->volume);
 		m->currentVolume = m->volume;
 	}
@@ -488,8 +502,13 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.nbSamples = ov_pcm_total(f, -1);
     info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
-    LOGI("File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
+    LOGI("(music) File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     pthread_mutex_lock(&mutex);
+    #ifdef MUSIC_VISU
+    int start = assetName.find("audio/") + 6;
+    int end = assetName.find(".ogg");
+    info.name = assetName.substr(start, end - start);
+    #endif
     musics[nextValidRef] = info;
     // LOGI("================================ ++ %d => %lu", nextValidRef, musics.size());
     pthread_mutex_unlock(&mutex);
