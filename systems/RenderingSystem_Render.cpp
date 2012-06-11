@@ -77,6 +77,8 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+	
+	GL_OPERATION(glEnable(GL_BLEND))
 }
 #endif
 
@@ -256,7 +258,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	int batchSize = 0;
 	desaturate = false;
 	
-	GL_OPERATION(glEnable(GL_BLEND))
+	GL_OPERATION(glDisable(GL_BLEND))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
 	
