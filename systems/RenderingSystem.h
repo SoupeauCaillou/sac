@@ -42,7 +42,7 @@ typedef int TextureRef;
 #endif
 
 #undef GLES2_SUPPORT
-
+#define GLES2_SUPPORT
 
 struct Color {
 	union {
@@ -185,8 +185,12 @@ pthread_mutex_t mutexes[2];
 pthread_cond_t cond;
 
 /* default (and only) shader */
-GLuint defaultProgram;
-GLuint uniformMatrix;
+struct Shader {
+	GLuint program;
+	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler;
+};
+
+Shader defaultShader, desaturateShader;
 GLuint whiteTexture;
 
 /* open gl es1 var */
@@ -207,7 +211,8 @@ void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
 static void check_GL_errors(const char* context);
-
+Shader buildShader(const std::string& vs, const std::string& fs);
+void changeShaderProgram(const Shader& shader);
 enum {
     ATTRIB_VERTEX = 0,
     ATTRIB_UV,

@@ -37,45 +37,51 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
 }
 
+RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
+	Shader out;
+	out.program = glCreateProgram();
+	check_GL_errors("glCreateProgram");
+		
+	LOGI("Compiling shaders: %s/%s\n", vsName.c_str(), fsName.c_str());
+	GLuint vs = compileShader(vsName, GL_VERTEX_SHADER);
+	GLuint fs = compileShader(fsName, GL_FRAGMENT_SHADER);
+
+	GL_OPERATION(glAttachShader(out.program, vs))
+	GL_OPERATION(glAttachShader(out.program, fs))
+	LOGI("Binding GLSL attribs\n");
+	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_VERTEX, "aPosition"))
+	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_UV, "aTexCoord"))
+	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_COLOR, "aColor"))
+	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_POS_ROT, "aPosRot"))
+
+	LOGI("Linking GLSL program\n");
+	GL_OPERATION(glLinkProgram(out.program))
+	
+	GLint logLength;
+	glGetProgramiv(out.program, GL_INFO_LOG_LENGTH, &logLength);
+	if (logLength > 1) {
+		char *log = new char[logLength];
+		glGetProgramInfoLog(out.program, logLength, &logLength, log);
+		LOGW("GL shader program error: '%s'", log);
+		delete[] log;
+	}
+	
+	out.uniformMatrix = glGetUniformLocation(out.program, "uMvp");
+	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
+	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
+
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+	
+	return out;
+}
+
 void RenderingSystem::init() {
 #ifdef GLES2_SUPPORT
 	if (opengles2) {
-		defaultProgram = 0;
-		LOGW("default prog: %u before", defaultProgram);
-		defaultProgram = glCreateProgram();
-		check_GL_errors("glCreateProgram");
-		LOGW("default prog: %u after [isAProgram = %d]", defaultProgram, glIsProgram(defaultProgram));
-		
-		LOGI("Compiling shaders\n");
-		GLuint vs = compileShader("default.vs", GL_VERTEX_SHADER);
-		GLuint fs = compileShader("default.fs", GL_FRAGMENT_SHADER);
+		defaultShader = buildShader("default.vs", "default.fs");
+		desaturateShader = buildShader("default.vs", "desaturate.fs");
 
-		GL_OPERATION(glAttachShader(defaultProgram, vs))
-		GL_OPERATION(glAttachShader(defaultProgram, fs))
-		LOGI("Binding GLSL attribs\n");
-		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_VERTEX, "aPosition"))
-		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_UV, "aTexCoord"))
-		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_COLOR, "aColor"))
-		GL_OPERATION(glBindAttribLocation(defaultProgram, ATTRIB_POS_ROT, "aPosRot"))
-
-		LOGI("Linking GLSL program\n");
-		GL_OPERATION(glLinkProgram(defaultProgram))
-
-		 GLint logLength;
-	 	glGetProgramiv(defaultProgram, GL_INFO_LOG_LENGTH, &logLength);
-		 if (logLength > 1)
-		 {
-		     char *log = new char[logLength];
-	 		glGetProgramInfoLog(defaultProgram, logLength, &logLength, log);
-		     LOGW("GL shader program error: '%s'", log);
-		     delete[] log;
-		 }
-
-		uniformMatrix = glGetUniformLocation(defaultProgram, "uMvp");
-
-		glDeleteShader(vs);
-		glDeleteShader(fs);
-		
 		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
 	} else 
 #endif	
