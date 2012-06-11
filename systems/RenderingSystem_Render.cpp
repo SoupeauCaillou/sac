@@ -59,13 +59,15 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
 #ifdef GLES2_SUPPORT
+bool firstCall;
 static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const GLubyte* colors, const unsigned short* indices, int batchSize) {
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
 	GL_OPERATION(glActiveTexture(GL_TEXTURE1))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
+	if (!firstCall)
+		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
 	
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, vertices))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
@@ -79,6 +81,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 	
 	GL_OPERATION(glEnable(GL_BLEND))
+	firstCall = false;
 }
 #endif
 
@@ -267,6 +270,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
     	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 	} else {
+		firstCall = true;
     	changeShaderProgram(defaultShader);
 	}
    
