@@ -264,9 +264,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
 		GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
     	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
+	} else {
+    	changeShaderProgram(defaultShader);
 	}
-    
-    changeShaderProgram(defaultShader);
    
     while (!commands.empty()) {
 		RenderCommand& rc = commands.front();
