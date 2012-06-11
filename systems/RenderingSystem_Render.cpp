@@ -59,7 +59,7 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
 #ifdef GLES2_SUPPORT
-static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const GLfloat* colors, const unsigned short* indices, int batchSize) {
+static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const GLubyte* colors, const unsigned short* indices, int batchSize) {
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
@@ -71,7 +71,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_COLOR, 4, GL_FLOAT, 1, 0, colors))
+	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, 1, 0, colors))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_COLOR))
 	// GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
 	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
@@ -252,7 +252,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 2];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 #ifdef GLES2_SUPPORT
-	static GLfloat colors[MAX_BATCH_SIZE * 4 * 4];
+	static GLubyte colors[MAX_BATCH_SIZE * 4 * 4];
 #endif
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
@@ -353,10 +353,15 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
 
 #ifdef GLES2_SUPPORT
-		memcpy(&colors[baseIdx * 4 ], rc.color.rgba, 4 * sizeof(float));
-		memcpy(&colors[(baseIdx + 1) * 4], rc.color.rgba, 4 * sizeof(float));
-		memcpy(&colors[(baseIdx + 2) * 4], rc.color.rgba, 4 * sizeof(float));
-		memcpy(&colors[(baseIdx + 3) * 4], rc.color.rgba, 4 * sizeof(float));
+		GLubyte cc[4];
+		cc[0] = (GLubyte) (rc.color.r * 255);
+		cc[1] = (GLubyte) (rc.color.g * 255);
+		cc[2] = (GLubyte) (rc.color.b * 255);
+		cc[3] = (GLubyte) (rc.color.a * 255);
+		memcpy(&colors[baseIdx * 4 ], cc, 4);
+		memcpy(&colors[(baseIdx + 1) * 4], cc, 4);
+		memcpy(&colors[(baseIdx + 2) * 4], cc, 4);
+		memcpy(&colors[(baseIdx + 3) * 4], cc, 4);
 #endif
 		indices[batchSize * 6 + 0] = baseIdx + 0;
 		indices[batchSize * 6 + 1] = baseIdx + 1;
