@@ -109,6 +109,7 @@ void MusicSystem::DoUpdate(float dt) {
 				musicAPI->deletePlayer(m->opaque[1]);
 				clearAndRemoveInfo(m->loopNext);
 				clearAndRemoveInfo(m->previousEnding);
+				m->loopNext = m->previousEnding = InvalidMusicRef;
             }
             m->opaque[1] = 0;
         } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
