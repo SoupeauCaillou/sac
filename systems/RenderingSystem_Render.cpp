@@ -35,7 +35,7 @@ void RenderingSystem::check_GL_errors(const char* context) {
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
 	FileBuffer fb = assetAPI->loadAsset(assetName);
 	GLuint shader = glCreateShader(type);
-	GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, NULL))
+	GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, &fb.size))
 	GL_OPERATION(glCompileShader(shader))
 
 	delete[] fb.data;
