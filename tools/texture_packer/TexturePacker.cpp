@@ -1,3 +1,4 @@
+// Licence: see TexturePacker.h
 #include "TexturePacker.h"
 #include <assert.h>
 
