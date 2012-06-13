@@ -73,8 +73,6 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, 1, 0, colors))
-	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_COLOR))
 	// GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
 	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
@@ -239,7 +237,7 @@ static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GL
 }
 
 #ifdef GLES2_SUPPORT
-void RenderingSystem::changeShaderProgram(const Shader& shader) {
+void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& color) {
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
 	loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
@@ -247,6 +245,7 @@ void RenderingSystem::changeShaderProgram(const Shader& shader) {
 		
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
 	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
+	GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
 }
 #endif
 
@@ -271,7 +270,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
     	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 	} else {
 		firstCall = true;
-    	changeShaderProgram(defaultShader);
+    	changeShaderProgram(defaultShader, currentColor);
 	}
    
     while (!commands.empty()) {
@@ -298,8 +297,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			}
 			desaturate = !desaturate;
 			#ifdef GLES2_SUPPORT
-			if (opengles2)
-				changeShaderProgram(desaturate ? desaturateShader : defaultShader);
+			if (opengles2) {
+				changeShaderProgram(desaturate ? desaturateShader : defaultShader, currentColor);
+			}
 			#endif
 		}
 
@@ -334,6 +334,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
             currentColor = rc.color;
             if (!opengles2) {
             	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
+            } else {
+	            changeShaderProgram(desaturate ? desaturateShader : defaultShader, currentColor);
             }
 		}
 

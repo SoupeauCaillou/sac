@@ -51,7 +51,6 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 	LOGI("Binding GLSL attribs\n");
 	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_VERTEX, "aPosition"))
 	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_UV, "aTexCoord"))
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_COLOR, "aColor"))
 	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_POS_ROT, "aPosRot"))
 
 	LOGI("Linking GLSL program\n");
@@ -69,6 +68,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 	out.uniformMatrix = glGetUniformLocation(out.program, "uMvp");
 	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
 	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
+	out.uniformColor= glGetUniformLocation(out.program, "vColor");
 
 	glDeleteShader(vs);
 	glDeleteShader(fs);

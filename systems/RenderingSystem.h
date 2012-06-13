@@ -187,7 +187,7 @@ pthread_cond_t cond;
 /* default (and only) shader */
 struct Shader {
 	GLuint program;
-	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler;
+	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 };
 
 Shader defaultShader, desaturateShader;
@@ -212,11 +212,10 @@ GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& 
 public:
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-void changeShaderProgram(const Shader& shader);
+void changeShaderProgram(const Shader& shader, const Color& color);
 enum {
     ATTRIB_VERTEX = 0,
     ATTRIB_UV,
-	ATTRIB_COLOR,
 	ATTRIB_POS_ROT,
 	ATTRIB_SCALE,
     NUM_ATTRIBS
