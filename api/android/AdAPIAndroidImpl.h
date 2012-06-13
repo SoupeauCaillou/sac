@@ -9,7 +9,7 @@ class AdAPIAndroidImpl : public AdAPI {
 
         void init(JNIEnv* env);
 
-        void showAd();
+        bool showAd();
         bool done();
 
     private:

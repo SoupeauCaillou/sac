@@ -4,6 +4,6 @@
 
 class AdAPI {
     public:
-        virtual void showAd() { LOGI("affichage de la pub !"); }
+        virtual bool showAd() { LOGI("affichage de la pub !"); return true;}
         virtual bool done() { return true; }
 };

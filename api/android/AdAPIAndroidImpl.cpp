@@ -26,12 +26,12 @@ void AdAPIAndroidImpl::init(JNIEnv* pEnv) {
     datas = new AdAPIAndroidImplData();
 
     datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
-    datas->showAd = jniMethodLookup(env, datas->cls, "showAd", "()V");
+    datas->showAd = jniMethodLookup(env, datas->cls, "showAd", "()Z");
     datas->done = jniMethodLookup(env, datas->cls, "done", "()Z");
 }
 
-void AdAPIAndroidImpl::showAd() {
-    env->CallStaticObjectMethod(datas->cls, datas->showAd);
+bool AdAPIAndroidImpl::showAd() {
+    return env->CallStaticBooleanMethod(datas->cls, datas->showAd);
 }
 
 bool AdAPIAndroidImpl::done() {
