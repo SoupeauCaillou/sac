@@ -349,12 +349,19 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				batchSize = 0;
 			}
 			boundTexture = rc.glref;
-            currentColor = rc.color;
-            if (!opengles2) {
-            	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
-            } else {
-	            changeShaderProgram(desaturate ? desaturateShader : defaultShader, currentColor);
-            }
+			
+			if (currentColor != rc.color) {
+	            currentColor = rc.color;
+	            if (!opengles2) {
+	            	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
+	            } else {
+	            	if (desaturate) {
+	            		GL_OPERATION(glUniform4fv(desaturateShader.uniformColor, 1, currentColor.rgba))
+	            	} else {
+		            	GL_OPERATION(glUniform4fv(defaultShader.uniformColor, 1, currentColor.rgba))
+	            	}
+	            }
+			}
 		}
 
 		// fill batch
