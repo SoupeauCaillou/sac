@@ -23,9 +23,10 @@
 
 class LocalizeAPIAndroidImpl : public LocalizeAPI {
 	public:
-		LocalizeAPIAndroidImpl(JNIEnv *env);
+		LocalizeAPIAndroidImpl();
         ~LocalizeAPIAndroidImpl();
-		void init();
+		void init(JNIEnv *env);
+		void uninit();
 		std::string text(const std::string& s, const std::string& spc);
 	
     	JNIEnv *env;

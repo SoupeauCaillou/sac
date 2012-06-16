@@ -26,6 +26,7 @@ struct SoundAPIAndroidImpl::SoundAPIAndroidImplData {
     jclass javaSoundApi;
     jmethodID jloadSound;
     jmethodID jplaySound;
+    bool initialized;
 };
 
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
@@ -37,21 +38,31 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 }
 
 
-SoundAPIAndroidImpl::SoundAPIAndroidImpl(JNIEnv *pEnv, jobject assetMgr) : env(pEnv), assetManager(assetMgr) {
-
+SoundAPIAndroidImpl::SoundAPIAndroidImpl() {
+	datas = new SoundAPIAndroidImplData();
+	datas->initialized = false;
 }
 
 SoundAPIAndroidImpl::~SoundAPIAndroidImpl() {
-    env->DeleteGlobalRef(datas->javaSoundApi);
+    uninit();
     delete datas;
 }
 
-void SoundAPIAndroidImpl::init() {
-    datas = new SoundAPIAndroidImplData();
+void SoundAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+		env->DeleteGlobalRef(datas->javaSoundApi);
+		datas->initialized = false;
+	}
+}
+
+void SoundAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetMgr) {
+	env = pEnv;
+	assetManager = assetMgr;
 
     datas->javaSoundApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
     datas->jloadSound = jniMethodLookup(env, datas->javaSoundApi, "loadSound", "(Landroid/content/res/AssetManager;Ljava/lang/String;)I");
     datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "playSound", "(IF)V");
+    datas->initialized = true;
 }
 
 OpaqueSoundPtr* SoundAPIAndroidImpl::loadSound(const std::string& asset) {

@@ -34,18 +34,32 @@ struct AdAPIAndroidImpl::AdAPIAndroidImplData {
  jmethodID done;
 };
 
+AdAPIAndroidImpl::AdAPIAndroidImpl() {
+	datas = new AdAPIAndroidImplData();
+	datas->initialized = false;
+}
+
 AdAPIAndroidImpl::~AdAPIAndroidImpl() {
-    env->DeleteGlobalRef(datas->cls);
+	if (datas->initialized)
+    	env->DeleteGlobalRef(datas->cls);
     delete datas;
 }
 
 void AdAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
-    datas = new AdAPIAndroidImplData();
 
     datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
     datas->showAd = jniMethodLookup(env, datas->cls, "showAd", "()Z");
     datas->done = jniMethodLookup(env, datas->cls, "done", "()Z");
+    
+    datas->initialized = true;
+}
+
+void AdAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+    	env->DeleteGlobalRef(datas->cls);
+    	datas->initialized = false;
+	}
 }
 
 bool AdAPIAndroidImpl::showAd() {

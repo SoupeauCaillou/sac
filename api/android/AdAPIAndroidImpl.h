@@ -23,9 +23,11 @@
 
 class AdAPIAndroidImpl : public AdAPI {
     public:
+    	AdAPIAndroidImpl();
         ~AdAPIAndroidImpl();
 
         void init(JNIEnv* env);
+        void uninit();
 
         bool showAd();
         bool done();

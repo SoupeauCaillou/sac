@@ -23,7 +23,9 @@
 
 class ExitAPIAndroidImpl : public ExitAPI {
 	public:
+		ExitAPIAndroidImpl();
 		void init(JNIEnv *env);
+		void uninit();
 		void exitGame();
 	
     	JNIEnv *env;

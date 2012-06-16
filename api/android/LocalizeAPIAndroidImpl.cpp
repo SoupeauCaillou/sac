@@ -32,24 +32,34 @@ struct LocalizeAPIAndroidImpl::LocalizeAPIAndroidImplData {
 	jclass javaLocApi;
 	jmethodID localize;
 	
+	bool initialized;
 	std::map<std::string, std::string> cache;
 };
 
-LocalizeAPIAndroidImpl::LocalizeAPIAndroidImpl(JNIEnv *pEnv) : env(pEnv) {
-	
+LocalizeAPIAndroidImpl::LocalizeAPIAndroidImpl() : env(pEnv) {
+	datas = new LocalizeAPIAndroidImplData();
+	datas->initialized = false;
 }
 
 LocalizeAPIAndroidImpl::~LocalizeAPIAndroidImpl() {
-    env->DeleteGlobalRef(datas->javaLocApi);
+    uninit();
     delete datas;
 }
 
 
-void LocalizeAPIAndroidImpl::init() {
-	datas = new LocalizeAPIAndroidImplData();
-	
+void LocalizeAPIAndroidImpl::init(JNIEnv *pEnv) {
+	env = pEnv;
+
 	datas->javaLocApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->localize = jniMethodLookup(env, datas->javaLocApi, "localize", "(Ljava/lang/String;)Ljava/lang/String;");
+	datas->initialized = true;
+}
+
+void LocalizeAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+		env->DeleteGlobalRef(env->javaLocApi);
+		datas->initialized = false;
+	}
 }
 
 std::string LocalizeAPIAndroidImpl::text(const std::string& s, const std::string& spc) {

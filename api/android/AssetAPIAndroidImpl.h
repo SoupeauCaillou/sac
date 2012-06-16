@@ -24,9 +24,11 @@
 
 class AssetAPIAndroidImpl : public AssetAPI {
 	public:
-		AssetAPIAndroidImpl(JNIEnv *env, jobject assetManager);
+		AssetAPIAndroidImpl();
         ~AssetAPIAndroidImpl();
-		void init();
+		void init(JNIEnv *env, jobject assetManager);
+		void uninit();
+		
     	FileBuffer loadAsset(const std::string& asset);
     
     private:

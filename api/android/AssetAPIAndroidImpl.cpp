@@ -30,23 +30,33 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 struct AssetAPIAndroidImpl::AssetAPIAndroidImplData {	
 	jclass javaAssetApi;
 	jmethodID assetToByteArray;
+	bool initialized;
 };
 
-AssetAPIAndroidImpl::AssetAPIAndroidImpl(JNIEnv *pEnv, jobject pAssetManager) : env(pEnv), assetManager(pAssetManager) {
-	
+AssetAPIAndroidImpl::AssetAPIAndroidImpl() {
+	datas = new AssetAPIAndroidImplData();
+	datas->initialized = false;
 }
 
 AssetAPIAndroidImpl::~AssetAPIAndroidImpl() {
-    env->DeleteGlobalRef(datas->javaAssetApi);
+    uninit();
     delete datas;
 }
 
-void AssetAPIAndroidImpl::init() {
-	datas = new AssetAPIAndroidImplData();
+void AssetAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetManager) {
+	assetManager = pAssetManager;
+	env = pEnv;
 
 	datas->javaAssetApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->assetToByteArray = jniMethodLookup(env, datas->javaAssetApi, "assetToByteArray", "(Landroid/content/res/AssetManager;Ljava/lang/String;)[B");
+	datas->initialized = true;
 }
+
+void AssetAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+		env->DeleteGlobalRef(datas->javaAssetApi);
+		datas->initialized = false;
+	}
 
 static uint8_t* loadAssetFromJava(JNIEnv *env, jobject assetManager, const std::string& assetName, int* length, jclass cls, jmethodID mid) {
     jstring asset = env->NewStringUTF(assetName.c_str());

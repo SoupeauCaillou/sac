@@ -44,14 +44,16 @@ struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {
 
 
     std::map<int8_t*, jbyteArray> ptr2array;
+    bool initialized;
 };
 
 MusicAPIAndroidImpl::MusicAPIAndroidImpl(JNIEnv *pEnv) : env(pEnv) {
-	
+	datas = new MusicAPIAndroidImplData();
+	datas->initialized = false;
 }
 
 MusicAPIAndroidImpl::~MusicAPIAndroidImpl() {
-    env->DeleteGlobalRef(datas->javaMusicApi);
+    uninit();
     delete datas;
 }
 
@@ -63,8 +65,15 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
     return mId;
 }
 
-void MusicAPIAndroidImpl::init() {
-	datas = new MusicAPIAndroidImplData();
+void MusicAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+		env->DeleteGlobalRef(datas->javaMusicApi);
+		datas->initialized = false;
+	}
+}
+
+void MusicAPIAndroidImpl::init(JNIEnv* pEnv) {
+	env = pEnv;
 
 	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->createPlayer = jniMethodLookup(env, datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
@@ -80,6 +89,7 @@ void MusicAPIAndroidImpl::init() {
 	datas->isPlaying = jniMethodLookup(env, datas->javaMusicApi, "isPlaying", "(Ljava/lang/Object;)Z");
 	datas->deletePlayer = jniMethodLookup(env, datas->javaMusicApi, "deletePlayer", "(Ljava/lang/Object;)V");
     datas->initialPacketCount = jniMethodLookup(env, datas->javaMusicApi, "initialPacketCount", "(Ljava/lang/Object;)I");
+    datas->initialized = true;
 }
 
 OpaqueMusicPtr* MusicAPIAndroidImpl::createPlayer(int sampleRate) {

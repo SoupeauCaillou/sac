@@ -23,9 +23,10 @@
 
 class MusicAPIAndroidImpl : public MusicAPI {
     public:
-    	MusicAPIAndroidImpl(JNIEnv *env);
+    	MusicAPIAndroidImpl();
     	~MusicAPIAndroidImpl();
-        void init();
+        void init(JNIEnv *env);
+        void uninit();
         OpaqueMusicPtr* createPlayer(int sampleRate);
         int pcmBufferSize(int sampleRate);
         int8_t* allocate(int size);

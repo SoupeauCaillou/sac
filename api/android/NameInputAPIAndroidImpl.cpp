@@ -34,20 +34,34 @@ struct NameInputAPIAndroidImpl::NameInputAPIAndroidImplDatas {
     jmethodID show;
     jmethodID hide;
     jmethodID done;
+    bool initialized;
 };
 
+NameInputAPIAndroidImpl::NameInputAPIAndroidImpl() {
+	datas = new NameInputAPIAndroidImplDatas();
+	datas->initialized = false;
+}
+
 NameInputAPIAndroidImpl::~NameInputAPIAndroidImpl() {
-    env->DeleteGlobalRef(datas->javaNameApi);
+    uninit();
     delete datas;
+}
+
+void NameInputAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+		env->DeleteGlobalRef(datas->javaNameApi);
+		datas->initialized = false;
+	}
 }
 
 void NameInputAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
-    datas = new NameInputAPIAndroidImplDatas();
+    
     datas->javaNameApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
     datas->show = jniMethodLookup(env, datas->javaNameApi, "showPlayerNameUi", "()V");
     datas->done = jniMethodLookup(env, datas->javaNameApi, "queryPlayerName", "()Ljava/lang/String;");
     // datas->hide = jniMethodLookup(env, datas->javaNameApi, "", "");
+    datas->initialized = true;
 }
 
 void NameInputAPIAndroidImpl::show() {

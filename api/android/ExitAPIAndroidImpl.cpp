@@ -32,15 +32,27 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 struct ExitAPIAndroidImpl::ExitAPIAndroidImplData {	
 	jclass cls;
 	jmethodID exitGame;
+	bool initialized;
 };
 
+ExitAPIAndroidImpl::ExitAPIAndroidImpl() {
+	datas = new ExitAPIAndroidImplData();
+	datas->initialized = false;
+}
 
 void ExitAPIAndroidImpl::init(JNIEnv* pEnv) {
 	env = pEnv;
-	datas = new ExitAPIAndroidImplData();
 	
 	datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
 	datas->exitGame = jniMethodLookup(env, datas->cls, "exitGame", "()V");
+	datas->initialized = true;
+}
+
+void ExitAPIAndroidImpl::uninit() {
+	if (datas->initialized) {
+		env->DeleteGlobalRef(datas->cls);
+		datas->initialized = false;
+	}
 }
 
 void ExitAPIAndroidImpl::exitGame() {
