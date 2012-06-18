@@ -43,7 +43,7 @@ AssetAPIAndroidImpl::~AssetAPIAndroidImpl() {
     delete datas;
 }
 
-void AssetAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetManager) {
+void AssetAPIAndroidImpl::init(JNIEnv *pEnv, jobject pAssetManager) {
 	assetManager = pAssetManager;
 	env = pEnv;
 
@@ -57,6 +57,7 @@ void AssetAPIAndroidImpl::uninit() {
 		env->DeleteGlobalRef(datas->javaAssetApi);
 		datas->initialized = false;
 	}
+}
 
 static uint8_t* loadAssetFromJava(JNIEnv *env, jobject assetManager, const std::string& assetName, int* length, jclass cls, jmethodID mid) {
     jstring asset = env->NewStringUTF(assetName.c_str());

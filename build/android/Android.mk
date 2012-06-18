@@ -7,7 +7,7 @@ LOCAL_MODULE := sac
 LOCAL_CFLAGS := -DANDROID_NDK \
 				-I$(BASE_PATH)
 
-LOCAL_CXXFLAGS := -DANDROID_NDK \
+LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG \
                 -I$(LOCAL_PATH)/base \
 				-I$(LOCAL_PATH)/systems \
 				-I$(LOCAL_PATH)/libs \

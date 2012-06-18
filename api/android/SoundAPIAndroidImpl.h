@@ -23,10 +23,12 @@
 
 class SoundAPIAndroidImpl : public SoundAPI {
     public:
-        SoundAPIAndroidImpl(JNIEnv *env, jobject assetMgr);
+        SoundAPIAndroidImpl();
         ~SoundAPIAndroidImpl();
         
-        void init();
+        void init(JNIEnv *env, jobject assetMgr);
+		void uninit();
+		
         OpaqueSoundPtr* loadSound(const std::string& asset);
         void play(OpaqueSoundPtr* p, float volume);
 

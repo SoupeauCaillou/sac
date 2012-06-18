@@ -47,7 +47,7 @@ struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {
     bool initialized;
 };
 
-MusicAPIAndroidImpl::MusicAPIAndroidImpl(JNIEnv *pEnv) : env(pEnv) {
+MusicAPIAndroidImpl::MusicAPIAndroidImpl() {
 	datas = new MusicAPIAndroidImplData();
 	datas->initialized = false;
 }

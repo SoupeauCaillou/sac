@@ -43,8 +43,6 @@ static void* _startOggThread(void* arg) {
 }
 
 void MusicSystem::init() {
-    musicAPI->init();
-
     muted = false;
     nextValidRef = 1;
 

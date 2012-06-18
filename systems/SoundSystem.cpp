@@ -28,10 +28,6 @@ INSTANCE_IMPL(SoundSystem);
 SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextValidRef(1), mute(false) {
 }
 
-void SoundSystem::init() {
-    soundAPI->init();
-}
-
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
     if (assetSounds.find(assetName) != assetSounds.end()) {
         return assetSounds[assetName];

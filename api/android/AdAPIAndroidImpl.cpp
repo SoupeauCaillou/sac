@@ -32,6 +32,7 @@ struct AdAPIAndroidImpl::AdAPIAndroidImplData {
  jclass cls;
  jmethodID showAd;
  jmethodID done;
+ bool initialized;
 };
 
 AdAPIAndroidImpl::AdAPIAndroidImpl() {
@@ -40,8 +41,7 @@ AdAPIAndroidImpl::AdAPIAndroidImpl() {
 }
 
 AdAPIAndroidImpl::~AdAPIAndroidImpl() {
-	if (datas->initialized)
-    	env->DeleteGlobalRef(datas->cls);
+	uninit();
     delete datas;
 }
 

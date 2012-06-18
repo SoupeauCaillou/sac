@@ -36,7 +36,7 @@ struct LocalizeAPIAndroidImpl::LocalizeAPIAndroidImplData {
 	std::map<std::string, std::string> cache;
 };
 
-LocalizeAPIAndroidImpl::LocalizeAPIAndroidImpl() : env(pEnv) {
+LocalizeAPIAndroidImpl::LocalizeAPIAndroidImpl() {
 	datas = new LocalizeAPIAndroidImplData();
 	datas->initialized = false;
 }
@@ -57,7 +57,7 @@ void LocalizeAPIAndroidImpl::init(JNIEnv *pEnv) {
 
 void LocalizeAPIAndroidImpl::uninit() {
 	if (datas->initialized) {
-		env->DeleteGlobalRef(env->javaLocApi);
+		env->DeleteGlobalRef(datas->javaLocApi);
 		datas->initialized = false;
 	}
 }
