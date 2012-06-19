@@ -28,6 +28,15 @@ INSTANCE_IMPL(SoundSystem);
 SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextValidRef(1), mute(false) {
 }
 
+void SoundSystem::init() {
+	nextValidRef = 1;
+	assetSounds.clear();
+	for (std::map<SoundRef, OpaqueSoundPtr*>::iterator it=sounds.begin(); it!=sounds.end(); ++it) {
+		delete it->second;
+	}
+	sounds.clear();
+}
+
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
     if (assetSounds.find(assetName) != assetSounds.end()) {
         return assetSounds[assetName];
@@ -57,8 +66,14 @@ void SoundSystem::DoUpdate(float dt __attribute__((unused))) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		SoundComponent* rc = (*it).second;
 		if (rc->sound != InvalidSoundRef && !mute ) {
-			if (soundAPI->play(sounds[rc->sound], rc->volume)) {
-            	rc->sound = InvalidSoundRef;
+			std::map<SoundRef, OpaqueSoundPtr*>::iterator jt = sounds.find(rc->sound);
+			if (jt != sounds.end()) {
+				// TODO: declare N max tries, then stop trying to play the sound
+				if (soundAPI->play(sounds[rc->sound], rc->volume) || true) {
+            		rc->sound = InvalidSoundRef;
+				}
+			} else {
+				rc->sound = InvalidSoundRef;
 			}
         }
     }
