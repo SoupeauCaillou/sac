@@ -25,7 +25,7 @@ struct OpaqueSoundPtr { };
 class SoundAPI {
     public:
         virtual OpaqueSoundPtr* loadSound(const std::string& asset) = 0;
-        virtual void play(OpaqueSoundPtr* p, float volume) = 0;
+        virtual bool play(OpaqueSoundPtr* p, float volume) = 0;
 };
 
 

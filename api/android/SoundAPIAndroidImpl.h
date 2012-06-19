@@ -30,7 +30,7 @@ class SoundAPIAndroidImpl : public SoundAPI {
 		void uninit();
 		
         OpaqueSoundPtr* loadSound(const std::string& asset);
-        void play(OpaqueSoundPtr* p, float volume);
+        bool play(OpaqueSoundPtr* p, float volume);
 
     private:
         JNIEnv *env;

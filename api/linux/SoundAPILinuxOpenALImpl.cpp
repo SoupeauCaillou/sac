@@ -79,7 +79,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     return out;
 }
 
-void SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
+bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
     OpenALOpaqueSoundPtr* ptr = static_cast<OpenALOpaqueSoundPtr*>(p);
     for (int i=0; i<16; i++) {
         int state;
@@ -88,9 +88,10 @@ void SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
             AL_OPERATION(alSourcei(soundSources[i], AL_BUFFER, ptr->buffer))
             AL_OPERATION(alSourcef(soundSources[i], AL_GAIN, volume))
             AL_OPERATION(alSourcePlay(soundSources[i]))
-            return;
+            return true;
         }
     }
+    return false;
 }
 
 static void check_AL_errors(const char* context) {

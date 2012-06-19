@@ -61,7 +61,7 @@ void SoundAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetMgr) {
 
     datas->javaSoundApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
     datas->jloadSound = jniMethodLookup(env, datas->javaSoundApi, "loadSound", "(Landroid/content/res/AssetManager;Ljava/lang/String;)I");
-    datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "playSound", "(IF)V");
+    datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "playSound", "(IF)Z");
     datas->initialized = true;
 }
 
@@ -73,7 +73,7 @@ OpaqueSoundPtr* SoundAPIAndroidImpl::loadSound(const std::string& asset) {
     return out;
 }
 
-void SoundAPIAndroidImpl::play(OpaqueSoundPtr* p, float volume) {
+bool SoundAPIAndroidImpl::play(OpaqueSoundPtr* p, float volume) {
     AndroidSoundOpaquePtr* ptr = static_cast<AndroidSoundOpaquePtr*>(p);
-    env->CallStaticVoidMethod(datas->javaSoundApi, datas->jplaySound, ptr->soundID, volume);
+    return env->CallStaticBooleanMethod(datas->javaSoundApi, datas->jplaySound, ptr->soundID, volume);
 }

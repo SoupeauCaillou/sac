@@ -57,8 +57,9 @@ void SoundSystem::DoUpdate(float dt __attribute__((unused))) {
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		SoundComponent* rc = (*it).second;
 		if (rc->sound != InvalidSoundRef && !mute ) {
-            soundAPI->play(sounds[rc->sound], rc->volume);
-            rc->sound = InvalidSoundRef;
+			if (soundAPI->play(sounds[rc->sound], rc->volume)) {
+            	rc->sound = InvalidSoundRef;
+			}
         }
     }
 }
