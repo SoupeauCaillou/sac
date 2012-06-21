@@ -25,7 +25,11 @@ void AssetAPILinuxImpl::init() {
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
     fb.data = 0;
+#ifdef DATADIR
+	std::string full = DATADIR + asset;
+#else
     std::string full = "assets/" + asset;
+#endif
     FILE* file = fopen(full.c_str(), "rb");
     if (!file)
         return fb;

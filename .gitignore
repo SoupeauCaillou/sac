@@ -6,3 +6,4 @@ libsac.a
 sac_tests
 bin/texture_packer
 sac.pidb
+*.o

@@ -18,7 +18,6 @@
 */
 #include "MusicAPILinuxOpenALImpl.h"
 
-#include <sndfile.h>
 #include <AL/al.h>
 #include <AL/alc.h>
 

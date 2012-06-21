@@ -17,7 +17,11 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SoundAPILinuxOpenALImpl.h"
+#ifdef ANDROID
 #include "tremor/ivorbisfile.h"
+#else
+#include "vorbis/vorbisfile.h"
+#endif
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <sstream>
@@ -43,7 +47,12 @@ void SoundAPILinuxOpenALImpl::init() {
 
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     std::stringstream a;
-    a << "./assets/" << asset;
+#ifdef DATADIR
+	a << DATADIR;
+#else
+	a << "./assets/";
+#endif
+    a << asset;
     std::string s = a.str();
     const char* nm = s.c_str();
     FILE* fd = fopen(nm, "rb");
@@ -61,7 +70,11 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     int8_t* data = new int8_t[sizeInBytes];
     int readCount = 0;
     do {
+	    #ifdef ANDROID
         int n = ov_read(&vf, (char*)&data[readCount], sizeInBytes, &bitstream);
+        #else
+        int n = ov_read(&vf, (char*)&data[readCount], sizeInBytes, 0, 2, 1, &bitstream);
+        #endif
         if (n == 0)
             break;
         readCount += n;

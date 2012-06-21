@@ -539,7 +539,11 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
     int bitstream;
     int read = 0;
     while (read < chunkSize) {
+	    #ifdef ANDROID
         int n = ov_read(file, (char*) &data[read], chunkSize - read, &bitstream);
+        #else
+        int n = ov_read(file, (char*) &data[read], chunkSize - read, 0, 2, 1, &bitstream);
+        #endif
         if (n == 0) {
 	        // LOGI("%p] EOF (read: %d/%d)", file, read, chunkSize);
             // EOF
