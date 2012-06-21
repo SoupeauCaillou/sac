@@ -28,7 +28,6 @@
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 
-#include "DebugRenderingManager.h"
 
 #define Entity unsigned long
 
