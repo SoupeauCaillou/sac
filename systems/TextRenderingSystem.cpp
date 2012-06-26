@@ -66,12 +66,23 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
 	return computeStringWidth(trc, charH2Wratio);
 }
 
-void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
+void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		TextRenderingComponent* trc = (*it).second;
 		TransformationComponent* trans = TRANSFORM(it->first);
+		bool caret = false;
 		trans->size = Vector2::Zero;
+
+		if (trc->caretSpeed > 0) {
+			trc->caretDt += dt;
+			if (trc->caretDt > trc->caretSpeed) {
+				trc->caretDt = 0;
+				trc->caretShown = !trc->caretShown;
+			}
+			caret = true;
+			trc->text.push_back('_');
+		}
 
 		const unsigned int length = trc->text.length();
 
@@ -107,7 +118,7 @@ void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 				a << (int) ((letter < 0) ? (unsigned char)letter : letter) << "_" << trc->fontName;
 			}
 
-			if (trc->text[i] == ' ') {
+			if (trc->text[i] == ' ' || (i==length-1 && trc->caretSpeed > 0 && !trc->caretShown)) {
 				rc->hide = true;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
@@ -128,6 +139,10 @@ void TextRenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 		}
 		trans->size = Vector2::Zero;
 		trc->drawing.resize(trc->text.length());
+		
+		if (caret) {
+			trc->text.resize(trc->text.length() - 1);	
+		}
 	}
 }
 
