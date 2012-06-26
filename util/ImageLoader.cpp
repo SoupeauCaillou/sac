@@ -193,3 +193,31 @@ static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t
    memcpy(outBytes, &buffer->file.data[buffer->offset], byteCountToRead);
    buffer->offset += byteCountToRead;
 }
+
+ImageDesc ImageLoader::loadPvr(const std::string& context, const FileBuffer& file) {
+	ImageDesc result;
+	result.datas = 0;
+	struct PVRTexHeader {
+    uint32_t dwHeaderSize;
+    uint32_t height;
+    uint32_t width;
+    uint32_t dwMipMapCount;
+    uint32_t dwpfFlags;
+    uint32_t dwDataSize;
+    uint32_t dwBitCount;
+    uint32_t dwRBitMask;
+    uint32_t dwGBitMask;
+    uint32_t dwBBitMask;
+    uint32_t dwAlphaBitMask;
+    uint32_t dwPVR;
+    uint32_t dwNumSurfs;
+};
+	PVRTexHeader* header = (PVRTexHeader*)&file.data[0];
+	
+	result.width = header->width;
+	result.height = header->height;
+	int size = file.size - sizeof(PVRTexHeader);
+	result.datas = (char*) malloc(size);
+	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
+	return result;
+}

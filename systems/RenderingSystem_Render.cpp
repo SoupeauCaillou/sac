@@ -84,10 +84,13 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
 	GL_OPERATION(glActiveTexture(GL_TEXTURE1))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
-	if (!firstCall)
+	if (firstCall) {
+		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+	} else {
 		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
+	}
 	
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, vertices))
+	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
@@ -95,9 +98,6 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
 	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
-	
-	GL_OPERATION(glEnable(GL_BLEND))
-	firstCall = false;
 }
 #endif
 
@@ -269,7 +269,7 @@ void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& col
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
 #define MAX_BATCH_SIZE 128
-	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 2];
+	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 #ifdef GLES2_SUPPORT
 	static GLubyte colors[MAX_BATCH_SIZE * 4 * 4];
@@ -278,6 +278,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	int batchSize = 0;
 	desaturate = false;
 	
+	GL_OPERATION(glDepthMask(true))
+	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDisable(GL_BLEND))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
@@ -300,6 +303,21 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 		else if (rc.texture == DisableZWriteMarker) {
 			commands.pop();
+			if (batchSize > 0) {
+				// execute batch
+				#ifdef GLES2_SUPPORT
+				if (opengles2)
+					drawBatchES2(boundTexture, vertices, uvs, colors, indices, batchSize);
+				else
+				#endif
+					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
+
+				batchSize = 0;
+			}
+			
+			firstCall = false;
+			GL_OPERATION(glDepthMask(false))
+			GL_OPERATION(glEnable(GL_BLEND))
 			continue;
 		} else if (rc.desaturate != desaturate) {
 			if (batchSize > 0) {
@@ -324,8 +342,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		if (rc.texture != InvalidTextureRef) {
 			const TextureInfo& info = textures[rc.texture];
 			rc.glref = info.glref;
-			rc.uv[0] = info.uv[0];
-			rc.uv[1] = info.uv[1];
+			Vector2 offset = rc.uv[0], scale = rc.uv[1];
+			Vector2 uvS = info.uv[1] - info.uv[0];
+			rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
+			rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
 			rc.rotateUV = info.rotateUV;
 		} else {
 			rc.glref = InternalTexture::Invalid;
@@ -370,8 +390,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 		const int baseIdx = 4 * batchSize;
 		for (int i=0; i<4; i++) {
-			vertices[(baseIdx + i) * 2 + 0] = onScreenVertices[i].X;
-			vertices[(baseIdx + i) * 2 + 1] = onScreenVertices[i].Y;
+			vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
+			vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
+			vertices[(baseIdx + i) * 3 + 2] = -rc.z;
 		}
 
 		uvs[baseIdx * 2 + 0] = rc.uv[0].X;
@@ -454,9 +475,6 @@ void RenderingSystem::render() {
 	}
 
     processDelayedTextureJobs();
-
-	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT*/))
-
 
 	// std::vector<RenderCommand>& commands = renderCommands[cmd];
 	drawRenderCommands(renderQueue /*commands*/, opengles2);

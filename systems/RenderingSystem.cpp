@@ -135,9 +135,9 @@ void RenderingSystem::init() {
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
                 
-	GL_OPERATION(glEnable(GL_BLEND))
+	// GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
-	// GL_OPERATION(glEnable(GL_DEPTH_TEST))
+	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GEQUAL))
  #ifdef ANDROID
 	GL_OPERATION(glClearDepthf(0.0))
@@ -170,7 +170,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	pthread_mutex_lock(&mutexes[current]);
 	
 	std::vector<RenderCommand> commands;
-	std::vector<RenderCommand> semiOpaqueCommands;
+	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
@@ -191,6 +191,8 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 		c.rotation = tc->worldRotation;
 		c.z = tc->z;
 		c.desaturate = rc->desaturate;
+		c.uv[0] = Vector2::Zero;
+		c.uv[1] = Vector2(1, 1);
 
         if (c.texture != InvalidTextureRef) {
             TextureInfo& info = textures[c.texture];
@@ -201,16 +203,51 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                 }
             }
          }
-		
-		semiOpaqueCommands.push_back(c);
+         
+         switch (rc->opaqueType) {
+         	case RenderingComponent::NON_OPAQUE:
+	         	semiOpaqueCommands.push_back(c);
+	         	break;
+	         case RenderingComponent::FULL_OPAQUE:
+	         	opaqueCommands.push_back(c);
+	         	break;
+	         case RenderingComponent::OPAQUE_ABOVE:
+	         case RenderingComponent::OPAQUE_UNDER:
+	         	RenderCommand cA = c, cU = c;
+	         	cA.halfSize.Y = (tc->size * rc->opaqueSeparation).Y * 0.5;
+	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
+	         	cA.position.Y = (tc->worldPosition + Vector2::Rotate(Vector2(0, cU.halfSize.Y), c.rotation)).Y;
+	         	cU.position.Y = (tc->worldPosition - Vector2::Rotate(Vector2(0, cA.halfSize.Y), c.rotation)).Y;
+	         	cA.uv[0] = Vector2(0, cU.halfSize.Y / c.halfSize.Y); // offset;
+	         	cA.uv[1] = Vector2(1, cA.halfSize.Y / c.halfSize.Y); // scale;
+	         	cU.uv[0] = Vector2::Zero;
+	         	cU.uv[1] = Vector2(1, cU.halfSize.Y / c.halfSize.Y); // scale;
+	         	if (rc->opaqueType == RenderingComponent::OPAQUE_ABOVE) {
+		         	semiOpaqueCommands.push_back(cU);
+		         	opaqueCommands.push_back(cA);
+	         	} else {
+		         	semiOpaqueCommands.push_back(cA);
+		         	opaqueCommands.push_back(cU);
+	         	}
+	         	break;
+         }
 	}
 
+	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
 	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
+	
+	for(std::vector<RenderCommand>::iterator it=opaqueCommands.begin(); it!=opaqueCommands.end(); it++) {
+		renderQueue.push(*it);
+	}
+	
+	RenderCommand dummy;
+	dummy.texture = DisableZWriteMarker;
+	renderQueue.push(dummy);
 	
 	for(std::vector<RenderCommand>::iterator it=semiOpaqueCommands.begin(); it!=semiOpaqueCommands.end(); it++) {
 		renderQueue.push(*it);
 	}
-	RenderCommand dummy;
+	
 	dummy.texture = EndFrameMarker;
 	renderQueue.push(dummy);
 	frameToRender++;

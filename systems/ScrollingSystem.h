@@ -22,14 +22,19 @@
 #include "base/Log.h"
 
 #include "System.h"
+#include "RenderingSystem.h"
 #include <vector>
 
 struct ScrollingComponent {
+	ScrollingComponent() : opaqueType(RenderingComponent::NON_OPAQUE) {}
     std::vector<std::string> images;
     Vector2 direction;
     float speed;
     Vector2 displaySize;
+    // transitive rendering properties
     bool hide;
+    RenderingComponent::Opacity opaqueType;
+    float opaqueSeparation;
 };
 
 #define theScrollingSystem ScrollingSystem::GetInstance()

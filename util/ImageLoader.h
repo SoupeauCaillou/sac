@@ -27,7 +27,8 @@ struct ImageDesc {
     int channels;
 	enum {
 		RAW,
-		ECT1
+		ECT1,
+		PVR
 	} type;
 };
 
@@ -36,4 +37,6 @@ class ImageLoader {
 		static ImageDesc loadPng(const std::string& context, const FileBuffer& file);
 		
 		static ImageDesc loadEct1(const std::string& context, const FileBuffer& file);
+		
+		static ImageDesc loadPvr(const std::string& context, const FileBuffer& file);
 };

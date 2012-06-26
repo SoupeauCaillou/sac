@@ -8,7 +8,8 @@ AM_CXXFLAGS = $(GLFW_CFLAGS) \
 	$(VORBISFILE_CFLAGS) \
 	$(SQLITE_CFLAGS) \
 	-DDATADIR=\"$(pkgdatadir)/\" \
-	-DLOCALEDIR=\"$(localedir)/\"
+	-DLOCALEDIR=\"$(localedir)/\" \
+	-g -O2
 	
 libsac_a_SOURCES = api/AdAPI.h \
 	api/AssetAPI.h \

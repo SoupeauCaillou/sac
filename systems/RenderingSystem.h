@@ -92,11 +92,19 @@ struct Color {
 };
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false) {}
+	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false), opaqueType(NON_OPAQUE) {}
 	
 	TextureRef texture;
 	Color color;
 	bool hide, desaturate;
+	enum Opacity {
+		NON_OPAQUE = 0,
+		FULL_OPAQUE,
+		OPAQUE_ABOVE,
+		OPAQUE_UNDER
+	} ;
+	Opacity opaqueType;
+	float opaqueSeparation; // €[0, 1], meaning depends of opaqueType
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()

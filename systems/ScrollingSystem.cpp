@@ -102,6 +102,8 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 		// rc->color = debugColors[se.imageIndex[i]];
 		se.hasBeenVisible[i] = false;
+		rc->opaqueType = sc->opaqueType;
+		rc->opaqueSeparation = sc->opaqueSeparation;
 	}
 	elements[e] = se;
 }
