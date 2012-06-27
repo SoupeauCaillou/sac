@@ -285,10 +285,13 @@ void RenderingSystem::reloadTextures() {
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
+	pthread_mutex_lock(&mutexes);
+	
     // load atlas
     for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
         int atlasIndex = *it;
         Vector2 atlasSize, pow2Size;
+        pthread_mutex_unlock(&mutexes);
         loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
         LOGW("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
 
@@ -298,6 +301,7 @@ void RenderingSystem::processDelayedTextureJobs() {
                 info.glref = atlas[atlasIndex].glref;
             }
         }
+        pthread_mutex_lock(&mutexes);
     }
     delayedAtlasIndexLoad.clear();
 
@@ -305,13 +309,16 @@ void RenderingSystem::processDelayedTextureJobs() {
     for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
         Vector2 size, powSize;
         InternalTexture t;
+        pthread_mutex_unlock(&mutexes);
         loadTexture(*it, size, powSize, t);
         textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
+        pthread_mutex_lock(&mutexes);
     }
     delayedLoads.clear();
 
     // delete textures
     for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
+	    pthread_mutex_unlock(&mutexes);
 	    if (it->color != whiteTexture) {
 		    LOGW("Color texture delete: %u", it->color);
         	glDeleteTextures(1, &it->color);
@@ -320,8 +327,10 @@ void RenderingSystem::processDelayedTextureJobs() {
 	    	LOGW("Alpha texture delete: %u", it->alpha);
         	glDeleteTextures(1, &it->alpha);
 	    }
+	    pthread_mutex_lock(&mutexes);
     }
     delayedDeletes.clear();
+    pthread_mutex_unlock(&mutexes);
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
@@ -336,9 +345,9 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		LOGW("Texture '%s' doesn't belong to any atlas. Will be loaded individually", assetName.c_str());
 	}
 	if (textures.find(result) == textures.end()) {
-		pthread_mutex_lock(&mutexes[current]);
+		pthread_mutex_lock(&mutexes);
 		delayedLoads.insert(name);
-		pthread_mutex_unlock(&mutexes[current]);
+		pthread_mutex_unlock(&mutexes);
 	}
 		
 	return result;
@@ -354,9 +363,9 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
         for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
             if (it->second == ref) {
                 assetTextures.erase(it);
-                pthread_mutex_lock(&mutexes[current]);
+                pthread_mutex_lock(&mutexes);
                 delayedDeletes.insert(textures[ref].glref);
-                pthread_mutex_unlock(&mutexes[current]);
+                pthread_mutex_unlock(&mutexes);
                 break;
             }
         }

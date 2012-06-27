@@ -78,7 +78,7 @@ static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSi
 
 #ifdef GLES2_SUPPORT
 bool firstCall;
-static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const GLubyte* colors, const unsigned short* indices, int batchSize) {
+static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
@@ -271,9 +271,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 #define MAX_BATCH_SIZE 128
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
-#ifdef GLES2_SUPPORT
-	static GLubyte colors[MAX_BATCH_SIZE * 4 * 4];
-#endif
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 	desaturate = false;
@@ -291,13 +288,14 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
     	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
 	} else {
 		firstCall = true;
-    	changeShaderProgram(defaultShader, currentColor);
+    	changeShaderProgram(defaultShaderNoAlpha, currentColor);
 	}
    
     while (!commands.empty()) {
 		RenderCommand& rc = commands.front();
 
 		if (rc.texture == EndFrameMarker) {
+			// LOGW("Frame drawn: %u", commands.front().rotateUV);
 			commands.pop();
 			break;
 		}
@@ -307,7 +305,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				// execute batch
 				#ifdef GLES2_SUPPORT
 				if (opengles2)
-					drawBatchES2(boundTexture, vertices, uvs, colors, indices, batchSize);
+					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				else
 				#endif
 					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
@@ -318,13 +316,16 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			firstCall = false;
 			GL_OPERATION(glDepthMask(false))
 			GL_OPERATION(glEnable(GL_BLEND))
+			if (!desaturate) {
+				changeShaderProgram(defaultShader, currentColor);
+			}
 			continue;
 		} else if (rc.desaturate != desaturate) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
 				if (opengles2)
-					drawBatchES2(boundTexture, vertices, uvs, colors, indices, batchSize);
+					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				else
 				#endif
 					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
@@ -334,7 +335,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			desaturate = !desaturate;
 			#ifdef GLES2_SUPPORT
 			if (opengles2) {
-				changeShaderProgram(desaturate ? desaturateShader : defaultShader, currentColor);
+				changeShaderProgram(desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader), currentColor);
 			}
 			#endif
 		}
@@ -361,7 +362,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				// execute batch
 				#ifdef GLES2_SUPPORT
 				if (opengles2)
-					drawBatchES2(boundTexture, vertices, uvs, colors, indices, batchSize);
+					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				else
 				#endif
 					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
@@ -377,6 +378,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	            } else {
 	            	if (desaturate) {
 	            		GL_OPERATION(glUniform4fv(desaturateShader.uniformColor, 1, currentColor.rgba))
+	            	} else if (firstCall) {
+		            	GL_OPERATION(glUniform4fv(defaultShaderNoAlpha.uniformColor, 1, currentColor.rgba))
 	            	} else {
 		            	GL_OPERATION(glUniform4fv(defaultShader.uniformColor, 1, currentColor.rgba))
 	            	}
@@ -404,17 +407,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
 		uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
 
-#ifdef GLES2_SUPPORT
-		GLubyte cc[4];
-		cc[0] = (GLubyte) (rc.color.r * 255);
-		cc[1] = (GLubyte) (rc.color.g * 255);
-		cc[2] = (GLubyte) (rc.color.b * 255);
-		cc[3] = (GLubyte) (rc.color.a * 255);
-		memcpy(&colors[baseIdx * 4 ], cc, 4);
-		memcpy(&colors[(baseIdx + 1) * 4], cc, 4);
-		memcpy(&colors[(baseIdx + 2) * 4], cc, 4);
-		memcpy(&colors[(baseIdx + 3) * 4], cc, 4);
-#endif
 		indices[batchSize * 6 + 0] = baseIdx + 0;
 		indices[batchSize * 6 + 1] = baseIdx + 1;
 		indices[batchSize * 6 + 2] = baseIdx + 2;
@@ -427,7 +419,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		if (batchSize == MAX_BATCH_SIZE) {
 			#ifdef GLES2_SUPPORT
 			if (opengles2)
-				drawBatchES2(rc.glref, vertices, uvs, colors, indices, batchSize);
+				drawBatchES2(rc.glref, vertices, uvs, indices, batchSize);
 			else
 			#endif
 				drawBatchES1(rc.glref, vertices, uvs, indices, batchSize);
@@ -439,7 +431,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	if (batchSize > 0) {
 		#ifdef GLES2_SUPPORT
 		if (opengles2) {
-			drawBatchES2(t, vertices, uvs, colors, indices, batchSize);
+			drawBatchES2(t, vertices, uvs, indices, batchSize);
 		} else 
 		#endif	
 		{
@@ -448,6 +440,17 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	}
 }
 #include <errno.h>
+
+void RenderingSystem::RenderQueue::removeFrames(int count) {
+	for (int i=0; i<count; i++) {
+		while (commands.front().texture != EndFrameMarker)
+			commands.pop();
+		// LOGW("Dump frame : %u", commands.front().rotateUV);
+		commands.pop();
+		frameToRender--;
+	}
+}
+
 void RenderingSystem::render() {
 	// static float begin = TimeUtil::getTime();
 	// static float end = TimeUtil::getTime();
@@ -455,34 +458,56 @@ void RenderingSystem::render() {
 	// begin = TimeUtil::getTime();
 	// LOGW("time out: %.3f", begin - end);
 	
-	if (pthread_mutex_trylock(&mutexes[current]) != 0) {
+	// mutex locking handled in processDelayedTextureJobs
+	processDelayedTextureJobs();
+	
+	if (pthread_mutex_trylock(&mutexes) != 0) {
 		// LOGW("HMM Busy render lock");
-		pthread_mutex_lock(&mutexes[current]);
-	}
-	// LOGW("redner queue size: %d IN - frame count: %d", renderQueue.size(), frameToRender);
-	if (renderQueue.empty() || frameToRender == 0) {
-		pthread_cond_wait(&cond, &mutexes[current]);
-		// LOGW("DAMNED nothing to render %d", frameToRender);
+		pthread_mutex_lock(&mutexes);
 	}
 
-	// drop the late frames
-	while (frameToRender > 1) {
-		while (renderQueue.front().texture != EndFrameMarker)
-			renderQueue.pop();
-		renderQueue.pop();
-		frameToRender--;
-		// LOGW("\t %d left / %d frames", renderQueue.size(), frameToRender);
+	int readQueue = (currentWriteQueue + 1) % 2;
+	if (renderQueue[readQueue].frameToRender == 0) {
+		readQueue = currentWriteQueue;
+		
+		if (renderQueue[readQueue].frameToRender == 0) {
+			float bef = TimeUtil::getTime();
+			pthread_cond_wait(&cond, &mutexes);
+			LOGW("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
+		}
+		currentWriteQueue = (currentWriteQueue + 1) % 2;
+	} else {
+		// read queue is not empty
+		int rqCount = renderQueue[readQueue].frameToRender;
+		int wrCount = renderQueue[currentWriteQueue].frameToRender;
+		
+		int toRemove = rqCount + wrCount - 2;
+		if (toRemove > 0) {
+			int n = MathUtil::Min(toRemove, rqCount);
+			renderQueue[readQueue].removeFrames(n);
+			
+			if (n < toRemove) {
+				toRemove -= n;
+				renderQueue[currentWriteQueue].removeFrames(toRemove);	
+				readQueue = currentWriteQueue;
+				currentWriteQueue = (currentWriteQueue + 1) % 2;
+			} else if (renderQueue[readQueue].frameToRender == 0) {
+				readQueue = currentWriteQueue;
+				currentWriteQueue = (currentWriteQueue + 1) % 2;
+			}
+		}
 	}
+	// LOGW("Reading 1 frame from: %d", readQueue);
+	assert (renderQueue[readQueue].frameToRender > 0);
+	assert (readQueue != currentWriteQueue);
+	RenderQueue& inQueue = renderQueue[readQueue];
+	inQueue.frameToRender--;
+	pthread_mutex_unlock(&mutexes);
 
-    processDelayedTextureJobs();
-
-	// std::vector<RenderCommand>& commands = renderCommands[cmd];
-	drawRenderCommands(renderQueue /*commands*/, opengles2);
+	drawRenderCommands(inQueue.commands, opengles2);
 	// commands.clear();
 	// LOGW("redner queue size: %d OUT", renderQueue.size());
-	frameToRender--;
 
-	pthread_mutex_unlock(&mutexes[0]);
 	// glFinish();
 	// end = TimeUtil::getTime();
 	// LOGW("time in : %.3f", end - begin);

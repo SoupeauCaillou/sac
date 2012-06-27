@@ -36,10 +36,8 @@ INSTANCE_IMPL(RenderingSystem);
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
 	nextValidRef = 1;
 	opengles2 = false;
-	current = 0;
-	frameToRender = 0;
-	pthread_mutex_init(&mutexes[0], 0);
-	pthread_mutex_init(&mutexes[1], 0);
+	currentWriteQueue = 0;
+	pthread_mutex_init(&mutexes, 0);
 	pthread_cond_init(&cond, 0);
     #ifndef ANDROID
     inotifyFd = inotify_init();
@@ -98,6 +96,7 @@ void RenderingSystem::init() {
 #ifdef GLES2_SUPPORT
 	if (opengles2) {
 		defaultShader = buildShader("default.vs", "default.fs");
+		defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
 		desaturateShader = buildShader("default.vs", "desaturate.fs");
 
 		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
@@ -167,9 +166,8 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
 }
 
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
-	pthread_mutex_lock(&mutexes[current]);
+	pthread_mutex_lock(&mutexes);
 	
-	std::vector<RenderCommand> commands;
 	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
 	/* render */
@@ -236,24 +234,28 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
 	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 	
+	RenderQueue& outQueue = renderQueue[currentWriteQueue];
+	
 	for(std::vector<RenderCommand>::iterator it=opaqueCommands.begin(); it!=opaqueCommands.end(); it++) {
-		renderQueue.push(*it);
+		outQueue.commands.push(*it);
 	}
 	
 	RenderCommand dummy;
 	dummy.texture = DisableZWriteMarker;
-	renderQueue.push(dummy);
+	outQueue.commands.push(dummy);
 	
 	for(std::vector<RenderCommand>::iterator it=semiOpaqueCommands.begin(); it!=semiOpaqueCommands.end(); it++) {
-		renderQueue.push(*it);
+		outQueue.commands.push(*it);
 	}
 	
 	dummy.texture = EndFrameMarker;
-	renderQueue.push(dummy);
-	frameToRender++;
-	// LOGW("Added: %d + %d + 1 elt (%d frames)", commands.size(), semiOpaqueCommands.size(), frameToRender);
+	static unsigned int cccc = 0;
+	dummy.rotateUV = cccc++;
+	outQueue.commands.push(dummy);
+	outQueue.frameToRender++;
+	// LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
 	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutexes[current]);
+	pthread_mutex_unlock(&mutexes);
 	
 	//current = (current + 1) % 2;
 #ifndef ANDROID

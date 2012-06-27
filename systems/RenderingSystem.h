@@ -185,6 +185,14 @@ struct RenderCommand {
 	bool desaturate;
 };
 
+struct RenderQueue {
+	RenderQueue() : frameToRender(0) {}
+	int frameToRender;
+	std::queue<RenderCommand> commands;
+	
+	void removeFrames(int count);
+};
+
 struct TextureInfo {
 	InternalTexture glref;
 	unsigned int rotateUV;
@@ -204,10 +212,9 @@ std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
 
-int current;
-int frameToRender;
-std::queue<RenderCommand> renderQueue;
-pthread_mutex_t mutexes[2];
+int currentWriteQueue;
+RenderQueue renderQueue[2]; // 
+pthread_mutex_t mutexes;
 pthread_cond_t cond;
 
 /* default (and only) shader */
@@ -216,7 +223,7 @@ struct Shader {
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 };
 
-Shader defaultShader, desaturateShader;
+Shader defaultShader, defaultShaderNoAlpha, desaturateShader;
 GLuint whiteTexture;
 
 /* open gl es1 var */
