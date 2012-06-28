@@ -128,8 +128,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
 			x += tc->size.X * 0.5;
- // if (letter == 'C' && it->first == 19) std::cout << it->first << ":" << x /*+ TRANSFORM(tc->parent)->position.X*/ << ", " << trc->text << ", " << trc->charHeight << ", " << trc->positioning << std::endl;
-			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
+ 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
 			}
 		}

@@ -107,7 +107,7 @@ class ComponentSystemImpl: public ComponentSystem {
             if (entity != previous) {
     			typename std::map<Entity, T*>::iterator it = components.find(entity);
     			if (it == components.end()) {
-    				std::cout << "Entity " << entity << " has no component of type '" << name << "'" << std::endl;
+    				LOGE("Entity %lu has no component of type '%s'", entity, name.c_str());
                     #ifndef ANDROID
                     // crash here
                     assert (false);

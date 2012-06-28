@@ -17,6 +17,7 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "AssetAPILinuxImpl.h"
+#include "base/Log.h"
 
 void AssetAPILinuxImpl::init() {
 	
@@ -44,6 +45,6 @@ count += fread(&fb.data[count], 1, fb.size - count, file);
 
     fclose(file);
     fb.data[fb.size] = 0;
-    std::cout << asset << ":" << fb.size  << "/" << count << std::endl;
+    LOGI("%s : %d / %d", asset.c_str(), fb.size, count);
     return fb;
 }

@@ -41,7 +41,6 @@ void ScrollingSystem::DoUpdate(float dt) {
 
         EltIt iter = elements.find(a);
         if (iter == elements.end()) {
-	        std::cout << a << ":"<< sc->direction << std::endl;
 	        if (MathUtil::Abs(sc->direction.Length() - 1) <= 0.001) {
 	        	initScrolling(a, sc);
 	        	iter = elements.find(a);
