@@ -24,10 +24,10 @@
 #include <algorithm>
 #ifdef ANDROID
 #include <GLES2/gl2.h>
+#include <EGL/egl.h>
 #else
 #include <GL/glew.h>
 #endif
-#include <EGL/egl.h>
 #include <map>
 #include <set>
 #include <queue>

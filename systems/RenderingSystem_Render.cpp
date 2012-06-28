@@ -17,7 +17,11 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RenderingSystem.h"
+#ifndef ANDROID
+#include <GL/glew.h>
+#else
 #include <GLES/gl.h>
+#endif
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
