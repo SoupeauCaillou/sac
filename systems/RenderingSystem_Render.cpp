@@ -485,8 +485,10 @@ void RenderingSystem::render() {
 		int rqCount = renderQueue[readQueue].frameToRender;
 		int wrCount = renderQueue[currentWriteQueue].frameToRender;
 		
-		int toRemove = rqCount + wrCount - 2;
-		if (toRemove > 0) {
+		int excessFrameCount = rqCount + wrCount - 2;
+		if (excessFrameCount > 0) {
+			// remove half of the excess frames, to smooth the drop
+			int toRemove = (int) ceil(excessFrameCount / 2.0);
 			int n = MathUtil::Min(toRemove, rqCount);
 			renderQueue[readQueue].removeFrames(n);
 			
