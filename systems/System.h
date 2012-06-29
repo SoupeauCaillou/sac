@@ -53,7 +53,7 @@
 
 class ComponentSystem {
 	public:
-		ComponentSystem(const std::string& n) : name(n) { assert(registry.insert(std::make_pair(name, this)).second); }
+		ComponentSystem(const std::string& n) : name(n) { bool inserted = registry.insert(std::make_pair(name, this)).second; assert(inserted); }
         virtual ~ComponentSystem() { registry.erase(name); }
 
 		virtual const std::string& getName() const { return name; }
