@@ -521,7 +521,7 @@ void RenderingSystem::render() {
 
 void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
 	const float cr = cos(rotation);
-	const float sr = sin(rotation);
+	const float sr = -sin(rotation);
 
 	const float crX = cr * hSize.X;
 	const float crY = cr * hSize.Y;
