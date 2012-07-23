@@ -31,8 +31,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 		Entity a = it->first;
 		PhysicsComponent* pc = it->second;
 		TransformationComponent* tc = TRANSFORM(a);
-		//~if (tc->parent == 0) {
-			if (true) {
+		if (!tc || tc->parent == 0) {
 			if (pc->mass <= 0)
 				continue;
 		
@@ -63,17 +62,20 @@ void PhysicsSystem::DoUpdate(float dt) {
 	    }
 	}
     //copy parent property to its sons
-    //~for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		//~Entity a = it->first;
-		//~Entity parent = TRANSFORM(a)->parent;
-		//~if (parent) {
-			//~while (TRANSFORM(parent)->parent) {
-				//~parent = TRANSFORM(parent)->parent;
-			//~}
-			//~PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
-			//~PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
-		//~}
-    //~}
+    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+		Entity a = it->first;
+		if (!TRANSFORM(a))
+			continue;
+			
+		Entity parent = TRANSFORM(a)->parent;
+		if (parent) {
+			while (TRANSFORM(parent)->parent) {
+				parent = TRANSFORM(parent)->parent;
+			}
+			PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
+			PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
+		}
+    }
 }
 
 
