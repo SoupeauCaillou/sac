@@ -48,7 +48,6 @@
     <Compile Include="tests\base\TestEntityManager.cpp" />
     <Compile Include="tests\base\TestTouchInputManager.cpp" />
     <Compile Include="tests\systems\TestADSRSystem.cpp" />
-    <Compile Include="tests\systems\TestButtonSystem.cpp" />
     <Compile Include="tests\systems\TestRenderingSystem.cpp" />
     <Compile Include="tests\systems\TestTransformationSystem.cpp" />
     <Compile Include="tests\tests.cpp" />
@@ -81,6 +80,8 @@
     <Compile Include="api\android\ExitAPIAndroidImpl.cpp" />
     <Compile Include="systems\TaskAISystem.cpp" />
     <Compile Include="tests\systems\TestTaskAISystem.cpp" />
+    <Compile Include="util\IntersectionUtil.cpp" />
+    <Compile Include="tests\util\TestIntersectionUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -187,6 +188,7 @@
     <None Include="api\linux\ExitAPILinuxImpl.h" />
     <None Include="api\android\ExitAPIAndroidImpl.h" />
     <None Include="systems\TaskAISystem.h" />
+    <None Include="util\IntersectionUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

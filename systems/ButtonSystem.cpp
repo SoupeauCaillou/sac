@@ -18,6 +18,7 @@
 */
 #include "ButtonSystem.h"
 #include "base/TimeUtil.h"
+#include "util/IntersectionUtil.h"
 
 INSTANCE_IMPL(ButtonSystem);
 
@@ -41,7 +42,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	const Vector2& pos = TRANSFORM(entity)->worldPosition;
 	const Vector2& size = TRANSFORM(entity)->size;
 
-	bool over = inside(touchPos, pos, size * comp->overSize);
+	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
 	comp->clicked = false;
 
 	if (comp->enabled) {
@@ -68,9 +69,4 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	}
 	if (!touching)
 		comp->touchStartOutside = false;
-}
-
-bool ButtonSystem::inside(const Vector2& testPoint, const Vector2& rectPos, const Vector2& rectSize) {
-	return (MathUtil::Abs(rectPos.X - testPoint.X) < rectSize.X * 0.5 &&
-		MathUtil::Abs(rectPos.Y - testPoint.Y) < rectSize.Y * 0.5);
 }

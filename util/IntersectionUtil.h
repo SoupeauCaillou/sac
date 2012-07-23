@@ -18,30 +18,11 @@
 */
 #pragma once
 
-#include "base/TouchInputManager.h"
-#include "base/MathUtil.h"
-#include "base/Log.h"
+#include "../base/Vector2.h"
 
-#include "System.h"
-#include "RenderingSystem.h"
-#include "TransformationSystem.h"
-
-
-struct ButtonComponent {
-	ButtonComponent() : enabled(true), mouseOver(false), clicked(false), overSize(1) , lastClick(0) { }
-	
-	bool enabled;
-	bool mouseOver;
-	bool clicked, touchStartOutside;
-    float overSize;
-    float lastClick;
-};
-
-#define theButtonSystem ButtonSystem::GetInstance()
-#define BUTTON(actor) theButtonSystem.Get(actor)
-UPDATABLE_SYSTEM(Button)
+class IntersectionUtil {
+	public:
+		static bool pointRectangle(const Vector2& point, const Vector2& rectPos, const Vector2& rectSize);
 		
-private:
-	void UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const Vector2& touchPos);
+		static bool lineLine(const Vector2& pA, const Vector2& pB, const Vector2& qA, const Vector2& qB, Vector2* intersectionPoint);
 };
-
