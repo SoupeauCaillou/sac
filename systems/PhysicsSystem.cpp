@@ -37,7 +37,7 @@ void PhysicsSystem::DoUpdate(float dt) {
         pc->momentOfInertia = pc->mass * tc->size.X * tc->size.Y / 6;
 
         // linear accel
-        Vector2 linearAccel(pc->gravity);
+        Vector2 linearAccel(pc->gravity * pc->mass);
         for (unsigned int i=0; i<pc->forces.size(); i++) {
             linearAccel += pc->forces[i].vector;
         }
