@@ -25,10 +25,10 @@
 
 
 struct TransformationComponent {
-	TransformationComponent(): position(Vector2::Zero), size(1.0f, 1.0f), rotation(0), z(100), parent(0) { }
+	TransformationComponent(): position(Vector2::Zero), size(1.0f, 1.0f), rotation(0), z(0), parent(0) { }
 	
 	Vector2 position, worldPosition, size;
-	float rotation, worldRotation;
+	float rotation, worldRotation;//radians
 	float z;
 
 	Entity parent;
