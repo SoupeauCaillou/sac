@@ -29,11 +29,11 @@ void TaskAISystem::DoUpdate(float dt) {
 		
 		if (!tc->taskToPerform.empty()) {
 			// update first
-			TaskAI* task = tc->taskToPerform[0]->update(dt);
+			TaskAI* task = tc->taskToPerform[0]->update(it->first, dt);
 			
 			if (task) {
 				tc->taskToPerform.insert(tc->taskToPerform.begin(), task);
-			} else if (tc->taskToPerform[0]->complete()) {
+			} else if (tc->taskToPerform[0]->complete(it->first)) {
 				delete tc->taskToPerform[0];
 				tc->taskToPerform.erase(tc->taskToPerform.begin());
 			}

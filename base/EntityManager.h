@@ -21,6 +21,11 @@
 #include "systems/System.h"
 #define theEntityManager (*EntityManager::Instance())
 
+#include <stdarg.h>
+#include <squirrel.h>
+#include <sqstdio.h>
+#include <sqrat.h>
+
 #include <map>
 #include <list>
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())

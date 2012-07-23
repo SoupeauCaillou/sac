@@ -47,8 +47,8 @@
 			static void DestroyInstance() { if (_instance) delete _instance; LOGW(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
 			void DoUpdate(float dt); \
 		\
-		private:	\
 			type##System();	\
+		private:	\
 			static type##System* _instance;
 
 class ComponentSystem {

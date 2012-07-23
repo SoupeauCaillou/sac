@@ -79,6 +79,8 @@
     <Compile Include="util\ImageLoader.cpp" />
     <Compile Include="api\linux\ExitAPILinuxImpl.cpp" />
     <Compile Include="api\android\ExitAPIAndroidImpl.cpp" />
+    <Compile Include="systems\TaskAISystem.cpp" />
+    <Compile Include="tests\systems\TestTaskAISystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -184,6 +186,7 @@
     <None Include="api\ExitAPI.h" />
     <None Include="api\linux\ExitAPILinuxImpl.h" />
     <None Include="api\android\ExitAPIAndroidImpl.h" />
+    <None Include="systems\TaskAISystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
