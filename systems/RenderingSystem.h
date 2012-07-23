@@ -72,6 +72,10 @@ struct Color {
 		};
 	};
 
+ 	static Color random() {
+ 		return (Color( MathUtil::RandomFloat(), MathUtil::RandomFloat(), MathUtil::RandomFloat()));
+ 	}
+
 	Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0):
 		r(_r), g(_g), b(_b), a(_a) {}
 
