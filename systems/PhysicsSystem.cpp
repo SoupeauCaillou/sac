@@ -39,26 +39,40 @@ void PhysicsSystem::DoUpdate(float dt) {
 		
 			// linear accel
 			Vector2 linearAccel(pc->gravity * pc->mass);
-			for (unsigned int i=0; i<pc->forces.size(); i++) {
-				linearAccel += pc->forces[i].vector;
-			}
-			linearAccel /= pc->mass;
 			// angular accel
 			float angAccel = 0;
+			
 			for (unsigned int i=0; i<pc->forces.size(); i++) {
-		        const Force& force = pc->forces[i];
+				Force force(pc->forces[i].first);
+				
+				float& durationLeft = pc->forces[i].second;
+				
+				if (durationLeft < dt) {
+					force.vector *= durationLeft / dt;
+				}
+			
+				linearAccel += force.vector;
+				
 		        if (force.point != Vector2::Zero) {
 			        angAccel += Vector2::Dot(force.point.Perp(), force.vector);
 		        }
+		        
+				durationLeft -= dt;
+				if (durationLeft < 0) {
+					pc->forces.erase(pc->forces.begin() + i);
+					i--;
+				}
 			}
+			linearAccel /= pc->mass;
 			angAccel /= pc->momentOfInertia;
+			
 			// dumb integration
 			pc->linearVelocity += linearAccel * dt;
 			tc->position += pc->linearVelocity * dt;
 			pc->angularVelocity += angAccel * dt;
 			tc->rotation += pc->angularVelocity * dt;
 			
-			pc->forces.clear();
+			// pc->forces.clear();
 	    }
 	}
     //copy parent property to its sons
@@ -81,7 +95,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	// add 2 opposed forces
-	pc->forces.push_back(Force(Vector2(0, m * 0.5), Vector2(1, 0)));
-	pc->forces.push_back(Force(Vector2(0, -m * 0.5), Vector2(-1, 0)));
+	pc->forces.push_back(std::make_pair(Force(Vector2(0, m * 0.5), Vector2(1, 0)), 0.016));
+	pc->forces.push_back(std::make_pair(Force(Vector2(0, -m * 0.5), Vector2(-1, 0)), 0.016));
 }
 

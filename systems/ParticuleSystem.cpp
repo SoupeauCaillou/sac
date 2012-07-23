@@ -65,7 +65,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                     ppc->gravity = Vector2(0, -10);
                     ppc->mass = pc->mass;
                     float angle = pc->forceDirection.random();
-                    ppc->forces.push_back(Force(Vector2::VectorFromAngle(angle) * pc->forceAmplitude.random(), tc->size * MathUtil::RandomFloat()));
+                    ppc->forces.push_back(std::make_pair(Force(Vector2::VectorFromAngle(angle) * pc->forceAmplitude.random(), tc->size * MathUtil::RandomFloat()), 0.016));
                     PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }
                 internal.color = Interval<Color> (rc->color, pc->finalColor.random());

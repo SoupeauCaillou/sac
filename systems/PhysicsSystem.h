@@ -37,7 +37,7 @@ struct PhysicsComponent {
     float angularVelocity;
     float mass;
     Vector2 gravity;
-    std::vector<Force> forces;
+    std::vector<std::pair<Force, float> > forces;
     float momentOfInertia;
 };
 
