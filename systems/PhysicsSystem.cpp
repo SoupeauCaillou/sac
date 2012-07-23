@@ -26,40 +26,56 @@ PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics"
 }
 
 void PhysicsSystem::DoUpdate(float dt) {
+	//update orphans first
     for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        Entity a = (*it).first;
-        PhysicsComponent* pc = (*it).second;
-        TransformationComponent* tc = TRANSFORM(a);
-        
-        if (pc->mass <= 0)
-        	continue;
-
-        pc->momentOfInertia = pc->mass * tc->size.X * tc->size.Y / 6;
-
-        // linear accel
-        Vector2 linearAccel(pc->gravity * pc->mass);
-        for (unsigned int i=0; i<pc->forces.size(); i++) {
-            linearAccel += pc->forces[i].vector;
-        }
-        linearAccel /= pc->mass;
-        // angular accel
-        float angAccel = 0;
-        for (unsigned int i=0; i<pc->forces.size(); i++) {
-	        const Force& force = pc->forces[i];
-	        if (force.point != Vector2::Zero) {
-		        angAccel += Vector2::Dot(force.point.Perp(), force.vector);
-	        }
-        }
-        angAccel /= pc->momentOfInertia;
-        // dumb integration
-        pc->linearVelocity += linearAccel * dt;
-        tc->position += pc->linearVelocity * dt;
-        pc->angularVelocity += angAccel * dt;
-        tc->rotation += pc->angularVelocity * dt;
-        
-        pc->forces.clear();
-    }
+		Entity a = it->first;
+		PhysicsComponent* pc = it->second;
+		TransformationComponent* tc = TRANSFORM(a);
+		//~if (tc->parent == 0) {
+			if (true) {
+			if (pc->mass <= 0)
+				continue;
+		
+			pc->momentOfInertia = pc->mass * tc->size.X * tc->size.Y / 6;
+		
+			// linear accel
+			Vector2 linearAccel(pc->gravity * pc->mass);
+			for (unsigned int i=0; i<pc->forces.size(); i++) {
+				linearAccel += pc->forces[i].vector;
+			}
+			linearAccel /= pc->mass;
+			// angular accel
+			float angAccel = 0;
+			for (unsigned int i=0; i<pc->forces.size(); i++) {
+		        const Force& force = pc->forces[i];
+		        if (force.point != Vector2::Zero) {
+			        angAccel += Vector2::Dot(force.point.Perp(), force.vector);
+		        }
+			}
+			angAccel /= pc->momentOfInertia;
+			// dumb integration
+			pc->linearVelocity += linearAccel * dt;
+			tc->position += pc->linearVelocity * dt;
+			pc->angularVelocity += angAccel * dt;
+			tc->rotation += pc->angularVelocity * dt;
+			
+			pc->forces.clear();
+	    }
+	}
+    //copy parent property to its sons
+    //~for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+		//~Entity a = it->first;
+		//~Entity parent = TRANSFORM(a)->parent;
+		//~if (parent) {
+			//~while (TRANSFORM(parent)->parent) {
+				//~parent = TRANSFORM(parent)->parent;
+			//~}
+			//~PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
+			//~PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
+		//~}
+    //~}
 }
+
 
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	// add 2 opposed forces
