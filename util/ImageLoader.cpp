@@ -100,7 +100,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 		LOGW("%s INVALID color type: %u", context.c_str(), color_type);
 		assert(false);
 	}
-	
+
 	if (color_type & PNG_COLOR_MASK_ALPHA)
         png_set_strip_alpha(PNG_reader);
 
@@ -124,7 +124,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	png_byte* PNG_image_buffer = (png_byte*) malloc(rowbytes * result.height);
 
 	png_byte** PNG_rows = (png_byte**)malloc(result.height * sizeof(png_byte*));
-	
+
 	int row;
 	for (row = 0; row < result.height; ++row) {
 		PNG_rows[row] /*result.height - 1 - row]*/ = PNG_image_buffer + (row * rowbytes);
@@ -134,7 +134,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	free(PNG_rows);
 
 	png_destroy_read_struct(&PNG_reader, &PNG_info, &PNG_end_info);
-	
+
 	// remove unneeded channels
 	int actual = rowbytes / result.width;
 	if (actual > result.channels) {
@@ -152,29 +152,30 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	result.datas = (char*)PNG_image_buffer;
 	return result;
 }
-		
 ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
 #ifdef ANDROID
 	#define BE_16_TO_H betoh16
 #else
 	#define BE_16_TO_H be16toh
 #endif
-	ImageDesc result;
+
+	 #ifdef ANDROID
+ImageDesc result;
 	result.datas = 0;
-	
+
 	unsigned offset = 0;
 	if (strncmp("PKM ", (const char*)file.data, 4)) {
 		LOGW("ETC: %s wrong magic header '%02x %02x %02x %02x'", context.c_str(), file.data[0], file.data[1], file.data[2], file.data[3]);
 		return result;
 	}
 	offset += 4;
-	
-	// skip version/type 
+
+	// skip version/type
 	offset += 4;
 	// skip extended width/height
 	offset += 2 * 2;
 	// read width/height
-	
+
 	result.width = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
 	offset += 2;
 	result.height = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
@@ -182,8 +183,9 @@ ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& fi
 	// memcpy
 	result.datas = (char*) malloc(file.size - offset);
 	memcpy(result.datas, &file.data[offset], file.size - offset);
-	
+
 	return result;
+#endif
 }
 
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead) {
@@ -213,7 +215,7 @@ ImageDesc ImageLoader::loadPvr(const std::string& context, const FileBuffer& fil
     uint32_t dwNumSurfs;
 };
 	PVRTexHeader* header = (PVRTexHeader*)&file.data[0];
-	
+
 	result.width = header->width;
 	result.height = header->height;
 	int size = file.size - sizeof(PVRTexHeader);
