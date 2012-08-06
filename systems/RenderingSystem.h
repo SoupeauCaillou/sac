@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
-#ifdef ANDROID
+#if defined(ANDROID) || defined(EMSCRIPTEN)
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #else
@@ -97,7 +97,7 @@ struct Color {
 
 struct RenderingComponent {
 	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false), opaqueType(NON_OPAQUE) {}
-	
+
 	TextureRef texture;
 	Color color;
 	bool hide, desaturate;
@@ -157,7 +157,7 @@ std::map<std::string, TextureRef> assetTextures;
 struct InternalTexture {
 	GLuint color;
 	GLuint alpha;
-	
+
 	/*void operator=(GLuint r) {
 		color = alpha = r;
 	}*/
@@ -170,8 +170,8 @@ struct InternalTexture {
 	bool operator<(const InternalTexture& t) const {
 		return color < t.color;
 	}
-	
-	static InternalTexture Invalid; 
+
+	static InternalTexture Invalid;
 };
 
 struct RenderCommand {
@@ -193,7 +193,7 @@ struct RenderQueue {
 	RenderQueue() : frameToRender(0) {}
 	int frameToRender;
 	std::queue<RenderCommand> commands;
-	
+
 	void removeFrames(int count);
 };
 
@@ -202,7 +202,7 @@ struct TextureInfo {
 	unsigned int rotateUV;
 	Vector2 uv[2];
 	int atlasIndex;
-	
+
 	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
 };
 struct Atlas {
@@ -217,9 +217,11 @@ std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
 
 int currentWriteQueue;
-RenderQueue renderQueue[2]; // 
+RenderQueue renderQueue[2]; //
+#ifndef EMSCRIPTEN
 pthread_mutex_t mutexes;
 pthread_cond_t cond;
+#endif
 
 /* default (and only) shader */
 struct Shader {

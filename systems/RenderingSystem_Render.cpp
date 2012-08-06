@@ -17,11 +17,6 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RenderingSystem.h"
-#ifndef ANDROID
-#include <GL/glew.h>
-#else
-#include <GLES/gl.h>
-#endif
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
@@ -93,7 +88,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	} else {
 		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
 	}
-	
+
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
@@ -105,158 +100,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 }
 #endif
 
-static void setupTexturing(const RenderingSystem::InternalTexture& glref, bool enableDesaturation, const float* uvs) {
-	if (!enableDesaturation) {
-		//// # TEXTURE STAGE 1
-		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, glref.color);
-		glClientActiveTexture(GL_TEXTURE0);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		// color: modulate TEXTURE color with glColor
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-		// alpha: use glColor value
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		
-		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
-		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
-		
-		//// # TEXTURE STAGE 2
-		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, glref.alpha);
-		glClientActiveTexture(GL_TEXTURE1);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		// use previous stage color
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		// combine previous alpha with TEXTURE alpha
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-		
-		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
-		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
-
-		//// # TEXTURE STAGE 3 (disabled)
-		glActiveTexture(GL_TEXTURE2);
-		glDisable(GL_TEXTURE_2D);
-	} else {
-		//Enable texture unit 0 to divide RGB values in our texture by 2
-		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, glref.color);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glClientActiveTexture(GL_TEXTURE0);
-		
-		//GL_MODULATE is Arg0 * Arg1    
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_TEXTURE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		
-		//Configure Arg1
-		float multipliers[4] = {.5, .5, .5, 1.0};
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&multipliers);
-		
-		//Remember to set your texture coordinates if you need them
-		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
-			GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
-		
-		//Enable texture unit 1 to increase RGB values by .5
-		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, glref.alpha);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glClientActiveTexture(GL_TEXTURE1);
-		
-		//GL_ADD is Arg0 + Arg1
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		
-		// combine previous alpha with TEXTURE alpha
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-		
-		//Configure Arg0
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		
-		//Configure Arg1
-		GLfloat additions[4] = {.5, .5, .5, 0.0};
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&additions);
-		
-		//Set your texture coordinates if you need them
-		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
-			GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
-		
-		//Enable texture combiner 2 to get a DOT3_RGB product of your RGB values
-		glActiveTexture(GL_TEXTURE2);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, glref.color);
-		glClientActiveTexture(GL_TEXTURE2);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		
-		//GL_DOT3_RGB is 4*((Arg0r - 0.5) * (Arg1r - 0.5) + (Arg0g - 0.5) * (Arg1g - 0.5) + (Arg0b - 0.5) * (Arg1b - 0.5))
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB);   
-		
-		//Configure Arg0
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		
-		//Configure Arg1
-		//We want this to adjust our DOT3 by R*0.3 + G*0.59 + B*0.11
-		//So, our actual adjustment will need to take into consideration
-		//the fact that OpenGL will subtract .5 from our Arg1
-		//and we need to also take into consideration that we have divided 
-		//our RGB values by 2 and we are multiplying the entire
-		//DOT3 product by 4
-		//So, for Red adjustment you will get :
-		//   .65 = (4*(0.3))/2 + 0.5  = (0.3/2) + 0.5
-		GLfloat weights[4] = {.65, .795, .555, 1.};
-		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, (GLfloat*)&weights);
-		
-		GL_OPERATION(glTexCoordPointer(2, GL_FLOAT, 0, uvs))
-		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))		
-	}
-}
-
 static bool desaturate = false;
-static void drawBatchES1(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
-	if (glref == RenderingSystem::InternalTexture::Invalid)
-		return;
-	setupTexturing(glref, desaturate, uvs);
-	
-	GL_OPERATION(glVertexPointer(2, GL_FLOAT, 0, vertices))
-	
-	// GL_OPERATION(glColorPointer(4, GL_FLOAT, 0, colors))
-	
-
-	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
-	
-	GL_OPERATION(glEnable(GL_BLEND))
-}
 
 #ifdef GLES2_SUPPORT
 void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& color) {
@@ -264,7 +108,7 @@ void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& col
 	GLfloat mat[16];
 	loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
 	GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
-		
+
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
 	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
 	GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
@@ -278,23 +122,17 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
 	desaturate = false;
-	
+
 	GL_OPERATION(glDepthMask(true))
 	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDisable(GL_BLEND))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
-	
-	if (!opengles2) {
-		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
-		GL_OPERATION(glDisableClientState(GL_COLOR_ARRAY))
-    	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
-	} else {
-		firstCall = true;
-    	changeShaderProgram(defaultShaderNoAlpha, currentColor);
-	}
-   
+
+	firstCall = true;
+  	changeShaderProgram(defaultShaderNoAlpha, currentColor);
+
     while (!commands.empty()) {
 		RenderCommand& rc = commands.front();
 
@@ -308,15 +146,12 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
-				if (opengles2)
 					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				else
 				#endif
-					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
-			
+
 			firstCall = false;
 			GL_OPERATION(glDepthMask(false))
 			GL_OPERATION(glEnable(GL_BLEND))
@@ -328,11 +163,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
-				if (opengles2)
 					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				else
 				#endif
-					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
@@ -365,21 +197,17 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
-				if (opengles2)
+
 					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				else
+
 				#endif
-					drawBatchES1(boundTexture, vertices, uvs, indices, batchSize);
 
 				batchSize = 0;
 			}
 			boundTexture = rc.glref;
-			
+
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
-	            if (!opengles2) {
-	            	glColor4f(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
-	            } else {
 	            	if (desaturate) {
 	            		GL_OPERATION(glUniform4fv(desaturateShader.uniformColor, 1, currentColor.rgba))
 	            	} else if (firstCall) {
@@ -387,7 +215,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	            	} else {
 		            	GL_OPERATION(glUniform4fv(defaultShader.uniformColor, 1, currentColor.rgba))
 	            	}
-	            }
 			}
 		}
 
@@ -422,11 +249,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 		if (batchSize == MAX_BATCH_SIZE) {
 			#ifdef GLES2_SUPPORT
-			if (opengles2)
+
 				drawBatchES2(rc.glref, vertices, uvs, indices, batchSize);
-			else
+
 			#endif
-				drawBatchES1(rc.glref, vertices, uvs, indices, batchSize);
 			batchSize = 0;
 		}
 		commands.pop();
@@ -434,13 +260,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 	if (batchSize > 0) {
 		#ifdef GLES2_SUPPORT
-		if (opengles2) {
+
 			drawBatchES2(t, vertices, uvs, indices, batchSize);
-		} else 
-		#endif	
-		{
-			drawBatchES1(t, vertices, uvs, indices, batchSize);
-		}
+
+		#endif
 	}
 }
 #include <errno.h>
@@ -458,25 +281,28 @@ void RenderingSystem::RenderQueue::removeFrames(int count) {
 void RenderingSystem::render() {
 	// static float begin = TimeUtil::getTime();
 	// static float end = TimeUtil::getTime();
-	
+
 	// begin = TimeUtil::getTime();
 	// LOGW("time out: %.3f", begin - end);
-	
+
 	// mutex locking handled in processDelayedTextureJobs
 	processDelayedTextureJobs();
-	
+
+	#ifndef EMSCRIPTEN
 	if (pthread_mutex_trylock(&mutexes) != 0) {
 		// LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes);
 	}
-
+	#endif
 	int readQueue = (currentWriteQueue + 1) % 2;
 	if (renderQueue[readQueue].frameToRender == 0) {
 		readQueue = currentWriteQueue;
-		
+
 		if (renderQueue[readQueue].frameToRender == 0) {
 			float bef = TimeUtil::getTime();
+			#ifndef EMSCRIPTEN
 			pthread_cond_wait(&cond, &mutexes);
+			#endif
 			LOGW("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
 		}
 		currentWriteQueue = (currentWriteQueue + 1) % 2;
@@ -484,17 +310,17 @@ void RenderingSystem::render() {
 		// read queue is not empty
 		int rqCount = renderQueue[readQueue].frameToRender;
 		int wrCount = renderQueue[currentWriteQueue].frameToRender;
-		
+
 		int excessFrameCount = rqCount + wrCount - 2;
 		if (excessFrameCount > 0) {
 			// remove half of the excess frames, to smooth the drop
 			int toRemove = (int) ceil(excessFrameCount / 2.0);
 			int n = MathUtil::Min(toRemove, rqCount);
 			renderQueue[readQueue].removeFrames(n);
-			
+
 			if (n < toRemove) {
 				toRemove -= n;
-				renderQueue[currentWriteQueue].removeFrames(toRemove);	
+				renderQueue[currentWriteQueue].removeFrames(toRemove);
 				readQueue = currentWriteQueue;
 				currentWriteQueue = (currentWriteQueue + 1) % 2;
 			} else if (renderQueue[readQueue].frameToRender == 0) {
@@ -508,7 +334,9 @@ void RenderingSystem::render() {
 	assert (readQueue != currentWriteQueue);
 	RenderQueue& inQueue = renderQueue[readQueue];
 	inQueue.frameToRender--;
+	#ifndef EMSCRIPTEN
 	pthread_mutex_unlock(&mutexes);
+	#endif
 
 	drawRenderCommands(inQueue.commands, opengles2);
 	// commands.clear();

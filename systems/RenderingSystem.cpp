@@ -21,12 +21,11 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
-#ifndef ANDROID
+#if defined(ANDROID) || defined(EMSCRIPTEN)
+#else
 #include <sys/inotify.h>
 #include <GL/glew.h>
 #include <unistd.h>
-#else
-#include <GLES/gl.h>
 #endif
 
 RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
@@ -37,9 +36,13 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 	nextValidRef = 1;
 	opengles2 = false;
 	currentWriteQueue = 0;
+#ifndef EMSCRIPTEN
 	pthread_mutex_init(&mutexes, 0);
 	pthread_cond_init(&cond, 0);
-    #ifndef ANDROID
+#endif
+
+#if defined(ANDROID) || defined(EMSCRIPTEN)
+    #else
     inotifyFd = inotify_init();
     #endif
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
@@ -55,9 +58,10 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 
 RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
 	Shader out;
+	LOGI("building shader ...");
 	out.program = glCreateProgram();
 	check_GL_errors("glCreateProgram");
-		
+
 	LOGI("Compiling shaders: %s/%s\n", vsName.c_str(), fsName.c_str());
 	GLuint vs = compileShader(vsName, GL_VERTEX_SHADER);
 	GLuint fs = compileShader(fsName, GL_FRAGMENT_SHADER);
@@ -71,7 +75,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 
 	LOGI("Linking GLSL program\n");
 	GL_OPERATION(glLinkProgram(out.program))
-	
+
 	GLint logLength;
 	glGetProgramiv(out.program, GL_INFO_LOG_LENGTH, &logLength);
 	if (logLength > 1) {
@@ -80,7 +84,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 		LOGW("GL shader program error: '%s'", log);
 		delete[] log;
 	}
-	
+
 	out.uniformMatrix = glGetUniformLocation(out.program, "uMvp");
 	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
 	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
@@ -88,7 +92,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 
 	glDeleteShader(vs);
 	glDeleteShader(fs);
-	
+
 	return out;
 }
 
@@ -100,27 +104,8 @@ void RenderingSystem::init() {
 		desaturateShader = buildShader("default.vs", "desaturate.fs");
 
 		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
-	} else 
-#endif	
-			{
-		GL_OPERATION(glEnable(GL_TEXTURE_2D))
-		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
-		glDisable(GL_ALPHA_TEST);
-	
-		GL_OPERATION(glEnable(GL_TEXTURE_2D))
-		GL_OPERATION(glMatrixMode(GL_PROJECTION))
-		GL_OPERATION(glLoadIdentity())
-     #ifdef ANDROID
-        GL_OPERATION(glOrthof(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1))
-     #else
-		GL_OPERATION(glOrtho(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1))
-     #endif
-		GL_OPERATION(glMatrixMode(GL_MODELVIEW))
-		GL_OPERATION(glLoadIdentity())
-		GL_OPERATION(glEnableClientState(GL_VERTEX_ARRAY))
-		GL_OPERATION(glEnableClientState(GL_COLOR_ARRAY))
-		GL_OPERATION(glEnableClientState(GL_TEXTURE_COORD_ARRAY))
 	}
+#endif
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};
@@ -133,12 +118,12 @@ void RenderingSystem::init() {
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
-                
+
 	// GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GEQUAL))
- #ifdef ANDROID
+#if defined(ANDROID) || defined(EMSCRIPTEN)
 	GL_OPERATION(glClearDepthf(0.0))
  #else
     GL_OPERATION(glClearDepth(0.0))
@@ -166,15 +151,16 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
 }
 
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
+	#ifndef EMSCRIPTEN
 	pthread_mutex_lock(&mutexes);
-	
+	#endif
 	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
 		RenderingComponent* rc = (*it).second;
-		
+
 		if (rc->hide || rc->color.a <= 0) {
 			continue;
 		}
@@ -201,7 +187,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                 }
             }
          }
-         
+
          switch (rc->opaqueType) {
          	case RenderingComponent::NON_OPAQUE:
 	         	semiOpaqueCommands.push_back(c);
@@ -233,32 +219,34 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 
 	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
 	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
-	
+
 	RenderQueue& outQueue = renderQueue[currentWriteQueue];
-	
+
 	for(std::vector<RenderCommand>::iterator it=opaqueCommands.begin(); it!=opaqueCommands.end(); it++) {
 		outQueue.commands.push(*it);
 	}
-	
+
 	RenderCommand dummy;
 	dummy.texture = DisableZWriteMarker;
 	outQueue.commands.push(dummy);
-	
+
 	for(std::vector<RenderCommand>::iterator it=semiOpaqueCommands.begin(); it!=semiOpaqueCommands.end(); it++) {
 		outQueue.commands.push(*it);
 	}
-	
+
 	dummy.texture = EndFrameMarker;
 	static unsigned int cccc = 0;
 	dummy.rotateUV = cccc++;
 	outQueue.commands.push(dummy);
 	outQueue.frameToRender++;
 	// LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
-	pthread_cond_signal(&cond);
+	#ifndef EMSCRIPTEN
+pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutexes);
-	
+#endif
 	//current = (current + 1) % 2;
-#ifndef ANDROID
+#if defined(ANDROID) || defined(EMSCRIPTEN)
+#else
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(inotifyFd, &fds);
@@ -303,7 +291,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 bool RenderingSystem::isEntityVisible(Entity e) {
 	return isVisible(TRANSFORM(e));
 }
-	
+
 bool RenderingSystem::isVisible(TransformationComponent* tc) {
 	const Vector2 halfSize = tc->size * 0.5;
 	const Vector2& pos = tc->worldPosition;
@@ -355,7 +343,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		TextureInfo info;
 		memcpy(&info, &in[idx], sizeof(TextureInfo));
 		idx += sizeof(TextureInfo);
-		
+
 		assetTextures[name] = ref;
 		if (info.atlasIndex >= 0) {
 			info.glref = atlas[info.atlasIndex].glref;

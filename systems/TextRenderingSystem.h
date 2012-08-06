@@ -18,7 +18,7 @@
 */
 #pragma once
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(EMSCRIPTEN)
 #include <GLES2/gl2.h>
 #else
 #include <GL/glew.h>
@@ -66,7 +66,7 @@ public :
 	void registerFont(const std::string& fontName, const std::map<unsigned char, float>& charH2Wratio) {
 		fontRegistry[fontName] = charH2Wratio;
 	}
-	
+
 	float computeTextRenderingComponentWidth(TextRenderingComponent* trc);
 
 private:

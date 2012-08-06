@@ -17,18 +17,14 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RenderingSystem.h"
-#ifndef ANDROID
-#include <GL/glew.h>
-#else
-#include <GLES/gl.h>
-#include <GLES/glext.h>
-#endif
+
+
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
 #include <sstream>
 #include <sys/select.h>
-#include <sys/inotify.h>
+//~#include <sys/inotify.h>
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -87,13 +83,13 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
 	std::string atlasDesc = atlasName + ".desc";
 	std::string atlasImage = atlasName;
-	
+
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
 		LOGW("Unable to load atlas desc %s", atlasDesc.c_str());
 		return;
 	}
-	
+
 	Vector2 atlasSize, pow2Size;
 	Atlas a;
 	a.name = atlasImage;
@@ -113,7 +109,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
     sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
     LOGW("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f,%f] ('%s')", atlasName.c_str(), atlasIndex, a.glref.color, a.glref.alpha, atlasSize.X, atlasSize.Y, s.c_str());
 	int count = 0;
-	
+
 	do {
 		s.clear();
 		f >> s;
@@ -131,10 +127,10 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		LOGW("----- %s -> %d", assetName.c_str(), result);
 		assetTextures[assetName] = result;
 		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, atlasIndex);
-		
-		
+
+
 	} while (!s.empty());
-	
+
 	delete[] file.data;
 	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
 }
@@ -225,7 +221,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
             format = GL_RGBA;
             break;
     }
-    
+
     if (png) {
 	    LOGW("Using PNG texture version");
     	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
@@ -240,7 +236,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	    LOGW("Using ETC texture version");
 		#define ECT1_HEADER_SIZE 16
 		GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
-	   	#endif 
+	   	#endif
     #else
     	assert (false && "ETC compression not supported");
     #endif
@@ -289,13 +285,17 @@ void RenderingSystem::reloadTextures() {
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
+	#ifndef EMSCRIPTEN
 	pthread_mutex_lock(&mutexes);
-	
+	#endif
+
     // load atlas
     for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
         int atlasIndex = *it;
         Vector2 atlasSize, pow2Size;
-        pthread_mutex_unlock(&mutexes);
+       #ifndef EMSCRIPTEN
+		pthread_mutex_unlock(&mutexes);
+		#endif
         loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
         LOGW("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
 
@@ -305,7 +305,9 @@ void RenderingSystem::processDelayedTextureJobs() {
                 info.glref = atlas[atlasIndex].glref;
             }
         }
-        pthread_mutex_lock(&mutexes);
+       #ifndef EMSCRIPTEN
+ pthread_mutex_lock(&mutexes);
+ #endif
     }
     delayedAtlasIndexLoad.clear();
 
@@ -313,16 +315,22 @@ void RenderingSystem::processDelayedTextureJobs() {
     for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
         Vector2 size, powSize;
         InternalTexture t;
-        pthread_mutex_unlock(&mutexes);
+        #ifndef EMSCRIPTEN
+		pthread_mutex_unlock(&mutexes);
+		#endif
         loadTexture(*it, size, powSize, t);
         textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
-        pthread_mutex_lock(&mutexes);
+        #ifndef EMSCRIPTEN
+		pthread_mutex_lock(&mutexes);
+		#endif
     }
     delayedLoads.clear();
 
     // delete textures
     for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
-	    pthread_mutex_unlock(&mutexes);
+	   #ifndef EMSCRIPTEN
+ pthread_mutex_unlock(&mutexes);
+ #endif
 	    if (it->color != whiteTexture) {
 		    LOGW("Color texture delete: %u", it->color);
         	glDeleteTextures(1, &it->color);
@@ -331,10 +339,14 @@ void RenderingSystem::processDelayedTextureJobs() {
 	    	LOGW("Alpha texture delete: %u", it->alpha);
         	glDeleteTextures(1, &it->alpha);
 	    }
-	    pthread_mutex_lock(&mutexes);
+	  #ifndef EMSCRIPTEN
+  pthread_mutex_lock(&mutexes);
+  #endif
     }
     delayedDeletes.clear();
-    pthread_mutex_unlock(&mutexes);
+    #ifndef EMSCRIPTEN
+pthread_mutex_unlock(&mutexes);
+#endif
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
@@ -349,11 +361,15 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		LOGW("Texture '%s' doesn't belong to any atlas. Will be loaded individually", assetName.c_str());
 	}
 	if (textures.find(result) == textures.end()) {
+		#ifndef EMSCRIPTEN
 		pthread_mutex_lock(&mutexes);
+		#endif
 		delayedLoads.insert(name);
+		#ifndef EMSCRIPTEN
 		pthread_mutex_unlock(&mutexes);
+		#endif
 	}
-		
+
 	return result;
 }
 
@@ -367,9 +383,13 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
         for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
             if (it->second == ref) {
                 assetTextures.erase(it);
-                pthread_mutex_lock(&mutexes);
+               #ifndef EMSCRIPTEN
+				pthread_mutex_lock(&mutexes);
+				#endif
                 delayedDeletes.insert(textures[ref].glref);
-                pthread_mutex_unlock(&mutexes);
+                #ifndef EMSCRIPTEN
+				pthread_mutex_unlock(&mutexes);
+				#endif
                 break;
             }
         }
