@@ -7,7 +7,7 @@ Color Color::random() {
 	return (Color( MathUtil::RandomFloat(), MathUtil::RandomFloat(), MathUtil::RandomFloat()));
 }
 
-Color::Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0):
+Color::Color(float _r, float _g, float _b, float _a):
 	r(_r), g(_g), b(_b), a(_a) {
 }
 
