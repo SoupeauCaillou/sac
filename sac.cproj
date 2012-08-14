@@ -82,6 +82,7 @@
     <Compile Include="tests\systems\TestTaskAISystem.cpp" />
     <Compile Include="util\IntersectionUtil.cpp" />
     <Compile Include="tests\util\TestIntersectionUtil.cpp" />
+    <Compile Include="base\Color.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -189,6 +190,7 @@
     <None Include="api\android\ExitAPIAndroidImpl.h" />
     <None Include="systems\TaskAISystem.h" />
     <None Include="util\IntersectionUtil.h" />
+    <None Include="base\Color.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

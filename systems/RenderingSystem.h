@@ -35,6 +35,7 @@
 #include "base/Vector2.h"
 #include "base/MathUtil.h"
 #include "base/Log.h"
+#include "base/Color.h"
 #include "../api/AssetAPI.h"
 
 #include "System.h"
@@ -46,7 +47,7 @@ typedef int TextureRef;
 #define DisableZWriteMarker -11
 #define ToggleDesaturationMarker -12
 
-#ifndef ANDROID
+#if !defined(ANDROID) && !defined(EMSCRIPTEN)
 #define CHECK_GL_ERROR
 #endif
 
@@ -62,38 +63,9 @@ typedef int TextureRef;
 #undef GLES2_SUPPORT
 #define GLES2_SUPPORT
 
-struct Color {
-	union {
-		struct {
-			float rgba[4];
-		};
-		struct {
-			float r, g, b, a;
-		};
-	};
-
- 	static Color random() {
- 		return (Color( MathUtil::RandomFloat(), MathUtil::RandomFloat(), MathUtil::RandomFloat()));
- 	}
-
-	Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0):
-		r(_r), g(_g), b(_b), a(_a) {}
-
-     Color operator*(float s) const {
-        return Color(r*s, g*s, b*s, a*s);
-     }
-     Color operator+(const Color& c) const {
-        return Color(r+c.r, g+c.g, b+c.b, a+c.a);
-     }
-
-     bool operator!=(const Color& c) const {
-        return memcmp(rgba, c.rgba, sizeof(rgba)) != 0;
-     }
-     bool operator<(const Color& c) const {
-        return memcmp(rgba, c.rgba, sizeof(rgba)) < 0;
-     }
-
-};
+#ifdef EMSCRIPTEN
+#define USE_VBO
+#endif
 
 struct RenderingComponent {
 	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false), opaqueType(NON_OPAQUE) {}
@@ -218,6 +190,12 @@ std::vector<Atlas> atlas;
 
 int currentWriteQueue;
 RenderQueue renderQueue[2]; //
+#ifdef USE_VBO
+public:
+GLuint squareBuffers[2];
+private:
+#endif
+
 #ifndef EMSCRIPTEN
 pthread_mutex_t mutexes;
 pthread_cond_t cond;

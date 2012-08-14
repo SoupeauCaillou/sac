@@ -88,15 +88,25 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	} else {
 		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
 	}
+	
+#ifdef USE_VBO
+	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[0]))
 
+	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
+	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
+	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
+	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
+	
+	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[1]))
+	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
+#else
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
-	// GL_OPERATION(glVertexAttribPointer(ATTRIB_POS_ROT, 4, GL_FLOAT, 0, 0, posrot))
-	// GL_OPERATION(glEnableVertexAttribArray(ATTRIB_POS_ROT))
-	//GL_OPERATION(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4))
+
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+#endif
 }
 #endif
 
@@ -116,7 +126,11 @@ void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& col
 #endif
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
+#ifdef USE_VBO
+#define MAX_BATCH_SIZE 1
+#else
 #define MAX_BATCH_SIZE 128
+#endif
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
@@ -134,6 +148,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
   	changeShaderProgram(defaultShaderNoAlpha, currentColor);
 
     while (!commands.empty()) {
+
 		RenderCommand& rc = commands.front();
 
 		if (rc.texture == EndFrameMarker) {
@@ -146,7 +161,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
-					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
 
 				batchSize = 0;
@@ -163,7 +178,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
-					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
 
 				batchSize = 0;
@@ -218,6 +233,15 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			}
 		}
 
+		#ifdef USE_VBO
+		rc.position.X /= 2 * rc.halfSize.X;
+		rc.position.Y /= 2 * rc.halfSize.Y;
+		float hW = 0.5 * screenW / (2 * rc.halfSize.X);
+		float hH = 0.5 * screenH / (2 * rc.halfSize.Y);
+		GLfloat mat[16];
+		loadOrthographicMatrix(-hW - rc.position.X, hW - rc.position.X, -hH - rc.position.Y, hH - rc.position.Y, 0, 1, mat);
+		GL_OPERATION(glUniformMatrix4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformMatrix, 1, GL_FALSE, mat))
+		#else
 		// fill batch
 		Vector2 onScreenVertices[4];
 		computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
@@ -244,14 +268,13 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		indices[batchSize * 6 + 3] = baseIdx + 1;
 		indices[batchSize * 6 + 4] = baseIdx + 3;
 		indices[batchSize * 6 + 5] = baseIdx + 2;
+		#endif
 
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
 			#ifdef GLES2_SUPPORT
-
-				drawBatchES2(rc.glref, vertices, uvs, indices, batchSize);
-
+			drawBatchES2(rc.glref, vertices, uvs, indices, batchSize);
 			#endif
 			batchSize = 0;
 		}
@@ -287,26 +310,34 @@ void RenderingSystem::render() {
 
 	// mutex locking handled in processDelayedTextureJobs
 	processDelayedTextureJobs();
-
+//LOG/W("ici1");
 	#ifndef EMSCRIPTEN
 	if (pthread_mutex_trylock(&mutexes) != 0) {
 		// LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes);
 	}
-	#endif
 	int readQueue = (currentWriteQueue + 1) % 2;
+	#else
+//LOGW("ici2");
+	int readQueue = currentWriteQueue;
+	#endif
 	if (renderQueue[readQueue].frameToRender == 0) {
+		#ifndef EMSCRIPTEN
 		readQueue = currentWriteQueue;
 
 		if (renderQueue[readQueue].frameToRender == 0) {
 			float bef = TimeUtil::getTime();
-			#ifndef EMSCRIPTEN
+
 			pthread_cond_wait(&cond, &mutexes);
-			#endif
 			LOGW("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
 		}
 		currentWriteQueue = (currentWriteQueue + 1) % 2;
+		#else
+		LOGW("NOTHING TO RENDER");
+		return;
+		#endif
 	} else {
+#ifndef EMSCRIPTEN
 		// read queue is not empty
 		int rqCount = renderQueue[readQueue].frameToRender;
 		int wrCount = renderQueue[currentWriteQueue].frameToRender;
@@ -328,17 +359,20 @@ void RenderingSystem::render() {
 				currentWriteQueue = (currentWriteQueue + 1) % 2;
 			}
 		}
+#endif
 	}
+//LOGW("ici3 : %d", readQueue);
 	// LOGW("Reading 1 frame from: %d", readQueue);
-	assert (renderQueue[readQueue].frameToRender > 0);
-	assert (readQueue != currentWriteQueue);
+//	assert (renderQueue[readQueue].frameToRender > 0);
+//	assert (readQueue != currentWriteQueue);
 	RenderQueue& inQueue = renderQueue[readQueue];
 	inQueue.frameToRender--;
 	#ifndef EMSCRIPTEN
 	pthread_mutex_unlock(&mutexes);
 	#endif
-
+// LOGW("ici4 : %d", readQueue);
 	drawRenderCommands(inQueue.commands, opengles2);
+// LOGW("ici5 : %d", readQueue);
 	// commands.clear();
 	// LOGW("redner queue size: %d OUT", renderQueue.size());
 
