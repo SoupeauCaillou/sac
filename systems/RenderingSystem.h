@@ -63,9 +63,7 @@ typedef int TextureRef;
 #undef GLES2_SUPPORT
 #define GLES2_SUPPORT
 
-#ifdef EMSCRIPTEN
 #define USE_VBO
-#endif
 
 struct RenderingComponent {
 	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false), opaqueType(NON_OPAQUE) {}
@@ -192,7 +190,7 @@ int currentWriteQueue;
 RenderQueue renderQueue[2]; //
 #ifdef USE_VBO
 public:
-GLuint squareBuffers[2];
+GLuint squareBuffers[3];
 private:
 #endif
 
@@ -205,6 +203,9 @@ pthread_cond_t cond;
 struct Shader {
 	GLuint program;
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
+	#ifdef USE_VBO
+	GLuint uniformUVScaleOffset, uniformRotation;
+	#endif
 };
 
 Shader defaultShader, defaultShaderNoAlpha, desaturateShader;

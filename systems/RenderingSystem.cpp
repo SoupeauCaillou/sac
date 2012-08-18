@@ -89,6 +89,10 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
 	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
 	out.uniformColor= glGetUniformLocation(out.program, "vColor");
+#ifdef USE_VBO
+	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
+	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
+#endif
 
 	glDeleteShader(vs);
 	glDeleteShader(fs);
@@ -99,10 +103,15 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 void RenderingSystem::init() {
 #ifdef GLES2_SUPPORT
 	if (opengles2) {
+		#ifdef USE_VBO
+		defaultShader = buildShader("default_vbo.vs", "default.fs");
+		defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
+		desaturateShader = buildShader("default_vbo.vs", "desaturate.fs");
+		#else
 		defaultShader = buildShader("default.vs", "default.fs");
 		defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
 		desaturateShader = buildShader("default.vs", "desaturate.fs");
-
+		#endif
 		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
 	}
 #endif
@@ -132,22 +141,37 @@ void RenderingSystem::init() {
 	GL_OPERATION(glDepthMask(false))
 	
 #ifdef USE_VBO
-	glGenBuffers(2, squareBuffers);
+	glGenBuffers(3, squareBuffers);
 GLfloat sqArray[] = {
 -0.5, -0.5, 0,0,0,
 0.5, -0.5, 0,1,0,
 -0.5, 0.5, 0,0,1,
 0.5, 0.5, 0,1,1
 };
+
+GLfloat sqArrayRev[] = {
+-0.5, 0.5, 0,0,0,
+-0.5, -0.5, 0,1,0,
+0.5, 0.5, 0,0,1,
+0.5, -0.5, 0,1,1
+};
+
+
 unsigned short sqIndiceArray[] = {
 	0,1,2,1,3,2
+};
+unsigned short sqIndiceArrayRev[] = {
+	2,0,3,0,1,3
 };
 // Buffer d'informations de vertex
 glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[0]);
 glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
 
+glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]);
+glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
+
 // Buffer d'indices
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[1]);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[2]);
 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sqIndiceArray), sqIndiceArray, GL_STATIC_DRAW);
 
 #endif

@@ -77,7 +77,11 @@ static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSi
 
 #ifdef GLES2_SUPPORT
 bool firstCall;
+#ifdef USE_VBO
+static void drawBatchES2(const RenderingSystem::InternalTexture& glref, bool reverseUV) {
+#else
 static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
+#endif
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
@@ -90,14 +94,14 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	}
 	
 #ifdef USE_VBO
-	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[0]))
+	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[reverseUV ? 1 : 0]))
 
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
 	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
 	
-	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[1]))
+	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
 #else
 	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
@@ -161,7 +165,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
+				#ifdef USE_VBO
+				LOGI("Error batching unsupported with VBO");
+				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+				#endif
 				#endif
 
 				batchSize = 0;
@@ -178,9 +186,12 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
+				#ifdef USE_VBO
+				LOGI("Error batching unsupported with VBO");
+				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
-
+				#endif
 				batchSize = 0;
 			}
 			desaturate = !desaturate;
@@ -196,8 +207,18 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.glref = info.glref;
 			Vector2 offset = rc.uv[0], scale = rc.uv[1];
 			Vector2 uvS = info.uv[1] - info.uv[0];
+			#ifdef USE_VBO
+			float uvso[4];
+			uvso[0] = uvS.X;
+			uvso[1] = uvS.Y;
+			uvso[2] = info.uv[0].X;
+			uvso[3] = 1-info.uv[0].Y;
+			GL_OPERATION(glUniform4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformUVScaleOffset, 1, uvso))
+			#else
+			
 			rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
 			rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
+			#endif
 			rc.rotateUV = info.rotateUV;
 		} else {
 			rc.glref = InternalTexture::Invalid;
@@ -206,15 +227,22 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.uv[0] = Vector2::Zero;
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
+			#ifdef USE_VBO
+			float uvso[4];
+			memset(uvso, 0, sizeof(uvso));
+			GL_OPERATION(glUniform4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformUVScaleOffset, 1, uvso))
+			#endif
 		}
 		t = rc.glref;
 		if (boundTexture != rc.glref || currentColor != rc.color) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef GLES2_SUPPORT
-
-					drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-
+				#ifdef USE_VBO
+				LOGI("Error batching unsupported with VBO");
+				#else
+				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+				#endif
 				#endif
 
 				batchSize = 0;
@@ -240,6 +268,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		float hH = 0.5 * screenH / (2 * rc.halfSize.Y);
 		GLfloat mat[16];
 		loadOrthographicMatrix(-hW - rc.position.X, hW - rc.position.X, -hH - rc.position.Y, hH - rc.position.Y, 0, 1, mat);
+		GL_OPERATION(glUniform1f((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformRotation, rc.rotation))
 		GL_OPERATION(glUniformMatrix4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformMatrix, 1, GL_FALSE, mat))
 		#else
 		// fill batch
@@ -273,9 +302,13 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
-			#ifdef GLES2_SUPPORT
-			drawBatchES2(rc.glref, vertices, uvs, indices, batchSize);
-			#endif
+				#ifdef GLES2_SUPPORT
+				#ifdef USE_VBO
+				drawBatchES2(boundTexture, rc.rotateUV);
+				#else
+				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+				#endif
+				#endif
 			batchSize = 0;
 		}
 		commands.pop();
@@ -283,10 +316,12 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 	if (batchSize > 0) {
 		#ifdef GLES2_SUPPORT
-
-			drawBatchES2(t, vertices, uvs, indices, batchSize);
-
-		#endif
+				#ifdef USE_VBO
+				LOGI("Error batching unsupported with VBO");
+				#else
+				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+				#endif
+				#endif
 	}
 }
 #include <errno.h>
