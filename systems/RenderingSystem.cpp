@@ -33,7 +33,7 @@ RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
 INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
-	nextValidRef = 1;
+	nextValidRef = nextEffectRef = 1;
 	opengles2 = false;
 	currentWriteQueue = 0;
 #ifndef EMSCRIPTEN
@@ -106,11 +106,9 @@ void RenderingSystem::init() {
 		#ifdef USE_VBO
 		defaultShader = buildShader("default_vbo.vs", "default.fs");
 		defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
-		desaturateShader = buildShader("default_vbo.vs", "desaturate.fs");
 		#else
 		defaultShader = buildShader("default.vs", "default.fs");
 		defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
-		desaturateShader = buildShader("default.vs", "desaturate.fs");
 		#endif
 		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
 	}
@@ -177,19 +175,26 @@ glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sqIndiceArray), sqIndiceArray, GL_S
 #endif
 }
 static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-	if (r1.z == r2.z)
-		return r1.texture < r2.texture;
-	else
+	if (r1.z == r2.z) {
+		if (r1.effectRef == r2.effectRef)
+			return r1.texture < r2.texture;
+		else
+			return r1.effectRef < r2.effectRef;
+	} else
 		return r1.z > r2.z;
 }
 
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
 	if (r1.z == r2.z) {
-		if (r1.texture == r2.texture) {
-            return r1.color < r2.color;
-        } else {
-            return r1.texture < r2.texture;
-        }
+		if (r1.effectRef == r2.effectRef) {
+			if (r1.texture == r2.texture) {
+	            return r1.color < r2.color;
+	        } else {
+	            return r1.texture < r2.texture;
+	        }
+		} else {
+			return r1.effectRef < r2.effectRef;
+		}
 	} else {
 		return r1.z < r2.z;
     }
@@ -213,13 +218,13 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 		const TransformationComponent* tc = TRANSFORM(a);
 
 		RenderCommand c;
+		c.z = tc->z;
 		c.texture = rc->texture;
+		c.effectRef = rc->effectRef;
 		c.halfSize = tc->size * 0.5f;
 		c.color = rc->color;
 		c.position = tc->worldPosition;
 		c.rotation = tc->worldRotation;
-		c.z = tc->z;
-		c.desaturate = rc->desaturate;
 		c.uv[0] = Vector2::Zero;
 		c.uv[1] = Vector2(1, 1);
 
@@ -290,8 +295,7 @@ pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutexes);
 #endif
 	//current = (current + 1) % 2;
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-#else
+#if defined(LINUX) && !defined(ANDROID) && !defined(EMSCRIPTEN)
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(inotifyFd, &fds);
@@ -374,6 +378,9 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	assetTextures.clear();
 	textures.clear();
 	nextValidRef = 1;
+	nextEffectRef = 1;
+	
+	LOGW("TODO:Restore Effects properly");
 
 	int idx = 0;
 	while (idx < size) {
@@ -396,4 +403,24 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		}
 		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);
 	}
+}
+
+EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
+	EffectRef result = DefaultEffectRef;
+	std::string name(assetName);
+
+	if (nameToEffectRefs.find(name) != nameToEffectRefs.end()) {
+		result = nameToEffectRefs[name];
+	} else {
+		result = nextEffectRef++;
+		nameToEffectRefs[name] = result;
+	}
+	
+	#ifdef USE_VBO
+	ref2Effects[result] = buildShader("default_vbo.vs", assetName);
+	#else
+	ref2Effects[result] = buildShader("default.vs", assetName);
+	#endif
+	
+	return result;
 }

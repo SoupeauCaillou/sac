@@ -114,10 +114,8 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 }
 #endif
 
-static bool desaturate = false;
-
-#ifdef GLES2_SUPPORT
-void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& color) {
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool firstCall, const Color& color) {
+	const Shader& shader = effectRefToShader(ref, firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
 	loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
@@ -126,8 +124,8 @@ void RenderingSystem::changeShaderProgram(const Shader& shader, const Color& col
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
 	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
 	GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
+	return ref;
 }
-#endif
 
 void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
 #ifdef USE_VBO
@@ -139,7 +137,6 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
 	int batchSize = 0;
-	desaturate = false;
 
 	GL_OPERATION(glDepthMask(true))
 	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
@@ -149,8 +146,9 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	Color currentColor(1,1,1,1);
 
 	firstCall = true;
-  	changeShaderProgram(defaultShaderNoAlpha, currentColor);
-
+	
+	EffectRef currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor);
+	
     while (!commands.empty()) {
 
 		RenderCommand& rc = commands.front();
@@ -164,42 +162,32 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			commands.pop();
 			if (batchSize > 0) {
 				// execute batch
-				#ifdef GLES2_SUPPORT
 				#ifdef USE_VBO
 				LOGI("Error batching unsupported with VBO");
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
-				#endif
-
 				batchSize = 0;
 			}
 
 			firstCall = false;
 			GL_OPERATION(glDepthMask(false))
 			GL_OPERATION(glEnable(GL_BLEND))
-			if (!desaturate) {
+			/*if (!desaturate) {
 				changeShaderProgram(defaultShader, currentColor);
-			}
+			}*/
 			continue;
-		} else if (rc.desaturate != desaturate) {
+		} else if (rc.effectRef != currentEffect) {
 			if (batchSize > 0) {
 				// execute batch
-				#ifdef GLES2_SUPPORT
 				#ifdef USE_VBO
 				LOGI("Error batching unsupported with VBO");
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
-				#endif
 				batchSize = 0;
 			}
-			desaturate = !desaturate;
-			#ifdef GLES2_SUPPORT
-			if (opengles2) {
-				changeShaderProgram(desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader), currentColor);
-			}
-			#endif
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor);
 		}
 
 		if (rc.texture != InvalidTextureRef) {
@@ -213,7 +201,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			uvso[1] = uvS.Y;
 			uvso[2] = info.uv[0].X;
 			uvso[3] = 1-info.uv[0].Y;
-			GL_OPERATION(glUniform4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformUVScaleOffset, 1, uvso))
+			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
 			#else
 			
 			rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
@@ -230,19 +218,17 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			#ifdef USE_VBO
 			float uvso[4];
 			memset(uvso, 0, sizeof(uvso));
-			GL_OPERATION(glUniform4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformUVScaleOffset, 1, uvso))
+			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
 			#endif
 		}
 		t = rc.glref;
 		if (boundTexture != rc.glref || currentColor != rc.color) {
 			if (batchSize > 0) {
 				// execute batch
-				#ifdef GLES2_SUPPORT
 				#ifdef USE_VBO
 				LOGI("Error batching unsupported with VBO");
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
 				#endif
 
 				batchSize = 0;
@@ -251,13 +237,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
-	            	if (desaturate) {
-	            		GL_OPERATION(glUniform4fv(desaturateShader.uniformColor, 1, currentColor.rgba))
-	            	} else if (firstCall) {
-		            	GL_OPERATION(glUniform4fv(defaultShaderNoAlpha.uniformColor, 1, currentColor.rgba))
-	            	} else {
-		            	GL_OPERATION(glUniform4fv(defaultShader.uniformColor, 1, currentColor.rgba))
-	            	}
+	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformColor, 1, currentColor.rgba))
 			}
 		}
 
@@ -268,8 +248,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		float hH = 0.5 * screenH / (2 * rc.halfSize.Y);
 		GLfloat mat[16];
 		loadOrthographicMatrix(-hW - rc.position.X, hW - rc.position.X, -hH - rc.position.Y, hH - rc.position.Y, 0, 1, mat);
-		GL_OPERATION(glUniform1f((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformRotation, rc.rotation))
-		GL_OPERATION(glUniformMatrix4fv((desaturate ? desaturateShader : (firstCall ? defaultShaderNoAlpha : defaultShader)).uniformMatrix, 1, GL_FALSE, mat))
+		GL_OPERATION(glUniform1f(effectRefToShader(currentEffect, firstCall).uniformRotation, rc.rotation))
+		GL_OPERATION(glUniformMatrix4fv(effectRefToShader(currentEffect, firstCall).uniformMatrix, 1, GL_FALSE, mat))
 		#else
 		// fill batch
 		Vector2 onScreenVertices[4];
@@ -302,12 +282,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
-				#ifdef GLES2_SUPPORT
 				#ifdef USE_VBO
 				drawBatchES2(boundTexture, rc.rotateUV);
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
 				#endif
 			batchSize = 0;
 		}
@@ -315,13 +293,11 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	}
 
 	if (batchSize > 0) {
-		#ifdef GLES2_SUPPORT
-				#ifdef USE_VBO
-				LOGI("Error batching unsupported with VBO");
-				#else
-				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
-				#endif
+		#ifdef USE_VBO
+		LOGI("Error batching unsupported with VBO");
+		#else
+		drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+		#endif
 	}
 }
 #include <errno.h>
@@ -461,3 +437,10 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     mat[15] = 1.0f;
 }
 
+const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall) {
+	if (ref == DefaultEffectRef) {
+		return firstCall ? defaultShaderNoAlpha : defaultShader;
+	} else {
+		return ref2Effects[ref];
+	}
+}

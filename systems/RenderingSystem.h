@@ -45,7 +45,6 @@ typedef int TextureRef;
 #define InvalidTextureRef -1
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
-#define ToggleDesaturationMarker -12
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
 #define CHECK_GL_ERROR
@@ -65,12 +64,16 @@ typedef int TextureRef;
 
 #define USE_VBO
 
+typedef int EffectRef;
+#define DefaultEffectRef -1
+
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), color(Color()), hide(true), desaturate(false), opaqueType(NON_OPAQUE) {}
+	RenderingComponent() : texture(InvalidTextureRef), color(Color()), effectRef(DefaultEffectRef), hide(true), opaqueType(NON_OPAQUE) {}
 
 	TextureRef texture;
+	EffectRef effectRef;
 	Color color;
-	bool hide, desaturate;
+	bool hide;
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
@@ -99,7 +102,7 @@ void restoreInternalState(const uint8_t* in, int size);
 void setWindowSize(int w, int h, float sW, float sH);
 
 TextureRef loadTextureFile(const std::string& assetName);
-
+EffectRef loadEffectFile(const std::string& assetName);
 void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
 public:
@@ -146,6 +149,7 @@ struct InternalTexture {
 
 struct RenderCommand {
 	float z;
+	EffectRef effectRef;
 	union {
 		TextureRef texture;
 		InternalTexture glref;
@@ -156,7 +160,6 @@ struct RenderCommand {
 	Color color;
 	Vector2 position;
 	float rotation;
-	bool desaturate;
 };
 
 struct RenderQueue {
@@ -199,7 +202,6 @@ pthread_mutex_t mutexes;
 pthread_cond_t cond;
 #endif
 
-/* default (and only) shader */
 struct Shader {
 	GLuint program;
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
@@ -208,8 +210,12 @@ struct Shader {
 	#endif
 };
 
-Shader defaultShader, defaultShaderNoAlpha, desaturateShader;
+Shader defaultShader, defaultShaderNoAlpha;
 GLuint whiteTexture;
+
+EffectRef nextEffectRef;
+std::map<std::string, EffectRef> nameToEffectRefs;
+std::map<EffectRef, Shader> ref2Effects;
 
 /* open gl es1 var */
 
@@ -230,7 +236,8 @@ GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& 
 public:
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-void changeShaderProgram(const Shader& shader, const Color& color);
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color);
+const Shader& effectRefToShader(EffectRef ref, bool firstCall);
 enum {
     ATTRIB_VERTEX = 0,
     ATTRIB_UV,
