@@ -75,7 +75,6 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
-#ifdef GLES2_SUPPORT
 bool firstCall;
 #ifdef USE_VBO
 static void drawBatchES2(const RenderingSystem::InternalTexture& glref, bool reverseUV) {
@@ -112,10 +111,9 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 #endif
 }
-#endif
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool firstCall, const Color& color) {
-	const Shader& shader = effectRefToShader(ref, firstCall);
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color) {
+	const Shader& shader = effectRefToShader(ref, _firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
 	loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
@@ -173,9 +171,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			firstCall = false;
 			GL_OPERATION(glDepthMask(false))
 			GL_OPERATION(glEnable(GL_BLEND))
-			/*if (!desaturate) {
-				changeShaderProgram(defaultShader, currentColor);
-			}*/
+			
+			if (currentEffect == DefaultEffectRef) {
+				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor);
+			}
 			continue;
 		} else if (rc.effectRef != currentEffect) {
 			if (batchSize > 0) {

@@ -62,13 +62,13 @@ typedef int TextureRef;
 #undef GLES2_SUPPORT
 #define GLES2_SUPPORT
 
-#define USE_VBO
+//#define USE_VBO
 
 typedef int EffectRef;
 #define DefaultEffectRef -1
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), color(Color()), effectRef(DefaultEffectRef), hide(true), opaqueType(NON_OPAQUE) {}
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), opaqueType(NON_OPAQUE) {}
 
 	TextureRef texture;
 	EffectRef effectRef;
