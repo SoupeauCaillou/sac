@@ -16,21 +16,20 @@
 	You should have received a copy of the GNU General Public License
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "LocalizeAPILinuxImpl.h"
-#include <libintl.h>
-#include <locale.h>
+#pragma once
 
-void LocalizeAPILinuxImpl::init() {
-	#ifdef LOCALEDIR
-	bindtextdomain("heriswap", LOCALEDIR);
-	#else
-	bindtextdomain("heriswap", "./assets");
-	#endif
-	textdomain("heriswap");
-}
+#include "../SoundAPI.h"
+#include <AL/al.h>
+#include <AL/alc.h>
 
-#define _(STRING)    gettext(STRING)
+class SoundAPILinuxOpenALImpl : public SoundAPI {
+    public:
+        void init();
+        OpaqueSoundPtr* loadSound(const std::string& asset);
+        bool play(OpaqueSoundPtr* p, float volume);
 
-std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {
-	return _(spc.c_str());
-}
+    private:
+        ALuint soundSources[16];
+};
+
+
