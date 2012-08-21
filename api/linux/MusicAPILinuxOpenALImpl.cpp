@@ -18,19 +18,28 @@
 */
 #include "MusicAPILinuxOpenALImpl.h"
 
+#ifndef EMSCRIPTEN
 #include <AL/al.h>
 #include <AL/alc.h>
+#else
+typedef unsigned ALuint;
+typedef int ALint;
+typedef int ALenum;
+#endif
 
 #include <cassert>
 #include <vector>
 #include "../../base/Log.h"
 
+#ifndef EMSCRIPTEN
 static const char* errToString(ALenum err);
 static void check_AL_errors(const char* context);
 #define AL_OPERATION(x)  \
      (x); \
      check_AL_errors(#x);
-
+#else
+#define AL_OPERATION(x) 
+#endif
 #define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
@@ -40,10 +49,12 @@ struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
 };
 
 void MusicAPILinuxOpenALImpl::init() {
+#ifndef EMSCRIPTEN
     ALCdevice* device = alcOpenDevice(NULL);
     ALCcontext* context = alcCreateContext(device, NULL);
     if (!(device && context && alcMakeContextCurrent(context)))
         LOGW("probleme initialisation du son");
+#endif
 }
 
 OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int sampleRate) {
@@ -118,7 +129,11 @@ bool MusicAPILinuxOpenALImpl::isPlaying(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     ALint state;
     AL_OPERATION(alGetSourcei(openalptr->source, AL_SOURCE_STATE, &state))
+    #ifndef EMSCRIPTEN
     return state == AL_PLAYING;
+    #else
+    return false;
+   	#endif
 }
 
 void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
@@ -134,6 +149,7 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     delete ptr;
 }
 
+#ifndef EMSCRIPTEN
 static void check_AL_errors(const char* context) {
     int maxIterations=10;
     ALenum error;
@@ -157,4 +173,4 @@ static const char* errToString(ALenum err) {
     default: return "AL(Unknown)";
     }
 }
-
+#endif

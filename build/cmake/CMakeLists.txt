@@ -11,7 +11,6 @@ file(
         ../../tools/texture_packer/*
 )
 
-
 add_library(sac ${source_files})
 
 # build test app

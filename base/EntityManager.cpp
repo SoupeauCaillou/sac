@@ -20,7 +20,7 @@
 #include "MathUtil.h"
 #include <cstring>
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(EMSCRIPTEN)
 void* mempcpy(void* dst, const void* src, size_t size) {
 	memcpy(dst, src, size);
 	return (uint8_t*)dst + size;

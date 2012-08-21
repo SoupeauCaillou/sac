@@ -17,6 +17,7 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SoundAPILinuxOpenALImpl.h"
+#ifndef EMSCRIPTEN
 #ifdef ANDROID
 #include "tremor/ivorbisfile.h"
 #else
@@ -24,17 +25,22 @@
 #endif
 #include <AL/al.h>
 #include <AL/alc.h>
+#endif
 #include <sstream>
 #include <vector>
 #include <cassert>
 #include "base/Log.h"
 
+#ifndef EMSCRIPTEN
 static const char* errToString(ALenum err);
 static void check_AL_errors(const char* context);
 #define AL_OPERATION(x)  \
      (x); \
      check_AL_errors(#x);
+#else
+#define AL_OPERATION(x) 
 
+#endif
 
 struct OpenALOpaqueSoundPtr : public OpaqueSoundPtr {
     ALuint buffer;
@@ -46,6 +52,7 @@ void SoundAPILinuxOpenALImpl::init() {
 }
 
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
+#ifndef EMSCRIPTEN
     std::stringstream a;
 #ifdef DATADIR
 	a << DATADIR;
@@ -90,9 +97,13 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 
     ov_clear(&vf);
     return out;
+#else
+	return 0;
+#endif
 }
 
 bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
+#ifndef EMSCRIPTEN
     OpenALOpaqueSoundPtr* ptr = static_cast<OpenALOpaqueSoundPtr*>(p);
     for (int i=0; i<16; i++) {
         int state;
@@ -104,9 +115,11 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
             return true;
         }
     }
+#endif
     return false;
 }
 
+#ifndef EMSCRIPTEN
 static void check_AL_errors(const char* context) {
     int maxIterations=10;
     ALenum error;
@@ -130,3 +143,4 @@ static const char* errToString(ALenum err) {
     default: return "AL(Unknown)";
     }
 }
+#endif

@@ -19,9 +19,12 @@
 #pragma once
 
 #include "../SoundAPI.h"
+#ifndef EMSCRIPTEN
 #include <AL/al.h>
 #include <AL/alc.h>
-
+#else
+typedef unsigned ALuint;
+#endif
 class SoundAPILinuxOpenALImpl : public SoundAPI {
     public:
         void init();

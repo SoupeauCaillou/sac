@@ -17,20 +17,28 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "LocalizeAPILinuxImpl.h"
+#ifndef EMSCRIPTEN
 #include <libintl.h>
 #include <locale.h>
+#endif
 
 void LocalizeAPILinuxImpl::init() {
+	#ifndef EMSCRIPTEN
 	#ifdef LOCALEDIR
 	bindtextdomain("heriswap", LOCALEDIR);
 	#else
 	bindtextdomain("heriswap", "./assets");
 	#endif
 	textdomain("heriswap");
+	#endif
 }
 
 #define _(STRING)    gettext(STRING)
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {
+#ifndef EMSCRIPTEN
 	return _(spc.c_str());
+#else
+	return spc;
+#endif
 }

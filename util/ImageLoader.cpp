@@ -19,24 +19,32 @@
 #include "ImageLoader.h"
 #include "../base/Log.h"
 
+#ifdef __EMSCRIPTEN
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_rwops.h>
+#else
 #include <png.h>
+#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <endian.h>
 
+#ifndef __EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
+#endif
 
 struct FileBufferOffset {
 	FileBuffer file;
 	int offset;
 };
 ImageDesc ImageLoader::loadPng(const std::string& context, const FileBuffer& file) {
-	uint8_t PNG_header[8];
-
 	ImageDesc result;
 	result.datas = 0;
 	result.type = ImageDesc::RAW;
 
+#ifndef __EMSCRIPTEN
+	uint8_t PNG_header[8];
 	memcpy(PNG_header, file.data, 8);
 	if (png_sig_cmp(PNG_header, 0, 8) != 0) {
 		LOGW("%s is not a PNG\n", context.c_str());
@@ -150,6 +158,14 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	}
 
 	result.datas = (char*)PNG_image_buffer;
+#else
+	SDL_RWops *rw = SDL_RWFromMem(file.data, file.size);
+	SDL_Surface* s = IMG_LoadTyped_RW(rw, 0, "PNG");
+	result.channels = s->format->BitsPerPixel / 8;
+	result.width = s->w;
+	result.height = s->h;
+	result.datas = new char[result.width * result.height * result.channels];
+#endif
 	return result;
 }
 ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
@@ -188,6 +204,7 @@ ImageDesc result;
 #endif
 }
 
+#ifndef __EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead) {
    if(png_get_io_ptr(png_ptr) == NULL)
       return;   // add custom error handling here
@@ -195,6 +212,7 @@ static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t
    memcpy(outBytes, &buffer->file.data[buffer->offset], byteCountToRead);
    buffer->offset += byteCountToRead;
 }
+#endif
 
 ImageDesc ImageLoader::loadPvr(const std::string& context, const FileBuffer& file) {
 	ImageDesc result;

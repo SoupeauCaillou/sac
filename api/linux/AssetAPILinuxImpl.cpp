@@ -25,6 +25,7 @@ void AssetAPILinuxImpl::init() {
 #include <iostream>
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
+    LOGI("load: %s", asset.c_str());
     fb.data = 0;
 #ifdef DATADIR
 	std::string full = DATADIR + asset;
@@ -32,13 +33,16 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     std::string full = "assets/" + asset;
 #endif
     FILE* file = fopen(full.c_str(), "rb");
+    LOGI("'%s' -> %p", full.c_str(), file);
     if (!file)
         return fb;
+    LOGI("still alive");
     fseek(file, 0, SEEK_END);
     fb.size = ftell(file);
     rewind(file);
     fb.data = new uint8_t[fb.size + 1];
     int count = 0;
+    LOGI("Size: %d", fb.size);
 do {
 count += fread(&fb.data[count], 1, fb.size - count, file);
 } while (count < fb.size);

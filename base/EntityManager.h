@@ -54,6 +54,6 @@ class EntityManager {
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
 };
 
-#ifdef ANDROID
+#if defined(ANDROID) ||defined(EMSCRIPTEN)
 void* mempcpy(void* dst, const void* src, size_t size);
 #endif

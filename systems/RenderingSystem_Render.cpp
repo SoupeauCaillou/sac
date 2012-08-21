@@ -196,10 +196,10 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			Vector2 uvS = info.uv[1] - info.uv[0];
 			#ifdef USE_VBO
 			float uvso[4];
-			uvso[0] = uvS.X;
-			uvso[1] = uvS.Y;
-			uvso[2] = info.uv[0].X;
-			uvso[3] = 1-info.uv[0].Y;
+			uvso[0] = scale.X * uvS.X;
+			uvso[1] = scale.Y * uvS.Y;
+			uvso[2] = info.uv[0].X + offset.X * uvS.X;
+			uvso[3] = info.uv[0].Y + offset.Y * uvS.Y;
 			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
 			#else
 			
@@ -216,7 +216,8 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			rc.rotateUV = 0;
 			#ifdef USE_VBO
 			float uvso[4];
-			memset(uvso, 0, sizeof(uvso));
+			uvso[0] = uvso[1] = 1;
+			uvso[2] = uvso[3] = 0;
 			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
 			#endif
 		}

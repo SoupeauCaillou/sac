@@ -34,6 +34,12 @@
 #include <fcntl.h>
 #include "../util/ImageLoader.h"
 
+#ifdef EMSCRIPTEN
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_rwops.h>
+#endif
+
 RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
 	glref = ref;
 
@@ -179,6 +185,8 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     	#endif
 	}
 #endif
+
+#ifndef EMSCRIPTEN
     if (!file.data) {
         file = assetAPI->loadAsset(basename + ".png");
         if (!file.data)
@@ -196,6 +204,34 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     if (!image.datas) {
         return 0;
     }
+#else
+	ImageDesc image;
+	std::stringstream a;
+	a << "assets/" << basename << ".png";
+	std::string aa = a.str();
+	SDL_Surface* s = IMG_Load(aa.c_str());
+	if (s == 0) {
+		LOGE("Failed to load %d", a.str().c_str());
+		return whiteTexture;
+	}
+	LOGI("Image format: %dx%d %d [%s]", s->w, s->h, s->format->BitsPerPixel, a.str().c_str());
+	image.channels = s->format->BitsPerPixel / 8;
+	/*if (image.channels == 4) {
+		if (colorOrAlpha) {
+			LOGI("Reduce 4->3 channels");
+			image.channels = 3;
+		} else {
+			LOGI("Reduce 4->1 channels");
+			image.channels = 1;
+		}
+	}*/
+	image.width = s->w;
+	image.height = s->h;
+	image.datas = new char[image.width * image.height * image.channels];
+	memcpy(image.datas, s->pixels, image.width * image.height * image.channels);
+    SDL_FreeSurface(s);
+	png = true;
+#endif
 
     // for now, just assume power of 2 size
     GLuint out;
@@ -224,7 +260,11 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 
     if (png) {
 	    LOGW("Using PNG texture version");
+	 	#ifdef EMSCRIPTEN
+	 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+    	#else
     	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+    	#endif
     	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
 	   #ifdef ANDROID

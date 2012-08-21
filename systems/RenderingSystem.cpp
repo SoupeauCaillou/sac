@@ -148,25 +148,20 @@ GLfloat sqArray[] = {
 };
 
 GLfloat sqArrayRev[] = {
--0.5, 0.5, 0,0,0,
--0.5, -0.5, 0,1,0,
-0.5, 0.5, 0,0,1,
-0.5, -0.5, 0,1,1
+0.5, -0.5, 0,0,0,
+0.5, 0.5, 0,1,0,
+-0.5, -0.5, 0,0,1,
+-0.5, 0.5, 0,1,1
 };
-
-
 unsigned short sqIndiceArray[] = {
 	0,1,2,1,3,2
-};
-unsigned short sqIndiceArrayRev[] = {
-	2,0,3,0,1,3
 };
 // Buffer d'informations de vertex
 glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[0]);
 glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
 
 glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]);
-glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
+glBufferData(GL_ARRAY_BUFFER, sizeof(sqArrayRev), sqArrayRev, GL_STATIC_DRAW);
 
 // Buffer d'indices
 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[2]);

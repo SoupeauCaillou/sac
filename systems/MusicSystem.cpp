@@ -26,12 +26,19 @@
 #include "base/CircularBuffer.h"
 
 #ifdef ANDROID
-
 #define assert(x) x
-
 #endif
 
+#ifndef EMSCRIPTEN
+#ifdef ANDROID
+#include "tremor/ivorbisfile.h"
+#else
+#include <vorbis/vorbisfile.h>
+#endif
 #include <linux/sched.h>
+#endif
+
+
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -46,22 +53,27 @@ void MusicSystem::init() {
     muted = false;
     nextValidRef = 1;
 
+#ifndef EMSCRIPTEN
     pthread_mutex_init(&mutex, 0);
     pthread_cond_init(&cond, 0);
 
     pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
     // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
     // sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
+#endif
 }
 
 void MusicSystem::uninit() {
+#ifndef EMSCRIPTEN
     runDecompLoop = false;
      pthread_cond_signal(&cond);
     pthread_join(oggDecompressionThread, 0);
     LOGW("MusicSystem uninitinalized");
+  #endif
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
+#ifndef EMSCRIPTEN
 	if (ref == InvalidMusicRef)
 		return;
 	pthread_mutex_lock(&mutex);
@@ -74,6 +86,7 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     }
     pthread_mutex_unlock(&mutex);
     pthread_cond_signal(&cond);
+#endif
 }
 
 void MusicSystem::unloadMusic(MusicRef ref) {
@@ -103,6 +116,7 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 }
 
 void MusicSystem::DoUpdate(float dt) {
+#ifndef EMSCRIPTEN
     if (muted) {
          for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
             MusicComponent* m = (*jt).second;
@@ -333,9 +347,11 @@ void MusicSystem::DoUpdate(float dt) {
 		idx++;
 	}
 	#endif
+#endif
 }
 
 void MusicSystem::oggDecompRunLoop() {
+#ifndef EMSCRIPTEN
     runDecompLoop = true;
 
     pthread_mutex_lock(&mutex);
@@ -387,9 +403,11 @@ void MusicSystem::oggDecompRunLoop() {
         	// mutex is auto acquired on wake up
         }
     }
+#endif
 }
 
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
+#ifndef EMSCRIPTEN
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
 	    LOGW("Achtung, musicref : %d not found", m);
@@ -424,6 +442,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, floa
 	info.leftOver = dt;
 
     return true;
+#endif
 }
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
@@ -472,10 +491,12 @@ void MusicSystem::toggleMute(bool enable) {
     }
 }
 
+#ifndef EMSCRIPTEN
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource);
 static int seek_func(void* datasource, ogg_int64_t offset, int whence);
 static long int tell_func(void* datasource);
 static int close_func(void *datasource);
+#endif
 
 struct DataSource {
     uint8_t* datas;
@@ -484,12 +505,19 @@ struct DataSource {
 };
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
+#ifdef EMSCRIPTEN
+	return InvalidMusicRef;
+#else
 	if (!assetAPI)
 		return InvalidMusicRef;
 		
     FileBuffer b;
     if (name2buffer.find(assetName) == name2buffer.end()) {
         b = assetAPI->loadAsset(assetName);
+        if (!b.data) {
+	        LOGE("Unable to load %s", assetName.c_str());
+	        return InvalidMusicRef;
+        }
         name2buffer[assetName] = b;
     } else {
         b = name2buffer[assetName];
@@ -533,9 +561,11 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     pthread_cond_signal(&cond);
 
     return nextValidRef++;
+#endif
 }
 
 int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize) {
+#ifndef EMSCRIPTEN
     int bitstream;
     int read = 0;
     while (read < chunkSize) {
@@ -561,8 +591,12 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
         memset(&data[read], 0, chunkSize - read);
     }
     return chunkSize;
+#else
+	return 0;
+#endif
 }
 
+#ifndef EMSCRIPTEN
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
     DataSource* src = static_cast<DataSource*> (datasource);
     size_t r = 0;
@@ -601,3 +635,4 @@ static int close_func(void *datasource) {
     delete src;
     return 0;
 }
+#endif

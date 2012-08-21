@@ -22,11 +22,7 @@
 
 #include "base/MathUtil.h"
 #include "base/Log.h"
-#ifdef ANDROID
-#include "tremor/ivorbisfile.h"
-#else
-#include <vorbis/vorbisfile.h>
-#endif
+struct OggVorbis_File;
 #include "System.h"
 #include "../api/AssetAPI.h"
 #include "../api/MusicAPI.h"
