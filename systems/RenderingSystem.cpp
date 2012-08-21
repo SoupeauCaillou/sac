@@ -234,12 +234,17 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
          }
 
          switch (rc->opaqueType) {
+	         #ifdef USE_VBO
+	         case RenderingComponent::OPAQUE_ABOVE:
+	         case RenderingComponent::OPAQUE_UNDER:
+	         #endif
          	case RenderingComponent::NON_OPAQUE:
 	         	semiOpaqueCommands.push_back(c);
 	         	break;
 	         case RenderingComponent::FULL_OPAQUE:
 	         	opaqueCommands.push_back(c);
 	         	break;
+	         #ifndef USE_VBO
 	         case RenderingComponent::OPAQUE_ABOVE:
 	         case RenderingComponent::OPAQUE_UNDER:
 	         	RenderCommand cA = c, cU = c;
@@ -259,6 +264,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 		         	opaqueCommands.push_back(cU);
 	         	}
 	         	break;
+	         #endif
          }
 	}
 

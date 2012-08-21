@@ -211,7 +211,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	std::string aa = a.str();
 	SDL_Surface* s = IMG_Load(aa.c_str());
 	if (s == 0) {
-		LOGE("Failed to load %d", a.str().c_str());
+		LOGE("Failed to load %s", a.str().c_str());
 		return whiteTexture;
 	}
 	LOGI("Image format: %dx%d %d [%s]", s->w, s->h, s->format->BitsPerPixel, a.str().c_str());
