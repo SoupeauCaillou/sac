@@ -412,6 +412,7 @@ EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
 
 	if (nameToEffectRefs.find(name) != nameToEffectRefs.end()) {
 		result = nameToEffectRefs[name];
+		return result;
 	} else {
 		result = nextEffectRef++;
 		nameToEffectRefs[name] = result;
