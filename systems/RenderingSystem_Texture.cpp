@@ -216,19 +216,19 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	}
 	LOGI("Image format: %dx%d %d [%s]", s->w, s->h, s->format->BitsPerPixel, a.str().c_str());
 	image.channels = s->format->BitsPerPixel / 8;
-	/*if (image.channels == 4) {
-		if (colorOrAlpha) {
-			LOGI("Reduce 4->3 channels");
-			image.channels = 3;
-		} else {
-			LOGI("Reduce 4->1 channels");
-			image.channels = 1;
-		}
-	}*/
+	
 	image.width = s->w;
 	image.height = s->h;
 	image.datas = new char[image.width * image.height * image.channels];
 	memcpy(image.datas, s->pixels, image.width * image.height * image.channels);
+	if (!colorOrAlpha && image.channels==4) {
+		for (int i=0; i<image.height; i++) {
+			for (int j=0; j<image.width; j++) {
+				char* pixel = &image.datas[i * image.width * 4 + j * 4];
+				pixel[3] = pixel[0]; // assign red channel to alpha
+			}
+		}
+	}
     SDL_FreeSurface(s);
 	png = true;
 #endif
