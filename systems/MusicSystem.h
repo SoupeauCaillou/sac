@@ -33,6 +33,10 @@ typedef int MusicRef;
 #define InvalidMusicRef -1
 class CircularBuffer;
 
+#ifdef EMSCRIPTEN
+#include <SDL/SDL_mixer.h>
+#endif
+
 // #define MUSIC_VISU
 
 struct MusicComponent {
@@ -79,6 +83,7 @@ private:
 /* textures cache */
 MusicRef nextValidRef;
 
+#ifndef EMSCRIPTEN
 struct MusicInfo {
     MusicInfo() : ovf(0) {}
     OggVorbis_File* ovf;
@@ -95,21 +100,28 @@ struct MusicInfo {
     std::string name;
     #endif
 };
-
 std::map<MusicRef, MusicInfo> musics;
+#else
+std::map<MusicRef, Mix_Chunk*> musics;
+#endif
+
 bool muted;
+#ifndef EMSCRIPTEN
 pthread_t oggDecompressionThread;
 pthread_mutex_t mutex;
 pthread_cond_t cond;
 // map<filename, audio_compressed_content>
 std::map<std::string, FileBuffer> name2buffer;
+#endif
 
 #ifdef MUSIC_VISU
 std::map<Entity, std::pair<Entity, Entity> > visualisationEntities;
 #endif
 
+#ifndef EMSCRIPTEN
 int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount, float dt);
+#endif
 OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
 void stopMusic(MusicComponent* m);
 void clearAndRemoveInfo(MusicRef ref);

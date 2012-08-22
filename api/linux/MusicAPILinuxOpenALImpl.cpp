@@ -22,9 +22,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 #else
-typedef unsigned ALuint;
-typedef int ALint;
-typedef int ALenum;
+#include <SDL/SDL_mixer.h>
 #endif
 
 #include <cassert>
@@ -43,9 +41,13 @@ static void check_AL_errors(const char* context);
 #define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
+	#ifndef EMSCRIPTEN
     ALuint source;
     std::vector<ALuint> queuedBuffers;
     int queuedSize;
+    #else
+    int channel;
+    #endif
 };
 
 void MusicAPILinuxOpenALImpl::init() {
@@ -81,7 +83,8 @@ int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr* ptr) {
 }
 
 void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
-    OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+	OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+#ifndef EMSCRIPTEN
     // create buffer
     ALuint buffer;
     AL_OPERATION(alGenBuffers(1, &buffer))
@@ -91,9 +94,13 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
     openalptr->queuedBuffers.push_back(buffer);
     openalptr->queuedSize += size;
     delete[] data;
+#else
+	openalptr->channel = Mix_PlayChannel(-1, static_cast<Mix_Chunk*>((void*)data), 0);
+#endif
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {
+#ifndef EMSCRIPTEN
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     if (master) {
 	    int pos;
@@ -101,16 +108,21 @@ void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* 
 	    setPosition(ptr, pos + offset);
     }
     AL_OPERATION(alSourcePlay(openalptr->source))
+#endif
 }
 
 void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+#ifndef EMSCRIPTEN
     AL_OPERATION(alSourceStop(openalptr->source))
+#else
+	Mix_HaltChannel(openalptr->channel);
+#endif
 }
 
 int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-    int pos;
+    int pos = 0;
     AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
     return pos;
 }
@@ -122,21 +134,26 @@ void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
 
 void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+#ifndef EMSCRIPTEN
     AL_OPERATION(alSourcef(openalptr->source, AL_GAIN, volume))
+#else
+	Mix_Volume(openalptr->channel, volume * MIX_MAX_VOLUME * 0.6);
+#endif
 }
 
 bool MusicAPILinuxOpenALImpl::isPlaying(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+    #ifndef EMSCRIPTEN
     ALint state;
     AL_OPERATION(alGetSourcei(openalptr->source, AL_SOURCE_STATE, &state))
-    #ifndef EMSCRIPTEN
     return state == AL_PLAYING;
     #else
-    return false;
+    return true;//Mix_Playing(openalptr->channel);
    	#endif
 }
 
 void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
+#ifndef EMSCRIPTEN
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     stopPlayer(ptr);
     // destroy buffers
@@ -146,7 +163,8 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     }
     // destroy source
     AL_OPERATION(alDeleteSources(1, &openalptr->source))
-    delete ptr;
+#endif
+    delete ptr; 
 }
 
 #ifndef EMSCRIPTEN

@@ -36,6 +36,9 @@
 #include <vorbis/vorbisfile.h>
 #endif
 #include <linux/sched.h>
+#else
+#include <SDL/SDL_mixer.h>
+#include <sstream>
 #endif
 
 
@@ -44,10 +47,12 @@ INSTANCE_IMPL(MusicSystem);
 
 MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) { }
 
+#ifndef EMSCRIPTEN
 static void* _startOggThread(void* arg) {
     static_cast<MusicSystem*>(arg)->oggDecompRunLoop();
     return 0;
 }
+#endif
 
 void MusicSystem::init() {
     muted = false;
@@ -86,6 +91,9 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     }
     pthread_mutex_unlock(&mutex);
     pthread_cond_signal(&cond);
+#else
+	Mix_FreeChunk(musics[ref]);
+	musics.erase(ref);
 #endif
 }
 
@@ -116,7 +124,6 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 }
 
 void MusicSystem::DoUpdate(float dt) {
-#ifndef EMSCRIPTEN
     if (muted) {
          for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
             MusicComponent* m = (*jt).second;
@@ -171,13 +178,19 @@ void MusicSystem::DoUpdate(float dt) {
 	        	}
             }
             // need to queue more data ?
+            #ifndef EMSCRIPTEN
             feed(m->opaque[0], m->music, 0, dt);
+            #endif
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
             assert (m->music != InvalidMusicRef);
+            #ifndef EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
-                LOGI("(music) %p Player 0 has finished (isPlaying:%d pos:%d m->music:%d)", m, musicAPI->isPlaying(m->opaque[0]), m->positionI, m->music);
+	        #else
+	        if (!musicAPI->isPlaying(m->opaque[0])) {
+	        #endif
+	            LOGI("(music) %p Player 0 has finished (isPlaying:%d pos:%d m->music:%d)", m, musicAPI->isPlaying(m->opaque[0]), m->positionI, m->music);
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
@@ -192,11 +205,17 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->master) {
                     loop = m->master->looped;
                 } else {
+	                #ifndef EMSCRIPTEN
                     loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
+                    #else
+                    loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
+                    #endif
                 }
 
                 if (loop) {
+	                #ifndef EMSCRIPTEN
                     LOGI("(music) %p Begin loop (%d >= %d) - m->music:%d becomas loopNext:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->loopNext, m->master);
+                    #endif
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
                     // memorize ending music 
@@ -209,7 +228,11 @@ void MusicSystem::DoUpdate(float dt) {
                     if (m->master) {
     	                m->opaque[0] = startOpaque(m, m->music, m->master, 0);
                     } else {
+	                    #ifndef EMSCRIPTEN
     	                int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
+    	                #else
+    	                int offset = 0;
+    	                #endif
     	                m->opaque[0] = startOpaque(m, m->music, 0, offset);
                     }
                     
@@ -223,8 +246,12 @@ void MusicSystem::DoUpdate(float dt) {
             if (m->currentVolume != m->volume) {
             	musicAPI->setVolume(m->opaque[1], m->volume);
         	}
+        	#ifndef EMSCRIPTEN
             feed(m->opaque[1], m->previousEnding, 0, dt);
             if ((m->previousEnding != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->previousEnding].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
+            #else
+            if (!musicAPI->isPlaying(m->opaque[1])) {
+            #endif
                 musicAPI->deletePlayer(m->opaque[1]);
                 m->opaque[1] = 0;
                 // remove m->loopNext from musics
@@ -347,11 +374,10 @@ void MusicSystem::DoUpdate(float dt) {
 		idx++;
 	}
 	#endif
-#endif
 }
 
-void MusicSystem::oggDecompRunLoop() {
 #ifndef EMSCRIPTEN
+void MusicSystem::oggDecompRunLoop() {
     runDecompLoop = true;
 
     pthread_mutex_lock(&mutex);
@@ -403,11 +429,11 @@ void MusicSystem::oggDecompRunLoop() {
         	// mutex is auto acquired on wake up
         }
     }
-#endif
 }
+#endif
 
-bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
 #ifndef EMSCRIPTEN
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
 	    LOGW("Achtung, musicref : %d not found", m);
@@ -442,11 +468,12 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, floa
 	info.leftOver = dt;
 
     return true;
-#endif
 }
+#endif
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
     assert (r != InvalidMusicRef);
+#ifndef EMSCRIPTEN
 	MusicInfo& info = musics[r];
     if (info.sampleRate <=0) {
         LOGW("Invalid sample rate: %d", info.sampleRate);
@@ -461,7 +488,10 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
         memset(buffer0, 0,  info.pcmBufferSize);
         musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
     }
-    
+#else
+	OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(0);
+	musicAPI->queueMusicData(ptr, static_cast<int8_t*>((void*)musics[r]), 0, 1);
+#endif
     m->volume = 1;
 	// set volume
 	if (m->fadeIn > 0) {
@@ -475,7 +505,6 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 	}
 	//musicAPI->setVolume(ptr, m->volume);
 	musicAPI->startPlaying(ptr, master ? master->opaque[0] : 0, offset);
-	
     return ptr;
 }
 
@@ -505,12 +534,11 @@ struct DataSource {
 };
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
-#ifdef EMSCRIPTEN
-	return InvalidMusicRef;
-#else
+	LOGI("loadMusicFile %s", assetName.c_str());
 	if (!assetAPI)
 		return InvalidMusicRef;
-		
+	
+	#ifndef EMSCRIPTEN
     FileBuffer b;
     if (name2buffer.find(assetName) == name2buffer.end()) {
         b = assetAPI->loadAsset(assetName);
@@ -520,9 +548,11 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
         }
         name2buffer[assetName] = b;
     } else {
-        b = name2buffer[assetName];
+	    b = name2buffer[assetName];
     }
+    #endif
 
+#ifndef EMSCRIPTEN
     DataSource* dataSource = new DataSource();
     dataSource->datas = b.data;
     dataSource->size = b.size;
@@ -559,13 +589,18 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     pthread_mutex_unlock(&mutex);
     // wake-up decompression thread
     pthread_cond_signal(&cond);
+#else
+	std::stringstream a;
+	a << "assets/" << assetName;
+    musics[nextValidRef] = Mix_LoadWAV(a.str().c_str());    
+    LOGI("Load music file %s, result: %p", a.str().c_str(), musics[nextValidRef]); 
+#endif
 
     return nextValidRef++;
-#endif
 }
 
-int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize) {
 #ifndef EMSCRIPTEN
+int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize) {
     int bitstream;
     int read = 0;
     while (read < chunkSize) {
@@ -591,10 +626,8 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
         memset(&data[read], 0, chunkSize - read);
     }
     return chunkSize;
-#else
-	return 0;
-#endif
 }
+#endif
 
 #ifndef EMSCRIPTEN
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
