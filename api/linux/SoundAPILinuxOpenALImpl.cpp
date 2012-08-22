@@ -43,16 +43,26 @@ static void check_AL_errors(const char* context);
 #endif
 
 struct OpenALOpaqueSoundPtr : public OpaqueSoundPtr {
+#ifndef EMSCRIPTEN
     ALuint buffer;
+#else
+	Mix_Chunk* sample;
+#endif
 };
 
 void SoundAPILinuxOpenALImpl::init() {
+	#ifndef EMSCRIPTEN
     // open al init is done earlier by MusicAPI
     AL_OPERATION(alGenSources(16, soundSources));
+	#else
+	int ret = Mix_OpenAudio(0, 0, 0, 0);
+	if (ret != 0) {
+		LOGE("Mix_OpenAudio failed: %d", ret);
+	}
+	#endif
 }
 
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
-#ifndef EMSCRIPTEN
     std::stringstream a;
 #ifdef DATADIR
 	a << DATADIR;
@@ -60,6 +70,8 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 	a << "./assets/";
 #endif
     a << asset;
+   
+#ifndef EMSCRIPTEN
     std::string s = a.str();
     const char* nm = s.c_str();
     FILE* fd = fopen(nm, "rb");
@@ -96,15 +108,20 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     delete[] data;
 
     ov_clear(&vf);
-    return out;
 #else
-	return 0;
+	OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
+	out->sample = Mix_LoadWAV(a.str().c_str());
+	if (out->sample == 0) {
+		LOGE("Cannot load %s", a.str().c_str());
+	}
+	return out;
 #endif
+    return out;
 }
 
 bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
-#ifndef EMSCRIPTEN
     OpenALOpaqueSoundPtr* ptr = static_cast<OpenALOpaqueSoundPtr*>(p);
+#ifndef EMSCRIPTEN
     for (int i=0; i<16; i++) {
         int state;
         AL_OPERATION(alGetSourcei(soundSources[i], AL_SOURCE_STATE, &state))
@@ -115,6 +132,9 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
             return true;
         }
     }
+#else
+	Mix_PlayChannel(-1, ptr->sample, 1); 
+	Mix_Volume(-1, MIX_MAX_VOLUME);
 #endif
     return false;
 }

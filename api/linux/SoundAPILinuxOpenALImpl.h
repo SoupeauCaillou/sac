@@ -23,7 +23,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 #else
-typedef unsigned ALuint;
+#include <SDL/SDL_mixer.h>
 #endif
 class SoundAPILinuxOpenALImpl : public SoundAPI {
     public:
@@ -32,7 +32,9 @@ class SoundAPILinuxOpenALImpl : public SoundAPI {
         bool play(OpaqueSoundPtr* p, float volume);
 
     private:
+    #ifndef EMSCRIPTEN
         ALuint soundSources[16];
+    #endif
 };
 
 
