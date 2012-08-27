@@ -16,6 +16,7 @@ LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG \
 LOCAL_SRC_FILES := \
     base/MathUtil.cpp \
     base/Vector2.cpp \
+    base/Color.cpp \
     base/CircularBuffer.cpp \
     base/EntityManager.cpp \
     base/TouchInputManager.cpp \
@@ -45,6 +46,7 @@ LOCAL_SRC_FILES := \
     api/android/NameInputAPIAndroidImpl.cpp \
     api/android/ExitAPIAndroidImpl.cpp \
 	util/ImageLoader.cpp \
+	util/IntersectionUtil.cpp \
 
 
 

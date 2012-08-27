@@ -38,6 +38,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_rwops.h>
+#elif defined(ANDROID)
+#include <GLES2/gl2ext.h>
 #endif
 
 RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
