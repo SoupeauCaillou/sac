@@ -39,31 +39,31 @@ Entity createRenderingEntity() {
 	return e;
 }
 
-static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
+static float computeStringWidth(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
 	// assume monospace ...
 	float width = 0;
 	if (trc->flags & TextRenderingComponent::IsANumberBit) {
-		float spaceW = charH2Wratio['a'] * trc->charHeight * 0.75;
+		float spaceW = charH2Wratio['a'] * charHeight * 0.75;
 		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
 	}
 	for (unsigned int i=0; i<trc->text.length(); i++) {
 		char letter = trc->text[i];
 		if (letter != (char)0xC3) {
-			width += charH2Wratio[trc->text[i]] * trc->charHeight;
+			width += charH2Wratio[trc->text[i]] * charHeight;
 		}
 	}
 	return width;
 }
 
-static float computeStartX(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
-    float result = -computeStringWidth(trc, charH2Wratio) * trc->positioning;
+static float computeStartX(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
+    float result = -computeStringWidth(trc, charHeight, charH2Wratio) * trc->positioning;
 
     return result;
 }
 
 float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingComponent* trc) {
 	std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
-	return computeStringWidth(trc, charH2Wratio);
+	return computeStringWidth(trc, trc->charHeight, charH2Wratio);
 }
 
 void TextRenderingSystem::DoUpdate(float dt) {
@@ -72,8 +72,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		TextRenderingComponent* trc = (*it).second;
 		TransformationComponent* trans = TRANSFORM(it->first);
 		bool caret = false;
-		trans->size = Vector2::Zero;
+		// trans->size = Vector2::Zero;
 
+		// caret blink
 		if (trc->caret.speed > 0) {
 			trc->caret.dt += dt;
 			if (trc->caret.dt > trc->caret.speed) {
@@ -87,7 +88,17 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		const unsigned int length = trc->text.length();
 
 		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
-		float x = computeStartX(trc, charH2Wratio);
+		
+		float charHeight = trc->charHeight;
+		if (trc->flags & TextRenderingComponent::AdjustHeightToFillWidthBit) {
+			float targetWidth = trans->size.X;
+			charHeight = targetWidth / computeStringWidth(trc, 1, charH2Wratio);
+			if (trc->maxCharHeight > 0 ) {
+				charHeight = MathUtil::Min(trc->maxCharHeight, charHeight);
+			}
+		}
+		
+		float x = computeStartX(trc, charHeight, charH2Wratio);
 
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
@@ -124,19 +135,19 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
 				rc->color = trc->color;
 			}
-			tc->size = Vector2(trc->charHeight * charH2Wratio[trc->text[i]], trc->charHeight);
+			tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
 			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
 			x += tc->size.X * 0.5;
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
-				x += charH2Wratio['a'] * trc->charHeight * 0.75;
+				x += charH2Wratio['a'] * charHeight * 0.75;
 			}
 		}
 		for(unsigned int i=trc->text.length(); i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
-		trans->size = Vector2::Zero;
+		// trans->size = Vector2::Zero;
 		trc->drawing.resize(trc->text.length());
 		
 		if (caret) {

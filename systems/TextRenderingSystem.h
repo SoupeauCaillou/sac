@@ -54,7 +54,10 @@ struct TextRenderingComponent {
 		}
 	std::string text;
 	Color color;
-	float charHeight;
+	union {
+		float charHeight;
+		float maxCharHeight;
+	};
 	std::string fontName;
 	float positioning;
 	bool hide;
