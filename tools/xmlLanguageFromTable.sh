@@ -1,5 +1,7 @@
 #!/bin/sh
 
+separateur="~"
+
 if [ -z "$1" ]; then
 	echo "Need translations files ! Abording. Example : "
 	echo "\tLANG:default:fr:it:de"
@@ -24,24 +26,23 @@ fi
 
 rm -r $2/values*
 
-rm -r /tmp/aaaaaaaaaaaaa
+rm -r /tmp/aaaaaaaaaaaaa 2>/dev/null
 mkdir /tmp/aaaaaaaaaaaaa
 
 firstLine=`head -n 1 "$1"`
-number=`echo "$firstLine" | grep -o "~" | wc -l`
+number=`echo "$firstLine" | grep -o "$separateur" | wc -l`
 for i in `seq $number`; do
 	mkdir /tmp/aaaaaaaaaaaaa/values-$i
 	echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>" > /tmp/aaaaaaaaaaaaa/values-$i/strings.xml
 done
 
-#~for i in `tail -n +2 "$1"`; do
 while read line
 do
-	if [ "$line" != "languages~en~fr~de~it" ]; then
-		keyWord=`echo $line | cut -d"~" -f1`
+	if [ "$line" != "languages$separateuren$separateurfr$separateurde$separateurit" ]; then
+		keyWord=`echo $line | cut -d"$separateur" -f1`
 		for j in `seq $number`; do
 			jPlusUn=`expr $j + 1`
-			echo "\t<string name=\"$keyWord\">`echo $line | cut -d"~" -f $jPlusUn`</string>" >> /tmp/aaaaaaaaaaaaa/values-$j/strings.xml
+			echo "\t<string name=\"$keyWord\">`echo $line | cut -d\"$separateur\" -f $jPlusUn`</string>" >> /tmp/aaaaaaaaaaaaa/values-$j/strings.xml
 		done
 	fi
 done < $1
@@ -52,7 +53,7 @@ done < $1
 for i in `seq $number`; do
 	echo "</resources>" >> /tmp/aaaaaaaaaaaaa/values-$i/strings.xml
 	iPlusUn=`expr $i + 1`
-	lang=`echo $firstLine | cut -d"~" -f "$iPlusUn"`
+	lang=`echo $firstLine | cut -d"$separateur" -f "$iPlusUn"`
 	mv /tmp/aaaaaaaaaaaaa/values-$i $2/values-$lang
 done
 
