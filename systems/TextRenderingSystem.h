@@ -38,13 +38,17 @@ struct TextRenderingComponent {
     const static float LEFT;
     const static float CENTER;
     const static float RIGHT;
-
+    
+    const static int IsANumberBit = 1 << 0;
+    const static int AdjustHeightToFillWidthBit = 1 << 1;
+	const static int MultiLineBit = 1 << 2;
+	
 	TextRenderingComponent() : 
 		text(""), 
 		fontName("typo"), 
 		positioning(CENTER), 
 		hide(false), 
-		isANumber(false) {
+		flags(0) {
 			caret.show = false;
 			caret.speed = caret.dt = 0;
 		}
@@ -53,7 +57,8 @@ struct TextRenderingComponent {
 	float charHeight;
 	std::string fontName;
 	float positioning;
-	bool hide, isANumber;
+	bool hide;
+	int flags;
 	struct {
 		bool show;
 		float speed;

@@ -42,7 +42,7 @@ Entity createRenderingEntity() {
 static float computeStringWidth(TextRenderingComponent* trc, std::map<unsigned char, float>& charH2Wratio) {
 	// assume monospace ...
 	float width = 0;
-	if (trc->isANumber) {
+	if (trc->flags & TextRenderingComponent::IsANumberBit) {
 		float spaceW = charH2Wratio['a'] * trc->charHeight * 0.75;
 		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
 	}
@@ -128,7 +128,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			x += tc->size.X * 0.5;
 			tc->position = Vector2(x, 0);
 			x += tc->size.X * 0.5;
- 			if (trc->isANumber && ((length - i - 1) % 3) == 0) {
+ 			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * trc->charHeight * 0.75;
 			}
 		}
