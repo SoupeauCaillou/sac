@@ -352,7 +352,7 @@ bool RenderingSystem::isVisible(TransformationComponent* tc) {
 		return false;
 	if (pos.Y + halfSize.Y < -screenH * 0.5)
 		return false;
-	if (pos.Y - halfSize.Y > screenW * 0.5)
+	if (pos.Y - halfSize.Y > screenH * 0.5)
 		return false;
 	return true;
 }
