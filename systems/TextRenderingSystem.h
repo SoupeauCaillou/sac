@@ -39,14 +39,26 @@ struct TextRenderingComponent {
     const static float CENTER;
     const static float RIGHT;
 
-	TextRenderingComponent() : text(""), fontName("typo"), positioning(CENTER), hide(false), isANumber(false), caretShown(false), caretSpeed(0), caretDt(0) {}
+	TextRenderingComponent() : 
+		text(""), 
+		fontName("typo"), 
+		positioning(CENTER), 
+		hide(false), 
+		isANumber(false) {
+			caret.show = false;
+			caret.speed = caret.dt = 0;
+		}
 	std::string text;
 	Color color;
 	float charHeight;
 	std::string fontName;
 	float positioning;
-	bool hide, isANumber, caretShown;
-	float caretSpeed, caretDt;
+	bool hide, isANumber;
+	struct {
+		bool show;
+		float speed;
+		float dt;
+	} caret;
 	// managed by systems
 	std::vector<Entity> drawing;
 };

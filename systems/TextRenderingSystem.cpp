@@ -74,11 +74,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		bool caret = false;
 		trans->size = Vector2::Zero;
 
-		if (trc->caretSpeed > 0) {
-			trc->caretDt += dt;
-			if (trc->caretDt > trc->caretSpeed) {
-				trc->caretDt = 0;
-				trc->caretShown = !trc->caretShown;
+		if (trc->caret.speed > 0) {
+			trc->caret.dt += dt;
+			if (trc->caret.dt > trc->caret.speed) {
+				trc->caret.dt = 0;
+				trc->caret.show = !trc->caret.show;
 			}
 			caret = true;
 			trc->text.push_back('_');
@@ -118,7 +118,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				a << (int) ((letter < 0) ? (unsigned char)letter : letter) << "_" << trc->fontName;
 			}
 
-			if (trc->text[i] == ' ' || (i==length-1 && trc->caretSpeed > 0 && !trc->caretShown)) {
+			if (trc->text[i] == ' ' || (i==length-1 && trc->caret.speed > 0 && !trc->caret.show)) {
 				rc->hide = true;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
