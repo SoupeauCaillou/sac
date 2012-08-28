@@ -42,9 +42,6 @@ struct TextRenderingComponent {
 	TextRenderingComponent() : text(""), fontName("typo"), positioning(CENTER), hide(false), isANumber(false), caretShown(false), caretSpeed(0), caretDt(0) {}
 	std::string text;
 	Color color;
-	TextureRef fontBitmap;
-	std::map<char, Vector2> char2UV;
-	Vector2 uvSize;
 	float charHeight;
 	std::string fontName;
 	float positioning;
