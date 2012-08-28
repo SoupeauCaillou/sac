@@ -39,20 +39,24 @@ Entity createRenderingEntity() {
 	return e;
 }
 
-static float computeStringWidth(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
+static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t to, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
 	// assume monospace ...
 	float width = 0;
 	if (trc->flags & TextRenderingComponent::IsANumberBit) {
 		float spaceW = charH2Wratio['a'] * charHeight * 0.75;
 		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
 	}
-	for (unsigned int i=0; i<trc->text.length(); i++) {
+	for (unsigned int i=from; i<to; i++) {
 		char letter = trc->text[i];
 		if (letter != (char)0xC3) {
 			width += charH2Wratio[trc->text[i]] * charHeight;
 		}
 	}
 	return width;
+}
+
+static float computeStringWidth(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
+	return computePartialStringWidth(trc, 0, trc->text.length(), charHeight, charH2Wratio);
 }
 
 static float computeStartX(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
@@ -98,8 +102,12 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			}
 		}
 		
-		float x = computeStartX(trc, charHeight, charH2Wratio);
-
+		float x = (trc->flags & TextRenderingComponent::MultiLineBit) ? 
+			(trans->size.X * -0.5) : computeStartX(trc, charHeight, charH2Wratio);
+		float y = 0;
+		const float startX = x;
+		bool newWord = true;
+		
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
 			if (i >= trc->drawing.size()) {
@@ -118,6 +126,26 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			if (rc->hide)
 				continue;
+				
+			if (trc->flags & TextRenderingComponent::MultiLineBit) {
+				size_t wordEnd = trc->text.find_first_of(" \n,:.", i);
+				if (wordEnd == i) {
+					newWord = true;
+				} else if (newWord) {
+					if (wordEnd == std::string::npos) {
+						wordEnd = trc->text.length();
+					}
+					// compute length of next word. If it doesn't fit on current line
+					// => go to next line
+					
+					float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, charH2Wratio);
+					if (x + w >= trans->size.X * 0.5) {
+						y -= 1.2 * charHeight;
+						x = startX;
+					}
+					newWord = false;
+				}
+			}
 
 			std::stringstream a;
 			char letter = trc->text[i];
@@ -137,7 +165,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			}
 			tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
 			x += tc->size.X * 0.5;
-			tc->position = Vector2(x, 0);
+			tc->position = Vector2(x, y);
 			x += tc->size.X * 0.5;
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * charHeight * 0.75;
