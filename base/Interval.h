@@ -25,6 +25,7 @@ class Interval {
     public:
         Interval() {}
         Interval(T _t1, T _t2) : t1(_t1), t2(_t2) {}
+        Interval(T _t) : t1(_t), t2(_t) {}
 
         T random() const {
             float w = MathUtil::RandomFloat();
