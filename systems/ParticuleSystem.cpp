@@ -88,21 +88,21 @@ void ParticuleSystem::DoUpdate(float dt) {
                 }
             }
         }
-        // update emitted particules
-        for (int i=minUsedIdx; i<maxUsedIdx; i++) {
-            InternalParticule& internal = particules[i];
-            if (internal.e == 0)
-                continue;
-            internal.time += dt;
-            if (internal.time >= internal.lifetime) {
-                theEntityManager.DeleteEntity(internal.e);
-                internal.e = 0;
-                if (i == minUsedIdx)
-                    minUsedIdx = i+1;
-            } else {
-                RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
-                TRANSFORM(internal.e)->size.X = TRANSFORM(internal.e)->size.Y = internal.size.lerp(internal.time / internal.lifetime);
-            }
+    }
+    // update emitted particules
+    for (int i=minUsedIdx; i<maxUsedIdx; i++) {
+        InternalParticule& internal = particules[i];
+        if (internal.e == 0)
+            continue;
+        internal.time += dt;
+        if (internal.time >= internal.lifetime) {
+            theEntityManager.DeleteEntity(internal.e);
+            internal.e = 0;
+            if (i == minUsedIdx)
+                minUsedIdx = i+1;
+        } else {
+            RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
+            TRANSFORM(internal.e)->size.X = TRANSFORM(internal.e)->size.Y = internal.size.lerp(internal.time / internal.lifetime);
         }
     }
 }
