@@ -50,7 +50,7 @@ LocalizeAPIAndroidImpl::~LocalizeAPIAndroidImpl() {
 void LocalizeAPIAndroidImpl::init(JNIEnv *pEnv) {
 	env = pEnv;
 
-	datas->javaLocApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
+	datas->javaLocApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/LocalizeAPI"));
 	datas->localize = jniMethodLookup(env, datas->javaLocApi, "localize", "(Ljava/lang/String;)Ljava/lang/String;");
 	datas->initialized = true;
 }

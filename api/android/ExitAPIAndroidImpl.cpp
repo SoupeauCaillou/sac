@@ -43,7 +43,7 @@ ExitAPIAndroidImpl::ExitAPIAndroidImpl() {
 void ExitAPIAndroidImpl::init(JNIEnv* pEnv) {
 	env = pEnv;
 	
-	datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
+	datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/ExitAPI"));
 	datas->exitGame = jniMethodLookup(env, datas->cls, "exitGame", "()V");
 	datas->initialized = true;
 }

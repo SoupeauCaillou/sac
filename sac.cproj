@@ -83,6 +83,7 @@
     <Compile Include="util\IntersectionUtil.cpp" />
     <Compile Include="tests\util\TestIntersectionUtil.cpp" />
     <Compile Include="base\Color.cpp" />
+    <Compile Include="android\sacjnilib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -132,42 +133,7 @@
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\PhysicsSystem.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\System.cpp.o" />
     <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\TransformationSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\build.make" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\cmake_clean.cmake" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\cmake_clean_target.cmake" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\CXX.includecache" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\depend.internal" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\depend.make" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\DependInfo.cmake" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\flags.make" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\link.txt" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\progress.make" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\build.make" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\cmake_clean.cmake" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\CXX.includecache" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\depend.internal" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\depend.make" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\DependInfo.cmake" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\flags.make" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\link.txt" />
-    <None Include="build\cmake\CMakeFiles\sac_tests.dir\progress.make" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\__\__\tools\texture_packer\Main.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\__\__\tools\texture_packer\TexturePacker.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\build.make" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\cmake_clean.cmake" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\CXX.includecache" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\depend.internal" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\depend.make" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\DependInfo.cmake" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\flags.make" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\link.txt" />
-    <None Include="build\cmake\CMakeFiles\texture_packer.dir\progress.make" />
-    <None Include="build\cmake\CMakeFiles\CMakeDirectoryInformation.cmake" />
-    <None Include="build\cmake\CMakeFiles\progress.marks" />
-    <None Include="build\cmake\cmake_install.cmake" />
-    <None Include="build\cmake\CMakeLists.txt" />
     <None Include="build\cmake\libsac.a" />
-    <None Include="build\cmake\Makefile" />
     <None Include="libs\build\android\libpng\Android.mk" />
     <None Include="libs\build\android\tremor\Android.mk" />
     <None Include="api\android\AssetAPIAndroidImpl.h" />
@@ -191,6 +157,7 @@
     <None Include="systems\TaskAISystem.h" />
     <None Include="util\IntersectionUtil.h" />
     <None Include="base\Color.h" />
+    <None Include="android\sacjnilib.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

@@ -14,6 +14,7 @@ LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG \
 				-I$(LOCAL_PATH)/libs/libpng/jni
 
 LOCAL_SRC_FILES := \
+	android/sacjnilib.cpp \
     base/MathUtil.cpp \
     base/Vector2.cpp \
     base/Color.cpp \

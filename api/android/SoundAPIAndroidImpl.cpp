@@ -59,7 +59,7 @@ void SoundAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetMgr) {
 	env = pEnv;
 	assetManager = assetMgr;
 
-    datas->javaSoundApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
+    datas->javaSoundApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/SoundAPI"));
     datas->jloadSound = jniMethodLookup(env, datas->javaSoundApi, "loadSound", "(Landroid/content/res/AssetManager;Ljava/lang/String;)I");
     datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "playSound", "(IF)Z");
     datas->initialized = true;

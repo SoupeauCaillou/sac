@@ -57,7 +57,7 @@ void NameInputAPIAndroidImpl::uninit() {
 void NameInputAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
     
-    datas->javaNameApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
+    datas->javaNameApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/herisap/api/NameInputAPI"));
     datas->show = jniMethodLookup(env, datas->javaNameApi, "showPlayerNameUi", "()V");
     datas->done = jniMethodLookup(env, datas->javaNameApi, "queryPlayerName", "()Ljava/lang/String;");
     // datas->hide = jniMethodLookup(env, datas->javaNameApi, "", "");

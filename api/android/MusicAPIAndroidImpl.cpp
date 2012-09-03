@@ -75,7 +75,7 @@ void MusicAPIAndroidImpl::uninit() {
 void MusicAPIAndroidImpl::init(JNIEnv* pEnv) {
 	env = pEnv;
 
-	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/heriswap/HeriswapJNILib"));
+	datas->javaMusicApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/MusicAPI"));
 	datas->createPlayer = jniMethodLookup(env, datas->javaMusicApi, "createPlayer", "(I)Ljava/lang/Object;");
     datas->pcmBufferSize = jniMethodLookup(env, datas->javaMusicApi, "pcmBufferSize", "(I)I");
     datas->allocate = jniMethodLookup(env, datas->javaMusicApi, "allocate", "(I)[B");
