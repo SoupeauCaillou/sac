@@ -115,7 +115,14 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
     // read texture size
     sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-    LOGW("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f,%f] ('%s')", atlasName.c_str(), atlasIndex, a.glref.color, a.glref.alpha, atlasSize.X, atlasSize.Y, s.c_str());
+    LOGW("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')", 
+    	atlasName.c_str(), 
+    	atlasIndex, 
+    	a.glref.color, 
+    	a.glref.alpha, 
+    	forceImmediateTextureLoading ? atlasSize.X : .0f, 
+    	forceImmediateTextureLoading ? atlasSize.Y : .0f, 
+    	s.c_str());
 	int count = 0;
 
 	do {
@@ -261,7 +268,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     }
 
     if (png) {
-	    LOGW("Using PNG texture version");
+	    LOGW("Using PNG texture version (%dx%d)", image.width, image.height);
 	 	#ifdef EMSCRIPTEN
 	 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
     	#else

@@ -82,7 +82,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, bool rev
 static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 #endif
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
-	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
+	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
 	GL_OPERATION(glActiveTexture(GL_TEXTURE1))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))

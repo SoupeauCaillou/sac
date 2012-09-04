@@ -91,4 +91,6 @@ void Game::backPressed() {}
 		
 void Game::togglePause(bool activate) {}
 		
-int Game::saveState(uint8_t** out) {}
+int Game::saveState(uint8_t** out) {
+	return 0;
+}

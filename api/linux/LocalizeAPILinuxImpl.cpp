@@ -26,17 +26,15 @@ void LocalizeAPILinuxImpl::init() {
 	#ifndef EMSCRIPTEN
 	#ifdef LOCALEDIR
 	bindtextdomain("heriswap", LOCALEDIR);
-	#else
-	bindtextdomain("heriswap", "./assets");
-	#endif
 	textdomain("heriswap");
+	#endif
 	#endif
 }
 
 #define _(STRING)    gettext(STRING)
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {
-#ifndef EMSCRIPTEN
+#if defined(LOCALEDIR) && !defined(EMSCRIPTEN)
 	return _(spc.c_str());
 #else
 	return spc;

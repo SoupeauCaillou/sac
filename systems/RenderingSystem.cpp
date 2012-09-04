@@ -102,7 +102,6 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 
 void RenderingSystem::init() {
 #ifdef GLES2_SUPPORT
-	if (opengles2) {
 		#ifdef USE_VBO
 		defaultShader = buildShader("default_vbo.vs", "default.fs");
 		defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
@@ -111,7 +110,6 @@ void RenderingSystem::init() {
 		defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
 		#endif
 		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
-	}
 #endif
 
 	// create 1px white texture
