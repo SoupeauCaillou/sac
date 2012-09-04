@@ -28,7 +28,7 @@ class Game {
 
 		virtual ~Game();
 		
-		void sacInit(int windowW, int windowH);
+		virtual void sacInit(int windowW, int windowH);
 		
 		virtual void init(const uint8_t* in = 0, int size = 0) = 0;
 		

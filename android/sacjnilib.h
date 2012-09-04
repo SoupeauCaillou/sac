@@ -28,19 +28,20 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 	SuccessAPIAndroidImpl successAPI;
 	jobject assetManager;
 
-	virtual void init(JNIEnv* env, jobject assetMgr) {
-		assetManager = env->NewGlobalRef(assetMgr);
+	virtual void init(JNIEnv* pEnv, jobject assetMgr) {
+		LOGW("%p", pEnv);
+		assetManager = pEnv->NewGlobalRef(assetMgr);
 
-		nameInput.init(env);
-		localize.init(env);
-	    ad.init(env);
-	    asset.init(env, assetManager);
-		exitAPI.init(env);
-		musicAPI.init(env);
-		soundAPI.init(env, assetManager);
-		successAPI.init(env);
+		nameInput.init(pEnv);
+		localize.init(pEnv);
+	    ad.init(pEnv);
+	    asset.init(pEnv, assetManager);
+		exitAPI.init(pEnv);
+		musicAPI.init(pEnv);
+		soundAPI.init(pEnv, assetManager);
+		successAPI.init(pEnv);
 
-		JNIEnvDependantContext::init(env, assetMgr);
+		JNIEnvDependantContext::init(pEnv, assetMgr);
 	}
 
 	virtual void uninit(JNIEnv* pEnv) {
@@ -64,10 +65,11 @@ struct RenderThreadJNIEnvCtx : JNIEnvDependantContext {
     AssetAPIAndroidImpl asset;
 	jobject assetManager;
 
-	void init(JNIEnv* env, jobject assetMgr) {
-		assetManager = env->NewGlobalRef(assetMgr);
-	    asset.init(env, assetManager);
-		JNIEnvDependantContext::init(env, assetMgr);
+	void init(JNIEnv* pEnv, jobject assetMgr) {
+		LOGW("%p", pEnv);
+		assetManager = pEnv->NewGlobalRef(assetMgr);
+	    asset.init(pEnv, assetManager);
+		JNIEnvDependantContext::init(pEnv, assetMgr);
 	}
 
 	void uninit(JNIEnv* pEnv) {
