@@ -40,8 +40,8 @@
 #include <sys/time.h>
 #define DT 1.0/60.
 
-#ifndef _Included_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
-#define _Included_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+#ifndef _Included_net_damsy_soupeaucaillou_SacJNILib
+#define _Included_net_damsy_soupeaucaillou_SacJNILib
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,14 +60,19 @@ struct AndroidNativeTouchState : public NativeTouchState{
 	}
 };
 
+void plop();
+	
 /*
- * Class:     net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    createGame
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_createGame
+JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
   (JNIEnv *env, jclass, jint openglesVersion) {
   	LOGW("%s -->", __FUNCTION__);
+  	//if (env == (JNIEnv*)0x2) {
+	//  	plop();
+  	//}
   	TimeUtil::init();
 	GameHolder* hld = GameHolder::build();
 	hld->initDone = false;
@@ -80,7 +85,7 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_cr
 	return (jlong)hld;
 }
 
-JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_destroyGame
+JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
   (JNIEnv *env, jclass, jlong g) {
     GameHolder* hld = (GameHolder*) g;
     theMusicSystem.uninit();
@@ -89,11 +94,11 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_de
 }
 
 /*
- * Class:     net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    init
  * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_initFromRenderThread
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread
   (JNIEnv *env, jclass, jobject asset, jlong g, jint w, jint h) {
   LOGW("%s -->", __FUNCTION__);
 	GameHolder* hld = (GameHolder*) g;
@@ -106,7 +111,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_ini
 	LOGW("%s <--", __FUNCTION__);
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_uninitFromRenderThread
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderThread
   (JNIEnv *env, jclass, jlong g) {
   LOGW("%s -->", __FUNCTION__);
 	GameHolder* hld = (GameHolder*) g;
@@ -114,7 +119,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_uni
 	LOGW("%s <--", __FUNCTION__);
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_initFromGameThread
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
   (JNIEnv *env, jclass, jobject asset, jlong g, jbyteArray jstate) {
   	GameHolder* hld = (GameHolder*) g;
   	bool fullInit = true;
@@ -150,7 +155,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_ini
 	hld->initDone = true;
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_uninitFromGameThread
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread
   (JNIEnv *env, jclass, jlong g) {
   LOGW("%s -->", __FUNCTION__);
 	GameHolder* hld = (GameHolder*) g;
@@ -159,11 +164,11 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_uni
 }
 
 /*
- * Class:     net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    step
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_step
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
   (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
 
@@ -203,7 +208,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_ste
 float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_resetTimestep
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
   (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
 
@@ -220,7 +225,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_res
 static int frameCount = 0;
 static float tttttt = 0;
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_render
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
 	theRenderingSystem.render();
@@ -233,7 +238,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_ren
 	}
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_pause
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
   (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
   	LOGW("%s -->", __FUNCTION__);
@@ -247,7 +252,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_pau
 	LOGW("%s <-- %.3f", __FUNCTION__, pauseTime);
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_back
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_back
   (JNIEnv *env, jclass, jlong g) {
      GameHolder* hld = (GameHolder*) g;
      LOGW("%s -->", __FUNCTION__);
@@ -259,7 +264,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_bac
 }
 
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_invalidateTextures
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTextures
   (JNIEnv *env, jclass, jobject asset, jlong g) {
      GameHolder* hld = (GameHolder*) g;
      LOGW("%s -->", __FUNCTION__);
@@ -274,11 +279,11 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_inv
 }
 
 /*
- * Class:     net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    handleInputEvent
  * Signature: (JIFF)V
  */
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_handleInputEvent
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
   (JNIEnv *env, jclass, jlong g, jint evt, jfloat x, jfloat y) {
 	GameHolder* hld = (GameHolder*) g;
 
@@ -298,11 +303,11 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_han
 }
 
 /*
- * Class:     net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    serialiazeState
  * Signature: (J)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_serialiazeState
+JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState
   (JNIEnv *env, jclass, jlong g) {
 	LOGW("%s -->", __FUNCTION__);
 	GameHolder* hld = (GameHolder*) g;
@@ -324,17 +329,35 @@ JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNIL
 }
 
 /*
- * Class:     net_damsy_soupeaucaillou_heriswap_HeriswapJNILib
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    restoreRenderingSystemState
  * Signature: (J[B)V
  */
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_heriswap_HeriswapJNILib_initAndReloadTextures
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures
   (JNIEnv *env, jclass, jlong g) {
   LOGW("%s -->", __FUNCTION__);
   GameHolder* hld = (GameHolder*) g;
   theRenderingSystem.init();
   theRenderingSystem.reloadTextures();
   LOGW("%s <--", __FUNCTION__);
+}
+
+void plop() {
+	Java_net_damsy_soupeaucaillou_SacJNILib_createGame(0, 0, 0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread(0,0,0,0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderThread(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread(0,0,0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_step(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_render(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_pause(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_back(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTextures(0, 0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent(0,0,0,0, 0, 0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState(0,0,0);
+	Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures(0,0,0);
 }
 
 #ifdef __cplusplus

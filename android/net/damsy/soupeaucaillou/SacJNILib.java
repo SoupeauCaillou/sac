@@ -33,7 +33,7 @@ public class SacJNILib {
 	/* Initialize game, reset graphics assets, etc... */
 	public static native void initFromRenderThread(AssetManager mgr, long game, int width,
 			int height);
-
+ 
 	public static native void initFromGameThread(AssetManager mgr, long game, byte[] state);
 
 	public static native void uninitFromRenderThread(long game);
