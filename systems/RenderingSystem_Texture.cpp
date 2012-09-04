@@ -187,11 +187,11 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     file.data = 0;
 #ifdef ANDROID
 	if (colorOrAlpha) {
-		#ifdef PVR_SUPPORT
-    	file = assetAPI->loadAsset(basename + ".pvr");
-    	#else
-    	file = assetAPI->loadAsset(basename + ".pkm");
-    	#endif
+		if (pvrSupported) {
+    		file = assetAPI->loadAsset(basename + ".pvr");
+		} else {
+    		file = assetAPI->loadAsset(basename + ".pkm");
+		}
 	}
 #endif
 
@@ -204,11 +204,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     }
 
     // load image
-    #ifdef PVR_SUPPORT
-    ImageDesc image = png ? ImageLoader::loadPng(basename, file) : ImageLoader::loadPvr(basename, file);
-    #else
-    ImageDesc image = png ? ImageLoader::loadPng(basename, file) : ImageLoader::loadEct1(basename, file);
-    #endif
+    ImageDesc image = png ? ImageLoader::loadPng(basename, file) : pvrSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);
     delete[] file.data;
     if (!image.datas) {
         return 0;
@@ -277,15 +273,15 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
     	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
 	   #ifdef ANDROID
-	    #ifdef PVR_SUPPORT
-	    unsigned imgSize = ( MathUtil::Max(image.width, 8) * MathUtil::Max(image.height, 8) * 4 + 7) / 8; // file.size;// - (20 + 13*sizeof(uint32_t));
-	    LOGW("Using PVR texture version (%dx%d, %d)", image.width, image.height, imgSize);
-	    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, image.width, image.height, 0, imgSize, image.datas))
-	    #else
-	    LOGW("Using ETC texture version");
-		#define ECT1_HEADER_SIZE 16
-		GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
-	   	#endif
+	    if (pvrSupported) {
+	    	unsigned imgSize = ( MathUtil::Max(image.width, 8) * MathUtil::Max(image.height, 8) * 4 + 7) / 8; // file.size;// - (20 + 13*sizeof(uint32_t));
+	    	LOGW("Using PVR texture version (%dx%d, %d)", image.width, image.height, imgSize);
+	    	GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, image.width, image.height, 0, imgSize, image.datas))
+	    } else {
+	    	LOGW("Using ETC texture version");
+			#define ECT1_HEADER_SIZE 16
+			GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
+	    }
     #else
     	assert (false && "ETC compression not supported");
     #endif

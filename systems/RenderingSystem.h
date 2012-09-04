@@ -245,4 +245,6 @@ enum {
 	ATTRIB_SCALE,
     NUM_ATTRIBS
 };
+
+bool pvrSupported;
 };
