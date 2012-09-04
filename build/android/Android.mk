@@ -15,6 +15,7 @@ LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG \
 
 LOCAL_SRC_FILES := \
 	android/sacjnilib.cpp \
+	base/Game.cpp \
     base/MathUtil.cpp \
     base/Vector2.cpp \
     base/Color.cpp \
@@ -46,6 +47,7 @@ LOCAL_SRC_FILES := \
     api/android/LocalizeAPIAndroidImpl.cpp \
     api/android/NameInputAPIAndroidImpl.cpp \
     api/android/ExitAPIAndroidImpl.cpp \
+    api/android/SuccessAPIAndroidImpl.cpp \
 	util/ImageLoader.cpp \
 	util/IntersectionUtil.cpp \
 

@@ -84,6 +84,8 @@
     <Compile Include="tests\util\TestIntersectionUtil.cpp" />
     <Compile Include="base\Color.cpp" />
     <Compile Include="android\sacjnilib.cpp" />
+    <Compile Include="api\android\SuccessAPIAndroidImpl.cpp" />
+    <Compile Include="base\Game.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -158,6 +160,9 @@
     <None Include="util\IntersectionUtil.h" />
     <None Include="base\Color.h" />
     <None Include="android\sacjnilib.h" />
+    <None Include="api\android\SuccessAPIAndroidImpl.h" />
+    <None Include="api\SuccessAPI.h" />
+    <None Include="base\Game.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
