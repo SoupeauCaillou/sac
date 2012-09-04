@@ -21,6 +21,8 @@ public class SuccessAPI {
 			SwarmAchievement.GotAchievementsMapCB callback = new SwarmAchievement.GotAchievementsMapCB() {
 				@Override
 				public void gotMap(Map<Integer, SwarmAchievement> achievements) {
+					if (achievements == null)
+						return;
 			        SwarmAchievement achievement = achievements.get(id);
 			        // No need to unlock more than once...
 			        if (achievement != null && achievement.unlocked == false) {
@@ -36,7 +38,6 @@ public class SuccessAPI {
 			if (mode >= 0 && mode <= 2 && difficulty >= 0 && difficulty <= 2) {
 				SwarmLeaderboard.GotLeaderboardCB callback = new SwarmLeaderboard.GotLeaderboardCB() {
 				    public void gotLeaderboard(SwarmLeaderboard leaderboard) {
-
 				    	if (leaderboard != null) {
 				    		leaderboard.showLeaderboard();
 				        }
