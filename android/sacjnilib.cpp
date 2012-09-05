@@ -50,8 +50,10 @@ struct GameHolder;
 
 struct AndroidNativeTouchState : public NativeTouchState{
 	GameHolder* holder;
-	AndroidNativeTouchState(GameHolder* h) : holder(h) {}
-
+	AndroidNativeTouchState(GameHolder* h) {
+		holder = h;
+		holder->input.touching = 0;
+	}
 	bool isTouching (Vector2* windowCoords) const {
 		windowCoords->X = holder->input.x;
 		windowCoords->Y = holder->input.y;
@@ -61,7 +63,7 @@ struct AndroidNativeTouchState : public NativeTouchState{
 };
 
 void plop();
-	
+
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    createGame
