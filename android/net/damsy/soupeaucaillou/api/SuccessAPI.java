@@ -39,7 +39,7 @@ public class SuccessAPI {
 					@Override
 					public void run() {
 						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());				
-						Swarm.showDashboard();
+						// Swarm.showLogin();
 					}
 				});
 			} else {
@@ -63,7 +63,7 @@ public class SuccessAPI {
 					@Override
 					public void run() {
 						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());				
-						Swarm.showDashboard();
+						//Swarm.showDashboard();
 					}
 				});
 			} else {
