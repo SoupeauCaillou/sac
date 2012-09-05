@@ -1,6 +1,7 @@
 package net.damsy.soupeaucaillou;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
+import net.damsy.soupeaucaillou.heriswap.HeriswapActivity;
 import net.damsy.soupeaucaillou.heriswap.HeriswapSecret;
 import net.damsy.soupeaucaillou.heriswap.R;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,6 +42,7 @@ public abstract class SacActivity extends SwarmActivity {
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
+		Log.i("Sac", "-> onCreate [" + savedInstanceState);
         super.onCreate(savedInstanceState);
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
@@ -96,12 +99,12 @@ public abstract class SacActivity extends SwarmActivity {
         if (savedInstanceState != null) {
         	savedState = savedInstanceState.getByteArray(getBundleKey());
 	        if (savedState != null) {
-	        	//NOLOGLog.i(HeriswapActivity.Tag, "State restored from app bundle");
+	        	Log.i("Sac", "State restored from app bundle");
 	        } else {
 	        	//NOLOGLog.i(HeriswapActivity.Tag, "WTF?");
 	        }
         } else {
-        	//NOLOGLog.i(HeriswapActivity.Tag, "savedInstanceState is null");
+        	Log.i("Sac", "savedInstanceState is null");
         }
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -164,15 +167,15 @@ public abstract class SacActivity extends SwarmActivity {
     protected void onSaveInstanceState(Bundle outState) {
     	//NOLOGLog.i(HeriswapActivity.Tag, "Activity LifeCycle ##### ON SAVE INSTANCE");
     	if (game == 0)
-    		return;
+    		return; 
     	/* save current state; we'll be used only if app get killed */
     	synchronized (mutex) {
-    		//NOLOGLog.i(HeriswapActivity.Tag, "Save state!");
+    		Log.i("Sac", "Save state!");
 	    	byte[] savedState = SacJNILib.serialiazeState(game);
 	    	if (savedState != null) {
 	    		outState.putByteArray(getBundleKey(), savedState);
 	    	}
-	    	//NOLOGLog.i(HeriswapActivity.Tag, "State saved");
+	    	Log.i("Sac", "State saved");
     	}
     	super.onSaveInstanceState(outState);
     }

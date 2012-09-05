@@ -32,12 +32,12 @@ public class SuccessAPI {
 			};
 			SwarmAchievement.getAchievementsMap(callback);
 		}
-
+ 
 
 		static public void openLeaderboard(int mode, int difficulty) {
 			if (mode >= 0 && mode <= 2 && difficulty >= 0 && difficulty <= 2) {
 				SwarmLeaderboard.GotLeaderboardCB callback = new SwarmLeaderboard.GotLeaderboardCB() {
-				    public void gotLeaderboard(SwarmLeaderboard leaderboard) {
+				    public void gotLeaderboard(SwarmLeaderboard leaderboard) { 
 				    	if (leaderboard != null) {
 				    		leaderboard.showLeaderboard();
 				        }
