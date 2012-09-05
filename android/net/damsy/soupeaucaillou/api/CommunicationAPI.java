@@ -16,7 +16,7 @@ public class CommunicationAPI {
 		}
 
 		static public void swarmRegistering(int mode, int difficulty) {
-			SuccessAPI.openLeaderboard(mode, difficulty);
+			SuccessAPI.openLeaderboard(-1, -1);
 		}
 
 		static public void shareFacebook() {

@@ -13,9 +13,8 @@ public class SuccessAPI {
 		// SuccessAPI
 		// -------------------------------------------------------------------------
 		static public void unlockAchievement(int idS) {
-			//if(!Swarm.isLoggedIn()) {
-			//	return;
-			//}
+			if (!Swarm.isInitialized() || !Swarm.isEnabled())
+				return;
 			final int id = idS;
 
 			SwarmAchievement.GotAchievementsMapCB callback = new SwarmAchievement.GotAchievementsMapCB() {
@@ -35,20 +34,40 @@ public class SuccessAPI {
  
 
 		static public void openLeaderboard(int mode, int difficulty) {
-			if (mode >= 0 && mode <= 2 && difficulty >= 0 && difficulty <= 2) {
-				SwarmLeaderboard.GotLeaderboardCB callback = new SwarmLeaderboard.GotLeaderboardCB() {
-				    public void gotLeaderboard(SwarmLeaderboard leaderboard) { 
-				    	if (leaderboard != null) {
-				    		leaderboard.showLeaderboard();
-				        }
-				    }
-				};
-
-				SwarmLeaderboard.getLeaderboardById(SacJNILib.activity.getSwarmBoards()[3 * mode + difficulty], callback);
+			if (!Swarm.isInitialized()) {
+				SacJNILib.activity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());				
+						Swarm.showDashboard();
+					}
+				});
+			} else {
+				if (mode >= 0 && mode <= 2 && difficulty >= 0 && difficulty <= 2) {
+					SwarmLeaderboard.GotLeaderboardCB callback = new SwarmLeaderboard.GotLeaderboardCB() {
+					    public void gotLeaderboard(SwarmLeaderboard leaderboard) { 
+					    	if (leaderboard != null) {
+					    		leaderboard.showLeaderboard();
+					        }
+					    }
+					};
+	
+					SwarmLeaderboard.getLeaderboardById(SacJNILib.activity.getSwarmBoards()[3 * mode + difficulty], callback);
+				}
 			}
 		}
 
 		static public void openDashboard() {
-			Swarm.showDashboard();
+			if (!Swarm.isInitialized()) {
+				SacJNILib.activity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());				
+						Swarm.showDashboard();
+					}
+				});
+			} else {
+				Swarm.showDashboard();
+			}
 		}
 }

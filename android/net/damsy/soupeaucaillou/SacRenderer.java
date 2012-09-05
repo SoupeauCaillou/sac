@@ -85,7 +85,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 					if (activity.runGameLoop) {
 						SacJNILib.step(activity.game);
 						activity.mGLView.requestRender();
-			 		} else {
+			  		} else {
 						try {
 							// Log.w(HeriswapActivity.Tag, "Game thread sleeping");
 							synchronized (gameThread) {
@@ -154,12 +154,14 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-    	activity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());				
-			}
-		});
+    	if (Swarm.isEnabled()) {
+	    	activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());				
+				}
+			});
+    	}
 
     	String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
     	Log.i("H", "Extensions supported: " + extensions);
