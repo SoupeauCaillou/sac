@@ -381,9 +381,6 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	textures.clear();
 	nextValidRef = 1;
 	nextEffectRef = 1;
-	
-	LOGW("TODO:Restore Effects properly");
-
 	int idx = 0;
 	while (idx < size) {
 		char name[128];
@@ -404,6 +401,11 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 			textures[ref] = info;
 		}
 		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);
+	}
+	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
+		it != nameToEffectRefs.end();
+		++it) {
+		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);		
 	}
 }
 
@@ -426,4 +428,16 @@ EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
 	#endif
 	
 	return result;
+}
+
+void RenderingSystem::reloadEffects() {
+	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
+		it != nameToEffectRefs.end();
+		++it) {
+		#ifdef USE_VBO
+		ref2Effects[it->second] = buildShader("default_vbo.vs", it->first);
+		#else
+		ref2Effects[it->second] = buildShader("default.vs", it->first);
+		#endif 		
+	}
 }

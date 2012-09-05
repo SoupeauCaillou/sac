@@ -341,6 +341,8 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadText
   GameHolder* hld = (GameHolder*) g;
   theRenderingSystem.init();
   theRenderingSystem.reloadTextures();
+  theRenderingSystem.reloadEffects();
+  
   LOGW("%s <--", __FUNCTION__);
 }
 

@@ -62,7 +62,9 @@ typedef int TextureRef;
 #undef GLES2_SUPPORT
 #define GLES2_SUPPORT
 
+#ifdef EMSCRIPTEN
 #define USE_VBO
+#endif
 
 typedef int EffectRef;
 #define DefaultEffectRef -1
@@ -115,7 +117,7 @@ bool isEntityVisible(Entity e);
 bool isVisible(TransformationComponent* tc);
 
 void reloadTextures();
-
+void reloadEffects();
 bool opengles2;
 
 void render();
