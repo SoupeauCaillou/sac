@@ -44,7 +44,7 @@ do
 		keyWord=`echo $line | cut -d"$separateur" -f1`
 		for j in `seq $number`; do
 			jPlusUn=`expr $j + 1`
-			echo "\t<string name=\"$keyWord\">`echo $line | cut -d\"$separateur\" -f $jPlusUn`</string>" >> /tmp/aaaaaaaaaaaaa/values-$j/strings.xml
+			echo "\t<string name=\"$keyWord\">\"`echo $line | cut -d\"$separateur\" -f $jPlusUn`\"</string>" >> /tmp/aaaaaaaaaaaaa/values-$j/strings.xml
 		done
 	fi
 done < $1
