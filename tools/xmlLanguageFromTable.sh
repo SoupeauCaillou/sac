@@ -24,6 +24,7 @@ if [ "$confirm" = "n" ]; then
 	exit
 fi
 
+echo "rm -r $2/values*"
 rm -r $2/values*
 
 rm -r /tmp/aaaaaaaaaaaaa 2>/dev/null
@@ -32,13 +33,14 @@ mkdir /tmp/aaaaaaaaaaaaa
 firstLine=`head -n 1 "$1"`
 number=`echo "$firstLine" | grep -o "$separateur" | wc -l`
 for i in `seq $number`; do
+	echo "mkdir /tmp/aaaaaaaaaaaaa/values-$i"
 	mkdir /tmp/aaaaaaaaaaaaa/values-$i
 	echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>" > /tmp/aaaaaaaaaaaaa/values-$i/strings.xml
 done
 
 while read line
 do
-	if [ "$line" != "languages$separateuren$separateurfr$separateurde$separateurit" ]; then
+	if [ "$line" != "languages$separateuren$separateurfr$separateurde$separateurit$separateurnl$separateures" ]; then
 		keyWord=`echo $line | cut -d"$separateur" -f1`
 		for j in `seq $number`; do
 			jPlusUn=`expr $j + 1`
