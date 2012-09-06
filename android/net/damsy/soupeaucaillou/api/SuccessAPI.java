@@ -3,6 +3,7 @@ package net.damsy.soupeaucaillou.api;
 import java.util.Map;
 
 import net.damsy.soupeaucaillou.SacJNILib;
+import net.damsy.soupeaucaillou.heriswap.api.StorageAPI;
 
 import com.swarmconnect.Swarm;
 import com.swarmconnect.SwarmAchievement;
@@ -40,6 +41,7 @@ public class SuccessAPI {
 					public void run() {
 						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());				
 						// Swarm.showLogin();
+						StorageAPI.ensureBestLocalScoresAreOnSwarm();
 					}
 				});
 			} else {
@@ -64,6 +66,7 @@ public class SuccessAPI {
 					public void run() {
 						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());				
 						//Swarm.showDashboard();
+						StorageAPI.ensureBestLocalScoresAreOnSwarm();
 					}
 				});
 			} else {
