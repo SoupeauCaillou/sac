@@ -48,7 +48,7 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
 	}
 	for (unsigned int i=from; i<to; i++) {
 		char letter = trc->text[i];
-		if (letter != (char)0xC3) {
+		if (letter != (char)0xC3 && letter != '\n') {
 			width += charH2Wratio[trc->text[i]] * charHeight;
 		}
 	}
@@ -128,9 +128,13 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				continue;
 				
 			if (trc->flags & TextRenderingComponent::MultiLineBit) {
-				size_t wordEnd = trc->text.find_first_of(" \n,:.", i);
+				size_t wordEnd = trc->text.find_first_of(" ,:.", i);
+				size_t lineEnd = trc->text.find_first_of("\n", i);
+				bool newLine = false;
 				if (wordEnd == i) {
 					newWord = true;
+				} else if (lineEnd == i) {
+					newLine = true;
 				} else if (newWord) {
 					if (wordEnd == std::string::npos) {
 						wordEnd = trc->text.length();
@@ -140,10 +144,14 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					
 					float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, charH2Wratio);
 					if (x + w >= trans->size.X * 0.5) {
-						y -= 1.2 * charHeight;
-						x = startX;
+						newLine = true;
 					}
 					newWord = false;
+				}
+				
+				if (newLine) {
+					y -= 1.2 * charHeight;
+					x = startX;
 				}
 			}
 
