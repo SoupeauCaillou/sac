@@ -406,6 +406,8 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		LOGW("Texture '%s' doesn't belong to any atlas. Will be loaded individually", assetName.c_str());
 	}
 	if (textures.find(result) == textures.end()) {
+		PROFILE("RequestLoadTexture", assetName, InstantEvent);
+
 		#ifndef EMSCRIPTEN
 		pthread_mutex_lock(&mutexes);
 		#endif

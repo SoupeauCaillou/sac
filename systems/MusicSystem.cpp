@@ -385,8 +385,10 @@ void MusicSystem::oggDecompRunLoop() {
     // one static buffer to rule them all
     int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
 
+	
     while (runDecompLoop) {
 	    bool roomForImprovement = false;
+	    PROFILE("Music", "DecompressMusic", BeginEvent);
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ) {
             assert(it->first != InvalidMusicRef);
             MusicInfo& info = it->second;
@@ -423,6 +425,7 @@ void MusicSystem::oggDecompRunLoop() {
             	roomForImprovement = true;
             }
         }
+        PROFILE("Music", "DecompressMusic", EndEvent);
         // release mutex while waiting
         if (!roomForImprovement) {
         	pthread_cond_wait(&cond, &mutex);

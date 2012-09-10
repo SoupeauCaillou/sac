@@ -27,6 +27,7 @@
 #include <cassert>
 #include "base/Log.h"
 #include "base/TimeUtil.h"
+#include "base/Profiler.h"
 
 
 #define Entity unsigned long
@@ -62,7 +63,7 @@ class ComponentSystem {
 		virtual int serialize(Entity entity, uint8_t** out) = 0;
 		virtual void deserialize(Entity entity, uint8_t* out, int size) = 0;
 
-		void Update(float dt) {  float time = TimeUtil::getTime(); DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; }
+		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); float time = TimeUtil::getTime(); DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; PROFILE("SystemUpdate", name, EndEvent); }
 		float timeSpent;
 			
 		static ComponentSystem* Named(const std::string& n) {

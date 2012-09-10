@@ -86,6 +86,7 @@
     <Compile Include="android\sacjnilib.cpp" />
     <Compile Include="api\android\SuccessAPIAndroidImpl.cpp" />
     <Compile Include="base\Game.cpp" />
+    <Compile Include="base\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -163,6 +164,7 @@
     <None Include="api\android\SuccessAPIAndroidImpl.h" />
     <None Include="api\SuccessAPI.h" />
     <None Include="base\Game.h" />
+    <None Include="base\Profiler.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

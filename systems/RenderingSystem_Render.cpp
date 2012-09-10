@@ -313,6 +313,7 @@ void RenderingSystem::RenderQueue::removeFrames(int count) {
 }
 
 void RenderingSystem::render() {
+	PROFILE("Renderer", "render", BeginEvent);
 	// static float begin = TimeUtil::getTime();
 	// static float end = TimeUtil::getTime();
 
@@ -390,6 +391,7 @@ void RenderingSystem::render() {
 	// glFinish();
 	// end = TimeUtil::getTime();
 	// LOGW("time in : %.3f", end - begin);
+	PROFILE("Renderer", "render", EndEvent);
 }
 
 void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
