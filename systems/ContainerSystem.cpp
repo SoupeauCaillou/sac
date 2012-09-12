@@ -36,16 +36,17 @@ static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, Tra
 }
 
 void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
+	if (components.empty())
+		return;
+	
+	const std::vector<Entity> allEntities(theTransformationSystem.RetrieveAllEntityWithComponent());
+
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;			
 		ContainerComponent* bc = (*it).second;
 
-		if (bc->entities.empty())
+		if (!bc->enable || bc->entities.empty())
 			continue;
-
-		std::vector<Entity> allEntities;
-		if (bc->includeChildren)
-			allEntities = theTransformationSystem.RetrieveAllEntityWithComponent();
 		
 		float minX = MathUtil::MaxFloat, minY = MathUtil::MaxFloat;
 		float maxX = MathUtil::MinFloat, maxY = MathUtil::MinFloat;
@@ -55,7 +56,7 @@ void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
 			
 			if (bc->includeChildren) {
 				// arg
-				for(std::vector<Entity>::iterator kt=allEntities.begin(); kt!=allEntities.end(); ++kt) {
+				for(std::vector<Entity>::const_iterator kt=allEntities.begin(); kt!=allEntities.end(); ++kt) {
 					TransformationComponent* ttc = TRANSFORM(*kt);
 					if (ttc->parent == *jt) {
 						updateMinMax(minX, minY, maxX, maxY, ttc);
