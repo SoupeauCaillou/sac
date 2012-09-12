@@ -540,13 +540,14 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 	LOGI("loadMusicFile %s", assetName.c_str());
 	if (!assetAPI)
 		return InvalidMusicRef;
-	
+	PROFILE("Music", "loadMusicFile", BeginEvent);
 	#ifndef EMSCRIPTEN
     FileBuffer b;
     if (name2buffer.find(assetName) == name2buffer.end()) {
         b = assetAPI->loadAsset(assetName);
         if (!b.data) {
 	        LOGE("Unable to load %s", assetName.c_str());
+	        PROFILE("Music", "loadMusicFile", EndEvent);
 	        return InvalidMusicRef;
         }
         name2buffer[assetName] = b;
@@ -598,7 +599,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     musics[nextValidRef] = Mix_LoadWAV(a.str().c_str());    
     LOGI("Load music file %s, result: %p", a.str().c_str(), musics[nextValidRef]); 
 #endif
-
+	PROFILE("Music", "loadMusicFile", EndEvent);
     return nextValidRef++;
 }
 

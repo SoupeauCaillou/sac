@@ -330,6 +330,7 @@ void RenderingSystem::reloadTextures() {
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
+	PROFILE("Texture", "processDelayedTextureJobs", BeginEvent);
 	#ifndef EMSCRIPTEN
 	pthread_mutex_lock(&mutexes);
 	#endif
@@ -392,9 +393,11 @@ void RenderingSystem::processDelayedTextureJobs() {
     #ifndef EMSCRIPTEN
 pthread_mutex_unlock(&mutexes);
 #endif
+	PROFILE("Texture", "processDelayedTextureJobs", EndEvent);
 }
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
+	PROFILE("Texture", "loadTextureFile", BeginEvent);
 	TextureRef result = InvalidTextureRef;
 	std::string name(assetName);
 
@@ -416,7 +419,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		pthread_mutex_unlock(&mutexes);
 		#endif
 	}
-
+	PROFILE("Texture", "loadTextureFile", EndEvent);
 	return result;
 }
 

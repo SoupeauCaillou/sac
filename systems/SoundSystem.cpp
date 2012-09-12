@@ -38,16 +38,20 @@ void SoundSystem::init() {
 }
 
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
+	PROFILE("Sound", "loadSoundFile", BeginEvent);
     if (assetSounds.find(assetName) != assetSounds.end()) {
+	    PROFILE("Sound", "loadSoundFile", EndEvent);
         return assetSounds[assetName];
     } else {
         OpaqueSoundPtr* ptr = soundAPI->loadSound(assetName);
         if (!ptr) {
             LOGW("Unable to load sound file: '%s'", assetName.c_str());
+            PROFILE("Sound", "loadSoundFile", EndEvent);
             return InvalidSoundRef;
         } else {
             sounds[nextValidRef] = ptr;
             assetSounds[assetName] = nextValidRef;
+            PROFILE("Sound", "loadSoundFile", EndEvent);
             return nextValidRef++;
         }
     }
