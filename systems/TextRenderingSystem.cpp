@@ -74,9 +74,19 @@ void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		TextRenderingComponent* trc = (*it).second;
-		TransformationComponent* trans = TRANSFORM(it->first);
 		bool caret = false;
-		// trans->size = Vector2::Zero;
+
+		if (trc->hide) {
+			if (!trc->_cache.empty()) {
+				// clear cache
+				trc->_cache.clear();
+				// hide all children
+				for (int i=0; i<trc->drawing.size(); i++) {
+					RENDERING(trc->drawing[i])->hide = true;
+				}
+			}
+			continue;
+		}
 
 		// caret blink
 		if (trc->caret.speed > 0) {
@@ -87,8 +97,13 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			}
 			caret = true;
 			trc->text.push_back('_');
+		} else {
+			if (trc->text == trc->_cache) {
+				continue;
+			}
 		}
 
+		TransformationComponent* trans = TRANSFORM(it->first);
 		const unsigned int length = trc->text.length();
 
 		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
@@ -123,10 +138,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
 			tc->parent = it->first;
 			rc->hide = trc->hide;
-
-			if (rc->hide)
-				continue;
-				
+	
 			if (trc->flags & TextRenderingComponent::MultiLineBit) {
 				size_t wordEnd = trc->text.find_first_of(" ,:.", i);
 				size_t lineEnd = trc->text.find_first_of("\n", i);
@@ -189,6 +201,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		if (caret) {
 			trc->text.resize(trc->text.length() - 1);	
 		}
+		if (!trc->hide)
+			trc->_cache = trc->text;
 	}
 }
 
