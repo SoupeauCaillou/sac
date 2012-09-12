@@ -10,6 +10,8 @@ enum ProfilePhase {
 	AsyncFinish
 };
 
+void initProfiler();
+
 void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph);
 
 void saveToFile(const std::string& filename);

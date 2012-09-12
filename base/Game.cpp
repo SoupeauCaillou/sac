@@ -74,6 +74,10 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 }
 
 void Game::sacInit(int windowW, int windowH) {
+#ifdef ENABLE_PROFILING
+	initProfiler();
+#endif
+
 	PlacementHelper::ScreenHeight = 10;
     PlacementHelper::ScreenWidth = PlacementHelper::ScreenHeight * windowW / (float)windowH;
     PlacementHelper::WindowWidth = windowW;

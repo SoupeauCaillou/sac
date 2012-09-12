@@ -7,7 +7,7 @@ LOCAL_MODULE := sac
 LOCAL_CFLAGS := -DANDROID_NDK \
 				-I$(BASE_PATH)
 
-LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG \
+LOCAL_CXXFLAGS := -DANDROID_NDK -DDEBUG -DENABLE_PROFILING \
                 -I$(LOCAL_PATH)/base \
 				-I$(LOCAL_PATH)/systems \
 				-I$(LOCAL_PATH)/libs \
@@ -21,6 +21,7 @@ LOCAL_SRC_FILES := \
     base/Color.cpp \
     base/CircularBuffer.cpp \
     base/EntityManager.cpp \
+    base/Profiler.cpp \
     base/TouchInputManager.cpp \
     base/Log.cpp \
     base/PlacementHelper.cpp \

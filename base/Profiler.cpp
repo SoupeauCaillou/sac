@@ -1,13 +1,18 @@
 #include "Profiler.h"
 
 #ifdef ENABLE_PROFILING
-#include <jsoncpp/json/json.h>
+#include "libs/jsoncpp-src-0.6.0-rc2/include/json/json.h"
 #include <sys/types.h>
 #include <time.h>
 #include <stdint.h>
 #include <fstream>
 #include <pthread.h>
-Json::Value root;
+static Json::Value root;
+static pthread_mutex_t mutex;
+
+void initProfiler() {
+	pthread_mutex_init(&mutex, 0);
+}
 
 static inline const char* phaseEnum2String(enum ProfilePhase ph) {
 	switch (ph) {
@@ -29,11 +34,13 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	sample["name"] = name;
 	sample["pid"] = 1;
 	sample["tid"] = (unsigned)pthread_self();
-	sample["ts"] = (unsigned long long int)t1.tv_sec * 1000 + (unsigned long long int)t1.tv_nsec / 1000000;
+	sample["ts"] = (unsigned long long int)t1.tv_sec * 1000000 + (unsigned long long int)t1.tv_nsec / 1000;
 	sample["ph"] = phaseEnum2String(ph);
 	sample["args"] = Json::Value(Json::arrayValue);
 	
+	pthread_mutex_lock(&mutex);
 	root["traceEvents"].append(sample);
+	pthread_mutex_unlock(&mutex);
 }
 
 void saveToFile(const std::string& filename) {
