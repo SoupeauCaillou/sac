@@ -38,7 +38,16 @@ static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, Tra
 void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
 	if (components.empty())
 		return;
-	
+
+	bool atLeastOneEnabled = false;
+	for(ComponentIt it=components.begin(); !atLeastOneEnabled && it!=components.end(); ++it) {
+		ContainerComponent* bc = (*it).second;
+		atLeastOneEnabled |= (bc->enable && !bc->entities.empty());
+	}
+		
+	if (!atLeastOneEnabled)
+		return;
+		
 	const std::vector<Entity> allEntities(theTransformationSystem.RetrieveAllEntityWithComponent());
 
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
