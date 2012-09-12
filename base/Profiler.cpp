@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <fstream>
 #include <pthread.h>
+#include "Log.h"
 static Json::Value root;
 static pthread_mutex_t mutex;
 
@@ -43,7 +44,13 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	pthread_mutex_unlock(&mutex);
 }
 
-void saveToFile(const std::string& filename) {
+void startProfiler() {
+	LOGI("Start profiler");
+	root.clear();
+}
+
+void stopProfiler(const std::string& filename) {
+	LOGI("Stop profiler, saving to: %s", filename.c_str());
 	std::ofstream out(filename.c_str());
 	out << root;
 }

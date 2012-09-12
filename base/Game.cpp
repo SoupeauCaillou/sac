@@ -91,7 +91,24 @@ void Game::sacInit(int windowW, int windowH) {
 	theRenderingSystem.init();
 }
 
-void Game::backPressed() {}
+void Game::backPressed() {
+	#ifdef ENABLE_PROFILING
+	static int profStarted = 0;
+	if ((profStarted % 2) == 0) {
+		startProfiler();
+	} else {
+		std::stringstream a;
+		#ifdef ANDROID
+		a << "/sdcard/";
+		#else
+		a << "/tmp/";
+		#endif
+		a << "heriswap_prof_" << (int)(profStarted / 2) << ".json";
+		stopProfiler(a.str());
+	}
+	profStarted++;
+	#endif
+}
 		
 void Game::togglePause(bool activate) {}
 		
