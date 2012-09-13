@@ -166,19 +166,27 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			std::stringstream a;
 			char letter = trc->text[i];
+			bool hack = false;
 			// Unicode control caracter, skipping
 			if (letter == (char)0xC3) {
 				rc->hide = true;
 				continue;
 			} else {
-				a << (int) ((letter < 0) ? (unsigned char)letter : letter) << "_" << trc->fontName;
+				int l = (int) ((letter < 0) ? (unsigned char)letter : letter);
+				if (l == 0x97) {
+					a << "swarm_icon";
+					hack = true;
+				} else {
+					a << l << "_" << trc->fontName;
+				}
 			}
 
 			if (trc->text[i] == ' ' || (i==length-1 && trc->caret.speed > 0 && !trc->caret.show)) {
 				rc->hide = true;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
-				rc->color = trc->color;
+				if (!hack) rc->color = trc->color;
+				else rc->color = Color();
 			}
 			tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
 			x += tc->size.X * 0.5;
