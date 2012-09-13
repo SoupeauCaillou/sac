@@ -74,10 +74,19 @@ void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		TextRenderingComponent* trc = (*it).second;
+
+		// early quit if hidden
+		if (trc->hide) {
+			for (int i=0; i<trc->drawing.size(); i++) {
+				RENDERING(trc->drawing[i])->hide = true;
+				renderingEntitiesPool.push_back(trc->drawing[i]);
+			}
+			trc->drawing.clear();
+			continue;
+		}
+
 		TransformationComponent* trans = TRANSFORM(it->first);
 		bool caret = false;
-		// trans->size = Vector2::Zero;
-
 		// caret blink
 		if (trc->caret.speed > 0) {
 			trc->caret.dt += dt;
