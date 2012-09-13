@@ -544,7 +544,9 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 	#ifndef EMSCRIPTEN
     FileBuffer b;
     if (name2buffer.find(assetName) == name2buffer.end()) {
+    	PROFILE("Music", "loadAsset", BeginEvent);
         b = assetAPI->loadAsset(assetName);
+        PROFILE("Music", "loadAsset", EndEvent);
         if (!b.data) {
 	        LOGE("Unable to load %s", assetName.c_str());
 	        PROFILE("Music", "loadMusicFile", EndEvent);
@@ -569,8 +571,10 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     cb.tell_func = &tell_func;
 
     OggVorbis_File* f = new OggVorbis_File();
+    PROFILE("Music", "ov_open_callbacks", BeginEvent);
     ov_open_callbacks(dataSource, f, 0, 0, cb);
-
+	PROFILE("Music", "ov_open_callbacks", EndEvent);
+    
     MusicInfo info;
     info.ovf = f;
     info.totalTime = ov_time_total(f, -1) * 0.001 + 1; // hum hum
@@ -582,6 +586,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
     LOGI("(music) File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
+    PROFILE("Music", "mutex-section", BeginEvent);
     pthread_mutex_lock(&mutex);
     #ifdef MUSIC_VISU
     int start = assetName.find("audio/") + 6;
@@ -591,6 +596,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     musics[nextValidRef] = info;
     // LOGI("================================ ++ %d => %lu", nextValidRef, musics.size());
     pthread_mutex_unlock(&mutex);
+    PROFILE("Music", "mutex-section", EndEvent);
     // wake-up decompression thread
     pthread_cond_signal(&cond);
 #else

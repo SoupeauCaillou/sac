@@ -8,11 +8,12 @@
 #include <fstream>
 #include <pthread.h>
 #include "Log.h"
-static Json::Value root;
+static Json::Value* root;
 static pthread_mutex_t mutex;
 
 void initProfiler() {
 	pthread_mutex_init(&mutex, 0);
+	root = new Json::Value;
 }
 
 static inline const char* phaseEnum2String(enum ProfilePhase ph) {
@@ -40,18 +41,18 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	sample["args"] = Json::Value(Json::arrayValue);
 	
 	pthread_mutex_lock(&mutex);
-	root["traceEvents"].append(sample);
+	(*root)["traceEvents"].append(sample);
 	pthread_mutex_unlock(&mutex);
 }
 
 void startProfiler() {
 	LOGI("Start profiler");
-	root.clear();
+	root->clear();
 }
 
 void stopProfiler(const std::string& filename) {
 	LOGI("Stop profiler, saving to: %s", filename.c_str());
 	std::ofstream out(filename.c_str());
-	out << root;
+	out << *root;
 }
 #endif
