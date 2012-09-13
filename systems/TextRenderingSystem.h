@@ -52,7 +52,7 @@ struct TextRenderingComponent {
 			caret.show = false;
 			caret.speed = caret.dt = 0;
 		}
-	std::string text, _cache;
+	std::string text;
 	Color color;
 	union {
 		float charHeight;
