@@ -430,6 +430,9 @@ void MusicSystem::oggDecompRunLoop() {
         if (!roomForImprovement) {
         	pthread_cond_wait(&cond, &mutex);
         	// mutex is auto acquired on wake up
+        } else {
+	        pthread_mutex_unlock(&mutex);
+	        pthread_mutex_lock(&mutex);
         }
     }
 }
