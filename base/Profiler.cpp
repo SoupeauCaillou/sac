@@ -10,10 +10,12 @@
 #include "Log.h"
 static Json::Value* root;
 static pthread_mutex_t mutex;
+static bool started;
 
 void initProfiler() {
 	pthread_mutex_init(&mutex, 0);
 	root = new Json::Value;
+	started = false;
 }
 
 static inline const char* phaseEnum2String(enum ProfilePhase ph) {
@@ -28,6 +30,8 @@ static inline const char* phaseEnum2String(enum ProfilePhase ph) {
 }
 
 void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph) {
+	if (!started)
+		return;
 	timespec t1;
 	clock_gettime(CLOCK_REALTIME, &t1);	
 	
@@ -46,13 +50,23 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 }
 
 void startProfiler() {
+	pthread_mutex_lock(&mutex);
+	if (started)
+		return;
 	LOGI("Start profiler");
 	root->clear();
+	started = true;
+	pthread_mutex_unlock(&mutex);
 }
 
 void stopProfiler(const std::string& filename) {
+	pthread_mutex_lock(&mutex);
+	if (!started)
+		return;
 	LOGI("Stop profiler, saving to: %s", filename.c_str());
 	std::ofstream out(filename.c_str());
 	out << *root;
+	started = false;
+	pthread_mutex_unlock(&mutex);
 }
 #endif
