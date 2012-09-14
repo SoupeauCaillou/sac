@@ -1,9 +1,8 @@
 package net.damsy.soupeaucaillou;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
-import net.damsy.soupeaucaillou.heriswap.HeriswapActivity;
-import net.damsy.soupeaucaillou.heriswap.HeriswapSecret;
-import net.damsy.soupeaucaillou.heriswap.R;
+import net.damsy.soupeaucaillou.cars.CarsActivity;
+import net.damsy.soupeaucaillou.cars.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
@@ -47,6 +46,7 @@ public abstract class SacActivity extends SwarmActivity {
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
 
+        /*
         ChartBoost _cb = ChartBoost.getSharedChartBoost(this);
         _cb.setAppId(HeriswapSecret.CB_appId);
         _cb.setAppSignature(HeriswapSecret.CB_AppSignature);
@@ -78,6 +78,7 @@ public abstract class SacActivity extends SwarmActivity {
 		});
 
         _cb.cacheInterstitial();
+        */
 
         mutex = new Object();
 

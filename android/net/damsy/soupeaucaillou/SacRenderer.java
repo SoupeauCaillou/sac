@@ -21,8 +21,6 @@ package net.damsy.soupeaucaillou;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import net.damsy.soupeaucaillou.heriswap.api.StorageAPI;
-
 import com.swarmconnect.Swarm;
 
 import android.content.res.AssetManager;
@@ -161,7 +159,6 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				@Override
 				public void run() {
 					Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());
-					StorageAPI.ensureBestLocalScoresAreOnSwarm();
 				}
 			});
     	}
