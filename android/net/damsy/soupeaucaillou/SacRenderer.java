@@ -158,7 +158,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 	    	activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());
+					// Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());
 				}
 			});
     	}
