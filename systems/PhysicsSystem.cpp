@@ -86,8 +86,11 @@ void PhysicsSystem::DoUpdate(float dt) {
 			while (TRANSFORM(parent)->parent) {
 				parent = TRANSFORM(parent)->parent;
 			}
-			PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
-			PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
+         
+            if (components.find(parent) != components.end()) {
+    			PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
+    			PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
+            }
 		}
     }
 }
