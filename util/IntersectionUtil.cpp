@@ -96,10 +96,10 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
         // all points from B are on the same side
         // if at least one point of A is on the other side we're good
         if (success && j == 4) {
-            int d1 = Vector2::Dot(edge, aPoints[(i+2) % 4] - aPoints[i]);
+            int d1 = SIGN(Vector2::Dot(edge, aPoints[(i+2) % 4] - aPoints[i]));
             if (d1 != side)
                 return false;
-            int d2 = Vector2::Dot(edge, aPoints[(i+3) % 4] - aPoints[i]);
+            int d2 = SIGN(Vector2::Dot(edge, aPoints[(i+3) % 4] - aPoints[i]));
             if (d2 != side)
                 return false;
         }
@@ -121,10 +121,10 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
         // all points from A are on the same side
         // if at least one point of B is on the other side we're good
         if (success && j == 4) {
-            int d1 = Vector2::Dot(edge, bPoints[(i+2) % 4] - bPoints[i]);
+            int d1 = SIGN(Vector2::Dot(edge, bPoints[(i+2) % 4] - bPoints[i]));
             if (d1 != side)
                 return false;
-            int d2 = Vector2::Dot(edge, bPoints[(i+3) % 4] - bPoints[i]);
+            int d2 = SIGN(Vector2::Dot(edge, bPoints[(i+3) % 4] - bPoints[i]));
             if (d2 != side)
                 return false;
         }
