@@ -36,17 +36,14 @@ void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
 	//copy parent property to its sons
     for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = it->first;
-		if (!TRANSFORM(a))
-			continue;
-
-		Entity parent = TRANSFORM(a)->parent;
+        TransformationComponent* bc = (*it).second;
+		Entity parent = bc->parent;
 		if (parent) {
-			TransformationComponent* bc = (*it).second;
 			while (TRANSFORM(parent)->parent) {
 				parent = TRANSFORM(parent)->parent;
 			}
 			const TransformationComponent* pbc = TRANSFORM(bc->parent);
-			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, MathUtil::ToRadians(pbc->worldRotation));
+			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, pbc->worldRotation);
 			bc->worldRotation = pbc->worldRotation + bc->rotation;
 		    bc->z = pbc->z;
 		}
