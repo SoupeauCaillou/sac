@@ -161,7 +161,7 @@ struct Vector2
 	 * Normalizes a vector in place -- retains its direction, but ensures
 	 *  that its magnitude is equal to 1.0. 
 	 */
-	void Normalize();
+	float Normalize();
 	
 	/**
 	 * Get the normalized value for a Vector2 without affecting the original. 

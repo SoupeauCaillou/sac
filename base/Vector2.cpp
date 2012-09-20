@@ -79,7 +79,7 @@ float Vector2::LengthSquared() const
 	return ((value1.X * value2.X) + (value1.Y * value2.Y));
 }
 
-void Vector2::Normalize()
+float Vector2::Normalize()
 {
 	float len = Length();
 
@@ -95,6 +95,7 @@ void Vector2::Normalize()
 	{
 		*this = *this / len;
 	}
+	return len;
 }
 
 /*static*/ Vector2 Vector2::Normalize(const Vector2& value)
