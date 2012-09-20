@@ -2,7 +2,7 @@
 file(
         GLOB_RECURSE
         source_files
-        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../libs/libpng/jni/*.c ../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp
+        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/libpng/jni/*.c ../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp
 )
 
 file(
