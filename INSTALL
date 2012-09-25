@@ -1,0 +1,4 @@
+You'll need to install the following packages to use fully sac engine :
+
+cmake libglew-dev libsqlite3-dev libvorbis-dev libopenal-dev \
+zlib1g-dev libunittest++-dev libglfw-dev
