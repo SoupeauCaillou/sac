@@ -82,8 +82,13 @@ void Game::sacInit(int windowW, int windowH) {
 	initProfiler();
 #endif
 
-	PlacementHelper::ScreenHeight = 10;
-    PlacementHelper::ScreenWidth = PlacementHelper::ScreenHeight * windowW / (float)windowH;
+    if (windowW < windowH) {
+	    PlacementHelper::ScreenHeight = 10;
+        PlacementHelper::ScreenWidth = PlacementHelper::ScreenHeight * windowW / (float)windowH;
+    } else {
+        PlacementHelper::ScreenWidth = 20;
+        PlacementHelper::ScreenHeight = PlacementHelper::ScreenWidth * windowH / (float)windowW;
+    }
     PlacementHelper::WindowWidth = windowW;
     PlacementHelper::WindowHeight = windowH;
     PlacementHelper::GimpWidth = 800.0f;

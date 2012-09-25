@@ -26,7 +26,9 @@ LOCAL_SRC_FILES := \
     base/Log.cpp \
     base/PlacementHelper.cpp \
     base/TimeUtil.cpp \
+    steering/BasicSteeringBehavior.cpp \
     systems/ADSRSystem.cpp \
+    systems/AutonomousAgentSystem.cpp \
     systems/ButtonSystem.cpp \
     systems/ContainerSystem.cpp \
     systems/MorphingSystem.cpp \

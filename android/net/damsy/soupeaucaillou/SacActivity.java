@@ -1,8 +1,7 @@
 package net.damsy.soupeaucaillou;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
-import net.damsy.soupeaucaillou.cars.CarsActivity;
-import net.damsy.soupeaucaillou.cars.R;
+import net.damsy.soupeaucaillou.prototype.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
@@ -11,11 +10,9 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager.LayoutParams;
 
 import com.chartboost.sdk.ChartBoost;
-import com.chartboost.sdk.ChartBoostDelegate;
 import com.swarmconnect.Swarm;
 import com.swarmconnect.SwarmActivity;
 
