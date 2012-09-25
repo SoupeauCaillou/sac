@@ -19,6 +19,7 @@
 
 #include "IntersectionUtil.h"
 #include "../base/MathUtil.h"
+#include "../systems/TransformationSystem.h"
 
 bool IntersectionUtil::pointRectangle(const Vector2& point, const Vector2& rectPos, const Vector2& rectSize) {
 	return (MathUtil::Abs(rectPos.X - point.X) < rectSize.X * 0.5 &&
@@ -130,4 +131,10 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
         }
     }
     return true;
+}
+
+bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1, const TransformationComponent* tc2) {
+    return rectangleRectangle(
+        tc1->position, tc1->size, tc1->rotation,
+        tc2->position, tc2->size, tc2->rotation);
 }
