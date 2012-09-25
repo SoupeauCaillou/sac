@@ -32,7 +32,7 @@ float PlacementHelper::GimpHeight = 0;
 
 #define REF_RATIO (GimpWidth/GimpHeight)
 
-#define HEIGHT_IS_REF true 
+#define HEIGHT_IS_REF (REF_RATIO < 1)
 //(PlacementHelper::ScreenHeight / PlacementHelper::ScreenWidth <= REF_RATIO)
 
 #define WIDTH_RATIO_TO_SCREEN_WIDTH(r) ((r) * ScreenHeight * GimpWidth/GimpHeight)
