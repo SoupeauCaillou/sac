@@ -65,7 +65,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 			}
 			linearAccel /= pc->mass;
 			angAccel /= pc->momentOfInertia;
-			
+
 			// dumb integration
 			pc->linearVelocity += linearAccel * dt;
 			tc->position += pc->linearVelocity * dt;
@@ -90,6 +90,9 @@ void PhysicsSystem::DoUpdate(float dt) {
             if (components.find(parent) != components.end()) {
     			PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
     			PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
+            } else {
+                PHYSICS(a)->linearVelocity = Vector2::Zero;
+                PHYSICS(a)->angularVelocity = 0;
             }
 		}
     }
