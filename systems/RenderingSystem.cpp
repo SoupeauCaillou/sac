@@ -92,6 +92,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 #ifdef USE_VBO
 	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
 	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
+	out.uniformScale = glGetUniformLocation(out.program, "uScale");
 #endif
 
 	glDeleteShader(vs);

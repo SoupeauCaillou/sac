@@ -242,13 +242,15 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		}
 
 		#ifdef USE_VBO
-		rc.position.X /= 2 * rc.halfSize.X;
-		rc.position.Y /= 2 * rc.halfSize.Y;
-		float hW = 0.5 * screenW / (2 * rc.halfSize.X);
-		float hH = 0.5 * screenH / (2 * rc.halfSize.Y);
+		// rc.position.X /= 2 * rc.halfSize.X;
+		// rc.position.Y /= 2 * rc.halfSize.Y;
+		float hW = 0.5 * screenW;
+		float hH = 0.5 * screenH;
 		GLfloat mat[16];
 		loadOrthographicMatrix(-hW - rc.position.X, hW - rc.position.X, -hH - rc.position.Y, hH - rc.position.Y, 0, 1, mat);
-		GL_OPERATION(glUniform1f(effectRefToShader(currentEffect, firstCall).uniformRotation, rc.rotation))
+		GL_OPERATION(glUniform1f(effectRefToShader(currentEffect, firstCall).uniformRotation, -rc.rotation))
+		float scale[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y };
+		GL_OPERATION(glUniform2fv(effectRefToShader(currentEffect, firstCall).uniformScale, 1, scale))
 		GL_OPERATION(glUniformMatrix4fv(effectRefToShader(currentEffect, firstCall).uniformMatrix, 1, GL_FALSE, mat))
 		#else
 		// fill batch

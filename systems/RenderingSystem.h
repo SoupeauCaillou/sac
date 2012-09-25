@@ -208,7 +208,7 @@ struct Shader {
 	GLuint program;
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 	#ifdef USE_VBO
-	GLuint uniformUVScaleOffset, uniformRotation;
+	GLuint uniformUVScaleOffset, uniformRotation, uniformScale;
 	#endif
 };
 
