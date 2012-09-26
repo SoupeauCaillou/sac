@@ -35,6 +35,8 @@ class SteeringBehavior {
 		static Vector2 flee(Entity e, const Vector2& targetPos, float maxSpeed);
 		
 		static Vector2 arrive(Entity e, const Vector2& targetPos, float maxSpeed, float deceleration);
+     
+        static Vector2 arrive(const Vector2& pos, const Vector2& linearVel,const Vector2& targetPos, float maxSpeed, float deceleration);
 		
 		static Vector2 wander(Entity e, WanderParams& params, float maxSpeed);
 };

@@ -13,16 +13,19 @@ Vector2 SteeringBehavior::flee(Entity e, const Vector2& targetPos, float maxSpee
 }
 
 Vector2 SteeringBehavior::arrive(Entity e, const Vector2& targetPos, float maxSpeed, float deceleration) {
-	Vector2 toTarget (targetPos - TRANSFORM(e)->position);
-	
-	float d = toTarget.Normalize();
-	if (d > 0) {
-		float speed = MathUtil::Min(d / deceleration, maxSpeed);
-		
-		Vector2 desiredVelocity(toTarget * speed);
-		return desiredVelocity - PHYSICS(e)->linearVelocity;
-	}
-	return Vector2::Zero;
+	return arrive(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed, deceleration);
+}
+
+Vector2 SteeringBehavior::arrive(const Vector2& pos, const Vector2& linearVel,const Vector2& targetPos, float maxSpeed, float deceleration) {
+    Vector2 toTarget (targetPos - pos);
+    
+    float d = toTarget.Normalize();
+    if (d > 0) {
+        float speed = MathUtil::Min(d / deceleration, maxSpeed);
+        Vector2 desiredVelocity(toTarget * speed);
+        return desiredVelocity - linearVel;
+    }
+    return Vector2::Zero;
 }
 
 Vector2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpeed) {
