@@ -226,6 +226,7 @@ void TextRenderingSystem::DeleteEntity(Entity e) {
 	if (!tc)
 		return;
 	for (unsigned int i=0; i<tc->drawing.size(); i++) {
+        TRANSFORM(tc->drawing[i])->parent = 0;
 		renderingEntitiesPool.push_back(tc->drawing[i]);
 		RENDERING(tc->drawing[i])->hide = true;
 	}
