@@ -36,6 +36,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 	nextValidRef = nextEffectRef = 1;
 	opengles2 = false;
 	currentWriteQueue = 0;
+    cameraPosition = Vector2::Zero; 
 #ifndef EMSCRIPTEN
 	pthread_mutex_init(&mutexes, 0);
 	pthread_cond_init(&cond, 0);
@@ -275,11 +276,15 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 
 	RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
+    RenderCommand dummy;
+    dummy.texture = BeginFrameMarker;
+    dummy.halfSize = cameraPosition;
+    outQueue.commands.push(dummy);
+
 	for(std::vector<RenderCommand>::iterator it=opaqueCommands.begin(); it!=opaqueCommands.end(); it++) {
 		outQueue.commands.push(*it);
 	}
 
-	RenderCommand dummy;
 	dummy.texture = DisableZWriteMarker;
 	outQueue.commands.push(dummy);
 
@@ -345,6 +350,7 @@ bool RenderingSystem::isEntityVisible(Entity e) {
 }
 
 bool RenderingSystem::isVisible(TransformationComponent* tc) {
+    assert(false && "TODO use cameraPosition");
 	const Vector2 halfSize = tc->size * 0.5;
 	const Vector2& pos = tc->worldPosition;
 

@@ -112,11 +112,11 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color) {
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Vector2& camPos) {
 	const Shader& shader = effectRefToShader(ref, _firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
-	loadOrthographicMatrix(-screenW*0.5, screenW*0.5, -screenH * 0.5, screenH * 0.5, 0, 1, mat);
+	loadOrthographicMatrix(-screenW*0.5 + camPos.X, screenW*0.5 + camPos.X, -screenH * 0.5 + camPos.Y, screenH * 0.5 + camPos.Y, 0, 1, mat);
 	GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
@@ -134,6 +134,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
+    Vector2 camPos(Vector2::Zero);
 	int batchSize = 0;
 
 	GL_OPERATION(glDepthMask(true))
@@ -145,13 +146,16 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 
 	firstCall = true;
 	
-	EffectRef currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor);
+	EffectRef currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
 	
     while (!commands.empty()) {
 
 		RenderCommand& rc = commands.front();
-
-		if (rc.texture == EndFrameMarker) {
+        if (rc.texture == BeginFrameMarker) {
+            camPos = rc.halfSize;
+            commands.pop();
+            continue;
+        } else if (rc.texture == EndFrameMarker) {
 			// LOGW("Frame drawn: %u", commands.front().rotateUV);
 			commands.pop();
 			break;
@@ -173,7 +177,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 			GL_OPERATION(glEnable(GL_BLEND))
 			
 			if (currentEffect == DefaultEffectRef) {
-				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor);
+				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
 			}
 			continue;
 		} else if (rc.effectRef != currentEffect) {
@@ -186,7 +190,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				#endif
 				batchSize = 0;
 			}
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor);
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camPos);
 		}
 
 		if (rc.texture != InvalidTextureRef) {
@@ -247,7 +251,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		float hW = 0.5 * screenW;
 		float hH = 0.5 * screenH;
 		GLfloat mat[16];
-		loadOrthographicMatrix(-hW - rc.position.X, hW - rc.position.X, -hH - rc.position.Y, hH - rc.position.Y, 0, 1, mat);
+		loadOrthographicMatrix(-hW - rc.position.X + camPos.X, hW - rc.position.X + camPos.X, -hH - rc.position.Y + camPos.Y, hH - rc.position.Y + camPos.Y, 0, 1, mat);
 		GL_OPERATION(glUniform1f(effectRefToShader(currentEffect, firstCall).uniformRotation, -rc.rotation))
 		float scale[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y };
 		GL_OPERATION(glUniform2fv(effectRefToShader(currentEffect, firstCall).uniformScale, 1, scale))

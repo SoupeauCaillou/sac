@@ -45,6 +45,7 @@ typedef int TextureRef;
 #define InvalidTextureRef -1
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
+#define BeginFrameMarker -12
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
 #define CHECK_GL_ERROR
@@ -190,6 +191,7 @@ std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
+Vector2 cameraPosition;
 
 int currentWriteQueue;
 RenderQueue renderQueue[2]; //
@@ -238,7 +240,7 @@ GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& 
 public:
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color);
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Vector2& camPos);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
 enum {
     ATTRIB_VERTEX = 0,
