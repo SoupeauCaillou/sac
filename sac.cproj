@@ -89,6 +89,7 @@
     <Compile Include="base\Profiler.cpp" />
     <Compile Include="systems\AutonomousAgentSystem.cpp" />
     <Compile Include="steering\BasicSteeringBehavior.cpp" />
+    <Compile Include="systems\AnimationSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -169,6 +170,7 @@
     <None Include="base\Profiler.h" />
     <None Include="systems\AutonomousAgentSystem.h" />
     <None Include="steering\SteeringBehavior.h" />
+    <None Include="systems\AnimationSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

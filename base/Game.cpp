@@ -14,6 +14,7 @@
 #include "systems/ScrollingSystem.h"
 #include "systems/MorphingSystem.h"
 #include "systems/AutonomousAgentSystem.h"
+#include "systems/AnimationSystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
 #include <sstream>
@@ -36,6 +37,7 @@ Game::Game() {
     ScrollingSystem::CreateInstance();
     MorphingSystem::CreateInstance();
     AutonomousAgentSystem::CreateInstance();
+    AnimationSystem::CreateInstance();
 }
 
 Game::~Game() {
@@ -56,6 +58,7 @@ Game::~Game() {
     ScrollingSystem::DestroyInstance();
     MorphingSystem::DestroyInstance();
     AutonomousAgentSystem::DestroyInstance();
+    AnimationSystem::DestroyInstance();
 }
 
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
