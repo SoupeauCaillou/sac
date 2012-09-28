@@ -20,6 +20,7 @@
 #include "IntersectionUtil.h"
 #include "../base/MathUtil.h"
 #include "../systems/TransformationSystem.h"
+#include <cmath>
 
 bool IntersectionUtil::pointRectangle(const Vector2& point, const Vector2& rectPos, const Vector2& rectSize) {
 	return (MathUtil::Abs(rectPos.X - point.X) < rectSize.X * 0.5 &&
@@ -65,6 +66,11 @@ bool IntersectionUtil::lineLine(const Vector2& pA, const Vector2& pB, const Vect
 
 bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2& rectASize, float rectARot, 
             const Vector2& rectBPos, const Vector2& rectBSize, float rectBRot) {
+    // quick out
+    if (Vector2::DistanceSquared(rectAPos, rectBPos) > pow(MathUtil::Max(rectASize.X, rectASize.Y) + MathUtil::Max(rectBSize.X, rectBSize.Y), 2)) {
+        return false;
+    }
+    
     #define SIGN(x) ((x) > 0 ? 1:-1)
     const float coeff[] = {
         -0.5, 0.5,            
