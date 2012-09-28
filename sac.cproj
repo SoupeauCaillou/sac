@@ -90,6 +90,7 @@
     <Compile Include="systems\AutonomousAgentSystem.cpp" />
     <Compile Include="steering\BasicSteeringBehavior.cpp" />
     <Compile Include="systems\AnimationSystem.cpp" />
+    <Compile Include="systems\NetworkSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -171,6 +172,8 @@
     <None Include="systems\AutonomousAgentSystem.h" />
     <None Include="steering\SteeringBehavior.h" />
     <None Include="systems\AnimationSystem.h" />
+    <None Include="api\NetworkAPI.h" />
+    <None Include="systems\NetworkSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

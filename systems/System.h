@@ -93,7 +93,7 @@ class ComponentSystemImpl: public ComponentSystem {
 
 		void Add(Entity entity) {
 			assert (components.find(entity) == components.end());
-			components.insert(std::make_pair(entity, new T()));
+			components.insert(std::make_pair(entity, CreateComponent()));
 		}
 
 		void Delete(Entity entity) {
@@ -104,14 +104,16 @@ class ComponentSystemImpl: public ComponentSystem {
 			}
 		}
 
-		T* Get(Entity entity) {
+		T* Get(Entity entity, bool failIfNotfound = true) {
             if (entity != previous) {
     			typename std::map<Entity, T*>::iterator it = components.find(entity);
     			if (it == components.end()) {
-    				LOGE("Entity %lu has no component of type '%s'", entity, name.c_str());
                     #ifndef ANDROID
                     // crash here
-                    assert (false);
+                    if (failIfNotfound) {
+                        LOGE("Entity %lu has no component of type '%s'", entity, name.c_str());
+                        assert (false);
+                    }
                     #endif
     				return 0;
     			}
@@ -141,10 +143,13 @@ class ComponentSystemImpl: public ComponentSystem {
 		}
 
 		void deserialize(Entity entity, uint8_t* in, int size) {
-			T* component = new T();
-			if (size != sizeof(T)) {
+			T* component = Get(entity, false);
+            if (!component) component = new T();
+			if (size > 0 && size != sizeof(T)) {
 				LOGW("error in size: %d", size); // != %z", size, sizeof(T));
-			}
+			} else {
+                size = sizeof(T);
+            }
 			memcpy(component, in, size);
 			components[entity] = component;
 		}
@@ -156,6 +161,10 @@ class ComponentSystemImpl: public ComponentSystem {
 		bool IsActive() const { return active; }
 
 	protected:
+        virtual T* CreateComponent() {
+            return new T();
+        }
+ 
 		bool active;
 
 		std::map<Entity, T*> components;

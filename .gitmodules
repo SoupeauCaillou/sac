@@ -1,3 +1,6 @@
 [submodule "libs/tremor"]
 	path = libs/tremor
 	url = git://git.xiph.org/tremor.git
+[submodule "libs/enet"]
+	path = libs/enet
+	url = git://github.com/lsalzman/enet.git
