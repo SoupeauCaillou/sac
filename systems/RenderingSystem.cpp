@@ -204,6 +204,8 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	#endif
 	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
+    const float camLeft = (cameraPosition.X - screenW * 0.5);
+    const float camRight = (cameraPosition.X + screenW * 0.5);
 	/* render */
 	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
 		Entity a = (*it).first;
@@ -225,6 +227,25 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 		c.rotation = tc->worldRotation;
 		c.uv[0] = Vector2::Zero;
 		c.uv[1] = Vector2(1, 1);
+
+        if (c.rotation == 0) {
+            // left culling !
+            float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+            if (cullLeftX > 0) {
+                c.uv[0].X = cullLeftX / tc->size.X;
+                c.uv[1].X -= cullLeftX / tc->size.X;
+                c.halfSize.X -= 0.5 * cullLeftX;
+                c.position.X += 0.5 * cullLeftX;
+            }
+            // right culling !
+            float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+            if (cullRightX > 0) {
+                c.uv[1].X -= cullRightX / tc->size.X;
+                c.halfSize.X -= 0.5 * cullRightX;
+                c.position.X -= 0.5 * cullRightX;
+                c.color.r = 0;
+            }
+        }
 
         if (c.texture != InvalidTextureRef) {
             TextureInfo& info = textures[c.texture];
@@ -255,10 +276,10 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
 	         	cA.position.Y = (tc->worldPosition + Vector2::Rotate(Vector2(0, cU.halfSize.Y), c.rotation)).Y;
 	         	cU.position.Y = (tc->worldPosition - Vector2::Rotate(Vector2(0, cA.halfSize.Y), c.rotation)).Y;
-	         	cA.uv[0] = Vector2(0, cU.halfSize.Y / c.halfSize.Y); // offset;
-	         	cA.uv[1] = Vector2(1, cA.halfSize.Y / c.halfSize.Y); // scale;
-	         	cU.uv[0] = Vector2::Zero;
-	         	cU.uv[1] = Vector2(1, cU.halfSize.Y / c.halfSize.Y); // scale;
+	         	cA.uv[0].Y = cU.halfSize.Y / c.halfSize.Y; // offset;
+	         	cA.uv[1].Y = cA.halfSize.Y / c.halfSize.Y; // scale;
+	         	cU.uv[0].Y = 0;
+	         	cU.uv[1].Y = cU.halfSize.Y / c.halfSize.Y; // scale;
 	         	if (rc->opaqueType == RenderingComponent::OPAQUE_ABOVE) {
 		         	semiOpaqueCommands.push_back(cU);
 		         	opaqueCommands.push_back(cA);
@@ -350,9 +371,8 @@ bool RenderingSystem::isEntityVisible(Entity e) {
 }
 
 bool RenderingSystem::isVisible(TransformationComponent* tc) {
-    assert(false && "TODO use cameraPosition");
 	const Vector2 halfSize = tc->size * 0.5;
-	const Vector2& pos = tc->worldPosition;
+	Vector2 pos = tc->worldPosition - cameraPosition;
 
 	if (pos.X + halfSize.X < -screenW*0.5)
 		return false;

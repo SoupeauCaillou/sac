@@ -153,6 +153,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 		RenderCommand& rc = commands.front();
         if (rc.texture == BeginFrameMarker) {
             camPos = rc.halfSize;
+            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
             commands.pop();
             continue;
         } else if (rc.texture == EndFrameMarker) {
