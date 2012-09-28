@@ -18,16 +18,20 @@
 */
 #pragma once
 
-struct NetworkPacket {
-    int size;
-    uint8_t* data;
-};
+#include "../ExitAPI.h"
 
-class NetworkAPI {
+class NetworkAPILinuxImpl : public NetworkAPI {
     public:
+        NetworkAPILinuxImpl();
+
         void connectToLobby(const std::string& nickName, const char* addr);
         bool isConnectedToAnotherPlayer();
 
         NetworkPacket pullReceivedPacket();
         void sendPacket(NetworkPacket packet);
+
+        void runLobbyThread();
+    private:
+        class NetworkAPILinuxImplDatas;
+        NetworkAPILinuxImplDatas* datas;
 };

@@ -36,7 +36,7 @@ struct NetworkMessageHeader {
         UpdateEntity
     } type;
     unsigned int entityGuid;
-    
+
     union {
         struct {
 

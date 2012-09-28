@@ -91,6 +91,8 @@
     <Compile Include="steering\BasicSteeringBehavior.cpp" />
     <Compile Include="systems\AnimationSystem.cpp" />
     <Compile Include="systems\NetworkSystem.cpp" />
+    <Compile Include="api\linux\NetworkAPILinuxImpl.cpp" />
+    <Compile Include="tools\lobby\LobbyServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -174,10 +176,12 @@
     <None Include="systems\AnimationSystem.h" />
     <None Include="api\NetworkAPI.h" />
     <None Include="systems\NetworkSystem.h" />
+    <None Include="api\linux\NetworkAPILinuxImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
     <Folder Include="util\" />
     <Folder Include="steering\" />
+    <Folder Include="tools\lobby\" />
   </ItemGroup>
 </Project>

@@ -16,18 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-struct NetworkPacket {
-    int size;
-    uint8_t* data;
-};
-
-class NetworkAPI {
-    public:
-        void connectToLobby(const std::string& nickName, const char* addr);
-        bool isConnectedToAnotherPlayer();
-
-        NetworkPacket pullReceivedPacket();
-        void sendPacket(NetworkPacket packet);
-};
+int main(int argc, char** argv) {
+ 
+}
