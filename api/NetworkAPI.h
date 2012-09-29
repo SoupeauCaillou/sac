@@ -17,6 +17,8 @@
  along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#include <stdint.h>
+#include <string>
 
 struct NetworkPacket {
     int size;
@@ -25,9 +27,9 @@ struct NetworkPacket {
 
 class NetworkAPI {
     public:
-        void connectToLobby(const std::string& nickName, const char* addr);
-        bool isConnectedToAnotherPlayer();
+        virtual void connectToLobby(const std::string& nickName, const char* addr) = 0;
+        virtual bool isConnectedToAnotherPlayer() = 0;
 
-        NetworkPacket pullReceivedPacket();
-        void sendPacket(NetworkPacket packet);
+        virtual NetworkPacket pullReceivedPacket() = 0;
+        virtual void sendPacket(NetworkPacket packet) = 0;
 };

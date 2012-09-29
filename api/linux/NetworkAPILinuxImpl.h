@@ -18,7 +18,7 @@
 */
 #pragma once
 
-#include "../ExitAPI.h"
+#include "../NetworkAPI.h"
 
 class NetworkAPILinuxImpl : public NetworkAPI {
     public:

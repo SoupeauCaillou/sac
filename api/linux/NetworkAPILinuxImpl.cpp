@@ -18,30 +18,38 @@
 */
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
+#include "../../base/Log.h"
+#include <cstring>
+#include <arpa/inet.h>
 
-class NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
+struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
     NetworkAPILinuxImplDatas() : lobbyClient(0) {}
+
     std::string lobbyNickName;
     pthread_t lobbyThread;
     std::string lobbyServer;
     ENetHost * lobbyClient;
+    ENetPeer *lobbyPeer;
 
     
 };
 
+static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags);
+
 struct LobbyPacket {
     uint8_t nameLength;
     unsigned int remoteIp;
-    unsigned short remotePort;
+    unsigned short remotePort, localPort;
 };
 
 NetworkAPILinuxImpl::NetworkAPILinuxImpl() {
     datas = new NetworkAPILinuxImplDatas();
 }
 
-static void startLobbyThread(void* p) {
+static void* startLobbyThread(void* p) {
     NetworkAPILinuxImpl* ptr = static_cast<NetworkAPILinuxImpl*> (p);
     ptr->runLobbyThread();
+    return 0;
 }
 
 void NetworkAPILinuxImpl::runLobbyThread() {
@@ -56,10 +64,11 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     }
     ENetAddress address;
     ENetEvent event;
-    enet_address_set_host (&address, addr);
+    enet_address_set_host (&address, datas->lobbyServer.c_str());
     address.port = 54321;
     
-    peer = enet_host_connect (datas->lobbyClient, &address, 2, 0);
+    LOGI("Trying to connect to loby server: %s:%d", datas->lobbyServer.c_str(), address.port);
+    datas->lobbyPeer = enet_host_connect (datas->lobbyClient, &address, 2, 0);
     if (enet_host_service (datas->lobbyClient, &event, 50000) > 0) {
         LOGI("Connection to lobby successful");
     } else {
@@ -76,26 +85,33 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     nickPkt.data[0] = (uint8_t)datas->lobbyNickName.length();
     memcpy(&nickPkt.data[1], datas->lobbyNickName.c_str(), datas->lobbyNickName.length());
     
+    enet_peer_send(datas->lobbyPeer, 0, convertPacket(nickPkt, ENET_PACKET_FLAG_RELIABLE));
+    enet_host_flush(datas->lobbyClient);
+    
+    sendPacket(nickPkt);
+    
     bool failure = false;
     while (!failure) {
         int ret = enet_host_service(datas->lobbyClient, &event, 0);
         
         if (ret < 0) {
-            failure  true;
+            failure  = true;
         } else {
             switch(event.type) {
                 case ENET_EVENT_TYPE_NONE :
                     break;
                 case ENET_EVENT_TYPE_RECEIVE: {
-                    LobbyPacket* pkt = event.packet->data;
+                    LobbyPacket* pkt = (LobbyPacket*)event.packet->data;
                     char tmp[256], tmp2[INET_ADDRSTRLEN];
                     memcpy(tmp, &event.packet->data[sizeof(LobbyPacket)], pkt->nameLength);
                     tmp[pkt->nameLength] = '\0';
                     struct in_addr ad;
                     ad.s_addr = pkt->remoteIp;
-                    LOGI("Other player: '%s' @ %s:%d", tmp, inet_ntop(AF_INET, &ad.s_addr, tmp2, INET_ADDRSTRLEN), pkt->remotePort);
+                    LOGI("Other player: '%s' @ %s:%d. Local port: %d", tmp, inet_ntop(AF_INET, &ad.s_addr, tmp2, INET_ADDRSTRLEN), pkt->remotePort, pkt->localPort);
                     break;
                 }
+                default:
+                    break;
             }
         }
     }
@@ -123,5 +139,9 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
 }
 
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {
- 
+    
+}
+
+static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags) {
+    return enet_packet_create(pkt.data, pkt.size, flags);
 }

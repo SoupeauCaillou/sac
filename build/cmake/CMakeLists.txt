@@ -31,3 +31,12 @@ file(
 
 add_executable(texture_packer ${texture_packer_source})
 target_link_libraries(texture_packer sac z)
+
+file(
+	GLOB_RECURSE
+	lobby_server_source_files
+	../../tools/lobby/*.cpp	../../tools/lobby/*.h
+)
+
+add_executable(lobby_server ${lobby_server_source_files})
+target_link_libraries(lobby_server sac z)
