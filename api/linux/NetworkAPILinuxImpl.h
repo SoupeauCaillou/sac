@@ -34,4 +34,7 @@ class NetworkAPILinuxImpl : public NetworkAPI {
     private:
         class NetworkAPILinuxImplDatas;
         NetworkAPILinuxImplDatas* datas;
+
+        bool connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort);
+        bool connectToOtherPlayerClientMode(const char* addr, uint16_t remotePort);
 };

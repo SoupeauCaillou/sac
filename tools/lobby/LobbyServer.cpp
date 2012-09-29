@@ -21,14 +21,24 @@
 #include "base/MathUtil.h"
 #include <map>
 #include <cstring>
+#include <list>
+#include <vector>
 
+#define NICKNAME_PKT 1
+#define PORT_PKT 2
 struct LobbyPacket {
-    uint8_t nameLength;
+    uint8_t type, nameLength, server;
     unsigned int remoteIp;
     unsigned short remotePort, localPort;
 };
 
-static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB);
+struct MatchMaking {
+    ENetPeer* serverModePeer;
+    ENetPeer* clientModePeer;
+    uint16_t serverPort;
+};
+
+static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB, bool server);
 
 int main(int argc, char** argv) {
     ENetAddress address;
@@ -42,6 +52,8 @@ int main(int argc, char** argv) {
                                   0      /* assume any amount of outgoing bandwidth */);
 
     std::map<ENetPeer*, std::string> peer2Name;
+    std::list<ENetPeer*> peerWaiting;
+    std::vector<MatchMaking> inProgress;
     ENetEvent event;
     while (enet_host_service(server, &event, 1000) >= 0) {
         switch (event.type) {
@@ -57,48 +69,81 @@ int main(int argc, char** argv) {
             }
             case ENET_EVENT_TYPE_RECEIVE: {
                 ENetPacket * packet = event.packet;
-                uint8_t length = packet->data[0];
-                char tmp[256];
-                memcpy(tmp, &packet->data[1], length);
-                tmp[length] = 0;
-                std::cout << "Client name: '" << tmp << "'" << std::endl;
-                peer2Name[event.peer] = tmp;
-                break;
+                uint8_t type = packet->data[0];
+                
+                if (type == PORT_PKT) {
+                    uint16_t port;
+                    memcpy(&port, &packet->data[1], sizeof(port));
+                    port = ntohs(port);
+                    
+                    for (int i=0; i<inProgress.size(); i++) {
+                        if (inProgress[i].clientModePeer == event.peer) {
+                            std::cout << "Received client mode local port (" << port << ")" << std::endl;
+                            // create packet for player2
+                            ENetPacket* p2 = peerAndNickToPacket(
+                                inProgress[i].clientModePeer,
+                                peer2Name[inProgress[i].clientModePeer],
+                                port,
+                                inProgress[i].serverPort,
+                                true);
+                            enet_peer_send(inProgress[i].serverModePeer, 0, p2);
+                            
+                            inProgress.erase(inProgress.begin() + i);
+                        }
+                    }
+                } else if (type == NICKNAME_PKT) {
+                    peerWaiting.push_back(event.peer);
+                    uint8_t length = packet->data[1];
+                    char tmp[256];
+                    memcpy(tmp, &packet->data[2], length);
+                    tmp[length] = 0;
+                    std::cout << "Client name: '" << tmp << "'" << std::endl;
+                    peer2Name[event.peer] = tmp;
+                    break;
+                } else {
+                    std::cout << "Ingored packet type : " << (int)type << std::endl;
+                }
             }
         }
         // if we have 2 players with a name : connect them
-        if (peer2Name.size() >= 2) {
+        if (peerWaiting.size() >= 2) {
             std::cout << "Matchmaking in progress !" << std::endl;
             int portA = MathUtil::RandomIntInRange(55000, 56000);
             int portB = MathUtil::RandomIntInRange(55000, 56000);
-            std::map<ENetPeer*, std::string>::iterator it = peer2Name.begin();
-            // create packet for player1
-            ENetPacket* p1 = peerAndNickToPacket(it->first, it->second, portA, portB);
-            std::cout << "   -> '" << it->second << "' versus '";
-            ++it;
-            // create packet for player2
-            ENetPacket* p2 = peerAndNickToPacket(it->first, it->second, portB, portA);
-            std::cout << it->second << "'" << std::endl;
-            
-            enet_peer_send(it->first, 0, p1);
-            enet_peer_send(peer2Name.begin()->first, 0, p2);
-            
-            peer2Name.erase(peer2Name.begin());
-            peer2Name.erase(peer2Name.begin());
-            
+            MatchMaking match;
+
+            std::list<ENetPeer*>::iterator it = peerWaiting.begin();
+            match.clientModePeer = *it;
+            peerWaiting.erase(it);
+            it = peerWaiting.begin();
+            match.serverModePeer = *it;
+            peerWaiting.erase(it);
+            match.serverPort = portA;
+
+            // send packet to client player
+            ENetPacket* p = peerAndNickToPacket(match.serverModePeer, peer2Name[match.serverModePeer], match.serverPort, 0, false);
+            std::cout << "   -> '" << peer2Name[match.serverModePeer] << "' (S) versus '";
+
+            inProgress.push_back(match);
+
+            std::cout << peer2Name[match.clientModePeer] << "'" << std::endl;
+            std::cout << "Send connection info to client" << std::endl;
+            enet_peer_send(match.clientModePeer, 0, p);
+
             enet_host_flush(server);
         }
     }
     return 0;
 }
 
-static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB) {
+static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB, bool server) {
     uint8_t buffer[1024];
     LobbyPacket* pkt = (LobbyPacket*)&buffer;
     pkt->nameLength = (uint8_t)name.size();
     pkt->remoteIp = peer->address.host;
     pkt->remotePort = portA;
     pkt->localPort = portB;
+    pkt->server = server;
     memcpy(&buffer[sizeof(LobbyPacket)], name.c_str(), name.size());
     return enet_packet_create(buffer, sizeof(LobbyPacket) + name.size(), ENET_PACKET_FLAG_RELIABLE);
 }
