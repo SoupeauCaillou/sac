@@ -41,6 +41,8 @@ struct MatchMaking {
 static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB, bool server);
 
 int main(int argc, char** argv) {
+    enet_initialize();
+
     ENetAddress address;
     address.host = ENET_HOST_ANY;
     address.port = 54321;
