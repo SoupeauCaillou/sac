@@ -280,11 +280,35 @@ bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() {
 }
 
 NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
- 
+    NetworkPacket result;
+    result.size = 0;
+    ENetEvent event;
+    int ret = enet_host_service(datas->match.host, &event, 0);
+    if (ret < 0) {
+        LOGE("enet_host_service error");
+    } else if (ret == 0) {
+        // nothing received
+    } else {
+        switch (event.type) {
+            case ENET_EVENT_TYPE_DISCONNECT:
+                // probably some cleanup is needed here
+                LOGW("Disconnect even received");
+                datas->match.connected = false;
+                break;
+            case ENET_EVENT_TYPE_CONNECT:
+                result.size = event.packet->dataLength;
+                result.data = new uint8_t[event.packet->dataLength];
+                memcpy(result.data, event.packet->data, result.size);
+                break;
+            default:
+                break;
+        }
+    }
+    return result;
 }
 
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {
-    
+    enet_peer_send(datas->match.peer, 0, convertPacket(packet, 0));
 }
 
 static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags) {
