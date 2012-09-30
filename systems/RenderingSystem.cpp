@@ -228,7 +228,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 		c.uv[0] = Vector2::Zero;
 		c.uv[1] = Vector2(1, 1);
 
-        if (c.rotation == 0) {
+        if (c.rotation == 0 && rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
             // left culling !
             float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
             if (cullLeftX > 0) {
@@ -243,7 +243,6 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                 c.uv[1].X -= cullRightX / tc->size.X;
                 c.halfSize.X -= 0.5 * cullRightX;
                 c.position.X -= 0.5 * cullRightX;
-                c.color.r = 0;
             }
         }
 
