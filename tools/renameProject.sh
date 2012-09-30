@@ -20,15 +20,15 @@ oldNameUpper=`echo $2 | tr -d " " | sed 's/^./\u&/'`
 newNameUpper=`echo $3 | tr -d " " | sed 's/^./\u&/'`
 
 #vérifie que le path de départ existe
-path="$1"
-if [ ! -e "$path" ]; then
-	echo "$path doesn't exist ! Abort."
+oldPath="$1"
+if [ ! -e "$oldPath" ]; then
+	echo "$oldPath doesn't exist ! Abort."
 	echo "\tUsage : sh renameProject.sh pathOfGame oldName newName"
 	exit
 fi
 
 #vérifie que le path d'arrivée N'EXISTE PAS
-newpath=`cd $path && cd .. && pwd`/$newNameLower
+newpath=`cd $oldPath && cd .. && pwd`/$newNameLower
 if [ -e "$newpath" ]; then
 	echo "$newpath already exist ! Please delete it to continue! Abort."
 	exit
@@ -39,42 +39,53 @@ echo "* WARNING : don't use a common name else you could overwrite wrong files  
 echo "* Eg : don't call it \"test\" or each files TestPhysics.cpp,... will be renamed!    *"
 echo "* Continue ? (y/N) ?                                                              *"
 echo "***********************************************************************************"
-read continue
-if [[ "$continue" != "y" && "$continue" != "Y" ]]; then
+read confirm
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
     echo "abort"
     exit
 fi
 
-#now go to the path
-cd $path
+#now go to the oldPath
+cd $oldPath
 
 #rename files and dir
+#add dir to ignore. Ex :my-dir-to-ignore/
+IGNOREDIR=".git/ bin/ sac/ gen/ libs/"
+IGNOREDIR=`echo $IGNOREDIR | sed 's/ / | grep -v \//g'`
+IGNOREDIR="grep -v /"$IGNOREDIR
+#IGNOREDIR="grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | ..." now
+
 #first directory in reverse order (rename protype/ before prototype/prototype.cpp )
 todo=""
-for i in `find . -type d | grep -i $oldNameLower`; do
+for i in `find . -type d | grep -i $oldNameLower | $IGNOREDIR`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
-    
+
     echo "Renaming directory $i to $new"
     todo="mv $i $new; "$todo
 done
 `$todo`
 #then files
-for i in `find . -type f  | grep -i $oldNameLower`; do
+for i in `find . -type f  | grep -i $oldNameLower | $IGNOREDIR`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
-    
+
     echo "Renaming file $i to $new"
     mv $i $new
 done
 
 #rename in files (ignoring files in sac/ )
-for i in `find . -type f | grep -v "/sac/" | cut -d/ -f2-`; do
+for i in `find . -type f | $IGNOREDIR | cut -d/ -f2-`; do
 	sed -i 's/$oldNameLower/$newNameLower/g' $i
 	sed -i 's/$oldNameUpper/$newNameUpper/g' $i
 done
 
-#rename the root dir
-cd ..
-echo "Renaming root dir : mv `echo $path | tr -d /` $newNameLower"
-mv `echo $path | tr -d /` $newNameLower
+#rename the root dir ?
+echo "Want to rename the root dir ? (y/N)"
+read confirm
+if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+    cd ..
+    count=`echo $oldPath | tr -c -d /  | wc -c`
+    echo "Renaming root dir : mv `echo $oldPath | cut -d/ -f $count` $newNameLower"
+    mv `echo $oldPath | cut -d/ -f $count` $newNameLower
+fi
