@@ -32,6 +32,9 @@ struct NetworkComponent {
 UPDATABLE_SYSTEM(Network)
 
 public:
+    void deleteAllNonLocalEntities();
+
+public:
     NetworkAPI* networkAPI;
     
 protected:

@@ -54,11 +54,13 @@ static NetworkComponentPriv* guidToComponent(unsigned int guid);
 
 INSTANCE_IMPL(NetworkSystem);
  
-NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network") { 
+NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) { 
  
 }
 
 void NetworkSystem::DoUpdate(float dt) {
+    if (!networkAPI)
+        return;
     // Pull packets from networkAPI
     {
         NetworkPacket pkt;
@@ -184,4 +186,18 @@ Entity NetworkSystem::guidToEntity(unsigned int guid) {
     }
     LOGE("Did not find entity with guid: %u", guid);
     return 0;
+}
+
+void NetworkSystem::deleteAllNonLocalEntities() {
+    int count = 0;
+    for(ComponentIt it=components.begin(); it!=components.end(); ) {
+        Entity e = it->first;
+        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
+        ++it;
+        if (!nc->ownedLocally) {
+            theEntityManager.DeleteEntity(e);
+            count++;
+        }
+    }
+    LOGI("Removed %d non local entities", count);
 }
