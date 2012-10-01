@@ -329,7 +329,7 @@ static NetworkPacket createNickNamePacket(const std::string& nickName) {
     nickPkt.data = new uint8_t[nickPkt.size];
     nickPkt.data[0] = NICKNAME_PKT;
     nickPkt.data[1] = (uint8_t)nickName.length();
-    memcpy(&nickPkt.data[1], nickName.c_str(), nickName.length());
+    memcpy(&nickPkt.data[2], nickName.c_str(), nickName.length());
     return nickPkt;
 }
 
