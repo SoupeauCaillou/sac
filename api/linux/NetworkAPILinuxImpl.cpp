@@ -40,7 +40,7 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
     struct {
         ENetHost* host;
         ENetPeer* peer;
-        bool connected;
+        bool connected, masterMode;
     } match;
 
     
@@ -70,7 +70,7 @@ static void* startLobbyThread(void* p) {
 }
 
 void NetworkAPILinuxImpl::runLobbyThread() {
-    datas->match.connected = false;
+    datas->match.connected = datas->match.masterMode = false;
     datas->lobby.client = enet_host_create (NULL /* create a client host */,
         1 /* only allow 1 outgoing connection */,
         2 /* allow up 2 channels to be used, 0 and 1 */,
@@ -147,10 +147,12 @@ void NetworkAPILinuxImpl::runLobbyThread() {
             LOGI("Starting network game in SERVER mode (remote player{name:%s addr:%s:%d ; localPort: %d)",
                 remoteName.c_str(), remoteAddr.c_str(), remotePort, localPort);
             datas->match.connected = connectToOtherPlayerServerMode(remoteAddr.c_str(), remotePort, localPort);
+            datas->match.masterMode = datas->match.connected;
         } else {
             LOGI("Starting network game in CLIENT mode (remote player{name:%s addr:%s:%d)",
                 remoteName.c_str(), remoteAddr.c_str(), remotePort);
             datas->match.connected = connectToOtherPlayerClientMode(remoteAddr.c_str(), remotePort);
+            datas->match.masterMode = false;
         }
     } else {
         enet_host_destroy(datas->lobby.client);
@@ -282,6 +284,8 @@ bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() {
 NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
     NetworkPacket result;
     result.size = 0;
+    if (datas->match.host == 0)
+        return result;
     ENetEvent event;
     int ret = enet_host_service(datas->match.host, &event, 0);
     if (ret < 0) {
@@ -309,6 +313,10 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
 
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {
     enet_peer_send(datas->match.peer, 0, convertPacket(packet, 0));
+}
+
+bool NetworkAPILinuxImpl::amIGameMaster() {
+    return datas->match.masterMode;
 }
 
 static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags) {

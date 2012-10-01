@@ -131,6 +131,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			RenderingComponent* rc = RENDERING(trc->drawing[i]);
 			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
 			tc->parent = it->first;
+            tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
 
 			if (rc->hide)

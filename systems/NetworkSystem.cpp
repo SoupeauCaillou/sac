@@ -138,7 +138,9 @@ void NetworkSystem::DoUpdate(float dt) {
             // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
             for (std::map<std::string, float>::iterator jt = nc->systemUpdatePeriod.begin(); jt!=nc->systemUpdatePeriod.end(); ++jt) {
                 float& accum = nc->lastUpdateAccum[jt->first];
-                accum += dt;
+                
+                if (accum >= 0)
+                    accum += dt;
                 // time to update
                 if (accum >= jt->second) {
                     ComponentSystem* system = ComponentSystem::Named(jt->first);
@@ -151,6 +153,10 @@ void NetworkSystem::DoUpdate(float dt) {
                     memcpy(&temp[pkt.size], out, size);
                     pkt.size += size;
                     accum = 0;
+                }
+                // if peridocity <= 0 => update only once
+                if (jt->second <= 0) {
+                    accum = -1;
                 }
             }
             // finish up packet
