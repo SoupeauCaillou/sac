@@ -16,6 +16,7 @@
 #include "systems/AutonomousAgentSystem.h"
 #include "systems/AnimationSystem.h"
 #include "systems/NetworkSystem.h"
+#include "systems/AutoDestroySystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
 #include <sstream>
@@ -39,6 +40,7 @@ Game::Game() {
     MorphingSystem::CreateInstance();
     AutonomousAgentSystem::CreateInstance();
     AnimationSystem::CreateInstance();
+    AutoDestroySystem::CreateInstance();
     NetworkSystem::CreateInstance();
 }
 
@@ -61,6 +63,7 @@ Game::~Game() {
     MorphingSystem::DestroyInstance();
     AutonomousAgentSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
+    AutoDestroySystem::DestroyInstance();
     NetworkSystem::DestroyInstance();
 }
 

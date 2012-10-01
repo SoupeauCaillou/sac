@@ -93,6 +93,7 @@
     <Compile Include="systems\NetworkSystem.cpp" />
     <Compile Include="api\linux\NetworkAPILinuxImpl.cpp" />
     <Compile Include="tools\lobby\LobbyServer.cpp" />
+    <Compile Include="systems\AutoDestroySystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -177,6 +178,7 @@
     <None Include="api\NetworkAPI.h" />
     <None Include="systems\NetworkSystem.h" />
     <None Include="api\linux\NetworkAPILinuxImpl.h" />
+    <None Include="systems\AutoDestroySystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
