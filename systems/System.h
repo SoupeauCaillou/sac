@@ -102,6 +102,10 @@ class ComponentSystemImpl: public ComponentSystem {
 				delete it->second;
 				components.erase(it);
 			}
+            if (previous == entity) {
+                previous = 0;
+                previousComp = 0;
+            }
 		}
 
 		T* Get(Entity entity, bool failIfNotfound = true) {
