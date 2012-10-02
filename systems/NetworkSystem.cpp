@@ -160,7 +160,7 @@ void NetworkSystem::DoUpdate(float dt) {
 
             if (!nc->entityExistsGlobally) {
                 std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
-                nc->entityExistsGlobally = true;
+                // later nc->entityExistsGlobally = true;
                 nc->guid = nextGuid++;
                 if (!networkAPI->amIGameMaster()) {
                     nc->guid |= 0x1;
@@ -188,7 +188,7 @@ void NetworkSystem::DoUpdate(float dt) {
                 if (accum >= 0)
                     accum += dt;
                 // time to update
-                if (accum >= jt->second) {
+                if (accum >= jt->second || !nc->entityExistsGlobally) {
                     ComponentSystem* system = ComponentSystem::Named(jt->first);
                     uint8_t* out;
                     int size = system->serialize(e, &out);
@@ -207,6 +207,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     accum = -1;
                 }
             }
+            nc->entityExistsGlobally = true;
             // finish up packet
             pkt.data = temp;
             networkAPI->sendPacket(pkt);
