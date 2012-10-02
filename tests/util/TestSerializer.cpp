@@ -75,6 +75,20 @@ TEST (StringProperty)
     CHECK_EQUAL(a, b);
 }
 
+TEST (VectorProperty)
+{
+    std::vector<int> v, w;
+    for (int i=0; i<10; i++)
+        v.push_back(i);
+    VectorProperty<int> p(0);
+    uint8_t buf[256];
+    p.serialize(buf, &v);
+    p.deserialize(buf, &w);
+    CHECK_EQUAL(10, w.size());
+    for (int i=0; i<10; i++)
+        CHECK_EQUAL(v[i], w[i]);
+}
+
 TEST (StructSerializer)
 {
     struct Test {

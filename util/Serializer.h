@@ -18,6 +18,7 @@
 */
 #pragma once
 #include <vector>
+#include <cstring>
 #include <stdint.h>
 #include "base/MathUtil.h"
 class Property {
@@ -59,6 +60,54 @@ class StringProperty : public Property {
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
+};
+
+template <typename T>
+class VectorProperty : public Property {
+    public:
+        VectorProperty(unsigned long offset) : Property(offset, 0) {}
+        unsigned size(void* object) const {
+            std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
+            return sizeof(unsigned) + v->size() * sizeof(T);
+        }
+        bool different(void* object, void* refObject) const {
+            std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
+            std::vector<T>* w = (std::vector<T>*) ((uint8_t*)refObject + offset);
+            if (v->size() != w->size())
+                return true;
+            for (int i=0; i<v->size(); i++) {
+                if ((*v)[i] != (*w)[i])
+                    return true;
+            }
+            return false;
+        }
+        int serialize(uint8_t* out, void* object) const {
+            std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
+            unsigned size = v->size();
+            int idx = 0;
+            memcpy(out, &size, sizeof(unsigned));
+            idx += sizeof(unsigned);
+            for (unsigned i=0; i<size; i++) {
+                memcpy(&out[idx], &(*v)[i], sizeof(T));
+                idx += sizeof(T);
+            }
+            return idx;
+        }
+        int deserialize(uint8_t* in, void* object) const {
+            std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
+            v->clear();
+            unsigned size;
+            memcpy(&size, in, sizeof(unsigned));
+            int idx = sizeof(unsigned);
+            v->reserve(size);
+            for (unsigned i=0; i<size; i++) {
+                T t;
+                memcpy(&t, &in[idx], sizeof(T));
+                v->push_back(t);
+                idx += sizeof(T);
+            }
+            return idx;
+        }
 };
 
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
