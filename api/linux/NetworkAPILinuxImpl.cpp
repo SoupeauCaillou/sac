@@ -236,6 +236,8 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
                 break;
             case ENET_EVENT_TYPE_RECEIVE:
                 enet_packet_destroy (event.packet);
+                if (datas->match.connected)
+                    return true;
                 break;
             default:
                 break;
@@ -261,7 +263,7 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
             sendNatPunchThroughPacket(datas->match.host->socket, addr, remotePort);
         }*/
     }
-    return false;
+    return datas->match.connected;
 }
 
 void NetworkAPILinuxImpl::connectToLobby(const std::string& nick, const char* addr) {

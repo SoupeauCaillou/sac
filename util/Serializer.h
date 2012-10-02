@@ -35,6 +35,7 @@ class Property {
 
 class EntityProperty : public Property {
     public:
+        EntityProperty(unsigned long offset);
         unsigned size(void* object) const;
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
@@ -75,7 +76,7 @@ class VectorProperty : public Property {
             std::vector<T>* w = (std::vector<T>*) ((uint8_t*)refObject + offset);
             if (v->size() != w->size())
                 return true;
-            for (int i=0; i<v->size(); i++) {
+            for (unsigned i=0; i<v->size(); i++) {
                 if ((*v)[i] != (*w)[i])
                     return true;
             }

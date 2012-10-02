@@ -62,7 +62,7 @@ class ComponentSystem {
 		virtual void Add(Entity entity) = 0;
 		virtual void Delete(Entity entity) = 0;
 		virtual int serialize(Entity entity, uint8_t** out) = 0;
-		virtual void deserialize(Entity entity, uint8_t* out, int size) = 0;
+		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
 
 		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); float time = TimeUtil::getTime(); DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; PROFILE("SystemUpdate", name, EndEvent); }
 		float timeSpent;
@@ -145,11 +145,12 @@ class ComponentSystemImpl: public ComponentSystem {
             return componentSerializer.serializeObject(out, component);
 		}
 
-		void deserialize(Entity entity, uint8_t* in, int size) {
+		int deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = Get(entity, false);
             if (!component) component = new T();
-            componentSerializer.deserializeObject(in, size, component);
+            int s = componentSerializer.deserializeObject(in, size, component);
 			components[entity] = component;
+            return s;
 		}
 
 		void Clear() { components.clear(); }

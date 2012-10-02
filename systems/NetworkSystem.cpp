@@ -31,6 +31,7 @@ struct NetworkComponentPriv : NetworkComponent {
 
 struct NetworkMessageHeader {
     enum Type {
+        HandShake,
         CreateEntity,
         DeleteEntity,
         UpdateEntity
@@ -38,6 +39,9 @@ struct NetworkMessageHeader {
     unsigned int entityGuid;
 
     union {
+        struct {
+            unsigned int nonce;
+        } HANDSHAKE;
         struct {
 
         } CREATE;
@@ -50,15 +54,24 @@ struct NetworkMessageHeader {
     };
 };
 
+static void sendHandShakePacket(NetworkAPI* net, unsigned nonce);
+
 INSTANCE_IMPL(NetworkSystem);
  
+ unsigned myNonce;
+ bool hsDone;
 NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) {
     /* nothing saved (?!) */
     nextGuid = 2;
+    hsDone = false;
+    myNonce = MathUtil::RandomInt(65000);
 }
+
 
 void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
+        return;
+    if (!networkAPI->isConnectedToAnotherPlayer())
         return;
     // Pull packets from networkAPI
     {
@@ -66,12 +79,22 @@ void NetworkSystem::DoUpdate(float dt) {
         while ((pkt = networkAPI->pullReceivedPacket()).size) {
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
             switch (header->type) {
+                case NetworkMessageHeader::HandShake: {
+                    if (header->HANDSHAKE.nonce == myNonce) {
+                        LOGW("Handshake done");
+                        hsDone = true;
+                    } else {
+                        sendHandShakePacket(networkAPI, header->HANDSHAKE.nonce);
+                    }
+                    break;
+                }
                 case NetworkMessageHeader::CreateEntity: {
                     Entity e = theEntityManager.CreateEntity();
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
                     nc->guid = header->entityGuid;
                     nc->ownedLocally = false;
+                    std::cout << "Create entity :" << e << "/" << nc->guid << std::endl;
                     break;
                 }
                 case NetworkMessageHeader::DeleteEntity: {
@@ -91,6 +114,11 @@ void NetworkSystem::DoUpdate(float dt) {
             }
         }
     }
+    
+    if (!hsDone) {
+        sendHandShakePacket(networkAPI, myNonce);
+        return;
+    }
 
     // Process update type packets received
     {
@@ -102,15 +130,18 @@ void NetworkSystem::DoUpdate(float dt) {
             if (nc->ownedLocally)
                 continue;
             while (!nc->packetToProcess.empty()) {
-                 NetworkPacket pkt = nc->packetToProcess.front();
+                NetworkPacket pkt = nc->packetToProcess.front();
                 int index = sizeof(NetworkMessageHeader);
                 while (index < pkt.size) {
                     uint8_t nameLength = pkt.data[index++];
                     memcpy(temp, &pkt.data[index], nameLength);
                     temp[nameLength] = '\0';
                     index += nameLength;
+                    int size;
+                    memcpy(&size, &pkt.data[index], 4);
+                    index += 4;
                     ComponentSystem* system = ComponentSystem::Named((const char*)temp);
-                    system->deserialize(e, &temp[index], -1);
+                    index += system->deserialize(e, &pkt.data[index], size);
                 }
                  nc->packetToProcess.pop();
             }
@@ -128,6 +159,7 @@ void NetworkSystem::DoUpdate(float dt) {
                 continue;
 
             if (!nc->entityExistsGlobally) {
+                std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
                 nc->entityExistsGlobally = true;
                 nc->guid = nextGuid++;
                 if (!networkAPI->amIGameMaster()) {
@@ -138,6 +170,7 @@ void NetworkSystem::DoUpdate(float dt) {
                 header->type = NetworkMessageHeader::CreateEntity;
                 header->entityGuid = nc->guid;
                 pkt.size = sizeof(NetworkMessageHeader);
+                pkt.data = temp;
                 networkAPI->sendPacket(pkt);
             }
 
@@ -163,6 +196,8 @@ void NetworkSystem::DoUpdate(float dt) {
                     temp[pkt.size++] = nameLength;
                     memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);
                     pkt.size += nameLength;
+                    memcpy(&temp[pkt.size], &size, 4);
+                    pkt.size += 4;
                     memcpy(&temp[pkt.size], out, size);
                     pkt.size += size;
                     accum = 0;
@@ -173,9 +208,7 @@ void NetworkSystem::DoUpdate(float dt) {
                 }
             }
             // finish up packet
-            pkt.data = new uint8_t[pkt.size];
-            memcpy(pkt.data, temp, pkt.size);
-            
+            pkt.data = temp;
             networkAPI->sendPacket(pkt);
         }
     }
@@ -191,7 +224,7 @@ NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
         if (nc->guid == guid)
             return nc;
     }
-    LOGE("Did not find entity with guid: %u", guid);
+    //LOGE("Did not find entity with guid: %u", guid);
     return 0;
 }
 
@@ -229,4 +262,15 @@ unsigned int NetworkSystem::entityToGuid(Entity e) {
     }
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
     return nc->guid;
+}
+
+static void sendHandShakePacket(NetworkAPI* net, unsigned nonce) {
+    uint8_t temp[64];
+    NetworkPacket pkt;
+    NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
+    header->type = NetworkMessageHeader::HandShake;
+    header->HANDSHAKE.nonce = nonce;
+    pkt.size = sizeof(NetworkMessageHeader);
+    pkt.data = temp;
+    net->sendPacket(pkt);
 }

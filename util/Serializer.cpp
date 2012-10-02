@@ -45,6 +45,10 @@ int Property::deserialize(uint8_t* in, void* object) const {
     return _size;
 }
 
+EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(Entity)) {
+
+}
+
 unsigned EntityProperty::size(void* object) const {
     return sizeof(unsigned int);
 }
