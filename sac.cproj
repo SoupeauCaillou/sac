@@ -94,6 +94,8 @@
     <Compile Include="api\linux\NetworkAPILinuxImpl.cpp" />
     <Compile Include="tools\lobby\LobbyServer.cpp" />
     <Compile Include="systems\AutoDestroySystem.cpp" />
+    <Compile Include="util\Serializer.cpp" />
+    <Compile Include="tests\util\TestSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -127,23 +129,6 @@
     <None Include="api\linux\AssetAPILinuxImpl.h" />
     <None Include="api\linux\MusicAPILinuxOpenALImpl.h" />
     <None Include="build\android\Android.mk" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\api\linux\AssetAPILinuxImpl.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\EntityManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\Log.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\MathUtil.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\PlacementHelper.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\SqlExporter.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\TimeUtil.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\TouchInputManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\Vector2.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ADSRSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ContainerSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\DebugRenderingManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\MorphingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\PhysicsSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\System.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\TransformationSystem.cpp.o" />
-    <None Include="build\cmake\libsac.a" />
     <None Include="libs\build\android\libpng\Android.mk" />
     <None Include="libs\build\android\tremor\Android.mk" />
     <None Include="api\android\AssetAPIAndroidImpl.h" />
@@ -179,11 +164,14 @@
     <None Include="systems\NetworkSystem.h" />
     <None Include="api\linux\NetworkAPILinuxImpl.h" />
     <None Include="systems\AutoDestroySystem.h" />
+    <None Include="util\Serializer.h" />
+    <None Include="build\cmake\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
     <Folder Include="util\" />
     <Folder Include="steering\" />
     <Folder Include="tools\lobby\" />
+    <Folder Include="build\cmake\" />
   </ItemGroup>
 </Project>

@@ -40,3 +40,12 @@ file(
 
 add_executable(lobby_server ${lobby_server_source_files})
 target_link_libraries(lobby_server sac z)
+include_directories(/usr/include/unittest++/)
+file(
+        GLOB_RECURSE
+        test_source_files
+        ../../tests/*
+)
+add_executable(sac_tests ${test_source_files})
+target_link_libraries(sac_tests sac GLEW glfw openal sqlite3  vorbisfile vorbis z UnitTest++)
+add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
