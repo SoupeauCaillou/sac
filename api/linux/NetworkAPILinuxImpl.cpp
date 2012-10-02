@@ -46,6 +46,7 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
     
 };
 
+static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t port);
 static NetworkPacket createNickNamePacket(const std::string& nick);
 static NetworkPacket createLocalPortPacket(unsigned short port);
 static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags);
@@ -131,6 +132,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                     remotePort = pkt->remotePort;
                     LOGI("Got info for P2P connection (%d)", failure);
                     gotP2PInfo = true;
+                    enet_packet_destroy (event.packet);
                     break;
                 }
                 default:
@@ -183,26 +185,16 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint1
                 LOGI("Received connection");
                 return true;
             }
-            case ENET_EVENT_TYPE_RECEIVE: {
+            case ENET_EVENT_TYPE_RECEIVE:
+                enet_packet_destroy (event.packet);
                 break;
-            }
             default:
                 break;
         }
         if (datas->match.peer) {
             enet_peer_send(datas->match.peer, 0, convertPacket(createLocalPortPacket(0), ENET_PACKET_FLAG_RELIABLE));
         } else {
-            // send NAT punch through packet
-            char tmp[4];
-            struct sockaddr_in c;
-            
-            if (inet_pton(AF_INET, addr, &c) != 1) LOGE("inet_pton"); 
-            c.sin_port = htons(remotePort);
-            c.sin_family = AF_INET;
-            int n = sendto(datas->match.host->socket, tmp, 4, 0, (struct sockaddr*)&c, sizeof(struct sockaddr_in));
-            LOGI("sendto result: %d (socket: %d addr: %s port: %d)", n, datas->match.host->socket, addr, remotePort);
-            if (n < 0)
-                perror("socket error :");
+            sendNatPunchThroughPacket(datas->match.host->socket, addr, remotePort);
         }
     }
     enet_host_destroy(datas->match.host);
@@ -242,6 +234,9 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
                 datas->match.peer = event.peer;
                 datas->match.connected = true;
                 break;
+            case ENET_EVENT_TYPE_RECEIVE:
+                enet_packet_destroy (event.packet);
+                break;
             default:
                 break;
         }
@@ -262,6 +257,9 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
         if (datas->match.peer) {
             enet_peer_send(datas->match.peer, 0, convertPacket(createLocalPortPacket(0), ENET_PACKET_FLAG_RELIABLE));
         }
+        /*{
+            sendNatPunchThroughPacket(datas->match.host->socket, addr, remotePort);
+        }*/
     }
     return false;
 }
@@ -299,10 +297,11 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                 LOGW("Disconnect even received");
                 datas->match.connected = false;
                 break;
-            case ENET_EVENT_TYPE_CONNECT:
+            case ENET_EVENT_TYPE_RECEIVE:
                 result.size = event.packet->dataLength;
                 result.data = new uint8_t[event.packet->dataLength];
                 memcpy(result.data, event.packet->data, result.size);
+                enet_packet_destroy (event.packet);
                 break;
             default:
                 break;
@@ -341,4 +340,25 @@ static NetworkPacket createLocalPortPacket(unsigned short port) {
     port = htons(port);
     memcpy(&portPkt.data[1], &port, sizeof(port));
     return portPkt;
+}
+
+static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t port) {
+    // send NAT punch through packet
+    char tmp[4];
+    struct sockaddr_in c;
+    c.sin_port = htons(port);
+    c.sin_family = AF_INET;
+
+    if (inet_pton(AF_INET, addr, &c.sin_addr) != 1) LOGE("inet_pton"); 
+    
+    int n = sendto(socket, tmp, 4, 0, (struct sockaddr*)&c, sizeof(struct sockaddr_in));
+    LOGI("sendto result: %d (socket: %d addr: %s port: %d)", n, socket, addr, port);
+    if (n < 0)
+        perror("socket error :");
+
+    char tmmmm[INET6_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &c, tmmmm, INET6_ADDRSTRLEN) == 0) {
+        LOGE("plouf");
+    } else
+        LOGI("allo : %s", tmmmm);
 }

@@ -105,6 +105,7 @@ int main(int argc, char** argv) {
                 } else {
                     std::cout << "Ingored packet type : " << (int)type << std::endl;
                 }
+                enet_packet_destroy (event.packet);
             }
         }
         // if we have 2 players with a name : connect them
