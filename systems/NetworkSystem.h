@@ -33,6 +33,8 @@ UPDATABLE_SYSTEM(Network)
 
 public:
     void deleteAllNonLocalEntities();
+    unsigned int entityToGuid(Entity e);
+    Entity guidToEntity(unsigned int guid);
 
 public:
     NetworkAPI* networkAPI;
@@ -40,6 +42,6 @@ public:
 protected:
     NetworkComponent* CreateComponent();
 private:
-    Entity guidToEntity(unsigned int guid);
     NetworkComponentPriv* guidToComponent(unsigned int guid);
+    unsigned int nextGuid;
 };

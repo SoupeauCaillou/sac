@@ -50,12 +50,10 @@ struct NetworkMessageHeader {
     };
 };
 
-static NetworkComponentPriv* guidToComponent(unsigned int guid);
-
 INSTANCE_IMPL(NetworkSystem);
  
 NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) { 
- 
+    nextGuid = 2;
 }
 
 void NetworkSystem::DoUpdate(float dt) {
@@ -128,6 +126,20 @@ void NetworkSystem::DoUpdate(float dt) {
             if (!nc->ownedLocally || nc->systemUpdatePeriod.empty())
                 continue;
 
+            if (!nc->entityExistsGlobally) {
+                nc->entityExistsGlobally = true;
+                nc->guid = nextGuid++;
+                if (!networkAPI->amIGameMaster()) {
+                    nc->guid |= 0x1;
+                }
+                NetworkPacket pkt;
+                NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
+                header->type = NetworkMessageHeader::CreateEntity;
+                header->entityGuid = nc->guid;
+                pkt.size = sizeof(NetworkMessageHeader);
+                networkAPI->sendPacket(pkt);
+            }
+
             NetworkPacket pkt;
             // build packet header
             NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
@@ -174,7 +186,6 @@ NetworkComponent* NetworkSystem::CreateComponent() {
 
 NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
     for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        Entity e = it->first;
         NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
         if (nc->guid == guid)
             return nc;
@@ -206,4 +217,15 @@ void NetworkSystem::deleteAllNonLocalEntities() {
         }
     }
     LOGI("Removed %d non local entities", count);
+}
+
+unsigned int NetworkSystem::entityToGuid(Entity e) {
+    ComponentIt it=components.find(e);
+    if (it == components.end()) {
+        LOGE("Entity %lu has no ntework component");
+        assert (false);
+        return 0;
+    }
+    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
+    return nc->guid;
 }
