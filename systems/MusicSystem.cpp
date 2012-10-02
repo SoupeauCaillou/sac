@@ -45,7 +45,9 @@
 
 INSTANCE_IMPL(MusicSystem);
 
-MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) { }
+MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) {
+    /* nothing saved */
+}
 
 #ifndef EMSCRIPTEN
 static void* _startOggThread(void* arg) {

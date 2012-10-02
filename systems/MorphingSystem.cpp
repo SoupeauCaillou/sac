@@ -20,7 +20,9 @@
 
 INSTANCE_IMPL(MorphingSystem);
 
-MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") { }
+MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") {
+    /* nothing saved */
+}
 
 void MorphingSystem::DoUpdate(float dt) {
 	for(std::map<Entity, MorphingComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {

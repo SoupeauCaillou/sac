@@ -63,9 +63,11 @@ class StringProperty : public Property {
 
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
 
-struct Serializer {
+class Serializer {
     std::vector<Property*> properties;
     
+    public:
+    void add(Property* p) { properties.push_back(p); }
     int size(void* object);
     int serializeObject(uint8_t* out, void* object, void* refObject = 0);
     int serializeObject(uint8_t** out, void* object, void* refObject = 0);

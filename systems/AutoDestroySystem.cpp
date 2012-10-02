@@ -24,7 +24,7 @@
 INSTANCE_IMPL(AutoDestroySystem);
  
 AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponent>("AutoDestroy") { 
- 
+    /* nothing saved */
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {

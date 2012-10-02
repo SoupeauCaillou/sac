@@ -27,7 +27,7 @@ struct AnimationSystem::Anim {
 INSTANCE_IMPL(AnimationSystem);
  
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") { 
- 
+    /* nothing saved */
 }
 
 void AnimationSystem::DoUpdate(float dt) {

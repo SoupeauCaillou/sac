@@ -23,7 +23,9 @@
 
 INSTANCE_IMPL(AutonomousAgentSystem);
 
-AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") { }
+AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") {
+    /* nothing saved */
+}
 
 void AutonomousAgentSystem::DoUpdate(float dt) {
 	for(std::map<Entity, AutonomousAgentComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {

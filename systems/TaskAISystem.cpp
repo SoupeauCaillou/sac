@@ -21,6 +21,7 @@
 INSTANCE_IMPL(TaskAISystem);
 
 TaskAISystem::TaskAISystem() : ComponentSystemImpl<TaskAIComponent>("TaskAI") {
+    /* nothing saved */
 }
 
 void TaskAISystem::DoUpdate(float dt) {

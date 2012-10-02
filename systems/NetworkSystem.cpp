@@ -52,7 +52,8 @@ struct NetworkMessageHeader {
 
 INSTANCE_IMPL(NetworkSystem);
  
-NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) { 
+NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) {
+    /* nothing saved (?!) */
     nextGuid = 2;
 }
 

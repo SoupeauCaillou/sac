@@ -88,9 +88,9 @@ TEST (StructSerializer)
     test1.c = "plop";
 
     Serializer s;
-    s.properties.push_back(new Property(OFFSET(a, test1), sizeof(int)));
-    s.properties.push_back(new EpsilonProperty<float>(OFFSET(b, test1), 0.1));
-    s.properties.push_back(new StringProperty(OFFSET(c, test1)));
+    s.add(new Property(OFFSET(a, test1), sizeof(int)));
+    s.add(new EpsilonProperty<float>(OFFSET(b, test1), 0.1));
+    s.add(new StringProperty(OFFSET(c, test1)));
 
     uint8_t* buf;
     int size = s.serializeObject(&buf, &test1);
@@ -112,9 +112,9 @@ TEST (StructSerializerNoDiff)
     test2 = test1;
 
     Serializer s;
-    s.properties.push_back(new Property(OFFSET(a, test1), sizeof(int)));
-    s.properties.push_back(new EpsilonProperty<float>(OFFSET(b, test1), 0.1));
-    s.properties.push_back(new StringProperty(OFFSET(c, test1)));
+    s.add(new Property(OFFSET(a, test1), sizeof(int)));
+    s.add(new EpsilonProperty<float>(OFFSET(b, test1), 0.1));
+    s.add(new StringProperty(OFFSET(c, test1)));
 
     uint8_t* buf;
     CHECK_EQUAL(0, s.serializeObject(&buf, &test1, &test2));

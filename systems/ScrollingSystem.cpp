@@ -31,7 +31,7 @@ static Color debugColors[] = {
 };
 
 ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("Scrolling") {
- 
+    /* nothing saved */
 }
 
 void ScrollingSystem::DoUpdate(float dt) {

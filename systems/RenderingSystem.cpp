@@ -42,6 +42,16 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 	pthread_cond_init(&cond, 0);
 #endif
 
+    RenderingComponent tc;
+    componentSerializer.add(new Property(OFFSET(texture, tc), sizeof(TextureRef)));
+    componentSerializer.add(new Property(OFFSET(effectRef, tc), sizeof(EffectRef)));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.r, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.g, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.b, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.a, tc), 0.001));
+    componentSerializer.add(new Property(OFFSET(hide, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
 #if defined(ANDROID) || defined(EMSCRIPTEN)
     #else
     inotifyFd = inotify_init();

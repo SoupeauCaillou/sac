@@ -23,7 +23,7 @@
 INSTANCE_IMPL(ContainerSystem);
 	
 ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("Container") { 
-	
+    /* nothing saved */
 }
 
 static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, TransformationComponent* tc) {

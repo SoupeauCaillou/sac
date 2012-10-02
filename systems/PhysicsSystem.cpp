@@ -20,9 +20,16 @@
 #include "TransformationSystem.h"
 
 INSTANCE_IMPL(PhysicsSystem);
- 
+
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
- 
+    PhysicsComponent tc;
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(linearVelocity.X, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(linearVelocity.Y, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(angularVelocity, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(mass, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(gravity.X, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(gravity.Y, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(momentOfInertia, tc), 0.001));
 }
 
 void PhysicsSystem::DoUpdate(float dt) {

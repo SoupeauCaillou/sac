@@ -28,7 +28,10 @@
 */
 INSTANCE_IMPL(ADSRSystem);
 
-ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") { }
+ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
+    ADSRComponent a;
+    componentSerializer.add(new Property(0, sizeof(a)));
+}
 
 void ADSRSystem::DoUpdate(float dt) {
 	for(std::map<Entity, ADSRComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {

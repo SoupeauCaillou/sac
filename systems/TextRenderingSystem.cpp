@@ -28,7 +28,7 @@ const float TextRenderingComponent::RIGHT = 1.0f;
 INSTANCE_IMPL(TextRenderingSystem);
 
 TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
-
+    /* nothing saved */
 }
 
 

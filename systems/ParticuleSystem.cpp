@@ -26,6 +26,7 @@
 INSTANCE_IMPL(ParticuleSystem);
 
 ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Particule") {
+    /* nothing saved */
     particules = new InternalParticule[MAX_PARTICULE_COUNT];
     minUsedIdx = maxUsedIdx = 0;
     memset(particules, 0, MAX_PARTICULE_COUNT * sizeof(InternalParticule));

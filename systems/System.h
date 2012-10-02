@@ -28,6 +28,7 @@
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
+#include "util/Serializer.h"
 
 
 #define Entity unsigned long
@@ -141,20 +142,13 @@ class ComponentSystemImpl: public ComponentSystem {
 
 		int serialize(Entity entity, uint8_t** out) {
 			T* component = Get(entity);
-			*out = new uint8_t[sizeof(T)];
-			memcpy(*out, component, sizeof(T));
-			return sizeof(T);
+            return componentSerializer.serializeObject(out, component);
 		}
 
 		void deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = Get(entity, false);
             if (!component) component = new T();
-			if (size > 0 && size != sizeof(T)) {
-				LOGW("error in size: %d", size); // != %z", size, sizeof(T));
-			} else {
-                size = sizeof(T);
-            }
-			memcpy(component, in, size);
+            componentSerializer.deserializeObject(in, size, component);
 			components[entity] = component;
 		}
 
@@ -180,4 +174,5 @@ class ComponentSystemImpl: public ComponentSystem {
 		typedef typename std::map<Entity, T*>::const_iterator ComponentConstIt;
 
 		float activationTime;
+        Serializer componentSerializer;
 };
