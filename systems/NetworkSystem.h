@@ -41,6 +41,8 @@ public:
     Entity guidToEntity(unsigned int guid);
 public:
     NetworkAPI* networkAPI;
+    unsigned bytesSent, bytesReceived;
+    float ulRate, dlRate;
     
 protected:
     NetworkComponent* CreateComponent();

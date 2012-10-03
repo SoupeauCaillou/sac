@@ -21,6 +21,11 @@
 #include "../base/EntityManager.h"
 #include <queue>
 
+static unsigned bytesSentLastSec, bytesReceivedLastSec;
+static float counterTime;
+
+#define SEND(pkt) networkAPI->sendPacket(pkt); bytesSentLastSec += pkt.size
+
 struct NetworkComponentPriv : NetworkComponent {
     NetworkComponentPriv() : NetworkComponent(), guid(0), entityExistsGlobally(false), ownedLocally(true) {}
     unsigned int guid; // global unique id
@@ -78,12 +83,16 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"
 void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
         return;
-    if (!networkAPI->isConnectedToAnotherPlayer())
+    if (!networkAPI->isConnectedToAnotherPlayer()) {
+        counterTime = TimeUtil::getTime();
+        bytesSent = bytesReceived = bytesSentLastSec = bytesReceivedLastSec = 0;
         return;
+    }
     // Pull packets from networkAPI
     {
         NetworkPacket pkt;
         while ((pkt = networkAPI->pullReceivedPacket()).size) {
+            bytesReceivedLastSec += pkt.size;
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
             switch (header->type) {
                 case NetworkMessageHeader::HandShake: {
@@ -174,6 +183,16 @@ void NetworkSystem::DoUpdate(float dt) {
             updateEntity(it->first, it->second, dt);
         }
     }
+    
+    float diff = TimeUtil::getTime() - counterTime;
+    if (diff >= 0.5) {
+        bytesSent += bytesSentLastSec;
+        bytesReceived += bytesReceivedLastSec;
+        ulRate = bytesSentLastSec / diff;
+        dlRate = bytesReceivedLastSec / diff;
+        counterTime = TimeUtil::getTime();
+        bytesSentLastSec = bytesReceivedLastSec = 0;
+    }
 }
 
 void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
@@ -195,7 +214,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         header->entityGuid = nc->guid;
         pkt.size = sizeof(NetworkMessageHeader);
         pkt.data = temp;
-        networkAPI->sendPacket(pkt);
+        SEND(pkt);
         std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
     }
     
@@ -235,8 +254,8 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
     nc->entityExistsGlobally = true;
     // finish up packet
     pkt.data = temp;
-    networkAPI->sendPacket(pkt);
-
+    SEND(pkt);
+    
     if (nc->newOwnerShipRequest >= 0) {
         uint8_t temp[64];
         NetworkPacket pkt;
@@ -246,7 +265,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         header->CHANGE_OWNERSHIP.newOwner = nc->newOwnerShipRequest;
         pkt.size = sizeof(NetworkMessageHeader);
         pkt.data = temp;
-        networkAPI->sendPacket(pkt);
+        SEND(pkt);
         if (networkAPI->amIGameMaster()) {
             nc->ownedLocally = (nc->newOwnerShipRequest==0);
         } else {
@@ -307,7 +326,7 @@ unsigned int NetworkSystem::entityToGuid(Entity e) {
     return nc->guid;
 }
 
-static void sendHandShakePacket(NetworkAPI* net, unsigned nonce) {
+static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
     uint8_t temp[64];
     NetworkPacket pkt;
     NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
@@ -315,5 +334,5 @@ static void sendHandShakePacket(NetworkAPI* net, unsigned nonce) {
     header->HANDSHAKE.nonce = nonce;
     pkt.size = sizeof(NetworkMessageHeader);
     pkt.data = temp;
-    net->sendPacket(pkt);
+    SEND(pkt);
 }
