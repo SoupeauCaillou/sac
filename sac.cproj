@@ -166,6 +166,7 @@
     <None Include="systems\AutoDestroySystem.h" />
     <None Include="util\Serializer.h" />
     <None Include="build\cmake\CMakeLists.txt" />
+    <None Include="util\Serializer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

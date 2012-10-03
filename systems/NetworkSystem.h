@@ -23,7 +23,9 @@ class NetworkAPI;
 class NetworkComponentPriv;
 
 struct NetworkComponent {
-    NetworkComponent() : newOwnerShipRequest(-1) {}
+    NetworkComponent() : newOwnerShipRequest(-1) {
+        systemUpdatePeriod["network"] = 0;
+    }
     std::map<std::string, float> systemUpdatePeriod;
     int newOwnerShipRequest;
 };

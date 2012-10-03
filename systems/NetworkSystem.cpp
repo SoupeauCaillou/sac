@@ -69,6 +69,9 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"
     nextGuid = 0;
     hsDone = false;
     myNonce = MathUtil::RandomInt(65000);
+
+    NetworkComponentPriv nc;
+    componentSerializer.add(new MapProperty<std::string, float>(OFFSET(systemUpdatePeriod, nc)));
 }
 
 
@@ -123,6 +126,7 @@ void NetworkSystem::DoUpdate(float dt) {
                         } else {
                             nc->ownedLocally = (header->CHANGE_OWNERSHIP.newOwner == 1);
                         }
+                        nc->entityExistsGlobally = true;
                         std::cout << "guid " << header->entityGuid << " changed owner : " << header->CHANGE_OWNERSHIP.newOwner << " (isLocal: " << nc->ownedLocally << ")" << std::endl;
                     }
                     break;
