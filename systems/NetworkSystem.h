@@ -23,7 +23,9 @@ class NetworkAPI;
 class NetworkComponentPriv;
 
 struct NetworkComponent {
+    NetworkComponent() : newOwnerShipRequest(-1) {}
     std::map<std::string, float> systemUpdatePeriod;
+    int newOwnerShipRequest;
 };
 
 #define theNetworkSystem NetworkSystem::GetInstance()
@@ -35,7 +37,6 @@ public:
     void deleteAllNonLocalEntities();
     unsigned int entityToGuid(Entity e);
     Entity guidToEntity(unsigned int guid);
-
 public:
     NetworkAPI* networkAPI;
     
@@ -43,5 +44,6 @@ protected:
     NetworkComponent* CreateComponent();
 private:
     NetworkComponentPriv* guidToComponent(unsigned int guid);
+    void updateEntity(Entity e, NetworkComponent* c, float dt);
     unsigned int nextGuid;
 };

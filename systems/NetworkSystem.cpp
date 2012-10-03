@@ -34,7 +34,8 @@ struct NetworkMessageHeader {
         HandShake,
         CreateEntity,
         DeleteEntity,
-        UpdateEntity
+        UpdateEntity,
+        ChangeEntityOwner,
     } type;
     unsigned int entityGuid;
 
@@ -51,6 +52,9 @@ struct NetworkMessageHeader {
         struct {
 
         } UPDATE;
+        struct {
+            unsigned newOwner; // currently : 0 = master, 1 = client
+        } CHANGE_OWNERSHIP;
     };
 };
 
@@ -62,7 +66,7 @@ INSTANCE_IMPL(NetworkSystem);
  bool hsDone;
 NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) {
     /* nothing saved (?!) */
-    nextGuid = 2;
+    nextGuid = 0;
     hsDone = false;
     myNonce = MathUtil::RandomInt(65000);
 }
@@ -94,7 +98,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
                     nc->guid = header->entityGuid;
                     nc->ownedLocally = false;
-                    std::cout << "Create entity :" << e << "/" << nc->guid << std::endl;
+                    std::cout << "Create entity :" << e << " / " << nc->guid << std::endl;
                     break;
                 }
                 case NetworkMessageHeader::DeleteEntity: {
@@ -108,6 +112,18 @@ void NetworkSystem::DoUpdate(float dt) {
                     NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
                     if (nc) {
                         nc->packetToProcess.push(pkt);
+                    }
+                    break;
+                }
+                case NetworkMessageHeader::ChangeEntityOwner: {
+                    NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
+                    if (nc) {
+                        if (networkAPI->amIGameMaster()) {
+                            nc->ownedLocally = (header->CHANGE_OWNERSHIP.newOwner == 0);
+                        } else {
+                            nc->ownedLocally = (header->CHANGE_OWNERSHIP.newOwner == 1);
+                        }
+                        std::cout << "guid " << header->entityGuid << " changed owner : " << header->CHANGE_OWNERSHIP.newOwner << " (isLocal: " << nc->ownedLocally << ")" << std::endl;
                     }
                     break;
                 }
@@ -126,8 +142,8 @@ void NetworkSystem::DoUpdate(float dt) {
         for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
             Entity e = it->first;
             NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
-    
-            if (nc->ownedLocally)
+
+            if (0 && nc->ownedLocally)
                 continue;
             while (!nc->packetToProcess.empty()) {
                 NetworkPacket pkt = nc->packetToProcess.front();
@@ -150,68 +166,91 @@ void NetworkSystem::DoUpdate(float dt) {
 
     // Process local entities : send required update to others
     {
-        uint8_t temp[1024];
         for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-            Entity e = it->first;
-            NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
-
-            if (!nc->ownedLocally || nc->systemUpdatePeriod.empty())
-                continue;
-
-            if (!nc->entityExistsGlobally) {
-                std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
-                // later nc->entityExistsGlobally = true;
-                nc->guid = nextGuid++;
-                if (!networkAPI->amIGameMaster()) {
-                    nc->guid |= 0x1;
-                }
-                NetworkPacket pkt;
-                NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
-                header->type = NetworkMessageHeader::CreateEntity;
-                header->entityGuid = nc->guid;
-                pkt.size = sizeof(NetworkMessageHeader);
-                pkt.data = temp;
-                networkAPI->sendPacket(pkt);
-            }
-
-            NetworkPacket pkt;
-            // build packet header
-            NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
-            header->type = NetworkMessageHeader::UpdateEntity;
-            header->entityGuid = nc->guid;
-            pkt.size = sizeof(NetworkMessageHeader);
-
-            // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
-            for (std::map<std::string, float>::iterator jt = nc->systemUpdatePeriod.begin(); jt!=nc->systemUpdatePeriod.end(); ++jt) {
-                float& accum = nc->lastUpdateAccum[jt->first];
-                
-                if (accum >= 0)
-                    accum += dt;
-                // time to update
-                if (accum >= jt->second || !nc->entityExistsGlobally) {
-                    ComponentSystem* system = ComponentSystem::Named(jt->first);
-                    uint8_t* out;
-                    int size = system->serialize(e, &out);
-                    uint8_t nameLength = strlen(jt->first.c_str());
-                    temp[pkt.size++] = nameLength;
-                    memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);
-                    pkt.size += nameLength;
-                    memcpy(&temp[pkt.size], &size, 4);
-                    pkt.size += 4;
-                    memcpy(&temp[pkt.size], out, size);
-                    pkt.size += size;
-                    accum = 0;
-                }
-                // if peridocity <= 0 => update only once
-                if (jt->second <= 0) {
-                    accum = -1;
-                }
-            }
-            nc->entityExistsGlobally = true;
-            // finish up packet
-            pkt.data = temp;
-            networkAPI->sendPacket(pkt);
+            updateEntity(it->first, it->second, dt);
         }
+    }
+}
+
+void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
+    static uint8_t temp[1024];
+    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (comp);
+    
+    if (!nc->ownedLocally || nc->systemUpdatePeriod.empty())
+        return;
+    
+    if (!nc->entityExistsGlobally) {
+        // later nc->entityExistsGlobally = true;
+        nc->guid = (nextGuid += 2);
+        if (!networkAPI->amIGameMaster()) {
+            nc->guid |= 0x1;
+        }
+        NetworkPacket pkt;
+        NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
+        header->type = NetworkMessageHeader::CreateEntity;
+        header->entityGuid = nc->guid;
+        pkt.size = sizeof(NetworkMessageHeader);
+        pkt.data = temp;
+        networkAPI->sendPacket(pkt);
+        std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
+    }
+    
+    NetworkPacket pkt;
+    // build packet header
+    NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
+    header->type = NetworkMessageHeader::UpdateEntity;
+    header->entityGuid = nc->guid;
+    pkt.size = sizeof(NetworkMessageHeader);
+    
+    // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
+    for (std::map<std::string, float>::iterator jt = nc->systemUpdatePeriod.begin(); jt!=nc->systemUpdatePeriod.end(); ++jt) {
+        float& accum = nc->lastUpdateAccum[jt->first];
+        
+        if (accum >= 0)
+            accum += dt;
+        // time to update
+        if (accum >= jt->second || !nc->entityExistsGlobally) {
+            ComponentSystem* system = ComponentSystem::Named(jt->first);
+            uint8_t* out;
+            int size = system->serialize(e, &out);
+            uint8_t nameLength = strlen(jt->first.c_str());
+            temp[pkt.size++] = nameLength;
+            memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);
+            pkt.size += nameLength;
+            memcpy(&temp[pkt.size], &size, 4);
+            pkt.size += 4;
+            memcpy(&temp[pkt.size], out, size);
+            pkt.size += size;
+            accum = 0;
+        }
+        // if peridocity <= 0 => update only once
+        if (jt->second <= 0) {
+            accum = -1;
+        }
+    }
+    nc->entityExistsGlobally = true;
+    // finish up packet
+    pkt.data = temp;
+    networkAPI->sendPacket(pkt);
+
+    if (nc->newOwnerShipRequest >= 0) {
+        uint8_t temp[64];
+        NetworkPacket pkt;
+        NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
+        header->type = NetworkMessageHeader::ChangeEntityOwner;
+        header->entityGuid = nc->guid;
+        header->CHANGE_OWNERSHIP.newOwner = nc->newOwnerShipRequest;
+        pkt.size = sizeof(NetworkMessageHeader);
+        pkt.data = temp;
+        networkAPI->sendPacket(pkt);
+        if (networkAPI->amIGameMaster()) {
+            nc->ownedLocally = (nc->newOwnerShipRequest==0);
+        } else {
+            nc->ownedLocally = (nc->newOwnerShipRequest==1);
+        }
+        nc->newOwnerShipRequest = -1;
+        std::cout << "Send change ownrship request for entity " << e << "/" << nc->guid << " :" << header->CHANGE_OWNERSHIP.newOwner << "(is local: " << nc->ownedLocally << ")" << std::endl;
+        std::cout << "Hmm we'd need to send NetworkComponent too" << std::endl;
     }
 }
 
