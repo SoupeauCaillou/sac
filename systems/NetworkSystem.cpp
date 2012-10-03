@@ -254,7 +254,6 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         }
         nc->newOwnerShipRequest = -1;
         std::cout << "Send change ownrship request for entity " << e << "/" << nc->guid << " :" << header->CHANGE_OWNERSHIP.newOwner << "(is local: " << nc->ownedLocally << ")" << std::endl;
-        std::cout << "Hmm we'd need to send NetworkComponent too" << std::endl;
     }
 }
 
@@ -300,7 +299,7 @@ void NetworkSystem::deleteAllNonLocalEntities() {
 unsigned int NetworkSystem::entityToGuid(Entity e) {
     ComponentIt it=components.find(e);
     if (it == components.end()) {
-        LOGE("Entity %lu has no ntework component");
+        LOGE("Entity %lu has no ntework component", e);
         assert (false);
         return 0;
     }
