@@ -89,6 +89,52 @@ TEST (VectorProperty)
         CHECK_EQUAL(v[i], w[i]);
 }
 
+TEST (MapProperty)
+{
+    std::map<int, float> v, w;
+    for (int i=0; i<10; i++)
+        v[i] = i;
+    MapProperty<int, float> p(0);
+    uint8_t buf[256];
+    p.serialize(buf, &v);
+    p.deserialize(buf, &w);
+    CHECK_EQUAL(10, w.size());
+    for (int i=0; i<10; i++) {
+        CHECK_EQUAL(v[i], w[i]);
+    }
+}
+
+
+TEST (MapPropertyStringKey)
+{
+    std::map<std::string, float> v, w;
+    for (int i=0; i<10; i++)
+        v["a" + i] = 1+i;
+    MapProperty<std::string, float> p(0);
+    uint8_t buf[256];
+    CHECK(p.size(&v) <= 256);
+    p.serialize(buf, &v);
+    p.deserialize(buf, &w);
+    CHECK_EQUAL(10, w.size());
+    for (int i=0; i<10; i++) {
+        std::string s = "a" + i;
+        CHECK_EQUAL(v[s], w[s]);
+    }
+}
+
+TEST (MapPropertyDifference)
+{
+    std::map<std::string, float> v, w;
+    for (int i=0; i<10; i++)
+        v["a" + i] = i;
+    MapProperty<std::string, float> p(0);
+    
+    CHECK(p.different(&v, &w));
+    CHECK(!p.different(&v, &v));
+    w = v;
+    CHECK(!p.different(&v, &w));
+}
+
 TEST (StructSerializer)
 {
     struct Test {
