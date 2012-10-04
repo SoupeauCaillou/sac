@@ -34,6 +34,7 @@ class Property {
         unsigned _size;
 };
 
+#ifdef SAC_NETWORK
 class EntityProperty : public Property {
     public:
         EntityProperty(unsigned long offset);
@@ -41,6 +42,7 @@ class EntityProperty : public Property {
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
 };
+#endif
 
 template <typename T>
 class EpsilonProperty : public Property {

@@ -131,7 +131,7 @@ inline int MapProperty<std::string, float>::serialize(uint8_t* out, void* object
     int idx = 0;
     memcpy(out, &size, sizeof(unsigned));
     idx += sizeof(unsigned);
-    for (typename std::map<std::string, float>::iterator it=v->begin(); it!=v->end(); ++it) {
+    for ( std::map<std::string, float>::iterator it=v->begin(); it!=v->end(); ++it) {
         uint8_t length = (uint8_t)it->first.length();
         memcpy(&out[idx++], &length, 1);
         memcpy(&out[idx], it->first.c_str(), length);

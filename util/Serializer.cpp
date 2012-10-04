@@ -18,7 +18,9 @@
 */
 #include "Serializer.h"
 #include "systems/System.h"
+#ifdef SAC_NETWORK
 #include "systems/NetworkSystem.h"
+#endif
 #include <cstring>
 
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
@@ -45,6 +47,7 @@ int Property::deserialize(uint8_t* in, void* object) const {
     return _size;
 }
 
+#ifdef SAC_NETWORK
 EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(Entity)) {
 
 }
@@ -67,6 +70,7 @@ int EntityProperty::deserialize(uint8_t* in, void* object) const {
     memcpy(PTR_OFFSET_2_PTR(object, offset), &e, sizeof(e));
     return sizeof(guid);
 }
+#endif
 
 StringProperty::StringProperty(unsigned long pOffset) : Property(pOffset, 0) {}
 

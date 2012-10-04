@@ -29,6 +29,7 @@ LOCAL_SRC_FILES := \
     steering/BasicSteeringBehavior.cpp \
     systems/ADSRSystem.cpp \
     systems/AnimationSystem.cpp \
+    systems/AutoDestroySystem.cpp \
     systems/AutonomousAgentSystem.cpp \
     systems/ButtonSystem.cpp \
     systems/ContainerSystem.cpp \
@@ -54,6 +55,7 @@ LOCAL_SRC_FILES := \
     api/android/SuccessAPIAndroidImpl.cpp \
 	util/ImageLoader.cpp \
 	util/IntersectionUtil.cpp \
+	util/Serializer.cpp
 
 
 

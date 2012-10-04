@@ -41,7 +41,9 @@ Game::Game() {
     AutonomousAgentSystem::CreateInstance();
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
+#ifdef SAC_NETWORK
     NetworkSystem::CreateInstance();
+#endif
 }
 
 Game::~Game() {
@@ -64,7 +66,9 @@ Game::~Game() {
     AutonomousAgentSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
+#ifdef SAC_NETWORK
     NetworkSystem::DestroyInstance();
+#endif
 }
 
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
