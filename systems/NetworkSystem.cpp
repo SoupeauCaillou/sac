@@ -21,6 +21,12 @@
 #include "../base/EntityManager.h"
 #include <queue>
 
+struct StatusCache {
+    std::map<std::string, uint8_t*> components;
+};
+std::map<Entity, StatusCache> statusCache;
+typedef std::map<std::string, uint8_t*>::iterator CacheIt; 
+
 static unsigned bytesSentLastSec, bytesReceivedLastSec;
 static float counterTime;
 
@@ -217,6 +223,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         SEND(pkt);
         std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
     }
+    StatusCache& cache = statusCache[e];
     
     NetworkPacket pkt;
     // build packet header
@@ -234,8 +241,21 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         // time to update
         if (accum >= jt->second || !nc->entityExistsGlobally) {
             ComponentSystem* system = ComponentSystem::Named(jt->first);
+            // find cache entry, if any
+            uint8_t* cacheEntry = 0;
+            #if 1
+            CacheIt c = cache.components.find(jt->first);
+            if (c == cache.components.end()) {
+                cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
+            } else {
+                cacheEntry = c->second;
+            }
+            #endif
             uint8_t* out;
-            int size = system->serialize(e, &out);
+            int size = system->serialize(e, &out, cacheEntry);
+            #if 1
+            system->saveComponent(e, cacheEntry);
+            #endif
             uint8_t nameLength = strlen(jt->first.c_str());
             temp[pkt.size++] = nameLength;
             memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);

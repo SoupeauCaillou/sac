@@ -61,7 +61,8 @@ class ComponentSystem {
 		virtual const std::string& getName() const { return name; }
 		virtual void Add(Entity entity) = 0;
 		virtual void Delete(Entity entity) = 0;
-		virtual int serialize(Entity entity, uint8_t** out) = 0;
+        virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
+		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
 
 		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); float time = TimeUtil::getTime(); DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; PROFILE("SystemUpdate", name, EndEvent); }
@@ -139,10 +140,18 @@ class ComponentSystemImpl: public ComponentSystem {
 		long unsigned entityCount() const {
 			return components.size();
 		}
+     
+        uint8_t* saveComponent(Entity entity, uint8_t* out) {
+            if (!out) {
+                out = new uint8_t[sizeof(T)];
+            }
+            memcpy(out, Get(entity), sizeof(T)); 
+            return out;
+        }
 
-		int serialize(Entity entity, uint8_t** out) {
+		int serialize(Entity entity, uint8_t** out, void* ref) {
 			T* component = Get(entity);
-            return componentSerializer.serializeObject(out, component);
+            return componentSerializer.serializeObject(out, component, ref);
 		}
 
 		int deserialize(Entity entity, uint8_t* in, int size) {
