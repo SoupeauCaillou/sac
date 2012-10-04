@@ -94,8 +94,8 @@ done
 
 #rename in files (ignoring files in $IGNOREDIR )
 for i in `find . -type f | grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/ | cut -d/ -f2-`; do
-	sed -i 's/$oldNameLower/$newNameLower/g' $i
-	sed -i 's/$oldNameUpper/$newNameUpper/g' $i
+	sed -i 's/'$oldNameLower'/'$newNameLower'/g' $i
+	sed -i 's/'$oldNameUpper'/'$newNameUpper'/g' $i
 done
 
 #remove old build files ?
