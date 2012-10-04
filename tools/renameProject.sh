@@ -47,8 +47,14 @@ fi
 
 #now go to the oldPath
 cd $oldPath
-
+#make it absolute
+oldPath=`pwd`
+echo $oldPath
 #rename files and dir
+
+
+# /!\ not working actually
+
 #add dir to ignore. Ex :my-dir-to-ignore/
 IGNOREDIR=".git/ bin/ sac/ gen/ libs/"
 IGNOREDIR=`echo $IGNOREDIR | sed 's/ / | grep -v \//g'`
@@ -57,25 +63,27 @@ IGNOREDIR="grep -v /"$IGNOREDIR
 
 #first directory in reverse order (rename protype/ before prototype/prototype.cpp )
 todo=""
-for i in `find . -type d | grep -i $oldNameLower | $IGNOREDIR`; do
+files=`find . -type d | grep -i $oldNameLower`
+for i in `echo $files | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
 
     echo "Renaming directory $i to $new"
-    todo="mv $i $new; "$todo
+    todo="git mv $i $new; "$todo
 done
 `$todo`
+echo $todo
 #then files
-for i in `find . -type f  | grep -i $oldNameLower | $IGNOREDIR`; do
+for i in `find . -type f  | grep -i $oldNameLower | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
 
     echo "Renaming file $i to $new"
-    mv $i $new
+    git mv $i $new
 done
 
-#rename in files (ignoring files in sac/ )
-for i in `find . -type f | $IGNOREDIR | cut -d/ -f2-`; do
+#rename in files (ignoring files in $IGNOREDIR )
+for i in `find . -type f | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/ | cut -d/ -f2-`; do
 	sed -i 's/$oldNameLower/$newNameLower/g' $i
 	sed -i 's/$oldNameUpper/$newNameUpper/g' $i
 done
@@ -84,8 +92,9 @@ done
 echo "Want to rename the root dir ? (y/N)"
 read confirm
 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-    cd ..
     count=`echo $oldPath | tr -c -d /  | wc -c`
+    count=`expr $count + 1`
+    cd ..
     echo "Renaming root dir : mv `echo $oldPath | cut -d/ -f $count` $newNameLower"
     mv `echo $oldPath | cut -d/ -f $count` $newNameLower
 fi
