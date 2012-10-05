@@ -101,7 +101,6 @@ class GameHolder {
 	struct timeval startup_time;
 	float dtAccumuled, time;
 
-	int openGLESVersion;
 	bool initDone;
 	
 	private:

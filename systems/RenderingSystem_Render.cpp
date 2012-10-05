@@ -125,7 +125,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	return ref;
 }
 
-void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands, bool opengles2) {
+void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 #ifdef USE_VBO
 #define MAX_BATCH_SIZE 1
 #else
@@ -410,7 +410,7 @@ void RenderingSystem::render() {
 	pthread_mutex_unlock(&mutexes);
 	#endif
 // LOGW("ici4 : %d", readQueue);
-	drawRenderCommands(inQueue.commands, opengles2);
+	drawRenderCommands(inQueue.commands);
 // LOGW("ici5 : %d", readQueue);
 	// commands.clear();
 	// LOGW("redner queue size: %d OUT", renderQueue.size());

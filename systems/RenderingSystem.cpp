@@ -34,7 +34,6 @@ INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
 	nextValidRef = nextEffectRef = 1;
-	opengles2 = false;
 	currentWriteQueue = 0;
     cameraPosition = Vector2::Zero; 
 #ifndef EMSCRIPTEN

@@ -79,9 +79,7 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
 	GameHolder* hld = GameHolder::build();
 	hld->initDone = false;
 
-	hld->openGLESVersion = openglesVersion;
 	theRenderingSystem.assetAPI = &hld->renderThreadJNICtx.asset;
-	theRenderingSystem.opengles2 = (hld->openGLESVersion == 2);
 	theTouchInputManager.setNativeTouchStatePtr(new AndroidNativeTouchState(hld));
 
 	return (jlong)hld;

@@ -298,12 +298,7 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
     LOGW("loadTexture: %s", assetName.c_str());
 
 	/* create GL texture */
-#ifdef GLES2_SUPPORT
-	if (!opengles2)
-#endif
-		GL_OPERATION(glEnable(GL_TEXTURE_2D))
-
-	out.color = createGLTexture(assetName, true, realSize, pow2Size);
+ 	out.color = createGLTexture(assetName, true, realSize, pow2Size);
 	out.alpha = createGLTexture(assetName + "_alpha", false, realSize, pow2Size);
 }
 

@@ -120,7 +120,6 @@ bool isVisible(TransformationComponent* tc);
 
 void reloadTextures();
 void reloadEffects();
-bool opengles2;
 
 void render();
 
@@ -135,9 +134,6 @@ struct InternalTexture {
 	GLuint color;
 	GLuint alpha;
 
-	/*void operator=(GLuint r) {
-		color = alpha = r;
-	}*/
 	bool operator==(const InternalTexture& t) const {
 		return color == t.color && alpha == t.alpha;
 	}
@@ -235,7 +231,7 @@ std::vector<NotifyInfo> notifyList;
 
 private:
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
-void drawRenderCommands(std::list<RenderCommand>& commands, bool opengles2);
+void drawRenderCommands(std::list<RenderCommand>& commands);
 void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
