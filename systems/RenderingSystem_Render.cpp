@@ -114,11 +114,16 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	const Shader& shader = effectRefToShader(ref, _firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
-    const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X) / camera.screenSize.X + camera.screenPosition.X * screenW;
-    const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X) / camera.screenSize.X + camera.screenPosition.X * screenW;
-    const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y) / camera.screenSize.Y  + camera.screenPosition.Y * screenH;
-    const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y) / camera.screenSize.Y  + camera.screenPosition.Y * screenH;
-    // std::cout << left << ", " << right << ", " << top << ", " << bottom << std::endl;
+ 
+    GL_OPERATION(glViewport(
+        (camera.screenPosition.X - camera.screenSize.X * 0.5 + 0.5) * windowW,
+        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
+        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
+ 
+    const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X);
+    const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
+    const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
+    const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
 	loadOrthographicMatrix(left, right, bottom, top, 0, 1, mat);
 	GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
 
@@ -139,27 +144,35 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
     Camera camera;
 	int batchSize = 0;
-
-	GL_OPERATION(glDepthMask(true))
-	GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
-	GL_OPERATION(glEnable(GL_DEPTH_TEST))
-	GL_OPERATION(glDisable(GL_BLEND))
+    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+    GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
 
-	firstCall = true;
-	
 	EffectRef currentEffect = InvalidTextureRef;
 	
     while (!commands.empty()) {
 
 		RenderCommand& rc = commands.front();
         if (rc.texture == BeginFrameMarker) {
+            if (batchSize > 0) {
+                // execute batch
+                #ifdef USE_VBO
+                LOGI("Error batching unsupported with VBO");
+                #else
+                drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+                #endif
+                batchSize = 0;
+            }
+         
+            firstCall = true;
             camera.worldPosition = rc.halfSize;
             camera.worldSize = rc.uv[0];
             camera.screenPosition = rc.uv[1];
             camera.screenSize = rc.position;
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+            GL_OPERATION(glDepthMask(true))
+            GL_OPERATION(glDisable(GL_BLEND))
             commands.pop_front();
             continue;
         } else if (rc.texture == EndFrameMarker) {

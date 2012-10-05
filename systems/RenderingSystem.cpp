@@ -396,13 +396,13 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 	const Vector2 halfSize = tc->size * 0.5;
 	Vector2 pos = tc->worldPosition - camera.worldPosition;
 
-	if (pos.X + halfSize.X < -camera.worldSize.X*0.5)
+	if ((pos.X + halfSize.X) < -camera.worldSize.X * 0.5)
 		return false;
-	if (pos.X - halfSize.X > camera.worldSize.X*0.5)
+	if ((pos.X - halfSize.X) > camera.worldSize.X * 0.5)
 		return false;
-	if (pos.Y + halfSize.Y < -camera.worldSize.Y * 0.5)
+	if ((pos.Y + halfSize.Y) < -camera.worldSize.Y * 0.5)
 		return false;
-	if (pos.Y - halfSize.Y > camera.worldSize.Y * 0.5)
+	if ((pos.Y - halfSize.Y) > camera.worldSize.Y * 0.5)
 		return false;
 	return true;
 }
