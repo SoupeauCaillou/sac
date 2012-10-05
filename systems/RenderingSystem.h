@@ -31,6 +31,7 @@
 #include <map>
 #include <set>
 #include <queue>
+#include <list>
 
 #include "base/Vector2.h"
 #include "base/MathUtil.h"
@@ -168,9 +169,9 @@ struct RenderCommand {
 struct RenderQueue {
 	RenderQueue() : frameToRender(0) {}
 	int frameToRender;
-	std::queue<RenderCommand> commands;
+	std::list<RenderCommand> commands;
 
-	void removeFrames(int count);
+	int removeFrames(int count);
 };
 
 struct TextureInfo {
@@ -234,7 +235,7 @@ std::vector<NotifyInfo> notifyList;
 
 private:
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
-void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
+void drawRenderCommands(std::list<RenderCommand>& commands, bool opengles2);
 void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
