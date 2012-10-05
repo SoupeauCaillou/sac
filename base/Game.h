@@ -40,6 +40,8 @@ class Game {
 		
 		virtual int saveState(uint8_t** out);
 		
+        float targetDT;
+
 	protected:
 		void loadFont(AssetAPI* asset, const std::string& name);
 };

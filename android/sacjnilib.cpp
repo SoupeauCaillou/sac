@@ -33,12 +33,12 @@
 #include "systems/MusicSystem.h"
 #include "base/TouchInputManager.h"
 #include "base/EntityManager.h"
+#include "base/MathUtil.h"
 
 #include <png.h>
 #include <algorithm>
 
 #include <sys/time.h>
-#define DT 1.0/60.
 
 #ifndef _Included_net_damsy_soupeaucaillou_SacJNILib
 #define _Included_net_damsy_soupeaucaillou_SacJNILib
@@ -176,6 +176,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 
 	if (!hld->game)
   		return;
+    const float DT = hld->game->targetDT;
 
   	if (hld->firstCall) {
 		hld->time = TimeUtil::getTime();
@@ -234,7 +235,23 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
 
 	frameCount++;
 	if (frameCount >= 200) {
-		LOGW("fps render: %.2f", 200.0 / (TimeUtil::getTime() - tttttt));
+        float fps = 200.0 / (TimeUtil::getTime() - tttttt);
+        if (fps > 0) {
+            float dt = 1/fps;
+            float ratio = hld->game->targetDT / dt;
+            LOGW("fps render: %.2f (ratio: %.2f)", fps, ratio);
+            if (ratio < 0.95) {
+                hld->game->targetDT *= 1.1;
+                hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);
+                LOGW("Reduce fps target: %.2f", 1.0 / hld->game->targetDT);
+            } else if (ratio > 1.05) {
+                hld->game->targetDT *= 0.95;
+                hld->game->targetDT = MathUtil::Max(1.0f/60.0f, hld->game->targetDT);
+                LOGW("Increase fps target: %.2f", 1.0 / hld->game->targetDT);
+            }
+             
+             
+        }
 		tttttt = TimeUtil::getTime();
 		frameCount = 0;
 	}
