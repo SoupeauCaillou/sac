@@ -125,7 +125,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	return ref;
 }
 
-void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2) {
+void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands, bool opengles2) {
 #ifdef USE_VBO
 #define MAX_BATCH_SIZE 1
 #else
@@ -154,15 +154,15 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
         if (rc.texture == BeginFrameMarker) {
             camPos = rc.halfSize;
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
-            commands.pop();
+            commands.pop_front();
             continue;
         } else if (rc.texture == EndFrameMarker) {
 			// LOGW("Frame drawn: %u", commands.front().rotateUV);
-			commands.pop();
+			commands.pop_front();
 			break;
 		}
 		else if (rc.texture == DisableZWriteMarker) {
-			commands.pop();
+			commands.pop_front();
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef USE_VBO
@@ -296,7 +296,7 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 				#endif
 			batchSize = 0;
 		}
-		commands.pop();
+		commands.pop_front();
 	}
 
 	if (batchSize > 0) {
@@ -309,14 +309,31 @@ void RenderingSystem::drawRenderCommands(std::queue<RenderCommand>& commands, bo
 }
 #include <errno.h>
 
-void RenderingSystem::RenderQueue::removeFrames(int count) {
-	for (int i=0; i<count; i++) {
-		while (commands.front().texture != EndFrameMarker)
-			commands.pop();
-		// LOGW("Dump frame : %u", commands.front().rotateUV);
-		commands.pop();
-		frameToRender--;
+int RenderingSystem::RenderQueue::removeFrames(int count) {
+    int c = 0;
+    int skip = 1;
+    std::list<RenderCommand>::iterator begin = commands.begin();
+
+	for (int i=0; i<count; ) {
+        std::list<RenderCommand>::iterator end;
+        for (end=begin; end != commands.end(); ++end) {
+            if ((*end).texture == EndFrameMarker) {
+                break;
+            }
+        }
+        if (end == commands.end())
+            break;
+        ++end;
+        if (skip == 1) {
+            commands.erase(begin, end);
+            c++;
+            frameToRender--;
+            i++;
+        }
+        skip = (skip + 1) % 2;
+        begin = end;
 	}
+    return c;
 }
 
 void RenderingSystem::render() {
@@ -332,7 +349,7 @@ void RenderingSystem::render() {
 //LOG/W("ici1");
 	#ifndef EMSCRIPTEN
 	if (pthread_mutex_trylock(&mutexes) != 0) {
-		// LOGW("HMM Busy render lock");
+		//LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes);
 	}
 	int readQueue = (currentWriteQueue + 1) % 2;
@@ -363,16 +380,19 @@ void RenderingSystem::render() {
 
 		int excessFrameCount = rqCount + wrCount - 2;
 		if (excessFrameCount > 0) {
+//         LOGW("excessFrameCount : %d", excessFrameCount);
 			// remove half of the excess frames, to smooth the drop
 			int toRemove = (int) ceil(excessFrameCount / 2.0);
 			int n = MathUtil::Min(toRemove, rqCount);
-			renderQueue[readQueue].removeFrames(n);
+			n = renderQueue[readQueue].removeFrames(n);
 
 			if (n < toRemove) {
 				toRemove -= n;
 				renderQueue[currentWriteQueue].removeFrames(toRemove);
-				readQueue = currentWriteQueue;
-				currentWriteQueue = (currentWriteQueue + 1) % 2;
+                if (renderQueue[readQueue].frameToRender == 0) {
+				    readQueue = currentWriteQueue;
+				    currentWriteQueue = (currentWriteQueue + 1) % 2;
+                }
 			} else if (renderQueue[readQueue].frameToRender == 0) {
 				readQueue = currentWriteQueue;
 				currentWriteQueue = (currentWriteQueue + 1) % 2;

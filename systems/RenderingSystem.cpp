@@ -309,23 +309,19 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     RenderCommand dummy;
     dummy.texture = BeginFrameMarker;
     dummy.halfSize = cameraPosition;
-    outQueue.commands.push(dummy);
-
-	for(std::vector<RenderCommand>::iterator it=opaqueCommands.begin(); it!=opaqueCommands.end(); it++) {
-		outQueue.commands.push(*it);
-	}
+    outQueue.commands.push_back(dummy);
+    
+    outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.end());
 
 	dummy.texture = DisableZWriteMarker;
-	outQueue.commands.push(dummy);
+	outQueue.commands.push_back(dummy);
 
-	for(std::vector<RenderCommand>::iterator it=semiOpaqueCommands.begin(); it!=semiOpaqueCommands.end(); it++) {
-		outQueue.commands.push(*it);
-	}
+    outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
 
 	dummy.texture = EndFrameMarker;
 	static unsigned int cccc = 0;
 	dummy.rotateUV = cccc++;
-	outQueue.commands.push(dummy);
+	outQueue.commands.push_back(dummy);
 	outQueue.frameToRender++;
 	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
 	#ifndef EMSCRIPTEN
