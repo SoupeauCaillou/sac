@@ -22,6 +22,8 @@
 #include <sstream>
 
 Game::Game() {
+    targetDT = 1.0 / 45.0;
+
 	/* create EntityManager */
 	EntityManager::CreateInstance();
 

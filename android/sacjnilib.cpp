@@ -244,7 +244,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
                 hld->game->targetDT *= 1.1;
                 hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);
                 LOGW("Reduce fps target: %.2f", 1.0 / hld->game->targetDT);
-            } else if (ratio > 1.05) {
+            } else {
                 hld->game->targetDT *= 0.95;
                 hld->game->targetDT = MathUtil::Max(1.0f/60.0f, hld->game->targetDT);
                 LOGW("Increase fps target: %.2f", 1.0 / hld->game->targetDT);
