@@ -110,11 +110,16 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Vector2& camPos) {
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera) {
 	const Shader& shader = effectRefToShader(ref, _firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
-	loadOrthographicMatrix(-screenW*0.5 + camPos.X, screenW*0.5 + camPos.X, -screenH * 0.5 + camPos.Y, screenH * 0.5 + camPos.Y, 0, 1, mat);
+    const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X) / camera.screenSize.X + camera.screenPosition.X * screenW;
+    const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X) / camera.screenSize.X + camera.screenPosition.X * screenW;
+    const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y) / camera.screenSize.Y  + camera.screenPosition.Y * screenH;
+    const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y) / camera.screenSize.Y  + camera.screenPosition.Y * screenH;
+    // std::cout << left << ", " << right << ", " << top << ", " << bottom << std::endl;
+	loadOrthographicMatrix(left, right, bottom, top, 0, 1, mat);
 	GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
@@ -132,7 +137,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
-    Vector2 camPos(Vector2::Zero);
+    Camera camera;
 	int batchSize = 0;
 
 	GL_OPERATION(glDepthMask(true))
@@ -144,14 +149,17 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 
 	firstCall = true;
 	
-	EffectRef currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
+	EffectRef currentEffect = InvalidTextureRef;
 	
     while (!commands.empty()) {
 
 		RenderCommand& rc = commands.front();
         if (rc.texture == BeginFrameMarker) {
-            camPos = rc.halfSize;
-            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
+            camera.worldPosition = rc.halfSize;
+            camera.worldSize = rc.uv[0];
+            camera.screenPosition = rc.uv[1];
+            camera.screenSize = rc.position;
+            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             commands.pop_front();
             continue;
         } else if (rc.texture == EndFrameMarker) {
@@ -176,7 +184,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 			GL_OPERATION(glEnable(GL_BLEND))
 			
 			if (currentEffect == DefaultEffectRef) {
-				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camPos);
+				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
 			}
 			continue;
 		} else if (rc.effectRef != currentEffect) {
@@ -189,7 +197,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 				#endif
 				batchSize = 0;
 			}
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camPos);
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera);
 		}
 
 		if (rc.texture != InvalidTextureRef) {

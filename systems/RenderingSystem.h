@@ -93,8 +93,8 @@ void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 public:
 AssetAPI* assetAPI;
 
-bool isEntityVisible(Entity e);
-bool isVisible(TransformationComponent* tc);
+bool isEntityVisible(Entity e, int cameraIndex = -1);
+bool isVisible(const TransformationComponent* tc, int cameraIndex = -1);
 
 void reloadTextures();
 void reloadEffects();
@@ -104,6 +104,15 @@ void render();
 public:
 int windowW, windowH;
 float screenW, screenH;
+
+struct Camera {
+    Camera() {}
+    Camera(const Vector2& pWorldPos, const Vector2& pWorldSize, const Vector2& pScreenPos, const Vector2& pScreenSize) :
+        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize) {}
+    Vector2 worldPosition, worldSize;
+    Vector2 screenPosition, screenSize;
+};
+
 /* textures cache */
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
@@ -166,7 +175,7 @@ std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
-Vector2 cameraPosition;
+std::vector<Camera> cameras;
 
 int currentWriteQueue;
 RenderQueue renderQueue[2]; //
@@ -217,7 +226,7 @@ GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& 
 public:
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Vector2& camPos);
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
 enum {
     ATTRIB_VERTEX = 0,

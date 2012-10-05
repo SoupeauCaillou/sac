@@ -36,7 +36,6 @@ INSTANCE_IMPL(RenderingSystem);
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
 	nextValidRef = nextEffectRef = 1;
 	currentWriteQueue = 0;
-    cameraPosition = Vector2::Zero; 
 #ifndef EMSCRIPTEN
 	pthread_mutex_init(&mutexes, 0);
 	pthread_cond_init(&cond, 0);
@@ -65,6 +64,9 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenW = sW;
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
+
+    // create default camera
+    cameras.push_back(Camera(Vector2::Zero, Vector2(screenW, screenH), Vector2::Zero, Vector2(1, 1)));
 }
 
 RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
@@ -210,116 +212,124 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	#ifndef EMSCRIPTEN
 	pthread_mutex_lock(&mutexes);
 	#endif
-	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
-
-    const float camLeft = (cameraPosition.X - screenW * 0.5);
-    const float camRight = (cameraPosition.X + screenW * 0.5);
-	/* render */
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;
-		RenderingComponent* rc = (*it).second;
-
-		if (rc->hide || rc->color.a <= 0) {
-			continue;
-		}
-
-		const TransformationComponent* tc = TRANSFORM(a);
-
-		RenderCommand c;
-		c.z = tc->z;
-		c.texture = rc->texture;
-		c.effectRef = rc->effectRef;
-		c.halfSize = tc->size * 0.5f;
-		c.color = rc->color;
-		c.position = tc->worldPosition;
-		c.rotation = tc->worldRotation;
-		c.uv[0] = Vector2::Zero;
-		c.uv[1] = Vector2(1, 1);
-
-        if (c.rotation == 0 && rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
-            // left culling !
-            float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
-            if (cullLeftX > 0) {
-                c.uv[0].X = cullLeftX / tc->size.X;
-                c.uv[1].X -= cullLeftX / tc->size.X;
-                c.halfSize.X -= 0.5 * cullLeftX;
-                c.position.X += 0.5 * cullLeftX;
+    RenderQueue& outQueue = renderQueue[currentWriteQueue];
+    for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
+        const Camera& camera = cameras[camIdx];
+    	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
+        const float camLeft = (camera.worldPosition.X - camera.worldSize.X * 0.5);
+        const float camRight = (camera.worldPosition.X + camera.worldSize.X * 0.5);
+    	/* render */
+    	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+    		Entity a = (*it).first;
+    		RenderingComponent* rc = (*it).second;
+    
+    		if (rc->hide || rc->color.a <= 0) {
+    			continue;
+    		}
+    
+    		const TransformationComponent* tc = TRANSFORM(a);
+            if (!isVisible(tc, camIdx)) {
+                continue;
             }
-            // right culling !
-            float cullRightX = (c.position.X + c.halfSize.X) - camRight;
-            if (cullRightX > 0) {
-                c.uv[1].X -= cullRightX / tc->size.X;
-                c.halfSize.X -= 0.5 * cullRightX;
-                c.position.X -= 0.5 * cullRightX;
-            }
-        }
-
-        if (c.texture != InvalidTextureRef) {
-            TextureInfo& info = textures[c.texture];
-            int atlasIdx = info.atlasIndex;
-            if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
-                if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
-                    LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
+    
+    		RenderCommand c;
+    		c.z = tc->z;
+    		c.texture = rc->texture;
+    		c.effectRef = rc->effectRef;
+    		c.halfSize = tc->size * 0.5f;
+    		c.color = rc->color;
+    		c.position = tc->worldPosition;
+    		c.rotation = tc->worldRotation;
+    		c.uv[0] = Vector2::Zero;
+    		c.uv[1] = Vector2(1, 1);
+    
+            if (c.rotation == 0 && rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
+                // left culling !
+                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+                if (cullLeftX > 0) {
+                    c.uv[0].X = cullLeftX / tc->size.X;
+                    c.uv[1].X -= cullLeftX / tc->size.X;
+                    c.halfSize.X -= 0.5 * cullLeftX;
+                    c.position.X += 0.5 * cullLeftX;
+                }
+                // right culling !
+                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+                if (cullRightX > 0) {
+                    c.uv[1].X -= cullRightX / tc->size.X;
+                    c.halfSize.X -= 0.5 * cullRightX;
+                    c.position.X -= 0.5 * cullRightX;
                 }
             }
-         }
-
-         switch (rc->opaqueType) {
-	         #ifdef USE_VBO
-	         case RenderingComponent::OPAQUE_ABOVE:
-	         case RenderingComponent::OPAQUE_UNDER:
-	         #endif
-         	case RenderingComponent::NON_OPAQUE:
-	         	semiOpaqueCommands.push_back(c);
-	         	break;
-	         case RenderingComponent::FULL_OPAQUE:
-	         	opaqueCommands.push_back(c);
-	         	break;
-	         #ifndef USE_VBO
-	         case RenderingComponent::OPAQUE_ABOVE:
-	         case RenderingComponent::OPAQUE_UNDER:
-	         	RenderCommand cA = c, cU = c;
-	         	cA.halfSize.Y = (tc->size * rc->opaqueSeparation).Y * 0.5;
-	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
-	         	cA.position.Y = (tc->worldPosition + Vector2::Rotate(Vector2(0, cU.halfSize.Y), c.rotation)).Y;
-	         	cU.position.Y = (tc->worldPosition - Vector2::Rotate(Vector2(0, cA.halfSize.Y), c.rotation)).Y;
-	         	cA.uv[0].Y = cU.halfSize.Y / c.halfSize.Y; // offset;
-	         	cA.uv[1].Y = cA.halfSize.Y / c.halfSize.Y; // scale;
-	         	cU.uv[0].Y = 0;
-	         	cU.uv[1].Y = cU.halfSize.Y / c.halfSize.Y; // scale;
-	         	if (rc->opaqueType == RenderingComponent::OPAQUE_ABOVE) {
-		         	semiOpaqueCommands.push_back(cU);
-		         	opaqueCommands.push_back(cA);
-	         	} else {
-		         	semiOpaqueCommands.push_back(cA);
-		         	opaqueCommands.push_back(cU);
-	         	}
-	         	break;
-	         #endif
-         }
-	}
-
-	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
-	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
-
-	RenderQueue& outQueue = renderQueue[currentWriteQueue];
-
-    RenderCommand dummy;
-    dummy.texture = BeginFrameMarker;
-    dummy.halfSize = cameraPosition;
-    outQueue.commands.push_back(dummy);
     
-    outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.end());
-
-	dummy.texture = DisableZWriteMarker;
-	outQueue.commands.push_back(dummy);
-
-    outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
-
-	dummy.texture = EndFrameMarker;
-	static unsigned int cccc = 0;
-	dummy.rotateUV = cccc++;
-	outQueue.commands.push_back(dummy);
+            if (c.texture != InvalidTextureRef) {
+                TextureInfo& info = textures[c.texture];
+                int atlasIdx = info.atlasIndex;
+                if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
+                    if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
+                        LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
+                    }
+                }
+             }
+    
+             switch (rc->opaqueType) {
+    	         #ifdef USE_VBO
+    	         case RenderingComponent::OPAQUE_ABOVE:
+    	         case RenderingComponent::OPAQUE_UNDER:
+    	         #endif
+             	case RenderingComponent::NON_OPAQUE:
+    	         	semiOpaqueCommands.push_back(c);
+    	         	break;
+    	         case RenderingComponent::FULL_OPAQUE:
+    	         	opaqueCommands.push_back(c);
+    	         	break;
+    	         #ifndef USE_VBO
+    	         case RenderingComponent::OPAQUE_ABOVE:
+    	         case RenderingComponent::OPAQUE_UNDER:
+    	         	RenderCommand cA = c, cU = c;
+    	         	cA.halfSize.Y = (tc->size * rc->opaqueSeparation).Y * 0.5;
+    	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
+    	         	cA.position.Y = (tc->worldPosition + Vector2::Rotate(Vector2(0, cU.halfSize.Y), c.rotation)).Y;
+    	         	cU.position.Y = (tc->worldPosition - Vector2::Rotate(Vector2(0, cA.halfSize.Y), c.rotation)).Y;
+    	         	cA.uv[0].Y = cU.halfSize.Y / c.halfSize.Y; // offset;
+    	         	cA.uv[1].Y = cA.halfSize.Y / c.halfSize.Y; // scale;
+    	         	cU.uv[0].Y = 0;
+    	         	cU.uv[1].Y = cU.halfSize.Y / c.halfSize.Y; // scale;
+    	         	if (rc->opaqueType == RenderingComponent::OPAQUE_ABOVE) {
+    		         	semiOpaqueCommands.push_back(cU);
+    		         	opaqueCommands.push_back(cA);
+    	         	} else {
+    		         	semiOpaqueCommands.push_back(cA);
+    		         	opaqueCommands.push_back(cU);
+    	         	}
+    	         	break;
+    	         #endif
+             }
+    	}
+    
+    	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
+    	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
+    
+        RenderCommand dummy;
+        dummy.texture = BeginFrameMarker;
+        dummy.halfSize = camera.worldPosition;
+        dummy.uv[0] = camera.worldSize;
+        dummy.uv[1] = camera.screenPosition;
+        dummy.position = camera.screenSize;
+        outQueue.commands.push_back(dummy);
+        
+        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.end());
+    
+    	dummy.texture = DisableZWriteMarker;
+    	outQueue.commands.push_back(dummy);
+    
+        outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
+    }
+    RenderCommand dummy;
+    dummy.texture = EndFrameMarker;
+    static unsigned int cccc = 0;
+    dummy.rotateUV = cccc++;
+    outQueue.commands.push_back(dummy);
+     
 	outQueue.frameToRender++;
 	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
 	#ifndef EMSCRIPTEN
@@ -369,21 +379,30 @@ pthread_cond_signal(&cond);
 #endif
 }
 
-bool RenderingSystem::isEntityVisible(Entity e) {
-	return isVisible(TRANSFORM(e));
+bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) {
+	return isVisible(TRANSFORM(e), cameraIndex);
 }
 
-bool RenderingSystem::isVisible(TransformationComponent* tc) {
+bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) {
+    if (cameraIndex < 0) {
+        for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
+            if (isVisible(tc, camIdx)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    const Camera& camera = cameras[cameraIndex];
 	const Vector2 halfSize = tc->size * 0.5;
-	Vector2 pos = tc->worldPosition - cameraPosition;
+	Vector2 pos = tc->worldPosition - camera.worldPosition;
 
-	if (pos.X + halfSize.X < -screenW*0.5)
+	if (pos.X + halfSize.X < -camera.worldSize.X*0.5)
 		return false;
-	if (pos.X - halfSize.X > screenW*0.5)
+	if (pos.X - halfSize.X > camera.worldSize.X*0.5)
 		return false;
-	if (pos.Y + halfSize.Y < -screenH * 0.5)
+	if (pos.Y + halfSize.Y < -camera.worldSize.Y * 0.5)
 		return false;
-	if (pos.Y - halfSize.Y > screenH * 0.5)
+	if (pos.Y - halfSize.Y > camera.worldSize.Y * 0.5)
 		return false;
 	return true;
 }
