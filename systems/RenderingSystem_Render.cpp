@@ -17,10 +17,12 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RenderingSystem.h"
+#include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
 #include <sstream>
+#include <pthread.h>
 
 void RenderingSystem::check_GL_errors(const char* context) {
 	 int maxIterations=10;
@@ -46,9 +48,6 @@ void RenderingSystem::check_GL_errors(const char* context) {
     }
 }
 
-#include <pthread.h>
-
-#ifdef GLES2_SUPPORT
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
 	FileBuffer fb = assetAPI->loadAsset(assetName);
 	GLuint shader = glCreateShader(type);
@@ -71,7 +70,6 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
    }
 	return shader;
 }
-#endif
 
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 

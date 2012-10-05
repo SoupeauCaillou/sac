@@ -44,25 +44,6 @@
 
 typedef int TextureRef;
 #define InvalidTextureRef -1
-#define EndFrameMarker -10
-#define DisableZWriteMarker -11
-#define BeginFrameMarker -12
-
-#if !defined(ANDROID) && !defined(EMSCRIPTEN)
-#define CHECK_GL_ERROR
-#endif
-
-#ifdef CHECK_GL_ERROR
-	#define GL_OPERATION(x)	\
-		(x); \
-		RenderingSystem::check_GL_errors(#x);
-#else
-	#define GL_OPERATION(x) \
-		(x);
-#endif
-
-#undef GLES2_SUPPORT
-#define GLES2_SUPPORT
 
 #ifdef EMSCRIPTEN
 #define USE_VBO
@@ -111,9 +92,6 @@ void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
 public:
 AssetAPI* assetAPI;
-
-static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
-GLuint compileShader(const std::string& assetName, GLuint type);
 
 bool isEntityVisible(Entity e);
 bool isVisible(TransformationComponent* tc);
@@ -230,6 +208,8 @@ std::vector<NotifyInfo> notifyList;
 #endif
 
 private:
+static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
+GLuint compileShader(const std::string& assetName, GLuint type);
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(std::list<RenderCommand>& commands);
 void processDelayedTextureJobs();

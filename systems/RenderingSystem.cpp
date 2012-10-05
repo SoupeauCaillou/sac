@@ -17,6 +17,7 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RenderingSystem.h"
+#include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
@@ -115,16 +116,14 @@ void RenderingSystem::init() {
 	const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 	pvrSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
 	
-#ifdef GLES2_SUPPORT
-		#ifdef USE_VBO
-		defaultShader = buildShader("default_vbo.vs", "default.fs");
-		defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
-		#else
-		defaultShader = buildShader("default.vs", "default.fs");
-		defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
-		#endif
-		GL_OPERATION(glClearColor(0, 0, 0, 1.0))
-#endif
+	#ifdef USE_VBO
+	defaultShader = buildShader("default_vbo.vs", "default.fs");
+	defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
+	#else
+	defaultShader = buildShader("default.vs", "default.fs");
+	defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
+	#endif
+	GL_OPERATION(glClearColor(0, 0, 0, 1.0))
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};

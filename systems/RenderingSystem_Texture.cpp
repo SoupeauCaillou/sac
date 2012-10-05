@@ -17,7 +17,7 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RenderingSystem.h"
-
+#include "RenderingSystem_Private.h"
 
 #include "base/EntityManager.h"
 #include <cmath>
