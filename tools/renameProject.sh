@@ -38,7 +38,7 @@ echo "**************************************************************************
 echo "* WARNING : don't use a common name else you could overwrite wrong files          *"
 echo "* Eg : don't call it \"test\" or each files TestPhysics.cpp,... will be renamed!    *"
 echo "***********************************************************************************"
-echo 
+echo
 echo "Continue ? (y/N)"
 read confirm
 if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -62,29 +62,30 @@ IGNOREDIR="grep -v /"$IGNOREDIR
 
 #first directory in reverse order (rename protype/ before prototype/prototype.cpp )
 todo=""
-for i in `find . -type d | grep -i $oldNameLower | grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
+for i in `find . -type d | grep -i $oldNameLower | grep -v /obj/ | grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
 
     echo "Renaming directory $i to $new"
-    todo="git mv $i $new; "$todo
+    todo="git mv $i $new ; "$todo
 done
 `$todo`
+#~echo "$todo"
 todo=""
-for i in `find . -type d | grep -i $oldNameUpper | grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
+for i in `find . -type d | grep $oldNameUpper |grep -v /obj/ |  grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
 
     echo "Renaming directory $i to $new"
-    todo="git mv $i $new; "$todo
+    todo="git mv $i $new ; "$todo
 done
 `$todo`
-
+#~echo "$todo"
 
 
 
 #then files
-for i in `find . -type f  | grep -v /build/ | grep -i $oldNameLower | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
+for i in `find . -type f  | grep $oldNameLower |grep -v /obj/ |  grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/`; do
     new=${i/$oldNameLower/$newNameLower}
     new=${new/$oldNameUpper/$newNameUpper}
 
@@ -93,7 +94,7 @@ for i in `find . -type f  | grep -v /build/ | grep -i $oldNameLower | grep -v /.
 done
 
 #rename in files (ignoring files in $IGNOREDIR )
-for i in `find . -type f | grep -v /build/ | grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/ | cut -d/ -f2-`; do
+for i in `find . -type f | grep -v /build/ |grep -v /obj/ |  grep -v /.git/ | grep -v /bin/ | grep -v /sac/ | grep -v /gen/ | grep -v /libs/ | cut -d/ -f2-`; do
 	sed -i 's/'$oldNameLower'/'$newNameLower'/g' $i
 	sed -i 's/'$oldNameUpper'/'$newNameUpper'/g' $i
 done
