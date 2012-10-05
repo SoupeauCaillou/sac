@@ -1,7 +1,7 @@
 package net.damsy.soupeaucaillou;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
-import net.damsy.soupeaucaillou.prototype.R;
+import net.damsy.soupeaucaillou.recursiveRunner.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
