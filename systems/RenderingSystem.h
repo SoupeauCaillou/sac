@@ -109,10 +109,10 @@ float screenW, screenH;
 struct Camera {
     Camera() {}
     Camera(const Vector2& pWorldPos, const Vector2& pWorldSize, const Vector2& pScreenPos, const Vector2& pScreenSize) :
-        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize), enable(true) {}
+        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize), enable(true), mirrorY(false) {}
     Vector2 worldPosition, worldSize;
     Vector2 screenPosition, screenSize;
-    bool enable;
+    bool enable, mirrorY;
 };
 
 /* textures cache */

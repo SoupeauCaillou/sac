@@ -124,7 +124,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
     const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
     const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
-	loadOrthographicMatrix(left, right, bottom, top, 0, 1, mat);
+	loadOrthographicMatrix(left, right, camera.mirrorY ? top : bottom, camera.mirrorY ? bottom : top, 0, 1, mat);
 	GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
@@ -170,6 +170,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
             camera.worldSize = rc.uv[0];
             camera.screenPosition = rc.uv[1];
             camera.screenSize = rc.position;
+            camera.mirrorY = rc.effectRef;
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))

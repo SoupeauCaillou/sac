@@ -317,6 +317,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         dummy.uv[0] = camera.worldSize;
         dummy.uv[1] = camera.screenPosition;
         dummy.position = camera.screenSize;
+        dummy.effectRef = camera.mirrorY;
         outQueue.commands.push_back(dummy);
         
         outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.end());
