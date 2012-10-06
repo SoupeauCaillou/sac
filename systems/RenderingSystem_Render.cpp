@@ -144,6 +144,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
     Camera camera;
 	int batchSize = 0;
+    GL_OPERATION(glDepthMask(true))
     GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
