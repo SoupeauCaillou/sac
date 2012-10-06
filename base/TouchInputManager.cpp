@@ -35,11 +35,13 @@ void TouchInputManager::init(Vector2 pWorldSize, Vector2 pWindowSize) {
 void TouchInputManager::Update(float dt __attribute__((unused)) ) {
 	Vector2 windowPos;
 
-	wasTouching = touching;
-	touching = ptr->isTouching(&windowPos);
-	if (touching) {
-		lastTouchedPosition = windowToWorld(windowPos, worldSize, windowSize);
-	}
+    for (int i=0; i<2; i++) {
+    	wasTouching[i] = touching[i];
+    	touching[i] = ptr->isTouching(i, &windowPos);
+    	if (touching[i]) {
+    		lastTouchedPosition[i] = windowToWorld(windowPos, worldSize, windowSize);
+    	}
+    }
 }
 
 Vector2 TouchInputManager::windowToWorld(const Vector2& windowCoords, const Vector2& worldSize, const Vector2& windowSize) const {

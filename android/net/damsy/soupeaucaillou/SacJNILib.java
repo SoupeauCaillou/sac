@@ -53,7 +53,7 @@ public class SacJNILib {
 	public static native void invalidateTextures(AssetManager mgr, long game);
 
 	public static native void handleInputEvent(long game, int event, float x,
-			float y);
+			float y, int pointerIndex);
 
 	public static native byte[] serialiazeState(long game);
 

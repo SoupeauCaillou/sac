@@ -9,6 +9,7 @@
 #include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/ExitAPIAndroidImpl.h"
 #include "api/android/SuccessAPIAndroidImpl.h"
+#include <map>
 
 struct JNIEnvDependantContext {
 	virtual void init(JNIEnv* pEnv, jobject assetMgr) { env = pEnv; }
@@ -94,9 +95,11 @@ class GameHolder {
 	RenderThreadJNIEnvCtx renderThreadJNICtx;
 
 	struct __input {
+        __input() : touching(0) {}
 		 int touching;
 		 float x, y;
-	} input;
+	};
+    std::map<int, __input> input;
 	bool firstCall;
 	struct timeval startup_time;
 	float dtAccumuled, time;

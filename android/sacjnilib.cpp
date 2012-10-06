@@ -52,17 +52,24 @@ struct AndroidNativeTouchState : public NativeTouchState{
 	GameHolder* holder;
 	AndroidNativeTouchState(GameHolder* h) {
 		holder = h;
-		holder->input.touching = 0;
 	}
-	bool isTouching (Vector2* windowCoords) const {
-		windowCoords->X = holder->input.x;
-		windowCoords->Y = holder->input.y;
+    int maxTouchingCount() {
+        return holder->input.size();
+    }
+	bool isTouching (int index, Vector2* windowCoords) const {
+        // map stable order ?
+        std::map<int, GameHolder::__input>::iterator it = holder->input.begin();
+        for (int i=0; i<index && it!=holder->input.end(); ++it) ;
+         
+        if (it == holder->input.end())
+            return false;
 
-		return holder->input.touching;
+		windowCoords->X = it->second.x;
+		windowCoords->Y = it->second.y;
+
+		return it->second.touching;
 	}
 };
-
-void plop();
 
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
@@ -301,21 +308,23 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTexture
  * Signature: (JIFF)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
-  (JNIEnv *env, jclass, jlong g, jint evt, jfloat x, jfloat y) {
+  (JNIEnv *env, jclass, jlong g, jint evt, jfloat x, jfloat y, jint pointerIndex) {
 	GameHolder* hld = (GameHolder*) g;
 
 	if (g == 0)
 		return;
+    
+    GameHolder::__input& input = hld->input[pointerIndex];
 
 	/* ACTION_DOWN == 0 | ACTION_MOVE == 2 */
-   if (evt == 0 || evt == 2) {
-   	hld->input.touching = 1;
-    	hld->input.x = x;
-   	hld->input.y = y;
-   }
-   /* ACTION_UP == 1 */
-   else if (evt == 1) {
-    	hld->input.touching = 0;
+    if (evt == 0 || evt == 2) {
+        input.touching = 1;
+    	input.x = x;
+   	    input.y = y;
+    }
+    /* ACTION_UP == 1 */
+    else if (evt == 1) {
+    	input.touching = 0;
    }
 }
 
@@ -359,24 +368,6 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadText
   theRenderingSystem.reloadEffects();
   
   LOGW("%s <--", __FUNCTION__);
-}
-
-void plop() {
-	Java_net_damsy_soupeaucaillou_SacJNILib_createGame(0, 0, 0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread(0,0,0,0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderThread(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread(0,0,0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_step(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_render(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_pause(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_back(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTextures(0, 0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent(0,0,0,0, 0, 0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures(0,0,0);
 }
 
 #ifdef __cplusplus

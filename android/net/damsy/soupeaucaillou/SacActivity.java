@@ -1,9 +1,13 @@
 package net.damsy.soupeaucaillou;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.damsy.soupeaucaillou.api.AdAPI;
 import net.damsy.soupeaucaillou.recursiveRunner.R;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.AvoidXfermode;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -178,17 +182,42 @@ public abstract class SacActivity extends SwarmActivity {
     	super.onSaveInstanceState(outState);
     }
 
+    List<Integer> activePointersId = new ArrayList<Integer>();
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-    	int action = event.getAction();
-
-    	if (game != 0) {
-	    	if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_MOVE) {
-	    		SacJNILib.handleInputEvent(game, event.getAction(), event.getX(), event.getY());
-	    		return true;
-	    	}
+    	if (game == 0)
+    		return false;
+    	int action = event.getActionMasked();
+//Log.i("input", "Action : " + action);
+    	switch (action) {
+    	case MotionEvent.ACTION_DOWN:
+    		Log.i("input", "ATION_DOWN");
+    		activePointersId.add(event.getPointerId(event.getActionIndex()));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
+    		return true;
+    	case MotionEvent.ACTION_UP:
+    		Log.i("input", "ACTION_UP");
+    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(event.getActionIndex())));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
+    		return true;
+    	case MotionEvent.ACTION_POINTER_DOWN:
+    		Log.i("input", "ACTION_POINTER_DOWN");
+    		activePointersId.add(event.getPointerId(event.getActionIndex()));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
+    		return true;
+    	case MotionEvent.ACTION_POINTER_UP:
+    		Log.i("input", "ACTION_POINTER_UP");
+    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(event.getActionIndex())));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
+    		return true;
+    	case MotionEvent.ACTION_MOVE:
+    		for (Integer ptr : activePointersId) {
+    			int idx = event.findPointerIndex(ptr);
+    			if (idx >= 0)
+    				SacJNILib.handleInputEvent(game, event.getAction(), event.getX(idx), event.getY(idx), ptr);
+    		}
+    		return true;
     	}
-
     	return super.onTouchEvent(event);
     }
 
