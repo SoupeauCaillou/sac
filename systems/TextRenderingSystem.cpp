@@ -133,6 +133,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			tc->parent = it->first;
             tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
+            rc->cameraBitMask = trc->cameraBitMask;
 
 			if (rc->hide)
 				continue;

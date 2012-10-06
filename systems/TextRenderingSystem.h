@@ -48,7 +48,8 @@ struct TextRenderingComponent {
 		fontName("typo"), 
 		positioning(CENTER), 
 		hide(false), 
-		flags(0) {
+		flags(0),
+        cameraBitMask(~0U) {
 			caret.show = false;
 			caret.speed = caret.dt = 0;
 		}
@@ -67,6 +68,7 @@ struct TextRenderingComponent {
 		float speed;
 		float dt;
 	} caret;
+    unsigned cameraBitMask;
 	// managed by systems
 	std::vector<Entity> drawing;
 };

@@ -213,8 +213,10 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	pthread_mutex_lock(&mutexes);
 	#endif
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
-    for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
+    for (int camIdx = cameras.size()-1; camIdx >= 0; camIdx--) {
         const Camera& camera = cameras[camIdx];
+        if (!camera.enable)
+            continue;
     	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
         const float camLeft = (camera.worldPosition.X - camera.worldSize.X * 0.5);
         const float camRight = (camera.worldPosition.X + camera.worldSize.X * 0.5);
@@ -222,8 +224,8 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
     		Entity a = (*it).first;
     		RenderingComponent* rc = (*it).second;
-    
-    		if (rc->hide || rc->color.a <= 0) {
+            bool ccc = rc->cameraBitMask & (0x1 << camIdx);
+    		if (rc->hide || rc->color.a <= 0 || !ccc) {
     			continue;
     		}
     

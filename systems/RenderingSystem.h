@@ -53,7 +53,7 @@ typedef int EffectRef;
 #define DefaultEffectRef -1
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), opaqueType(NON_OPAQUE) {}
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
 
 	TextureRef texture;
 	EffectRef effectRef;
@@ -67,6 +67,7 @@ struct RenderingComponent {
 	} ;
 	Opacity opaqueType;
 	float opaqueSeparation; // €[0, 1], meaning depends of opaqueType
+    unsigned cameraBitMask;
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
@@ -108,9 +109,10 @@ float screenW, screenH;
 struct Camera {
     Camera() {}
     Camera(const Vector2& pWorldPos, const Vector2& pWorldSize, const Vector2& pScreenPos, const Vector2& pScreenSize) :
-        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize) {}
+        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize), enable(true) {}
     Vector2 worldPosition, worldSize;
     Vector2 screenPosition, screenSize;
+    bool enable;
 };
 
 /* textures cache */
