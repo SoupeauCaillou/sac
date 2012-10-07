@@ -19,7 +19,12 @@ if [[ "$confir" != "y" && "$confir" != "Y" ]]; then
 	exit
 fi
 
-
+count=`pwd | tr -c -d /  | wc -c`
+count=`expr $count + 1`
+NAME=`pwd | cut -d/ -f $count | sed 's/^./\u&/'`
+name=`pwd | cut -d/ -f $count | sed 's/^./\l&/'`
+    
+    
 echo "What to do ?
 	1. ndk-build
 	2. (1) + compile
@@ -44,6 +49,11 @@ else
 fi
 
 if [ "$ichoix" -gt 0 ] && [ "$ichoix" -lt 5 ]; then
+	#first make the tremor script
+	# *** not working currently
+	# *** echo "sh sac/libs/convert_tremor_asm.sh"
+	# *** cd sac/libs && sh ./convert_tremor_asm.sh && cd ../..
+	
 	echo "Optimize ? (ndk-build -j and only one ARM version build ?) (Y/n) ?"
 	read optimize
 
@@ -56,8 +66,10 @@ if [ "$ichoix" -gt 0 ] && [ "$ichoix" -lt 5 ]; then
 	fi
 fi
 if [ "$ichoix" -gt 1 ] && [ "$ichoix" -lt 5 ]; then
+	#create the src dir first
+	mkdir src/ 2>/dev/null
 	echo "compiling"
-	$PATH_sdk/tools/android update project -p . -t 4 -n Heriswap  --subprojects
+	$PATH_sdk/tools/android update project -p . -t 4 -n $NAME  --subprojects
 	ant debug
 fi
 if [ "$ichoix" -gt 2 ] && [ "$ichoix" -lt 5 ]; then
@@ -66,6 +78,6 @@ if [ "$ichoix" -gt 2 ] && [ "$ichoix" -lt 5 ]; then
 fi
 if [ "$ichoix" = 4 ] || [ "$ichoix" = 5 ]; then
 	echo "launching app"
-	adb shell am start -n net.damsy.soupeaucaillou.heriswap/net.damsy.soupeaucaillou.heriswap.HeriswapActivity
+	adb shell am start -n net.damsy.soupeaucaillou.$name/net.damsy.soupeaucaillou.$name.$NAMEActivity
 fi
 cd build/android
