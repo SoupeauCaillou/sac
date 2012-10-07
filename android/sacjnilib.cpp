@@ -59,7 +59,7 @@ struct AndroidNativeTouchState : public NativeTouchState{
 	bool isTouching (int index, Vector2* windowCoords) const {
         // map stable order ?
         std::map<int, GameHolder::__input>::iterator it = holder->input.begin();
-        for (int i=0; i<index && it!=holder->input.end(); ++it) ;
+        for (int i=0; i<index && it!=holder->input.end(); ++it, i++) ;
          
         if (it == holder->input.end())
             return false;

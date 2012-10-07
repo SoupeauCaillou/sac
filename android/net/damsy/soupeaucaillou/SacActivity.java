@@ -187,28 +187,27 @@ public abstract class SacActivity extends SwarmActivity {
     public boolean onTouchEvent(MotionEvent event) {
     	if (game == 0)
     		return false;
-    	int action = event.getActionMasked();
-//Log.i("input", "Action : " + action);
+    	final int action = event.getActionMasked();
+    	final int ptrIdx = event.getActionIndex();
+    	
     	switch (action) {
-    	case MotionEvent.ACTION_DOWN:
-    		Log.i("input", "ATION_DOWN");
-    		activePointersId.add(event.getPointerId(event.getActionIndex()));
+    	/*
+    		activePointersId.add(0);
     		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
     		return true;
     	case MotionEvent.ACTION_UP:
-    		Log.i("input", "ACTION_UP");
-    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(event.getActionIndex())));
+    		activePointersId.remove((Object)Integer.valueOf(0));
     		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
-    		return true;
+    		return true;*/
+    	case MotionEvent.ACTION_DOWN:
     	case MotionEvent.ACTION_POINTER_DOWN:
-    		Log.i("input", "ACTION_POINTER_DOWN");
-    		activePointersId.add(event.getPointerId(event.getActionIndex()));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
+    		activePointersId.add(event.getPointerId(ptrIdx));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(ptrIdx), event.getY(ptrIdx), event.getPointerId(ptrIdx));
     		return true;
+    	case MotionEvent.ACTION_UP:
     	case MotionEvent.ACTION_POINTER_UP:
-    		Log.i("input", "ACTION_POINTER_UP");
-    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(event.getActionIndex())));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
+    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(ptrIdx)));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(ptrIdx), event.getY(ptrIdx), event.getPointerId(ptrIdx));
     		return true;
     	case MotionEvent.ACTION_MOVE:
     		for (Integer ptr : activePointersId) {
