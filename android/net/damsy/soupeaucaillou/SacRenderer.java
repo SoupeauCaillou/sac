@@ -154,11 +154,12 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-    	if (Swarm.isEnabled()) {
-	    	activity.runOnUiThread(new Runnable() {
+    	int id = activity.getSwarmGameID();
+    	if (Swarm.isEnabled() && id != 0) {
+		    activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					// Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());
+					Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());
 				}
 			});
     	}

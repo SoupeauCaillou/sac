@@ -127,7 +127,7 @@ void Game::backPressed() {
 		#else
 		a << "/tmp/";
 		#endif
-		a << "heriswap_prof_" << (int)(profStarted / 2) << ".json";
+		a << "sac_prof_" << (int)(profStarted / 2) << ".json";
 		stopProfiler(a.str());
 	}
 	profStarted++;

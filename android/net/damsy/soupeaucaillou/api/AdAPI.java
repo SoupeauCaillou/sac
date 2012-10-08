@@ -12,10 +12,14 @@ public class AdAPI {
 		// -------------------------------------------------------------------------
 		static public boolean showAd() {
 			ChartBoost _cb = ChartBoost.getSharedChartBoost(SacJNILib.activity);
+			if (_cb.getAppId() == null) {
+				AdAPI.adHasBeenShown = true;
+				return false;
+			}
 
 			int adProviderSelection = -1;
 
-			boolean gsReady = false; //GSSDK.getSharedInstance().isAdReady();
+			boolean gsReady = false;
 			boolean cbReady = _cb.hasCachedInterstitial();
 
 			if (gsReady && cbReady) {
@@ -28,14 +32,6 @@ public class AdAPI {
 
 			if (adProviderSelection == 0) {
 				AdAPI.adHasBeenShown = true;
-				/* HeriswapActivity.activity.runOnUiThread(new Runnable() {
-					public void run() {
-						if (!GSSDK.getSharedInstance().displayAd(
-								HeriswapActivity.activity)) {
-		    					HeriswapActivity.adHasBeenShown = true;
-						}
-					}
-				});*/
 				return false;
 			} else if (adProviderSelection == 1) {
 				AdAPI.adHasBeenShown = false;

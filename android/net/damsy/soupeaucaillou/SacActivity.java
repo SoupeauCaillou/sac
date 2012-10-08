@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
-import net.damsy.soupeaucaillou.recursiveRunner.R;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.AvoidXfermode;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager.LayoutParams;
 
 import com.chartboost.sdk.ChartBoost;
+import com.chartboost.sdk.ChartBoostDelegate;
 import com.swarmconnect.Swarm;
 import com.swarmconnect.SwarmActivity;
 
@@ -39,7 +39,12 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract boolean canShowAppRater();
 	public abstract String getBundleKey();
 	
+	public abstract int getLayoutId();
+	public abstract int getGLViewId();
 	
+	public abstract String getCharboostAppId();
+	public abstract String getCharboostAppSignature();
+
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		Log.i("Sac", "-> onCreate [" + savedInstanceState);
@@ -47,48 +52,50 @@ public abstract class SacActivity extends SwarmActivity {
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
 
-        /*
         ChartBoost _cb = ChartBoost.getSharedChartBoost(this);
-        _cb.setAppId(HeriswapSecret.CB_appId);
-        _cb.setAppSignature(HeriswapSecret.CB_AppSignature);
-        _cb.install();
-        _cb.setDelegate(new ChartBoostDelegate() {
-        	@Override
-        	public void didCloseInterstitial(View interstitialView) {
-        		super.didCloseInterstitial(interstitialView);
-        		AdAPI.adWaitingAdDisplay = false;
-        		AdAPI.adHasBeenShown = true;
-        	}
-
-        	@Override
-        	public void didFailToLoadInterstitial() {
-        		super.didFailToLoadInterstitial();
-        		AdAPI.adWaitingAdDisplay = false;
-        		AdAPI.adHasBeenShown = true;
-        	}
-
-        	@Override
-        	public boolean shouldDisplayInterstitial(View interstitialView) {
-        		if (AdAPI.adWaitingAdDisplay && interstitialView != null) {
-        			AdAPI.adWaitingAdDisplay = false;
-        			return true;
-        		} else {
-        			return false;
-        		}
-        	}
-		});
-
-        _cb.cacheInterstitial();
-        */
+        if (getCharboostAppId() != null) {
+	        _cb.setAppId(getCharboostAppId());
+	        _cb.setAppSignature(getCharboostAppSignature());
+	        _cb.install();
+	        _cb.setDelegate(new ChartBoostDelegate() {
+	        	@Override
+	        	public void didCloseInterstitial(View interstitialView) {
+	        		super.didCloseInterstitial(interstitialView);
+	        		AdAPI.adWaitingAdDisplay = false;
+	        		AdAPI.adHasBeenShown = true;
+	        	}
+	
+	        	@Override
+	        	public void didFailToLoadInterstitial() {
+	        		super.didFailToLoadInterstitial();
+	        		AdAPI.adWaitingAdDisplay = false;
+	        		AdAPI.adHasBeenShown = true;
+	        	}
+	
+	        	@Override
+	        	public boolean shouldDisplayInterstitial(View interstitialView) {
+	        		if (AdAPI.adWaitingAdDisplay && interstitialView != null) {
+	        			AdAPI.adWaitingAdDisplay = false;
+	        			return true;
+	        		} else {
+	        			return false;
+	        		}
+	        	}
+			});
+	
+	        _cb.cacheInterstitial();
+        } else {
+        	Log.w("sac", "Chartboost not initialized");
+        }
 
         mutex = new Object();
 
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
     			LayoutParams.FLAG_FULLSCREEN);
 
-        setContentView(R.layout.main);
+        setContentView(getLayoutId());
 
-        mGLView = (GLSurfaceView) findViewById(R.id.surfaceviewclass);
+        mGLView = (GLSurfaceView) findViewById(getGLViewId());
 
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
@@ -237,6 +244,7 @@ public abstract class SacActivity extends SwarmActivity {
     @Override
     protected void onDestroy() {
     	super.onDestroy();
-    	Swarm.logOut();
+    	if (Swarm.isInitialized())
+    		Swarm.logOut();
     }
 }
