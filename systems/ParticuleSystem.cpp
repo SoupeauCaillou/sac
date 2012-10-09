@@ -33,9 +33,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        Entity a = (*it).first;
-        ParticuleComponent* pc = (*it).second;
+    FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         TransformationComponent* ptc = TRANSFORM(a);
 
         // emit particules

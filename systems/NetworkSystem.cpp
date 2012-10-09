@@ -158,9 +158,8 @@ void NetworkSystem::DoUpdate(float dt) {
     // Process update type packets received
     {
         uint8_t temp[1024];
-        for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-            Entity e = it->first;
-            NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
+        FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
+            NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
 
             if (0 && nc->ownedLocally)
                 continue;
@@ -185,8 +184,8 @@ void NetworkSystem::DoUpdate(float dt) {
 
     // Process local entities : send required update to others
     {
-        for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-            updateEntity(it->first, it->second, dt);
+        FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
+            updateEntity(e, nc, dt);
         }
     }
     
@@ -301,8 +300,8 @@ NetworkComponent* NetworkSystem::CreateComponent() {
 }
 
 NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
+    FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
+        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (nc->guid == guid)
             return nc;
     }
@@ -311,9 +310,8 @@ NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
 }
 
 Entity NetworkSystem::guidToEntity(unsigned int guid) {
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        Entity e = it->first;
-        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
+    FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
+        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (nc->guid == guid)
             return e;
     }
@@ -323,10 +321,8 @@ Entity NetworkSystem::guidToEntity(unsigned int guid) {
 
 void NetworkSystem::deleteAllNonLocalEntities() {
     int count = 0;
-    for(ComponentIt it=components.begin(); it!=components.end(); ) {
-        Entity e = it->first;
-        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
-        ++it;
+    FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
+        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (!nc->ownedLocally) {
             theEntityManager.DeleteEntity(e);
             count++;
@@ -336,13 +332,13 @@ void NetworkSystem::deleteAllNonLocalEntities() {
 }
 
 unsigned int NetworkSystem::entityToGuid(Entity e) {
-    ComponentIt it=components.find(e);
-    if (it == components.end()) {
+    NetworkComponent* ncc = Get(e, false);
+    if (ncc == 0) {
         LOGE("Entity %lu has no ntework component", e);
         assert (false);
         return 0;
     }
-    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
+    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
     return nc->guid;
 }
 

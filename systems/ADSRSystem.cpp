@@ -34,9 +34,7 @@ ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
 }
 
 void ADSRSystem::DoUpdate(float dt) {
-	for(std::map<Entity, ADSRComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		ADSRComponent* adsr = (*jt).second;
-
+    FOR_EACH_ENTITY_COMPONENT(ADSR, entity, adsr)
 		if (!adsr->active && adsr->activationTime <= 0) {
 			adsr->value = adsr->idleValue;
 			adsr->activationTime = 0;
@@ -60,7 +58,7 @@ void ADSRSystem::DoUpdate(float dt) {
 			// phase D
 			} else if (adsr->activationTime < (adsr->attackTiming + adsr->decayTiming)) {
 				if (adsr->decayTiming && adsr->attackValue < adsr->sustainValue) {
-					LOGW("Entity '%lu' -> ADSR decay timing %.2f used with attack value %.2f < sustain value %.2f", jt->first, adsr->decayTiming, adsr->attackValue, adsr->sustainValue);
+					LOGW("Entity '%lu' -> ADSR decay timing %.2f used with attack value %.2f < sustain value %.2f", entity, adsr->decayTiming, adsr->attackValue, adsr->sustainValue);
 				}
 				if (adsr->decayMode == Linear) {
 				adsr->value = MathUtil::Lerp(

@@ -35,10 +35,7 @@ ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("Sc
 }
 
 void ScrollingSystem::DoUpdate(float dt) {
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        Entity a = (*it).first;
-        ScrollingComponent* sc = (*it).second;
-
+    FOR_EACH_ENTITY_COMPONENT(Scrolling, a, sc)
         EltIt iter = elements.find(a);
         if (iter == elements.end()) {
 	        if (MathUtil::Abs(sc->direction.Length() - 1) <= 0.001) {

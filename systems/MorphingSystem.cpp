@@ -25,9 +25,7 @@ MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morph
 }
 
 void MorphingSystem::DoUpdate(float dt) {
-	for(std::map<Entity, MorphingComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		MorphingComponent* m = (*jt).second;
-
+    FOR_EACH_ENTITY_COMPONENT(Morphing, entity, m)
 		if (!m->active || m->activationTime>m->timing) {
 			m->active = false;
 			m->activationTime = 0;

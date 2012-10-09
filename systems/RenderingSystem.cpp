@@ -221,9 +221,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         const float camLeft = (camera.worldPosition.X - camera.worldSize.X * 0.5);
         const float camRight = (camera.worldPosition.X + camera.worldSize.X * 0.5);
     	/* render */
-    	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-    		Entity a = (*it).first;
-    		RenderingComponent* rc = (*it).second;
+        FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
             bool ccc = rc->cameraBitMask & (0x1 << camIdx);
     		if (rc->hide || rc->color.a <= 0 || !ccc) {
     			continue;

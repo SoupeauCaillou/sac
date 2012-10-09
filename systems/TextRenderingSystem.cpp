@@ -72,9 +72,7 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
 
 void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		TextRenderingComponent* trc = (*it).second;
-
+    FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
 		// early quit if hidden
 		if (trc->hide) {
 			for (int i=0; i<trc->drawing.size(); i++) {
@@ -85,7 +83,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			continue;
 		}
 
-		TransformationComponent* trans = TRANSFORM(it->first);
+		TransformationComponent* trans = TRANSFORM(entity);
 		bool caret = false;
 		// caret blink
 		if (trc->caret.speed > 0) {
@@ -130,7 +128,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			RenderingComponent* rc = RENDERING(trc->drawing[i]);
 			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
-			tc->parent = it->first;
+			tc->parent = entity;
             tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
             rc->cameraBitMask = trc->cameraBitMask;

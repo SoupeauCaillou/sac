@@ -32,17 +32,14 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
 
 void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
 	//update orphans first
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		TransformationComponent* bc = (*it).second;
+    FOR_EACH_ENTITY_COMPONENT(Transformation, entity, bc)
 		if (!bc->parent) {
 			bc->worldPosition = bc->position;
 			bc->worldRotation = bc->rotation;
 		}
 	}
 	//copy parent property to its sons
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = it->first;
-        TransformationComponent* bc = (*it).second;
+    FOR_EACH_ENTITY_COMPONENT(Transformation, a, bc)
 		Entity parent = bc->parent;
 		if (parent) {
 			while (TRANSFORM(parent)->parent) {

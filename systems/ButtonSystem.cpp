@@ -29,9 +29,9 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
 void ButtonSystem::DoUpdate(float dt) {
     bool touch = theTouchInputManager.isTouched(0);
 	const Vector2& pos = theTouchInputManager.getTouchLastPosition(0);
-			
-	for(std::map<Entity, ButtonComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		UpdateButton((*jt).first, (*jt).second, touch, pos);
+
+    FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)
+		UpdateButton(entity, bt, touch, pos);
 	}
 }
 

@@ -28,11 +28,7 @@ AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponen
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {
-    for(ComponentIt it=components.begin(); it!=components.end();) {
-        Entity a = (*it).first;         
-        AutoDestroyComponent* adc = (*it).second;
-        ++it;
-
+    FOR_EACH_ENTITY_COMPONENT(AutoDestroy, a, adc)
         switch (adc->type) {
             case AutoDestroyComponent::OUT_OF_SCREEN:
                 if (!theRenderingSystem.isEntityVisible(a)) {

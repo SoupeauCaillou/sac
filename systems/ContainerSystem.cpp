@@ -40,9 +40,10 @@ void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
 		return;
 
 	bool atLeastOneEnabled = false;
-	for(ComponentIt it=components.begin(); !atLeastOneEnabled && it!=components.end(); ++it) {
-		ContainerComponent* bc = (*it).second;
+    FOR_EACH_ENTITY_COMPONENT(Container, entity, bc)
 		atLeastOneEnabled |= (bc->enable && !bc->entities.empty());
+        if (atLeastOneEnabled)
+            break;
 	}
 		
 	if (!atLeastOneEnabled)
@@ -50,10 +51,7 @@ void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
 		
 	const std::vector<Entity> allEntities(theTransformationSystem.RetrieveAllEntityWithComponent());
 
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;			
-		ContainerComponent* bc = (*it).second;
-
+	FOR_EACH_ENTITY_COMPONENT(Container, a, bc)
 		if (!bc->enable || bc->entities.empty())
 			continue;
 		

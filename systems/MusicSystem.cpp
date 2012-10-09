@@ -127,16 +127,13 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 
 void MusicSystem::DoUpdate(float dt) {
     if (muted) {
-         for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-            MusicComponent* m = (*jt).second;
+        FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
             stopMusic(m);
         }
         return;
     }
     
-    for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-        MusicComponent* m = (*jt).second;
-
+    FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
 		m->looped = false;
 
 		// Music is not started and is startable => launch opaque[0] player		
@@ -288,10 +285,7 @@ void MusicSystem::DoUpdate(float dt) {
     
 	#ifdef MUSIC_VISU
 	int idx = 0;
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;
-		MusicComponent* rc = (*it).second;
-		
+    FOR_EACH_ENTITY_COMPONENT(Music, a, rc)
 		if (visualisationEntities.find(a) == visualisationEntities.end()) {
 			int size = visualisationEntities.size();
 
@@ -519,8 +513,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 void MusicSystem::toggleMute(bool enable) {
     if (enable && !muted) {
         muted = true;
-        for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-            MusicComponent* m = (*jt).second;
+        FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
             stopMusic(m);
         }
     } else if (!enable && muted) {

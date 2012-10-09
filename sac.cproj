@@ -37,7 +37,6 @@
     <Compile Include="systems\ADSRSystem.cpp" />
     <Compile Include="systems\ButtonSystem.cpp" />
     <Compile Include="systems\ContainerSystem.cpp" />
-    <Compile Include="systems\DebugRenderingManager.cpp" />
     <Compile Include="systems\RenderingSystem.cpp" />
     <Compile Include="systems\RenderingSystem_Render.cpp" />
     <Compile Include="systems\RenderingSystem_Texture.cpp" />
@@ -107,7 +106,6 @@
     <None Include="systems\ADSRSystem.h" />
     <None Include="systems\ButtonSystem.h" />
     <None Include="systems\ContainerSystem.h" />
-    <None Include="systems\DebugRenderingManager.h" />
     <None Include="systems\RenderingSystem.h" />
     <None Include="systems\SoundSystem.h" />
     <None Include="systems\System.h" />

@@ -28,9 +28,7 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
 }
 
 void AutonomousAgentSystem::DoUpdate(float dt) {
-	for(std::map<Entity, AutonomousAgentComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		Entity e = jt->first;
-		AutonomousAgentComponent* agent = (*jt).second;
+    FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
 		Vector2 force(Vector2::Zero);
 
 		if (agent->seekTarget && agent->seekWeight > 0) {

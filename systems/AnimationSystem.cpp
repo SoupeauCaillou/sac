@@ -32,10 +32,7 @@ AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("An
 }
 
 void AnimationSystem::DoUpdate(float dt) {
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-        Entity a = (*it).first;         
-        AnimationComponent* bc = (*it).second;
-
+    FOR_EACH_ENTITY_COMPONENT(Animation, a, bc)
         AnimIt jt = animations.find(bc->name);
         if (jt == animations.end())
             continue;
