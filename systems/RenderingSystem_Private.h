@@ -35,3 +35,11 @@
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
 #define BeginFrameMarker -12
+
+enum {
+    ATTRIB_VERTEX = 0,
+    ATTRIB_UV,
+ ATTRIB_POS_ROT,
+ ATTRIB_SCALE,
+    NUM_ATTRIBS
+};

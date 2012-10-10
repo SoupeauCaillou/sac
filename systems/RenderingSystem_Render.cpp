@@ -93,18 +93,18 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 #ifdef USE_VBO
 	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[reverseUV ? 1 : 0]))
 
-	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
-	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
 	
 	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
 #else
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
-	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_VERTEX))
-	GL_OPERATION(glVertexAttribPointer(RenderingSystem::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
-	GL_OPERATION(glEnableVertexAttribArray(RenderingSystem::ATTRIB_UV))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
+	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
+	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
 
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 #endif

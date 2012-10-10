@@ -231,13 +231,6 @@ static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
-enum {
-    ATTRIB_VERTEX = 0,
-    ATTRIB_UV,
-	ATTRIB_POS_ROT,
-	ATTRIB_SCALE,
-    NUM_ATTRIBS
-};
 
 bool pvrSupported;
 };
