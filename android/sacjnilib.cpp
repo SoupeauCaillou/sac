@@ -235,27 +235,25 @@ static float tttttt = 0;
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
-  	GameHolder* hld = (GameHolder*) g;
 	theRenderingSystem.render();
 
 	frameCount++;
 	if (frameCount >= 200) {
         float fps = 200.0 / (TimeUtil::getTime() - tttttt);
         if (fps > 0) {
+            GameHolder* hld = (GameHolder*) g;
             float dt = 1/fps;
             float ratio = hld->game->targetDT / dt;
             LOGW("fps render: %.2f (ratio: %.2f)", fps, ratio);
             if (ratio < 0.95) {
-                hld->game->targetDT *= 1.1;
+                hld->game->targetDT *= 1.05;
                 hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);
                 LOGW("Reduce fps target: %.2f", 1.0 / hld->game->targetDT);
             } else {
-                hld->game->targetDT *= 0.95;
+                hld->game->targetDT *= 0.98;
                 hld->game->targetDT = MathUtil::Max(1.0f/60.0f, hld->game->targetDT);
                 LOGW("Increase fps target: %.2f", 1.0 / hld->game->targetDT);
             }
-             
-             
         }
 		tttttt = TimeUtil::getTime();
 		frameCount = 0;
