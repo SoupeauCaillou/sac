@@ -45,19 +45,10 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
     	synchronized (activity.mutex) {
     		if (activity.game == 0 || !initDone) {
-    			// Log.i(HeriswapActivity.Tag, "No rendering: " + HeriswapActivity.game + ", " + initDone);
     	 		return;
     		}
     		
     		SacJNILib.render(activity.game);
-
-    		frameCount++;
-    		long diff = System.currentTimeMillis() - time;
-    		if (diff >= 10000) {
-    			// Log.w("TAG", "Render thread FPS: " + (float)1000*frameCount / diff);
-    			frameCount = 0;
-    			time = System.currentTimeMillis();
-    		}
     	}
         /*int err;
         while( (err = gl.glGetError()) != GL10.GL_NO_ERROR) {
@@ -151,7 +142,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
         while( (err = gl.glGetError()) != GL10.GL_NO_ERROR) {
         	//NOLOGLog.e(HeriswapActivity.Tag, "_GL error : " + GLU.gluErrorString(err));
         }*/
-    }
+    } 
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
     	int id = activity.getSwarmGameID();
