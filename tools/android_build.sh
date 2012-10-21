@@ -44,6 +44,15 @@ else
 fi
 
 if [ "$ichoix" -gt 0 ] && [ "$ichoix" -lt 5 ]; then
+	#first execute tremor script
+	cd sac/libs/tremor
+	git checkout *
+	for asm_file in `find . -name "*.s"`; do
+		./arm2gnu.pl $asm_file > /tmp/a && mv /tmp/a $asm_file
+	done
+	cd ../../../
+	
+	#then ndk build
 	echo "Optimize ? (ndk-build -j and only one ARM version build ?) (Y/n) ?"
 	read optimize
 
@@ -68,4 +77,3 @@ if [ "$ichoix" = 4 ] || [ "$ichoix" = 5 ]; then
 	echo "launching app"
 	adb shell am start -n net.damsy.soupeaucaillou.heriswap/net.damsy.soupeaucaillou.heriswap.HeriswapActivity
 fi
-cd build/android
