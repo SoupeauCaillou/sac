@@ -22,6 +22,7 @@
 #include <locale.h>
 #endif
 
+#include <iostream>
 void LocalizeAPILinuxImpl::init() {
 	#ifndef EMSCRIPTEN
 	#ifdef LOCALEDIR
@@ -29,6 +30,7 @@ void LocalizeAPILinuxImpl::init() {
 	textdomain("heriswap");
 	#endif
 	#endif
+
 }
 
 #define _(STRING)    gettext(STRING)
@@ -36,6 +38,7 @@ void LocalizeAPILinuxImpl::init() {
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {
 #if defined(LOCALEDIR) && !defined(EMSCRIPTEN)
 	return _(spc.c_str());
+
 #else
 	return spc;
 #endif
