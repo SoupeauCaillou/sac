@@ -218,8 +218,9 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 		if (rc.texture != InvalidTextureRef) {
 			const TextureInfo& info = textures[rc.texture];
 			rc.glref = info.glref;
-			Vector2 offset = rc.uv[0], scale = rc.uv[1];
-			Vector2 uvS = info.uv[1] - info.uv[0];
+			Vector2 offset(rc.uv[0]);
+			Vector2 scale(rc.uv[1]);
+			Vector2 uvS (info.uv[1] - info.uv[0]);
 			#ifdef USE_VBO
 			float uvso[4];
 			uvso[0] = scale.X * uvS.X;
@@ -228,9 +229,15 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 			uvso[3] = info.uv[0].Y + offset.Y * uvS.Y;
 			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
 			#else
-			
-			rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
-			rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
+			if (info.rotateUV) {
+				std::swap(offset.X, offset.Y);
+				std::swap(scale.X, scale.Y);
+				offset.Y = 1 - (scale.Y + offset.Y);
+			}
+			{
+				rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
+				rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
+			}
 			#endif
 			rc.rotateUV = info.rotateUV;
 		} else {
