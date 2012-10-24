@@ -125,7 +125,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
     const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
     const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
 	loadOrthographicMatrix(left, right, camera.mirrorY ? top : bottom, camera.mirrorY ? bottom : top, 0, 1, mat);
-	GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
+	GL_OPERATION(glUniform1fv(shader.uniformMatrix, 6, mat))
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
 	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
@@ -478,6 +478,14 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     float tz = - (far + near) / f_n;
 
     mat[0] = 2.0f / r_l;
+    mat[1] = 2.0f / t_b;
+    mat[2] = -2.0f / f_n;
+    mat[3] = tx;
+    mat[4] = ty;
+    mat[5] = tz;
+
+    /*
+    mat[0] = 2.0f / r_l;
     mat[1] = mat[2] = mat[3] = 0.0f;
 
     mat[4] = 0.0f;
@@ -492,6 +500,7 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     mat[13] = ty;
     mat[14] = tz;
     mat[15] = 1.0f;
+    */
 }
 
 const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall) {
