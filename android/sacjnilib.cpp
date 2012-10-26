@@ -190,7 +190,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 
 	float dt;
 	do {
-		dt = TimeUtil::getTime() - hld->time;
+		dt = hld->dtAccumuled + TimeUtil::getTime() - hld->time;
 		if (dt < DT) {
 			struct timespec ts;
 			ts.tv_sec = 0;
@@ -199,18 +199,18 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 		}
 	} while (dt < DT);
 
-	hld->dtAccumuled += dt;
 	hld->time = TimeUtil::getTime();
 
 	const float accum = DT;
-	if (hld->dtAccumuled > 5 * DT) {
-		LOGW("BIG DT: %.3f s", hld->dtAccumuled);
+	if (dt > 5 * DT) {
+		LOGW("BIG DT: %.3f s", dt);
 	}
 
-	while (hld->dtAccumuled >= DT){
+	while (dt >= DT){
 		hld->game->tick(accum);
-		hld->dtAccumuled -= accum;
+		dt -= accum;
 	}
+	hld->dtAccumuled = dt;
 }
 
 float pauseTime;
@@ -245,7 +245,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
             float dt = 1/fps;
             float ratio = hld->game->targetDT / dt;
             LOGW("fps render: %.2f (ratio: %.2f)", fps, ratio);
-            /*if (ratio < 0.90) {
+            if (ratio < 0.90) {
                 hld->game->targetDT += (dt - hld->game->targetDT) * 0.5;
                 hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);
                 LOGW("Reduce fps target: %.2f", 1.0 / hld->game->targetDT);
@@ -257,7 +257,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
                 hld->game->targetDT *= 0.97;
                 hld->game->targetDT = MathUtil::Max(1.0f/60.0f, hld->game->targetDT);
                 LOGW("Increase fps target: %.2f", 1.0 / hld->game->targetDT);
-            }*/
+            }
         }
 		tttttt = TimeUtil::getTime();
 		frameCount = 0;
