@@ -95,6 +95,7 @@
     <Compile Include="systems\AutoDestroySystem.cpp" />
     <Compile Include="util\Serializer.cpp" />
     <Compile Include="tests\util\TestSerializer.cpp" />
+    <Compile Include="tools\opaqueboxfinder\opaqueboxfinder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
