@@ -115,11 +115,6 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
  
-    GL_OPERATION(glViewport(
-        (camera.screenPosition.X - camera.screenSize.X * 0.5 + 0.5) * windowW,
-        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
-        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
- 
     const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
@@ -172,6 +167,12 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
             camera.screenPosition = rc.uv[1];
             camera.screenSize = rc.position;
             camera.mirrorY = rc.effectRef;
+            
+			GL_OPERATION(glViewport(
+		        (camera.screenPosition.X - camera.screenSize.X * 0.5 + 0.5) * windowW,
+		        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
+		        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
+        
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
