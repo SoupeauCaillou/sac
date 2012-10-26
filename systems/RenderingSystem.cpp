@@ -142,7 +142,7 @@ void RenderingSystem::init() {
 	// GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
-	GL_OPERATION(glDepthFunc(GL_GEQUAL))
+	GL_OPERATION(glDepthFunc(GL_GREATER))
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 	GL_OPERATION(glClearDepthf(0.0))
  #else
@@ -284,7 +284,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     	         	break;
     	         #ifndef USE_VBO
     	         case RenderingComponent::OPAQUE_ABOVE:
-    	         case RenderingComponent::OPAQUE_UNDER:
+    	         case RenderingComponent::OPAQUE_UNDER: {
     	         	RenderCommand cA = c, cU = c;
     	         	cA.halfSize.Y = (tc->size * rc->opaqueSeparation).Y * 0.5;
     	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
@@ -302,6 +302,17 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		         	opaqueCommands.push_back(cU);
     	         	}
     	         	break;
+    	         }
+    	         case RenderingComponent::OPAQUE_CENTER: {
+    	         	semiOpaqueCommands.push_back(c);
+    	         	// add a smaller full-opaque block at the center
+    	         	RenderCommand cCenter = c;
+    	         	cCenter.halfSize = c.halfSize * rc->opaqueSeparation;
+    	         	cCenter.uv[1] = Vector2(rc->opaqueSeparation, rc->opaqueSeparation);
+    	         	cCenter.uv[0] += Vector2(1 - rc->opaqueSeparation) * 0.5;
+    	         	opaqueCommands.push_back(cCenter);
+    	         	break;
+    	         }
     	         #endif
              }
     	}

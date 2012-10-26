@@ -63,7 +63,8 @@ struct RenderingComponent {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
 		OPAQUE_ABOVE,
-		OPAQUE_UNDER
+		OPAQUE_UNDER,
+		OPAQUE_CENTER,
 	} ;
 	Opacity opaqueType;
 	float opaqueSeparation; // €[0, 1], meaning depends of opaqueType
