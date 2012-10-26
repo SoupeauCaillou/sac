@@ -236,6 +236,7 @@ static float tttttt = 0;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
 	theRenderingSystem.render();
+#define ENABLE_LOG 1
 #define COUNT 500.0
 	frameCount++;
 	if (frameCount >= COUNT) {
@@ -244,7 +245,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
             GameHolder* hld = (GameHolder*) g;
             float dt = 1/fps;
             float ratio = hld->game->targetDT / dt;
-            LOGW("fps render: %.2f (ratio: %.2f)", fps, ratio);
+            __android_log_print(ANDROID_LOG_INFO, "heriswapC", "fps render: %.2f (ratio: %.2f)", fps, ratio);
             if (ratio < 0.90) {
                 hld->game->targetDT += (dt - hld->game->targetDT) * 0.5;
                 hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);

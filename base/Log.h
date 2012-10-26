@@ -21,8 +21,8 @@
 #include <stdint.h>
 
 #ifdef ANDROID
-#ifdef DEBUG
 #include <android/log.h>
+#ifdef ENABLE_LOG
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "heriswapC", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "heriswapC", __VA_ARGS__))
 #else
