@@ -138,10 +138,10 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		float y = 0;
 		const float startX = x;
 		bool newWord = true;
-		
+        int count = 0;
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
-			if (i >= trc->drawing.size()) {
+			if (count >= trc->drawing.size()) {
 				if (renderingEntitiesPool.size() > 0) {
 					trc->drawing.push_back(renderingEntitiesPool.back());
 					renderingEntitiesPool.pop_back();					
@@ -150,8 +150,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				}
 			}
 
-			RenderingComponent* rc = RENDERING(trc->drawing[i]);
-			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
+			RenderingComponent* rc = RENDERING(trc->drawing[count]);
+			TransformationComponent* tc = TRANSFORM(trc->drawing[count]);
 			tc->parent = entity;
             tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
@@ -190,18 +190,27 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			std::stringstream a;
 			char letter = trc->text[i];
-			bool hack = false;
+			bool inlineImage = false;
+            int skip = -1;
 			// Unicode control caracter, skipping
 			if (letter == (char)0xC3) {
 				rc->hide = true;
 				continue;
 			} else {
 				int l = (int) ((letter < 0) ? (unsigned char)letter : letter);
-				if (l == 0x97) {
-					a << "swarm_icon";
-					hack = true;
+				if (letter == InlineImageDelimiter) {
+                    std::string texture;
+					inlineImage = true;
+                    int next = trc->text.find(InlineImageDelimiter, i+1);
+                    parseInlineImageString(
+                        trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.X, &tc->size.Y);
+                    a << texture;
+                    tc->size.X *= charHeight;
+                    tc->size.Y *= charHeight;
+                    skip = next + 1;
 				} else {
 					a << l << "_" << trc->fontName;
+                    tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
 				}
 			}
 
@@ -209,23 +218,27 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->hide = true;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
-				if (!hack) rc->color = trc->color;
+				if (!inlineImage) rc->color = trc->color;
 				else rc->color = Color();
 			}
-			tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
+            count++;
 			x += tc->size.X * 0.5;
-			tc->position = Vector2(x, y);
+			tc->position = Vector2(x, y + inlineImage ? tc->size.Y * 0.25 : 0);
 			x += tc->size.X * 0.5;
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * charHeight * 0.75;
 			}
+         
+            if (skip >= 0) {
+                i = skip;
+            }
 		}
 		for(unsigned int i=trc->text.length(); i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
 		// trans->size = Vector2::Zero;
-		trc->drawing.resize(trc->text.length());
+		// trc->drawing.resize(trc->text.length());
 		
 		if (caret) {
 			trc->text.resize(trc->text.length() - 1);	
