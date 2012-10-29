@@ -187,7 +187,6 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					x = startX;
 				}
 			}
-
 			std::stringstream a;
 			char letter = trc->text[i];
 			bool inlineImage = false;
@@ -207,7 +206,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
                     a << texture;
                     tc->size.X *= charHeight;
                     tc->size.Y *= charHeight;
-                    skip = next + 1;
+                    skip = next;
 				} else {
 					a << l << "_" << trc->fontName;
                     tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
@@ -223,7 +222,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			}
             count++;
 			x += tc->size.X * 0.5;
-			tc->position = Vector2(x, y + inlineImage ? tc->size.Y * 0.25 : 0);
+			tc->position = Vector2(x, y + (inlineImage ? tc->size.Y * 0.25 : 0));
 			x += tc->size.X * 0.5;
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * charHeight * 0.75;
