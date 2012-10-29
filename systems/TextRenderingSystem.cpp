@@ -24,6 +24,7 @@ const float TextRenderingComponent::LEFT = 0.0f;
 const float TextRenderingComponent::CENTER = 0.5f;
 const float TextRenderingComponent::RIGHT = 1.0f;
 
+const char InlineImageDelimiter = 0x97;
 
 INSTANCE_IMPL(TextRenderingSystem);
 
@@ -32,11 +33,22 @@ TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingCo
 }
 
 
-Entity createRenderingEntity() {
+static Entity createRenderingEntity() {
 	Entity e = theEntityManager.CreateEntity();
 	ADD_COMPONENT(e, Transformation);
 	ADD_COMPONENT(e, Rendering);
 	return e;
+}
+
+static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h) {
+    int idx0 = s.find(',');
+    int idx1 = s.find(',', idx0 + 1);
+    if (image)
+        *image = s.substr(0, idx0);
+    if (w)
+        *w = atof(s.substr(idx0 + 1, idx1 - idx0).c_str());
+    if (h)
+        *h = atof(s.substr(idx1 + 1, s.length() - idx1).c_str());
 }
 
 static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t to, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
@@ -48,7 +60,19 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
 	}
 	for (unsigned int i=from; i<to; i++) {
 		char letter = trc->text[i];
-		if (letter != (char)0xC3 && letter != '\n') {
+		if (letter == (char)0xC3) {
+            letter = trc->text[i+1];
+            if (letter == InlineImageDelimiter) {
+                // looks for next delimiter
+                unsigned int end = trc->text.find(InlineImageDelimiter, i+2);
+                float w = 0;
+                parseInlineImageString(trc->text.substr(i+2, end - 1 - (i+2) + 1), 0, &w, 0);
+                width += w * charHeight;
+                i = end;
+            }
+        } else if (letter == '\n') {
+            continue;
+        } else {
 			width += charH2Wratio[trc->text[i]] * charHeight;
 		}
 	}

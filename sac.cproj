@@ -96,6 +96,7 @@
     <Compile Include="util\Serializer.cpp" />
     <Compile Include="tests\util\TestSerializer.cpp" />
     <Compile Include="tools\opaqueboxfinder\opaqueboxfinder.cpp" />
+    <Compile Include="tests\systems\TestTextRenderingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
