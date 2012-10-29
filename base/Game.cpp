@@ -86,8 +86,9 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 		sscanf(line.c_str(), "%d,%d,%d", &c, &w, &h);
 		h2wratio[c] = (float)w / h;
 	}
+ 
 	delete[] file.data;
-	h2wratio[' '] = h2wratio['a'];
+	h2wratio[' '] = h2wratio['r'];
 	h2wratio[0x97] = 1;
 	theTextRenderingSystem.registerFont(name, h2wratio);
 }
