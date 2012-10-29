@@ -46,6 +46,10 @@ while read data; do
 		convert -geometry ${w}x${h}+${x}+${y} -composite $output $tmp_image $output
 		convert -geometry ${w}x${h}+${x}+${y} -composite $output_alpha $tmp_image $output_alpha
 		image=`basename ${image} .png`
-		echo "${image},${x},${y},${w},${h},${rot}" >> ${desc}
+		
+		#largest_rectangle script 
+		opaqueBox=`./largest_rectangle.py ${image}`
+		
+		echo "${image},${x},${y},${w},${h},${rot}, $(opaqueBox)" >> ${desc}
 	fi
 done
