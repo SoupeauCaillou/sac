@@ -45,20 +45,19 @@ for i in `seq $number`; do
 	echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>" > /tmp/xmlFromTable/values-$i/strings.xml
 done
 
-while read line
+while read -r line
 do
 	if [ "$line" != "languages$separateuren$separateurfr$separateurde$separateurit$separateurnl$separateures" ]; then
-		keyWord=`echo $line | cut -d$separateur -f1`
+		keyWord=`printf '%s' "$line" | cut -d$separateur -f1`
 		for j in `seq $number`; do
 			jPlusUn=`expr $j + 1`
-			translation=`echo $line | cut -d$separateur -f $jPlusUn`
+			translation=`printf '%s' "$line" | cut -d$separateur -f $jPlusUn`
 			
 			#fill with english transl if there isn't one in this language
 			if [ -z "$translation" ]; then
-				translation=`echo $line | cut -d$separateur -f2`				
+				translation=`printf '%s\n' "$line" | cut -d$separateur -f2`				
 			fi
-			
-			echo "\t<string name=\"$keyWord\">\"$translation\"</string>" >> /tmp/xmlFromTable/values-$j/strings.xml
+			printf '\t<string name="%s">"%s"</string>\n' "$keyWord" "$translation" >> /tmp/xmlFromTable/values-$j/strings.xml
 		done
 	fi
 done < $1
