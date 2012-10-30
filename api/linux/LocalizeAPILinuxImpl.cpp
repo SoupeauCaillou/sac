@@ -59,6 +59,8 @@ void LocalizeAPILinuxImpl::init() {
         while (s.find("\\n") != std::string::npos) {
             s.replace(s.find("\\n"), 2, "\n");
         }
+        s.erase(s.begin());
+        s.erase(s.end() - 1);
         _idToMessage[pElem->Attribute("name")] = s;
 	}
 	
