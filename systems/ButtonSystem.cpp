@@ -19,6 +19,7 @@
 #include "ButtonSystem.h"
 #include "base/TimeUtil.h"
 #include "util/IntersectionUtil.h"
+#include "../api/VibrateAPI.h"
 
 INSTANCE_IMPL(ButtonSystem);
 
@@ -29,10 +30,11 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
 void ButtonSystem::DoUpdate(float dt) {
     bool touch = theTouchInputManager.isTouched(0);
 	const Vector2& pos = theTouchInputManager.getTouchLastPosition(0);
-
+std::cout << "update: ";
     FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)
 		UpdateButton(entity, bt, touch, pos);
 	}
+ std::cout << std::endl;
 }
 
 void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const Vector2& touchPos) {
@@ -48,6 +50,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	comp->clicked = false;
 
 	if (comp->enabled) {
+        std::cout << entity << "  ";
 		if (comp->mouseOver) {
 			if (touching) {
 				comp->mouseOver = over;
@@ -58,6 +61,10 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
+                     
+                        if (vibrateAPI && comp->vibration > 0) {
+                            vibrateAPI->vibrate(comp->vibration);
+                        }
 					}
 				}
 				comp->mouseOver = false;

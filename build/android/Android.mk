@@ -53,6 +53,7 @@ LOCAL_SRC_FILES := \
     api/android/NameInputAPIAndroidImpl.cpp \
     api/android/ExitAPIAndroidImpl.cpp \
     api/android/SuccessAPIAndroidImpl.cpp \
+    api/android/VibrateAPIAndroidImpl.cpp \
 	util/ImageLoader.cpp \
 	util/IntersectionUtil.cpp \
 	util/Serializer.cpp

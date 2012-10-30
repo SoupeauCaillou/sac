@@ -97,6 +97,8 @@
     <Compile Include="tests\util\TestSerializer.cpp" />
     <Compile Include="tools\opaqueboxfinder\opaqueboxfinder.cpp" />
     <Compile Include="tests\systems\TestTextRenderingSystem.cpp" />
+    <Compile Include="api\android\VibrateAPIAndroidImpl.cpp" />
+    <Compile Include="api\linux\VibrateAPILinuxImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -168,6 +170,9 @@
     <None Include="build\cmake\CMakeLists.txt" />
     <None Include="util\Serializer.hpp" />
     <None Include="systems\RenderingSystem_Private.h" />
+    <None Include="api\VibrateAPI.h" />
+    <None Include="api\linux\VibrateAPILinuxImpl.h" />
+    <None Include="api\android\VibrateAPIAndroidImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

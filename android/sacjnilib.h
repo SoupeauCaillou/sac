@@ -9,6 +9,7 @@
 #include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/ExitAPIAndroidImpl.h"
 #include "api/android/SuccessAPIAndroidImpl.h"
+#include "api/android/VibrateAPIAndroidImpl.h"
 #include <map>
 
 struct JNIEnvDependantContext {
@@ -27,6 +28,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 	MusicAPIAndroidImpl musicAPI;
 	SoundAPIAndroidImpl soundAPI;
 	SuccessAPIAndroidImpl successAPI;
+    VibrateAPIAndroidImpl vibrateAPI;
 	jobject assetManager;
 
 	virtual void init(JNIEnv* pEnv, jobject assetMgr) {
@@ -41,7 +43,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 		musicAPI.init(pEnv);
 		soundAPI.init(pEnv, assetManager);
 		successAPI.init(pEnv);
-
+        vibrateAPI.init(pEnv);
 		JNIEnvDependantContext::init(pEnv, assetMgr);
 	}
 
@@ -55,6 +57,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 			musicAPI.uninit();
 			soundAPI.uninit();
 			successAPI.uninit();
+            vibrateAPI.uninit();
 			env->DeleteGlobalRef(assetManager);
 		}
 

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -31,6 +32,8 @@ public abstract class SacActivity extends SwarmActivity {
 	final public int openGLESVersion = 2;
 	SacRenderer renderer;
 	PowerManager.WakeLock wl;
+
+	public Vibrator vibrator;
 	
 	public abstract int getSwarmGameID();
 	public abstract String getSwarmGameKey(); 
@@ -118,6 +121,7 @@ public abstract class SacActivity extends SwarmActivity {
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         
         SharedPreferences prefs = getSharedPreferences("apprater", 0);
         long newValue = prefs.getLong("launch_count", 0) + 1;
