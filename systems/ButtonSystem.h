@@ -29,7 +29,7 @@
 class VibrateAPI;
 
 struct ButtonComponent {
-	ButtonComponent() : enabled(true), mouseOver(false), clicked(false), overSize(1) , vibration(0.02), lastClick(0) { }
+	ButtonComponent() : enabled(false), mouseOver(false), clicked(false), overSize(1) , vibration(0.035), lastClick(0) { }
 	
 	bool enabled;
 	bool mouseOver;
