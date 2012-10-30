@@ -232,12 +232,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 i = skip;
             }
 		}
-		for(unsigned int i=trc->text.length(); i < trc->drawing.size(); i++) {
+		for(unsigned int i=count; i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
-		// trans->size = Vector2::Zero;
-		// trc->drawing.resize(trc->text.length());
+		trc->drawing.resize(count);
 		
 		if (caret) {
 			trc->text.resize(trc->text.length() - 1);	
