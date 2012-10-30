@@ -60,7 +60,7 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
 	}
 	for (unsigned int i=from; i<to; i++) {
 		char letter = trc->text[i];
-		if (letter == (char)0xC3) {
+		if (letter == (char)0xC3 || letter == (char)0xC2) {
             letter = trc->text[i+1];
             if (letter == InlineImageDelimiter) {
                 // looks for next delimiter
@@ -192,7 +192,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			bool inlineImage = false;
             int skip = -1;
 			// Unicode control caracter, skipping
-			if (letter == (char)0xC3) {
+			if (letter == (char)0xC3 || letter == (char)0xC2) {
 				rc->hide = true;
 				continue;
 			} else {
