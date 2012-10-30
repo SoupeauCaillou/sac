@@ -305,12 +305,14 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     	         }
     	         case RenderingComponent::OPAQUE_CENTER: {
     	         	semiOpaqueCommands.push_back(c);
-    	         	// add a smaller full-opaque block at the center
-    	         	RenderCommand cCenter = c;
-    	         	cCenter.halfSize = c.halfSize * rc->opaqueSeparation;
-    	         	cCenter.uv[1] = Vector2(rc->opaqueSeparation, rc->opaqueSeparation);
-    	         	cCenter.uv[0] += Vector2(1 - rc->opaqueSeparation) * 0.5;
-    	         	opaqueCommands.push_back(cCenter);
+                    if (c.color.a >= 1) {
+        	         	// add a smaller full-opaque block at the center
+        	         	RenderCommand cCenter = c;
+        	         	cCenter.halfSize = c.halfSize * rc->opaqueSeparation;
+        	         	cCenter.uv[1] = Vector2(rc->opaqueSeparation, rc->opaqueSeparation);
+        	         	cCenter.uv[0] += Vector2(1 - rc->opaqueSeparation) * 0.5;
+        	         	opaqueCommands.push_back(cCenter);
+                     }
     	         	break;
     	         }
     	         #endif
