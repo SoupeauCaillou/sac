@@ -36,10 +36,10 @@ void LocalizeAPILinuxImpl::init() {
 	std::string filename = DATADIR;
 	filename += "../res/values";
 	
-	if (lang != "en")
+	if (strncmp(lang, "en", 2) != 0)
 		filename += "-" + std::string(lang);
 	filename += "/strings.xml";
-	
+	std::cout << "'" << lang << "' => " << filename << std::endl;
 	tinyxml2::XMLDocument doc;
 	
 	if (doc.LoadFile(filename.c_str())) {
@@ -55,7 +55,11 @@ void LocalizeAPILinuxImpl::init() {
 
 	pElem = hRoot.FirstChildElement().ToElement();
 	for (pElem; pElem; pElem = pElem->NextSiblingElement()) {
-		_idToMessage[pElem->Attribute("name")] = pElem->GetText();
+        std::string s = pElem->GetText();
+        while (s.find("\\n") != std::string::npos) {
+            s.replace(s.find("\\n"), 2, "\n");
+        }
+        _idToMessage[pElem->Attribute("name")] = s;
 	}
 	
 	#endif
