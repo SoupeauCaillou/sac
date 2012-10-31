@@ -240,6 +240,12 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 				rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
 			}
 			#endif
+            if (rc.mirrorH) {
+                if (info.rotateUV)
+                    std::swap(rc.uv[0].Y, rc.uv[1].Y);
+                else
+                    std::swap(rc.uv[0].X, rc.uv[1].X);
+            }
 			rc.rotateUV = info.rotateUV;
 		} else {
 			rc.glref = InternalTexture::Invalid;

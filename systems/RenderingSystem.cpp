@@ -242,7 +242,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		c.rotation = tc->worldRotation;
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
-    
+            c.mirrorH = rc->mirrorH;
             if (c.rotation == 0 && rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
                 // left culling !
                 float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
