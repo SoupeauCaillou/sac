@@ -25,6 +25,7 @@ INSTANCE_IMPL(ButtonSystem);
 
 ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     /* nothing saved */
+    vibrateAPI = 0;
 }
 
 void ButtonSystem::DoUpdate(float dt) {
