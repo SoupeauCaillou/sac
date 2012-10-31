@@ -28,7 +28,7 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     vibrateAPI = 0;
 }
 
-void ButtonSystem::DoUpdate(float dt) {
+void ButtonSystem::DoUpdate(float dt __attribute__((unused))) {
     bool touch = theTouchInputManager.isTouched(0);
 	const Vector2& pos = theTouchInputManager.getTouchLastPosition(0);
     FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)

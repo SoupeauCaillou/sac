@@ -300,7 +300,7 @@ NetworkComponent* NetworkSystem::CreateComponent() {
 }
 
 NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
-    FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
+    FOR_EACH_COMPONENT(Network, ncc)
         NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (nc->guid == guid)
             return nc;

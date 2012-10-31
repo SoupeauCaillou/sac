@@ -40,7 +40,7 @@ void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
 		return;
 
 	bool atLeastOneEnabled = false;
-    FOR_EACH_ENTITY_COMPONENT(Container, entity, bc)
+    FOR_EACH_COMPONENT(Container, bc)
 		atLeastOneEnabled |= (bc->enable && !bc->entities.empty());
         if (atLeastOneEnabled)
             break;

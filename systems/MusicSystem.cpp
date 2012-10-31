@@ -127,7 +127,7 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 
 void MusicSystem::DoUpdate(float dt) {
     if (muted) {
-        FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
+        FOR_EACH_COMPONENT(Music, m)
             stopMusic(m);
         }
         return;

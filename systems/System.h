@@ -76,6 +76,10 @@
         for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
             Entity ent = it->first;\
             type##Component* comp = it->second;
+    
+    #define FOR_EACH_COMPONENT(type, comp) \
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
+            type##Component* comp = it->second;
 #endif
 
 class ComponentSystem {
