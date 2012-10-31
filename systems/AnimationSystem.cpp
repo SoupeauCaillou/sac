@@ -22,6 +22,8 @@
 struct AnimationSystem::Anim {
     std::vector<TextureRef> textures;
     float playbackSpeed;
+    bool loop;
+    std::string nextAnim;
 };
     
 INSTANCE_IMPL(AnimationSystem);
@@ -47,7 +49,17 @@ void AnimationSystem::DoUpdate(float dt) {
             bc->accum += dt * anim->playbackSpeed;
     
             while(bc->accum >= 1) {
-                bc->textureIndex = (bc->textureIndex + 1) % anim->textures.size();
+                bool lastImage = (bc->textureIndex == anim->textures.size() - 1);
+                if (lastImage) {
+                    if (anim->loop) {
+                        bc->textureIndex = 0;
+                    } else if (!anim->nextAnim.empty()) {
+                        bc->name = anim->nextAnim;
+                        break;
+                    }
+                } else {
+                    bc->textureIndex++;
+                }
                 RENDERING(a)->texture = anim->textures[bc->textureIndex];
                 bc->accum -= 1;
             }
@@ -55,19 +67,21 @@ void AnimationSystem::DoUpdate(float dt) {
     }
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed) {
+void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, bool loop, const std::string& nextAnim) {
     assert (animations.find(name) == animations.end());
     Anim* a = new Anim();
     a->textures = textures;
     a->playbackSpeed = playbackSpeed;
+    a->loop = loop;
+    a->nextAnim = nextAnim;
     animations[name] = a;
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed) {
+void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, bool loop, const std::string& next) {
     assert (animations.find(name) == animations.end());
     std::vector<TextureRef> textures;
     for (int i=0; i<count; i++) {
         textures.push_back(theRenderingSystem.loadTextureFile(textureNames[i]));
     }
-    registerAnim(name, textures, playbackSpeed);
+    registerAnim(name, textures, playbackSpeed, loop, next);
 }
