@@ -41,14 +41,6 @@ file(
 add_executable(lobby_server ${lobby_server_source_files})
 target_link_libraries(lobby_server sac z)
 
-file(
-	GLOB_RECURSE
-	opaqueboxfinder_source_files
-	../../tools/opaqueboxfinder/*.cpp	../../tools/opaqueboxfinder/*.h
-)
-add_executable(opaqueboxfinder ${opaqueboxfinder_source_files})
-target_link_libraries(opaqueboxfinder sac z)
-
 include_directories(/usr/include/unittest++/)
 file(
         GLOB_RECURSE

@@ -2,6 +2,7 @@
 #include <jni.h>
 
 #include "api/android/AssetAPIAndroidImpl.h"
+#include "api/android/CommunicationAPIAndroidImpl.h"
 #include "api/android/MusicAPIAndroidImpl.h"
 #include "api/android/SoundAPIAndroidImpl.h"
 #include "api/android/LocalizeAPIAndroidImpl.h"
