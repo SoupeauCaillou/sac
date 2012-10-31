@@ -135,8 +135,8 @@ void Game::backPressed() {
 	#endif
 }
 		
-void Game::togglePause(bool activate) {}
+void Game::togglePause(bool activate __attribute__((unused))) {}
 		
-int Game::saveState(uint8_t** out) {
+int Game::saveState(uint8_t** out __attribute__((unused))) {
 	return 0;
 }

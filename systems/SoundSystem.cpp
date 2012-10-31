@@ -60,14 +60,14 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
 
 void SoundSystem::DoUpdate(float dt __attribute__((unused))) {
 	if (mute) {
-		FOR_EACH_ENTITY_COMPONENT(Sound, a, rc)
+		FOR_EACH_COMPONENT(Sound, rc)
             rc->sound = InvalidSoundRef;
         }
         return;
     }
 
 	/* play component with a valid sound ref */
-    FOR_EACH_ENTITY_COMPONENT(Sound, a, rc)
+    FOR_EACH_COMPONENT(Sound, rc)
 		if (rc->sound != InvalidSoundRef && !mute ) {
 			std::map<SoundRef, OpaqueSoundPtr*>::iterator jt = sounds.find(rc->sound);
 			if (jt != sounds.end()) {
