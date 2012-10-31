@@ -141,6 +141,6 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
 
 bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1, const TransformationComponent* tc2) {
     return rectangleRectangle(
-        tc1->position, tc1->size, tc1->rotation,
-        tc2->position, tc2->size, tc2->rotation);
+        tc1->worldPosition, tc1->size, tc1->worldRotation,
+        tc2->worldPosition, tc2->size, tc2->worldRotation);
 }
