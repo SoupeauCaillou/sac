@@ -233,7 +233,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             }
     
     		RenderCommand c;
-    		c.z = tc->z;
+    		c.z = tc->worldZ;
     		c.texture = rc->texture;
     		c.effectRef = rc->effectRef;
     		c.halfSize = tc->size * 0.5f;

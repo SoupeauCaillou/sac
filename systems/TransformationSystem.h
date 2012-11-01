@@ -29,7 +29,7 @@ struct TransformationComponent {
 	
 	Vector2 position, worldPosition, size;
 	float rotation, worldRotation;//radians
-	float z;
+	float z, worldZ;
 
 	Entity parent;
 };

@@ -36,6 +36,7 @@ void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
 		if (!bc->parent) {
 			bc->worldPosition = bc->position;
 			bc->worldRotation = bc->rotation;
+            bc->worldZ = bc->z;
 		}
 	}
 	//copy parent property to its sons
@@ -48,7 +49,7 @@ void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
 			const TransformationComponent* pbc = TRANSFORM(bc->parent);
 			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, pbc->worldRotation);
 			bc->worldRotation = pbc->worldRotation + bc->rotation;
-		    bc->z = pbc->z;
+            bc->worldZ = pbc->worldZ + bc->z;
 		}
     }
 }

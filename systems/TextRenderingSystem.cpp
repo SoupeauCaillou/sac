@@ -153,6 +153,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			RenderingComponent* rc = RENDERING(trc->drawing[count]);
 			TransformationComponent* tc = TRANSFORM(trc->drawing[count]);
 			tc->parent = entity;
+            //tc->z = trans->z;
             tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
             rc->cameraBitMask = trc->cameraBitMask;
