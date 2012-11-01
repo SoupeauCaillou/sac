@@ -22,9 +22,9 @@
 #include "RenderingSystem.h"
 
 struct AnimationComponent {
-    AnimationComponent() : accum(0), textureIndex(0) {}
+    AnimationComponent() : accum(0), playbackSpeed(1), textureIndex(0) {}
     std::string name, previousName;
-    float accum;
+    float accum, playbackSpeed;
     int textureIndex;
 };
 

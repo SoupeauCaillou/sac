@@ -46,7 +46,7 @@ void AnimationSystem::DoUpdate(float dt) {
             bc->accum = 0;
             bc->previousName = bc->name;
         } else {
-            bc->accum += dt * anim->playbackSpeed;
+            bc->accum += dt * anim->playbackSpeed * bc->playbackSpeed;
     
             while(bc->accum >= 1) {
                 bool lastImage = (bc->textureIndex == anim->textures.size() - 1);
