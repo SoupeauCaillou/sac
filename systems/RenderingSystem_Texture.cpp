@@ -161,7 +161,7 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     for (unsigned int idx=0; idx<atlas.size(); idx++) {
         if (atlasName == atlas[idx].name) {
             for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
-	            if (it->second.atlasIndex == idx) {
+	            if (it->second.atlasIndex == (int)idx) {
 		            it->second.glref = InternalTexture::Invalid;
                 }
             }
@@ -170,15 +170,6 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
             break;
         }
     }
-}
-
-static unsigned int alignOnPowerOf2(unsigned int value) {
-	for(int i=0; i<32; i++) {
-		unsigned int c = 1 << i;
-		if (value <= c)
-			return c;
-	}
-	return 0;
 }
 
 GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size) {

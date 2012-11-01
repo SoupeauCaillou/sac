@@ -1,15 +1,13 @@
-#! /bin/sh -x
-if [ $# -eq 1 ] && [ "$0" = "./build.sh" ]; then
+#! /bin/sh
+reset	
+
+if [ $# -ge 1 ] && [ "$0" = "./build.sh" ]; then
 	echo "cleaning"
 	rm -r C* c* l* M* s* t* 2>/dev/null
 fi
-	
 cmake ../..
 make -j4
 
-echo "launch it ? (y/N) "
-read confirm
-
-if [ "$confirm" = "y" ]; then
-	./linux/heriswap --verbose
+if [ $# -eq 2 ]; then
+	./linux/recursiveRunner --verbose
 fi

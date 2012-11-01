@@ -43,8 +43,8 @@ TEST(Serialization)
 	TransformationSystem::CreateInstance();
 	theEntityManager.deleteAllEntities();
 
-	int eCount = MathUtil::RandomInt(20) + 1;
-	for (int i=0; i<eCount; i++) {
+	unsigned eCount = MathUtil::RandomInt(20) + 1;
+	for (unsigned i = 0; i < eCount; i++) {
 		Entity e = theEntityManager.CreateEntity(EntityManager::Persistent);
 		ADD_COMPONENT(e, Transformation);
 		TRANSFORM(e)->position = Vector2(i, i);
@@ -62,7 +62,7 @@ TEST(Serialization)
 
 	std::vector<Entity> entities = theEntityManager.allEntities();
 	CHECK_EQUAL(eCount, entities.size());
-	for (int i=0; i<entities.size(); i++) {
+	for (unsigned i = 0; i < entities.size(); i++) {
 		TransformationComponent* tc = TRANSFORM(entities[i]);
 		CHECK(tc != 0);
 		CHECK_EQUAL(Vector2(i, i), tc->position);

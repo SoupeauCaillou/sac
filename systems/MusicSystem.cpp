@@ -133,7 +133,7 @@ void MusicSystem::DoUpdate(float dt) {
         return;
     }
     
-    FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
+    FOR_EACH_COMPONENT(Music, m)
 		m->looped = false;
 
 		// Music is not started and is startable => launch opaque[0] player		
@@ -435,7 +435,7 @@ void MusicSystem::oggDecompRunLoop() {
 #endif
 
 #ifndef EMSCRIPTEN
-bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount __attribute__((unused)), float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
 	    LOGW("Achtung, musicref : %d not found", m);
@@ -513,7 +513,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 void MusicSystem::toggleMute(bool enable) {
     if (enable && !muted) {
         muted = true;
-        FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
+        FOR_EACH_COMPONENT(Music, m)
             stopMusic(m);
         }
     } else if (!enable && muted) {

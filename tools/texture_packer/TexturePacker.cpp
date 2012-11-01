@@ -632,7 +632,7 @@ TexturePacker * createTexturePacker(void)
   return static_cast< TexturePacker *>(m);
 }
 
-void            releaseTexturePacker(TexturePacker *tp)
+void releaseTexturePacker(TexturePacker *tp)
 {
   MyTexturePacker *m = static_cast< MyTexturePacker *>(tp);
   delete m;

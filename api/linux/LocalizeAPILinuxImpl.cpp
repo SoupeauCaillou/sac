@@ -54,7 +54,7 @@ void LocalizeAPILinuxImpl::init() {
 	tinyxml2::XMLHandle hRoot(pElem);
 
 	pElem = hRoot.FirstChildElement().ToElement();
-	for (pElem; pElem; pElem = pElem->NextSiblingElement()) {
+	for (; pElem; pElem = pElem->NextSiblingElement()) {
         std::string s = pElem->GetText();
         while (s.find("\\n") != std::string::npos) {
             s.replace(s.find("\\n"), 2, "\n");
@@ -70,7 +70,7 @@ void LocalizeAPILinuxImpl::init() {
 
 #define _(STRING)    gettext(STRING)
 
-std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {
+std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc __attribute__((unused))) {
 #ifdef EMSCRIPTEN
 	return _(spc.c_str());
 #else

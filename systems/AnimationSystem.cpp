@@ -49,7 +49,7 @@ void AnimationSystem::DoUpdate(float dt) {
             bc->accum += dt * anim->playbackSpeed * bc->playbackSpeed;
     
             while(bc->accum >= 1) {
-                bool lastImage = (bc->textureIndex == anim->textures.size() - 1);
+                bool lastImage = (bc->textureIndex == (int)anim->textures.size() - 1);
                 if (lastImage) {
                     if (anim->loop) {
                         bc->textureIndex = 0;

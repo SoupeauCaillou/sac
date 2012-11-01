@@ -84,7 +84,7 @@ TEST (VectorProperty)
     uint8_t buf[256];
     p.serialize(buf, &v);
     p.deserialize(buf, &w);
-    CHECK_EQUAL(10, w.size());
+    CHECK_EQUAL((unsigned)10, w.size());
     for (int i=0; i<10; i++)
         CHECK_EQUAL(v[i], w[i]);
 }
@@ -98,7 +98,7 @@ TEST (MapProperty)
     uint8_t buf[256];
     p.serialize(buf, &v);
     p.deserialize(buf, &w);
-    CHECK_EQUAL(10, w.size());
+    CHECK_EQUAL((unsigned)10, w.size());
     for (int i=0; i<10; i++) {
         CHECK_EQUAL(v[i], w[i]);
     }
@@ -115,7 +115,7 @@ TEST (MapPropertyStringKey)
     CHECK(p.size(&v) <= 256);
     p.serialize(buf, &v);
     p.deserialize(buf, &w);
-    CHECK_EQUAL(10, w.size());
+    CHECK_EQUAL((unsigned)10, w.size());
     for (int i=0; i<10; i++) {
         std::string s = "a" + i;
         CHECK_EQUAL(v[s], w[s]);

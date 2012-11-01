@@ -59,7 +59,7 @@ void MusicAPILinuxOpenALImpl::init() {
 #endif
 }
 
-OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int sampleRate) {
+OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int sampleRate __attribute__((unused))) {
     OpenALOpaqueMusicPtr* result = new OpenALOpaqueMusicPtr();
     // create source
     AL_OPERATION(alGenSources(1, &result->source))
@@ -78,7 +78,7 @@ void MusicAPILinuxOpenALImpl::deallocate(int8_t* b) {
     delete[] b;
 }
 
-int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr* ptr) {
+int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr* ptr __attribute__((unused))) {
     return 10;
 }
 

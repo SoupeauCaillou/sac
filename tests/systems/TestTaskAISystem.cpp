@@ -25,11 +25,11 @@ TEST(OneTask)
 		public:
 			float timeLeft;
 			
-			TaskAI* update(Entity e, float dt) {
+			TaskAI* update(Entity e  __attribute__((unused)), float dt) {
 				timeLeft -= dt;
 				return 0;
 			}
-			bool complete(Entity e) {
+			bool complete(Entity e  __attribute__((unused))) {
 				return timeLeft <= 0;
 			}
 	};
@@ -60,11 +60,11 @@ TEST(DerivedTask)
 			bool* plop;
 			
 			TaskA(bool* b) : plop(b) { *plop = false; }				
-			TaskAI* update(Entity e, float dt) {
+			TaskAI* update(Entity e __attribute__((unused)), float dt __attribute__((unused))) {
 				*plop = true;
 				return 0;
 			}
-			bool complete(Entity e) {
+			bool complete(Entity e __attribute__((unused))) {
 				taskAComplete = true;
 				return *plop;
 			}
@@ -73,14 +73,14 @@ TEST(DerivedTask)
 		public:					
 			bool subTaskComplete;	
 
-			TaskAI* update(Entity e, float dt) {
+			TaskAI* update(Entity e __attribute__((unused)), float dt __attribute__((unused))) {
 				if (!subTaskComplete) {
 					return new TaskA(&subTaskComplete);
 				} else {
 					return 0;
 				}
 			}
-			bool complete(Entity e) {
+			bool complete(Entity e __attribute__((unused))) {
 				return true;
 			}
 	};

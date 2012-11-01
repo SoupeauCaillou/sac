@@ -29,7 +29,7 @@ Property::Property(unsigned long pOffset, unsigned pSize) : offset(pOffset), _si
  
 }
 
-unsigned Property::size(void* object) const {
+unsigned Property::size(void* object __attribute__((unused))) const {
     return _size;
 }
 

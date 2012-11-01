@@ -40,7 +40,7 @@ struct MatchMaking {
 
 static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB, bool server);
 
-int main(int argc, char** argv) {
+int main() {
     enet_initialize();
 
     ENetAddress address;
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
                     memcpy(&port, &packet->data[1], sizeof(port));
                     port = ntohs(port);
                     
-                    for (int i=0; i<inProgress.size(); i++) {
+                    for (unsigned i = 0; i < inProgress.size(); i++) {
                         if (inProgress[i].clientModePeer == event.peer) {
                             std::cout << "Received client mode local port (" << port << ")" << std::endl;
                             // create packet for player2
@@ -107,12 +107,15 @@ int main(int argc, char** argv) {
                 }
                 enet_packet_destroy (event.packet);
             }
+            case ENET_EVENT_TYPE_NONE: {
+				}
+					
         }
         // if we have 2 players with a name : connect them
         if (peerWaiting.size() >= 2) {
             std::cout << "Matchmaking in progress !" << std::endl;
             int portA = MathUtil::RandomIntInRange(55000, 56000);
-            int portB = MathUtil::RandomIntInRange(55000, 56000);
+            // *** int portB = MathUtil::RandomIntInRange(55000, 56000);
             MatchMaking match;
 
             std::list<ENetPeer*>::iterator it = peerWaiting.begin();

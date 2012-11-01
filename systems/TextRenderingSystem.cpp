@@ -99,7 +99,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
 		// early quit if hidden
 		if (trc->hide) {
-			for (int i=0; i<trc->drawing.size(); i++) {
+			for (unsigned i = 0; i < trc->drawing.size(); i++) {
 				RENDERING(trc->drawing[i])->hide = true;
 				renderingEntitiesPool.push_back(trc->drawing[i]);
 			}
@@ -135,10 +135,12 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		
 		float x = (trc->flags & TextRenderingComponent::MultiLineBit) ? 
 			(trans->size.X * -0.5) : computeStartX(trc, charHeight, charH2Wratio);
+		
 		float y = 0;
 		const float startX = x;
 		bool newWord = true;
-        int count = 0;
+      unsigned count = 0;
+      
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
 			if (count >= trc->drawing.size()) {
@@ -233,7 +235,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 i = skip;
             }
 		}
-		for(unsigned int i=count; i < trc->drawing.size(); i++) {
+		for(unsigned int i = count; i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
