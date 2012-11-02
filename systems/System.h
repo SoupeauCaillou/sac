@@ -143,7 +143,14 @@ class ComponentSystemImpl: public ComponentSystem {
             #endif
 		}
 
+		#ifdef DEBUG
+		virtual void preDeletionCheck(Entity entity __attribute__((unused))) { };
+		#endif
+		
 		void Delete(Entity entity) {
+		#ifdef DEBUG
+		    preDeletionCheck(entity);
+		#endif
             #if USE_VECTOR_STORAGE
             std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
             unsigned idx = it->second;
