@@ -1,1 +1,1 @@
-copy the build dir at the root, then compile for your platform !
+Copy this build directory in ../.. (root of the game), then execute build.sh script for your platform !
