@@ -46,7 +46,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
     } else {
         OpaqueSoundPtr* ptr = soundAPI->loadSound(assetName);
         if (!ptr) {
-            LOGW("Unable to load sound file: '%s'", assetName.c_str());
+            LOGE("Unable to load sound file: '%s'", assetName.c_str());
             PROFILE("Sound", "loadSoundFile", EndEvent);
             return InvalidSoundRef;
         } else {

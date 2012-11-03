@@ -94,7 +94,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
-		LOGW("Unable to load atlas desc %s", atlasDesc.c_str());
+		LOGE("Unable to load atlas desc %s", atlasDesc.c_str());
 		return;
 	}
 
@@ -113,16 +113,16 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 	std::string s;
 	f >> s;
 
-    // read texture size
-    sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-    LOGW("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')", 
-    	atlasName.c_str(), 
-    	atlasIndex, 
-    	a.glref.color, 
-    	a.glref.alpha, 
-    	forceImmediateTextureLoading ? atlasSize.X : .0f, 
-    	forceImmediateTextureLoading ? atlasSize.Y : .0f, 
-    	s.c_str());
+	// read texture size
+	sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
+	LOGI("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')", 
+		atlasName.c_str(), 
+		atlasIndex, 
+		a.glref.color, 
+		a.glref.alpha, 
+		forceImmediateTextureLoading ? atlasSize.X : .0f, 
+		forceImmediateTextureLoading ? atlasSize.Y : .0f, 
+		s.c_str());
 	int count = 0;
 
 	do {
@@ -139,7 +139,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		parse(s, assetName, x, y, w, h, rot);
 
 		TextureRef result = nextValidRef++;
-		LOGW("----- %s -> %d", assetName.c_str(), result);
+		LOGI("----- %s -> %d", assetName.c_str(), result);
 		assetTextures[assetName] = result;
 		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, atlasIndex);
 
@@ -151,55 +151,55 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
-    for (unsigned int i=0; i<atlas.size(); i++) {
-        atlas[i].glref = InternalTexture::Invalid;
-    }
+	for (unsigned int i=0; i<atlas.size(); i++) {
+		atlas[i].glref = InternalTexture::Invalid;
+	}
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
-	LOGW("Unload atlas '%s' texture", atlasName.c_str());
-    for (unsigned int idx=0; idx<atlas.size(); idx++) {
-        if (atlasName == atlas[idx].name) {
-            for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
-	            if (it->second.atlasIndex == (int)idx) {
-		            it->second.glref = InternalTexture::Invalid;
-                }
-            }
-            delayedDeletes.insert(atlas[idx].glref);
-            atlas[idx].glref = InternalTexture::Invalid;
-            break;
-        }
-    }
+	LOGI("Unload atlas '%s' texture", atlasName.c_str());
+	for (unsigned int idx=0; idx<atlas.size(); idx++) {
+		if (atlasName == atlas[idx].name) {
+			for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
+				if (it->second.atlasIndex == (int)idx) {
+					it->second.glref = InternalTexture::Invalid;
+				}
+			}
+			delayedDeletes.insert(atlas[idx].glref);
+			atlas[idx].glref = InternalTexture::Invalid;
+			break;
+		}
+	}
 }
 
 GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size) {
-    FileBuffer file;
-    bool png = false;
-    file.data = 0;
+	FileBuffer file;
+	bool png = false;
+	file.data = 0;
 #ifdef ANDROID
 	if (colorOrAlpha) {
 		if (pvrSupported) {
-    		file = assetAPI->loadAsset(basename + ".pvr");
+			file = assetAPI->loadAsset(basename + ".pvr");
 		} else {
-    		file = assetAPI->loadAsset(basename + ".pkm");
+			file = assetAPI->loadAsset(basename + ".pkm");
 		}
 	}
 #endif
 
 #ifndef EMSCRIPTEN
-    if (!file.data) {
-        file = assetAPI->loadAsset(basename + ".png");
-        if (!file.data)
-            return whiteTexture;
-        png = true;
-    }
+	if (!file.data) {
+		file = assetAPI->loadAsset(basename + ".png");
+		if (!file.data)
+			return whiteTexture;
+		png = true;
+	}
 
-    // load image
-    ImageDesc image = png ? ImageLoader::loadPng(basename, file) : pvrSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);
-    delete[] file.data;
-    if (!image.datas) {
-        return 0;
-    }
+	// load image
+	ImageDesc image = png ? ImageLoader::loadPng(basename, file) : pvrSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);
+	delete[] file.data;
+	if (!image.datas) {
+		return 0;
+	}
 #else
 	ImageDesc image;
 	std::stringstream a;
@@ -225,68 +225,68 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 			}
 		}
 	}
-    SDL_FreeSurface(s);
+	SDL_FreeSurface(s);
 	png = true;
 #endif
 
-    // for now, just assume power of 2 size
-    GLuint out;
-    GL_OPERATION(glGenTextures(1, &out))
-    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+	// for now, just assume power of 2 size
+	GLuint out;
+	GL_OPERATION(glGenTextures(1, &out))
+	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
 
-    GLenum format;
-    switch (image.channels) {
-        case 1:
-            format = GL_ALPHA;
-            break;
-        case 2:
-            format = GL_LUMINANCE_ALPHA;
-            break;
-        case 3:
-            format = GL_RGB;
-            break;
-        case 4:
-            format = GL_RGBA;
-            break;
-    }
+	GLenum format;
+	switch (image.channels) {
+		case 1:
+			format = GL_ALPHA;
+			break;
+		case 2:
+			format = GL_LUMINANCE_ALPHA;
+			break;
+		case 3:
+			format = GL_RGB;
+			break;
+		case 4:
+			format = GL_RGBA;
+			break;
+	}
 
-    if (png) {
-	    LOGW("Using PNG texture version (%dx%d)", image.width, image.height);
+	if (png) {
+		LOGI("Using PNG texture version (%dx%d)", image.width, image.height);
 	 	#ifdef EMSCRIPTEN
 	 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
-    	#else
-    	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
-    	#endif
-    	GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
-    } else {
+		#else
+		GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, colorOrAlpha ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+		#endif
+		GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
+	} else {
 	   #ifdef ANDROID
-	    if (pvrSupported) {
-	    	unsigned imgSize = ( MathUtil::Max(image.width, 8) * MathUtil::Max(image.height, 8) * 4 + 7) / 8; // file.size;// - (20 + 13*sizeof(uint32_t));
-	    	LOGW("Using PVR texture version (%dx%d, %d)", image.width, image.height, imgSize);
-	    	GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, image.width, image.height, 0, imgSize, image.datas))
-	    } else {
-	    	LOGW("Using ETC texture version");
+		if (pvrSupported) {
+			unsigned imgSize = ( MathUtil::Max(image.width, 8) * MathUtil::Max(image.height, 8) * 4 + 7) / 8; // file.size;// - (20 + 13*sizeof(uint32_t));
+			LOGI("Using PVR texture version (%dx%d, %d)", image.width, image.height, imgSize);
+			GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, image.width, image.height, 0, imgSize, image.datas))
+		} else {
+			LOGI("Using ETC texture version");
 			#define ECT1_HEADER_SIZE 16
 			GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
-	    }
-    #else
-    	assert (false && "ETC compression not supported");
-    #endif
-    }
-    free (image.datas);
-    pow2Size.X = realSize.X = image.width;
-    pow2Size.Y = realSize.Y = image.height;
+		}
+	#else
+		assert (false && "ETC compression not supported");
+	#endif
+	}
+	free (image.datas);
+	pow2Size.X = realSize.X = image.width;
+	pow2Size.Y = realSize.Y = image.height;
 
-    return out;
+	return out;
 }
 
 
 void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
-    LOGW("loadTexture: %s", assetName.c_str());
+	LOGI("loadTexture: %s", assetName.c_str());
 
 	/* create GL texture */
  	out.color = createGLTexture(assetName, true, realSize, pow2Size);
@@ -295,13 +295,13 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 
 void RenderingSystem::reloadTextures() {
 	Vector2 size, psize;
-	LOGW("Reloading textures begin");
-    LOGW("\t- atlas : %lu", atlas.size());
+	LOGI("Reloading textures begin");
+	LOGI("\t- atlas : %lu", atlas.size());
 	// reload atlas texture
 	for (unsigned int i=0; i<atlas.size(); i++) {
 		atlas[i].glref = InternalTexture::Invalid;
 	}
-    LOGW("\t - textures: %lu", assetTextures.size());
+	LOGI("\t - textures: %lu", assetTextures.size());
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		TextureInfo& info = textures[it->second];
 		if (info.atlasIndex >= 0) {
@@ -312,7 +312,7 @@ void RenderingSystem::reloadTextures() {
 			textures[it->second] = TextureInfo(t, 0, 0, size.X, size.Y, false, psize);
 		}
 	}
-    LOGW("Reloading textures done");
+	LOGI("Reloading textures done");
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
@@ -321,62 +321,62 @@ void RenderingSystem::processDelayedTextureJobs() {
 	pthread_mutex_lock(&mutexes);
 	#endif
 
-    // load atlas
-    for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
-        int atlasIndex = *it;
-        Vector2 atlasSize, pow2Size;
-       #ifndef EMSCRIPTEN
+	// load atlas
+	for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
+		int atlasIndex = *it;
+		Vector2 atlasSize, pow2Size;
+	   #ifndef EMSCRIPTEN
 		pthread_mutex_unlock(&mutexes);
 		#endif
-        loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
-        LOGW("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
+		loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
+		LOGI("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
 
-        for (std::map<std::string, TextureRef>::iterator jt=assetTextures.begin(); jt!=assetTextures.end(); ++jt) {
-            TextureInfo& info = textures[jt->second];
-            if (info.atlasIndex == atlasIndex) {
-                info.glref = atlas[atlasIndex].glref;
-            }
-        }
-       #ifndef EMSCRIPTEN
+		for (std::map<std::string, TextureRef>::iterator jt=assetTextures.begin(); jt!=assetTextures.end(); ++jt) {
+			TextureInfo& info = textures[jt->second];
+			if (info.atlasIndex == atlasIndex) {
+				info.glref = atlas[atlasIndex].glref;
+			}
+		}
+	   #ifndef EMSCRIPTEN
  pthread_mutex_lock(&mutexes);
  #endif
-    }
-    delayedAtlasIndexLoad.clear();
+	}
+	delayedAtlasIndexLoad.clear();
 
-    // load textures
-    for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
-        Vector2 size, powSize;
-        InternalTexture t;
-        #ifndef EMSCRIPTEN
+	// load textures
+	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
+		Vector2 size, powSize;
+		InternalTexture t;
+		#ifndef EMSCRIPTEN
 		pthread_mutex_unlock(&mutexes);
 		#endif
-        loadTexture(*it, size, powSize, t);
-        textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
-        #ifndef EMSCRIPTEN
+		loadTexture(*it, size, powSize, t);
+		textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
+		#ifndef EMSCRIPTEN
 		pthread_mutex_lock(&mutexes);
 		#endif
-    }
-    delayedLoads.clear();
+	}
+	delayedLoads.clear();
 
-    // delete textures
-    for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
+	// delete textures
+	for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
 	   #ifndef EMSCRIPTEN
  pthread_mutex_unlock(&mutexes);
  #endif
-	    if (it->color != whiteTexture) {
-		    LOGW("Color texture delete: %u", it->color);
-        	glDeleteTextures(1, &it->color);
-	    }
-	    if (it->alpha > 0 && it->alpha != whiteTexture) {
-	    	LOGW("Alpha texture delete: %u", it->alpha);
-        	glDeleteTextures(1, &it->alpha);
-	    }
+		if (it->color != whiteTexture) {
+			LOGI("Color texture delete: %u", it->color);
+			glDeleteTextures(1, &it->color);
+		}
+		if (it->alpha > 0 && it->alpha != whiteTexture) {
+			LOGI("Alpha texture delete: %u", it->alpha);
+			glDeleteTextures(1, &it->alpha);
+		}
 	  #ifndef EMSCRIPTEN
   pthread_mutex_lock(&mutexes);
   #endif
-    }
-    delayedDeletes.clear();
-    #ifndef EMSCRIPTEN
+	}
+	delayedDeletes.clear();
+	#ifndef EMSCRIPTEN
 pthread_mutex_unlock(&mutexes);
 #endif
 	PROFILE("Texture", "processDelayedTextureJobs", EndEvent);
@@ -410,27 +410,27 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 }
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
-    if (ref != InvalidTextureRef) {
-        TextureInfo i = textures[ref];
-        if (i.atlasIndex >= 0 && !allowUnloadAtlas) {
-            LOGW("Cannot delete texture '%d' (is an atlas)", ref);
-            return;
-        }
-        for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
-            if (it->second == ref) {
-                assetTextures.erase(it);
-               #ifndef EMSCRIPTEN
+	if (ref != InvalidTextureRef) {
+		TextureInfo i = textures[ref];
+		if (i.atlasIndex >= 0 && !allowUnloadAtlas) {
+			LOGE("Cannot delete texture '%d' (is an atlas)", ref);
+			return;
+		}
+		for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+			if (it->second == ref) {
+				assetTextures.erase(it);
+			   #ifndef EMSCRIPTEN
 				pthread_mutex_lock(&mutexes);
 				#endif
-                delayedDeletes.insert(textures[ref].glref);
-                #ifndef EMSCRIPTEN
+				delayedDeletes.insert(textures[ref].glref);
+				#ifndef EMSCRIPTEN
 				pthread_mutex_unlock(&mutexes);
 				#endif
-                break;
-            }
-        }
-    } else {
-        LOGW("Tried to delete an InvalidTextureRef");
-    }
+				break;
+			}
+		}
+	} else {
+		LOGE("Tried to delete an InvalidTextureRef");
+	}
 }
 

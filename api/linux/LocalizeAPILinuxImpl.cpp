@@ -39,7 +39,9 @@ void LocalizeAPILinuxImpl::init() {
 	if (strncmp(lang, "en", 2) != 0)
 		filename += "-" + std::string(lang);
 	filename += "/strings.xml";
-	std::cout << "'" << lang << "' => " << filename << std::endl;
+	
+	LOGI("'%s' => %s", lang, filename.c_str());
+	
 	tinyxml2::XMLDocument doc;
 	
 	if (doc.LoadFile(filename.c_str())) {

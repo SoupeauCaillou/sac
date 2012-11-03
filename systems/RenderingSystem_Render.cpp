@@ -32,17 +32,17 @@ void RenderingSystem::check_GL_errors(const char* context) {
         switch(error)
         {
             case GL_INVALID_ENUM:
-            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_ENUM\n", maxIterations, context); break;
+            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_ENUM\n", maxIterations, context); break;
             case GL_INVALID_VALUE:
-            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_VALUE\n", maxIterations, context); break;
+            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_VALUE\n", maxIterations, context); break;
             case GL_INVALID_OPERATION:
-            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_OPERATION\n", maxIterations, context); break;
+            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_OPERATION\n", maxIterations, context); break;
             case GL_OUT_OF_MEMORY:
-            	LOGW("[%2d]GL error: '%s' -> GL_OUT_OF_MEMORY\n", maxIterations, context); break;
+            	LOGE("[%2d]GL error: '%s' -> GL_OUT_OF_MEMORY\n", maxIterations, context); break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-            	LOGW("[%2d]GL error: '%s' -> GL_INVALID_FRAMEBUFFER_OPERATION\n", maxIterations, context); break;
+            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_FRAMEBUFFER_OPERATION\n", maxIterations, context); break;
             default:
-            	LOGW("[%2d]GL error: '%s' -> %x\n", maxIterations, context, error);
+            	LOGE("[%2d]GL error: '%s' -> %x\n", maxIterations, context, error);
         }
 		  maxIterations--;
     }
@@ -61,7 +61,7 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
     {
         char *log = new char[logLength];
         GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
-        LOGW("GL shader error: %s\n", log);
+        LOGE("GL shader error: %s\n", log);
  		delete[] log;
     }
 
@@ -154,7 +154,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
             if (batchSize > 0) {
                 // execute batch
                 #ifdef USE_VBO
-                LOGI("Error batching unsupported with VBO");
+                LOGE("Error batching unsupported with VBO");
                 #else
                 drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
                 #endif
@@ -188,7 +188,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef USE_VBO
-				LOGI("Error batching unsupported with VBO");
+				LOGE("Error batching unsupported with VBO");
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
@@ -207,7 +207,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef USE_VBO
-				LOGI("Error batching unsupported with VBO");
+				LOGE("Error batching unsupported with VBO");
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
@@ -266,7 +266,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef USE_VBO
-				LOGI("Error batching unsupported with VBO");
+				LOGE("Error batching unsupported with VBO");
 				#else
 				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 				#endif
@@ -336,7 +336,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 
 	if (batchSize > 0) {
 		#ifdef USE_VBO
-		LOGI("Error batching unsupported with VBO");
+		LOGE("Error batching unsupported with VBO");
 		#else
 		drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
 		#endif
@@ -400,7 +400,7 @@ void RenderingSystem::render() {
 			float bef = TimeUtil::getTime();
 
 			pthread_cond_wait(&cond, &mutexes);
-			LOGW("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
+			LOGI("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
 		}
 		currentWriteQueue = (currentWriteQueue + 1) % 2;
 		#else
@@ -415,7 +415,7 @@ void RenderingSystem::render() {
 
 		int excessFrameCount = rqCount + wrCount - 2;
 		if (excessFrameCount > 0) {
-//         LOGW("excessFrameCount : %d", excessFrameCount);
+			//LOGW("excessFrameCount : %d", excessFrameCount);
 			// remove half of the excess frames, to smooth the drop
 			int toRemove = (int) ceil(excessFrameCount / 2.0);
 			int n = MathUtil::Min(toRemove, rqCount);

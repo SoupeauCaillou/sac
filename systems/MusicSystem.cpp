@@ -71,12 +71,12 @@ void MusicSystem::init() {
 }
 
 void MusicSystem::uninit() {
-#ifndef EMSCRIPTEN
+    #ifndef EMSCRIPTEN
     runDecompLoop = false;
-     pthread_cond_signal(&cond);
+    pthread_cond_signal(&cond);
     pthread_join(oggDecompressionThread, 0);
     LOGW("MusicSystem uninitinalized");
-  #endif
+    #endif
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {

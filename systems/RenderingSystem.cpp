@@ -94,7 +94,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 	if (logLength > 1) {
 		char *log = new char[logLength];
 		glGetProgramInfoLog(out.program, logLength, &logLength, log);
-		LOGW("GL shader program error: '%s'", log);
+		LOGE("GL shader program error: '%s'", log);
 		delete[] log;
 	}
 
