@@ -1,6 +1,18 @@
-#!/bin/bash
+#!/bin/sh
 
-if [[ $# != 1 || `echo $1 | grep -- -h` ]]; then
+#inspired from http://www.intuitive.com/wicked/showscript.cgi?011-colors.sh
+initializeANSI()
+{
+  esc=""
+
+  red="${esc}[31m"
+  green="${esc}[32m"
+  yellow="${esc}[33m"
+
+  reset="${esc}[0m"
+}
+
+if [ $# != 1 ] || [ `echo $1 | grep -- -h` ]; then
 	echo "Usage: $0 options"
 	echo "	- all: print all"
 	echo "	- I: print info"
@@ -11,21 +23,22 @@ if [[ $# != 1 || `echo $1 | grep -- -h` ]]; then
 	exit -1
 fi
 
-info=`echo $1 | grep all`
-info+=`echo $1 | grep I`
+info=`echo $1 | grep -e all -e I`
 
-warn=`echo $1 | grep all`
-warn+=`echo $1 | grep W`
+warn=`echo $1 | grep -e all -e W`
 
-erro=`echo $1 | grep all`
-erro+=`echo $1 | grep E`
+erro=`echo $1 | grep -e all -e E`
 
 nocolors=`echo $1 | grep C`
 
-if [[ -z $info && -z "$warn" && -z "$erro"	]]; then
-	echo -e "\033[1m\E[31mWarning, no LOG INFO, WARN and ERRO to print!(only std::cout codes)"
-	echo -e "Use 'all' option to enable all of them!\033[0m"
+if [ -z $info ] && [ -z "$warn" && -z "$erro" ]; then
+	echo "${red}Warning, no LOG INFO, WARN and ERRO to print!(only std::cout codes)"
+	echo "Use 'all' option to enable all of them!${reset}"
 fi
+
+
+
+initializeANSI
 	
 while read LINE; do
 	n=`echo $LINE | grep INFO`
@@ -39,9 +52,9 @@ while read LINE; do
 		fi
 		
 		if [ -z $nocolors ]; then
-			echo -e "\033[1m\E[32m$LINE\033[0m"; tput sgr0
+			echo "${green}$LINE${reset}"
 		else 
-			echo -e "$LINE"
+			echo "$LINE"
 		fi
 	# *** show warnings?
 	elif [ -n "$w" ]; then
@@ -50,9 +63,9 @@ while read LINE; do
 		fi
 		
 		if [ -z $nocolors ]; then
-			echo -e "\033[1m\E[33m$LINE\033[0m"; tput sgr0
+			echo "${yellow}$LINE${reset}"
 		else 
-			echo -e "$LINE"
+			echo "$LINE"
 		fi
 	# *** show errors?
 	elif [ -n "$e" ]; then
@@ -61,12 +74,12 @@ while read LINE; do
 		fi
 		
 		if [ -z $nocolors ]; then
-			echo -e "\033[1m\E[31m$LINE\033[0m"; tput sgr0
+			echo "${red}$LINE${reset}"
 		else 
-			echo -e "$LINE"
+			echo "$LINE"
 		fi
 	elif [ ! -z "$LINE" ]; then
-		echo -e "(std::cout)$LINE"
+		echo "(std::cout)$LINE"
 	fi
 done
 	

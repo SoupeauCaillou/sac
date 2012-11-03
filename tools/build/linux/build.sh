@@ -10,6 +10,7 @@ fi
 
 if [ $# != 1 ] || [`echo $1 | grep -- -h` ]; then
 	echo "Usage: $0 options"
+	echo "	- n: simply compile"
 	echo "	- C: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)"
 	echo "	- r: reset the terminal screen before compiling"
 	echo "	- R: run the app"
