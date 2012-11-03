@@ -35,6 +35,14 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
 void ParticuleSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         TransformationComponent* ptc = TRANSFORM(a);
+        
+        if (pc->duration >= 0) {
+        	pc->duration -= dt;
+        	if (pc->duration <= 0) {
+        		pc->duration = 0;
+        		continue;
+         	}
+        }
 
         // emit particules
         if (pc->emissionRate > 0) {
@@ -48,7 +56,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 Entity e = internal.e = theEntityManager.CreateEntity();
                 ADD_COMPONENT(e, Transformation);
                 TransformationComponent* tc = TRANSFORM(e);
-                tc->position = ptc->worldPosition + Vector2(MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.X, MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.Y);
+                tc->position = ptc->worldPosition + Vector2::Rotate(Vector2(MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.X, MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.Y), ptc->worldRotation);
                 tc->size.X = tc->size.Y = pc->initialSize.random();
                 tc->z = ptc->z;
 

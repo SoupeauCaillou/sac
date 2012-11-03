@@ -41,11 +41,11 @@ int main(int argc, char** argv) {
 	}
 
 	int finalW, finalH;
-	#if 0 
-	int unused_area = 
+	#if 0
+	int unused_area =
 	#endif
 	tp->packTextures(finalW, finalH,true,true);
-	
+
 	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
 	
 	for (int i=1; i<argc; i++) {
