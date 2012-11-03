@@ -39,10 +39,14 @@ int main(int argc, char** argv) {
 		}
 		tp->addTexture(width, height);
 	}
+
+	int finalW, finalH;
+	#if 0 
+	int unused_area = 
+	#endif
+	tp->packTextures(finalW, finalH,true,true);
 	
-	// *** int finalW, finalH;
-	// *** int unused_area = tp->packTextures(finalW, finalH,true,true);
-	// *** std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
+	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
 	
 	for (int i=1; i<argc; i++) {
 		int x, y, wid, hit;
