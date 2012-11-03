@@ -28,7 +28,8 @@
 #include <vector>
 
 struct ParticuleComponent {
-    float emissionRate;
+	ParticuleComponent() : emissionRate(0), duration(-1), texture(InvalidTextureRef), spawnLeftOver(0) {}
+    float emissionRate, duration;
     TextureRef texture;
     Interval<float> lifetime;
     Interval<Color> initialColor;
