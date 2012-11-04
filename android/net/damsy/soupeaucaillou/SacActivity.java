@@ -53,6 +53,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract View getNameInputView();
 	public abstract EditText getNameInputEdit();
 	public abstract Button getNameInputButton();
+	public void preNameInputViewShow() {}
 
 	@Override
     protected void onCreate(Bundle savedInstanceState) {

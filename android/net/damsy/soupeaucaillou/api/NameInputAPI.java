@@ -1,7 +1,6 @@
 package net.damsy.soupeaucaillou.api;
 
 import net.damsy.soupeaucaillou.SacJNILib;
-import net.damsy.soupeaucaillou.recursiveRunner.RecursiveRunnerActivity;
 import android.content.Context;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -29,25 +28,27 @@ public class NameInputAPI {
 
 			final Button b = SacJNILib.activity.getNameInputButton();
 			final EditText nameEdit = SacJNILib.activity.getNameInputEdit();
+			final View playerNameInputView = SacJNILib.activity.getNameInputView();
 			
-	        b.setOnClickListener(new View.OnClickListener() {
+	        b.setOnClickListener(new View.OnClickListener() { 
 				public void onClick(View v) {
 					onNameInputComplete(nameEdit.getText().toString());
 				}
 			});
 	        
+	        SacJNILib.activity.preNameInputViewShow();
+	        
 			
 			// show input view
-			RecursiveRunnerActivity.playerNameInputView.post(new Runnable() {
+			playerNameInputView.post(new Runnable() {
 				public void run() {
 					//NOLOGLog.i(recursiveRunnerActivity.Tag, "requesting user input visibility");
-					RecursiveRunnerActivity.playerNameInputView
-							.setVisibility(View.VISIBLE);
-					RecursiveRunnerActivity.playerNameInputView.requestFocus();
-					RecursiveRunnerActivity.playerNameInputView.invalidate();
-					RecursiveRunnerActivity.playerNameInputView.forceLayout();
-					RecursiveRunnerActivity.playerNameInputView.bringToFront();
-					RecursiveRunnerActivity.nameEdit.setText("");
+					playerNameInputView.setVisibility(View.VISIBLE);
+					playerNameInputView.requestFocus();
+					playerNameInputView.invalidate();
+					playerNameInputView.forceLayout();
+					playerNameInputView.bringToFront();
+					nameEdit.setText("");
 				} 
 			});
 			//NOLOGLog.i(recursiveRunnerActivity.Tag, "showPlayerNameUI");
@@ -71,7 +72,7 @@ public class NameInputAPI {
 		static public String queryPlayerName() {
 			if (NameInputAPI.nameReady) {
 				//NOLOGLog.i(recursiveRunnerActivity.Tag, "queryPlayerName done");
-				return RecursiveRunnerActivity.playerName;
+				return playerName;
 			} else {
 				return null;
 			}
