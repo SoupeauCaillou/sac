@@ -1,76 +1,72 @@
-#!/bin/bash
+#!/bin/sh
 
 #test the command line
 if [ "$0" != "./build.sh" ]; then
-	echo "Please don't execute $1 but: \t./build.sh"
+	echo "Please don't execute $0 but: ./build.sh"
 	echo "Abort."
 	exit
 fi
-count=`pwd | tr -c -d / | wc -c`
-count=`expr $count - 1`
 
+if [ ! -f "build.sh" ] || [ $# != 2 ] || [ `echo $1 | grep -- -h` ]; then
+	echo "Usage: $0 menuChoice optimizeOrNot"
+	echo "	menuchoice:"
+	echo "		- n: ndk-build (compile libs and .cpp files)"
+	echo "		- c: compile java code (.java)"
+	echo "		- i: install on device"
+	echo "		- r: run on device"
+	echo "	optimizeOrNot:"
+	echo "		- yes: ndk-build -j4 and only one ARM version build (armeabi-v7a)"
+	echo "		- else: ndk-build and 2 ARMs version"
+	echo "\nExample: \"$0 n-c-i yes\" will compile with optimized parameters, then install the app on device."
+	exit 1
+fi
+esc=""
+
+  
+PATH_sdk=$HOME/code/c/tools/android-sdk-linux
+PATH_ndk=$HOME/code/c/tools/android-ndk
+echo "PATH_sdk=$PATH_sdk"
+echo "PATH_ndk=$PATH_ndk"
+echo "${esc}[31mIf it's not valid, please edit them in the script and try again${esc}[0m"
+	
+# *** go to the root dir
+cd ../..
+
+# *** get name of the game
+count=`pwd | tr -c -d / | wc -c`
+count=`expr $count + 1`
 nameLower=`pwd | cut -d/ -f $count`
 nameUpper=`echo $nameLower | sed 's/^./\u&/'`
 
-PATH_sdk=$HOME/code/c/tools/android-sdk-linux
-PATH_ndk=$HOME/code/c/tools/android-ndk
 
-echo "PATH_sdk=$PATH_sdk"
-echo "PATH_ndk=$PATH_ndk"
-echo "Valid path ? (y/N)"
-read ichoix
-if [[ "$ichoix" != "y" && "$ichoix" != "Y" ]]; then
-	echo "Edit them then come back"
-	exit
-fi
-
-echo "What to do ? \n
-	1. ndk-build
-	2. (1) + compile
-	3. (2) + install on device
-	4. (3) + run
-	5. run
-	Else. quit"
-read ichoix
-
-#verify choice is good
-[ $ichoix -eq 0 ] 2> /dev/null 
-# isn't a number
-if ! [ $? -eq 0 -o $? -eq 1 ]; then
-	echo "unrecognized choice, abort"
-	exit
-#is in range ?
-else
-	if [ "$ichoix" -lt 1 ] || [ "$ichoix" -gt 5 ]; then
-		echo "wrong number"
-		exit
-	fi
-fi
-
-cd ../..
-if [ "$ichoix" -gt 0 ] && [ "$ichoix" -lt 5 ]; then
-	echo "Optimize ? (ndk-build -j and only one ARM version build ?) (Y/n) ?"
-	read optimize
+if [ ! -z `echo $1 | grep n` ]; then
+	echo "Building tremor lib..."
+	cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
 	
-	if [ "$optimize" = "n" ]; then
+	if [ ! -z `echo $2 | grep yes` ]; then
+		echo "ndk-build -j4 in $PWD"
+		$PATH_ndk/ndk-build -j4 APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
+	else
 		echo "ndk-build in $PWD"
 		$PATH_ndk/ndk-build NDK_APPLICATION_MK=android/Application.mk
-	else
-		echo "ndk-build -j in $PWD"
-		$PATH_ndk/ndk-build -j APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
 	fi
 fi
-if [ "$ichoix" -gt 1 ] && [ "$ichoix" -lt 5 ]; then
-	echo "compiling"
-	$PATH_sdk/tools/android update project -p . -t 4 -n $nameUpper  --subprojects
+
+if [ ! -z `echo $1 | grep c` ]; then
+	echo "Compiling..."
+	$PATH_sdk/tools/android update project -p . -t 4 -n $nameUpper --subprojects
 	ant debug
 fi
-if [ "$ichoix" -gt 2 ] && [ "$ichoix" -lt 5 ]; then
-	echo "installing on device …"
+
+if [ ! -z `echo $1 | grep i` ]; then
+	echo "Installing on device ..."
 	ant installd -e
 fi
-if [ "$ichoix" = 4 ] || [ "$ichoix" = 5 ]; then
-	echo "launching app"
+
+if [ ! -z `echo $1 | grep r` ]; then
+	echo "Running app $nameUpper..."
 	adb shell am start -n net.damsy.soupeaucaillou.$nameLower/net.damsy.soupeaucaillou.$nameLower.${nameUpper}Activity
 fi
-cd build/android
+
+
+# *** cd build/android
