@@ -14,8 +14,9 @@ if [ $# != 1 ] || [`echo $1 | grep -- -h` ]; then
 	echo "	- C: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)"
 	echo "	- r: reset the terminal screen before compiling"
 	echo "	- R: run the app"
+	echo "	- d: run&debug the app with gdb (no c option)"
 	echo "	- v: enable log"
-	echo "	- c [all/I/W/E/C] : use colorlog.sh script for colored logs (need v option)"
+	echo "	- c [all/I/W/E/C] : use colorlog.sh script for colored logs"
 	echo "\nExample: \"$0 R-v-c-I-W\" will compile, launch the app and show only info and warnings in color."
 	exit 1
 fi
@@ -37,8 +38,10 @@ count=`pwd | tr -c -d / | wc -c`
 count=`expr $count - 1`
 gameName=`pwd | cut -d/ -f$count`
 
-if [ `echo $1 | grep R` ]; then
-	if [ `echo $1 | grep v` ]; then
+if [ `echo $1 | grep d` ]; then
+	(echo r; cat) | gdb ./linux/$gameName
+elif [ `echo $1 | grep R` ]; then
+	if [ `echo $1 | grep -e v -e c` ]; then
 		if [ `echo $1 | grep c` ]; then
 			./linux/$gameName -v | ./colorlog.sh $1
 		else

@@ -31,14 +31,12 @@ erro=`echo $1 | grep -e all -e E`
 
 nocolors=`echo $1 | grep C`
 
-if [ -z $info ] && [ -z "$warn" && -z "$erro" ]; then
+initializeANSI
+
+if [ -z $info ] && [ -z "$warn" ] && [ -z "$erro" ]; then
 	echo "${red}Warning, no LOG INFO, WARN and ERRO to print!(only std::cout codes)"
 	echo "Use 'all' option to enable all of them!${reset}"
 fi
-
-
-
-initializeANSI
 	
 while read LINE; do
 	n=`echo $LINE | grep INFO`
