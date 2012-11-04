@@ -15,6 +15,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.chartboost.sdk.ChartBoost;
 import com.chartboost.sdk.ChartBoostDelegate;
@@ -47,6 +49,10 @@ public abstract class SacActivity extends SwarmActivity {
 	
 	public abstract String getCharboostAppId();
 	public abstract String getCharboostAppSignature();
+	
+	public abstract View getNameInputView();
+	public abstract EditText getNameInputEdit();
+	public abstract Button getNameInputButton();
 
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
