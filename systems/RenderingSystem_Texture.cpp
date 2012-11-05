@@ -70,6 +70,8 @@ RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, in
 	atlasIndex = atlasIdx;
 	this->size.X = w;
 	this->size.Y = h;
+	if (rot)
+		std::swap(this->size.X, this->size.Y);
 }
 
 #include <fstream>
