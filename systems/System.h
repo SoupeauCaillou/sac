@@ -110,6 +110,7 @@ class ComponentSystem {
 	protected:
 		virtual void DoUpdate(float dt) = 0;
 		static std::map<std::string, ComponentSystem*> registry;
+	private:
 		std::string name;
 };
 
@@ -177,7 +178,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
                     if (failIfNotfound) {
-                        LOGE("Entity %lu has no component of type '%s'", entity, name.c_str());
+                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
                         assert (false);
                     }
                     return 0;
@@ -189,7 +190,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     #ifndef ANDROID
                     // crash here
                     if (failIfNotfound) {
-                        LOGE("Entity %lu has no component of type '%s'", entity, name.c_str());
+                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
                         assert (false);
                     }
                     #endif
