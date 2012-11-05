@@ -68,6 +68,8 @@ RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, in
 		rotateUV = 0;
 	}
 	atlasIndex = atlasIdx;
+	this->size.X = w;
+	this->size.Y = h;
 }
 
 #include <fstream>
@@ -385,13 +387,13 @@ pthread_mutex_unlock(&mutexes);
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
 	TextureRef result = InvalidTextureRef;
-	std::string name(assetName);
-
-	if (assetTextures.find(name) != assetTextures.end()) {
-		result = assetTextures[name];
+	
+	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(assetName);
+	if (it != assetTextures.end()) {
+		result = it->second;
 	} else {
 		result = nextValidRef++;
-		assetTextures[name] = result;
+		assetTextures[assetName] = result;
 		LOGW("Texture '%s' doesn't belong to any atlas. Will be loaded individually", assetName.c_str());
 	}
 	if (textures.find(result) == textures.end()) {
@@ -400,13 +402,23 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		#ifndef EMSCRIPTEN
 		pthread_mutex_lock(&mutexes);
 		#endif
-		delayedLoads.insert(name);
+		delayedLoads.insert(assetName);
 		#ifndef EMSCRIPTEN
 		pthread_mutex_unlock(&mutexes);
 		#endif
 	}
 	PROFILE("Texture", "loadTextureFile", EndEvent);
 	return result;
+}
+
+const Vector2& RenderingSystem::getTextureSize(const std::string& textureName) const {
+	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(textureName);
+	if (it != assetTextures.end()) {
+		return (textures.find(it->second)->second).size;
+	} else {
+		LOGE("Unable to find texture '%s'", textureName.c_str());
+		return Vector2::Zero;
+	}
 }
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
