@@ -48,8 +48,8 @@ while read data; do
 		image=`basename ${image} .png`
 		
 		#largest_rectangle script 
-		opaqueBox=`./largest_rectangle.py ${image}`
+		opaque=`../../sac/tools/texture_packer/largest_rectangle.py ${image}.png | sed -e "s/\ //g"`
 		
-		echo "${image},${x},${y},${w},${h},${rot}, $(opaqueBox)" >> ${desc}
+		echo "${image},${x},${y},${w},${h},${rot},${opaque}" >> ${desc}
 	fi
 done

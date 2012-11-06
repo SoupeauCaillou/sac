@@ -260,7 +260,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     c.position.X -= 0.5 * cullRightX;
                 }
             }
-    
+
             if (c.texture != InvalidTextureRef) {
                 TextureInfo& info = textures[c.texture];
                 int atlasIdx = info.atlasIndex;
@@ -269,53 +269,29 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                     }
                 }
+                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
+                    semiOpaqueCommands.push_back(c);
+                    // add a smaller full-opaque block at the center
+                    RenderCommand cCenter = c;
+                    const Vector2 offset =  info.opaqueStart * c.halfSize * 2 + info.opaqueSize * c.halfSize * 2 * 0.5;
+                    cCenter.position = c.position - c.halfSize + offset;
+                    cCenter.halfSize = info.opaqueSize * c.halfSize;
+                    cCenter.uv[0] = info.opaqueStart;
+                    cCenter.uv[1] = info.opaqueSize;
+                    opaqueCommands.push_back(cCenter);
+                    continue;
+                }
              }
-    
              switch (rc->opaqueType) {
-    	         #ifdef USE_VBO
-    	         case RenderingComponent::OPAQUE_ABOVE:
-    	         case RenderingComponent::OPAQUE_UNDER:
-    	         #endif
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
     	         	break;
     	         case RenderingComponent::FULL_OPAQUE:
     	         	opaqueCommands.push_back(c);
     	         	break;
-    	         #ifndef USE_VBO
-    	         case RenderingComponent::OPAQUE_ABOVE:
-    	         case RenderingComponent::OPAQUE_UNDER: {
-    	         	RenderCommand cA = c, cU = c;
-    	         	cA.halfSize.Y = (tc->size * rc->opaqueSeparation).Y * 0.5;
-    	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
-    	         	cA.position.Y = (tc->worldPosition + Vector2::Rotate(Vector2(0, cU.halfSize.Y), c.rotation)).Y;
-    	         	cU.position.Y = (tc->worldPosition - Vector2::Rotate(Vector2(0, cA.halfSize.Y), c.rotation)).Y;
-    	         	cA.uv[0].Y = cU.halfSize.Y / c.halfSize.Y; // offset;
-    	         	cA.uv[1].Y = cA.halfSize.Y / c.halfSize.Y; // scale;
-    	         	cU.uv[0].Y = 0;
-    	         	cU.uv[1].Y = cU.halfSize.Y / c.halfSize.Y; // scale;
-    	         	if (rc->opaqueType == RenderingComponent::OPAQUE_ABOVE) {
-    		         	semiOpaqueCommands.push_back(cU);
-    		         	opaqueCommands.push_back(cA);
-    	         	} else {
-    		         	semiOpaqueCommands.push_back(cA);
-    		         	opaqueCommands.push_back(cU);
-    	         	}
-    	         	break;
-    	         }
-    	         case RenderingComponent::OPAQUE_CENTER: {
-    	         	semiOpaqueCommands.push_back(c);
-                    if (c.color.a >= 1) {
-        	         	// add a smaller full-opaque block at the center
-        	         	RenderCommand cCenter = c;
-        	         	cCenter.halfSize = c.halfSize * rc->opaqueSeparation;
-        	         	cCenter.uv[1] = Vector2(rc->opaqueSeparation, rc->opaqueSeparation);
-        	         	cCenter.uv[0] += Vector2(1 - rc->opaqueSeparation) * 0.5;
-        	         	opaqueCommands.push_back(cCenter);
-                     }
-    	         	break;
-    	         }
-    	         #endif
+                 default:
+                    LOGW("Entity will not be drawn");
+                    break;
              }
     	}
     

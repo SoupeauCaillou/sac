@@ -42,7 +42,7 @@
 #include <GLES2/gl2ext.h>
 #endif
 
-RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size,  int atlasIdx) {
+RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size, const Vector2& _opaqueStart, const Vector2& _opaqueSize, int atlasIdx) {
 	glref = ref;
 
 	if (size == Vector2::Zero) {
@@ -72,16 +72,22 @@ RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, in
 	this->size.Y = h;
 	if (rot)
 		std::swap(this->size.X, this->size.Y);
+    if (this->size.Y > 0) {
+        opaqueSize = Vector2(_opaqueSize.X / this->size.X, _opaqueSize.Y / this->size.Y);
+        opaqueStart = Vector2(_opaqueStart.X / this->size.X, 1 - (opaqueSize.Y + _opaqueStart.Y / this->size.Y));
+    }
 }
 
 #include <fstream>
 
-static void parse(const std::string& line, std::string& assetName, int& x, int& y, int& w, int& h, bool& rot) {
-	std::string substrings[6];
-	int from = 0, to = 0;
-	for (int i=0; i<6; i++) {
+static void parse(const std::string& line, std::string& assetName, int& x, int& y, int& w, int& h, bool& rot, Vector2& opaqueStart, Vector2& opaqueEnd) {
+	std::string substrings[10];
+	int from = 0, to = 0, count = 0;
+	for (count=0; count<10; count++) {
 		to = line.find_first_of(',', from);
-		substrings[i] = line.substr(from, to - from);
+		substrings[count] = line.substr(from, to - from);
+        if (to == std::string::npos)
+            break;
 		from = to + 1;
 	}
 	assetName = substrings[0];
@@ -90,6 +96,12 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 	w = atoi(substrings[3].c_str());
 	h = atoi(substrings[4].c_str());
 	rot = atoi(substrings[5].c_str());
+    if (count > 6) {
+        opaqueStart.X = atoi(substrings[6].c_str());
+        opaqueStart.Y = atoi(substrings[7].c_str());
+        opaqueEnd.X = atoi(substrings[8].c_str());
+        opaqueEnd.Y = atoi(substrings[9].c_str());
+    }
 }
 
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
@@ -138,14 +150,15 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		// LOGI("atlas - line: %s", s.c_str());
 		std::string assetName;
 		int x, y, w, h;
+        Vector2 opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
 		bool rot;
 
-		parse(s, assetName, x, y, w, h, rot);
+		parse(s, assetName, x, y, w, h, rot, opaqueStart, opaqueEnd);
 
 		TextureRef result = nextValidRef++;
 		LOGI("----- %s -> %d", assetName.c_str(), result);
 		assetTextures[assetName] = result;
-		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, atlasIndex);
+		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
 
 
 	} while (!s.empty());
