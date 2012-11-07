@@ -41,7 +41,7 @@ while read data; do
 
 		echo "Adding ${image} at ${w}x${h}+${x}+${y} (rotation:${rot})"
 		# copy a first version, 2 pixel taller/larger (used as a blend-compatible border)
-		convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -composite $output $tmp_image $output
+		#convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -composite $output $tmp_image $output
 		# copy the real image
 		convert -geometry ${w}x${h}+${x}+${y} -composite $output $tmp_image $output
 		#convert -geometry ${w}x${h}+${x}+${y} -composite $output_alpha $tmp_image $output_alpha

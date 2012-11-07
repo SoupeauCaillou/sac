@@ -246,6 +246,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
             float dt = 1/fps;
             float ratio = hld->game->targetDT / dt;
             __android_log_print(ANDROID_LOG_INFO, "heriswapC", "fps render: %.2f (ratio: %.2f)", fps, ratio);
+            #if 1
             if (ratio < 0.90) {
                 hld->game->targetDT += (dt - hld->game->targetDT) * 0.5;
                 hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);
@@ -259,6 +260,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
                 hld->game->targetDT = MathUtil::Max(1.0f/60.0f, hld->game->targetDT);
                 LOGW("Increase fps target: %.2f", 1.0 / hld->game->targetDT);
             }
+            #endif
         }
 		tttttt = TimeUtil::getTime();
 		frameCount = 0;

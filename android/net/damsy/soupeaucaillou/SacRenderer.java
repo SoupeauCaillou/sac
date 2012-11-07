@@ -41,7 +41,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 		frameCount = 0;
 		time = System.currentTimeMillis();
 	}
-
+ 
     public void onDrawFrame(GL10 gl) {
     	synchronized (activity.mutex) {
     		if (activity.game == 0 || !initDone) {
@@ -116,7 +116,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
  
     boolean initDone = false;
     public void onSurfaceChanged(GL10 gl, final int width, final int height) {
-    	// Log.i(HeriswapActivity.Tag, "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
+    	Log.i("RR", "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
     	if (!initDone) {
     		SacJNILib.initFromRenderThread(asset, activity.game, width, height);
     		// TilematchJNILib.initAndReloadTextures(TilematchActivity.game);
