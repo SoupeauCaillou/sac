@@ -22,8 +22,9 @@
 struct AnimationSystem::Anim {
     std::vector<TextureRef> textures;
     float playbackSpeed;
-    bool loop;
+    Interval<int> loopCount;
     std::string nextAnim;
+    Interval<float> nextAnimWait;
 };
     
 INSTANCE_IMPL(AnimationSystem);
@@ -45,15 +46,27 @@ void AnimationSystem::DoUpdate(float dt) {
             RENDERING(a)->texture = anim->textures[bc->textureIndex];
             bc->accum = 0;
             bc->previousName = bc->name;
+            bc->loopCount = anim->loopCount.random();
         } else {
-            bc->accum += dt * anim->playbackSpeed * bc->playbackSpeed;
-    
+            if (bc->waitAccum > 0) {
+                bc->waitAccum -= dt;
+                if (bc->waitAccum <= 0) {
+                    bc->waitAccum = 0;
+                    RENDERING(a)->hide = false;
+                }
+            } else {
+                bc->accum += dt * anim->playbackSpeed * bc->playbackSpeed;
+            }
+
             while(bc->accum >= 1) {
                 bool lastImage = (bc->textureIndex == (int)anim->textures.size() - 1);
                 if (lastImage) {
-                    if (anim->loop) {
+                    if (bc->loopCount != 0) {
                         bc->textureIndex = 0;
+                        bc->loopCount--;
                     } else if (!anim->nextAnim.empty()) {
+                        if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
+                            RENDERING(a)->hide = true;
                         bc->name = anim->nextAnim;
                         break;
                     }
@@ -67,21 +80,22 @@ void AnimationSystem::DoUpdate(float dt) {
     }
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, bool loop, const std::string& nextAnim) {
+void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextAnim, Interval<float> nextAnimWait) {
     assert (animations.find(name) == animations.end());
     Anim* a = new Anim();
     a->textures = textures;
     a->playbackSpeed = playbackSpeed;
-    a->loop = loop;
+    a->loopCount = loopCount;
     a->nextAnim = nextAnim;
+    a->nextAnimWait = nextAnimWait;
     animations[name] = a;
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, bool loop, const std::string& next) {
+void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& next, Interval<float> nextAnimWait) {
     assert (animations.find(name) == animations.end());
     std::vector<TextureRef> textures;
     for (int i=0; i<count; i++) {
         textures.push_back(theRenderingSystem.loadTextureFile(textureNames[i]));
     }
-    registerAnim(name, textures, playbackSpeed, loop, next);
+    registerAnim(name, textures, playbackSpeed, loopCount, next, nextAnimWait);
 }
