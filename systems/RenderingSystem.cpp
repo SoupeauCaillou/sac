@@ -231,7 +231,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             if (!isVisible(tc, camIdx)) {
                 continue;
             }
-    
+
     		RenderCommand c;
     		c.z = tc->worldZ;
     		c.texture = rc->texture;
@@ -274,7 +274,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     // add a smaller full-opaque block at the center
                     RenderCommand cCenter = c;
                     const Vector2 offset =  info.opaqueStart * c.halfSize * 2 + info.opaqueSize * c.halfSize * 2 * 0.5;
-                    cCenter.position = c.position - c.halfSize + offset;
+                    cCenter.position = c.position  + Vector2::Rotate(- c.halfSize + offset, c.rotation);
                     cCenter.halfSize = info.opaqueSize * c.halfSize;
                     cCenter.uv[0] = info.opaqueStart;
                     cCenter.uv[1] = info.opaqueSize;
@@ -297,7 +297,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
-    
+
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
         dummy.halfSize = camera.worldPosition;
@@ -307,10 +307,10 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         dummy.effectRef = camera.mirrorY;
         outQueue.commands.push_back(dummy);
         
-        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.end());
-    
+        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.begin() + opaqueCommands.size() - 1);
     	dummy.texture = DisableZWriteMarker;
     	outQueue.commands.push_back(dummy);
+        outQueue.commands.push_back(opaqueCommands.back());
     
         outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
     }
