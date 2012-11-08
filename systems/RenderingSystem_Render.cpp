@@ -82,11 +82,12 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
-	GL_OPERATION(glActiveTexture(GL_TEXTURE1))
+	
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
 	if (firstCall) {
-		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
 	} else {
+        GL_OPERATION(glActiveTexture(GL_TEXTURE1))
 		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
 	}
 	
@@ -144,9 +145,10 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
+    GL_OPERATION(glActiveTexture(GL_TEXTURE1))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
 
 	EffectRef currentEffect = InvalidTextureRef;
-	
     while (!commands.empty()) {
 
 		RenderCommand& rc = commands.front();

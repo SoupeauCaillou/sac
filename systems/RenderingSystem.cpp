@@ -310,11 +310,9 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         dummy.position = camera.screenSize;
         dummy.effectRef = camera.mirrorY;
         outQueue.commands.push_back(dummy);
-        
-        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.begin() + opaqueCommands.size() - 1);
-    	dummy.texture = DisableZWriteMarker;
-    	outQueue.commands.push_back(dummy);
-        outQueue.commands.push_back(opaqueCommands.back());
+        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.begin() + opaqueCommands.size());
+        dummy.texture = DisableZWriteMarker;
+        outQueue.commands.push_back(dummy);
         dummy.texture = EnableBlending;
         outQueue.commands.push_back(dummy);
         outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
