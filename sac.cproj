@@ -99,6 +99,7 @@
     <Compile Include="tests\systems\TestTextRenderingSystem.cpp" />
     <Compile Include="api\android\VibrateAPIAndroidImpl.cpp" />
     <Compile Include="api\linux\VibrateAPILinuxImpl.cpp" />
+    <Compile Include="api\android\CommunicationAPIAndroidImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -173,6 +174,8 @@
     <None Include="api\VibrateAPI.h" />
     <None Include="api\linux\VibrateAPILinuxImpl.h" />
     <None Include="api\android\VibrateAPIAndroidImpl.h" />
+    <None Include="api\CommunicationAPI.h" />
+    <None Include="api\android\CommunicationAPIAndroidImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

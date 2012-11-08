@@ -231,7 +231,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             if (!isVisible(tc, camIdx)) {
                 continue;
             }
-    
+
     		RenderCommand c;
     		c.z = tc->worldZ;
     		c.texture = rc->texture;
@@ -243,24 +243,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
-            if (c.rotation == 0 && rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
-                // left culling !
-                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
-                if (cullLeftX > 0) {
-                    c.uv[0].X = cullLeftX / tc->size.X;
-                    c.uv[1].X -= cullLeftX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullLeftX;
-                    c.position.X += 0.5 * cullLeftX;
-                }
-                // right culling !
-                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
-                if (cullRightX > 0) {
-                    c.uv[1].X -= cullRightX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullRightX;
-                    c.position.X -= 0.5 * cullRightX;
-                }
-            }
-    
+
             if (c.texture != InvalidTextureRef) {
                 TextureInfo& info = textures[c.texture];
                 int atlasIdx = info.atlasIndex;
@@ -269,59 +252,56 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                     }
                 }
+                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
+                    // add a smaller full-opaque block at the center
+                    RenderCommand cCenter(c);
+                    const Vector2 offset =  info.opaqueStart * c.halfSize * 2 + info.opaqueSize * c.halfSize * 2 * 0.5;
+                    cCenter.position = c.position  + Vector2::Rotate(- c.halfSize + offset, c.rotation);
+                    cCenter.halfSize = info.opaqueSize * c.halfSize;
+                    cCenter.uv[0] = info.opaqueStart;
+                    cCenter.uv[1] = info.opaqueSize;
+                    // opaqueCommands.push_back(cCenter);
+                }
              }
-    
+             if (c.rotation == 0) {
+                // left culling !
+                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+                if (cullLeftX > 0) {
+                    if (!c.mirrorH) {
+                        c.uv[0].X = cullLeftX / tc->size.X;
+                    }
+                    c.uv[1].X -= cullLeftX / tc->size.X;
+                    c.halfSize.X -= 0.5 * cullLeftX;
+                    c.position.X += 0.5 * cullLeftX;
+                }
+                // right culling !
+                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+                if (cullRightX > 0) {
+                    if (c.mirrorH) {
+                        c.uv[0].X = cullRightX / tc->size.X;
+                    }
+                    c.uv[1].X -= cullRightX / tc->size.X;
+                    c.halfSize.X -= 0.5 * cullRightX;
+                    c.position.X -= 0.5 * cullRightX;
+                }
+            }
+            
              switch (rc->opaqueType) {
-    	         #ifdef USE_VBO
-    	         case RenderingComponent::OPAQUE_ABOVE:
-    	         case RenderingComponent::OPAQUE_UNDER:
-    	         #endif
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
     	         	break;
     	         case RenderingComponent::FULL_OPAQUE:
     	         	opaqueCommands.push_back(c);
     	         	break;
-    	         #ifndef USE_VBO
-    	         case RenderingComponent::OPAQUE_ABOVE:
-    	         case RenderingComponent::OPAQUE_UNDER: {
-    	         	RenderCommand cA = c, cU = c;
-    	         	cA.halfSize.Y = (tc->size * rc->opaqueSeparation).Y * 0.5;
-    	         	cU.halfSize.Y = (tc->size * (1 - rc->opaqueSeparation)).Y * 0.5;
-    	         	cA.position.Y = (tc->worldPosition + Vector2::Rotate(Vector2(0, cU.halfSize.Y), c.rotation)).Y;
-    	         	cU.position.Y = (tc->worldPosition - Vector2::Rotate(Vector2(0, cA.halfSize.Y), c.rotation)).Y;
-    	         	cA.uv[0].Y = cU.halfSize.Y / c.halfSize.Y; // offset;
-    	         	cA.uv[1].Y = cA.halfSize.Y / c.halfSize.Y; // scale;
-    	         	cU.uv[0].Y = 0;
-    	         	cU.uv[1].Y = cU.halfSize.Y / c.halfSize.Y; // scale;
-    	         	if (rc->opaqueType == RenderingComponent::OPAQUE_ABOVE) {
-    		         	semiOpaqueCommands.push_back(cU);
-    		         	opaqueCommands.push_back(cA);
-    	         	} else {
-    		         	semiOpaqueCommands.push_back(cA);
-    		         	opaqueCommands.push_back(cU);
-    	         	}
-    	         	break;
-    	         }
-    	         case RenderingComponent::OPAQUE_CENTER: {
-    	         	semiOpaqueCommands.push_back(c);
-                    if (c.color.a >= 1) {
-        	         	// add a smaller full-opaque block at the center
-        	         	RenderCommand cCenter = c;
-        	         	cCenter.halfSize = c.halfSize * rc->opaqueSeparation;
-        	         	cCenter.uv[1] = Vector2(rc->opaqueSeparation, rc->opaqueSeparation);
-        	         	cCenter.uv[0] += Vector2(1 - rc->opaqueSeparation) * 0.5;
-        	         	opaqueCommands.push_back(cCenter);
-                     }
-    	         	break;
-    	         }
-    	         #endif
+                 default:
+                    LOGW("Entity will not be drawn");
+                    break;
              }
     	}
     
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
-    
+
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
         dummy.halfSize = camera.worldPosition;
@@ -331,10 +311,10 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         dummy.effectRef = camera.mirrorY;
         outQueue.commands.push_back(dummy);
         
-        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.end());
-    
+        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.begin() + opaqueCommands.size() - 1);
     	dummy.texture = DisableZWriteMarker;
     	outQueue.commands.push_back(dummy);
+        outQueue.commands.push_back(opaqueCommands.back());
     
         outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
     }

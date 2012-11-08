@@ -166,8 +166,10 @@ struct TextureInfo {
 	unsigned int rotateUV;
 	Vector2 uv[2];
 	int atlasIndex;
+	Vector2 size;
+    Vector2 opaqueStart, opaqueSize;
 
-	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
+	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero, int atlasIdx = -1);
 };
 struct Atlas {
 	std::string name;
@@ -232,6 +234,7 @@ static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
+const Vector2& getTextureSize(const std::string& textureName) const;
 
 bool pvrSupported;
 };

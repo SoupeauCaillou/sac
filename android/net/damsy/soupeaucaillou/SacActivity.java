@@ -15,6 +15,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
 
 import com.chartboost.sdk.ChartBoost;
 import com.chartboost.sdk.ChartBoostDelegate;
@@ -43,11 +46,17 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract String getBundleKey();
 	
 	public abstract int getLayoutId();
-	public abstract int getGLViewId();
+	public abstract int getParentViewId();
 	
 	public abstract String getCharboostAppId();
 	public abstract String getCharboostAppSignature();
-
+	
+	public abstract View getNameInputView();
+	public abstract EditText getNameInputEdit();
+	public abstract Button getNameInputButton();
+	public void preNameInputViewShow() {}
+ 
+	final float factor = 0.9f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		Log.i("Sac", "-> onCreate [" + savedInstanceState);
@@ -97,9 +106,17 @@ public abstract class SacActivity extends SwarmActivity {
     			LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(getLayoutId());
-
-        mGLView = (GLSurfaceView) findViewById(getGLViewId());
-
+        RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
+        
+        
+        mGLView = new GLSurfaceView(this);
+        mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+        int width = getWindowManager().getDefaultDisplay().getWidth();
+        int height = getWindowManager().getDefaultDisplay().getHeight();
+        android.view.SurfaceHolder holder = mGLView.getHolder();
+        holder.setFixedSize((int)(width * factor), (int)((height) * factor));
+        //setContentView(mGLView);
+        layout.addView(mGLView);
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
         	renderer = new SacRenderer(this, getAssets());
@@ -213,18 +230,18 @@ public abstract class SacActivity extends SwarmActivity {
     	case MotionEvent.ACTION_DOWN:
     	case MotionEvent.ACTION_POINTER_DOWN:
     		activePointersId.add(event.getPointerId(ptrIdx));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(ptrIdx), event.getY(ptrIdx), event.getPointerId(ptrIdx));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
     		return true;
     	case MotionEvent.ACTION_UP:
     	case MotionEvent.ACTION_POINTER_UP:
     		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(ptrIdx)));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(ptrIdx), event.getY(ptrIdx), event.getPointerId(ptrIdx));
+    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
     		return true;
     	case MotionEvent.ACTION_MOVE:
     		for (Integer ptr : activePointersId) {
     			int idx = event.findPointerIndex(ptr);
     			if (idx >= 0)
-    				SacJNILib.handleInputEvent(game, event.getAction(), event.getX(idx), event.getY(idx), ptr);
+    				SacJNILib.handleInputEvent(game, event.getAction(), event.getX(idx) * factor, event.getY(idx) * factor, ptr);
     		}
     		return true;
     	}
