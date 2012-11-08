@@ -243,23 +243,6 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
-            if (c.rotation == 0 && rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
-                // left culling !
-                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
-                if (cullLeftX > 0) {
-                    c.uv[0].X = cullLeftX / tc->size.X;
-                    c.uv[1].X -= cullLeftX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullLeftX;
-                    c.position.X += 0.5 * cullLeftX;
-                }
-                // right culling !
-                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
-                if (cullRightX > 0) {
-                    c.uv[1].X -= cullRightX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullRightX;
-                    c.position.X -= 0.5 * cullRightX;
-                }
-            }
 
             if (c.texture != InvalidTextureRef) {
                 TextureInfo& info = textures[c.texture];
@@ -270,18 +253,39 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     }
                 }
                 if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
-                    semiOpaqueCommands.push_back(c);
                     // add a smaller full-opaque block at the center
-                    RenderCommand cCenter = c;
+                    RenderCommand cCenter(c);
                     const Vector2 offset =  info.opaqueStart * c.halfSize * 2 + info.opaqueSize * c.halfSize * 2 * 0.5;
                     cCenter.position = c.position  + Vector2::Rotate(- c.halfSize + offset, c.rotation);
                     cCenter.halfSize = info.opaqueSize * c.halfSize;
                     cCenter.uv[0] = info.opaqueStart;
                     cCenter.uv[1] = info.opaqueSize;
-                    opaqueCommands.push_back(cCenter);
-                    continue;
+                    // opaqueCommands.push_back(cCenter);
                 }
              }
+             if (c.rotation == 0) {
+                // left culling !
+                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+                if (cullLeftX > 0) {
+                    if (!c.mirrorH) {
+                        c.uv[0].X = cullLeftX / tc->size.X;
+                    }
+                    c.uv[1].X -= cullLeftX / tc->size.X;
+                    c.halfSize.X -= 0.5 * cullLeftX;
+                    c.position.X += 0.5 * cullLeftX;
+                }
+                // right culling !
+                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+                if (cullRightX > 0) {
+                    if (c.mirrorH) {
+                        c.uv[0].X = cullRightX / tc->size.X;
+                    }
+                    c.uv[1].X -= cullRightX / tc->size.X;
+                    c.halfSize.X -= 0.5 * cullRightX;
+                    c.position.X -= 0.5 * cullRightX;
+                }
+            }
+            
              switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
