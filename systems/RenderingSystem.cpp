@@ -260,7 +260,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     cCenter.halfSize = info.opaqueSize * c.halfSize;
                     cCenter.uv[0] = info.opaqueStart;
                     cCenter.uv[1] = info.opaqueSize;
-                    // opaqueCommands.push_back(cCenter);
+                    opaqueCommands.push_back(cCenter);
                 }
              }
              if (c.rotation == 0) {
@@ -315,7 +315,8 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     	dummy.texture = DisableZWriteMarker;
     	outQueue.commands.push_back(dummy);
         outQueue.commands.push_back(opaqueCommands.back());
-    
+        dummy.texture = EnableBlending;
+        outQueue.commands.push_back(dummy);
         outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
     }
     RenderCommand dummy;

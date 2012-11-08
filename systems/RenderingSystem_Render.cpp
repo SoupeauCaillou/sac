@@ -194,11 +194,21 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 				#endif
 				batchSize = 0;
 			}
-
+            GL_OPERATION(glDepthMask(false))
+            continue;
+        } else if (rc.texture == EnableBlending) {
+            commands.pop_front();
+            if (batchSize > 0) {
+                 // execute batch
+                 #ifdef USE_VBO
+                 LOGE("Error batching unsupported with VBO");
+                 #else
+                 drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
+                 #endif
+                 batchSize = 0;
+            }
 			firstCall = false;
-			GL_OPERATION(glDepthMask(false))
 			GL_OPERATION(glEnable(GL_BLEND))
-			
 			if (currentEffect == DefaultEffectRef) {
 				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
 			}
@@ -274,7 +284,6 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 				batchSize = 0;
 			}
 			boundTexture = rc.glref;
-
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
 	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformColor, 1, currentColor.rgba))

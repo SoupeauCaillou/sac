@@ -35,7 +35,7 @@
 #define EndFrameMarker -10
 #define DisableZWriteMarker -11
 #define BeginFrameMarker -12
-
+#define EnableBlending -13
 enum {
     ATTRIB_VERTEX = 0,
     ATTRIB_UV,
