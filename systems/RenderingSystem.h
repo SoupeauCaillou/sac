@@ -235,6 +235,6 @@ Shader buildShader(const std::string& vs, const std::string& fs);
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
 const Vector2& getTextureSize(const std::string& textureName) const;
-
+void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;
 };

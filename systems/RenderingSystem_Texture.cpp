@@ -245,15 +245,20 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	SDL_FreeSurface(s);
 	png = true;
 #endif
-
+ 
 	// for now, just assume power of 2 size
 	GLuint out;
 	GL_OPERATION(glGenTextures(1, &out))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+ if (true || colorOrAlpha && image.mipmap > 0) {
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+ GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
+ } else {
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+ }
 
 	GLenum format;
 	switch (image.channels) {
@@ -282,9 +287,16 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	} else {
 	   #ifdef ANDROID
 		if (pvrSupported) {
-			unsigned imgSize = ( MathUtil::Max(image.width, 8) * MathUtil::Max(image.height, 8) * 4 + 7) / 8; // file.size;// - (20 + 13*sizeof(uint32_t));
-			LOGI("Using PVR texture version (%dx%d, %d)", image.width, image.height, imgSize);
-			GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, image.width, image.height, 0, imgSize, image.datas))
+            char* ptr = image.datas;
+			LOGI("Using PVR texture version (%dx%d - %d mipmap)", image.width, image.height, image.mipmap);
+            for (int level=0; level<=image.mipmap; level++) {
+                int width = MathUtil::Max(1, image.width >> level);
+                int height = MathUtil::Max(1, image.height >> level);
+                unsigned imgSize = ( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
+                LOGI("\t- mipmap #%d : %dx%d", level, width, height);
+			    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, width, height, 0, imgSize, ptr))
+                ptr += imgSize;
+            }
 		} else {
 			LOGI("Using ETC texture version");
 			#define ECT1_HEADER_SIZE 16
@@ -294,6 +306,11 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 		assert (false && "ETC compression not supported");
 	#endif
 	}
+ 
+    if (image.mipmap == 0) {
+        LOGI("Generating mipmaps");
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 	free (image.datas);
 	pow2Size.X = realSize.X = image.width;
 	pow2Size.Y = realSize.Y = image.height;

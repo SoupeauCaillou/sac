@@ -141,7 +141,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
     Camera camera;
 	int batchSize = 0;
     GL_OPERATION(glDepthMask(true))
-    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+    GL_OPERATION(glClear(/*GL_COLOR_BUFFER_BIT |*/ GL_DEPTH_BUFFER_BIT))
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
@@ -382,10 +382,35 @@ int RenderingSystem::RenderQueue::removeFrames(int count) {
     return c;
 }
 
+void RenderingSystem::removeExcessiveFrames(int& readQueue, int& writeQueue) {
+    int rqCount = renderQueue[readQueue].frameToRender;
+    int wrCount = renderQueue[writeQueue].frameToRender;
+    
+    int excessFrameCount = rqCount + wrCount - 2;
+    if (excessFrameCount > 0) {
+        //LOGW("excessFrameCount : %d", excessFrameCount);
+        // remove half of the excessive frames, to smooth the drop
+        int toRemove = (int) ceil(excessFrameCount / 2.0);
+        int n = MathUtil::Min(toRemove, rqCount);
+        n = renderQueue[readQueue].removeFrames(n);
+        
+        if (n < toRemove) {
+            toRemove -= n;
+            renderQueue[writeQueue].removeFrames(toRemove);
+            if (renderQueue[readQueue].frameToRender == 0) {
+                readQueue = writeQueue;
+                currentWriteQueue = (currentWriteQueue + 1) % 2;
+            }
+        } else if (renderQueue[readQueue].frameToRender == 0) {
+            readQueue = writeQueue;
+            writeQueue = (writeQueue + 1) % 2;
+        }
+    }
+}
+
 void RenderingSystem::render() {
 	PROFILE("Renderer", "render", BeginEvent);
-	// static float begin = TimeUtil::getTime();
-	// static float end = TimeUtil::getTime();
+	// float begin = TimeUtil::getTime();
 
 	// begin = TimeUtil::getTime();
 	// LOGW("time out: %.3f", begin - end);
@@ -395,7 +420,7 @@ void RenderingSystem::render() {
 //LOG/W("ici1");
 	#ifndef EMSCRIPTEN
 	if (pthread_mutex_trylock(&mutexes) != 0) {
-		//LOGW("HMM Busy render lock");
+		LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes);
 	}
 	int readQueue = (currentWriteQueue + 1) % 2;
@@ -411,40 +436,13 @@ void RenderingSystem::render() {
 			float bef = TimeUtil::getTime();
 
 			pthread_cond_wait(&cond, &mutexes);
-			LOGI("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
+			// LOGI("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
 		}
 		currentWriteQueue = (currentWriteQueue + 1) % 2;
 		#else
 		LOGW("NOTHING TO RENDER");
 		return;
 		#endif
-	} else {
-#ifndef EMSCRIPTEN
-		// read queue is not empty
-		int rqCount = renderQueue[readQueue].frameToRender;
-		int wrCount = renderQueue[currentWriteQueue].frameToRender;
-
-		int excessFrameCount = rqCount + wrCount - 2;
-		if (excessFrameCount > 0) {
-			//LOGW("excessFrameCount : %d", excessFrameCount);
-			// remove half of the excess frames, to smooth the drop
-			int toRemove = (int) ceil(excessFrameCount / 2.0);
-			int n = MathUtil::Min(toRemove, rqCount);
-			n = renderQueue[readQueue].removeFrames(n);
-
-			if (n < toRemove) {
-				toRemove -= n;
-				renderQueue[currentWriteQueue].removeFrames(toRemove);
-                if (renderQueue[readQueue].frameToRender == 0) {
-				    readQueue = currentWriteQueue;
-				    currentWriteQueue = (currentWriteQueue + 1) % 2;
-                }
-			} else if (renderQueue[readQueue].frameToRender == 0) {
-				readQueue = currentWriteQueue;
-				currentWriteQueue = (currentWriteQueue + 1) % 2;
-			}
-		}
-#endif
 	}
 //LOGW("ici3 : %d", readQueue);
 	// LOGW("Reading 1 frame from: %d", readQueue);
@@ -456,14 +454,16 @@ void RenderingSystem::render() {
 	pthread_mutex_unlock(&mutexes);
 	#endif
 // LOGW("ici4 : %d", readQueue);
+// float interm = TimeUtil::getTime();
 	drawRenderCommands(inQueue.commands);
 // LOGW("ici5 : %d", readQueue);
 	// commands.clear();
 	// LOGW("redner queue size: %d OUT", renderQueue.size());
 
 	// glFinish();
-	// end = TimeUtil::getTime();
-	// LOGW("time in : %.3f", end - begin);
+	/*float end = TimeUtil::getTime();
+    if (!MathUtil::RandomInt(10)) 
+	    LOGW("time in : %.3f %.3f : %.3f", interm - begin, end - interm, end - begin);*/
 	PROFILE("Renderer", "render", EndEvent);
 }
 

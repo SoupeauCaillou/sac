@@ -208,6 +208,14 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
     }
 }
 
+static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
+    const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
+    r.position = r.position  + Vector2::Rotate(- r.halfSize + offset, r.rotation);
+    r.halfSize = size * r.halfSize;
+    r.uv[0] = offsetPos;
+    r.uv[1] = size;
+}
+
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	#ifndef EMSCRIPTEN
 	pthread_mutex_lock(&mutexes);
@@ -255,12 +263,27 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                 if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
                     // add a smaller full-opaque block at the center
                     RenderCommand cCenter(c);
-                    const Vector2 offset =  info.opaqueStart * c.halfSize * 2 + info.opaqueSize * c.halfSize * 2 * 0.5;
-                    cCenter.position = c.position  + Vector2::Rotate(- c.halfSize + offset, c.rotation);
-                    cCenter.halfSize = info.opaqueSize * c.halfSize;
-                    cCenter.uv[0] = info.opaqueStart;
-                    cCenter.uv[1] = info.opaqueSize;
+                    modifyR(cCenter, info.opaqueStart, info.opaqueSize);
                     opaqueCommands.push_back(cCenter);
+                    
+                    const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
+                    const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
+                    RenderCommand cLeft(c);
+                    modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                    semiOpaqueCommands.push_back(cLeft);
+
+                    RenderCommand cRight(c);
+                    modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                    semiOpaqueCommands.push_back(cRight);
+                    
+                    RenderCommand cTop(c);
+                    modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
+                    semiOpaqueCommands.push_back(cTop);
+                    
+                    RenderCommand cBottom(c);
+                    modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
+                    semiOpaqueCommands.push_back(cBottom);
+                    continue;
                 }
              }
              if (c.rotation == 0) {
@@ -325,8 +348,10 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
      
 	outQueue.frameToRender++;
 	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
-	#ifndef EMSCRIPTEN
-pthread_cond_signal(&cond);
+#ifndef EMSCRIPTEN
+    int readQueue = (currentWriteQueue + 1) % 2;
+    removeExcessiveFrames(readQueue, currentWriteQueue);
+    pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutexes);
 #endif
 	//current = (current + 1) % 2;
