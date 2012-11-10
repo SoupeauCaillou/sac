@@ -4,6 +4,7 @@
 #include <GL/glfw.h>
 #include <cstdlib>
 #include <cstdio>
+#include <vector>
 
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>

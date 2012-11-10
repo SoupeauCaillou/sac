@@ -6,16 +6,15 @@
 
 
 #define VPX_CODEC_DISABLE_COMPAT 1
-//#include <vpx/vpx_encoder.h>
-//#include <vpx/vp8cx.h>
 #define interface (vpx_codec_vp8_cx())
 #define fourcc    0x30385056
+
 
 static void mem_put_le16(char *mem, unsigned int val) {
     mem[0] = val;
     mem[1] = val>>8;
 }
- 
+
 static void mem_put_le32(char *mem, unsigned int val) {
     mem[0] = val;
     mem[1] = val>>8;
@@ -53,8 +52,10 @@ static void write_ivf_frame_header(FILE *outfile,
     char             header[12];
     vpx_codec_pts_t  pts;
  
-    if(pkt->kind != VPX_CODEC_CX_FRAME_PKT)
+    if(pkt->kind != VPX_CODEC_CX_FRAME_PKT){
+		std::cout << "Error";
         return;
+    }
  
     pts = pkt->data.frame.pts;
     mem_put_le32(header, pkt->data.frame.sz);
@@ -64,10 +65,57 @@ static void write_ivf_frame_header(FILE *outfile,
     if(fwrite(header, 1, 12, outfile)){}
 }
 
+static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHeight, void *pFullYPlane, void *pDownsampledUPlane, void *pDownsampledVPlane )
+{
+    int nRGBBytes = nFrameWidth * nFrameHeight * 3;
+
+    // Convert RGB -> YV12. We do this in-place to avoid allocating any more memory.
+    unsigned char *pYPlaneOut = (unsigned char*)pFullYPlane;
+    int nYPlaneOut = 0;
+
+    for ( int i=0; i < nRGBBytes; i += 3 )
+    {
+        unsigned char B = pRGBData[i+0];
+        unsigned char G = pRGBData[i+1];
+        unsigned char R = pRGBData[i+2];
+
+        float y = (float)( R*66 + G*129 + B*25 + 128 ) / 256 + 16;
+        float u = (float)( R*-38 + G*-74 + B*112 + 128 ) / 256 + 128;
+        float v = (float)( R*112 + G*-94 + B*-18 + 128 ) / 256 + 128;
+
+        // NOTE: We're converting pRGBData to YUV in-place here as well as writing out YUV to pFullYPlane/pDownsampledUPlane/pDownsampledVPlane.
+        pRGBData[i+0] = (unsigned char)y;
+        pRGBData[i+1] = (unsigned char)u;
+        pRGBData[i+2] = (unsigned char)v;
+
+        // Write out the Y plane directly here rather than in another loop.
+        pYPlaneOut[nYPlaneOut++] = pRGBData[i+0];
+    }
+
+    // Downsample to U and V.
+    int halfHeight = nFrameHeight >> 1;
+    int halfWidth = nFrameWidth >> 1;
+
+    unsigned char *pVPlaneOut = (unsigned char*)pDownsampledVPlane;
+    unsigned char *pUPlaneOut = (unsigned char*)pDownsampledUPlane;
+
+    for ( int yPixel=0; yPixel < halfHeight; yPixel++ )
+    {
+        int iBaseSrc = ( (yPixel*2) * nFrameWidth * 3 );
+
+        for ( int xPixel=0; xPixel < halfWidth; xPixel++ )
+        {
+            pVPlaneOut[yPixel * halfWidth + xPixel] = pRGBData[iBaseSrc + 2];
+            pUPlaneOut[yPixel * halfWidth + xPixel] = pRGBData[iBaseSrc + 1];
+
+            iBaseSrc += 6;
+        }
+    }
+}
+
 Recorder::Recorder(int width, int height){
 	this->width = width;
 	this->height = height;
-	this->recording = false;
 	this->outfile = NULL;
 	
 	// init PBOs
@@ -76,8 +124,6 @@ Recorder::Recorder(int width, int height){
 	glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ_ARB);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[1]);
 	glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ_ARB);
-	
-	
 }
 
 Recorder::~Recorder(){
@@ -104,21 +150,20 @@ void Recorder::start(){
 			std::cout << "Failed to initialize encoder" << std::endl;
 		}
 		
-		if(!vpx_img_alloc(&raw, VPX_IMG_FMT_ARGB, width, height, 1))
-		//if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
+		if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
 			std::cout << "Failed to allocate image" << std::endl;
 		
 		//new file : time
 		std::stringstream a;
-		a << "videos/" << time(NULL) << ".avi";
+		long H = time(NULL);
+		a << "videos/" << ctime(&H) << ".webm";
 		
 		if(!(outfile = fopen(a.str().c_str(), "wb"))){
 			std::cout << "Failed to open " << a.str() << " for writing"<< std::endl;
-			this->recording = false;
 			outfile = NULL;
 			return;
 		}
-		this->recording = true;
+		
 		write_ivf_file_header(outfile, &cfg, 0);
 		this->frameCounter = 0;
 	}
@@ -127,23 +172,23 @@ void Recorder::start(){
 void Recorder::stop(){
 	if (outfile != NULL){
 		std::cout << "Recording stop" << std::endl;
-		this->recording = false;
-		
+
 		saveImage(NULL);
+
+		if(!fseek(outfile, 0, SEEK_SET))
+			write_ivf_file_header(outfile, &cfg, this->frameCounter-1);
+		
+		fclose(outfile);
+		outfile = NULL;
 		
 		if(vpx_codec_destroy(&codec)){
 			std::cout << "Failed to destroy codec" << std::endl;
 		}
-				
-		if(!fseek(outfile, 0, SEEK_SET))
-			write_ivf_file_header(outfile, &cfg, this->frameCounter);
-		fclose(outfile);
-		outfile = NULL;
 	}
 }
 
 void Recorder::toggle(){
-	if (this->recording)
+	if (outfile)
 		stop();
 	else
 		start();
@@ -163,7 +208,8 @@ void Recorder::record(){
 		// read pixels from framebuffer to PBO
 		// glReadPixels() should return immediately.
 		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
-		glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+		glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		//~ glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
 
 		// map the PBO to process its data by CPU
 		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[nextIndex]);
@@ -183,33 +229,24 @@ void Recorder::record(){
 void Recorder::saveImage(GLubyte *ptr){
 	vpx_codec_iter_t iter = NULL;
 	const vpx_codec_cx_pkt_t *pkt;
-
-	if (ptr != NULL)
-	{
-		//int j=0;
-		//for (int i=0; i < height*width; i+=4, ++j)
-		//{
-			
-			raw.planes[VPX_PLANE_PACKED] = ptr;
-			//std::cout << "i = " << i << " / " << height*width << " valeurs pixels" << " 1 =" << (int) *(ptr+i) << " 2 =" << (int)*(ptr+i+1) << " 3 =" << (int)*(ptr+i+2) << " 4 =" << (int)*(ptr+i+3) << std::endl;
-			//raw.planes[0][j] = (*(ptr+i) << 24) + (*(ptr+i+1) << 16) + (*(ptr+i+2) << 8) + *(ptr+i+3);
-			//raw.planes[0][j] = 0.299 * ( *(ptr+i+2)) + 0.587 * ( *(ptr+i+1)) + 0.114 * ( *(ptr+i));
-			//raw.planes[1][j] = (*(ptr+i+1) - raw.planes[0][j]) * 0.565;
-			//raw.planes[2][j] = (*(ptr+i+2) - raw.planes[0][j]) * 0.713;
-			//raw.planes[3][j] = *(ptr+i);
-		//}
-	}
 	
-	if(vpx_codec_encode(&codec, ptr!=NULL? &raw:NULL, this->frameCounter,
-						1, flags, VPX_DL_REALTIME))
-		std::cout << "Failed to encode frame"<< std::endl;
-
+	if (ptr)
+		RGB_To_YV12(ptr, width, height, raw.planes[0], raw.planes[1], raw.planes[2]);
+	
+	if(vpx_codec_encode(&codec, ptr ? &raw : NULL, this->frameCounter,
+						1, flags, VPX_DL_REALTIME)){
+		const char *detail = vpx_codec_error_detail(&codec);
+		std::cout << "Failed to encode frame";
+		if (detail)
+			std::cout << "     " << detail;
+		std::cout << std::endl;
+	}
 	while( (pkt = vpx_codec_get_cx_data(&codec, &iter)) ) {
 		switch(pkt->kind) {
 		case VPX_CODEC_CX_FRAME_PKT:
 			write_ivf_frame_header(outfile, pkt);
 			if(fwrite(pkt->data.frame.buf, 1, pkt->data.frame.sz,
-					  outfile)){}     
+					  outfile)){}
 			break;                                                    
 		default:
 			break;
