@@ -213,6 +213,8 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 	hld->dtAccumuled = dt;
 }
 
+static float tttttt = 0;
+static int frameCount = 0;
 float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
@@ -223,15 +225,13 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
 	if (!hld)
   		return;
   	hld->firstCall = true;
-  	float d = TimeUtil::getTime();
+  	float d = tttttt = TimeUtil::getTime();
+	frameCount = 0;
   	LOGW("resume time: %.3f, diff:%.3f, %d", d, d - pauseTime, theSoundSystem.mute);
   	if (d - pauseTime <= 5) {
 	  	theMusicSystem.toggleMute(theSoundSystem.mute);
   	}
 }
-
-static int frameCount = 0;
-static float tttttt = 0;
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
