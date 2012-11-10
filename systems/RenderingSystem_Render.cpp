@@ -423,12 +423,11 @@ void RenderingSystem::render() {
 		LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes);
 	}
-	int readQueue = (currentWriteQueue + 1) % 2;
+    int readQueue = (currentWriteQueue + 1) % 2;
+    removeExcessiveFrames(readQueue, currentWriteQueue);
 	#else
 //LOGW("ici2");
 	int readQueue = currentWriteQueue;
-    int readQueue = (currentWriteQueue + 1) % 2;
-    removeExcessiveFrames(readQueue, currentWriteQueue);
 	#endif
 	if (renderQueue[readQueue].frameToRender == 0) {
 		#ifndef EMSCRIPTEN
