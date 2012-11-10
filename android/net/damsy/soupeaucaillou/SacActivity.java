@@ -56,7 +56,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract Button getNameInputButton();
 	public void preNameInputViewShow() {}
  
-	final float factor = 0.9f;
+	final float factor = 1.f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		Log.i("Sac", "-> onCreate [" + savedInstanceState);
@@ -123,7 +123,7 @@ public abstract class SacActivity extends SwarmActivity {
             mGLView.setRenderer(renderer);
 		}
 
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         if (savedInstanceState != null) {
         	savedState = savedInstanceState.getByteArray(getBundleKey());

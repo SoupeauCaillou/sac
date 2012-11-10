@@ -75,7 +75,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				while ( activity.isRunning || activity.requestPausedFromJava) {
 					if (activity.runGameLoop) {
 						SacJNILib.step(activity.game);
-						activity.mGLView.requestRender();
+						// activity.mGLView.requestRender();
 			  		} else {
 						try {
 							// Log.w(HeriswapActivity.Tag, "Game thread sleeping");
