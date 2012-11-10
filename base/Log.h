@@ -23,13 +23,13 @@
 #ifdef ANDROID
 #include <android/log.h>
 #ifdef ENABLE_LOG
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "heriswapC", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "heriswapC", __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "sacC", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "sacC", __VA_ARGS__))
 #else
 #define LOGI(...)
 #define LOGW(...)
 #endif
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "heriswapC", __VA_ARGS__))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "sacC", __VA_ARGS__))
 
 #else
 #include <cstdio>

@@ -349,8 +349,6 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	outQueue.frameToRender++;
 	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
 #ifndef EMSCRIPTEN
-    int readQueue = (currentWriteQueue + 1) % 2;
-    removeExcessiveFrames(readQueue, currentWriteQueue);
     pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutexes);
 #endif

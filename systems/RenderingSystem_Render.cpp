@@ -427,6 +427,8 @@ void RenderingSystem::render() {
 	#else
 //LOGW("ici2");
 	int readQueue = currentWriteQueue;
+    int readQueue = (currentWriteQueue + 1) % 2;
+    removeExcessiveFrames(readQueue, currentWriteQueue);
 	#endif
 	if (renderQueue[readQueue].frameToRender == 0) {
 		#ifndef EMSCRIPTEN
