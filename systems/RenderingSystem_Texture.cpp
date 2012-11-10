@@ -252,7 +252,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
- if (true || colorOrAlpha && image.mipmap > 0) {
+ if (colorOrAlpha && image.mipmap > 0) {
     GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
  GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
  } else {
@@ -307,7 +307,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	#endif
 	}
  
-    if (image.mipmap == 0) {
+    if (0 && image.mipmap == 0) {
         LOGI("Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);
     }
