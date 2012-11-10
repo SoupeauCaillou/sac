@@ -24,7 +24,7 @@
 struct ImageDesc {
 	char* datas;
 	int width, height;
-    int channels;
+    int channels, mipmap;
 	enum {
 		RAW,
 		ECT1,

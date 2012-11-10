@@ -166,6 +166,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	result.height = s->h;
 	result.datas = new char[result.width * result.height * result.channels];
 #endif
+    result.mipmap = 0;
 	return result;
 }
 ImageDesc ImageLoader::loadEct1(const std::string& context __attribute__((unused)), const FileBuffer& file __attribute__((unused))) {
@@ -178,6 +179,7 @@ ImageDesc ImageLoader::loadEct1(const std::string& context __attribute__((unused
 	 #ifdef ANDROID
 	ImageDesc result;
 	result.datas = 0;
+    result.mipmap = 0;
 
 	unsigned offset = 0;
 	if (strncmp("PKM ", (const char*)file.data, 4)) {
@@ -236,6 +238,7 @@ ImageDesc ImageLoader::loadPvr(const std::string& context __attribute__((unused)
 
 	result.width = header->width;
 	result.height = header->height;
+    result.mipmap = header->dwMipMapCount;
 	int size = file.size - sizeof(PVRTexHeader);
 	result.datas = (char*) malloc(size);
 	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
