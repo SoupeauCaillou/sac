@@ -245,7 +245,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
             GameHolder* hld = (GameHolder*) g;
             float dt = 1/fps;
             float ratio = hld->game->targetDT / dt;
-            __android_log_print(ANDROID_LOG_INFO, "heriswapC", "fps render: %.2f (ratio: %.2f)", fps, ratio);
+            __android_log_print(ANDROID_LOG_INFO, "sacC", "fps render: %.2f (ratio: %.2f)", fps, ratio);
             #if 1
             if (ratio < 0.90) {
                 hld->game->targetDT += (dt - hld->game->targetDT) * 0.5;
