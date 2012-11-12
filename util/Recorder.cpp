@@ -75,9 +75,9 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
 
     for ( int i=0; i < nRGBBytes; i += 3 )
     {
-        unsigned char B = pRGBData[i+0];
+        unsigned char B = pRGBData[i+2];
         unsigned char G = pRGBData[i+1];
-        unsigned char R = pRGBData[i+2];
+        unsigned char R = pRGBData[i+0];
 
         float y = (float)( R*66 + G*129 + B*25 + 128 ) / 256 + 16;
         float u = (float)( R*-38 + G*-74 + B*112 + 128 ) / 256 + 128;
