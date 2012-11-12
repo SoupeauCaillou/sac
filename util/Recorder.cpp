@@ -73,25 +73,27 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
     unsigned char *pYPlaneOut = (unsigned char*)pFullYPlane;
     int nYPlaneOut = 0;
 
-    for ( int i=0; i < nRGBBytes; i += 3 )
+    for ( int y=nFrameHeight-1; y > -1 ; --y)
     {
-        unsigned char B = pRGBData[i+2];
-        unsigned char G = pRGBData[i+1];
-        unsigned char R = pRGBData[i+0];
+		for (int x=0; x < nFrameWidth*3; x+=3)
+		{
+			unsigned char B = pRGBData[x+2+y*nFrameWidth*3];
+			unsigned char G = pRGBData[x+1+y*nFrameWidth*3];
+			unsigned char R = pRGBData[x+0+y*nFrameWidth*3];
 
-        float y = (float)( R*66 + G*129 + B*25 + 128 ) / 256 + 16;
-        float u = (float)( R*-38 + G*-74 + B*112 + 128 ) / 256 + 128;
-        float v = (float)( R*112 + G*-94 + B*-18 + 128 ) / 256 + 128;
+			float Y = (float)( R*66 + G*129 + B*25 + 128 ) / 256 + 16;
+			float U = (float)( R*-38 + G*-74 + B*112 + 128 ) / 256 + 128;
+			float V = (float)( R*112 + G*-94 + B*-18 + 128 ) / 256 + 128;
 
-        // NOTE: We're converting pRGBData to YUV in-place here as well as writing out YUV to pFullYPlane/pDownsampledUPlane/pDownsampledVPlane.
-        pRGBData[i+0] = (unsigned char)y;
-        pRGBData[i+1] = (unsigned char)u;
-        pRGBData[i+2] = (unsigned char)v;
+			// NOTE: We're converting pRGBData to YUV in-place here as well as writing out YUV to pFullYPlane/pDownsampledUPlane/pDownsampledVPlane.
+			pRGBData[x+0+y*nFrameWidth*3] = (unsigned char)Y;
+			pRGBData[x+1+y*nFrameWidth*3] = (unsigned char)U;
+			pRGBData[x+2+y*nFrameWidth*3] = (unsigned char)V;
 
-        // Write out the Y plane directly here rather than in another loop.
-        pYPlaneOut[nYPlaneOut++] = pRGBData[i+0];
-    }
-
+			// Write out the Y plane directly here rather than in another loop.
+			pYPlaneOut[nYPlaneOut++] = pRGBData[x+0+y*nFrameWidth*3];
+		}
+	}
     // Downsample to U and V.
     int halfHeight = nFrameHeight >> 1;
     int halfWidth = nFrameWidth >> 1;
@@ -105,8 +107,8 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
 
         for ( int xPixel=0; xPixel < halfWidth; xPixel++ )
         {
-            pVPlaneOut[yPixel * halfWidth + xPixel] = pRGBData[iBaseSrc + 2];
-            pUPlaneOut[yPixel * halfWidth + xPixel] = pRGBData[iBaseSrc + 1];
+            pVPlaneOut[(halfHeight-1 - yPixel) * halfWidth + xPixel] = pRGBData[iBaseSrc + 2];
+            pUPlaneOut[(halfHeight-1 - yPixel) * halfWidth + xPixel] = pRGBData[iBaseSrc + 1];
 
             iBaseSrc += 6;
         }
@@ -209,7 +211,6 @@ void Recorder::record(){
 		// glReadPixels() should return immediately.
 		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
 		glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, 0);
-		//~ glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
 
 		// map the PBO to process its data by CPU
 		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[nextIndex]);
