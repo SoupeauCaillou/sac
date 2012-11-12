@@ -65,33 +65,31 @@ static void write_ivf_frame_header(FILE *outfile,
     if(fwrite(header, 1, 12, outfile)){}
 }
 
-static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHeight, void *pFullYPlane, void *pDownsampledUPlane, void *pDownsampledVPlane )
+static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHeight, int nFrameChannel, void *pFullYPlane, void *pDownsampledUPlane, void *pDownsampledVPlane )
 {
-    int nRGBBytes = nFrameWidth * nFrameHeight * 3;
-
     // Convert RGB -> YV12. We do this in-place to avoid allocating any more memory.
     unsigned char *pYPlaneOut = (unsigned char*)pFullYPlane;
     int nYPlaneOut = 0;
 
     for ( int y=nFrameHeight-1; y > -1 ; --y)
     {
-		for (int x=0; x < nFrameWidth*3; x+=3)
+		for (int x=0; x < nFrameWidth*nFrameChannel; x+=nFrameChannel)
 		{
-			unsigned char B = pRGBData[x+2+y*nFrameWidth*3];
-			unsigned char G = pRGBData[x+1+y*nFrameWidth*3];
-			unsigned char R = pRGBData[x+0+y*nFrameWidth*3];
+			unsigned char B = pRGBData[x+0+y*nFrameWidth*nFrameChannel];
+			unsigned char G = pRGBData[x+1+y*nFrameWidth*nFrameChannel];
+			unsigned char R = pRGBData[x+2+y*nFrameWidth*nFrameChannel];
 
 			float Y = (float)( R*66 + G*129 + B*25 + 128 ) / 256 + 16;
 			float U = (float)( R*-38 + G*-74 + B*112 + 128 ) / 256 + 128;
 			float V = (float)( R*112 + G*-94 + B*-18 + 128 ) / 256 + 128;
 
 			// NOTE: We're converting pRGBData to YUV in-place here as well as writing out YUV to pFullYPlane/pDownsampledUPlane/pDownsampledVPlane.
-			pRGBData[x+0+y*nFrameWidth*3] = (unsigned char)Y;
-			pRGBData[x+1+y*nFrameWidth*3] = (unsigned char)U;
-			pRGBData[x+2+y*nFrameWidth*3] = (unsigned char)V;
+			pRGBData[x+0+y*nFrameWidth*nFrameChannel] = (unsigned char)Y;
+			pRGBData[x+1+y*nFrameWidth*nFrameChannel] = (unsigned char)U;
+			pRGBData[x+2+y*nFrameWidth*nFrameChannel] = (unsigned char)V;
 
 			// Write out the Y plane directly here rather than in another loop.
-			pYPlaneOut[nYPlaneOut++] = pRGBData[x+0+y*nFrameWidth*3];
+			pYPlaneOut[nYPlaneOut++] = pRGBData[x+0+y*nFrameWidth*nFrameChannel];
 		}
 	}
     // Downsample to U and V.
@@ -103,14 +101,14 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
 
     for ( int yPixel=0; yPixel < halfHeight; yPixel++ )
     {
-        int iBaseSrc = ( (yPixel*2) * nFrameWidth * 3 );
+        int iBaseSrc = ( (yPixel*2) * nFrameWidth * nFrameChannel );
 
         for ( int xPixel=0; xPixel < halfWidth; xPixel++ )
         {
             pVPlaneOut[(halfHeight-1 - yPixel) * halfWidth + xPixel] = pRGBData[iBaseSrc + 2];
             pUPlaneOut[(halfHeight-1 - yPixel) * halfWidth + xPixel] = pRGBData[iBaseSrc + 1];
 
-            iBaseSrc += 6;
+            iBaseSrc += nFrameChannel * 2;
         }
     }
 }
@@ -201,8 +199,8 @@ void Recorder::record(){
 	if (this->outfile != NULL){
 		// "index" is used to read pixels from framebuffer to a PBO
 		// "nextIndex" is used to update pixels in the other PBO
-		index = (index + 1) % 2;
-		int nextIndex = (index + 1) % 2;
+		index = (index + 1) % PBO_COUNT;
+		int nextIndex = (index + 1) % PBO_COUNT;
 
 		// set the target framebuffer to read
 		glReadBuffer(GL_FRONT);
@@ -210,7 +208,7 @@ void Recorder::record(){
 		// read pixels from framebuffer to PBO
 		// glReadPixels() should return immediately.
 		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
-		glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
 
 		// map the PBO to process its data by CPU
 		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[nextIndex]);
@@ -232,7 +230,7 @@ void Recorder::saveImage(GLubyte *ptr){
 	const vpx_codec_cx_pkt_t *pkt;
 	
 	if (ptr)
-		RGB_To_YV12(ptr, width, height, raw.planes[0], raw.planes[1], raw.planes[2]);
+		RGB_To_YV12(ptr, width, height, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
 	
 	if(vpx_codec_encode(&codec, ptr ? &raw : NULL, this->frameCounter,
 						1, flags, VPX_DL_REALTIME)){
