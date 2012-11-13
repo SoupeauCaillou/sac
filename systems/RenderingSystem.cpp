@@ -139,6 +139,10 @@ void RenderingSystem::init() {
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
 
+    /*GL_OPERATION(glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST))
+    GL_OPERATION(glEnable(GL_CULL_FACE))
+    GL_OPERATION(glShadeModel(GL_SMOOTH))*/
+
 	// GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))

@@ -201,7 +201,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 
 	hld->time = TimeUtil::getTime();
 
-	const float accum = DT;
+	const float accum = DT;// * 0.5;
 	if (dt > 5 * DT) {
 		LOGW("BIG DT: %.3f s", dt);
 	}
@@ -213,8 +213,9 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 	hld->dtAccumuled = dt;
 }
 
-static float tttttt = 0;
+static float tttttt = 0, prev;
 static int frameCount = 0;
+static float minDt = 10, maxDt = 0;
 float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
@@ -235,17 +236,24 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
-	theRenderingSystem.render();
 #define ENABLE_LOG 1
 #define COUNT 500.0
 	frameCount++;
+    float t = TimeUtil::getTime();
+    float dt = t - prev;
+    if (dt < minDt)
+        minDt = dt;
+    if (dt > maxDt)
+        maxDt = dt;
+    prev = t;
 	if (frameCount >= COUNT) {
         float fps = COUNT / (TimeUtil::getTime() - tttttt);
         if (fps > 0) {
             GameHolder* hld = (GameHolder*) g;
             float dt = 1/fps;
             float ratio = hld->game->targetDT / dt;
-            __android_log_print(ANDROID_LOG_INFO, "sacC", "fps render: %.2f (ratio: %.2f)", fps, ratio);
+            __android_log_print(ANDROID_LOG_INFO, "sacC", "fps render: %.2f (ratio: %.2f) - min:%.3f max:%.3f", fps, ratio, minDt, maxDt);
+            
             #if 1
             if (ratio < 0.90) {
                 hld->game->targetDT += (dt - hld->game->targetDT) * 0.5;
@@ -264,7 +272,10 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
         }
 		tttttt = TimeUtil::getTime();
 		frameCount = 0;
+        minDt = 100;
+        maxDt = 0;
 	}
+    theRenderingSystem.render();
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
