@@ -155,7 +155,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			RenderingComponent* rc = RENDERING(trc->drawing[count]);
 			TransformationComponent* tc = TRANSFORM(trc->drawing[count]);
 			tc->parent = entity;
-            //tc->z = trans->z;
+            tc->z = 0.001; // put text in front
             tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
             rc->cameraBitMask = trc->cameraBitMask;
