@@ -18,6 +18,8 @@
 */
 package net.damsy.soupeaucaillou;
 
+import javax.microedition.khronos.egl.EGL;
+import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -71,11 +73,11 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				 
 				activity.savedState = null;
 				initDone = true;
-				 
+
 				while ( activity.isRunning || activity.requestPausedFromJava) {
 					if (activity.runGameLoop) {
 						SacJNILib.step(activity.game);
-						// activity.mGLView.requestRender();
+						activity.mGLView.requestRender();
 			  		} else {
 						try {
 							// Log.w(HeriswapActivity.Tag, "Game thread sleeping");
@@ -110,7 +112,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				*/
 			}
 		}); 
-    	gameThread.setPriority(Thread.MAX_PRIORITY);
+    	// gameThread.setPriority(Thread.MAX_PRIORITY);
 		gameThread.start(); 
     } 
  
@@ -146,7 +148,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
     	int id = activity.getSwarmGameID();
-    	if (Swarm.isEnabled() && id != 0) {
+    	if (/*Swarm.isEnabled() &&*/ id != 0) {
 		    activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {

@@ -141,7 +141,7 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
     Camera camera;
 	int batchSize = 0;
     GL_OPERATION(glDepthMask(true))
-    GL_OPERATION(glClear(/*GL_COLOR_BUFFER_BIT |*/ GL_DEPTH_BUFFER_BIT))
+    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid, t;
 	Color currentColor(1,1,1,1);
@@ -370,7 +370,7 @@ int RenderingSystem::RenderQueue::removeFrames(int count) {
         if (end == commands.end())
             break;
         ++end;
-        if (skip == 1) {
+        if (!skip) {
             commands.erase(begin, end);
             c++;
             frameToRender--;
@@ -383,28 +383,21 @@ int RenderingSystem::RenderQueue::removeFrames(int count) {
 }
 
 void RenderingSystem::removeExcessiveFrames(int& readQueue, int& writeQueue) {
-    int rqCount = renderQueue[readQueue].frameToRender;
-    int wrCount = renderQueue[writeQueue].frameToRender;
-    
-    int excessFrameCount = rqCount + wrCount - 2;
+    const int rqCount = renderQueue[readQueue].frameToRender;
+    const int wrCount = renderQueue[writeQueue].frameToRender;
+    int excessFrameCount = rqCount + wrCount - 5;
     if (excessFrameCount > 0) {
-        //LOGW("excessFrameCount : %d", excessFrameCount);
         // remove half of the excessive frames, to smooth the drop
         int toRemove = (int) ceil(excessFrameCount / 2.0);
-        int n = MathUtil::Min(toRemove, rqCount);
-        n = renderQueue[readQueue].removeFrames(n);
-        
-        if (n < toRemove) {
-            toRemove -= n;
-            renderQueue[writeQueue].removeFrames(toRemove);
-            if (renderQueue[readQueue].frameToRender == 0) {
-                readQueue = writeQueue;
-                currentWriteQueue = (currentWriteQueue + 1) % 2;
-            }
-        } else if (renderQueue[readQueue].frameToRender == 0) {
+        toRemove -= renderQueue[readQueue].removeFrames(toRemove);
+        if (toRemove > 0) {
+            toRemove -= renderQueue[writeQueue].removeFrames(toRemove);
+        }
+        if (renderQueue[readQueue].frameToRender == 0) {
             readQueue = writeQueue;
             writeQueue = (writeQueue + 1) % 2;
         }
+        // LOGW("excessFrameCount : %d -> removed: %d", excessFrameCount, (int) floor(excessFrameCount / 2.0) - toRemove);
     }
 }
 

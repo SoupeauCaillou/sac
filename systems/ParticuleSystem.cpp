@@ -33,6 +33,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
+ // return;
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         TransformationComponent* ptc = TRANSFORM(a);
         
@@ -58,7 +59,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 TransformationComponent* tc = TRANSFORM(e);
                 tc->position = ptc->worldPosition + Vector2::Rotate(Vector2(MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.X, MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.Y), ptc->worldRotation);
                 tc->size.X = tc->size.Y = pc->initialSize.random();
-                tc->z = ptc->z;
+                tc->z = ptc->worldZ;
 
                 ADD_COMPONENT(e, Rendering);
                 RenderingComponent* rc = RENDERING(e);

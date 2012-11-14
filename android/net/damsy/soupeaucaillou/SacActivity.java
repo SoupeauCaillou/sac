@@ -123,7 +123,7 @@ public abstract class SacActivity extends SwarmActivity {
             mGLView.setRenderer(renderer);
 		}
 
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         if (savedInstanceState != null) {
         	savedState = savedInstanceState.getByteArray(getBundleKey());
@@ -167,7 +167,7 @@ public abstract class SacActivity extends SwarmActivity {
 	        	// HeriswapJNILib.invalidateTextures(HeriswapActivity.game);
 			}
         }
-        // Swarm.setInactive(this);
+        Swarm.setInactive(this);
         //OpenFeint.onPause();
         super.onPause();
     }
@@ -190,7 +190,7 @@ public abstract class SacActivity extends SwarmActivity {
         }
 
         //OpenFeint.onResume();
-        // Swarm.setActive(this);
+        Swarm.setActive(this);
     }
 
     @Override
