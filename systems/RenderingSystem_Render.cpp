@@ -417,18 +417,19 @@ void RenderingSystem::render() {
 		pthread_mutex_lock(&mutexes);
 	}
     int readQueue = (currentWriteQueue + 1) % 2;
-    removeExcessiveFrames(readQueue, currentWriteQueue);
+    // removeExcessiveFrames(readQueue, currentWriteQueue);
 	#else
 //LOGW("ici2");
 	int readQueue = currentWriteQueue;
 	#endif
+
 	if (renderQueue[readQueue].frameToRender == 0) {
 		#ifndef EMSCRIPTEN
 		readQueue = currentWriteQueue;
 
 		if (renderQueue[readQueue].frameToRender == 0) {
 			float bef = TimeUtil::getTime();
-
+LOGW("NOTHING TO RENDER");
 			pthread_cond_wait(&cond, &mutexes);
 			// LOGI("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
 		}
@@ -442,6 +443,7 @@ void RenderingSystem::render() {
 	// LOGW("Reading 1 frame from: %d", readQueue);
 //	assert (renderQueue[readQueue].frameToRender > 0);
 //	assert (readQueue != currentWriteQueue);
+// LOGW("queue0 : %d - queue1 : %d -- read: %d", renderQueue[0].frameToRender, renderQueue[1].frameToRender, readQueue);
 	RenderQueue& inQueue = renderQueue[readQueue];
 	inQueue.frameToRender--;
 	#ifndef EMSCRIPTEN

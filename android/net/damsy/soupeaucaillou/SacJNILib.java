@@ -40,7 +40,7 @@ public class SacJNILib {
 
 	public static native void uninitFromGameThread(long game);
 
-	public static native void step(long game);
+	public static native boolean step(long game, float dt);
 
 	public static native void resetTimestep(long game);
 
