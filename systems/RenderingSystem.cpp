@@ -349,8 +349,8 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     static unsigned int cccc = 0;
     dummy.rotateUV = cccc++;
     outQueue.commands.push_back(dummy);
+     
 	outQueue.frameToRender++;
-     // LOGW("Queue #%d : %d", currentWriteQueue, outQueue.frameToRender);
 	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
 #ifndef EMSCRIPTEN
     pthread_cond_signal(&cond);

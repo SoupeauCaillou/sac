@@ -123,7 +123,7 @@ public abstract class SacActivity extends SwarmActivity {
             mGLView.setRenderer(renderer);
 		}
 
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         if (savedInstanceState != null) {
         	savedState = savedInstanceState.getByteArray(getBundleKey());

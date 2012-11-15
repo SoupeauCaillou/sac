@@ -18,15 +18,17 @@
 */
 package net.damsy.soupeaucaillou;
 
+import javax.microedition.khronos.egl.EGL;
+import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import com.swarmconnect.Swarm;
+
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
-import android.os.SystemClock;
+//import android.opengl.GLU;
 import android.util.Log;
-
-import com.swarmconnect.Swarm;
 
 public class SacRenderer implements GLSurfaceView.Renderer {
 	SacActivity activity;
@@ -34,33 +36,15 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 	Thread gameThread;
 	int frameCount = 0;
 	long time;
-	Object frameLock = new Object();
-	int newFrameAvailable;
 	public SacRenderer(SacActivity act, AssetManager asset) {
 		super();
 		this.activity = act;
 		this.asset = asset;
 		frameCount = 0;
 		time = System.currentTimeMillis();
-		newFrameAvailable = 1;
 	}
  
     public void onDrawFrame(GL10 gl) {
-    	synchronized (frameLock) {
-    		// delete rendered frame
-    		newFrameAvailable--;
-    		frameLock.notifyAll();
-
-    		// wait for next
-			while (newFrameAvailable == 0) {
-				try {
-					frameLock.wait();
-				} catch (InterruptedException exc) {
-					
-				}
-			}
-		}
-    	
     	synchronized (activity.mutex) {
     		if (activity.game == 0 || !initDone) {
     	 		return;
@@ -90,41 +74,10 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				activity.savedState = null;
 				initDone = true;
 
-				long lastTime = SystemClock.uptimeMillis();
 				while ( activity.isRunning || activity.requestPausedFromJava) {
 					if (activity.runGameLoop) {
-						synchronized (activity.mutex) {
-							// Wait previous frame completion
-						}
-						synchronized (frameLock) {
-							while (newFrameAvailable > 0) {
-								try {
-									frameLock.wait();
-								} catch (Exception exc) {
-									
-								}
-							}
-						}
-						long time = SystemClock.uptimeMillis();
-		                long timeDelta = time - lastTime;
-
-						if (SacJNILib.step(activity.game, timeDelta * 0.001f)) {
-							lastTime = time;
-							synchronized (frameLock) {
-								newFrameAvailable++;
-								frameLock.notifyAll();
-							}
-						}
-						final long endTime = SystemClock.uptimeMillis();
-						timeDelta = endTime - time;
-						if (timeDelta < 16) {
-		                    try {
-		                        Thread.sleep(16 - timeDelta);
-		                    } catch (InterruptedException e) {
-		                        // Interruptions here are no big deal.
-		                    }
-		                }
-						// activity.mGLView.requestRender();
+						SacJNILib.step(activity.game);
+						activity.mGLView.requestRender();
 			  		} else {
 						try {
 							// Log.w(HeriswapActivity.Tag, "Game thread sleeping");
@@ -186,6 +139,11 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				}
     		}
     	}
+/*
+    	int err;
+        while( (err = gl.glGetError()) != GL10.GL_NO_ERROR) {
+        	//NOLOGLog.e(HeriswapActivity.Tag, "_GL error : " + GLU.gluErrorString(err));
+        }*/
     } 
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {

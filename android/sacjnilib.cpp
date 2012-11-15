@@ -175,42 +175,20 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThr
  * Method:    step
  * Signature: (J)V
  */
-JNIEXPORT bool JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
-  (JNIEnv *env, jclass, jlong g, jfloat dt) {
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
+  (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
 
 	if (!hld->game)
-  		return false;
-    const float DT = 1.0/60;
-    bool frame = false;
+  		return;
+    const float DT = hld->game->targetDT;
 
   	if (hld->firstCall) {
 		hld->time = TimeUtil::getTime();
 		hld->firstCall = false;
 	}
-    // _step function is called only when the previous
-    // frame rendering is finished (see SacRenderer.java) 
 
-    float current = TimeUtil::getTime();
-	float delta = current - hld->time;
- // LOGW("%.3f != %.3f", delta, dt);
-    // update only if time elapsed > 12ms
-    if (delta > 0.012) {
-        hld->time = current;
-        hld->game->tick(delta);
-        delta = TimeUtil::getTime() - current;
-        frame = true;
-    }
-    // if update duration < DT, sleep
-    /*if (delta < DT) {
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = (DT - delta) * 1000000000LL;
-        nanosleep(&ts, 0);
-    }*/
-    return frame;
-    #if 0
- 
+	float dt;
 	do {
 		dt = hld->dtAccumuled + TimeUtil::getTime() - hld->time;
 		if (dt < DT) {
@@ -233,7 +211,6 @@ JNIEXPORT bool JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 		dt -= accum;
 	}
 	hld->dtAccumuled = dt;
- #endif
 }
 
 static float tttttt = 0, prev;
