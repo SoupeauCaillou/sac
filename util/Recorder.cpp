@@ -166,7 +166,7 @@ bool Recorder::initVP8 (){
 		return false;
 	}
 	/* Update the default configuration with our settings */
-	cfg.rc_target_bitrate = (width*height*3*8) /1000;
+	cfg.rc_target_bitrate = (width*height*3*8*30) /1000;
 	cfg.g_w = width;
 	cfg.g_h = height;
 	cfg.kf_mode = VPX_KF_AUTO;
