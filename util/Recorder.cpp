@@ -2,13 +2,21 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <cstring>
 #include <string>
-
 
 #define VPX_CODEC_DISABLE_COMPAT 1
 #define interface (vpx_codec_vp8_cx())
 #define fourcc    0x30385056
 
+static void* videoEncoder_Callback(void* obj){
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	
+	static_cast<Recorder*>(obj)->thread_video_encode();
+	
+	pthread_exit(0);
+}
 
 static void mem_put_le16(char *mem, unsigned int val) {
     mem[0] = val;
@@ -116,43 +124,92 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
 Recorder::Recorder(int width, int height){
 	this->width = width;
 	this->height = height;
-	this->outfile = NULL;
+	outfile = NULL;
+	recording = false;
+
+	pthread_mutex_init(&mutex_buf, NULL);
+
+	initOpenGl_PBO();
+	initVP8();
+}
+
+Recorder::~Recorder(){
+	if (pthread_cancel (th1) != 0) {
+		std::cout << "pthread_cancel error for thread" << std::endl;
+	}
+	vpx_codec_destroy(&codec);
+	vpx_img_free (&raw);
+
+	pthread_mutex_destroy(&mutex_buf);
 	
+	glDeleteBuffersARB(PBO_COUNT, pboIds);
+	delete [] test;
+}
+
+bool Recorder::initOpenGl_PBO (){
 	// init PBOs
 	glGenBuffersARB(PBO_COUNT, pboIds);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[0]);
 	glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ_ARB);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[1]);
 	glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ_ARB);
+
+	return true;
+} 
+
+bool Recorder::initVP8 (){
+	// init VP8 encoder
+	/* Populate encoder configuration */
+	vpx_codec_err_t res = vpx_codec_enc_config_default(interface, &cfg, 0);
+	if (res) {
+		std::cout << "Failed to get config: " << vpx_codec_err_to_string(res) << std::endl;
+		return false;
+	}
+	/* Update the default configuration with our settings */
+	cfg.rc_target_bitrate = (width*height*3*8) /1000;
+	cfg.g_w = width;
+	cfg.g_h = height;
+	cfg.kf_mode = VPX_KF_AUTO;
+	cfg.kf_max_dist = 300;
+	cfg.g_pass = VPX_RC_ONE_PASS; /* -p 1 */
+	cfg.g_timebase.num = 1;
+	cfg.g_timebase.den = 30; /* fps = 30 */
+	cfg.rc_end_usage = VPX_CBR; /* --end-usage=cbr */
+	cfg.g_threads = 2;
+	
+	if (vpx_codec_enc_init(&codec, interface, &cfg, 0)){
+		std::cout << "Failed to initialize encoder" << std::endl;
+		return false;
+	}
+	
+	vpx_codec_control(&codec, VP8E_SET_CPUUSED, (cfg.g_threads > 1) ? 10 : 10); 
+	vpx_codec_control(&codec, VP8E_SET_STATIC_THRESHOLD, 0);
+	vpx_codec_control(&codec, VP8E_SET_ENABLEAUTOALTREF, 1);
+	
+	if (cfg.g_threads > 1) {
+		if (vpx_codec_control(&codec, VP8E_SET_TOKEN_PARTITIONS, (vp8e_token_partitions) cfg.g_threads) != VPX_CODEC_OK) {
+			std::cout << "VP8: failed to set multiple token partition" << std::endl;
+		} else {
+			std::cout << "VP8: multiple token partitions used" << std::endl;
+		}
+	}
+
+	if (!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1)){
+		std::cout << "Failed to allocate image" << std::endl;
+		return false;
+	}
+	
+	return true;
 }
 
-Recorder::~Recorder(){
-	glDeleteBuffersARB(PBO_COUNT, pboIds);
+bool Recorder::initSound (){
+	return true;
 }
 
 void Recorder::start(){
-	if (outfile == NULL){
+	if (outfile == NULL && recording == false){
 		std::cout << "Recording start" << std::endl;
-		
-		// init VP8 encoder
-		/* Populate encoder configuration */
-		vpx_codec_err_t res = vpx_codec_enc_config_default(interface, &cfg, 0);
-		if (res) {
-			std::cout << "Failed to get config: " << vpx_codec_err_to_string(res) << std::endl;
-		}
-		/* Update the default configuration with our settings */
-		cfg.rc_target_bitrate = width * height * cfg.rc_target_bitrate
-								/ cfg.g_w / cfg.g_h;
-		cfg.g_w = width;
-		cfg.g_h = height;
-		
-		if(vpx_codec_enc_init(&codec, interface, &cfg, 0)){
-			std::cout << "Failed to initialize encoder" << std::endl;
-		}
-		
-		if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
-			std::cout << "Failed to allocate image" << std::endl;
-		
+
 		//new file : time
 		std::stringstream a;
 		long H = time(NULL);
@@ -166,24 +223,21 @@ void Recorder::start(){
 		
 		write_ivf_file_header(outfile, &cfg, 0);
 		this->frameCounter = 0;
+		recording = true;
+		
+		// on lance le thread pour l'encodage
+		if (pthread_create (&th1, NULL, videoEncoder_Callback, (void*) this) < 0) {
+			std::cout << "pthread_create error for thread" << std::endl;
+		}
 	}
 }
 
 void Recorder::stop(){
-	if (outfile != NULL){
+	if (outfile != NULL && recording == true){
 		std::cout << "Recording stop" << std::endl;
-
-		saveImage(NULL);
-
-		if(!fseek(outfile, 0, SEEK_SET))
-			write_ivf_file_header(outfile, &cfg, this->frameCounter-1);
 		
-		fclose(outfile);
-		outfile = NULL;
-		
-		if(vpx_codec_destroy(&codec)){
-			std::cout << "Failed to destroy codec" << std::endl;
-		}
+		buf.push(NULL);
+		recording = false;
 	}
 }
 
@@ -195,37 +249,76 @@ void Recorder::toggle(){
 }
 
 void Recorder::record(){
+	static int d = 0;
 	static int index = 0;
-	if (this->outfile != NULL){
-		// "index" is used to read pixels from framebuffer to a PBO
-		// "nextIndex" is used to update pixels in the other PBO
-		index = (index + 1) % PBO_COUNT;
-		int nextIndex = (index + 1) % PBO_COUNT;
 
-		// set the target framebuffer to read
-		glReadBuffer(GL_FRONT);
+	if (recording && outfile){
+		if ((d++)%2 == 0){
+			// "index" is used to read pixels from framebuffer to a PBO
+			// "nextIndex" is used to update pixels in the other PBO
+			index = (index + 1) % PBO_COUNT;
+			int nextIndex = (index + 1) % PBO_COUNT;
 
-		// read pixels from framebuffer to PBO
-		// glReadPixels() should return immediately.
-		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
-		glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+			// set the target framebuffer to read
+			glReadBuffer(GL_FRONT);
 
-		// map the PBO to process its data by CPU
-		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[nextIndex]);
-		GLubyte* ptr = (GLubyte*)glMapBufferARB(GL_PIXEL_PACK_BUFFER_ARB,
-												GL_READ_ONLY_ARB);
-		if(ptr)
-		{
-			saveImage(ptr);
-			glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_ARB);
+			// read pixels from framebuffer to PBO
+			// glReadPixels() should return immediately.
+			glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
+			glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+
+			// map the PBO to process its data by CPU
+			glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[nextIndex]);
+			GLubyte* ptr = (GLubyte*)glMapBufferARB(GL_PIXEL_PACK_BUFFER_ARB,
+													GL_READ_ONLY_ARB);
+			if(ptr)
+			{
+				test = new GLubyte[width*height * CHANNEL_COUNT];
+				memcpy (test, ptr, width*height*CHANNEL_COUNT );
+				
+				pthread_mutex_lock (&mutex_buf);
+				buf.push(test);
+				pthread_mutex_unlock (&mutex_buf);
+				
+				glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_ARB);
+			}
+
+			// back to conventional pixel operation
+			glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
 		}
-
-		// back to conventional pixel operation
-		glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
 	}
 }
 
-void Recorder::saveImage(GLubyte *ptr){
+void Recorder::thread_video_encode(){
+	while (1)
+	{
+		if (!buf.empty()){
+			pthread_mutex_lock (&mutex_buf);
+			GLubyte *ptr = buf.front();
+			buf.pop();
+			pthread_mutex_unlock (&mutex_buf);
+
+			addFrame(ptr);
+			if (ptr != NULL)
+				delete [] ptr;
+		} 
+		else if(outfile != NULL && !recording)
+		{
+			if(!fseek(outfile, 0, SEEK_SET))
+				write_ivf_file_header(outfile, &cfg, this->frameCounter-1);
+		
+			fclose(outfile);
+
+			outfile = NULL;
+			
+			std::cout << "Recording is available" << std::endl;
+			
+			return;
+		}
+	}
+}
+
+void Recorder::addFrame(GLubyte *ptr){
 	vpx_codec_iter_t iter = NULL;
 	const vpx_codec_cx_pkt_t *pkt;
 	
