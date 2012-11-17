@@ -222,9 +222,12 @@ static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos,
 
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 	#ifndef EMSCRIPTEN
-	pthread_mutex_lock(&mutexes);
+	// pthread_mutex_lock(&mutexes);
 	#endif
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
+    if (outQueue.frameToRender != 0) {
+        LOGW("Non empty queue : %d", outQueue.frameToRender);
+    }
     for (int camIdx = cameras.size()-1; camIdx >= 0; camIdx--) {
         const Camera& camera = cameras[camIdx];
         if (!camera.enable)
@@ -352,9 +355,10 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
      
 	outQueue.frameToRender++;
 	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
+    // LOGW("Wrote frame %u", dummy.rotateUV);
 #ifndef EMSCRIPTEN
-    pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutexes);
+    // pthread_cond_signal(&cond);
+	// pthread_mutex_unlock(&mutexes);
 #endif
 	//current = (current + 1) % 2;
 #if defined(LINUX) && !defined(ANDROID) && !defined(EMSCRIPTEN)

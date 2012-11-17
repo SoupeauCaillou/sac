@@ -294,7 +294,7 @@ public:
       mLongestEdge = nextPow2(mLongestEdge);
     }
 
-    width  = mLongestEdge;              // The width is no more than the longest edge of any rectangle passed in
+    width  = mLongestEdge * 2;              // The width is no more than the longest edge of any rectangle passed in
     int count = mTotalArea / (mLongestEdge*mLongestEdge);
     height = (count+5)*mLongestEdge;            // We guess that the height is no more than twice the longest edge.  On exit, this will get shrunk down to the actual tallest height.
 

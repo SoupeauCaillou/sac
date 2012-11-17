@@ -107,6 +107,11 @@ class GameHolder {
 	bool firstCall;
 	struct timeval startup_time;
 	float dtAccumuled, time;
+ 
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    bool renderingStarted, drawQueueChanged;
+    float renderingDt;
 
 	bool initDone;
 	

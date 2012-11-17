@@ -89,6 +89,10 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
 	theRenderingSystem.assetAPI = &hld->renderThreadJNICtx.asset;
 	theTouchInputManager.setNativeTouchStatePtr(new AndroidNativeTouchState(hld));
 
+    pthread_mutex_init(&hld->mutex, 0);
+    pthread_cond_init(&hld->cond, 0);
+    hld->renderingStarted = hld->drawQueueChanged = false;
+
 	return (jlong)hld;
 }
 
@@ -160,6 +164,8 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
 	hld->game->init(state, size);
 	hld->initDone = true;
+ 
+    theRenderingSystem.Update(0);
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread
@@ -170,6 +176,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThr
 	LOGW("%s <--", __FUNCTION__);
 }
 
+float bbbefore = 0;
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    step
@@ -181,6 +188,47 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 
 	if (!hld->game)
   		return;
+
+    // begin updating when rendering has started
+    pthread_mutex_lock(&hld->mutex);
+    while (!hld->renderingStarted) {
+        // LOGI("Renderer not ready. Waiting");
+        pthread_cond_wait(&hld->cond, &hld->mutex);
+    }
+
+    const float t = TimeUtil::getTime();
+    float delta = t - bbbefore;
+    if (true|| delta > 0.012) {
+        hld->renderingStarted = false;
+        theRenderingSystem.currentWriteQueue = (theRenderingSystem.currentWriteQueue + 1) % 2;
+        hld->drawQueueChanged = true;
+        pthread_cond_signal(&hld->cond);
+        pthread_mutex_unlock(&hld->mutex);
+ // LOGW("%.4f != %.4f", delta, hld->renderingDt);
+        // produce a single frame
+        hld->game->tick(delta);
+        bbbefore = t;
+        theRenderingSystem.Update(0);
+        delta = TimeUtil::getTime() - t;
+    } else {
+        pthread_mutex_unlock(&hld->mutex);
+    }
+
+    if (delta < 0.016) {
+        // LOGW("Will sleep : %.4f", 0.016 - delta);
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = (0.016 - delta) * 1000000000LL;
+        nanosleep(&ts, 0);
+        delta = TimeUtil::getTime() - t;
+    }    
+// LOGW("<-- update - %.3f s", TimeUtil::getTime() - before);
+}
+#if 0
+    pthread_mutex_init(&hld->mutex, 0);
+    pthread_cond_init(&hld->cond, 0);
+    hld->renderingStarted = false;
+
     const float DT = hld->game->targetDT;
 
   	if (hld->firstCall) {
@@ -205,13 +253,14 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 	if (dt > 5 * DT) {
 		LOGW("BIG DT: %.3f s", dt);
 	}
-
+LOGW("Update : %.3f", dt);
 	while (dt >= DT){
 		hld->game->tick(accum);
 		dt -= accum;
 	}
 	hld->dtAccumuled = dt;
 }
+#endif
 
 static float tttttt = 0, prev;
 static int frameCount = 0;
@@ -234,10 +283,60 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
   	}
 }
 
+float renderingPrevTime = 0;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
 #define ENABLE_LOG 1
 #define COUNT 500.0
+    GameHolder* hld = (GameHolder*) g;
+
+    if (!hld)
+         return;
+         
+
+    pthread_mutex_lock(&hld->mutex);
+    // LOGI("Rendering done");
+    hld->renderingStarted = true;
+    pthread_cond_signal(&hld->cond);
+    while (!hld->drawQueueChanged) {
+        LOGI("Renderer waiting :(");
+        pthread_cond_wait(&hld->cond, &hld->mutex);
+    }
+    hld->drawQueueChanged = false;
+    pthread_mutex_unlock(&hld->mutex);
+    const float t = TimeUtil::getTime();
+    hld->renderingDt = t - renderingPrevTime;
+    renderingPrevTime = t;
+    
+    float before = TimeUtil::getTime();
+// LOGW("render -->");
+    theRenderingSystem.render();
+    glFinish();
+// LOGW("<-- render - %.3f s", TimeUtil::getTime() - before);
+
+    {
+        static int frameCount = 0;
+        static float accum = 0, minDt=10000, maxDt=0;
+        frameCount++;
+        if (hld->renderingDt > maxDt)
+            maxDt = hld->renderingDt;
+        if (hld->renderingDt < minDt) {
+            LOGW("Min dt: %.4f", hld->renderingDt);
+            minDt = hld->renderingDt;
+        }
+        if (frameCount == 1000) {
+            LOGW("FPS avg/min/max : %.2f / %.2f / %.2f",
+                frameCount / (t - accum), 1.0 / maxDt, 1.0 / minDt);
+            frameCount = 0;
+            maxDt = 0;
+            minDt = 10000;
+            accum = t;
+        }
+    }
+}
+
+#if 0
+
 	frameCount++;
     float t = TimeUtil::getTime();
     float dt = t - prev;
@@ -254,7 +353,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
             float ratio = hld->game->targetDT / dt;
             __android_log_print(ANDROID_LOG_INFO, "sacC", "fps render: %.2f (ratio: %.2f) - min:%.3f max:%.3f", fps, ratio, minDt, maxDt);
             
-            #if 1
+            /*
             if (ratio < 0.90) {
                 hld->game->targetDT += (dt - hld->game->targetDT) * 0.5;
                 hld->game->targetDT = MathUtil::Min(1.0f/30.0f, hld->game->targetDT);
@@ -268,7 +367,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
                 hld->game->targetDT = MathUtil::Max(1.0f/60.0f, hld->game->targetDT);
                 LOGW("Increase fps target: %.2f", 1.0 / hld->game->targetDT);
             }
-            #endif
+            */
         }
 		tttttt = TimeUtil::getTime();
 		frameCount = 0;
@@ -277,6 +376,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
 	}
     theRenderingSystem.render();
 }
+#endif
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
   (JNIEnv *env, jclass, jlong g) {

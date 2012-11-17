@@ -17,19 +17,36 @@
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "TimeUtil.h"
-struct timeval TimeUtil::startup_time;
+#include <time.h>
+#include "Log.h"
+
+struct timespec TimeUtil::startup_time;
 
 void TimeUtil::init() {
-	gettimeofday(&startup_time, 0);
+	// gettimeofday(&startup_time, 0);
+    clock_gettime(CLOCK_MONOTONIC, &startup_time);
 }
 
-float TimeUtil::timeconverter(struct timeval tv) {
-	return (tv.tv_sec + tv.tv_usec / 1000000.0f);
+static inline float timeconverter(struct timespec tv) {
+	return tv.tv_sec + (tv.tv_nsec / 1000000) * 0.001f;
+}
+
+static inline void sub(struct timespec& tA, const struct timespec& tB)
+{
+    if ((tA.tv_nsec - tB.tv_nsec) < 0) {
+        tA.tv_sec = tA.tv_sec - tB.tv_sec - 1;
+        tA.tv_nsec = 1000000000 + tA.tv_nsec - tB.tv_nsec;
+    } else {
+        tA.tv_sec = tA.tv_sec - tB.tv_sec;
+        tA.tv_nsec = tA.tv_nsec - tB.tv_nsec;
+    }
 }
 
 float TimeUtil::getTime() {
-	struct timeval tv;
-	gettimeofday(&tv, 0);
-	timersub(&tv, &startup_time, &tv);
+	struct timespec tv;
+	if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
+        LOGE("clock_gettime failure");
+    }
+    // sub(tv, startup_time);
 	return timeconverter(tv);
 }
