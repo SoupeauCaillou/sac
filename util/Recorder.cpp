@@ -211,16 +211,15 @@ void Recorder::start(){
 		std::cout << "Recording start" << std::endl;
 
 		//new file : time
-		std::stringstream a;
+        char tmp[256];
 		long H = time(NULL);
-		a << "videos/" << ctime(&H) << ".webm";
+        strftime(tmp, sizeof(tmp), "videos/rr_%d%m%Y_%X.webm", localtime(&H));
 		
-		if(!(outfile = fopen(a.str().c_str(), "wb"))){
-			std::cout << "Failed to open " << a.str() << " for writing"<< std::endl;
+		if(!(outfile = fopen(tmp, "wb"))){
+			std::cout << "Failed to open '" << tmp << "' for writing"<< std::endl;
 			outfile = NULL;
 			return;
 		}
-		
 		write_ivf_file_header(outfile, &cfg, 0);
 		this->frameCounter = 0;
 		recording = true;

@@ -104,7 +104,6 @@ class GameHolder {
 		 float x, y;
 	};
     std::map<int, __input> input;
-	bool firstCall;
 	struct timeval startup_time;
 	float dtAccumuled, time;
  

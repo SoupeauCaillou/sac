@@ -43,3 +43,7 @@ enum {
  ATTRIB_SCALE,
     NUM_ATTRIBS
 };
+
+#define L_RENDER  0
+#define L_QUEUE   1
+#define L_TEXTURE 2

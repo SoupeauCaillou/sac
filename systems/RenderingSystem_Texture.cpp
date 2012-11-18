@@ -352,15 +352,15 @@ void RenderingSystem::reloadTextures() {
 void RenderingSystem::processDelayedTextureJobs() {
 	PROFILE("Texture", "processDelayedTextureJobs", BeginEvent);
 	#ifndef EMSCRIPTEN
-	pthread_mutex_lock(&mutexes);
+	pthread_mutex_lock(&mutexes[L_TEXTURE]);
 	#endif
 
 	// load atlas
 	for (std::set<int>::iterator it=delayedAtlasIndexLoad.begin(); it != delayedAtlasIndexLoad.end(); ++it) {
 		int atlasIndex = *it;
 		Vector2 atlasSize, pow2Size;
-	   #ifndef EMSCRIPTEN
-		pthread_mutex_unlock(&mutexes);
+	    #ifndef EMSCRIPTEN
+		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 		#endif
 		loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
 		LOGI("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
@@ -371,9 +371,9 @@ void RenderingSystem::processDelayedTextureJobs() {
 				info.glref = atlas[atlasIndex].glref;
 			}
 		}
-	   #ifndef EMSCRIPTEN
- pthread_mutex_lock(&mutexes);
- #endif
+	    #ifndef EMSCRIPTEN
+        pthread_mutex_lock(&mutexes[L_TEXTURE]);
+        #endif
 	}
 	delayedAtlasIndexLoad.clear();
 
@@ -382,21 +382,21 @@ void RenderingSystem::processDelayedTextureJobs() {
 		Vector2 size, powSize;
 		InternalTexture t;
 		#ifndef EMSCRIPTEN
-		pthread_mutex_unlock(&mutexes);
+		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 		#endif
 		loadTexture(*it, size, powSize, t);
 		textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
 		#ifndef EMSCRIPTEN
-		pthread_mutex_lock(&mutexes);
+		pthread_mutex_lock(&mutexes[L_TEXTURE]);
 		#endif
 	}
 	delayedLoads.clear();
 
 	// delete textures
 	for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
-	   #ifndef EMSCRIPTEN
- pthread_mutex_unlock(&mutexes);
- #endif
+	    #ifndef EMSCRIPTEN
+        pthread_mutex_unlock(&mutexes[L_TEXTURE]);
+        #endif
 		if (it->color != whiteTexture) {
 			LOGI("Color texture delete: %u", it->color);
 			glDeleteTextures(1, &it->color);
@@ -405,14 +405,14 @@ void RenderingSystem::processDelayedTextureJobs() {
 			LOGI("Alpha texture delete: %u", it->alpha);
 			glDeleteTextures(1, &it->alpha);
 		}
-	  #ifndef EMSCRIPTEN
-  pthread_mutex_lock(&mutexes);
-  #endif
+	    #ifndef EMSCRIPTEN
+        pthread_mutex_lock(&mutexes[L_TEXTURE]);
+        #endif
 	}
 	delayedDeletes.clear();
 	#ifndef EMSCRIPTEN
-pthread_mutex_unlock(&mutexes);
-#endif
+    pthread_mutex_unlock(&mutexes[L_TEXTURE]);
+    #endif
 	PROFILE("Texture", "processDelayedTextureJobs", EndEvent);
 }
 
@@ -432,11 +432,11 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 		PROFILE("RequestLoadTexture", assetName, InstantEvent);
 
 		#ifndef EMSCRIPTEN
-		pthread_mutex_lock(&mutexes);
+		pthread_mutex_lock(&mutexes[L_TEXTURE]);
 		#endif
 		delayedLoads.insert(assetName);
 		#ifndef EMSCRIPTEN
-		pthread_mutex_unlock(&mutexes);
+		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 		#endif
 	}
 	PROFILE("Texture", "loadTextureFile", EndEvent);
@@ -463,12 +463,12 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 		for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 			if (it->second == ref) {
 				assetTextures.erase(it);
-			   #ifndef EMSCRIPTEN
-				pthread_mutex_lock(&mutexes);
+			    #ifndef EMSCRIPTEN
+				pthread_mutex_lock(&mutexes[L_TEXTURE]);
 				#endif
 				delayedDeletes.insert(textures[ref].glref);
 				#ifndef EMSCRIPTEN
-				pthread_mutex_unlock(&mutexes);
+				pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 				#endif
 				break;
 			}

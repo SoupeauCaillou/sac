@@ -37,7 +37,9 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 	nextValidRef = nextEffectRef = 1;
 	currentWriteQueue = 0;
 #ifndef EMSCRIPTEN
-	pthread_mutex_init(&mutexes, 0);
+    pthread_mutex_init(&mutexes[L_RENDER], 0);
+    pthread_mutex_init(&mutexes[L_QUEUE], 0);
+    pthread_mutex_init(&mutexes[L_TEXTURE], 0);
 	pthread_cond_init(&cond, 0);
 #endif
 
@@ -221,9 +223,6 @@ static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos,
 }
 
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
-	#ifndef EMSCRIPTEN
-	// pthread_mutex_lock(&mutexes);
-	#endif
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
     if (outQueue.frameToRender != 0) {
         LOGW("Non empty queue : %d", outQueue.frameToRender);
@@ -354,53 +353,18 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     outQueue.commands.push_back(dummy);
      
 	outQueue.frameToRender++;
-	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
+	// LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
     // LOGW("Wrote frame %u", dummy.rotateUV);
-#ifndef EMSCRIPTEN
-    // pthread_cond_signal(&cond);
-	// pthread_mutex_unlock(&mutexes);
-#endif
-	//current = (current + 1) % 2;
-#if defined(LINUX) && !defined(ANDROID) && !defined(EMSCRIPTEN)
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(inotifyFd, &fds);
-    Vector2 s1, s2;
-    struct timeval tv;
-    memset(&tv, 0, sizeof(tv));
-    if (select(inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
-        char buffer[8192];
-        struct inotify_event *event;
 
-        if (read(inotifyFd, buffer, sizeof(buffer)) > 0) {
-            event = (struct inotify_event *) buffer;
-
-
-            for (unsigned int i=0; i<notifyList.size(); i++) {
-                if (event->wd == notifyList[i].wd) {
-                    // reload asset
-                    InternalTexture r;
-                    loadTexture(notifyList[i].asset, s1, s2, r);
-                    if (r != InternalTexture::Invalid) {
-                        for (unsigned int j=0; j<atlas.size(); j++) {
-                            if (notifyList[i].asset == atlas[j].name) {
-                                for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
-                                    if (it->second.glref == atlas[j].glref)
-                                        it->second.glref = r;
-                                }
-                             atlas[j].glref = r;
-                            }
-                        }
-                        if (assetTextures.find(notifyList[i].asset) != assetTextures.end()) {
-	                        textures[assetTextures[notifyList[i].asset]].glref = r;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-    }
-#endif
+    // Lock to not change queue while ther thread is reading it
+    pthread_mutex_lock(&mutexes[L_RENDER]);
+    // Lock for notifying queue change
+    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    currentWriteQueue = (currentWriteQueue + 1) % 2;
+    newFrameReady = true;
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mutexes[L_QUEUE]);
+    pthread_mutex_unlock(&mutexes[L_RENDER]);
 }
 
 bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) {

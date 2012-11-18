@@ -102,6 +102,7 @@ void reloadTextures();
 void reloadEffects();
 
 void render();
+void waitDrawingComplete();
 
 public:
 int windowW, windowH;
@@ -183,8 +184,9 @@ std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
 std::vector<Camera> cameras;
 
+bool newFrameReady;
 int currentWriteQueue;
-RenderQueue renderQueue[2]; //
+RenderQueue renderQueue[2];
 #ifdef USE_VBO
 public:
 GLuint squareBuffers[3];
@@ -192,7 +194,7 @@ private:
 #endif
 
 #ifndef EMSCRIPTEN
-pthread_mutex_t mutexes;
+pthread_mutex_t mutexes[3];
 pthread_cond_t cond;
 #endif
 

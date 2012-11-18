@@ -401,84 +401,37 @@ void RenderingSystem::removeExcessiveFrames(int& readQueue, int& writeQueue) {
     }
 }
 
-float pppp;
+void RenderingSystem::waitDrawingComplete() {
+    pthread_mutex_lock(&mutexes[L_RENDER]);
+    pthread_mutex_unlock(&mutexes[L_RENDER]);
+}
+
 void RenderingSystem::render() {
 	PROFILE("Renderer", "render", BeginEvent);
-#if 0
-    float dt = 0, initial = TimeUtil::getTime() - pppp;
-    do {
-        if (dt < 0.012) {
-            dt = TimeUtil::getTime() - pppp;
-            struct timespec ts;
-            ts.tv_sec = 0;
-            ts.tv_nsec = (0.012 - dt) * 1000000000LL;
-            nanosleep(&ts, 0);
-         }
-    } while (dt < 0.012);
-    LOGW("Render : %.3f -> %.3f", initial, dt);
+	
+    processDelayedTextureJobs();
 
-    pppp = TimeUtil::getTime();
-#endif
-	// float begin = TimeUtil::getTime();
-
-	// begin = TimeUtil::getTime();
-	// LOGW("time out: %.3f", begin - end);
-
-	// mutex locking handled in processDelayedTextureJobs
-	processDelayedTextureJobs();
-//LOG/W("ici1");
-	#ifndef EMSCRIPTEN
-	//if (pthread_mutex_trylock(&mutexes) != 0) {
-	//	LOGW("HMM Busy render lock");
-	//	pthread_mutex_lock(&mutexes);
-	//}
+    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    while (!newFrameReady) {
+        pthread_cond_wait(&cond, &mutexes[L_QUEUE]);
+    }
+    newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
-    //LOGW("Queue size: %d %d (read:%d)",  renderQueue[readQueue].frameToRender, renderQueue[currentWriteQueue].frameToRender, readQueue);
-    // removeExcessiveFrames(readQueue, currentWriteQueue);
-	#else
-//LOGW("ici2");
-	int readQueue = currentWriteQueue;
-	#endif
+    pthread_mutex_unlock(&mutexes[L_QUEUE]);
 
-	if (renderQueue[readQueue].frameToRender == 0) {
-		#ifndef EMSCRIPTEN
-		// readQueue = currentWriteQueue;
-
-		if (renderQueue[readQueue].frameToRender == 0) {
-			float bef = TimeUtil::getTime();
-            LOGW("########################################################## NOTHING TO RENDER");
-            return;
-            // pthread_mutex_unlock(&mutexes);
-            // return;
-			pthread_cond_wait(&cond, &mutexes);
-			LOGI("Waited : %.3f s -> %d", TimeUtil::getTime() - bef, renderQueue[readQueue].frameToRender);
-		}
-		currentWriteQueue = (currentWriteQueue + 1) % 2;
-		#else
-		LOGW("NOTHING TO RENDER");
-		return;
-		#endif
+	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
+		LOGW("HMM Busy render lock");
+		pthread_mutex_lock(&mutexes[L_RENDER]);
 	}
-//LOGW("ici3 : %d", readQueue);
-	// LOGW("Reading 1 frame from: %d", readQueue);
-//	assert (renderQueue[readQueue].frameToRender > 0);
-//	assert (readQueue != currentWriteQueue);
-	RenderQueue& inQueue = renderQueue[readQueue];
-	inQueue.frameToRender--;
-	#ifndef EMSCRIPTEN
-	// pthread_mutex_unlock(&mutexes);
-	#endif
-// LOGW("ici4 : %d", readQueue);
-// float interm = TimeUtil::getTime();
-	drawRenderCommands(inQueue.commands);
-// LOGW("ici5 : %d", readQueue);
-	// commands.clear();
-	// LOGW("redner queue size: %d OUT", renderQueue.size());
 
-	// glFinish();
-	/*float end = TimeUtil::getTime();
-    if (!MathUtil::RandomInt(10)) 
-	    LOGW("time in : %.3f %.3f : %.3f", interm - begin, end - interm, end - begin);*/
+    if (renderQueue[readQueue].frameToRender == 0) {
+        LOGW("Arg, nothing to render - probably a bug");
+    } else {
+        RenderQueue& inQueue = renderQueue[readQueue];
+        inQueue.frameToRender--;
+        drawRenderCommands(inQueue.commands);
+    }
+    pthread_mutex_unlock(&mutexes[L_RENDER]);
 	PROFILE("Renderer", "render", EndEvent);
 }
 

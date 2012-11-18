@@ -46,6 +46,9 @@ Game::Game() {
 #ifdef SAC_NETWORK
     NetworkSystem::CreateInstance();
 #endif
+
+    fpsStats.reset(0);
+    lastUpdateTime = TimeUtil::getTime();
 }
 
 Game::~Game() {
@@ -139,4 +142,55 @@ void Game::togglePause(bool activate __attribute__((unused))) {}
 		
 int Game::saveState(uint8_t** out __attribute__((unused))) {
 	return 0;
+}
+
+void Game::step() {
+    theRenderingSystem.waitDrawingComplete();
+
+    const float t = TimeUtil::getTime();
+    float delta = t - lastUpdateTime;
+    if (delta > 0.012) {
+        // update game state
+        tick(delta);
+        // produce 1 new frame
+        theRenderingSystem.Update(0);
+
+        lastUpdateTime = t;
+        delta = TimeUtil::getTime() - t;
+    }
+
+    if (delta < 0.016) {
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = (0.016 - delta) * 1000000000LL;
+        nanosleep(&ts, 0);
+        delta = TimeUtil::getTime() - t;
+    }
+}
+
+void Game::render() {
+    theRenderingSystem.render();
+
+    {
+        static float prevT = 0;
+        float t = TimeUtil::getTime();
+        float dt = t - prevT;
+
+        fpsStats.frameCount++;
+        if (dt > fpsStats.maxDt)
+            fpsStats.maxDt = dt;
+        if (dt < fpsStats.minDt) {
+            fpsStats.minDt = dt;
+        }
+        if (fpsStats.frameCount == 1000) {
+            LOGW("FPS avg/min/max : %.2f / %.2f / %.2f",
+                fpsStats.frameCount / (t - fpsStats.since), 1.0 / fpsStats.maxDt, 1.0 / fpsStats.minDt);
+            fpsStats.reset(t);
+        }
+    }
+}
+
+void Game::resetTime() {
+    fpsStats.reset(TimeUtil::getTime());
+    lastUpdateTime = TimeUtil::getTime();
 }
