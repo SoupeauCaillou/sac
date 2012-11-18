@@ -40,7 +40,8 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     pthread_mutex_init(&mutexes[L_RENDER], 0);
     pthread_mutex_init(&mutexes[L_QUEUE], 0);
     pthread_mutex_init(&mutexes[L_TEXTURE], 0);
-	pthread_cond_init(&cond, 0);
+	pthread_cond_init(&cond[0], 0);
+    pthread_cond_init(&cond[1], 0);
 #endif
 
     RenderingComponent tc;
@@ -223,10 +224,12 @@ static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos,
 }
 
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
+    static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
-    if (outQueue.frameToRender != 0) {
-        LOGW("Non empty queue : %d", outQueue.frameToRender);
+    if (outQueue.count != 0) {
+        // LOGW("Non empty queue : %d", outQueue.count);
     }
+    outQueue.count = 0;
     for (int camIdx = cameras.size()-1; camIdx >= 0; camIdx--) {
         const Camera& camera = cameras[camIdx];
         if (!camera.enable)
@@ -338,21 +341,23 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         dummy.uv[1] = camera.screenPosition;
         dummy.position = camera.screenSize;
         dummy.effectRef = camera.mirrorY;
-        outQueue.commands.push_back(dummy);
-        outQueue.commands.insert(outQueue.commands.end(), opaqueCommands.begin(), opaqueCommands.begin() + opaqueCommands.size());
-        dummy.texture = DisableZWriteMarker;
-        outQueue.commands.push_back(dummy);
-        dummy.texture = EnableBlending;
-        outQueue.commands.push_back(dummy);
-        outQueue.commands.insert(outQueue.commands.end(), semiOpaqueCommands.begin(), semiOpaqueCommands.end());
+        dummy.rotateUV = cccc;
+        outQueue.commands[0] = dummy;// outQueue.commands.push_back(dummy);
+        std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[1]);
+        outQueue.count = 1 + opaqueCommands.size();
+        outQueue.commands[outQueue.count++].texture = DisableZWriteMarker;
+        outQueue.commands[outQueue.count++].texture = EnableBlending;
+        std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
+        outQueue.count += semiOpaqueCommands.size();
     }
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;
-    static unsigned int cccc = 0;
-    dummy.rotateUV = cccc++;
-    outQueue.commands.push_back(dummy);
-     
-	outQueue.frameToRender++;
+    dummy.rotateUV = cccc;
+    outQueue.commands[outQueue.count++] = dummy;
+    std::stringstream framename;
+    framename << "create-frame-" << cccc;
+    PROFILE("Render", framename.str(), InstantEvent);
+    cccc++;
 	// LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
     // LOGW("Wrote frame %u", dummy.rotateUV);
 
@@ -362,7 +367,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     pthread_mutex_lock(&mutexes[L_QUEUE]);
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
-    pthread_cond_signal(&cond);
+    pthread_cond_signal(&cond[C_FRAME_READY]);
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
 }

@@ -155,11 +155,9 @@ struct RenderCommand {
 };
 
 struct RenderQueue {
-	RenderQueue() : frameToRender(0) {}
-	int frameToRender;
-	std::list<RenderCommand> commands;
-
-	int removeFrames(int count);
+	RenderQueue() : count(0) {}
+	uint16_t count;
+	RenderCommand commands[512];
 };
 
 struct TextureInfo {
@@ -195,7 +193,7 @@ private:
 
 #ifndef EMSCRIPTEN
 pthread_mutex_t mutexes[3];
-pthread_cond_t cond;
+pthread_cond_t cond[2];
 #endif
 
 struct Shader {
@@ -228,7 +226,7 @@ private:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 GLuint compileShader(const std::string& assetName, GLuint type);
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
-void drawRenderCommands(std::list<RenderCommand>& commands);
+void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:

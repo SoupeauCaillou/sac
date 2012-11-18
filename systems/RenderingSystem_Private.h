@@ -47,3 +47,6 @@ enum {
 #define L_RENDER  0
 #define L_QUEUE   1
 #define L_TEXTURE 2
+
+#define C_RENDER_DONE 0
+#define C_FRAME_READY 1

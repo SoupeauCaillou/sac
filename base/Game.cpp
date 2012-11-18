@@ -19,6 +19,7 @@
 #include "systems/AutoDestroySystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
+#include "base/Profiler.h"
 #include <sstream>
 
 Game::Game() {
@@ -145,6 +146,7 @@ int Game::saveState(uint8_t** out __attribute__((unused))) {
 }
 
 void Game::step() {
+    PROFILE("Game", "step", BeginEvent);
     theRenderingSystem.waitDrawingComplete();
 
     const float t = TimeUtil::getTime();
@@ -158,7 +160,7 @@ void Game::step() {
         lastUpdateTime = t;
         delta = TimeUtil::getTime() - t;
     }
-
+/*
     if (delta < 0.016) {
         struct timespec ts;
         ts.tv_sec = 0;
@@ -166,15 +168,19 @@ void Game::step() {
         nanosleep(&ts, 0);
         delta = TimeUtil::getTime() - t;
     }
+*/
+    PROFILE("Game", "step", EndEvent);
 }
 
 void Game::render() {
+    PROFILE("Game", "render-game", BeginEvent);
     theRenderingSystem.render();
 
     {
         static float prevT = 0;
         float t = TimeUtil::getTime();
         float dt = t - prevT;
+        prevT = t;
 
         fpsStats.frameCount++;
         if (dt > fpsStats.maxDt)
@@ -188,6 +194,14 @@ void Game::render() {
             fpsStats.reset(t);
         }
     }
+    
+    if (0) {
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = (0.016) * 1000000000LL;
+        nanosleep(&ts, 0);
+    }
+    PROFILE("Game", "render-game", EndEvent);
 }
 
 void Game::resetTime() {

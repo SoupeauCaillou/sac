@@ -129,7 +129,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	return ref;
 }
 
-void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
+void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #ifdef USE_VBO
 #define MAX_BATCH_SIZE 1
 #else
@@ -149,9 +149,9 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
 
 	EffectRef currentEffect = InvalidTextureRef;
-    while (!commands.empty()) {
-
-		RenderCommand& rc = commands.front();
+    const unsigned count = commands.count;
+    for (unsigned i=0; i<count; i++) {
+		RenderCommand& rc = commands.commands[i];
         if (rc.texture == BeginFrameMarker) {
             if (batchSize > 0) {
                 // execute batch
@@ -178,15 +178,17 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
-            commands.pop_front();
+            
+            std::stringstream framename;
+            framename << "render-frame-" << (unsigned int)rc.rotateUV;
+            PROFILE("Render", framename.str(), InstantEvent);
+    
             continue;
         } else if (rc.texture == EndFrameMarker) {
 			// LOGW("Frame drawn: %u", rc.rotateUV);
-			commands.pop_front();
 			break;
 		}
 		else if (rc.texture == DisableZWriteMarker) {
-			commands.pop_front();
 			if (batchSize > 0) {
 				// execute batch
 				#ifdef USE_VBO
@@ -199,7 +201,6 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
             GL_OPERATION(glDepthMask(false))
             continue;
         } else if (rc.texture == EnableBlending) {
-            commands.pop_front();
             if (batchSize > 0) {
                  // execute batch
                  #ifdef USE_VBO
@@ -342,7 +343,6 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 				#endif
 			batchSize = 0;
 		}
-		commands.pop_front();
 	}
 
 	if (batchSize > 0) {
@@ -355,82 +355,40 @@ void RenderingSystem::drawRenderCommands(std::list<RenderCommand>& commands) {
 }
 #include <errno.h>
 
-int RenderingSystem::RenderQueue::removeFrames(int count) {
-    int c = 0;
-    int skip = 1;
-    std::list<RenderCommand>::iterator begin = commands.begin();
-
-	for (int i=0; i<count; ) {
-        std::list<RenderCommand>::iterator end;
-        for (end=begin; end != commands.end(); ++end) {
-            if ((*end).texture == EndFrameMarker) {
-                break;
-            }
-        }
-        if (end == commands.end())
-            break;
-        ++end;
-        if (!skip) {
-            commands.erase(begin, end);
-            c++;
-            frameToRender--;
-            i++;
-        }
-        skip = (skip + 1) % 2;
-        begin = end;
-	}
-    return c;
-}
-
-void RenderingSystem::removeExcessiveFrames(int& readQueue, int& writeQueue) {
-    const int rqCount = renderQueue[readQueue].frameToRender;
-    const int wrCount = renderQueue[writeQueue].frameToRender;
-    int excessFrameCount = rqCount + wrCount - 5;
-    if (excessFrameCount > 0) {
-        // remove half of the excessive frames, to smooth the drop
-        int toRemove = (int) ceil(excessFrameCount / 2.0);
-        toRemove -= renderQueue[readQueue].removeFrames(toRemove);
-        if (toRemove > 0) {
-            toRemove -= renderQueue[writeQueue].removeFrames(toRemove);
-        }
-        if (renderQueue[readQueue].frameToRender == 0) {
-            readQueue = writeQueue;
-            writeQueue = (writeQueue + 1) % 2;
-        }
-        // LOGW("excessFrameCount : %d -> removed: %d", excessFrameCount, (int) floor(excessFrameCount / 2.0) - toRemove);
-    }
-}
-
 void RenderingSystem::waitDrawingComplete() {
+    int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_lock(&mutexes[L_RENDER]);
+    while (renderQueue[readQueue].count > 0)
+        pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
 }
 
 void RenderingSystem::render() {
-	PROFILE("Renderer", "render", BeginEvent);
-	
+	PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
-
+    PROFILE("Renderer", "load-textures", EndEvent);
+    PROFILE("Renderer", "wait-frame", BeginEvent);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
     while (!newFrameReady) {
-        pthread_cond_wait(&cond, &mutexes[L_QUEUE]);
+        pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
-
+    PROFILE("Renderer", "wait-frame", EndEvent);
 	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
 		LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes[L_RENDER]);
 	}
-
-    if (renderQueue[readQueue].frameToRender == 0) {
+    PROFILE("Renderer", "render", BeginEvent);
+    if (renderQueue[readQueue].count == 0) {
         LOGW("Arg, nothing to render - probably a bug");
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
-        inQueue.frameToRender--;
-        drawRenderCommands(inQueue.commands);
+        drawRenderCommands(inQueue);
+        inQueue.count = 0;
     }
+    pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
 	PROFILE("Renderer", "render", EndEvent);
 }

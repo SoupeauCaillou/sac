@@ -10,9 +10,6 @@
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>
 
-#include <pulse/simple.h>
-#include <pulse/error.h>
-
 #include <pthread.h>
 
 class Recorder {
@@ -58,4 +55,5 @@ class Recorder {
 		
 		pthread_t th1;
 		pthread_mutex_t mutex_buf;
+        pthread_cond_t cond;
 };
