@@ -89,6 +89,7 @@ public :
 	float computeTextRenderingComponentWidth(TextRenderingComponent* trc);
 
 private:
+    std::map<Entity, unsigned int> cache;
 	std::list<Entity> renderingEntitiesPool;
 	std::map<std::string, std::map<unsigned char, float> > fontRegistry;
 };
