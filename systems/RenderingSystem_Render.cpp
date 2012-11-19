@@ -23,6 +23,7 @@
 #include <cassert>
 #include <sstream>
 #include <pthread.h>
+#include <EGL/egl.h>
 
 void RenderingSystem::check_GL_errors(const char* context) {
 	 int maxIterations=10;
@@ -356,11 +357,13 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #include <errno.h>
 
 void RenderingSystem::waitDrawingComplete() {
+    PROFILE("Renderer", "wait-drawing-done", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_lock(&mutexes[L_RENDER]);
     while (renderQueue[readQueue].count > 0)
         pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
+    PROFILE("Renderer", "wait-drawing-done", EndEvent);
 }
 
 void RenderingSystem::render() {
@@ -387,6 +390,7 @@ void RenderingSystem::render() {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);
         inQueue.count = 0;
+        // eglWaitGL();
     }
     pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);

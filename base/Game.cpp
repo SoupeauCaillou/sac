@@ -151,7 +151,7 @@ void Game::step() {
 
     const float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
-    if (delta > 0.012) {
+    if (true || delta > 0.012) {
         // update game state
         tick(delta);
         // produce 1 new frame
@@ -159,16 +159,13 @@ void Game::step() {
 
         lastUpdateTime = t;
         delta = TimeUtil::getTime() - t;
-    }
-/*
-    if (delta < 0.016) {
+    } else {
         struct timespec ts;
         ts.tv_sec = 0;
-        ts.tv_nsec = (0.016 - delta) * 1000000000LL;
+        ts.tv_nsec = (0.012 - delta) * 1000000000LL;
         nanosleep(&ts, 0);
         delta = TimeUtil::getTime() - t;
     }
-*/
     PROFILE("Game", "step", EndEvent);
 }
 
