@@ -99,7 +99,7 @@ void ParticuleSystem::DoUpdate(float dt) {
             it = next;
         } else {
             RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
-            TRANSFORM(internal.e)->size.X = TRANSFORM(internal.e)->size.Y = internal.size.lerp(internal.time / internal.lifetime);
+            TRANSFORM(internal.e)->size = Vector2(internal.size.lerp(internal.time / internal.lifetime));
             ++it;
         }
     }
