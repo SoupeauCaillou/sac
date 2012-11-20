@@ -152,6 +152,10 @@ void Game::step() {
     const float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
     if (true || delta > 0.012) {
+        std::stringstream framename;
+        framename << "update-" << (int)(delta * 1000000) << "-" << (int)(t * 1000000);
+        PROFILE("Game", framename.str(), InstantEvent);
+        // delta = 1.0 / 60;
         // update game state
         tick(delta);
         // produce 1 new frame

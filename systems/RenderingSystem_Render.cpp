@@ -154,17 +154,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     for (unsigned i=0; i<count; i++) {
 		RenderCommand& rc = commands.commands[i];
         if (rc.texture == BeginFrameMarker) {
-            if (batchSize > 0) {
-                // execute batch
-                #ifdef USE_VBO
-                LOGE("Error batching unsupported with VBO");
-                #else
-                drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-                #endif
-                batchSize = 0;
-            }
-         
-            firstCall = true;
+            assert(batchSize == 0);
+            std::stringstream framename;
+            framename << "render-frame-" << (unsigned int)rc.rotateUV;
+            PROFILE("Render", framename.str(), InstantEvent);
+            
+             firstCall = true;
             camera.worldPosition = rc.halfSize;
             camera.worldSize = rc.uv[0];
             camera.screenPosition = rc.uv[1];
@@ -179,11 +174,6 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
-            
-            std::stringstream framename;
-            framename << "render-frame-" << (unsigned int)rc.rotateUV;
-            PROFILE("Render", framename.str(), InstantEvent);
-    
             continue;
         } else if (rc.texture == EndFrameMarker) {
 			// LOGW("Frame drawn: %u", rc.rotateUV);
@@ -390,7 +380,6 @@ void RenderingSystem::render() {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);
         inQueue.count = 0;
-        // eglWaitGL();
     }
     pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);

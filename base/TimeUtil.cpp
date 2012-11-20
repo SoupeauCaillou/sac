@@ -28,7 +28,7 @@ void TimeUtil::init() {
 }
 
 static inline float timeconverter(struct timespec tv) {
-	return tv.tv_sec + (tv.tv_nsec / 1000000) * 0.001f;
+	return tv.tv_sec + (float)(tv.tv_nsec) / 1000000000.0f;
 }
 
 static inline void sub(struct timespec& tA, const struct timespec& tB)
@@ -47,6 +47,6 @@ float TimeUtil::getTime() {
 	if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
         LOGE("clock_gettime failure");
     }
-    // sub(tv, startup_time);
+     sub(tv, startup_time);
 	return timeconverter(tv);
 }
