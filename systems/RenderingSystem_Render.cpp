@@ -155,11 +155,13 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		RenderCommand& rc = commands.commands[i];
         if (rc.texture == BeginFrameMarker) {
             assert(batchSize == 0);
+            #ifdef ENABLE_PROFILING
             std::stringstream framename;
             framename << "render-frame-" << (unsigned int)rc.rotateUV;
             PROFILE("Render", framename.str(), InstantEvent);
+            #endif
             
-             firstCall = true;
+            firstCall = true;
             camera.worldPosition = rc.halfSize;
             camera.worldSize = rc.uv[0];
             camera.screenPosition = rc.uv[1];
