@@ -137,7 +137,6 @@ void TextRenderingSystem::DoUpdate(float dt) {
             continue;
         cache[entity] = hash;
 
-        std::cout << "update " << entity << std::endl;
 		// early quit if hidden
 		if (trc->hide) {
 			for (unsigned i = 0; i < trc->drawing.size(); i++) {
