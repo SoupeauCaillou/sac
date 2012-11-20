@@ -169,15 +169,15 @@ bool Recorder::initVP8 (){
 		return false;
 	}
 	/* Update the default configuration with our settings */
-	cfg.rc_target_bitrate = (width*height*3*8*30) /1000;
+	cfg.rc_target_bitrate =2000;//(width*height*3*8*30) /1000;
 	cfg.g_w = width;
 	cfg.g_h = height;
 	cfg.kf_mode = VPX_KF_AUTO;
 	cfg.kf_max_dist = 300;
 	cfg.g_pass = VPX_RC_ONE_PASS; /* -p 1 */
 	cfg.g_timebase.num = 1;
-	cfg.g_timebase.den = 30; /* fps = 30 */
-	cfg.rc_end_usage = VPX_CBR; /* --end-usage=cbr */
+	cfg.g_timebase.den = 60; /* fps = 30 */
+	cfg.rc_end_usage = VPX_VBR; /* --end-usage=cbr */
 	cfg.g_threads = 2;
 	
 	if (vpx_codec_enc_init(&codec, interface, &cfg, 0)){
@@ -258,7 +258,7 @@ void Recorder::record(){
 
 	if (recording && outfile){
         d = (d + 1) % 2;
-		if (d == 0){
+		if (true || d == 0){
             PROFILE("Recorder", "read-request", BeginEvent);
 			// "index" is used to read pixels from framebuffer to a PBO
 			// "nextIndex" is used to update pixels in the other PBO
