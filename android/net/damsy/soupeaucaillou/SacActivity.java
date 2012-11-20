@@ -56,7 +56,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract Button getNameInputButton();
 	public void preNameInputViewShow() {}
  
-	final float factor = 1.f;
+	float factor = 1.f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		Log.i("Sac", "-> onCreate [" + savedInstanceState);
@@ -112,6 +112,12 @@ public abstract class SacActivity extends SwarmActivity {
         mGLView = new GLSurfaceView(this);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
         int width = getWindowManager().getDefaultDisplay().getWidth();
+
+        if (width < 1000) {
+        	factor = 0.8f;
+        }
+        factor = 0.8f;
+        
         int height = getWindowManager().getDefaultDisplay().getHeight();
         android.view.SurfaceHolder holder = mGLView.getHolder();
         holder.setFixedSize((int)(width * factor), (int)((height) * factor));
