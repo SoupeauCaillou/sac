@@ -82,4 +82,26 @@ void LevelEditor::tick(float dt) {
             datas->over = 0;
         }
     }
+
+    if (datas->selected) {
+        static int prevWheel = 0;
+        int wheel = glfwGetMouseWheel();
+        int diff = wheel - prevWheel;
+        if (diff) {
+            bool shift = glfwGetKey( GLFW_KEY_LSHIFT );
+            bool ctrl = glfwGetKey( GLFW_KEY_LCTRL );
+            
+            if (!shift && !ctrl) {
+                TRANSFORM(datas->selected)->rotation += 2 * diff * dt;
+            } else {
+                if (shift) {
+                    TRANSFORM(datas->selected)->size.X *= (1 + 1 * diff * dt); 
+                }
+                if (ctrl) {
+                    TRANSFORM(datas->selected)->size.Y *= (1 + 1 * diff * dt); 
+                }
+            }
+            prevWheel = wheel;
+        }
+    }
 }
