@@ -128,6 +128,7 @@ void Game::sacInit(int windowW, int windowH) {
 
     #ifdef INGAME_EDITORS
     theRenderingSystem.loadEffectFile("selected.fs");
+    theRenderingSystem.loadEffectFile("over.fs");
     #endif
 }
 

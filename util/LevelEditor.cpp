@@ -23,8 +23,10 @@
 #include "../base/PlacementHelper.h"    
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
+#include <GL/glfw.h>
 
 struct LevelEditor::LevelEditorDatas {
+    Entity over;
     Entity selected;
 };
 
@@ -40,37 +42,42 @@ LevelEditor::LevelEditor() {
 }
 
 void LevelEditor::tick(float dt) {
-    if (!theTouchInputManager.isTouched(0) && theTouchInputManager.wasTouched(0)) {
-        Vector2 position = theTouchInputManager.getTouchLastPosition(0);
-        // adjust position depending on current camera...
-        const Vector2 windowPos = Vector2(position.X / PlacementHelper::ScreenWidth, position.Y / PlacementHelper::ScreenHeight);
+    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
+        if (datas->over)
+            RENDERING(datas->over)->effectRef = DefaultEffectRef;
+        
+        int x, y;
+        glfwGetMousePos(&x, &y);
+        Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight), position(Vector2::Zero);
         for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
             const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
             if (IntersectionUtil::pointRectangle(windowPos, cam.screenPosition, cam.screenSize) && cam.enable) {
-                position += cam.worldPosition;
+                position = cam.worldPosition + windowPos * cam.worldSize;
                 break;
             }
         }
-        if (datas->selected) {
-            if (!IntersectionUtil::pointRectangle(position, TRANSFORM(datas->selected)->worldPosition, TRANSFORM(datas->selected)->size)) {
-                deselect(datas->selected);
-                datas->selected = 0;
-            }
-        } else {
-            std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
+        std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
             float nearest = 10000;
             for (unsigned i=0; i<entities.size(); i++) {
-                // select(entities[i]);
+                if (entities[i] == datas->selected)
+                    continue;
+                if (RENDERING(entities[i])->hide)
+                    continue;
                 if (IntersectionUtil::pointRectangle(position, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
                     float d = Vector2::DistanceSquared(position, TRANSFORM(entities[i])->worldPosition);
                     if (d < nearest) {
-                        datas->selected = entities[i];
+                        datas->over = entities[i];
                         nearest = d;
                     }
                 }
             }
-            if (datas->selected)
-                select(datas->selected);
+            if (datas->over)
+                RENDERING(datas->over)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
+    } else {
+        if (datas->over) {
+            datas->selected = datas->over;
+            select(datas->selected);
+            datas->over = 0;
         }
     }
 }
