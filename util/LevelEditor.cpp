@@ -75,6 +75,8 @@ void LevelEditor::tick(float dt) {
                 RENDERING(datas->over)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
     } else {
         if (datas->over) {
+            if (datas->selected)
+                deselect(datas->selected);
             datas->selected = datas->over;
             select(datas->selected);
             datas->over = 0;
