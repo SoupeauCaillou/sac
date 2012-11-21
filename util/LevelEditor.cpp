@@ -28,6 +28,9 @@
 struct LevelEditor::LevelEditorDatas {
     Entity over;
     Entity selected;
+    
+    Vector2 lastMouseOverPosition;
+    Vector2 selectedOriginalPos;
 };
 
 static void select(Entity e) {
@@ -42,44 +45,55 @@ LevelEditor::LevelEditor() {
 }
 
 void LevelEditor::tick(float dt) {
-    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
-        if (datas->over)
-            RENDERING(datas->over)->effectRef = DefaultEffectRef;
-        
-        int x, y;
-        glfwGetMousePos(&x, &y);
-        Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight), position(Vector2::Zero);
-        for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
-            const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
-            if (IntersectionUtil::pointRectangle(windowPos, cam.screenPosition, cam.screenSize) && cam.enable) {
-                position = cam.worldPosition + windowPos * cam.worldSize;
-                break;
-            }
+    Vector2 position;
+    int x, y;
+    glfwGetMousePos(&x, &y);
+    Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
+    for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
+        const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
+        if (IntersectionUtil::pointRectangle(windowPos, cam.screenPosition, cam.screenSize) && cam.enable) {
+            position = cam.worldPosition + windowPos * cam.worldSize;
+            break;
         }
-        std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
-            float nearest = 10000;
-            for (unsigned i=0; i<entities.size(); i++) {
-                if (entities[i] == datas->selected)
-                    continue;
-                if (RENDERING(entities[i])->hide)
-                    continue;
-                if (IntersectionUtil::pointRectangle(position, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
-                    float d = Vector2::DistanceSquared(position, TRANSFORM(entities[i])->worldPosition);
-                    if (d < nearest) {
-                        datas->over = entities[i];
-                        nearest = d;
+    }
+
+    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) { 
+        if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
+            if (datas->selected)
+                datas->selectedOriginalPos = TRANSFORM(datas->selected)->position;
+            if (datas->over)
+                RENDERING(datas->over)->effectRef = DefaultEffectRef;
+            datas->lastMouseOverPosition = position;
+
+            std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
+                float nearest = 10000;
+                for (unsigned i=0; i<entities.size(); i++) {
+                    if (entities[i] == datas->selected)
+                        continue;
+                    if (RENDERING(entities[i])->hide)
+                        continue;
+                    if (IntersectionUtil::pointRectangle(position, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
+                        float d = Vector2::DistanceSquared(position, TRANSFORM(entities[i])->worldPosition);
+                        if (d < nearest) {
+                            datas->over = entities[i];
+                            nearest = d;
+                        }
                     }
                 }
+                if (datas->over)
+                    RENDERING(datas->over)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
+        } else {
+            if (datas->over) {
+                if (datas->selected)
+                    deselect(datas->selected);
+                datas->selected = datas->over;
+                select(datas->selected);
+                datas->over = 0;
             }
-            if (datas->over)
-                RENDERING(datas->over)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
+        }
     } else {
-        if (datas->over) {
-            if (datas->selected)
-                deselect(datas->selected);
-            datas->selected = datas->over;
-            select(datas->selected);
-            datas->over = 0;
+        if (datas->selected) {
+            TRANSFORM(datas->selected)->position = datas->selectedOriginalPos + position - datas->lastMouseOverPosition;
         }
     }
 
