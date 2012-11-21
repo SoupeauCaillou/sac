@@ -180,6 +180,7 @@ void Game::step() {
         switch (gameType) {
             case GameType::LevelEditor:
                 levelEditor.tick(delta);
+                delta = 0;
                 break;
             default:
                 tick(delta);
