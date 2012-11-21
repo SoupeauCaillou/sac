@@ -22,6 +22,18 @@
 #include <string>
 class AssetAPI;
 
+#ifdef INGAME_EDITORS
+
+#include "../util/LevelEditor.h"
+
+namespace GameType {
+    enum Enum {
+        Default,
+        LevelEditor
+    };
+}
+#endif
+
 class Game {
 	public:
 		Game();
@@ -63,4 +75,8 @@ class Game {
         }
     } fpsStats;
     float lastUpdateTime;
+#ifdef INGAME_EDITORS
+    GameType::Enum gameType;
+    LevelEditor levelEditor;
+#endif
 };

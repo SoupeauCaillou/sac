@@ -22,7 +22,14 @@
 #include "base/Profiler.h"
 #include <sstream>
 
+#ifdef INGAME_EDITORS
+#include <GL/glfw.h>
+#endif
+
 Game::Game() {
+#ifdef INGAME_EDITORS
+    gameType = GameType::Default;
+#endif
     targetDT = 1.0 / 60.0;
 
 	/* create EntityManager */
@@ -118,6 +125,10 @@ void Game::sacInit(int windowW, int windowH) {
 	theTouchInputManager.init(Vector2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), Vector2(windowW, windowH));
 
 	theRenderingSystem.init();
+
+    #ifdef INGAME_EDITORS
+    theRenderingSystem.loadEffectFile("selected.fs");
+    #endif
 }
 
 void Game::backPressed() {
@@ -152,6 +163,7 @@ void Game::step() {
     const float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
     if (true || delta > 0.008) {
+        theTouchInputManager.Update(delta);
         #ifdef ENABLE_PROFILING
         std::stringstream framename;
         framename << "update-" << (int)(delta * 1000000);
@@ -159,7 +171,38 @@ void Game::step() {
         #endif
         // delta = 1.0 / 60;
         // update game state
+        #ifdef INGAME_EDITORS
+        if (glfwGetKey(GLFW_KEY_F1))
+            gameType = GameType::Default;
+        else if (glfwGetKey(GLFW_KEY_F2))
+            gameType = GameType::LevelEditor;
+        switch (gameType) {
+            case GameType::LevelEditor:
+                levelEditor.tick(delta);
+                break;
+            default:
+                tick(delta);
+        }
+        #else
         tick(delta);
+        #endif
+
+        #ifdef SAC_NETWORK
+        theNetworkSystem.Update(delta);
+        #endif
+        theADSRSystem.Update(delta);
+        theAnimationSystem.Update(delta);
+        theButtonSystem.Update(delta);
+        theParticuleSystem.Update(delta);
+        theMorphingSystem.Update(delta);
+        thePhysicsSystem.Update(delta);
+        theScrollingSystem.Update(delta);
+        theTextRenderingSystem.Update(delta);
+        theSoundSystem.Update(delta);
+        theMusicSystem.Update(delta);
+        theTransformationSystem.Update(delta);
+        theContainerSystem.Update(delta);
+        theAutoDestroySystem.Update(delta);
         // produce 1 new frame
         theRenderingSystem.Update(0);
 

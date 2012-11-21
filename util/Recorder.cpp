@@ -304,15 +304,16 @@ void Recorder::thread_video_encode(){
 		pthread_mutex_lock (&mutex_buf);
 
         if(!recording && outfile != NULL && buf.empty()) {
-             if(!fseek(outfile, 0, SEEK_SET))
-                 write_ivf_file_header(outfile, &cfg, this->frameCounter-1);
+            pthread_mutex_unlock (&mutex_buf);
+            if(!fseek(outfile, 0, SEEK_SET))
+                write_ivf_file_header(outfile, &cfg, this->frameCounter-1);
 
-             fclose(outfile);
+            fclose(outfile);
 
-             outfile = NULL;
+            outfile = NULL;
 
-             std::cout << "Recording is available" << std::endl;
-             break;
+            std::cout << "Recording is available" << std::endl;
+            break;
         } else {
 			while (buf.empty())
 				pthread_cond_wait(&cond, &mutex_buf);
