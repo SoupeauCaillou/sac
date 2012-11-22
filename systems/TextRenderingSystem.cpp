@@ -131,11 +131,13 @@ void TextRenderingSystem::DoUpdate(float dt) {
 	/* render */
     FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
         // compute cache entry
-        unsigned keySize = key.populate(trc);
-        unsigned hash = MurmurHash2(&key, keySize, 0x12345678);
-        if (hash == cache[entity])
-            continue;
-        cache[entity] = hash;
+        if (trc->blink.onDuration == 0) {
+            unsigned keySize = key.populate(trc);
+            unsigned hash = MurmurHash2(&key, keySize, 0x12345678);
+            if (hash == cache[entity])
+                continue;
+            cache[entity] = hash;
+        }
 
 		// early quit if hidden
 		if (trc->hide) {
@@ -159,6 +161,21 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			caret = true;
 			trc->text.push_back('_');
 		}
+        if (trc->blink.onDuration > 0) {
+            if (trc->blink.accum >= 0) {
+                trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, trc->blink.onDuration);
+                trc->color.a = 1.0f;
+                if (trc->blink.accum == trc->blink.onDuration) {
+                    trc->blink.accum = -trc->blink.offDuration;
+                }
+            } else {
+                trc->blink.accum += dt;
+                trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, 0.0f);
+                trc->color.a = 0;
+                if (trc->blink.accum >= 0)
+                    trc->blink.accum = 0;
+            }
+        }
 
 		const unsigned int length = trc->text.length();
 
@@ -179,7 +196,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		float y = 0;
 		const float startX = x;
 		bool newWord = true;
-      unsigned count = 0;
+        unsigned count = 0;
       
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed

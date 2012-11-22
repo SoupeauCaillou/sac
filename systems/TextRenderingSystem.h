@@ -52,6 +52,9 @@ struct TextRenderingComponent {
         cameraBitMask(~0U) {
 			caret.show = false;
 			caret.speed = caret.dt = 0;
+            blink.offDuration =
+                blink.onDuration =
+                    blink.accum = 0;
 		}
 	std::string text;
 	Color color;
@@ -68,6 +71,11 @@ struct TextRenderingComponent {
 		float speed;
 		float dt;
 	} caret;
+    struct {
+        float offDuration;
+        float onDuration;
+        float accum;
+    } blink;
     unsigned cameraBitMask;
 	// managed by systems
 	std::vector<Entity> drawing;
