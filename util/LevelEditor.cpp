@@ -125,16 +125,22 @@ void LevelEditor::tick(float dt) {
     // camera movement
     {
         RenderingSystem::Camera& camera = theRenderingSystem.cameras[datas->activeCameraIndex];
-        float moveSpeed = glfwGetKey(GLFW_KEY_LSHIFT) ? 8 : 2.5;
+        float moveSpeed = glfwGetKey(GLFW_KEY_LSHIFT) ? 1 : 0.25;
         if (glfwGetKey(GLFW_KEY_LEFT)) {
-            camera.worldPosition.X -= moveSpeed * dt;
+            camera.worldPosition.X -= moveSpeed * camera.worldSize.X * dt;
         } else if (glfwGetKey(GLFW_KEY_RIGHT)) {
-            camera.worldPosition.X += moveSpeed * dt;
+            camera.worldPosition.X += moveSpeed * camera.worldSize.X * dt;
         }
         if (glfwGetKey(GLFW_KEY_DOWN)) {
-            camera.worldPosition.Y -= moveSpeed * dt;
+            camera.worldPosition.Y -= moveSpeed * camera.worldSize.Y  * dt;
         } else if (glfwGetKey(GLFW_KEY_UP)) {
-            camera.worldPosition.Y += moveSpeed * dt;
+            camera.worldPosition.Y += moveSpeed * camera.worldSize.Y * dt;
+        }
+        float zoomSpeed = glfwGetKey(GLFW_KEY_LSHIFT) ? 2 : 1.1;
+        if (glfwGetKey(GLFW_KEY_KP_ADD)) {
+            camera.worldSize *= 1 - zoomSpeed * dt;
+        } else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT)) {
+            camera.worldSize *= 1 + zoomSpeed * dt;
         }
     }
     // camera switching
