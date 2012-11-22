@@ -31,6 +31,8 @@ struct LevelEditor::LevelEditorDatas {
     
     Vector2 lastMouseOverPosition;
     Vector2 selectedOriginalPos;
+
+    unsigned activeCameraIndex;
 };
 
 static void select(Entity e) {
@@ -42,6 +44,7 @@ static void deselect(Entity e) {
 
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
+    datas->activeCameraIndex = 0;
 }
 
 void LevelEditor::tick(float dt) {
@@ -116,6 +119,34 @@ void LevelEditor::tick(float dt) {
                 }
             }
             prevWheel = wheel;
+        }
+    }
+
+    // camera movement
+    {
+        RenderingSystem::Camera& camera = theRenderingSystem.cameras[datas->activeCameraIndex];
+        float moveSpeed = glfwGetKey(GLFW_KEY_LSHIFT) ? 8 : 2.5;
+        if (glfwGetKey(GLFW_KEY_LEFT)) {
+            camera.worldPosition.X -= moveSpeed * dt;
+        } else if (glfwGetKey(GLFW_KEY_RIGHT)) {
+            camera.worldPosition.X += moveSpeed * dt;
+        }
+        if (glfwGetKey(GLFW_KEY_DOWN)) {
+            camera.worldPosition.Y -= moveSpeed * dt;
+        } else if (glfwGetKey(GLFW_KEY_UP)) {
+            camera.worldPosition.Y += moveSpeed * dt;
+        }
+    }
+    // camera switching
+    {
+        for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
+            if (glfwGetKey(GLFW_KEY_KP_1 + i) && i != datas->activeCameraIndex) {
+                std::cout << "new active cam: " << i << std::endl;
+                theRenderingSystem.cameras[datas->activeCameraIndex].enable = false;
+                datas->activeCameraIndex = i;
+                theRenderingSystem.cameras[datas->activeCameraIndex].enable = true;
+                break;
+            }
         }
     }
 }
