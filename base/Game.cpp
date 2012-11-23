@@ -173,6 +173,7 @@ void Game::step() {
         // delta = 1.0 / 60;
         // update game state
         #ifdef INGAME_EDITORS
+        static float speedFactor = 1.0f;
         if (glfwGetKey(GLFW_KEY_F1))
             gameType = GameType::Default;
         else if (glfwGetKey(GLFW_KEY_F2))
@@ -183,6 +184,14 @@ void Game::step() {
                 delta = 0;
                 break;
             default:
+                if (glfwGetKey(GLFW_KEY_KP_ADD)) {
+                    speedFactor += 1 * delta;
+                } else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT)) {
+                    speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
+                } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
+                    speedFactor = 1;
+                }
+                delta *= speedFactor;
                 tick(delta);
         }
         #else
