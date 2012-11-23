@@ -39,7 +39,8 @@ class TouchInputManager {
 		bool wasTouched(int idx) const { return wasTouching[idx]; }
 
 		bool isTouched(int idx) const { return touching[idx]; }
-		const Vector2& getTouchLastPosition(int idx) const { return lastTouchedPosition[idx]; }
+		const Vector2& getTouchLastScreenPosition(int idx) const { return lastTouchedScreenPosition[idx]; }
+        const Vector2& getTouchLastPosition(int idx) const { return lastTouchedPosition[idx]; }
 
 		void Update(float dt);
 
@@ -50,7 +51,7 @@ class TouchInputManager {
 		NativeTouchState* ptr;
 
 		bool wasTouching[2], touching[2];
-		Vector2 lastTouchedPosition[2];
+		Vector2 lastTouchedPosition[2], lastTouchedScreenPosition[2];
 
 		Vector2 worldSize, windowSize;
 };

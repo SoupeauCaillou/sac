@@ -18,6 +18,9 @@
 */
 #include "TouchInputManager.h"
 #include "Log.h"
+#include "../systems/RenderingSystem.h"
+#include "../util/IntersectionUtil.h"
+#include "PlacementHelper.h"
 
 TouchInputManager* TouchInputManager::instance = 0;
 
@@ -32,6 +35,17 @@ void TouchInputManager::init(Vector2 pWorldSize, Vector2 pWindowSize) {
 	windowSize = pWindowSize;
 }
 
+static Vector2 absoluteToCameraPos(const Vector2& pos) {
+    for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
+        const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
+        if (IntersectionUtil::pointRectangle(pos, cam.screenPosition, cam.screenSize) && cam.enable) {
+            return cam.worldPosition + pos * cam.worldSize;
+        }
+    }
+    LOGW("Click outside cameras");
+    return pos;
+}
+
 void TouchInputManager::Update(float dt __attribute__((unused)) ) {
 	Vector2 windowPos;
 
@@ -39,7 +53,10 @@ void TouchInputManager::Update(float dt __attribute__((unused)) ) {
     	wasTouching[i] = touching[i];
     	touching[i] = ptr->isTouching(i, &windowPos);
     	if (touching[i]) {
-    		lastTouchedPosition[i] = windowToWorld(windowPos, worldSize, windowSize);
+    		lastTouchedScreenPosition[i] = windowToWorld(windowPos, worldSize, windowSize);
+            windowPos.X = windowPos.X / (float)PlacementHelper::WindowWidth - 0.5;
+            windowPos.Y = 0.5 - windowPos.Y / (float)PlacementHelper::WindowHeight;
+            lastTouchedPosition[i] = absoluteToCameraPos(windowPos);
     	}
     }
 }
