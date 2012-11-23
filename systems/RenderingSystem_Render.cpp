@@ -23,7 +23,6 @@
 #include <cassert>
 #include <sstream>
 #include <pthread.h>
-#include <EGL/egl.h>
 
 void RenderingSystem::check_GL_errors(const char* context) {
 	 int maxIterations=10;
