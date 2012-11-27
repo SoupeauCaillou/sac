@@ -30,6 +30,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 	SoundAPIAndroidImpl soundAPI;
 	SuccessAPIAndroidImpl successAPI;
     VibrateAPIAndroidImpl vibrateAPI;
+    CommunicationAPIAndroidImpl communicationAPI;
 	jobject assetManager;
 
 	virtual void init(JNIEnv* pEnv, jobject assetMgr) {
@@ -45,6 +46,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 		soundAPI.init(pEnv, assetManager);
 		successAPI.init(pEnv);
         vibrateAPI.init(pEnv);
+        communicationAPI.init(pEnv);
 		JNIEnvDependantContext::init(pEnv, assetMgr);
 	}
 
@@ -59,6 +61,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 			soundAPI.uninit();
 			successAPI.uninit();
             vibrateAPI.uninit();
+            communicationAPI.uninit();
 			env->DeleteGlobalRef(assetManager);
 		}
 
