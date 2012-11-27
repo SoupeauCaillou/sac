@@ -583,7 +583,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.nbSamples = ov_pcm_total(f, -1);
     info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
-    LOGI("(music) File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
+    LOGI("(music) File: %s / rate: %d duration: %.4f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     PROFILE("Music", "mutex-section", BeginEvent);
     pthread_mutex_lock(&mutex);
     #ifdef MUSIC_VISU

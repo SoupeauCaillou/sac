@@ -204,10 +204,10 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
 
 	if (!hld)
   		return;
-  	hld->game->resetTime();
   	float d = TimeUtil::getTime();
+    hld->game->resetTime();
 	LOGW("resume time: %.3f, diff:%.3f, %d", d, d - pauseTime, theSoundSystem.mute);
-  	if (d - pauseTime <= 5) {
+  	if ((d - pauseTime) <= 5) {
 	  	theMusicSystem.toggleMute(theSoundSystem.mute);
   	}
 }
