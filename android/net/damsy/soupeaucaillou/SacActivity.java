@@ -155,7 +155,7 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     protected void onPause() {
-    	//Log.i(HeriswapActivity.Tag, "Activity LifeCycle ##### ON PAUSE");
+    	Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
     	synchronized (mGLView) {
 	       	if (renderer != null) {
 	       		// must be done before super.pause()
@@ -164,10 +164,10 @@ public abstract class SacActivity extends SwarmActivity {
 	    }
         if (wl != null)
         	wl.release();
+
         requestPausedFromJava = true;
 
         if (game != 0) {
-	        // TilematchActivity.isRunning = false;
         	runGameLoop = false; // prevent step being called again
 	        synchronized (mutex) {
 	        	// HeriswapJNILib.invalidateTextures(HeriswapActivity.game);

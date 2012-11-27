@@ -351,7 +351,7 @@ void RenderingSystem::waitDrawingComplete() {
     PROFILE("Renderer", "wait-drawing-done", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_lock(&mutexes[L_RENDER]);
-    while (renderQueue[readQueue].count > 0)
+    while (renderQueue[readQueue].count > 0 && frameQueueWritable)
         pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
     PROFILE("Renderer", "wait-drawing-done", EndEvent);
@@ -363,8 +363,13 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", EndEvent);
     PROFILE("Renderer", "wait-frame", BeginEvent);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
-    while (!newFrameReady) {
+    while (!newFrameReady && !frameQueueWritable) {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
+    }
+    if (!frameQueueWritable) {
+        LOGI("Rendering disabled");
+        pthread_mutex_unlock(&mutexes[L_QUEUE]);
+        return;
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
@@ -376,7 +381,7 @@ void RenderingSystem::render() {
 	}
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
-        LOGW("Arg, nothing to render - probably a bug");
+        LOGW("Arg, nothing to render - probably a bug (queue=%d)", readQueue);
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);

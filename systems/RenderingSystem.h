@@ -182,7 +182,7 @@ std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
 std::vector<Camera> cameras;
 
-bool newFrameReady;
+bool newFrameReady, frameQueueWritable;
 int currentWriteQueue;
 RenderQueue renderQueue[2];
 #ifdef USE_VBO
@@ -237,4 +237,6 @@ const Shader& effectRefToShader(EffectRef ref, bool firstCall);
 const Vector2& getTextureSize(const std::string& textureName) const;
 void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;
+
+void setFrameQueueWritable(bool b);
 };

@@ -36,6 +36,7 @@ INSTANCE_IMPL(RenderingSystem);
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
 	nextValidRef = nextEffectRef = 1;
 	currentWriteQueue = 0;
+    frameQueueWritable = true;
 #ifndef EMSCRIPTEN
     pthread_mutex_init(&mutexes[L_RENDER], 0);
     pthread_mutex_init(&mutexes[L_QUEUE], 0);
@@ -227,7 +228,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
     if (outQueue.count != 0) {
-        // LOGW("Non empty queue : %d", outQueue.count);
+        LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
     }
     outQueue.count = 0;
     for (int camIdx = cameras.size()-1; camIdx >= 0; camIdx--) {
@@ -482,4 +483,16 @@ void RenderingSystem::reloadEffects() {
 		ref2Effects[it->second] = buildShader("default.vs", it->first);
 		#endif 		
 	}
+}
+
+void RenderingSystem::setFrameQueueWritable(bool b) {
+    LOGI("Writable: %d", b);
+    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    frameQueueWritable = b;
+    pthread_cond_signal(&cond[C_FRAME_READY]);
+    pthread_mutex_unlock(&mutexes[L_QUEUE]);
+
+    pthread_mutex_lock(&mutexes[L_RENDER]);
+    pthread_cond_signal(&cond[C_RENDER_DONE]);
+    pthread_mutex_unlock(&mutexes[L_RENDER]);
 }

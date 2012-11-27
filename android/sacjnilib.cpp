@@ -325,6 +325,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadText
   theRenderingSystem.init();
   theRenderingSystem.reloadTextures();
   theRenderingSystem.reloadEffects();
+  theRenderingSystem.setFrameQueueWritable(true);
   
   LOGW("%s <--", __FUNCTION__);
 }

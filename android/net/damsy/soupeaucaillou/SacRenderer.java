@@ -18,17 +18,14 @@
 */
 package net.damsy.soupeaucaillou;
 
-import javax.microedition.khronos.egl.EGL;
-import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import com.swarmconnect.Swarm;
-
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
-//import android.opengl.GLU;
 import android.util.Log;
+
+import com.swarmconnect.Swarm;
 
 public class SacRenderer implements GLSurfaceView.Renderer {
 	SacActivity activity;
@@ -80,7 +77,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 						// activity.mGLView.requestRender();
 			  		} else {
 						try {
-							// Log.w(HeriswapActivity.Tag, "Game thread sleeping");
+							Log.w("sac", "Game thread sleeping");
 							synchronized (gameThread) {
 								gameThread.wait();
 							}
@@ -101,7 +98,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 						activity.backPressed = false;
 					}
 				}
-				// Log.i(HeriswapActivity.Tag, "Activity paused - exiting game thread");
+				Log.i("sac", "Activity paused - exiting game thread");
 				gameThread = null;
 				/*
 				synchronized (TilematchActivity.mutex) {

@@ -125,6 +125,7 @@ void Game::sacInit(int windowW, int windowH) {
 	theTouchInputManager.init(Vector2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), Vector2(windowW, windowH));
 
 	theRenderingSystem.init();
+    theRenderingSystem.setFrameQueueWritable(true);
 
     #ifdef INGAME_EDITORS
     theRenderingSystem.loadEffectFile("selected.fs");
@@ -154,6 +155,7 @@ void Game::backPressed() {
 void Game::togglePause(bool activate __attribute__((unused))) {}
 		
 int Game::saveState(uint8_t** out __attribute__((unused))) {
+    theRenderingSystem.setFrameQueueWritable(false);
 	return 0;
 }
 
@@ -163,7 +165,7 @@ void Game::step() {
 
     const float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
-    if (true || delta > 0.008) {
+    if (/*true ||*/ delta > 0.008) {
         theTouchInputManager.Update(delta);
         #ifdef ENABLE_PROFILING
         std::stringstream framename;
