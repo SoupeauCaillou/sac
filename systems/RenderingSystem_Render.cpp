@@ -363,7 +363,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", EndEvent);
     PROFILE("Renderer", "wait-frame", BeginEvent);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
-    while (!newFrameReady && !frameQueueWritable) {
+    while (!newFrameReady && frameQueueWritable) {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }
     if (!frameQueueWritable) {
