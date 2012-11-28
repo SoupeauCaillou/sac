@@ -134,8 +134,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
         if (trc->blink.onDuration == 0) {
             unsigned keySize = key.populate(trc);
             unsigned hash = MurmurHash2(&key, keySize, 0x12345678);
-            if (hash == cache[entity])
-                continue;
+            std::map<Entity, unsigned int>::iterator c = cache.find(entity);
+            if (c != cache.end()) {
+                if (hash == (*c).second)
+                    continue;
+            }
             cache[entity] = hash;
         }
 

@@ -28,25 +28,18 @@ AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponen
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {
+    std::vector<std::pair<Entity, bool> > toRemove;
     FOR_EACH_ENTITY_COMPONENT(AutoDestroy, a, adc)
         switch (adc->type) {
             case AutoDestroyComponent::OUT_OF_SCREEN:
                 if (!theRenderingSystem.isEntityVisible(a)) {
-                    if (adc->hasTextRendering) {
-                        theTextRenderingSystem.DeleteEntity(a);
-                    } else {
-                        theEntityManager.DeleteEntity(a);
-                    }
+                    toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
                 }
                 break;
             case AutoDestroyComponent::LIFETIME: {
                 adc->params.lifetime.accum += dt;
                 if (adc->params.lifetime.accum >= adc->params.lifetime.value) {
-                    if (adc->hasTextRendering) {
-                        theTextRenderingSystem.DeleteEntity(a);
-                    } else {
-                        theEntityManager.DeleteEntity(a);
-                    }
+                    toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.accum / adc->params.lifetime.value;
@@ -57,6 +50,14 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 }
                 break;
             }
+        }
+    }
+    for (unsigned i=0; i<toRemove.size(); i++) {
+        const std::pair<Entity, bool>& p = toRemove[i];
+        if (p.second) {
+            theTextRenderingSystem.DeleteEntity(p.first);
+        } else {
+            theEntityManager.DeleteEntity(p.first);
         }
     }
 }
