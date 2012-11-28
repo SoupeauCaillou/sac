@@ -23,7 +23,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
+//import android.util.Log;
 
 import com.swarmconnect.Swarm;
 
@@ -77,7 +77,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 						// activity.mGLView.requestRender();
 			  		} else {
 						try {
-							Log.w("sac", "Game thread sleeping");
+							//Log.w("sac", "Game thread sleeping");
 							synchronized (gameThread) {
 								gameThread.wait();
 							}
@@ -98,7 +98,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 						activity.backPressed = false;
 					}
 				}
-				Log.i("sac", "Activity paused - exiting game thread");
+				//Log.i("sac", "Activity paused - exiting game thread");
 				gameThread = null;
 				/*
 				synchronized (TilematchActivity.mutex) {
@@ -115,7 +115,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
  
     boolean initDone = false;
     public void onSurfaceChanged(GL10 gl, final int width, final int height) {
-    	Log.i("RR", "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
+    	//Log.i("RR", "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
     	if (!initDone) {
     		SacJNILib.initFromRenderThread(asset, activity.game, width, height);
     		// TilematchJNILib.initAndReloadTextures(TilematchActivity.game);
@@ -155,7 +155,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	}
 
     	String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
-    	Log.i("H", "Extensions supported: " + extensions);
+    	//Log.i("H", "Extensions supported: " + extensions);
     	if (activity.game == 0) {
     		// Log.i("HeriswapActivity.Tag", "Activity LifeCycle ##### Game instance creation (onSurfaceCreated)");
     		initDone = false;

@@ -10,7 +10,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
-import android.util.Log;
+// import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -59,7 +59,7 @@ public abstract class SacActivity extends SwarmActivity {
 	float factor = 1.f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
-		Log.i("Sac", "-> onCreate [" + savedInstanceState);
+		//Log.i("Sac", "-> onCreate [" + savedInstanceState);
         super.onCreate(savedInstanceState);
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
@@ -97,7 +97,7 @@ public abstract class SacActivity extends SwarmActivity {
 	
 	        _cb.cacheInterstitial();
         } else {
-        	Log.w("sac", "Chartboost not initialized");
+        	//Log.w("sac", "Chartboost not initialized");
         }
 
         mutex = new Object();
@@ -134,12 +134,12 @@ public abstract class SacActivity extends SwarmActivity {
         if (savedInstanceState != null) {
         	savedState = savedInstanceState.getByteArray(getBundleKey());
 	        if (savedState != null) {
-	        	Log.i("Sac", "State restored from app bundle");
+	        	//Log.i("Sac", "State restored from app bundle");
 	        } else {
 	        	//NOLOGLog.i(HeriswapActivity.Tag, "WTF?");
 	        }
         } else {
-        	Log.i("Sac", "savedInstanceState is null");
+        	//Log.i("Sac", "savedInstanceState is null");
         }
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -155,7 +155,7 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     protected void onPause() {
-    	Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
+    	//Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
     	synchronized (mGLView) {
 	       	if (renderer != null) {
 	       		// must be done before super.pause()
@@ -206,12 +206,12 @@ public abstract class SacActivity extends SwarmActivity {
     		return; 
     	/* save current state; we'll be used only if app get killed */
     	synchronized (mutex) {
-    		Log.i("Sac", "Save state!");
+    		//Log.i("Sac", "Save state!");
 	    	byte[] savedState = SacJNILib.serialiazeState(game);
 	    	if (savedState != null) {
 	    		outState.putByteArray(getBundleKey(), savedState);
 	    	}
-	    	Log.i("Sac", "State saved");
+	    	//Log.i("Sac", "State saved");
     	}
     	super.onSaveInstanceState(outState);
     }

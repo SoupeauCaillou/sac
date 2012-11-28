@@ -11,8 +11,10 @@ LOCAL_CXXFLAGS := -DANDROID_NDK \
 				-I$(LOCAL_PATH)/base \
 				-I$(LOCAL_PATH)/systems \
 				-I$(LOCAL_PATH)/libs \
-				-I$(LOCAL_PATH)/libs/libpng/jni
+				-I$(LOCAL_PATH)/libs/libpng/jni \
+                -ffast-math -O3 -funroll-loops
 
+LOCAL_ARM_MODE := arm
 
 LOCAL_SRC_FILES := \
 	base/Game.cpp \
