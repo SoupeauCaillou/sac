@@ -263,7 +263,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
             c.mirrorH = rc->mirrorH;
 
             if (c.texture != InvalidTextureRef) {
-                TextureInfo& info = textures[c.texture];
+                const TextureInfo& info = textures[c.texture];
                 int atlasIdx = info.atlasIndex;
                 if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
                     if (delayedAtlasIndexLoad.insert(atlasIdx).second) {

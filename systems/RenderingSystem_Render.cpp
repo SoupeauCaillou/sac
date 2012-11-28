@@ -358,9 +358,6 @@ void RenderingSystem::waitDrawingComplete() {
 }
 
 void RenderingSystem::render() {
-	PROFILE("Renderer", "load-textures", BeginEvent);
-    processDelayedTextureJobs();
-    PROFILE("Renderer", "load-textures", EndEvent);
     PROFILE("Renderer", "wait-frame", BeginEvent);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
     while (!newFrameReady && frameQueueWritable) {
@@ -375,6 +372,9 @@ void RenderingSystem::render() {
     int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
     PROFILE("Renderer", "wait-frame", EndEvent);
+    PROFILE("Renderer", "load-textures", BeginEvent);
+    processDelayedTextureJobs();
+    PROFILE("Renderer", "load-textures", EndEvent);
 	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
 		LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes[L_RENDER]);
