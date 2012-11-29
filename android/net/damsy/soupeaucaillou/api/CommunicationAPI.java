@@ -16,7 +16,17 @@ public class CommunicationAPI {
 		}
 
 		static public void swarmRegistering(int mode, int difficulty) {
-			SuccessAPI.openLeaderboard(-1, -1);
+			SacJNILib.activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					if (!Swarm.isInitialized()) {
+						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());
+					} else {
+						Swarm.showDashboard();
+					}
+				}
+			});
+			
 		}
 
 		static public void shareFacebook() {
@@ -46,10 +56,8 @@ public class CommunicationAPI {
 			return SacJNILib.activity.canShowAppRater();
 		}
 
-		private final static String APP_PNAME = "net.damsy.soupeaucaillou.heriswap";
-
 		static public void rateItNow() {
-			SacJNILib.activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
+			SacJNILib.activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + SacJNILib.activity.getPackageName())));
 			rateItNever();
 		}
 

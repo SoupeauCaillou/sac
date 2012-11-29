@@ -20,12 +20,12 @@
 
 INSTANCE_IMPL(MorphingSystem);
 
-MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") { }
+MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") {
+    /* nothing saved */
+}
 
 void MorphingSystem::DoUpdate(float dt) {
-	for(std::map<Entity, MorphingComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		MorphingComponent* m = (*jt).second;
-
+    FOR_EACH_COMPONENT(Morphing, m)
 		if (!m->active || m->activationTime>m->timing) {
 			m->active = false;
 			m->activationTime = 0;

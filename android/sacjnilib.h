@@ -2,6 +2,7 @@
 #include <jni.h>
 
 #include "api/android/AssetAPIAndroidImpl.h"
+#include "api/android/CommunicationAPIAndroidImpl.h"
 #include "api/android/MusicAPIAndroidImpl.h"
 #include "api/android/SoundAPIAndroidImpl.h"
 #include "api/android/LocalizeAPIAndroidImpl.h"
@@ -9,6 +10,8 @@
 #include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/ExitAPIAndroidImpl.h"
 #include "api/android/SuccessAPIAndroidImpl.h"
+#include "api/android/VibrateAPIAndroidImpl.h"
+#include <map>
 
 struct JNIEnvDependantContext {
 	virtual void init(JNIEnv* pEnv, jobject assetMgr) { env = pEnv; }
@@ -26,6 +29,8 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 	MusicAPIAndroidImpl musicAPI;
 	SoundAPIAndroidImpl soundAPI;
 	SuccessAPIAndroidImpl successAPI;
+    VibrateAPIAndroidImpl vibrateAPI;
+    CommunicationAPIAndroidImpl communicationAPI;
 	jobject assetManager;
 
 	virtual void init(JNIEnv* pEnv, jobject assetMgr) {
@@ -40,7 +45,8 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 		musicAPI.init(pEnv);
 		soundAPI.init(pEnv, assetManager);
 		successAPI.init(pEnv);
-
+        vibrateAPI.init(pEnv);
+        communicationAPI.init(pEnv);
 		JNIEnvDependantContext::init(pEnv, assetMgr);
 	}
 
@@ -54,6 +60,8 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 			musicAPI.uninit();
 			soundAPI.uninit();
 			successAPI.uninit();
+            vibrateAPI.uninit();
+            communicationAPI.uninit();
 			env->DeleteGlobalRef(assetManager);
 		}
 
@@ -94,14 +102,19 @@ class GameHolder {
 	RenderThreadJNIEnvCtx renderThreadJNICtx;
 
 	struct __input {
+        __input() : touching(0) {}
 		 int touching;
 		 float x, y;
-	} input;
-	bool firstCall;
+	};
+    std::map<int, __input> input;
 	struct timeval startup_time;
 	float dtAccumuled, time;
+ 
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    bool renderingStarted, drawQueueChanged;
+    float renderingDt;
 
-	int openGLESVersion;
 	bool initDone;
 	
 	private:

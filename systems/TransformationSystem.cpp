@@ -21,34 +21,35 @@
 INSTANCE_IMPL(TransformationSystem);
 
 TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") {
-
+    TransformationComponent tc;
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(position.X, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(position.Y, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(size.X, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(size.Y, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(rotation, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(z, tc), 0.001));
 }
 
 void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
 	//update orphans first
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		TransformationComponent* bc = (*it).second;
+    FOR_EACH_COMPONENT(Transformation, bc)
 		if (!bc->parent) {
 			bc->worldPosition = bc->position;
 			bc->worldRotation = bc->rotation;
+            bc->worldZ = bc->z;
 		}
 	}
 	//copy parent property to its sons
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = it->first;
-		if (!TRANSFORM(a))
-			continue;
-
-		Entity parent = TRANSFORM(a)->parent;
+    FOR_EACH_COMPONENT(Transformation, bc)
+		Entity parent = bc->parent;
 		if (parent) {
-			TransformationComponent* bc = (*it).second;
 			while (TRANSFORM(parent)->parent) {
 				parent = TRANSFORM(parent)->parent;
 			}
 			const TransformationComponent* pbc = TRANSFORM(bc->parent);
-			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, MathUtil::ToRadians(pbc->worldRotation));
+			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, pbc->worldRotation);
 			bc->worldRotation = pbc->worldRotation + bc->rotation;
-		    bc->z = pbc->z;
+            bc->worldZ = pbc->worldZ + bc->z;
 		}
     }
 }

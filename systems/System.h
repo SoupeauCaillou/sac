@@ -28,7 +28,10 @@
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
+#include "util/Serializer.h"
 
+// #define USE_VECTOR_STORAGE 1
+#include <climits>
 
 #define Entity unsigned long
 
@@ -44,13 +47,40 @@
 		public:	\
             static type##System* GetInstancePointer() { return _instance; } \
 			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); LOGW(#type "System new instance created: %p", _instance);} \
-			static void DestroyInstance() { if (_instance) delete _instance; LOGW(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
+			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); LOGI(#type "System new instance created: %p", _instance);} \
+			static void DestroyInstance() { if (_instance) delete _instance; LOGI(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
 			void DoUpdate(float dt); \
+            void updateEntityComponent(float dt, Entity e, type##Component* t); \
 		\
 			type##System();	\
 		private:	\
 			static type##System* _instance;
+
+#if USE_VECTOR_STORAGE
+    #define FOR_EACH_ENTITY(ent) \
+        for(std::vector<EntityNextFree>::iterator it=entityWithComponent.begin(); it!=entityWithComponent.end(); ++it) { \
+            Entity ent = *it;\
+            if (ent == 0) continue;
+
+    #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
+        for(unsigned ___i=0, ___s=components.size(); ___i<___s; ++___i) {\
+            Entity ent = entityWithComponent[___i].entity;\
+            if (ent == 0) continue; \
+            type##Component* comp = &components[___i];
+#else
+    #define FOR_EACH_ENTITY(ent) \
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
+            Entity ent = it->first;
+
+    #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
+            Entity ent = it->first;\
+            type##Component* comp = it->second;
+    
+    #define FOR_EACH_COMPONENT(type, comp) \
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
+            type##Component* comp = it->second;
+#endif
 
 class ComponentSystem {
 	public:
@@ -60,11 +90,11 @@ class ComponentSystem {
 		virtual const std::string& getName() const { return name; }
 		virtual void Add(Entity entity) = 0;
 		virtual void Delete(Entity entity) = 0;
-		virtual int serialize(Entity entity, uint8_t** out) = 0;
-		virtual void deserialize(Entity entity, uint8_t* out, int size) = 0;
+        virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
+		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
+		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
 
-		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); float time = TimeUtil::getTime(); DoUpdate(dt); timeSpent = TimeUtil::getTime() - time; PROFILE("SystemUpdate", name, EndEvent); }
-		float timeSpent;
+		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); DoUpdate(dt); PROFILE("SystemUpdate", name, EndEvent); }
 			
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
@@ -80,6 +110,7 @@ class ComponentSystem {
 	protected:
 		virtual void DoUpdate(float dt) = 0;
 		static std::map<std::string, ComponentSystem*> registry;
+	private:
 		std::string name;
 };
 
@@ -87,84 +118,155 @@ template <typename T>
 class ComponentSystemImpl: public ComponentSystem {
 	public:
 		ComponentSystemImpl(const std::string& t) : ComponentSystem(t) {
-			Activate();
             previous = 0;
+            #if USE_VECTOR_STORAGE
+            _freelist = UINT_MAX;
+            #endif
 		}
 
 		void Add(Entity entity) {
+            #if USE_VECTOR_STORAGE
+            if (_freelist == UINT_MAX) {
+                 entityWithComponent.push_back(EntityNextFree(entity));
+                 components.push_back(T());
+                 entityToIndice[entity] = entityWithComponent.size() - 1;
+             } else {
+                 unsigned idx = _freelist;
+                 _freelist = entityWithComponent[idx].nextFree;
+                 entityWithComponent[idx].entity = entity;
+                 components[idx] = T();
+                 entityToIndice[entity] = idx;
+             }
+            assert(components.size() == entityWithComponent.size());
+            #else
 			assert (components.find(entity) == components.end());
-			components.insert(std::make_pair(entity, new T()));
+			components.insert(std::make_pair(entity, CreateComponent()));
+            #endif
 		}
 
+		#ifdef DEBUG
+		virtual void preDeletionCheck(Entity entity __attribute__((unused))) { };
+		#endif
+		
 		void Delete(Entity entity) {
-			typename std::map<Entity, T*>::iterator it = components.find(entity);
+		#ifdef DEBUG
+		    preDeletionCheck(entity);
+		#endif
+            #if USE_VECTOR_STORAGE
+            std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
+            unsigned idx = it->second;
+            entityWithComponent[idx].entity = 0;
+            entityWithComponent[idx].nextFree = _freelist;
+            entityToIndice.erase(it);
+            _freelist = idx;
+            #else
+			ComponentIt it = components.find(entity);
 			if (it != components.end()) {
 				delete it->second;
 				components.erase(it);
 			}
+            #endif
+            if (previous == entity) {
+                previous = 0;
+                previousComp = 0;
+            }
 		}
 
-		T* Get(Entity entity) {
+		T* Get(Entity entity, bool failIfNotfound = true) {
             if (entity != previous) {
-    			typename std::map<Entity, T*>::iterator it = components.find(entity);
+                #if USE_VECTOR_STORAGE
+                std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
+                if (it == entityToIndice.end()) {
+                    if (failIfNotfound) {
+                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
+                        assert (false);
+                    }
+                    return 0;
+                }
+                previousComp = &components[it->second];
+                #else
+    			ComponentIt it = components.find(entity);
     			if (it == components.end()) {
-    				LOGE("Entity %lu has no component of type '%s'", entity, name.c_str());
                     #ifndef ANDROID
                     // crash here
-                    assert (false);
+                    if (failIfNotfound) {
+                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
+                        assert (false);
+                    }
                     #endif
     				return 0;
     			}
-                previous = entity;
                 previousComp = (*it).second;
+                #endif
+                previous = entity;
             }
 			return previousComp;
 		}
 
 		std::vector<Entity> RetrieveAllEntityWithComponent() {
 			std::vector<Entity> result;
-			for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+            #ifdef USE_VECTOR_STORAGE
+            for(std::map<Entity, unsigned>::iterator it=entityToIndice.begin(); it!=entityToIndice.end(); ++it) {
+			#else
+            for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
+            #endif
 				result.push_back((*it).first);
 			}
 			return result;
 		}
-		
-		long unsigned entityCount() const {
-			return components.size();
-		}
 
-		int serialize(Entity entity, uint8_t** out) {
+        uint8_t* saveComponent(Entity entity, uint8_t* out) {
+            if (!out) {
+                out = new uint8_t[sizeof(T)];
+            }
+            memcpy(out, Get(entity), sizeof(T)); 
+            return out;
+        }
+
+		int serialize(Entity entity, uint8_t** out, void* ref) {
 			T* component = Get(entity);
-			*out = new uint8_t[sizeof(T)];
-			memcpy(*out, component, sizeof(T));
-			return sizeof(T);
+            return componentSerializer.serializeObject(out, component, ref);
 		}
 
-		void deserialize(Entity entity, uint8_t* in, int size) {
-			T* component = new T();
-			if (size != sizeof(T)) {
-				LOGW("error in size: %d", size); // != %z", size, sizeof(T));
-			}
-			memcpy(component, in, size);
+		int deserialize(Entity entity, uint8_t* in, int size) {
+			T* component = Get(entity, false);
+            if (!component)
+            #if USE_VECTOR_STORAGE
+                { Add(entity); component = Get(entity); }
+            #else
+                component = new T();
+            #endif
+            int s = componentSerializer.deserializeObject(in, size, component);
+            #if USE_VECTOR_STORAGE
+
+            #else
 			components[entity] = component;
+            #endif
+            return s;
 		}
-
-		void Clear() { components.clear(); }
-
-		void Activate() { active = true; }
-		void Deactivate() { active = false; }
-		bool IsActive() const { return active; }
 
 	protected:
-		bool active;
+        virtual T* CreateComponent() {
+            return new T();
+        }
 
+#if USE_VECTOR_STORAGE
+        struct EntityNextFree {
+            EntityNextFree(Entity e) : entity(e), nextFree(0) {}
+            Entity entity;
+            unsigned nextFree;
+        };
+        std::vector<T> components;
+        std::vector<EntityNextFree> entityWithComponent;
+        std::map<Entity, unsigned> entityToIndice;
+        unsigned _freelist;
+#else
 		std::map<Entity, T*> components;
+        typedef typename std::map<Entity, T*> ComponentMap;
+        typedef typename std::map<Entity, T*>::iterator ComponentIt;
+        typedef typename std::map<Entity, T*>::const_iterator ComponentConstIt;
+#endif
         Entity previous;
         T* previousComp;
-
-		typedef typename std::map<Entity, T*> ComponentMap;
-		typedef typename std::map<Entity, T*>::iterator ComponentIt;
-		typedef typename std::map<Entity, T*>::const_iterator ComponentConstIt;
-
-		float activationTime;
+        Serializer componentSerializer;
 };

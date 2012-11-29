@@ -166,9 +166,10 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	result.height = s->h;
 	result.datas = new char[result.width * result.height * result.channels];
 #endif
+    result.mipmap = 0;
 	return result;
 }
-ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
+ImageDesc ImageLoader::loadEct1(const std::string& context __attribute__((unused)), const FileBuffer& file __attribute__((unused))) {
 #ifdef ANDROID
 	#define BE_16_TO_H betoh16
 #else
@@ -176,8 +177,9 @@ ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& fi
 #endif
 
 	 #ifdef ANDROID
-ImageDesc result;
+	ImageDesc result;
 	result.datas = 0;
+    result.mipmap = 0;
 
 	unsigned offset = 0;
 	if (strncmp("PKM ", (const char*)file.data, 4)) {
@@ -214,7 +216,7 @@ static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t
 }
 #endif
 
-ImageDesc ImageLoader::loadPvr(const std::string& context, const FileBuffer& file) {
+ImageDesc ImageLoader::loadPvr(const std::string& context __attribute__((unused)), const FileBuffer& file) {
 	ImageDesc result;
 	result.datas = 0;
 	struct PVRTexHeader {
@@ -236,6 +238,7 @@ ImageDesc ImageLoader::loadPvr(const std::string& context, const FileBuffer& fil
 
 	result.width = header->width;
 	result.height = header->height;
+    result.mipmap = header->dwMipMapCount;
 	int size = file.size - sizeof(PVRTexHeader);
 	result.datas = (char*) malloc(size);
 	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);

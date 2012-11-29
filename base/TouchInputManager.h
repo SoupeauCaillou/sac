@@ -22,7 +22,8 @@
 
 class NativeTouchState {
 	public:
-		virtual bool isTouching(Vector2* windowCoords) const = 0;
+        virtual int maxTouchingCount() = 0;
+		virtual bool isTouching(int index, Vector2* windowCoords) const = 0;
 };
 
 #define theTouchInputManager (*TouchInputManager::Instance())
@@ -35,10 +36,11 @@ class TouchInputManager {
 
 		void init(Vector2 worldSize, Vector2 windowSize);
 
-		bool wasTouched() const { return wasTouching; }
+		bool wasTouched(int idx) const { return wasTouching[idx]; }
 
-		bool isTouched() const { return touching; }
-		const Vector2& getTouchLastPosition() const { return lastTouchedPosition; }
+		bool isTouched(int idx) const { return touching[idx]; }
+		const Vector2& getTouchLastScreenPosition(int idx) const { return lastTouchedScreenPosition[idx]; }
+        const Vector2& getTouchLastPosition(int idx) const { return lastTouchedPosition[idx]; }
 
 		void Update(float dt);
 
@@ -48,8 +50,8 @@ class TouchInputManager {
 	private:
 		NativeTouchState* ptr;
 
-		bool wasTouching, touching;
-		Vector2 lastTouchedPosition;
+		bool wasTouching[2], touching[2];
+		Vector2 lastTouchedPosition[2], lastTouchedScreenPosition[2];
 
 		Vector2 worldSize, windowSize;
 };

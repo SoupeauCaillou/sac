@@ -20,16 +20,21 @@
 #include "TransformationSystem.h"
 
 INSTANCE_IMPL(PhysicsSystem);
- 
+
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
- 
+    PhysicsComponent tc;
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(linearVelocity.X, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(linearVelocity.Y, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(angularVelocity, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(mass, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(gravity.X, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(gravity.Y, tc), 0.001));
+    componentSerializer.add(new EpsilonProperty<float>(OFFSET(momentOfInertia, tc), 0.001));
 }
 
 void PhysicsSystem::DoUpdate(float dt) {
 	//update orphans first
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = it->first;
-		PhysicsComponent* pc = it->second;
+    FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
 		TransformationComponent* tc = TRANSFORM(a);
 		if (!tc || tc->parent == 0) {
 			if (pc->mass <= 0)
@@ -65,7 +70,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 			}
 			linearAccel /= pc->mass;
 			angAccel /= pc->momentOfInertia;
-			
+
 			// dumb integration
 			pc->linearVelocity += linearAccel * dt;
 			tc->position += pc->linearVelocity * dt;
@@ -76,8 +81,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 	    }
 	}
     //copy parent property to its sons
-    for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = it->first;
+    FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
 		if (!TRANSFORM(a))
 			continue;
 			
@@ -86,8 +90,15 @@ void PhysicsSystem::DoUpdate(float dt) {
 			while (TRANSFORM(parent)->parent) {
 				parent = TRANSFORM(parent)->parent;
 			}
-			PHYSICS(a)->linearVelocity = PHYSICS(parent)->linearVelocity;
-			PHYSICS(a)->angularVelocity = PHYSICS(parent)->angularVelocity;
+
+            PhysicsComponent* ppc = thePhysicsSystem.Get(parent, false);
+            if (ppc) {
+    			pc->linearVelocity = ppc->linearVelocity;
+    			pc->angularVelocity = ppc->angularVelocity;
+            } else {
+                pc->linearVelocity = Vector2::Zero;
+                pc->angularVelocity = 0;
+            }
 		}
     }
 }

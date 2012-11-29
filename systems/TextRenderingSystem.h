@@ -48,9 +48,13 @@ struct TextRenderingComponent {
 		fontName("typo"), 
 		positioning(CENTER), 
 		hide(false), 
-		flags(0) {
+		flags(0),
+        cameraBitMask(~0U) {
 			caret.show = false;
 			caret.speed = caret.dt = 0;
+            blink.offDuration =
+                blink.onDuration =
+                    blink.accum = 0;
 		}
 	std::string text;
 	Color color;
@@ -67,6 +71,12 @@ struct TextRenderingComponent {
 		float speed;
 		float dt;
 	} caret;
+    struct {
+        float offDuration;
+        float onDuration;
+        float accum;
+    } blink;
+    unsigned cameraBitMask;
 	// managed by systems
 	std::vector<Entity> drawing;
 };
@@ -87,6 +97,7 @@ public :
 	float computeTextRenderingComponentWidth(TextRenderingComponent* trc);
 
 private:
+    std::map<Entity, unsigned int> cache;
 	std::list<Entity> renderingEntitiesPool;
 	std::map<std::string, std::map<unsigned char, float> > fontRegistry;
 };

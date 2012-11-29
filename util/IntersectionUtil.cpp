@@ -19,6 +19,8 @@
 
 #include "IntersectionUtil.h"
 #include "../base/MathUtil.h"
+#include "../systems/TransformationSystem.h"
+#include <cmath>
 
 bool IntersectionUtil::pointRectangle(const Vector2& point, const Vector2& rectPos, const Vector2& rectSize) {
 	return (MathUtil::Abs(rectPos.X - point.X) < rectSize.X * 0.5 &&
@@ -60,4 +62,85 @@ bool IntersectionUtil::lineLine(const Vector2& pA, const Vector2& pB, const Vect
     }
 
     return false;
+}
+
+bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2& rectASize, float rectARot, 
+            const Vector2& rectBPos, const Vector2& rectBSize, float rectBRot) {
+    // quick out
+    if (Vector2::DistanceSquared(rectAPos, rectBPos) > pow(MathUtil::Max(rectASize.X, rectASize.Y) + MathUtil::Max(rectBSize.X, rectBSize.Y), 2)) {
+        return false;
+    }
+    
+    #define SIGN(x) ((x) > 0 ? 1:-1)
+    const float coeff[] = {
+        -0.5, 0.5,            
+        0.5, 0.5,
+        0.5, -0.5,
+        -0.5, -0.5
+    };
+    
+    Vector2 aPoints[4];
+    Vector2 bPoints[4];
+    
+    for (int i=0; i<4; i++) {
+        aPoints[i] = rectAPos + Vector2::Rotate(Vector2(rectASize.X * coeff[2*i], rectASize.Y * coeff[2*i+1]), rectARot);
+        bPoints[i] = rectBPos + Vector2::Rotate(Vector2(rectBSize.X * coeff[2*i], rectBSize.Y * coeff[2*i+1]), rectBRot);
+    }
+    
+    // check A edges againts B points
+    for (int i=0; i<4; i++) {
+        Vector2 edge(aPoints[(i+1)%4] - aPoints[i]);
+        float tmp = edge.X;
+        edge.X = -edge.Y;
+        edge.Y = tmp;
+        
+        bool success = true;
+        int j, side = SIGN(Vector2::Dot(edge, bPoints[0] - aPoints[i]));
+        for (j=1; success && j<4; j++) {
+            int d = SIGN(Vector2::Dot(edge, bPoints[j] - aPoints[i]));
+            success = (d == side);
+        }
+        // all points from B are on the same side
+        // if at least one point of A is on the other side we're good
+        if (success && j == 4) {
+            int d1 = SIGN(Vector2::Dot(edge, aPoints[(i+2) % 4] - aPoints[i]));
+            if (d1 != side)
+                return false;
+            int d2 = SIGN(Vector2::Dot(edge, aPoints[(i+3) % 4] - aPoints[i]));
+            if (d2 != side)
+                return false;
+        }
+    }
+    
+    // check B edges againts A points
+    for (int i=0; i<4; i++) {
+        Vector2 edge(bPoints[(i+1)%4] - bPoints[i]);
+        float tmp = edge.X;
+        edge.X = -edge.Y;
+        edge.Y =tmp;
+        
+        bool success = true;
+        int j, side = SIGN(Vector2::Dot(edge, aPoints[0] - bPoints[i]));
+        for (j=1; success && j<4; j++) {
+            int d = SIGN(Vector2::Dot(edge, aPoints[j] - bPoints[i]));
+            success = (d == side);
+        }
+        // all points from A are on the same side
+        // if at least one point of B is on the other side we're good
+        if (success && j == 4) {
+            int d1 = SIGN(Vector2::Dot(edge, bPoints[(i+2) % 4] - bPoints[i]));
+            if (d1 != side)
+                return false;
+            int d2 = SIGN(Vector2::Dot(edge, bPoints[(i+3) % 4] - bPoints[i]));
+            if (d2 != side)
+                return false;
+        }
+    }
+    return true;
+}
+
+bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1, const TransformationComponent* tc2) {
+    return rectangleRectangle(
+        tc1->worldPosition, tc1->size, tc1->worldRotation,
+        tc2->worldPosition, tc2->size, tc2->worldRotation);
 }

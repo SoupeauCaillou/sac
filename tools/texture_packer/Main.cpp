@@ -39,11 +39,15 @@ int main(int argc, char** argv) {
 		}
 		tp->addTexture(width, height);
 	}
-	
+
 	int finalW, finalH;
-	int unused_area = tp->packTextures(finalW, finalH,true,true);
-	
+	#if 0
+	int unused_area =
+	#endif
+	tp->packTextures(finalW, finalH,true,true);
+
 	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
+	
 	for (int i=1; i<argc; i++) {
 		int x, y, wid, hit;
 		bool rotated = tp->getTextureLocation(i-1, x, y, wid, hit);
@@ -153,7 +157,7 @@ static char* loadPng(const char* assetName, int* width, int* height)
 	png_byte** PNG_rows = new png_byte*[*height * sizeof(png_byte*)];
 
 	unsigned int row;
-	for (row = 0; row < *height; ++row) {
+	for (row = 0; row < (unsigned)*height; ++row) {
 		PNG_rows[*height - 1 - row] = PNG_image_buffer + (row * 4 * *width);
 	}
 

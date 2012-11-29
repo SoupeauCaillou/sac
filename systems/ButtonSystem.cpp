@@ -19,17 +19,20 @@
 #include "ButtonSystem.h"
 #include "base/TimeUtil.h"
 #include "util/IntersectionUtil.h"
+#include "../api/VibrateAPI.h"
 
 INSTANCE_IMPL(ButtonSystem);
 
-ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") { }
+ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
+    /* nothing saved */
+    vibrateAPI = 0;
+}
 
-void ButtonSystem::DoUpdate(float dt) {
-	bool touch = theTouchInputManager.isTouched();
-	const Vector2& pos = theTouchInputManager.getTouchLastPosition();
-			
-	for(std::map<Entity, ButtonComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-		UpdateButton((*jt).first, (*jt).second, touch, pos);
+void ButtonSystem::DoUpdate(float dt __attribute__((unused))) {
+    bool touch = theTouchInputManager.isTouched(0);
+	const Vector2& pos = theTouchInputManager.getTouchLastPosition(0);
+    FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)
+		UpdateButton(entity, bt, touch, pos);
 	}
 }
 
@@ -39,14 +42,18 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 		return;
 	}
 
+    comp->clicked = false;
+
+    if (!touching && !comp->mouseOver)
+        return;
+
 	const Vector2& pos = TRANSFORM(entity)->worldPosition;
 	const Vector2& size = TRANSFORM(entity)->size;
 
 	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
-	comp->clicked = false;
 
 	if (comp->enabled) {
-		if (comp->mouseOver) {
+        if (comp->mouseOver) {
 			if (touching) {
 				comp->mouseOver = over;
 			} else {
@@ -56,6 +63,10 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
+                     
+                        if (vibrateAPI && comp->vibration > 0) {
+                            vibrateAPI->vibrate(comp->vibration);
+                        }
 					}
 				}
 				comp->mouseOver = false;

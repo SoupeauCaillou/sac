@@ -21,14 +21,11 @@ package net.damsy.soupeaucaillou;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import net.damsy.soupeaucaillou.heriswap.api.StorageAPI;
-
-import com.swarmconnect.Swarm;
-
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
-//import android.opengl.GLU;
-import android.util.Log;
+//import android.util.Log;
+
+import com.swarmconnect.Swarm;
 
 public class SacRenderer implements GLSurfaceView.Renderer {
 	SacActivity activity;
@@ -43,23 +40,14 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 		frameCount = 0;
 		time = System.currentTimeMillis();
 	}
-
+ 
     public void onDrawFrame(GL10 gl) {
     	synchronized (activity.mutex) {
     		if (activity.game == 0 || !initDone) {
-    			// Log.i(HeriswapActivity.Tag, "No rendering: " + HeriswapActivity.game + ", " + initDone);
     	 		return;
     		}
     		
     		SacJNILib.render(activity.game);
-
-    		frameCount++;
-    		long diff = System.currentTimeMillis() - time;
-    		if (diff >= 10000) {
-    			// Log.w("TAG", "Render thread FPS: " + (float)1000*frameCount / diff);
-    			frameCount = 0;
-    			time = System.currentTimeMillis();
-    		}
     	}
         /*int err;
         while( (err = gl.glGetError()) != GL10.GL_NO_ERROR) {
@@ -82,14 +70,14 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				 
 				activity.savedState = null;
 				initDone = true;
-				 
+
 				while ( activity.isRunning || activity.requestPausedFromJava) {
 					if (activity.runGameLoop) {
 						SacJNILib.step(activity.game);
-						activity.mGLView.requestRender();
+						// activity.mGLView.requestRender();
 			  		} else {
 						try {
-							// Log.w(HeriswapActivity.Tag, "Game thread sleeping");
+							//Log.w("sac", "Game thread sleeping");
 							synchronized (gameThread) {
 								gameThread.wait();
 							}
@@ -110,7 +98,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 						activity.backPressed = false;
 					}
 				}
-				// Log.i(HeriswapActivity.Tag, "Activity paused - exiting game thread");
+				//Log.i("sac", "Activity paused - exiting game thread");
 				gameThread = null;
 				/*
 				synchronized (TilematchActivity.mutex) {
@@ -121,13 +109,13 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				*/
 			}
 		}); 
-    	gameThread.setPriority(Thread.MAX_PRIORITY);
+    	// gameThread.setPriority(Thread.MAX_PRIORITY);
 		gameThread.start(); 
     } 
  
     boolean initDone = false;
     public void onSurfaceChanged(GL10 gl, final int width, final int height) {
-    	// Log.i(HeriswapActivity.Tag, "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
+    	//Log.i("RR", "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
     	if (!initDone) {
     		SacJNILib.initFromRenderThread(asset, activity.game, width, height);
     		// TilematchJNILib.initAndReloadTextures(TilematchActivity.game);
@@ -153,21 +141,21 @@ public class SacRenderer implements GLSurfaceView.Renderer {
         while( (err = gl.glGetError()) != GL10.GL_NO_ERROR) {
         	//NOLOGLog.e(HeriswapActivity.Tag, "_GL error : " + GLU.gluErrorString(err));
         }*/
-    }
+    } 
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-    	if (Swarm.isEnabled()) {
-	    	activity.runOnUiThread(new Runnable() {
+    	int id = activity.getSwarmGameID();
+    	if (/*Swarm.isEnabled() &&*/ id != 0) {
+		    activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					Swarm.init(activity, activity.getSwarmGameID(), activity.getSwarmGameKey());
-					StorageAPI.ensureBestLocalScoresAreOnSwarm();
 				}
 			});
     	}
 
     	String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
-    	Log.i("H", "Extensions supported: " + extensions);
+    	//Log.i("H", "Extensions supported: " + extensions);
     	if (activity.game == 0) {
     		// Log.i("HeriswapActivity.Tag", "Activity LifeCycle ##### Game instance creation (onSurfaceCreated)");
     		initDone = false;

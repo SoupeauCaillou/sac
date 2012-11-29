@@ -35,6 +35,9 @@ class Interval {
         inline T lerp(float w) const {
             return t1 * (1-w) + t2 * w;
         }
+        inline float position(T t) const {
+            return (t - t1) / (t2 - t1);
+        }
 
         T t1, t2;
 };

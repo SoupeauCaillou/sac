@@ -18,28 +18,16 @@
 */
 #pragma once
 
-#include <map>
+#include "../CommunicationAPI.h"
 
-class DebugRenderingManager {
-	private:
-		static DebugRenderingManager* _instance;
+class CommunicationAPILinuxImpl : public CommunicationAPI {
 	public:
-		static DebugRenderingManager& Instance() { 
-			if (!_instance) _instance = new DebugRenderingManager();
-			return *_instance; 
-		}
-		
-		DebugRenderingManager();
-		
-		// void RegisterDebugRenderer(const String& msgName, Renderable* r);
-		
-		// void UnregisterDebugRenderer(const String& msgName);
-		
-		void Render();
-		
-	private:
-		// std::map<String, Renderable*> enabledDebug;
-		// std::map<String, Renderable*> disabledDebug;
-};
+		bool swarmInstalled() { LOGI("please enable swarm !"); return false; }
+		void swarmRegistering(int mode, int difficulty) { LOGI("swarm activated"); }
+		void shareFacebook() { LOGI("facebook share"); }
+		void shareTwitter() { LOGI("twitter share"); }
 
-#define theDebugRenderingManager DebugRenderingManager::Instance()
+		void rateItNow() { ; }
+		void rateItLater() { ; }
+		void rateItNever() { ; }
+};

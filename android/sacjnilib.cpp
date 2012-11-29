@@ -33,12 +33,12 @@
 #include "systems/MusicSystem.h"
 #include "base/TouchInputManager.h"
 #include "base/EntityManager.h"
+#include "base/MathUtil.h"
 
 #include <png.h>
 #include <algorithm>
 
 #include <sys/time.h>
-#define DT 1.0/60.
 
 #ifndef _Included_net_damsy_soupeaucaillou_SacJNILib
 #define _Included_net_damsy_soupeaucaillou_SacJNILib
@@ -52,17 +52,24 @@ struct AndroidNativeTouchState : public NativeTouchState{
 	GameHolder* holder;
 	AndroidNativeTouchState(GameHolder* h) {
 		holder = h;
-		holder->input.touching = 0;
 	}
-	bool isTouching (Vector2* windowCoords) const {
-		windowCoords->X = holder->input.x;
-		windowCoords->Y = holder->input.y;
+    int maxTouchingCount() {
+        return holder->input.size();
+    }
+	bool isTouching (int index, Vector2* windowCoords) const {
+        // map stable order ?
+        std::map<int, GameHolder::__input>::iterator it = holder->input.begin();
+        for (int i=0; i<index && it!=holder->input.end(); ++it, i++) ;
+         
+        if (it == holder->input.end())
+            return false;
 
-		return holder->input.touching;
+		windowCoords->X = it->second.x;
+		windowCoords->Y = it->second.y;
+
+		return it->second.touching;
 	}
 };
-
-void plop();
 
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
@@ -79,10 +86,12 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
 	GameHolder* hld = GameHolder::build();
 	hld->initDone = false;
 
-	hld->openGLESVersion = openglesVersion;
 	theRenderingSystem.assetAPI = &hld->renderThreadJNICtx.asset;
-	theRenderingSystem.opengles2 = (hld->openGLESVersion == 2);
 	theTouchInputManager.setNativeTouchStatePtr(new AndroidNativeTouchState(hld));
+
+    pthread_mutex_init(&hld->mutex, 0);
+    pthread_cond_init(&hld->cond, 0);
+    hld->renderingStarted = hld->drawQueueChanged = false;
 
 	return (jlong)hld;
 }
@@ -150,11 +159,13 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
 	theMusicSystem.init();
 
-	hld->firstCall = true;
 	hld->dtAccumuled = 0;
 
 	hld->game->init(state, size);
 	hld->initDone = true;
+ 
+    hld->game->resetTime();
+    theRenderingSystem.Update(0);
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread
@@ -165,6 +176,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThr
 	LOGW("%s <--", __FUNCTION__);
 }
 
+float bbbefore = 0;
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    step
@@ -177,36 +189,12 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
 	if (!hld->game)
   		return;
 
-  	if (hld->firstCall) {
-		hld->time = TimeUtil::getTime();
-		hld->firstCall = false;
-	}
-
-	float dt;
-	do {
-		dt = TimeUtil::getTime() - hld->time;
-		if (dt < DT) {
-			struct timespec ts;
-			ts.tv_sec = 0;
-			ts.tv_nsec = (DT - dt) * 1000000000LL;
-			nanosleep(&ts, 0);
-		}
-	} while (dt < DT);
-
-	hld->dtAccumuled += dt;
-	hld->time = TimeUtil::getTime();
-
-	const float accum = DT;
-	if (hld->dtAccumuled > 5 * DT) {
-		LOGW("BIG DT: %.3f s", hld->dtAccumuled);
-	}
-
-	while (hld->dtAccumuled >= DT){
-		hld->game->tick(accum);
-		hld->dtAccumuled -= accum;
-	}
+    hld->game->step();
 }
 
+static float tttttt = 0, prev;
+static int frameCount = 0;
+static float minDt = 10, maxDt = 0;
 float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
@@ -216,28 +204,21 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
 
 	if (!hld)
   		return;
-  	hld->firstCall = true;
   	float d = TimeUtil::getTime();
-  	LOGW("resume time: %.3f, diff:%.3f, %d", d, d - pauseTime, theSoundSystem.mute);
-  	if (d - pauseTime <= 5) {
+    hld->game->resetTime();
+	LOGW("resume time: %.3f, diff:%.3f, %d", d, d - pauseTime, theSoundSystem.mute);
+  	if ((d - pauseTime) <= 5) {
 	  	theMusicSystem.toggleMute(theSoundSystem.mute);
   	}
 }
 
-static int frameCount = 0;
-static float tttttt = 0;
-
+float renderingPrevTime = 0;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass, jlong g) {
-  	GameHolder* hld = (GameHolder*) g;
-	theRenderingSystem.render();
-
-	frameCount++;
-	if (frameCount >= 200) {
-		LOGW("fps render: %.2f", 200.0 / (TimeUtil::getTime() - tttttt));
-		tttttt = TimeUtil::getTime();
-		frameCount = 0;
-	}
+    GameHolder* hld = (GameHolder*) g;
+    if (!hld)
+         return;
+    hld->game->render();
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
@@ -286,21 +267,23 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTexture
  * Signature: (JIFF)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
-  (JNIEnv *env, jclass, jlong g, jint evt, jfloat x, jfloat y) {
+  (JNIEnv *env, jclass, jlong g, jint evt, jfloat x, jfloat y, jint pointerIndex) {
 	GameHolder* hld = (GameHolder*) g;
 
 	if (g == 0)
 		return;
+    
+    GameHolder::__input& input = hld->input[pointerIndex];
 
 	/* ACTION_DOWN == 0 | ACTION_MOVE == 2 */
-   if (evt == 0 || evt == 2) {
-   	hld->input.touching = 1;
-    	hld->input.x = x;
-   	hld->input.y = y;
-   }
-   /* ACTION_UP == 1 */
-   else if (evt == 1) {
-    	hld->input.touching = 0;
+    if (evt == 0 || evt == 2) {
+        input.touching = 1;
+    	input.x = x;
+   	    input.y = y;
+    }
+    /* ACTION_UP == 1 */
+    else if (evt == 1) {
+    	input.touching = 0;
    }
 }
 
@@ -342,26 +325,9 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadText
   theRenderingSystem.init();
   theRenderingSystem.reloadTextures();
   theRenderingSystem.reloadEffects();
+  theRenderingSystem.setFrameQueueWritable(true);
   
   LOGW("%s <--", __FUNCTION__);
-}
-
-void plop() {
-	Java_net_damsy_soupeaucaillou_SacJNILib_createGame(0, 0, 0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread(0,0,0,0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderThread(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread(0,0,0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_step(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_render(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_pause(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_back(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTextures(0, 0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent(0,0,0,0, 0, 0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState(0,0,0);
-	Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures(0,0,0);
 }
 
 #ifdef __cplusplus

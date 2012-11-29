@@ -45,7 +45,9 @@
 
 INSTANCE_IMPL(MusicSystem);
 
-MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) { }
+MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), assetAPI(0) {
+    /* nothing saved */
+}
 
 #ifndef EMSCRIPTEN
 static void* _startOggThread(void* arg) {
@@ -69,12 +71,12 @@ void MusicSystem::init() {
 }
 
 void MusicSystem::uninit() {
-#ifndef EMSCRIPTEN
+    #ifndef EMSCRIPTEN
     runDecompLoop = false;
-     pthread_cond_signal(&cond);
+    pthread_cond_signal(&cond);
     pthread_join(oggDecompressionThread, 0);
     LOGW("MusicSystem uninitinalized");
-  #endif
+    #endif
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
@@ -125,16 +127,13 @@ void MusicSystem::stopMusic(MusicComponent* m) {
 
 void MusicSystem::DoUpdate(float dt) {
     if (muted) {
-         for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-            MusicComponent* m = (*jt).second;
+        FOR_EACH_COMPONENT(Music, m)
             stopMusic(m);
         }
         return;
     }
     
-    for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-        MusicComponent* m = (*jt).second;
-
+    FOR_EACH_COMPONENT(Music, m)
 		m->looped = false;
 
 		// Music is not started and is startable => launch opaque[0] player		
@@ -286,10 +285,7 @@ void MusicSystem::DoUpdate(float dt) {
     
 	#ifdef MUSIC_VISU
 	int idx = 0;
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		Entity a = (*it).first;
-		MusicComponent* rc = (*it).second;
-		
+    FOR_EACH_ENTITY_COMPONENT(Music, a, rc)
 		if (visualisationEntities.find(a) == visualisationEntities.end()) {
 			int size = visualisationEntities.size();
 
@@ -439,7 +435,7 @@ void MusicSystem::oggDecompRunLoop() {
 #endif
 
 #ifndef EMSCRIPTEN
-bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount, float dt) {
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount __attribute__((unused)), float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
 	    LOGW("Achtung, musicref : %d not found", m);
@@ -517,8 +513,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 void MusicSystem::toggleMute(bool enable) {
     if (enable && !muted) {
         muted = true;
-        for(std::map<Entity, MusicComponent*>::iterator jt=components.begin(); jt!=components.end(); ++jt) {
-            MusicComponent* m = (*jt).second;
+        FOR_EACH_COMPONENT(Music, m)
             stopMusic(m);
         }
     } else if (!enable && muted) {
@@ -588,7 +583,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.nbSamples = ov_pcm_total(f, -1);
     info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
-    LOGI("(music) File: %s / rate: %d duration: %.3f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
+    LOGI("(music) File: %s / rate: %d duration: %.4f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
     PROFILE("Music", "mutex-section", BeginEvent);
     pthread_mutex_lock(&mutex);
     #ifdef MUSIC_VISU

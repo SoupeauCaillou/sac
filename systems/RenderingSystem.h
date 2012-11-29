@@ -31,6 +31,7 @@
 #include <map>
 #include <set>
 #include <queue>
+#include <list>
 
 #include "base/Vector2.h"
 #include "base/MathUtil.h"
@@ -43,24 +44,6 @@
 
 typedef int TextureRef;
 #define InvalidTextureRef -1
-#define EndFrameMarker -10
-#define DisableZWriteMarker -11
-
-#if !defined(ANDROID) && !defined(EMSCRIPTEN)
-#define CHECK_GL_ERROR
-#endif
-
-#ifdef CHECK_GL_ERROR
-	#define GL_OPERATION(x)	\
-		(x); \
-		RenderingSystem::check_GL_errors(#x);
-#else
-	#define GL_OPERATION(x) \
-		(x);
-#endif
-
-#undef GLES2_SUPPORT
-#define GLES2_SUPPORT
 
 #ifdef EMSCRIPTEN
 #define USE_VBO
@@ -70,20 +53,22 @@ typedef int EffectRef;
 #define DefaultEffectRef -1
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), opaqueType(NON_OPAQUE) {}
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
 
 	TextureRef texture;
 	EffectRef effectRef;
 	Color color;
-	bool hide;
+	bool hide, mirrorH;
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
 		OPAQUE_ABOVE,
-		OPAQUE_UNDER
+		OPAQUE_UNDER,
+		OPAQUE_CENTER,
 	} ;
 	Opacity opaqueType;
 	float opaqueSeparation; // €[0, 1], meaning depends of opaqueType
+    unsigned cameraBitMask;
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
@@ -110,21 +95,28 @@ void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 public:
 AssetAPI* assetAPI;
 
-static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
-GLuint compileShader(const std::string& assetName, GLuint type);
-
-bool isEntityVisible(Entity e);
-bool isVisible(TransformationComponent* tc);
+bool isEntityVisible(Entity e, int cameraIndex = -1);
+bool isVisible(const TransformationComponent* tc, int cameraIndex = -1);
 
 void reloadTextures();
 void reloadEffects();
-bool opengles2;
 
 void render();
+void waitDrawingComplete();
 
 public:
 int windowW, windowH;
 float screenW, screenH;
+
+struct Camera {
+    Camera() {}
+    Camera(const Vector2& pWorldPos, const Vector2& pWorldSize, const Vector2& pScreenPos, const Vector2& pScreenSize) :
+        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize), enable(true), mirrorY(false) {}
+    Vector2 worldPosition, worldSize;
+    Vector2 screenPosition, screenSize;
+    bool enable, mirrorY;
+};
+
 /* textures cache */
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
@@ -133,9 +125,6 @@ struct InternalTexture {
 	GLuint color;
 	GLuint alpha;
 
-	/*void operator=(GLuint r) {
-		color = alpha = r;
-	}*/
 	bool operator==(const InternalTexture& t) const {
 		return color == t.color && alpha == t.alpha;
 	}
@@ -162,14 +151,13 @@ struct RenderCommand {
 	Color color;
 	Vector2 position;
 	float rotation;
+    bool mirrorH;
 };
 
 struct RenderQueue {
-	RenderQueue() : frameToRender(0) {}
-	int frameToRender;
-	std::queue<RenderCommand> commands;
-
-	void removeFrames(int count);
+	RenderQueue() : count(0) {}
+	uint16_t count;
+	RenderCommand commands[512];
 };
 
 struct TextureInfo {
@@ -177,8 +165,10 @@ struct TextureInfo {
 	unsigned int rotateUV;
 	Vector2 uv[2];
 	int atlasIndex;
+	Vector2 size;
+    Vector2 opaqueStart, opaqueSize;
 
-	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, int atlasIdx = -1);
+	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero, int atlasIdx = -1);
 };
 struct Atlas {
 	std::string name;
@@ -190,9 +180,11 @@ std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
+std::vector<Camera> cameras;
 
+bool newFrameReady, frameQueueWritable;
 int currentWriteQueue;
-RenderQueue renderQueue[2]; //
+RenderQueue renderQueue[2];
 #ifdef USE_VBO
 public:
 GLuint squareBuffers[3];
@@ -200,15 +192,15 @@ private:
 #endif
 
 #ifndef EMSCRIPTEN
-pthread_mutex_t mutexes;
-pthread_cond_t cond;
+pthread_mutex_t mutexes[3];
+pthread_cond_t cond[2];
 #endif
 
 struct Shader {
 	GLuint program;
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 	#ifdef USE_VBO
-	GLuint uniformUVScaleOffset, uniformRotation;
+	GLuint uniformUVScaleOffset, uniformRotation, uniformScale;
 	#endif
 };
 
@@ -231,22 +223,20 @@ std::vector<NotifyInfo> notifyList;
 #endif
 
 private:
+static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
+GLuint compileShader(const std::string& assetName, GLuint type);
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
-void drawRenderCommands(std::queue<RenderCommand>& commands, bool opengles2);
+void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color);
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
-enum {
-    ATTRIB_VERTEX = 0,
-    ATTRIB_UV,
-	ATTRIB_POS_ROT,
-	ATTRIB_SCALE,
-    NUM_ATTRIBS
-};
-
+const Vector2& getTextureSize(const std::string& textureName) const;
+void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;
+
+void setFrameQueueWritable(bool b);
 };

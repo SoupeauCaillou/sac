@@ -94,7 +94,7 @@ def area(size):
 def __s2m(s):
 	tab = []
 	for i in range(im.size[0]):
-		new = [s[i,j][3]==0 for j in range(im.size[1])]
+		new = [s[i,j][3]<255 for j in range(im.size[1])]
 		tab.append(new)
 	return tab
 		
@@ -105,9 +105,12 @@ if __name__=="__main__":
 	else:
 		im = Image.open(str(sys.argv[1]))
 		
+		# m[0] is the size of the rect, m[1] the top left corner point
 		m = max_size(__s2m(im.load()))
-
-		print m[1][0]+1,",", m[1][1],",", m[0][0]+m[1][0],",", m[0][1]+m[1][1]-1
+		
+		# return the rectangle only if hes > 10% of the total size
+		if ( m[0][0] * m[0][1] > 0.10 * im.size[0] * im.size[1] ):
+			print m[1][0]+1,",", m[1][1]+1,",", m[0][0]+m[1][0],",", m[0][1]+m[1][1]-1
 		
 	
 	

@@ -20,23 +20,67 @@
 #include <ctype.h>
 #include <sstream>
 
+static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed );
+
+struct CacheKey {
+    Color color;
+    float charHeight;
+    float positioning;
+    bool hide;
+    int flags;
+    struct {
+        bool show;
+        float speed;
+        float dt;
+    } caret;
+    unsigned cameraBitMask;
+    char textFont[2048];
+
+    unsigned populate(TextRenderingComponent* tc) {
+        color = tc->color;
+        charHeight = tc->charHeight;
+        positioning = tc->positioning;
+        hide = tc->hide;
+        flags = tc->hide;
+        memcpy(&caret, &tc->caret, sizeof(caret));
+        cameraBitMask = tc->cameraBitMask;
+        int length = tc->text.length();
+        memcpy(textFont, tc->text.c_str(), length);
+        memcpy(&textFont[length], tc->fontName.c_str(), tc->fontName.length());
+        length += tc->fontName.length();
+        return sizeof(CacheKey) - 2048 + length;
+    }
+};
+
 const float TextRenderingComponent::LEFT = 0.0f;
 const float TextRenderingComponent::CENTER = 0.5f;
 const float TextRenderingComponent::RIGHT = 1.0f;
 
+const char InlineImageDelimiter = 0x97;
 
 INSTANCE_IMPL(TextRenderingSystem);
 
 TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
-
+    /* nothing saved */
 }
 
 
-Entity createRenderingEntity() {
+static Entity createRenderingEntity() {
 	Entity e = theEntityManager.CreateEntity();
 	ADD_COMPONENT(e, Transformation);
 	ADD_COMPONENT(e, Rendering);
 	return e;
+}
+
+static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h) {
+    int idx0 = s.find(',');
+    int idx1 = s.find(',', idx0 + 1);
+    if (image)
+        *image = s.substr(0, idx0);
+    if (w)
+        *w = atof(s.substr(idx0 + 1, idx1 - idx0).c_str());
+    if (h)
+        *h = atof(s.substr(idx1 + 1, s.length() - idx1).c_str());
 }
 
 static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t to, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
@@ -48,7 +92,19 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
 	}
 	for (unsigned int i=from; i<to; i++) {
 		char letter = trc->text[i];
-		if (letter != (char)0xC3 && letter != '\n') {
+		if (letter == (char)0xC3 || letter == (char)0xC2) {
+            letter = trc->text[i+1];
+            if (letter == InlineImageDelimiter) {
+                // looks for next delimiter
+                unsigned int end = trc->text.find(InlineImageDelimiter, i+2);
+                float w = 0;
+                parseInlineImageString(trc->text.substr(i+2, end - 1 - (i+2) + 1), 0, &w, 0);
+                width += w * charHeight;
+                i = end;
+            }
+        } else if (letter == '\n') {
+            continue;
+        } else {
 			width += charH2Wratio[trc->text[i]] * charHeight;
 		}
 	}
@@ -71,13 +127,24 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
 }
 
 void TextRenderingSystem::DoUpdate(float dt) {
+    CacheKey key;
 	/* render */
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		TextRenderingComponent* trc = (*it).second;
+    FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
+        // compute cache entry
+        if (trc->blink.onDuration == 0) {
+            unsigned keySize = key.populate(trc);
+            unsigned hash = MurmurHash2(&key, keySize, 0x12345678);
+            std::map<Entity, unsigned int>::iterator c = cache.find(entity);
+            if (c != cache.end()) {
+                if (hash == (*c).second)
+                    continue;
+            }
+            cache[entity] = hash;
+        }
 
 		// early quit if hidden
 		if (trc->hide) {
-			for (int i=0; i<trc->drawing.size(); i++) {
+			for (unsigned i = 0; i < trc->drawing.size(); i++) {
 				RENDERING(trc->drawing[i])->hide = true;
 				renderingEntitiesPool.push_back(trc->drawing[i]);
 			}
@@ -85,7 +152,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			continue;
 		}
 
-		TransformationComponent* trans = TRANSFORM(it->first);
+		TransformationComponent* trans = TRANSFORM(entity);
 		bool caret = false;
 		// caret blink
 		if (trc->caret.speed > 0) {
@@ -97,6 +164,21 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			caret = true;
 			trc->text.push_back('_');
 		}
+        if (trc->blink.onDuration > 0) {
+            if (trc->blink.accum >= 0) {
+                trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, trc->blink.onDuration);
+                trc->color.a = 1.0f;
+                if (trc->blink.accum == trc->blink.onDuration) {
+                    trc->blink.accum = -trc->blink.offDuration;
+                }
+            } else {
+                trc->blink.accum += dt;
+                trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, 0.0f);
+                trc->color.a = 0;
+                if (trc->blink.accum >= 0)
+                    trc->blink.accum = 0;
+            }
+        }
 
 		const unsigned int length = trc->text.length();
 
@@ -113,13 +195,15 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		
 		float x = (trc->flags & TextRenderingComponent::MultiLineBit) ? 
 			(trans->size.X * -0.5) : computeStartX(trc, charHeight, charH2Wratio);
+		
 		float y = 0;
 		const float startX = x;
 		bool newWord = true;
-		
+        unsigned count = 0;
+      
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
-			if (i >= trc->drawing.size()) {
+			if (count >= trc->drawing.size()) {
 				if (renderingEntitiesPool.size() > 0) {
 					trc->drawing.push_back(renderingEntitiesPool.back());
 					renderingEntitiesPool.pop_back();					
@@ -128,10 +212,13 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				}
 			}
 
-			RenderingComponent* rc = RENDERING(trc->drawing[i]);
-			TransformationComponent* tc = TRANSFORM(trc->drawing[i]);
-			tc->parent = it->first;
+			RenderingComponent* rc = RENDERING(trc->drawing[count]);
+			TransformationComponent* tc = TRANSFORM(trc->drawing[count]);
+			tc->parent = entity;
+            tc->z = 0.001; // put text in front
+            tc->worldPosition = trans->worldPosition;
 			rc->hide = trc->hide;
+            rc->cameraBitMask = trc->cameraBitMask;
 
 			if (rc->hide)
 				continue;
@@ -163,21 +250,29 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					x = startX;
 				}
 			}
-
 			std::stringstream a;
 			char letter = trc->text[i];
-			bool hack = false;
+			bool inlineImage = false;
+            int skip = -1;
 			// Unicode control caracter, skipping
-			if (letter == (char)0xC3) {
+			if (letter == (char)0xC3 || letter == (char)0xC2) {
 				rc->hide = true;
 				continue;
 			} else {
 				int l = (int) ((letter < 0) ? (unsigned char)letter : letter);
-				if (l == 0x97) {
-					a << "swarm_icon";
-					hack = true;
+				if (letter == InlineImageDelimiter) {
+                    std::string texture;
+					inlineImage = true;
+                    int next = trc->text.find(InlineImageDelimiter, i+1);
+                    parseInlineImageString(
+                        trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.X, &tc->size.Y);
+                    a << texture;
+                    tc->size.X *= charHeight;
+                    tc->size.Y *= charHeight;
+                    skip = next;
 				} else {
 					a << l << "_" << trc->fontName;
+                    tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
 				}
 			}
 
@@ -185,23 +280,26 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				rc->hide = true;
 			} else {
 				rc->texture = theRenderingSystem.loadTextureFile(a.str());
-				if (!hack) rc->color = trc->color;
+				if (!inlineImage) rc->color = trc->color;
 				else rc->color = Color();
 			}
-			tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
+            count++;
 			x += tc->size.X * 0.5;
-			tc->position = Vector2(x, y);
+			tc->position = Vector2(x, y + (inlineImage ? tc->size.Y * 0.25 : 0));
 			x += tc->size.X * 0.5;
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * charHeight * 0.75;
 			}
+         
+            if (skip >= 0) {
+                i = skip;
+            }
 		}
-		for(unsigned int i=trc->text.length(); i < trc->drawing.size(); i++) {
+		for(unsigned int i = count; i < trc->drawing.size(); i++) {
 			RENDERING(trc->drawing[i])->hide = true;
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
-		// trans->size = Vector2::Zero;
-		trc->drawing.resize(trc->text.length());
+		trc->drawing.resize(count);
 		
 		if (caret) {
 			trc->text.resize(trc->text.length() - 1);	
@@ -226,9 +324,62 @@ void TextRenderingSystem::DeleteEntity(Entity e) {
 	if (!tc)
 		return;
 	for (unsigned int i=0; i<tc->drawing.size(); i++) {
+        TRANSFORM(tc->drawing[i])->parent = 0;
 		renderingEntitiesPool.push_back(tc->drawing[i]);
 		RENDERING(tc->drawing[i])->hide = true;
 	}
 	tc->drawing.clear();
 	theEntityManager.DeleteEntity(e);
+}
+
+// MurmurHash2, by Austin Appleby
+static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed )
+{
+ // 'm' and 'r' are mixing constants generated offline.
+ // They're not really 'magic', they just happen to work well.
+
+ const unsigned int m = 0x5bd1e995;
+ const int r = 24;
+
+ // Initialize the hash to a 'random' value
+
+ unsigned int h = seed ^ len;
+
+ // Mix 4 bytes at a time into the hash
+
+ const unsigned char * data = (const unsigned char *)key;
+
+ while(len >= 4)
+ {
+     unsigned int k = *(unsigned int *)data;
+
+     k *= m; 
+     k ^= k >> r; 
+     k *= m; 
+     
+     h *= m; 
+     h ^= k;
+
+     data += 4;
+     len -= 4;
+ }
+ 
+ // Handle the last few bytes of the input array
+
+ switch(len)
+ {
+ case 3: h ^= data[2] << 16;
+ case 2: h ^= data[1] << 8;
+ case 1: h ^= data[0];
+         h *= m;
+ };
+
+ // Do a few final mixes of the hash to ensure the last few
+ // bytes are well-incorporated.
+
+ h ^= h >> 13;
+ h *= m;
+ h ^= h >> 15;
+
+ return h;
 }

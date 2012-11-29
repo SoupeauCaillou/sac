@@ -21,19 +21,19 @@
 INSTANCE_IMPL(TaskAISystem);
 
 TaskAISystem::TaskAISystem() : ComponentSystemImpl<TaskAIComponent>("TaskAI") {
+    /* nothing saved */
 }
 
 void TaskAISystem::DoUpdate(float dt) {
-	for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-		TaskAIComponent* tc = (*it).second;
+    FOR_EACH_ENTITY_COMPONENT(TaskAI, entity, tc)
 		
 		if (!tc->taskToPerform.empty()) {
 			// update first
-			TaskAI* task = tc->taskToPerform[0]->update(it->first, dt);
+			TaskAI* task = tc->taskToPerform[0]->update(entity, dt);
 			
 			if (task) {
 				tc->taskToPerform.insert(tc->taskToPerform.begin(), task);
-			} else if (tc->taskToPerform[0]->complete(it->first)) {
+			} else if (tc->taskToPerform[0]->complete(entity)) {
 				delete tc->taskToPerform[0];
 				tc->taskToPerform.erase(tc->taskToPerform.begin());
 			}

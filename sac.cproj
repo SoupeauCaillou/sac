@@ -37,7 +37,6 @@
     <Compile Include="systems\ADSRSystem.cpp" />
     <Compile Include="systems\ButtonSystem.cpp" />
     <Compile Include="systems\ContainerSystem.cpp" />
-    <Compile Include="systems\DebugRenderingManager.cpp" />
     <Compile Include="systems\RenderingSystem.cpp" />
     <Compile Include="systems\RenderingSystem_Render.cpp" />
     <Compile Include="systems\RenderingSystem_Texture.cpp" />
@@ -87,6 +86,22 @@
     <Compile Include="api\android\SuccessAPIAndroidImpl.cpp" />
     <Compile Include="base\Game.cpp" />
     <Compile Include="base\Profiler.cpp" />
+    <Compile Include="systems\AutonomousAgentSystem.cpp" />
+    <Compile Include="steering\BasicSteeringBehavior.cpp" />
+    <Compile Include="systems\AnimationSystem.cpp" />
+    <Compile Include="systems\NetworkSystem.cpp" />
+    <Compile Include="api\linux\NetworkAPILinuxImpl.cpp" />
+    <Compile Include="tools\lobby\LobbyServer.cpp" />
+    <Compile Include="systems\AutoDestroySystem.cpp" />
+    <Compile Include="util\Serializer.cpp" />
+    <Compile Include="tests\util\TestSerializer.cpp" />
+    <Compile Include="tools\opaqueboxfinder\opaqueboxfinder.cpp" />
+    <Compile Include="tests\systems\TestTextRenderingSystem.cpp" />
+    <Compile Include="api\android\VibrateAPIAndroidImpl.cpp" />
+    <Compile Include="api\linux\VibrateAPILinuxImpl.cpp" />
+    <Compile Include="api\android\CommunicationAPIAndroidImpl.cpp" />
+    <Compile Include="util\Recorder.cpp" />
+    <Compile Include="util\LevelEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -98,7 +113,6 @@
     <None Include="systems\ADSRSystem.h" />
     <None Include="systems\ButtonSystem.h" />
     <None Include="systems\ContainerSystem.h" />
-    <None Include="systems\DebugRenderingManager.h" />
     <None Include="systems\RenderingSystem.h" />
     <None Include="systems\SoundSystem.h" />
     <None Include="systems\System.h" />
@@ -120,23 +134,6 @@
     <None Include="api\linux\AssetAPILinuxImpl.h" />
     <None Include="api\linux\MusicAPILinuxOpenALImpl.h" />
     <None Include="build\android\Android.mk" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\api\linux\AssetAPILinuxImpl.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\EntityManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\Log.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\MathUtil.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\PlacementHelper.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\SqlExporter.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\TimeUtil.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\TouchInputManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\base\Vector2.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ADSRSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\ContainerSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\DebugRenderingManager.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\MorphingSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\PhysicsSystem.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\System.cpp.o" />
-    <None Include="build\cmake\CMakeFiles\sac.dir\__\__\systems\TransformationSystem.cpp.o" />
-    <None Include="build\cmake\libsac.a" />
     <None Include="libs\build\android\libpng\Android.mk" />
     <None Include="libs\build\android\tremor\Android.mk" />
     <None Include="api\android\AssetAPIAndroidImpl.h" />
@@ -165,9 +162,30 @@
     <None Include="api\SuccessAPI.h" />
     <None Include="base\Game.h" />
     <None Include="base\Profiler.h" />
+    <None Include="systems\AutonomousAgentSystem.h" />
+    <None Include="steering\SteeringBehavior.h" />
+    <None Include="systems\AnimationSystem.h" />
+    <None Include="api\NetworkAPI.h" />
+    <None Include="systems\NetworkSystem.h" />
+    <None Include="api\linux\NetworkAPILinuxImpl.h" />
+    <None Include="systems\AutoDestroySystem.h" />
+    <None Include="util\Serializer.h" />
+    <None Include="build\cmake\CMakeLists.txt" />
+    <None Include="util\Serializer.hpp" />
+    <None Include="systems\RenderingSystem_Private.h" />
+    <None Include="api\VibrateAPI.h" />
+    <None Include="api\linux\VibrateAPILinuxImpl.h" />
+    <None Include="api\android\VibrateAPIAndroidImpl.h" />
+    <None Include="api\CommunicationAPI.h" />
+    <None Include="api\android\CommunicationAPIAndroidImpl.h" />
+    <None Include="util\Recorder.h" />
+    <None Include="util\LevelEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
     <Folder Include="util\" />
+    <Folder Include="steering\" />
+    <Folder Include="tools\lobby\" />
+    <Folder Include="build\cmake\" />
   </ItemGroup>
 </Project>

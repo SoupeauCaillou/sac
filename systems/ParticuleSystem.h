@@ -26,9 +26,11 @@
 #include "System.h"
 
 #include <vector>
+#include <list>
 
 struct ParticuleComponent {
-    float emissionRate;
+	ParticuleComponent() : emissionRate(0), duration(-1), texture(InvalidTextureRef), spawnLeftOver(0) {}
+    float emissionRate, duration;
     TextureRef texture;
     Interval<float> lifetime;
     Interval<Color> initialColor;
@@ -44,7 +46,6 @@ struct ParticuleComponent {
 
 struct InternalParticule {
     Entity e;
-    TextureRef texture;
     float time, lifetime;
     Interval<Color> color;
     Interval<float> size;
@@ -55,7 +56,7 @@ struct InternalParticule {
 UPDATABLE_SYSTEM(Particule)
 
 private:
-    InternalParticule* particules;
+    std::list<InternalParticule> particules;
     int minUsedIdx, maxUsedIdx;
 };
 

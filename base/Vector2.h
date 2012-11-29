@@ -161,7 +161,7 @@ struct Vector2
 	 * Normalizes a vector in place -- retains its direction, but ensures
 	 *  that its magnitude is equal to 1.0. 
 	 */
-	void Normalize();
+	float Normalize();
 	
 	/**
 	 * Get the normalized value for a Vector2 without affecting the original. 
@@ -242,10 +242,12 @@ struct Vector2
 	Vector2 operator+(const Vector2 &v) const;
 	Vector2 operator/(float divider) const;
 	Vector2 operator*(float scaleFactor) const;
+    Vector2 operator*(const Vector2& v) const;
 
     Vector2& operator+=(const Vector2 &v);
     Vector2& operator-=(const Vector2 &v);
     Vector2& operator*=(float f);
+    Vector2& operator*=(const Vector2& v);
     Vector2& operator/=(float f);
     
     bool operator<(const Vector2& v) const {
