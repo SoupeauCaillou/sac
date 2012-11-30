@@ -26,14 +26,14 @@ import com.swarmconnect.SwarmActivity;
 
 public abstract class SacActivity extends SwarmActivity {
 	public Object mutex;
-	public long game = 0 ;
+	public long game = 0;
 	public boolean runGameLoop;
 	public byte[] savedState;
 	public boolean isRunning;
 	public boolean requestPausedFromJava, backPressed;
 	public GLSurfaceView mGLView;
 	final public int openGLESVersion = 2;
-	SacRenderer renderer;
+	protected SacRenderer renderer;
 	PowerManager.WakeLock wl;
 
 	public Vibrator vibrator;
@@ -59,7 +59,7 @@ public abstract class SacActivity extends SwarmActivity {
 	float factor = 1.f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
-		//Log.i("Sac", "-> onCreate [" + savedInstanceState);
+		android.util.Log.i("sac", "-> onCreate [" + savedInstanceState);
         super.onCreate(savedInstanceState);
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
@@ -155,7 +155,8 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     protected void onPause() {
-    	//Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
+    	android.util.Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
+    	SacJNILib.stopRendering();
     	synchronized (mGLView) {
 	       	if (renderer != null) {
 	       		// must be done before super.pause()
@@ -201,7 +202,7 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-    	//NOLOGLog.i(HeriswapActivity.Tag, "Activity LifeCycle ##### ON SAVE INSTANCE");
+    	android.util.Log.i("sac", "Activity LifeCycle ##### ON SAVE INSTANCE");
     	if (game == 0)
     		return; 
     	/* save current state; we'll be used only if app get killed */
@@ -252,11 +253,6 @@ public abstract class SacActivity extends SwarmActivity {
     		return true;
     	}
     	return super.onTouchEvent(event);
-    }
-
-    @Override
-    public void onBackPressed() {
-    	backPressed = true;
     }
 
     @Override

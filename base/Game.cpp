@@ -60,10 +60,7 @@ Game::Game() {
 }
 
 Game::~Game() {
-    LOGW("Delete game instance %p", this);
-    theEntityManager.deleteAllEntities();
     EntityManager::DestroyInstance();
-
     TransformationSystem::DestroyInstance();
     RenderingSystem::DestroyInstance();
     SoundSystem::DestroyInstance();
