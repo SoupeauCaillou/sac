@@ -41,9 +41,9 @@ public class SacJNILib {
 	public static native void uninitFromGameThread(long game);
 
 	public static native void step(long game);
-
+ 
 	public static native void resetTimestep(long game);
-
+	public static native void stopRendering();
 	public static native void render(long game);
 
 	public static native void pause(long game);
