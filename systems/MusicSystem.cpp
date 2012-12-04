@@ -137,7 +137,7 @@ void MusicSystem::DoUpdate(float dt) {
 		m->looped = false;
 
 		// Music is not started and is startable => launch opaque[0] player		
-        if (m->control == MusicComponent::Start && m->music != InvalidMusicRef && !m->opaque[0]) {
+        if (m->control == MusicControl::Play && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
             m->opaque[0] = startOpaque(m, m->music, m->master, 0);            	
             if (m->opaque[1]) {
@@ -148,7 +148,7 @@ void MusicSystem::DoUpdate(float dt) {
 				m->loopNext = m->previousEnding = InvalidMusicRef;
             }
             m->opaque[1] = 0;
-        } else if (m->control == MusicComponent::Stop && m->opaque[0]) {
+        } else if (m->control == MusicControl::Stop && m->opaque[0]) {
 	        if (m->fadeOut > 0) {
 		        const float step = dt / m->fadeOut;
 		        if (m->volume > step) {
@@ -260,7 +260,7 @@ void MusicSystem::DoUpdate(float dt) {
             }
 		}
 
-        if (!m->opaque[0] && m->control == MusicComponent::Start && m->master && m->loopNext != InvalidMusicRef) {
+        if (!m->opaque[0] && m->control == MusicControl::Play && m->master && m->loopNext != InvalidMusicRef) {
 	        if (m->master->looped) {
 		        LOGI("(music) Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
 		        m->music = m->loopNext;
@@ -356,7 +356,7 @@ void MusicSystem::DoUpdate(float dt) {
 	         TEXT_RENDERING(f)->hide = true;
          }
          
-		if (rc->control == MusicComponent::Stop) {
+		if (rc->control == MusicControl::Stop) {
 			RENDERING(e)->color = RENDERING(f)->color = Color(0.3, 0, 0, 0.5);
 		} else if (rc->opaque[0]) {
 			if (rc->loopNext != InvalidMusicRef) {
