@@ -149,20 +149,27 @@ void Game::backPressed() {
 	#endif
 }
 		
-void Game::togglePause(bool activate __attribute__((unused))) {}
-		
 int Game::saveState(uint8_t** out __attribute__((unused))) {
     theRenderingSystem.setFrameQueueWritable(false);
 	return 0;
 }
 
+const float DDD = 1.0/60.f;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
     theRenderingSystem.waitDrawingComplete();
 
-    const float t = TimeUtil::getTime();
+    float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
-    if (/*true ||*/ delta > 0.008) {
+
+    if (true || delta > 0.008) {
+        #if 0
+        if (delta < DDD) {
+            t += (DDD - delta);
+            delta = DDD;
+        }
+        #endif
+        
         theTouchInputManager.Update(delta);
         #ifdef ENABLE_PROFILING
         std::stringstream framename;

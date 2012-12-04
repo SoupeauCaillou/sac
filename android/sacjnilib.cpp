@@ -235,6 +235,15 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
 	LOGW("%s <-- %.3f", __FUNCTION__, pauseTime);
 }
 
+JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBackEvent
+  (JNIEnv *env, jclass, jlong g) {
+    GameHolder* hld = (GameHolder*) g;
+    LOGW("%s -->", __FUNCTION__);
+    bool res = (hld->game ? hld->game->willConsumeBackEvent() : false);
+    LOGW("%s <-- ", __FUNCTION__);
+    return res;
+}
+
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
   (JNIEnv *env, jclass, jlong g) {
      LOGW("%s -->", __FUNCTION__);

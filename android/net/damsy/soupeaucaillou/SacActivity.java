@@ -56,7 +56,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract Button getNameInputButton();
 	public void preNameInputViewShow() {}
  
-	float factor = 1.f;
+	float factor = 1.0f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		android.util.Log.i("sac", "-> onCreate [" + savedInstanceState);
@@ -112,11 +112,6 @@ public abstract class SacActivity extends SwarmActivity {
         mGLView = new GLSurfaceView(this);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
         int width = getWindowManager().getDefaultDisplay().getWidth();
-
-        if (width < 1000) {
-        	factor = 0.8f;
-        }
-        factor = 0.8f;
         
         int height = getWindowManager().getDefaultDisplay().getHeight();
         android.view.SurfaceHolder holder = mGLView.getHolder();
@@ -269,5 +264,14 @@ public abstract class SacActivity extends SwarmActivity {
     	super.onDestroy();
     	if (Swarm.isInitialized())
     		Swarm.logOut();
+    }
+    
+    @Override
+    public void onBackPressed() {
+    	if (SacJNILib.willConsumeBackEvent(game)) {
+    		backPressed = true;
+    	} else {
+    		super.onBackPressed();
+    	}
     }
 }

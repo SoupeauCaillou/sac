@@ -50,10 +50,12 @@ class Game {
 
 		virtual void backPressed();
 		
-		virtual void togglePause(bool activate);
-		
 		virtual int saveState(uint8_t** out);
-     
+
+        virtual bool willConsumeBackEvent() { return false; }
+        
+        virtual void togglePause(bool pause) { }
+
         void resetTime();
 		
         float targetDT;
