@@ -35,6 +35,7 @@ struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {
     jmethodID queueMusicData;
     jmethodID startPlaying;
     jmethodID stopPlayer;
+    jmethodID pausePlayer;
     jmethodID getPosition;
     jmethodID setPosition;
     jmethodID setVolume;
@@ -83,6 +84,7 @@ void MusicAPIAndroidImpl::init(JNIEnv* pEnv) {
     datas->queueMusicData = jniMethodLookup(env, datas->javaMusicApi, "queueMusicData", "(Ljava/lang/Object;[BII)[B");
 	datas->startPlaying = jniMethodLookup(env, datas->javaMusicApi, "startPlaying", "(Ljava/lang/Object;Ljava/lang/Object;I)V");
 	datas->stopPlayer = jniMethodLookup(env, datas->javaMusicApi, "stopPlayer", "(Ljava/lang/Object;)V");
+    datas->pausePlayer = jniMethodLookup(env, datas->javaMusicApi, "pausePlayer", "(Ljava/lang/Object;)V");
 	datas->getPosition = jniMethodLookup(env, datas->javaMusicApi, "getPosition", "(Ljava/lang/Object;)I");
 	datas->setPosition = jniMethodLookup(env, datas->javaMusicApi, "setPosition", "(Ljava/lang/Object;I)V");
 	datas->setVolume = jniMethodLookup(env, datas->javaMusicApi, "setVolume", "(Ljava/lang/Object;F)V");
@@ -185,6 +187,14 @@ void MusicAPIAndroidImpl::stopPlayer(OpaqueMusicPtr* _ptr) {
         return;
 
 	env->CallStaticVoidMethod(datas->javaMusicApi, datas->stopPlayer, ptr->audioTrack);
+}
+
+void MusicAPIAndroidImpl::pausePlayer(OpaqueMusicPtr* _ptr) {
+    AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
+    if (!ptr->audioTrack)
+        return;
+
+    env->CallStaticVoidMethod(datas->javaMusicApi, datas->pausePlayer, ptr->audioTrack);
 }
 
 int MusicAPIAndroidImpl::getPosition(OpaqueMusicPtr* _ptr) {
