@@ -159,121 +159,137 @@ void MusicSystem::DoUpdate(float dt) {
 	        } else {
 		        stopMusic(m);
 	        }
+            
+        } else if (m->control == MusicControl::Pause && m->opaque[0]) {
+            musicAPI->pausePlayer(m->opaque[0]);
+            if (m->opaque[1]) {
+                musicAPI->pausePlayer(m->opaque[1]);
+            }
+            m->paused = true;
         }
 
         // playing
-        if (m->opaque[0]) {
-	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
-		        const float step = dt / m->fadeIn;
-		        m->currentVolume += step;
-		        m->currentVolume = MathUtil::Min(m->currentVolume, m->volume);
-		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
-	        } else {
-	        	m->fadeIn = 0;
-	        	if (m->currentVolume != m->volume) {
-		      		// LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
-	            	musicAPI->setVolume(m->opaque[0], m->volume);
-	            	m->currentVolume = m->volume;
-	        	}
-            }
-            // need to queue more data ?
-            #ifndef EMSCRIPTEN
-            feed(m->opaque[0], m->music, 0, dt);
-            #endif
-            m->positionI = musicAPI->getPosition(m->opaque[0]);
-
-            assert (m->music != InvalidMusicRef);
-            #ifndef EMSCRIPTEN
-            int sampleRate0 = musics[m->music].sampleRate;
-            if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
-	        #else
-	        if (!musicAPI->isPlaying(m->opaque[0])) {
-	        #endif
-	            LOGI("(music) %p Player 0 has finished (isPlaying:%d pos:%d m->music:%d)", m, musicAPI->isPlaying(m->opaque[0]), m->positionI, m->music);
-                m->positionI = 0;
-                musicAPI->deletePlayer(m->opaque[0]);
-                m->opaque[0] = 0;
-                // remove m->music from musics
-                clearAndRemoveInfo(m->music);
-                m->music = InvalidMusicRef;
-            }
-
-			// if [0] is valid, and [1] not, and [0] can loop
-            if (m->opaque[0] && !m->opaque[1] && m->loopNext != InvalidMusicRef) {
-                bool loop = false;
-                if (m->master) {
-                    loop = m->master->looped;
-                } else {
-	                #ifndef EMSCRIPTEN
-                    loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
-                    #else
-                    loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
-                    #endif
+        if (m->control == MusicControl::Play) {
+            if (m->opaque[0]) {
+                if (m->paused) {
+                    musicAPI->startPlaying(m->opaque[0], 0, 0);
                 }
-
-                if (loop) {
-	                #ifndef EMSCRIPTEN
-                    LOGI("(music) %p Begin loop (%d >= %d) - m->music:%d becomas loopNext:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->loopNext, m->master);
-                    #endif
-                    m->looped = true;
-                    m->opaque[1] = m->opaque[0];
-                    // memorize ending music 
-                    m->previousEnding = m->music;
-                    // start new loop
-                    m->music = m->loopNext;
-                    // clear new loop selection
-                    m->loopNext = InvalidMusicRef;
-                    
+    	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
+    		        const float step = dt / m->fadeIn;
+    		        m->currentVolume += step;
+    		        m->currentVolume = MathUtil::Min(m->currentVolume, m->volume);
+    		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
+    	        } else {
+    	        	m->fadeIn = 0;
+    	        	if (m->currentVolume != m->volume) {
+    		      		// LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
+    	            	musicAPI->setVolume(m->opaque[0], m->volume);
+    	            	m->currentVolume = m->volume;
+    	        	}
+                }
+                // need to queue more data ?
+                #ifndef EMSCRIPTEN
+                feed(m->opaque[0], m->music, 0, dt);
+                #endif
+                m->positionI = musicAPI->getPosition(m->opaque[0]);
+    
+                assert (m->music != InvalidMusicRef);
+                #ifndef EMSCRIPTEN
+                int sampleRate0 = musics[m->music].sampleRate;
+                if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
+    	        #else
+    	        if (!musicAPI->isPlaying(m->opaque[0])) {
+    	        #endif
+    	            LOGI("(music) %p Player 0 has finished (isPlaying:%d pos:%d m->music:%d)", m, musicAPI->isPlaying(m->opaque[0]), m->positionI, m->music);
+                    m->positionI = 0;
+                    musicAPI->deletePlayer(m->opaque[0]);
+                    m->opaque[0] = 0;
+                    // remove m->music from musics
+                    clearAndRemoveInfo(m->music);
+                    m->music = InvalidMusicRef;
+                }
+    
+    			// if [0] is valid, and [1] not, and [0] can loop
+                if (m->opaque[0] && !m->opaque[1] && m->loopNext != InvalidMusicRef) {
+                    bool loop = false;
                     if (m->master) {
-    	                m->opaque[0] = startOpaque(m, m->music, m->master, 0);
+                        loop = m->master->looped;
                     } else {
-	                    #ifndef EMSCRIPTEN
-    	                int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
-    	                #else
-    	                int offset = 0;
-    	                #endif
-    	                m->opaque[0] = startOpaque(m, m->music, 0, offset);
+    	                #ifndef EMSCRIPTEN
+                        loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
+                        #else
+                        loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
+                        #endif
                     }
-                    
-                    m->positionI = musicAPI->getPosition(m->opaque[0]);
+    
+                    if (loop) {
+    	                #ifndef EMSCRIPTEN
+                        LOGI("(music) %p Begin loop (%d >= %d) - m->music:%d becomas loopNext:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->loopNext, m->master);
+                        #endif
+                        m->looped = true;
+                        m->opaque[1] = m->opaque[0];
+                        // memorize ending music 
+                        m->previousEnding = m->music;
+                        // start new loop
+                        m->music = m->loopNext;
+                        // clear new loop selection
+                        m->loopNext = InvalidMusicRef;
+                        
+                        if (m->master) {
+        	                m->opaque[0] = startOpaque(m, m->music, m->master, 0);
+                        } else {
+    	                    #ifndef EMSCRIPTEN
+        	                int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
+        	                #else
+        	                int offset = 0;
+        	                #endif
+        	                m->opaque[0] = startOpaque(m, m->music, 0, offset);
+                        }
+                        
+                        m->positionI = musicAPI->getPosition(m->opaque[0]);
+                    }
                 }
+            } 
+            
+            if (m->opaque[1]) {
+                if (m->paused) {
+                    musicAPI->startPlaying(m->opaque[1], 0, 0);
+                }
+                assert(m->previousEnding != InvalidMusicRef);
+                if (m->currentVolume != m->volume) {
+                	musicAPI->setVolume(m->opaque[1], m->volume);
+            	}
+            	#ifndef EMSCRIPTEN
+                feed(m->opaque[1], m->previousEnding, 0, dt);
+                if ((m->previousEnding != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->previousEnding].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
+                #else
+                if (!musicAPI->isPlaying(m->opaque[1])) {
+                #endif
+                    musicAPI->deletePlayer(m->opaque[1]);
+                    m->opaque[1] = 0;
+                    // remove m->loopNext from musics
+                    clearAndRemoveInfo(m->previousEnding);
+                    m->previousEnding = InvalidMusicRef;
+                    LOGI("(music) %p Player 1 has finished", m);
+                }
+    		}
+    
+            if (!m->opaque[0] && m->master && m->loopNext != InvalidMusicRef) {
+    	        if (m->master->looped) {
+    		        LOGI("(music) Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
+    		        m->music = m->loopNext;
+    		        if (m->opaque[1]) {
+    			        LOGW("(music) Weird, shouldn't happen");
+    			        musicAPI->deletePlayer(m->opaque[1]);
+    			        clearAndRemoveInfo(m->previousEnding);
+    			        m->previousEnding = InvalidMusicRef;
+                    	m->opaque[1] = 0;
+    		        }
+                    m->loopNext = InvalidMusicRef;
+    		        m->opaque[0] = startOpaque(m, m->music, m->master, 0);
+    	        }
             }
-        } 
-        
-        if (m->opaque[1]) {
-            assert(m->previousEnding != InvalidMusicRef);
-            if (m->currentVolume != m->volume) {
-            	musicAPI->setVolume(m->opaque[1], m->volume);
-        	}
-        	#ifndef EMSCRIPTEN
-            feed(m->opaque[1], m->previousEnding, 0, dt);
-            if ((m->previousEnding != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->previousEnding].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
-            #else
-            if (!musicAPI->isPlaying(m->opaque[1])) {
-            #endif
-                musicAPI->deletePlayer(m->opaque[1]);
-                m->opaque[1] = 0;
-                // remove m->loopNext from musics
-                clearAndRemoveInfo(m->previousEnding);
-                m->previousEnding = InvalidMusicRef;
-                LOGI("(music) %p Player 1 has finished", m);
-            }
-		}
-
-        if (!m->opaque[0] && m->control == MusicControl::Play && m->master && m->loopNext != InvalidMusicRef) {
-	        if (m->master->looped) {
-		        LOGI("(music) Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
-		        m->music = m->loopNext;
-		        if (m->opaque[1]) {
-			        LOGW("(music) Weird, shouldn't happen");
-			        musicAPI->deletePlayer(m->opaque[1]);
-			        clearAndRemoveInfo(m->previousEnding);
-			        m->previousEnding = InvalidMusicRef;
-                	m->opaque[1] = 0;
-		        }
-                m->loopNext = InvalidMusicRef;
-		        m->opaque[0] = startOpaque(m, m->music, m->master, 0);
-	        }
+            m->paused = false;
         }
         
         #ifdef MUSIC_VISU
