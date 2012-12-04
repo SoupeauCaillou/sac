@@ -47,30 +47,28 @@ int Property::deserialize(uint8_t* in, void* object) const {
     return _size;
 }
 
-#ifdef SAC_NETWORK
 EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(Entity)) {
 
 }
 
 unsigned EntityProperty::size(void* object) const {
-    return sizeof(unsigned int);
+    return sizeof(Entity);
 }
 
 int EntityProperty::serialize(uint8_t* out, void* object) const {
     Entity* e = (Entity*) PTR_OFFSET_2_PTR(object, offset);
-    unsigned int guid = theNetworkSystem.entityToGuid(*e);
-    memcpy(out, &guid, sizeof(guid));
-    return sizeof(guid);
+    // unsigned int guid = theNetworkSystem.entityToGuid(*e);
+    memcpy(out, e, sizeof(Entity));
+    return sizeof(Entity);
 }
 
 int EntityProperty::deserialize(uint8_t* in, void* object) const {
-    unsigned int guid;
+    /*unsigned int guid;
     memcpy(&guid, in, sizeof(guid));
-    Entity e = theNetworkSystem.guidToEntity(guid);
-    memcpy(PTR_OFFSET_2_PTR(object, offset), &e, sizeof(e));
-    return sizeof(guid);
+    Entity e = theNetworkSystem.guidToEntity(guid);*/
+    memcpy(PTR_OFFSET_2_PTR(object, offset), in, sizeof(Entity));
+    return sizeof(Entity);
 }
-#endif
 
 StringProperty::StringProperty(unsigned long pOffset) : Property(pOffset, 0) {}
 

@@ -22,6 +22,8 @@
 #include <cstring>
 #include <stdint.h>
 #include "base/MathUtil.h"
+#include "base/Interval.h"
+
 class Property {
     public:
         Property(unsigned long offset, unsigned size);
@@ -34,7 +36,6 @@ class Property {
         unsigned _size;
 };
 
-#ifdef SAC_NETWORK
 class EntityProperty : public Property {
     public:
         EntityProperty(unsigned long offset);
@@ -42,7 +43,6 @@ class EntityProperty : public Property {
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
 };
-#endif
 
 template <typename T>
 class EpsilonProperty : public Property {
@@ -75,6 +75,17 @@ class VectorProperty : public Property {
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
 };
+
+template <typename T>
+class IntervalProperty : public Property {
+    public:
+        IntervalProperty(unsigned long offset);
+        unsigned size(void* object) const;
+        bool different(void* object, void* refObject) const;
+        int serialize(uint8_t* out, void* object) const;
+        int deserialize(uint8_t* in, void* object) const;
+};
+
 
 template <typename T, typename U>
 class MapProperty : public Property {

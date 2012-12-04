@@ -54,6 +54,38 @@ int VectorProperty<T>::deserialize(uint8_t* in, void* object) const {
     return idx;
 }
 
+
+template <typename T>
+IntervalProperty<T>::IntervalProperty(unsigned long offset) : Property(offset, 0) {}
+
+template <typename T>
+unsigned IntervalProperty<T>::size(void* object) const {
+    return 2 * sizeof(T);
+}
+
+template <typename T>
+bool IntervalProperty<T>::different(void* object, void* refObject) const {
+    Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
+    Interval<T>* w = (Interval<T>*) ((uint8_t*)refObject + offset);
+    return v->t1 != w->t1 || v->t2 != w->t2;
+}
+
+template <typename T>
+int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
+    Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
+    memcpy(out, &v->t1, sizeof(T));
+    memcpy(out, &v->t2, sizeof(T));
+    return 2 * sizeof(T);
+}
+
+template <typename T>
+int IntervalProperty<T>::deserialize(uint8_t* in, void* object) const {
+    Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
+    memcpy(&v->t1, in, sizeof(T));
+    memcpy(&v->t2, in + sizeof(T), sizeof(T));
+    return 2 * sizeof(T);
+}
+
 template <typename T, typename U>
 MapProperty<T,U>::MapProperty(unsigned long offset) : Property(offset, 0) {}
 
