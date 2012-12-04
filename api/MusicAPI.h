@@ -38,6 +38,7 @@ class MusicAPI {
         virtual bool isPlaying(OpaqueMusicPtr* ptr)=0;
         virtual void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset)=0;
         virtual void stopPlayer(OpaqueMusicPtr* ptr)=0;
+        virtual void pausePlayer(OpaqueMusicPtr* ptr)=0;
         virtual int getPosition(OpaqueMusicPtr* ptr)=0;
         virtual void setPosition(OpaqueMusicPtr* ptr, int pos)=0;
         virtual void setVolume(OpaqueMusicPtr* ptr, float v)=0;

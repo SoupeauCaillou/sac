@@ -51,7 +51,6 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	const Vector2& size = TRANSFORM(entity)->size;
 
 	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
-
 	if (comp->enabled) {
         if (comp->mouseOver) {
 			if (touching) {
@@ -63,6 +62,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
+                     std::cout << entity << " -> clicked" <<std::endl;
                      
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
@@ -72,12 +72,8 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 				comp->mouseOver = false;
 			}
 		} else {
-			if (touching && !over) {
-				comp->touchStartOutside = true;
-			}
+			comp->touchStartOutside = touching & !over;
 			comp->mouseOver = touching & over;
 		}
 	}
-	if (!touching)
-		comp->touchStartOutside = false;
 }

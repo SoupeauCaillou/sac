@@ -31,6 +31,7 @@ class MusicAPILinuxOpenALImpl : public MusicAPI {
         int initialPacketCount(OpaqueMusicPtr* ptr);
         void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
         void stopPlayer(OpaqueMusicPtr* ptr);
+        void pausePlayer(OpaqueMusicPtr* ptr);
         int getPosition(OpaqueMusicPtr* ptr);
         void setPosition(OpaqueMusicPtr* ptr, int pos);
         void setVolume(OpaqueMusicPtr* ptr, float v);

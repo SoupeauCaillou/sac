@@ -30,7 +30,7 @@ import com.swarmconnect.Swarm;
 public class SacRenderer implements GLSurfaceView.Renderer {
 	SacActivity activity;
 	AssetManager asset; 
-	Thread gameThread;
+	public Thread gameThread;
 	int frameCount = 0;
 	long time;
 	public SacRenderer(SacActivity act, AssetManager asset) {
@@ -70,23 +70,25 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				 
 				activity.savedState = null;
 				initDone = true;
-
+ 
 				while ( activity.isRunning || activity.requestPausedFromJava) {
 					if (activity.runGameLoop) {
 						SacJNILib.step(activity.game);
 						// activity.mGLView.requestRender();
 			  		} else {
-						try {
-							//Log.w("sac", "Game thread sleeping");
-							synchronized (gameThread) {
-								gameThread.wait();
+			  			if (activity.isRunning) {
+							try {
+								android.util.Log.w("sac", "Game thread sleeping");
+								synchronized (gameThread) {
+									gameThread.wait();
+								}
+								if (activity.runGameLoop) {
+									SacJNILib.initFromGameThread(asset, activity.game, null);
+								}
+							} catch (InterruptedException e) {
+	 
 							}
-							if (activity.runGameLoop) {
-								SacJNILib.initFromGameThread(asset, activity.game, null);
-							}
-						} catch (InterruptedException e) {
- 
-						}
+			  			}
 					}
 					
 					if (activity.requestPausedFromJava) {
@@ -98,15 +100,14 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 						activity.backPressed = false;
 					}
 				}
-				//Log.i("sac", "Activity paused - exiting game thread");
+				android.util.Log.i("sac", "Activity paused - exiting game thread");
 				gameThread = null;
-				/*
-				synchronized (TilematchActivity.mutex) {
-					TilematchJNILib.destroyGame(TilematchActivity.game);
-					Log.i(TilematchActivity.Tag, "Clearing game ref");
-					TilematchActivity.game = 0;
+
+				synchronized (activity.mutex) {
+					SacJNILib.destroyGame(activity.game);
+					android.util.Log.i("sac", "Clearing game ref");
+					activity.game = 0;
 				}
-				*/
 			}
 		}); 
     	// gameThread.setPriority(Thread.MAX_PRIORITY);
@@ -157,11 +158,11 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
     	//Log.i("H", "Extensions supported: " + extensions);
     	if (activity.game == 0) {
-    		// Log.i("HeriswapActivity.Tag", "Activity LifeCycle ##### Game instance creation (onSurfaceCreated)");
+    		android.util.Log.i("sac", "Activity LifeCycle ##### Game instance creation (onSurfaceCreated)");
     		initDone = false;
     		activity.game = SacJNILib.createGame(activity.openGLESVersion);
     	} else {
-    		// Log.i("HeriswapActivity.Tag", "Activity LifeCycle ##### Game instance reused (onSurfaceCreated)");
+    		android.util.Log.i("sac", "Activity LifeCycle ##### Game instance reused (onSurfaceCreated)");
     		SacJNILib.invalidateTextures(asset, activity.game);
     		SacJNILib.initAndReloadTextures(activity.game);
     		initDone = true;

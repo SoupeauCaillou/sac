@@ -120,6 +120,15 @@ void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
 #endif
 }
 
+void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
+    OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+#ifndef EMSCRIPTEN
+    AL_OPERATION(alSourcePause(openalptr->source))
+#else
+ Mix_PauseChannel(openalptr->channel);
+#endif
+}
+
 int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     int pos = 0;
