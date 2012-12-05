@@ -25,19 +25,6 @@
 
 INSTANCE_IMPL(ParticuleSystem);
 
-    float emissionRate, duration;
-    TextureRef texture;
-    Interval<float> lifetime;
-    Interval<Color> initialColor;
-    Interval<Color> finalColor;
-    Interval<float> initialSize;
-    Interval<float> finalSize;
-    Interval<float> forceDirection;
-    Interval<float> forceAmplitude;
-    Interval<float> moment;
-    float spawnLeftOver;
-    float mass;
-    
 ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Particule") {
     /* nothing saved */
     minUsedIdx = maxUsedIdx = 0;

@@ -53,8 +53,11 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.b, tc), 0.001));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.a, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(hide, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(mirrorH, tc), sizeof(bool)));
     componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
+    componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
+    
 #if defined(ANDROID) || defined(EMSCRIPTEN)
     #else
     inotifyFd = inotify_init();
