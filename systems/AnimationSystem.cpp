@@ -32,6 +32,8 @@ INSTANCE_IMPL(AnimationSystem);
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") { 
     AnimationComponent tc;
     componentSerializer.add(new StringProperty(OFFSET(name, tc)));
+    componentSerializer.add(new Property(OFFSET(playbackSpeed, tc), sizeof(float)));
+    componentSerializer.add(new Property(OFFSET(loopCount, tc), sizeof(int)));
 }
 
 void AnimationSystem::DoUpdate(float dt) {

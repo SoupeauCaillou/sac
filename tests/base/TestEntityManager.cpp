@@ -45,7 +45,7 @@ TEST(Serialization)
 
 	unsigned eCount = MathUtil::RandomInt(20) + 1;
 	for (unsigned i = 0; i < eCount; i++) {
-		Entity e = theEntityManager.CreateEntity(EntityManager::Persistent);
+		Entity e = theEntityManager.CreateEntity(EntityType::Persistent);
 		ADD_COMPONENT(e, Transformation);
 		TRANSFORM(e)->position = Vector2(i, i);
 	}

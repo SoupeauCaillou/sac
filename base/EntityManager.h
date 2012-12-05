@@ -25,6 +25,12 @@
 #include <list>
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
 
+namespace EntityType {
+    enum Enum {
+        Volatile,
+        Persistent
+    };
+}
 class EntityManager {
 	private:
 		static EntityManager* instance;
@@ -34,13 +40,8 @@ class EntityManager {
 		static void CreateInstance();
 		static void DestroyInstance();
 
-		enum EntityType {
-			Volatile,
-			Persistent
-		};
-
 	public:
-		Entity CreateEntity(EntityType type = Volatile);
+		Entity CreateEntity(EntityType::Enum type = EntityType::Volatile);
 		void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system);
 		void deleteAllEntities();
@@ -57,3 +58,5 @@ class EntityManager {
 #if defined(ANDROID) ||defined(EMSCRIPTEN)
 void* mempcpy(void* dst, const void* src, size_t size);
 #endif
+
+void deleteEntityFunctor(Entity e);

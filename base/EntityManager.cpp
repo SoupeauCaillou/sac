@@ -52,14 +52,14 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(EntityType type) {
+Entity EntityManager::CreateEntity(EntityType::Enum type) {
 	Entity e = nextEntity++;
 
 	switch (type) {
-		case Volatile:
+		case EntityType::Volatile:
 			e &= ~((unsigned long)EntityTypeMask);
 			break;
-		case Persistent:
+		case EntityType::Persistent:
 			e |= EntityTypeMask;
 			break;
 	}
@@ -190,6 +190,11 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			l.push_back(system);
 		}
 		entityComponents[e] = l;
+        LOGI(" - restored entite '%lu' with %lu components", e & ~EntityTypeMask, l.size());
 		nextEntity = MathUtil::Max(nextEntity, e + 1);
 	}
+}
+
+void deleteEntityFunctor(Entity e) {
+    theEntityManager.DeleteEntity(e);
 }

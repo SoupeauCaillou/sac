@@ -53,8 +53,11 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.b, tc), 0.001));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.a, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(hide, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(mirrorH, tc), sizeof(bool)));
     componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
+    componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
+    
 #if defined(ANDROID) || defined(EMSCRIPTEN)
     #else
     inotifyFd = inotify_init();
@@ -403,6 +406,7 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 
 int RenderingSystem::saveInternalState(uint8_t** out) {
 	int size = 0;
+    size += sizeof(int) + cameras.size() * sizeof(Camera);
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		size += (*it).first.length() + 1;
 		size += sizeof(TextureRef);
@@ -411,6 +415,11 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 
 	*out = new uint8_t[size];
 	uint8_t* ptr = *out;
+    int camCount = cameras.size();
+    ptr = (uint8_t*) mempcpy(ptr, &camCount, sizeof(int));
+    for (int i=0; i<camCount; i++) {
+        ptr = (uint8_t*) mempcpy(ptr, &cameras[i], sizeof(Camera));
+    }
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
 		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
@@ -425,6 +434,16 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	nextValidRef = 1;
 	nextEffectRef = 1;
 	int idx = 0;
+    int camCount = 0;
+    cameras.clear();
+    memcpy(&camCount, &in[idx], sizeof(int));
+    idx += sizeof(int);
+    for (int i=0; i<camCount; i++) {
+        Camera cam;
+        memcpy(&cam, &in[idx], sizeof(Camera));
+        idx += sizeof(Camera);
+        cameras.push_back(cam);
+    }
 	while (idx < size) {
 		char name[128];
 		int i=0;
