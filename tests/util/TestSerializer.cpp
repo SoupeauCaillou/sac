@@ -179,3 +179,14 @@ TEST (StructSerializerNoDiff)
     uint8_t* buf;
     CHECK_EQUAL(0, s.serializeObject(&buf, &test1, &test2));
 }
+
+TEST (TestInterval)
+{
+    uint8_t buf[2 * sizeof(float)];
+    Interval<float> i(-0.3, 12.4), j;
+    IntervalProperty<float> ip(0);
+    ip.serialize(buf, &i);
+    ip.deserialize(buf, &j);
+    CHECK_CLOSE(i.t1, j.t1, 0.001);
+    CHECK_CLOSE(i.t2, j.t2, 0.001);
+}

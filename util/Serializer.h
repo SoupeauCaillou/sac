@@ -80,7 +80,6 @@ template <typename T>
 class IntervalProperty : public Property {
     public:
         IntervalProperty(unsigned long offset);
-        unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
