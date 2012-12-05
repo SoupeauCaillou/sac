@@ -58,3 +58,5 @@ class EntityManager {
 #if defined(ANDROID) ||defined(EMSCRIPTEN)
 void* mempcpy(void* dst, const void* src, size_t size);
 #endif
+
+void deleteEntityFunctor(Entity e);

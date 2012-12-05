@@ -194,3 +194,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		nextEntity = MathUtil::Max(nextEntity, e + 1);
 	}
 }
+
+void deleteEntityFunctor(Entity e) {
+    theEntityManager.DeleteEntity(e);
+}
