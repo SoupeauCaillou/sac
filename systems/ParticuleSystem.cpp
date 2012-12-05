@@ -25,11 +25,36 @@
 
 INSTANCE_IMPL(ParticuleSystem);
 
+    float emissionRate, duration;
+    TextureRef texture;
+    Interval<float> lifetime;
+    Interval<Color> initialColor;
+    Interval<Color> finalColor;
+    Interval<float> initialSize;
+    Interval<float> finalSize;
+    Interval<float> forceDirection;
+    Interval<float> forceAmplitude;
+    Interval<float> moment;
+    float spawnLeftOver;
+    float mass;
+    
 ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Particule") {
     /* nothing saved */
-    // particules = new InternalParticule[MAX_PARTICULE_COUNT];
     minUsedIdx = maxUsedIdx = 0;
-    // memset(particules, 0, MAX_PARTICULE_COUNT * sizeof(InternalParticule));
+
+    ParticuleComponent tc;
+    componentSerializer.add(new Property(OFFSET(emissionRate, tc), sizeof(float)));
+    componentSerializer.add(new Property(OFFSET(duration, tc), sizeof(float)));
+    componentSerializer.add(new Property(OFFSET(texture, tc), sizeof(TextureRef)));
+    componentSerializer.add(new IntervalProperty<float>(OFFSET(lifetime, tc)));
+    componentSerializer.add(new IntervalProperty<Color>(OFFSET(initialColor, tc)));
+    componentSerializer.add(new IntervalProperty<Color>(OFFSET(finalColor, tc)));
+    componentSerializer.add(new IntervalProperty<float>(OFFSET(initialSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>(OFFSET(finalSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>(OFFSET(forceDirection, tc)));
+    componentSerializer.add(new IntervalProperty<float>(OFFSET(forceAmplitude, tc)));
+    componentSerializer.add(new IntervalProperty<float>(OFFSET(moment, tc)));
+    componentSerializer.add(new Property(OFFSET(mass, tc), sizeof(float)));
 }
 
 void ParticuleSystem::DoUpdate(float dt) {

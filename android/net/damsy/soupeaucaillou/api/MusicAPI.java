@@ -25,7 +25,7 @@ public class MusicAPI {
 
 			static class Command {
 				static enum Type {
-					Buffer, Play, Stop
+					Buffer, Play, Stop, Pause
 				};
 
 				Type type;
@@ -136,6 +136,10 @@ public class MusicAPI {
 										//track.flush();
 										track.stop();
 										playing = false;
+										break;
+									}
+									case Pause: {
+										track.pause();
 										break;
 									}
 								}
@@ -250,7 +254,8 @@ public class MusicAPI {
 
 		static public void startPlaying(Object o, Object master, int offset) {
 			DumbAndroid dumb = (DumbAndroid) o;
-			dumb.writeThread.start();
+			if (!dumb.playing)
+				dumb.writeThread.start();
 			synchronized (dumb.track) {
 				dumb.playing = true;
 				Command cmd = new Command();
@@ -279,6 +284,16 @@ public class MusicAPI {
 					}
 					dumb.writePendings.clear();
 				}
+				dumb.track.notify();
+			}
+		}
+		
+		static public void pausePlayer(Object o) {
+			DumbAndroid dumb = (DumbAndroid) o;
+			synchronized (dumb.track) {
+				Command cmd = new Command();
+				cmd.type = Type.Pause;
+				dumb.writePendings.add(cmd);
 				dumb.track.notify();
 			}
 		}

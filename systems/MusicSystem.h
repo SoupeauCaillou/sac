@@ -39,10 +39,19 @@ class CircularBuffer;
 
 // #define MUSIC_VISU
 
+namespace MusicControl {
+    enum Enum {
+        Play,
+        Stop,
+        Pause
+    };
+}
+
 struct MusicComponent {
-	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(Stop) {
+	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(MusicControl::Stop) {
 		opaque[0] = opaque[1] = 0;
 		fadeOut = fadeIn = 0;
+        paused = false;
 	}
 
     MusicRef music, loopNext;
@@ -55,10 +64,8 @@ struct MusicComponent {
     #endif
     float fadeOut, fadeIn; // sec
     float volume, currentVolume;
-    bool looped;
-    enum {
-        Start, Stop
-    } control;
+    bool looped, paused;
+    MusicControl::Enum control;
 
     // 2 opaque structure to allow overlapping looping
     struct OpaqueMusicPtr* opaque[2];
