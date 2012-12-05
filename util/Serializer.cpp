@@ -98,6 +98,13 @@ int StringProperty::deserialize(uint8_t* in, void* object) const {
     return length + 1;
 }
 
+Serializer::~Serializer() {
+    for (unsigned i=0; i<properties.size(); i++) {
+        delete properties[i];
+    }
+    properties.clear();
+}
+
 int Serializer::size(void* object) {
     int s = properties.size();
     for (unsigned i=0; i<properties.size(); i++) {

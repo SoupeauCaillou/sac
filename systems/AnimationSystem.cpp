@@ -36,6 +36,12 @@ AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("An
     componentSerializer.add(new Property(OFFSET(loopCount, tc), sizeof(int)));
 }
 
+AnimationSystem::~AnimationSystem() {
+    for(AnimIt it=animations.begin(); it!=animations.end(); ++it) {
+        delete it->second;
+    }
+}
+
 void AnimationSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Animation, a, bc)
         AnimIt jt = animations.find(bc->name);

@@ -99,7 +99,6 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
 JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
   (JNIEnv *env, jclass, jlong g) {
     GameHolder* hld = (GameHolder*) g;
-    theMusicSystem.uninit();
     delete hld->game;
     delete hld;
 }

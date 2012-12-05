@@ -104,6 +104,7 @@ class Serializer {
     std::vector<Property*> properties;
     
     public:
+    ~Serializer();
     void add(Property* p) { properties.push_back(p); }
     int size(void* object);
     int serializeObject(uint8_t* out, void* object, void* refObject = 0);
