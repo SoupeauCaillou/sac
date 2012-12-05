@@ -2,3 +2,7 @@ You'll need to install the following packages to use fully sac engine :
 
 cmake libglew-dev libsqlite3-dev libvorbis-dev libopenal-dev \
 zlib1g-dev libunittest++-dev libglfw-dev libvpx-dev
+
+#To compile on android you'll need at least :
+ia32-libs lib32bz2-1.0  lib32asound2  lib32gcc1  lib32ncurses5  lib32stdc++6  lib32v4l-0  lib32z1 libc6-i386
+
