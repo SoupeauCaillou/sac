@@ -29,6 +29,13 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextV
     /* nothing saved */
 }
 
+SoundSystem::~SoundSystem() {
+    for (std::map<SoundRef, OpaqueSoundPtr*>::iterator it=sounds.begin(); it!=sounds.end(); ++it) {
+        delete it->second;
+    }
+    sounds.clear();
+}
+
 void SoundSystem::init() {
 	nextValidRef = 1;
 	assetSounds.clear();

@@ -94,6 +94,7 @@ struct Game;
 class GameHolder {
 	public:
 	static GameHolder* build();
+    ~GameHolder();
 	
 	Game* game;
 	int width, height;

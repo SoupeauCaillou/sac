@@ -68,6 +68,10 @@ LevelEditor::LevelEditor() {
     datas->mode = EditorMode::Selection;
 }
 
+LevelEditor::~LevelEditor() {
+    delete datas;
+}
+
 void LevelEditor::tick(float dt) {
     Vector2 position;
     int x, y;

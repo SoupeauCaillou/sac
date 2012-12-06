@@ -37,6 +37,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 	nextValidRef = nextEffectRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
+    newFrameReady = false;
 #ifndef EMSCRIPTEN
     pthread_mutex_init(&mutexes[L_RENDER], 0);
     pthread_mutex_init(&mutexes[L_QUEUE], 0);

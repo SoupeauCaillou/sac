@@ -71,6 +71,10 @@ struct AndroidNativeTouchState : public NativeTouchState{
 	}
 };
 
+GameHolder::~GameHolder() {
+    delete gameThreadJNICtx;
+}
+
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    createGame
