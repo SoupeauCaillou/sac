@@ -274,30 +274,34 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                     }
                 }
-                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
-                    // add a smaller full-opaque block at the center
-                    RenderCommand cCenter(c);
-                    modifyR(cCenter, info.opaqueStart, info.opaqueSize);
-                    opaqueCommands.push_back(cCenter);
-                    
-                    const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
-                    const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
-                    RenderCommand cLeft(c);
-                    modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                    semiOpaqueCommands.push_back(cLeft);
-
-                    RenderCommand cRight(c);
-                    modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                    semiOpaqueCommands.push_back(cRight);
-                    
-                    RenderCommand cTop(c);
-                    modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
-                    semiOpaqueCommands.push_back(cTop);
-                    
-                    RenderCommand cBottom(c);
-                    modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
-                    semiOpaqueCommands.push_back(cBottom);
-                    continue;
+                if (info.type == RenderingSystem::TextureInfo::OnlySubRectangle) {
+                    modifyR(c, info.opaqueStart, info.opaqueSize);
+                } else if (info.type == RenderingSystem::TextureInfo::PartialOpaque) {
+                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
+                        // add a smaller full-opaque block at the center
+                        RenderCommand cCenter(c);
+                        modifyR(cCenter, info.opaqueStart, info.opaqueSize);
+                        opaqueCommands.push_back(cCenter);
+                        
+                        const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
+                        const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
+                        RenderCommand cLeft(c);
+                        modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                        semiOpaqueCommands.push_back(cLeft);
+    
+                        RenderCommand cRight(c);
+                        modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                        semiOpaqueCommands.push_back(cRight);
+                        
+                        RenderCommand cTop(c);
+                        modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
+                        semiOpaqueCommands.push_back(cTop);
+                        
+                        RenderCommand cBottom(c);
+                        modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
+                        semiOpaqueCommands.push_back(cBottom);
+                        continue;
+                    }
                 }
              }
              if (c.rotation == 0) {
@@ -305,9 +309,9 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                 float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
                 if (cullLeftX > 0) {
                     if (!c.mirrorH) {
-                        c.uv[0].X = cullLeftX / tc->size.X;
+                        c.uv[0].X += cullLeftX / (2 * c.halfSize.X);
                     }
-                    c.uv[1].X -= cullLeftX / tc->size.X;
+                    c.uv[1].X -= cullLeftX / (2 * c.halfSize.X);
                     c.halfSize.X -= 0.5 * cullLeftX;
                     c.position.X += 0.5 * cullLeftX;
                 }
@@ -315,7 +319,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                 float cullRightX = (c.position.X + c.halfSize.X) - camRight;
                 if (cullRightX > 0) {
                     if (c.mirrorH) {
-                        c.uv[0].X = cullRightX / tc->size.X;
+                        c.uv[0].X += cullRightX / tc->size.X;
                     }
                     c.uv[1].X -= cullRightX / tc->size.X;
                     c.halfSize.X -= 0.5 * cullRightX;

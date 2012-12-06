@@ -167,8 +167,13 @@ struct TextureInfo {
 	int atlasIndex;
 	Vector2 size;
     Vector2 opaqueStart, opaqueSize;
+    enum Type {
+        Default,
+        PartialOpaque,
+        OnlySubRectangle,
+    } type;
 
-	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero, int atlasIdx = -1);
+	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, TextureInfo::Type t = Default, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero, int atlasIdx = -1);
 };
 struct Atlas {
 	std::string name;
