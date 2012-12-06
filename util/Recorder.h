@@ -39,9 +39,7 @@ class Recorder {
 		bool recording;
 		
 		GLuint pboIds[PBO_COUNT];
-		
-		GLubyte *test;
-		
+
 		std::queue<GLubyte*> buf;
 				
 		vpx_codec_ctx_t codec;
