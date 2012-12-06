@@ -21,6 +21,7 @@ import android.widget.RelativeLayout;
 
 import com.chartboost.sdk.ChartBoost;
 import com.chartboost.sdk.ChartBoostDelegate;
+import com.purplebrain.giftiz.sdk.GiftizSDK;
 import com.swarmconnect.Swarm;
 import com.swarmconnect.SwarmActivity;
 
@@ -56,7 +57,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract Button getNameInputButton();
 	public void preNameInputViewShow() {}
  
-	float factor = 1.0f;
+	float factor = .8f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		android.util.Log.i("sac", "-> onCreate [" + savedInstanceState);
@@ -170,6 +171,8 @@ public abstract class SacActivity extends SwarmActivity {
 			}
         }
         Swarm.setInactive(this);
+		GiftizSDK.onResumeMainActivity(this);
+
         //OpenFeint.onPause();
         super.onPause();
     }
@@ -191,7 +194,7 @@ public abstract class SacActivity extends SwarmActivity {
         	}
         }
 
-        //OpenFeint.onResume();
+		GiftizSDK.onResumeMainActivity(this);
         Swarm.setActive(this);
     }
 

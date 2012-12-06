@@ -24,10 +24,16 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
 	public:
 		bool swarmInstalled() { LOGI("please enable swarm !"); return false; }
 		void swarmRegistering(int mode, int difficulty) { LOGI("swarm activated"); }
+
+		void giftizMissionDone() { }
+		int  giftizGetButtonState() { return 0; };
+		void giftizButtonClicked() { };
+
 		void shareFacebook() { LOGI("facebook share"); }
 		void shareTwitter() { LOGI("twitter share"); }
 
-		void rateItNow() { ; }
-		void rateItLater() { ; }
-		void rateItNever() { ; }
+		bool mustShowRateDialog() {}
+		void rateItNow() {  }
+		void rateItLater() {  }
+		void rateItNever() {  }
 };

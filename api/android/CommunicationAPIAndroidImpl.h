@@ -22,14 +22,19 @@
 #include <jni.h>
 
 class CommunicationAPIAndroidImpl : public CommunicationAPI {
-    public:
-         CommunicationAPIAndroidImpl();
-        ~CommunicationAPIAndroidImpl();
-        void init(JNIEnv* env);
-        void uninit();
+	public:
+		CommunicationAPIAndroidImpl();
+		~CommunicationAPIAndroidImpl();
+		void init(JNIEnv* env);
+		void uninit();
 
-        bool swarmInstalled();
-        void swarmRegistering(int mode, int difficulty);
+		bool swarmInstalled();
+		void swarmRegistering(int mode, int difficulty);
+
+		void giftizMissionDone();
+		int  giftizGetButtonState();
+		void giftizButtonClicked();
+
 		void shareFacebook();
 		void shareTwitter();
 
@@ -38,9 +43,9 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI {
 		void rateItLater();
 		void rateItNever();
 
-    private:
-        class CommunicationAPIAndroidImplDatas;
-        CommunicationAPIAndroidImplDatas* datas;
+	private:
+		class CommunicationAPIAndroidImplDatas;
+		CommunicationAPIAndroidImplDatas* datas;
 
 	public :
 		JNIEnv* env;
