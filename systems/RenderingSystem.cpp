@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
@@ -58,7 +40,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
-    
+
 #if defined(ANDROID) || defined(EMSCRIPTEN)
     #else
     inotifyFd = inotify_init();
@@ -125,7 +107,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 void RenderingSystem::init() {
 	const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 	pvrSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
-	
+
 	#ifdef USE_VBO
 	defaultShader = buildShader("default_vbo.vs", "default.fs");
 	defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
@@ -162,7 +144,7 @@ void RenderingSystem::init() {
  #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
-	
+
 #ifdef USE_VBO
 	glGenBuffers(3, squareBuffers);
 GLfloat sqArray[] = {
@@ -248,7 +230,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		if (rc->hide || rc->color.a <= 0 || !ccc) {
     			continue;
     		}
-    
+
     		const TransformationComponent* tc = TRANSFORM(a);
             if (!isVisible(tc, camIdx)) {
                 continue;
@@ -279,7 +261,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     RenderCommand cCenter(c);
                     modifyR(cCenter, info.opaqueStart, info.opaqueSize);
                     opaqueCommands.push_back(cCenter);
-                    
+
                     const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
                     const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
                     RenderCommand cLeft(c);
@@ -289,11 +271,11 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     RenderCommand cRight(c);
                     modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
                     semiOpaqueCommands.push_back(cRight);
-                    
+
                     RenderCommand cTop(c);
                     modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
                     semiOpaqueCommands.push_back(cTop);
-                    
+
                     RenderCommand cBottom(c);
                     modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
                     semiOpaqueCommands.push_back(cBottom);
@@ -322,7 +304,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     c.position.X -= 0.5 * cullRightX;
                 }
             }
-            
+
              switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
@@ -335,7 +317,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     break;
              }
     	}
-    
+
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 
@@ -468,7 +450,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
 		it != nameToEffectRefs.end();
 		++it) {
-		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);		
+		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
 	}
 }
 
@@ -483,13 +465,13 @@ EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
 		result = nextEffectRef++;
 		nameToEffectRefs[name] = result;
 	}
-	
+
 	#ifdef USE_VBO
 	ref2Effects[result] = buildShader("default_vbo.vs", assetName);
 	#else
 	ref2Effects[result] = buildShader("default.vs", assetName);
 	#endif
-	
+
 	return result;
 }
 
@@ -501,7 +483,7 @@ void RenderingSystem::reloadEffects() {
 		ref2Effects[it->second] = buildShader("default_vbo.vs", it->first);
 		#else
 		ref2Effects[it->second] = buildShader("default.vs", it->first);
-		#endif 		
+		#endif
 	}
 }
 

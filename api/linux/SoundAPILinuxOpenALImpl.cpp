@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "SoundAPILinuxOpenALImpl.h"
 #ifndef EMSCRIPTEN
 #ifdef ANDROID
@@ -38,7 +20,7 @@ static void check_AL_errors(const char* context);
      (x); \
      check_AL_errors(#x);
 #else
-#define AL_OPERATION(x) 
+#define AL_OPERATION(x)
 
 #endif
 
@@ -70,7 +52,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 	a << "./assets/";
 #endif
     a << asset;
-   
+
 #ifndef EMSCRIPTEN
     std::string s = a.str();
     const char* nm = s.c_str();
@@ -104,7 +86,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
     AL_OPERATION(alGenBuffers(1, &out->buffer))
     AL_OPERATION(alBufferData(out->buffer, AL_FORMAT_MONO16, data, sizeInBytes, ov_info(&vf, -1)->rate))
-    
+
     delete[] data;
 
     ov_clear(&vf);
@@ -133,7 +115,7 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
         }
     }
 #else
-	Mix_PlayChannel(-1, ptr->sample, 1); 
+	Mix_PlayChannel(-1, ptr->sample, 1);
 	Mix_Volume(-1, MIX_MAX_VOLUME);
 #endif
     return false;

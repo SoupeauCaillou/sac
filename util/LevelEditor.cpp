@@ -1,26 +1,8 @@
-/*
- This file is part of libsac.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
 #include "../base/EntityManager.h"
 #include "../base/TouchInputManager.h"
-#include "../base/PlacementHelper.h"    
+#include "../base/PlacementHelper.h"
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
 #include <GL/glfw.h>
@@ -37,13 +19,13 @@ struct LevelEditor::LevelEditorDatas {
 
     Entity over;
     Entity selected, gallerySelected;
-    
+
     Vector2 lastMouseOverPosition;
     Vector2 selectedOriginalPos;
 
     unsigned activeCameraIndex;
     bool spaceWasPressed;
-    
+
     Entity gallery;
     std::vector<Entity> galleryItems;
 
@@ -89,7 +71,7 @@ void LevelEditor::tick(float dt) {
     int wheelDiff = wheel - prevWheel;
     prevWheel = wheel;
 
-    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE && 
+    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE &&
         glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
         datas->lastMouseOverPosition = position;
     }
@@ -214,15 +196,15 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
         if (wheelDiff) {
             bool shift = glfwGetKey( GLFW_KEY_LSHIFT );
             bool ctrl = glfwGetKey( GLFW_KEY_LCTRL );
-            
+
             if (!shift && !ctrl) {
                 TRANSFORM(selected)->rotation += 2 * wheelDiff * dt;
             } else {
                 if (shift) {
-                    TRANSFORM(selected)->size.X *= (1 + 1 * wheelDiff * dt); 
+                    TRANSFORM(selected)->size.X *= (1 + 1 * wheelDiff * dt);
                 }
                 if (ctrl) {
-                    TRANSFORM(selected)->size.Y *= (1 + 1 * wheelDiff * dt); 
+                    TRANSFORM(selected)->size.Y *= (1 + 1 * wheelDiff * dt);
                 }
             }
         }

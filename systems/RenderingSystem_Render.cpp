@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
@@ -82,7 +64,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
-	
+
 	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
 	if (firstCall) {
 		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
@@ -90,7 +72,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
         GL_OPERATION(glActiveTexture(GL_TEXTURE1))
 		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
 	}
-	
+
 #ifdef USE_VBO
 	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[reverseUV ? 1 : 0]))
 
@@ -98,7 +80,7 @@ static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GL
 	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
 	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
 	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
-	
+
 	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
 	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
 #else
@@ -115,7 +97,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	const Shader& shader = effectRefToShader(ref, _firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
- 
+
     const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
@@ -159,19 +141,19 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             framename << "render-frame-" << (unsigned int)rc.rotateUV;
             PROFILE("Render", framename.str(), InstantEvent);
             #endif
-            
+
             firstCall = true;
             camera.worldPosition = rc.halfSize;
             camera.worldSize = rc.uv[0];
             camera.screenPosition = rc.uv[1];
             camera.screenSize = rc.position;
             camera.mirrorY = rc.effectRef;
-            
+
 			GL_OPERATION(glViewport(
 		        (camera.screenPosition.X - camera.screenSize.X * 0.5 + 0.5) * windowW,
 		        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
 		        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
-        
+
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))

@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "MusicSystem.h"
 #ifdef MUSIC_VISU
 #include "TextRenderingSystem.h"
@@ -142,14 +124,14 @@ void MusicSystem::DoUpdate(float dt) {
         }
         return;
     }
-    
+
     FOR_EACH_COMPONENT(Music, m)
 		m->looped = false;
 
-		// Music is not started and is startable => launch opaque[0] player		
+		// Music is not started and is startable => launch opaque[0] player
         if (m->control == MusicControl::Play && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
-            m->opaque[0] = startOpaque(m, m->music, m->master, 0);            	
+            m->opaque[0] = startOpaque(m, m->music, m->master, 0);
             if (m->opaque[1]) {
 	            musicAPI->stopPlayer(m->opaque[1]);
 				musicAPI->deletePlayer(m->opaque[1]);
@@ -169,7 +151,7 @@ void MusicSystem::DoUpdate(float dt) {
 	        } else {
 		        stopMusic(m);
 	        }
-            
+
         } else if (m->control == MusicControl::Pause && m->opaque[0]) {
             musicAPI->pausePlayer(m->opaque[0]);
             if (m->opaque[1]) {
@@ -238,13 +220,13 @@ void MusicSystem::DoUpdate(float dt) {
                     #endif
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
-                    // memorize ending music 
+                    // memorize ending music
                     m->previousEnding = m->music;
                     // start new loop
                     m->music = m->loopNext;
                     // clear new loop selection
                     m->loopNext = InvalidMusicRef;
-                    
+
                     if (m->master) {
     	                m->opaque[0] = startOpaque(m, m->music, m->master, 0);
                     } else {
@@ -255,12 +237,12 @@ void MusicSystem::DoUpdate(float dt) {
     	                #endif
     	                m->opaque[0] = startOpaque(m, m->music, 0, offset);
                     }
-                    
+
                     m->positionI = musicAPI->getPosition(m->opaque[0]);
                 }
             }
         }
-        
+
         if (m->opaque[1]) {
             if (m->paused && m->control == MusicControl::Play) {
                 musicAPI->startPlaying(m->opaque[1], 0, 0);
@@ -302,15 +284,15 @@ void MusicSystem::DoUpdate(float dt) {
         if (m->control == MusicControl::Play) {
             m->paused = false;
         }
-        
-        
+
+
         #ifdef MUSIC_VISU
         if (m->music != InvalidMusicRef) {
         	m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
         #endif
     }
-    
+
 	#ifdef MUSIC_VISU
 	int idx = 0;
     FOR_EACH_ENTITY_COMPONENT(Music, a, rc)
@@ -348,9 +330,9 @@ void MusicSystem::DoUpdate(float dt) {
 		Entity e = visualisationEntities[a].first;
         Entity f = visualisationEntities[a].second;
 		TRANSFORM(e)->size = Vector2(VisuWidth * 0.5, rc->positionF * PlacementHelper::GimpHeightToScreen(1280));
-		TransformationSystem::setPosition(TRANSFORM(e), 
+		TransformationSystem::setPosition(TRANSFORM(e),
 			Vector2(
-				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth * 2, PlacementHelper::GimpYToScreen(0)), 
+				PlacementHelper::GimpXToScreen(0) + idx * VisuWidth * 2, PlacementHelper::GimpYToScreen(0)),
 			TransformationSystem::NW);
          if (rc->previousEnding != InvalidMusicRef) {
 	        float pF = rc->opaque[1] ? (musicAPI->getPosition(rc->opaque[1]) / (float)musics[rc->previousEnding].nbSamples) : 1;
@@ -363,7 +345,7 @@ void MusicSystem::DoUpdate(float dt) {
          } else {
 			RENDERING(f)->hide = true;
          }
-         
+
          if (rc->music != InvalidMusicRef) {
 	         if (rc->loopNext != InvalidMusicRef) {
 		        TEXT_RENDERING(e)->text = musics[rc->music].name + "}" + musics[rc->loopNext].name;
@@ -383,7 +365,7 @@ void MusicSystem::DoUpdate(float dt) {
          } else {
 	         TEXT_RENDERING(f)->hide = true;
          }
-         
+
 		if (rc->control == MusicControl::Stop) {
 			RENDERING(e)->color = RENDERING(f)->color = Color(0.3, 0, 0, 0.5);
 		} else if (rc->opaque[0]) {
@@ -409,14 +391,14 @@ void MusicSystem::oggDecompRunLoop() {
     // one static buffer to rule them all
     int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
 
-	
+
     while (runDecompLoop) {
 	    bool roomForImprovement = false;
 	    PROFILE("Music", "DecompressMusic", BeginEvent);
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ) {
             assert(it->first != InvalidMusicRef);
             MusicInfo& info = it->second;
-            
+
             if (info.toRemove) {
 	            if (info.ovf) {
         			ov_clear(info.ovf);
@@ -436,9 +418,9 @@ void MusicSystem::oggDecompRunLoop() {
             } else {
 	            ++it;
             }
-            
+
             unsigned int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
-            
+
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
              	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
                 decompressNextChunk(info.ovf, tempBuffer, chunkSize);
@@ -469,7 +451,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount __att
 	    LOGW("Achtung, musicref : %d not found", m);
 	    return false;
     }
-    
+
     MusicInfo& info = musics[m];
 
 	dt += info.leftOver;
@@ -477,7 +459,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount __att
 	// LOGW("timeDiff: %.3f / chunk: %.3f / %.3f / %d", dt, chunkDuration, info.leftOver, info.buffer->readDataAvailable());
 
 	while (dt >= chunkDuration) {
-		
+
 	// while (musicAPI->needData(ptr, info.sampleRate, false)) {
 	    int count = info.buffer->readDataAvailable();
 	    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
@@ -600,7 +582,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     PROFILE("Music", "ov_open_callbacks", BeginEvent);
     ov_open_callbacks(dataSource, f, 0, 0, cb);
 	PROFILE("Music", "ov_open_callbacks", EndEvent);
-    
+
     MusicInfo info;
     info.ovf = f;
     info.totalTime = ov_time_total(f, -1) * 0.001 + 1; // hum hum
@@ -628,8 +610,8 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 #else
 	std::stringstream a;
 	a << "assets/" << assetName;
-    musics[nextValidRef] = Mix_LoadWAV(a.str().c_str());    
-    LOGI("Load music file %s, result: %p", a.str().c_str(), musics[nextValidRef]); 
+    musics[nextValidRef] = Mix_LoadWAV(a.str().c_str());
+    LOGI("Load music file %s, result: %p", a.str().c_str(), musics[nextValidRef]);
 #endif
 	PROFILE("Music", "loadMusicFile", EndEvent);
     return nextValidRef++;

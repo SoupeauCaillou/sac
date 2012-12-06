@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "TexturePacker.h"
 #include <png.h>
 #include <iostream>
@@ -47,13 +29,13 @@ int main(int argc, char** argv) {
 	tp->packTextures(finalW, finalH,true,true);
 
 	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
-	
+
 	for (int i=1; i<argc; i++) {
 		int x, y, wid, hit;
 		bool rotated = tp->getTextureLocation(i-1, x, y, wid, hit);
 		std::cout << argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated << std::endl;
 	}
-	
+
 	TEXTURE_PACKER::releaseTexturePacker(tp);
 	return 0;
 }

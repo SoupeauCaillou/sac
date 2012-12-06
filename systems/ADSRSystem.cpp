@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "ADSRSystem.h"
 /*
  *        /\
@@ -24,7 +6,7 @@
  * 	   /      \________
  * 	  /		           \ R
  *   /__________________\
- *	0 
+ *	0
 */
 INSTANCE_IMPL(ADSRSystem);
 
@@ -52,7 +34,7 @@ void ADSRSystem::DoUpdate(float dt) {
 					adsr->activationTime / adsr->attackTiming);
 				} else if (adsr->attackMode == Quadratic) {
 					float z = adsr->activationTime / adsr->attackTiming;
-					adsr->value = adsr->idleValue + z * z * (adsr->attackValue - adsr->idleValue); 
+					adsr->value = adsr->idleValue + z * z * (adsr->attackValue - adsr->idleValue);
 				}
 
 			// phase D
@@ -67,7 +49,7 @@ void ADSRSystem::DoUpdate(float dt) {
 					(adsr->activationTime - adsr->attackTiming) / adsr->decayTiming);
 				} else if (adsr->decayMode == Quadratic) {
 					float z = (adsr->activationTime-adsr->attackTiming) / adsr->decayTiming;
-					adsr->value = adsr->attackValue + z * z * (adsr->sustainValue - adsr->attackValue); 
+					adsr->value = adsr->attackValue + z * z * (adsr->sustainValue - adsr->attackValue);
 				}
 
 			// phase S
@@ -85,7 +67,7 @@ void ADSRSystem::DoUpdate(float dt) {
 					adsr->activationTime / adsr->releaseTiming);
 			} else if (adsr->releaseMode == Quadratic) {
 					float z = (adsr->activationTime-adsr->attackTiming-adsr->decayTiming) / adsr->releaseTiming;
-					adsr->value = adsr->sustainValue + z * z * (adsr->idleValue - adsr->sustainValue); 	  
+					adsr->value = adsr->sustainValue + z * z * (adsr->idleValue - adsr->sustainValue);
 			}
 		}
 	}

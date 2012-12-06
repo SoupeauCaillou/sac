@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "TextRenderingSystem.h"
 #include <ctype.h>
 #include <sstream>
@@ -183,7 +165,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		const unsigned int length = trc->text.length();
 
 		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
-		
+
 		float charHeight = trc->charHeight;
 		if (trc->flags & TextRenderingComponent::AdjustHeightToFillWidthBit) {
 			float targetWidth = trans->size.X;
@@ -192,21 +174,21 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				charHeight = MathUtil::Min(trc->maxCharHeight, charHeight);
 			}
 		}
-		
-		float x = (trc->flags & TextRenderingComponent::MultiLineBit) ? 
+
+		float x = (trc->flags & TextRenderingComponent::MultiLineBit) ?
 			(trans->size.X * -0.5) : computeStartX(trc, charHeight, charH2Wratio);
-		
+
 		float y = 0;
 		const float startX = x;
 		bool newWord = true;
         unsigned count = 0;
-      
+
 		for(unsigned int i=0; i<length; i++) {
 			// add sub-entity if needed
 			if (count >= trc->drawing.size()) {
 				if (renderingEntitiesPool.size() > 0) {
 					trc->drawing.push_back(renderingEntitiesPool.back());
-					renderingEntitiesPool.pop_back();					
+					renderingEntitiesPool.pop_back();
 				} else {
 					trc->drawing.push_back(createRenderingEntity());
 				}
@@ -222,7 +204,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 			if (rc->hide)
 				continue;
-				
+
 			if (trc->flags & TextRenderingComponent::MultiLineBit) {
 				size_t wordEnd = trc->text.find_first_of(" ,:.", i);
 				size_t lineEnd = trc->text.find_first_of("\n", i);
@@ -237,14 +219,14 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					}
 					// compute length of next word. If it doesn't fit on current line
 					// => go to next line
-					
+
 					float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, charH2Wratio);
 					if (x + w >= trans->size.X * 0.5) {
 						newLine = true;
 					}
 					newWord = false;
 				}
-				
+
 				if (newLine) {
 					y -= 1.2 * charHeight;
 					x = startX;
@@ -290,7 +272,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += charH2Wratio['a'] * charHeight * 0.75;
 			}
-         
+
             if (skip >= 0) {
                 i = skip;
             }
@@ -300,9 +282,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			renderingEntitiesPool.push_back(trc->drawing[i]);
 		}
 		trc->drawing.resize(count);
-		
+
 		if (caret) {
-			trc->text.resize(trc->text.length() - 1);	
+			trc->text.resize(trc->text.length() - 1);
 		}
 	}
 }
@@ -353,17 +335,17 @@ static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed )
  {
      unsigned int k = *(unsigned int *)data;
 
-     k *= m; 
-     k ^= k >> r; 
-     k *= m; 
-     
-     h *= m; 
+     k *= m;
+     k ^= k >> r;
+     k *= m;
+
+     h *= m;
      h ^= k;
 
      data += 4;
      len -= 4;
  }
- 
+
  // Handle the last few bytes of the input array
 
  switch(len)

@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #if 0
 #include "SqlExporter.h"
 #include "SqlExportGenerated.h"
@@ -36,12 +18,12 @@ static void queryCreateEntityTable(sqlite3 *db) {
 void SqlExporter::init(const std::string& dbFile) {
 	char *zErrMsg = 0;
 	this->dbFilename = dbFile;
-	
+
 	int rc = sqlite3_open(dbFilename.c_str(), &db);
-			
+
 	// execute 'create Entity table query'
 	queryCreateEntityTable();
-	
+
 	std::vector<std::string> allSystems = ComponentSystem::registeredSystemNames();
 	for (int i=0; i<allSystems.size(); i++) {
 		// execute 'create this system table query'

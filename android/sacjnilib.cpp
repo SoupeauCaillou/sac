@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "sacjnilib.h"
 #include <errno.h>
 
@@ -60,7 +42,7 @@ struct AndroidNativeTouchState : public NativeTouchState{
         // map stable order ?
         std::map<int, GameHolder::__input>::iterator it = holder->input.begin();
         for (int i=0; i<index && it!=holder->input.end(); ++it, i++) ;
-         
+
         if (it == holder->input.end())
             return false;
 
@@ -166,7 +148,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
 	hld->game->init(state, size);
 	hld->initDone = true;
- 
+
     hld->game->resetTime();
     theRenderingSystem.Update(0);
 }
@@ -291,7 +273,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
 
 	if (g == 0)
 		return;
-    
+
     GameHolder::__input& input = hld->input[pointerIndex];
 
 	/* ACTION_DOWN == 0 | ACTION_MOVE == 2 */
@@ -345,7 +327,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadText
   theRenderingSystem.reloadTextures();
   theRenderingSystem.reloadEffects();
   theRenderingSystem.setFrameQueueWritable(true);
-  
+
   LOGW("%s <--", __FUNCTION__);
 }
 

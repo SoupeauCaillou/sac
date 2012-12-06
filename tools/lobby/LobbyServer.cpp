@@ -1,21 +1,3 @@
-/*
- This file is part of Heriswap.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include <enet/enet.h>
 #include <string>
 #include "base/MathUtil.h"
@@ -47,7 +29,7 @@ int main() {
     address.host = ENET_HOST_ANY;
     address.port = 54321;
 
-    ENetHost *server = enet_host_create (&address /* the address to bind the server host to */, 
+    ENetHost *server = enet_host_create (&address /* the address to bind the server host to */,
                                  32      /* allow up to 32 clients and/or outgoing connections */,
                                   2      /* allow up to 2 channels to be used, 0 and 1 */,
                                   0      /* assume any amount of incoming bandwidth */,
@@ -72,12 +54,12 @@ int main() {
             case ENET_EVENT_TYPE_RECEIVE: {
                 ENetPacket * packet = event.packet;
                 uint8_t type = packet->data[0];
-                
+
                 if (type == PORT_PKT) {
                     uint16_t port;
                     memcpy(&port, &packet->data[1], sizeof(port));
                     port = ntohs(port);
-                    
+
                     for (unsigned i = 0; i < inProgress.size(); i++) {
                         if (inProgress[i].clientModePeer == event.peer) {
                             std::cout << "Received client mode local port (" << port << ")" << std::endl;
@@ -89,7 +71,7 @@ int main() {
                                 inProgress[i].serverPort,
                                 true);
                             enet_peer_send(inProgress[i].serverModePeer, 0, p2);
-                            
+
                             inProgress.erase(inProgress.begin() + i);
                         }
                     }
@@ -109,7 +91,7 @@ int main() {
             }
             case ENET_EVENT_TYPE_NONE: {
 				}
-					
+
         }
         // if we have 2 players with a name : connect them
         if (peerWaiting.size() >= 2) {
