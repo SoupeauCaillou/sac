@@ -86,7 +86,7 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 	for (count=0; count<10; count++) {
 		to = line.find_first_of(',', from);
 		substrings[count] = line.substr(from, to - from);
-        if (to == std::string::npos)
+        if (to == (int)std::string::npos)
             break;
 		from = to + 1;
 	}
@@ -131,13 +131,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	// read texture size
 	sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-	LOGI("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')", 
-		atlasName.c_str(), 
-		atlasIndex, 
-		a.glref.color, 
-		a.glref.alpha, 
-		forceImmediateTextureLoading ? atlasSize.X : .0f, 
-		forceImmediateTextureLoading ? atlasSize.Y : .0f, 
+	LOGI("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')",
+		atlasName.c_str(),
+		atlasIndex,
+		a.glref.color,
+		a.glref.alpha,
+		forceImmediateTextureLoading ? atlasSize.X : .0f,
+		forceImmediateTextureLoading ? atlasSize.Y : .0f,
 		s.c_str());
 	int count = 0;
 
@@ -229,7 +229,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	}
 	LOGI("Image format: %dx%d %d [%s]", s->w, s->h, s->format->BitsPerPixel, a.str().c_str());
 	image.channels = s->format->BitsPerPixel / 8;
-	
+
 	image.width = s->w;
 	image.height = s->h;
 	image.datas = new char[image.width * image.height * image.channels];
@@ -245,7 +245,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	SDL_FreeSurface(s);
 	png = true;
 #endif
- 
+
 	// for now, just assume power of 2 size
 	GLuint out;
 	GL_OPERATION(glGenTextures(1, &out))
@@ -306,7 +306,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 		assert (false && "ETC compression not supported");
 	#endif
 	}
- 
+
     if (0 && image.mipmap == 0) {
         LOGI("Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -419,7 +419,7 @@ void RenderingSystem::processDelayedTextureJobs() {
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
 	TextureRef result = InvalidTextureRef;
-	
+
 	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(assetName);
 	if (it != assetTextures.end()) {
 		result = it->second;

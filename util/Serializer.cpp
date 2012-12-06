@@ -26,7 +26,7 @@
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 
 Property::Property(unsigned long pOffset, unsigned pSize) : offset(pOffset), _size(pSize) {
- 
+
 }
 
 unsigned Property::size(void* object __attribute__((unused))) const {
@@ -51,7 +51,7 @@ EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(E
 
 }
 
-unsigned EntityProperty::size(void* object) const {
+unsigned EntityProperty::size(void* object __attribute__((unused))) const {
     return sizeof(Entity);
 }
 
@@ -73,18 +73,18 @@ int EntityProperty::deserialize(uint8_t* in, void* object) const {
 StringProperty::StringProperty(unsigned long pOffset) : Property(pOffset, 0) {}
 
 unsigned StringProperty::size(void* object) const {
-   std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+   std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
    return (a->size() + 1);
 }
 
 bool StringProperty::different(void* object, void* refObject) const {
-    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     std::string* b = (std::string*) PTR_OFFSET_2_PTR(refObject, offset);
     return (a->compare(*b) != 0);
 }
 
 int StringProperty::serialize(uint8_t* out, void* object) const {
-    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     uint8_t length = (uint8_t)a->size();
     memcpy(out, &length, 1);
     memcpy(&out[1], a->c_str(), length);
@@ -93,7 +93,7 @@ int StringProperty::serialize(uint8_t* out, void* object) const {
 
 int StringProperty::deserialize(uint8_t* in, void* object) const {
     uint8_t length = in[0];
-    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     *a = std::string((const char*)&in[1], length);
     return length + 1;
 }

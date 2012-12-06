@@ -39,25 +39,25 @@ class Game {
 		Game();
 
 		virtual ~Game();
-		
+
 		virtual void sacInit(int windowW, int windowH);
-		
+
 		virtual void init(const uint8_t* in = 0, int size = 0) = 0;
-		
+
         void step();
 
         void render();
 
 		virtual void backPressed();
-		
+
 		virtual int saveState(uint8_t** out);
 
         virtual bool willConsumeBackEvent() { return false; }
-        
-        virtual void togglePause(bool pause) { }
+
+        virtual void togglePause(bool pause __attribute__((unused))) { }
 
         void resetTime();
-		
+
         float targetDT;
 
 	protected:
