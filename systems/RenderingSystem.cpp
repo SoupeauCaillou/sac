@@ -228,6 +228,46 @@ static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos,
     r.uv[1] = size;
 }
 
+static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& c) {
+    if (c.rotation == 0) {
+        assert (c.halfSize.X != 0);
+        const float invWidth = 1.0f / (2 * c.halfSize.X);
+        // left culling !
+        {
+            float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+            if (cullLeftX > 0) {
+                if (cullLeftX >= 2 * c.halfSize.X)
+                    return false;
+                const float prop = cullLeftX * invWidth; // € [0, 1]
+                if (!c.mirrorH) {
+                    c.uv[0].X += prop * c.uv[1].X;
+                }
+                c.uv[1].X *= (1 - prop);
+                c.halfSize.X *= (1 - prop);
+                c.position.X += 0.5 * cullLeftX;
+                return true;
+            }
+        }
+        // right culling !
+        {
+            float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+            if (cullRightX > 0) {
+                if (cullRightX >= 2 * c.halfSize.X)
+                    return false;
+                const float prop = cullRightX * invWidth; // € [0, 1]
+                if (c.mirrorH) {
+                    c.uv[0].X += prop * c.uv[1].X;
+                }
+                c.uv[1].X *= (1 - prop);
+                c.halfSize.X *= (1 - prop);
+                c.position.X -= 0.5 * cullRightX;
+                return true;
+            }
+        }
+    }
+    return true;
+}
+
 void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
@@ -281,62 +321,48 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
                         modifyR(cCenter, info.opaqueStart, info.opaqueSize);
-                        opaqueCommands.push_back(cCenter);
-                        
+
+                        if (cull(camLeft, camRight, cCenter))
+                            opaqueCommands.push_back(cCenter);
+
                         const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
                         const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
                         RenderCommand cLeft(c);
                         modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                        semiOpaqueCommands.push_back(cLeft);
+                        if (cull(camLeft, camRight, cLeft))
+                            semiOpaqueCommands.push_back(cLeft);
     
                         RenderCommand cRight(c);
                         modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                        semiOpaqueCommands.push_back(cRight);
+                        if (cull(camLeft, camRight, cRight))
+                            semiOpaqueCommands.push_back(cRight);
                         
                         RenderCommand cTop(c);
                         modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
-                        semiOpaqueCommands.push_back(cTop);
+                        if (cull(camLeft, camRight, cTop))
+                            semiOpaqueCommands.push_back(cTop);
                         
                         RenderCommand cBottom(c);
                         modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
-                        semiOpaqueCommands.push_back(cBottom);
+                        if (cull(camLeft, camRight, cBottom))
+                            semiOpaqueCommands.push_back(cBottom);
                         continue;
                     }
                 }
              }
-             if (c.rotation == 0) {
-                // left culling !
-                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
-                if (cullLeftX > 0) {
-                    if (!c.mirrorH) {
-                        c.uv[0].X += cullLeftX / (2 * c.halfSize.X);
-                    }
-                    c.uv[1].X -= cullLeftX / (2 * c.halfSize.X);
-                    c.halfSize.X -= 0.5 * cullLeftX;
-                    c.position.X += 0.5 * cullLeftX;
-                }
-                // right culling !
-                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
-                if (cullRightX > 0) {
-                    if (c.mirrorH) {
-                        c.uv[0].X += cullRightX / tc->size.X;
-                    }
-                    c.uv[1].X -= cullRightX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullRightX;
-                    c.position.X -= 0.5 * cullRightX;
-                }
-            }
-            
-             switch (rc->opaqueType) {
-             	case RenderingComponent::NON_OPAQUE:
-    	         	semiOpaqueCommands.push_back(c);
-    	         	break;
-    	         case RenderingComponent::FULL_OPAQUE:
-    	         	opaqueCommands.push_back(c);
-    	         	break;
-                 default:
-                    LOGW("Entity will not be drawn");
-                    break;
+             
+             if (cull(camLeft, camRight, c)) {
+                 switch (rc->opaqueType) {
+                 	case RenderingComponent::NON_OPAQUE:
+        	         	semiOpaqueCommands.push_back(c);
+        	         	break;
+        	         case RenderingComponent::FULL_OPAQUE:
+        	         	opaqueCommands.push_back(c);
+        	         	break;
+                     default:
+                        LOGW("Entity will not be drawn");
+                        break;
+                 }
              }
     	}
     

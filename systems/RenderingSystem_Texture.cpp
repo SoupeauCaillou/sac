@@ -97,7 +97,7 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 	h = atoi(substrings[4].c_str());
 	rot = atoi(substrings[5].c_str());
     
-    if (count > 6) {
+    if (count == 11) {
         if (substrings[6] == "opaque") {
             *type = RenderingSystem::TextureInfo::PartialOpaque;
         } else if (substrings[6] == "sub") {
