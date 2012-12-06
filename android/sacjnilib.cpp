@@ -71,6 +71,10 @@ struct AndroidNativeTouchState : public NativeTouchState{
 	}
 };
 
+GameHolder::~GameHolder() {
+    delete gameThreadJNICtx;
+}
+
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    createGame
@@ -99,7 +103,6 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
 JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
   (JNIEnv *env, jclass, jlong g) {
     GameHolder* hld = (GameHolder*) g;
-    theMusicSystem.uninit();
     delete hld->game;
     delete hld;
 }

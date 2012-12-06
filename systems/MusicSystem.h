@@ -77,8 +77,8 @@ struct MusicComponent {
 UPDATABLE_SYSTEM(Music)
 
 public:
+~MusicSystem();
 void init();
-void uninit();
 bool isMuted() const { return muted; }
 
 MusicRef loadMusicFile(const std::string& assetName);

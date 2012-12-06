@@ -48,6 +48,7 @@ struct SoundComponent {
 UPDATABLE_SYSTEM(Sound)
 
 public:
+~SoundSystem();
 void init();
 SoundRef loadSoundFile(const std::string& assetName);
 

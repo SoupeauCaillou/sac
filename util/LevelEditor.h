@@ -21,6 +21,7 @@
 class LevelEditor {
     public:
         LevelEditor();
+        ~LevelEditor();
         void tick(float dt);
 
     private:

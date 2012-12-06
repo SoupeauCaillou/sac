@@ -38,6 +38,7 @@ struct AnimationComponent {
 UPDATABLE_SYSTEM(Animation)
 
 public:
+    ~AnimationSystem();
     void registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& nextanim="", Interval<float> nextAnimWait = Interval<float>(0,0));
     void registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextanim="", Interval<float> nextAnimWait = Interval<float>(0,0));
 

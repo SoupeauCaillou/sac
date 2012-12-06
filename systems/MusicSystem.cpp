@@ -49,6 +49,25 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("music"), asset
     /* nothing saved */
 }
 
+MusicSystem::~MusicSystem() {
+    #ifndef EMSCRIPTEN
+    runDecompLoop = false;
+    pthread_cond_signal(&cond);
+    pthread_join(oggDecompressionThread, 0);
+    LOGW("MusicSystem uninitinalized");
+    #endif
+    for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
+        delete it->second.buffer;
+        ov_clear(it->second.ovf);
+        delete it->second.ovf;
+    }
+    musics.clear();
+    for (std::map<std::string, FileBuffer>::iterator it=name2buffer.begin(); it!=name2buffer.end(); ++it) {
+        delete[] it->second.data;
+    }
+    name2buffer.clear();
+}
+
 #ifndef EMSCRIPTEN
 static void* _startOggThread(void* arg) {
     static_cast<MusicSystem*>(arg)->oggDecompRunLoop();
@@ -68,15 +87,6 @@ void MusicSystem::init() {
     // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
     // sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
 #endif
-}
-
-void MusicSystem::uninit() {
-    #ifndef EMSCRIPTEN
-    runDecompLoop = false;
-    pthread_cond_signal(&cond);
-    pthread_join(oggDecompressionThread, 0);
-    LOGW("MusicSystem uninitinalized");
-    #endif
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {

@@ -41,7 +41,8 @@ void LocalizeAPILinuxImpl::init() {
 	filename += "/strings.xml";
 	
 	LOGI("'%s' => %s", lang, filename.c_str());
-	
+	free(lang);
+
 	tinyxml2::XMLDocument doc;
 	
 	if (doc.LoadFile(filename.c_str())) {
