@@ -44,8 +44,8 @@ if [ ! -z `echo $1 | grep n` ]; then
 	cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
 	
 	if [ ! -z `echo $2 | grep yes` ]; then
-		echo "ndk-build -j4 in $PWD"
-		$PATH_ndk/ndk-build -j4 APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
+		echo "ndk-build -j in $PWD"
+		$PATH_ndk/ndk-build -j APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
 	else
 		echo "ndk-build in $PWD"
 		$PATH_ndk/ndk-build NDK_APPLICATION_MK=android/Application.mk
@@ -54,7 +54,7 @@ fi
 
 if [ ! -z `echo $1 | grep c` ]; then
 	echo "Compiling..."
-	$PATH_sdk/tools/android update project -p . -t 4 -n $nameUpper --subprojects
+	$PATH_sdk/tools/android update project -p . -t 2 -n $nameUpper --subprojects
 	ant debug
 fi
 

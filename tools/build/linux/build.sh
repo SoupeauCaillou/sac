@@ -30,13 +30,21 @@ if [ `echo $1 | grep C` ]; then
 	rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
 fi
 
-echo "compiling"
-cmake ../..
-make -j4
 
 count=`pwd | tr -c -d / | wc -c`
 count=`expr $count - 1`
 gameName=`pwd | cut -d/ -f$count`
+
+#delete the executable (in case of compilation errors)
+rm -f linux/$gameName
+
+echo "compiling"
+cmake ../..
+make -j
+
+
+
+
 
 if [ `echo $1 | grep d` ]; then
 	(echo r; cat) | gdb ./linux/$gameName
