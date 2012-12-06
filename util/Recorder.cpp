@@ -146,7 +146,6 @@ Recorder::~Recorder(){
 	pthread_mutex_destroy(&mutex_buf);
 	
 	glDeleteBuffers(PBO_COUNT, pboIds);
-	delete [] test;
 }
 
 bool Recorder::initOpenGl_PBO (){
@@ -280,7 +279,7 @@ void Recorder::record(){
 													GL_READ_ONLY);
 			if(ptr)
 			{
-				test = new GLubyte[width*height * CHANNEL_COUNT];
+				GLubyte *test = new GLubyte[width*height * CHANNEL_COUNT];
 				memcpy (test, ptr, width*height*CHANNEL_COUNT );
 
 				pthread_mutex_lock (&mutex_buf);

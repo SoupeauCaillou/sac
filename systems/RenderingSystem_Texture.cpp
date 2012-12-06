@@ -24,9 +24,9 @@
 #include <GLES2/gl2ext.h>
 #endif
 
-RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size, const Vector2& _opaqueStart, const Vector2& _opaqueSize, int atlasIdx) {
+RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, RenderingSystem::TextureInfo::Type t, int x, int y, int w, int h, bool rot, const Vector2& size, const Vector2& _opaqueStart, const Vector2& _opaqueSize, int atlasIdx) {
 	glref = ref;
-
+    type = t;
 	if (size == Vector2::Zero) {
 		uv[0].X = uv[0].Y = 0;
 		uv[1].X = uv[1].Y = 1;
@@ -62,10 +62,10 @@ RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, in
 
 #include <fstream>
 
-static void parse(const std::string& line, std::string& assetName, int& x, int& y, int& w, int& h, bool& rot, Vector2& opaqueStart, Vector2& opaqueEnd) {
-	std::string substrings[10];
+static void parse(const std::string& line, std::string& assetName, int& x, int& y, int& w, int& h, bool& rot, RenderingSystem::TextureInfo::Type* type, Vector2& opaqueStart, Vector2& opaqueEnd) {
+	std::string substrings[11];
 	int from = 0, to = 0, count = 0;
-	for (count=0; count<10; count++) {
+	for (count=0; count<11; count++) {
 		to = line.find_first_of(',', from);
 		substrings[count] = line.substr(from, to - from);
         if (to == (int)std::string::npos)
@@ -78,11 +78,23 @@ static void parse(const std::string& line, std::string& assetName, int& x, int& 
 	w = atoi(substrings[3].c_str());
 	h = atoi(substrings[4].c_str());
 	rot = atoi(substrings[5].c_str());
-    if (count > 6) {
-        opaqueStart.X = atoi(substrings[6].c_str());
-        opaqueStart.Y = atoi(substrings[7].c_str());
-        opaqueEnd.X = atoi(substrings[8].c_str());
-        opaqueEnd.Y = atoi(substrings[9].c_str());
+    
+    if (count == 11) {
+        if (substrings[6] == "opaque") {
+            *type = RenderingSystem::TextureInfo::PartialOpaque;
+        } else if (substrings[6] == "sub") {
+            *type = RenderingSystem::TextureInfo::OnlySubRectangle;
+        } else {
+            *type = RenderingSystem::TextureInfo::Default;
+        }
+    } else {
+        *type = RenderingSystem::TextureInfo::Default;
+    }
+    if (*type != RenderingSystem::TextureInfo::Default) {
+        opaqueStart.X = atoi(substrings[7].c_str());
+        opaqueStart.Y = atoi(substrings[8].c_str());
+        opaqueEnd.X = atoi(substrings[9].c_str());
+        opaqueEnd.Y = atoi(substrings[10].c_str());
     }
 }
 
@@ -134,13 +146,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		int x, y, w, h;
         Vector2 opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
 		bool rot;
-
-		parse(s, assetName, x, y, w, h, rot, opaqueStart, opaqueEnd);
+        TextureInfo::Type type (TextureInfo::Default);
+		parse(s, assetName, x, y, w, h, rot, &type, opaqueStart, opaqueEnd);
 
 		TextureRef result = nextValidRef++;
 		LOGI("----- %s -> %d", assetName.c_str(), result);
 		assetTextures[assetName] = result;
-		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
+		textures[result] = TextureInfo(a.glref, type, x, y, w, h, rot, atlasSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
 
 
 	} while (!s.empty());
@@ -325,7 +337,7 @@ void RenderingSystem::reloadTextures() {
 		} else {
 			InternalTexture t;
 			loadTexture(it->first, size, psize, t);
-			textures[it->second] = TextureInfo(t, 0, 0, size.X, size.Y, false, psize);
+			textures[it->second] = TextureInfo(t, RenderingSystem::TextureInfo::Default, 0, 0, size.X, size.Y, false, psize);
 		}
 	}
 	LOGI("Reloading textures done");
@@ -367,7 +379,7 @@ void RenderingSystem::processDelayedTextureJobs() {
 		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 		#endif
 		loadTexture(*it, size, powSize, t);
-		textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
+		textures[assetTextures[*it]] = TextureInfo(t, RenderingSystem::TextureInfo::Default, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
 		#ifndef EMSCRIPTEN
 		pthread_mutex_lock(&mutexes[L_TEXTURE]);
 		#endif

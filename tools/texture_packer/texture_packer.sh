@@ -48,12 +48,13 @@ while read data; do
 		image=`basename ${image} .png`
 		
 		#largest_rectangle script 
-		opaque=`../../sac/tools/texture_packer/largest_rectangle.py ${image}.png | sed -e "s/\ //g"`
+		opaque=`../../sac/tools/texture_packer/largest_rectangle.py ${image}.png`
+        used_rect=`../../sac/tools/texture_packer/tiniest_rectangle.py ${image}.png`
 
 		if [ -n "$opaque" ]; then
-			echo "${image},${x},${y},${w},${h},${rot},${opaque}" >> ${desc}
+			echo "${image},${x},${y},${w},${h},${rot},opaque,${opaque}" >> ${desc}
 		else
-			echo "${image},${x},${y},${w},${h},${rot}" >> ${desc}
+			echo "${image},${x},${y},${w},${h},${rot},sub,${used_rect}" >> ${desc}
 		fi
 	fi
 done
