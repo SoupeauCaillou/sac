@@ -42,9 +42,6 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 
     	gameThread = new Thread(new Runnable() {
 			public void run() {
-				//OpenFeint.login();
-				//a changer !!!!!!!!!!!!!!!!!!!!!!!!!
-
 				activity.runGameLoop = true;
 				SacJNILib.initFromGameThread(asset, activity.game, activity.savedState);
 				// force gc before starting game
