@@ -57,7 +57,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract Button getNameInputButton();
 	public void preNameInputViewShow() {}
  
-	float factor = .8f;
+	float factor = 0.8f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		android.util.Log.i("sac", "-> onCreate [" + savedInstanceState);

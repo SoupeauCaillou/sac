@@ -314,15 +314,19 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
 
                     const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
                     const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
-                    RenderCommand cLeft(c);
-                    modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                    if (cull(camLeft, camRight, cLeft))
-                        semiOpaqueCommands.push_back(cLeft);
+                    if (leftBorder > 0) {
+                        RenderCommand cLeft(c);
+                        modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                        if (cull(camLeft, camRight, cLeft))
+                            semiOpaqueCommands.push_back(cLeft);
+                    }
 
-                    RenderCommand cRight(c);
-                    modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                    if (cull(camLeft, camRight, cRight))
-                        semiOpaqueCommands.push_back(cRight);
+                    if (rightBorder < 1) {
+                        RenderCommand cRight(c);
+                        modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                        if (cull(camLeft, camRight, cRight))
+                            semiOpaqueCommands.push_back(cRight);
+                    }
                     
                     RenderCommand cTop(c);
                     modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
