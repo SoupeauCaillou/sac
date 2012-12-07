@@ -77,11 +77,13 @@ RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref,
 static void parse(const std::string& line, std::string& assetName, Vector2& originalSize, Vector2& reduxOffset, Vector2& posInAtlas, Vector2& sizeInAtlas, bool& rotate, Vector2& opaqueStart, Vector2& opaqueEnd) {
 	std::string substrings[14];
 	int from = 0, to = 0, count = 0;
-	for (count=0; count<11; count++) {
+	for (count=0; count<14; count++) {
 		to = line.find_first_of(',', from);
 		substrings[count] = line.substr(from, to - from);
-        if (to == (int)std::string::npos)
+        if (to == (int)std::string::npos) {
+            count++;
             break;
+        }
 		from = to + 1;
 	}
     // image,original width, original height, redux offset x, redux offset y, pox x in atlas, pos y in atlas, width, height, rotate[, opaque box min x, min y, max x, max y]
@@ -95,7 +97,6 @@ static void parse(const std::string& line, std::string& assetName, Vector2& orig
     sizeInAtlas.X = atoi(substrings[7].c_str());
     sizeInAtlas.Y = atoi(substrings[8].c_str());
 	rotate = atoi(substrings[9].c_str());
-    
     if (count == 14) {
         opaqueStart.X = atoi(substrings[10].c_str());
         opaqueStart.Y = atoi(substrings[11].c_str());
