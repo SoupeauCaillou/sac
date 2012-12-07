@@ -293,6 +293,7 @@ void RenderingSystem::DoUpdate(float) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
+            c.flags = 0;
 
             if (c.texture != InvalidTextureRef) {
                 const TextureInfo& info = textures[c.texture];
@@ -370,8 +371,7 @@ void RenderingSystem::DoUpdate(float) {
         outQueue.commands[0] = dummy;// outQueue.commands.push_back(dummy);
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[1]);
         outQueue.count = 1 + opaqueCommands.size();
-        outQueue.commands[outQueue.count++].texture = ToggleZWriteMarker;
-        outQueue.commands[outQueue.count++].texture = EnableBlending;
+        semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
         std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();
     }

@@ -133,6 +133,7 @@ struct RenderCommand {
 	Color color;
 	Vector2 position;
 	float rotation;
+    int flags;
     bool mirrorH;
 };
 

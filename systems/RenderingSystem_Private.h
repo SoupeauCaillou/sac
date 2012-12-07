@@ -14,10 +14,14 @@
 #endif
 
 #define EndFrameMarker -10
-#define ToggleZWriteMarker -11
 #define BeginFrameMarker -12
-#define EnableBlending -13
-#define ToggleColorWriteMarker -14
+
+#define EnableZWriteBit (0x1 << 0)
+#define DisableZWriteBit (0x1 << 1)
+#define EnableBlendingBit (0x1 << 2)
+#define DisableBlendingBit (0x1 << 3)
+#define EnableColorWriteBit (0x1 << 4)
+#define DisableColorWriteBit (0x1 << 5)
 
 enum {
     ATTRIB_VERTEX = 0,

@@ -98,6 +98,86 @@ static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLf
     return 0;
 }
 
+#ifdef USE_VBO
+static inline void computeUV(RenderingSystem::RenderCommand& rc, const RenderingSystem::TextureInfo& info, GLint unif) {
+#else
+static inline void computeUV(RenderingSystem::RenderCommand& rc, const RenderingSystem::TextureInfo& info) {
+#endif
+     rc.glref = info.glref;
+     Vector2 offset(rc.uv[0]);
+     Vector2 scale(rc.uv[1]);
+     Vector2 uvS (info.uv[1] - info.uv[0]);
+     #ifdef USE_VBO
+     float uvso[4];
+     uvso[0] = scale.X * uvS.X;
+     uvso[1] = scale.Y * uvS.Y;
+     uvso[2] = info.uv[0].X + offset.X * uvS.X;
+     uvso[3] = info.uv[0].Y + offset.Y * uvS.Y;
+     GL_OPERATION(glUniform4fv(unif, 1, uvso))
+     #else
+     if (info.rotateUV) {
+         std::swap(offset.X, offset.Y);
+         std::swap(scale.X, scale.Y);
+         offset.Y = 1 - (scale.Y + offset.Y);
+     }
+     {
+         rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
+         rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
+     }
+     #endif
+        if (rc.mirrorH) {
+            if (info.rotateUV)
+                std::swap(rc.uv[0].Y, rc.uv[1].Y);
+            else
+                std::swap(rc.uv[0].X, rc.uv[1].X);
+        }
+     rc.rotateUV = info.rotateUV;
+}
+
+#ifdef USE_VBO
+static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderCommand& rc, const Vector2& camPos, RenderingSystem::Shader& shader) {
+#else
+static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
+#endif
+    #ifdef USE_VBO
+    float hW = 0.5 * screenW;
+    float hH = 0.5 * screenH;
+    GLfloat mat[16];
+    loadOrthographicMatrix(-hW - rc.position.X + camPos.X, hW - rc.position.X + camPos.X, -hH - rc.position.Y + camPos.Y, hH - rc.position.Y + camPos.Y, 0, 1, mat);
+    GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
+    float scale[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y };
+    GL_OPERATION(glUniform2fv(shader.uniformScale, 1, scale))
+    GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
+    #else
+    // fill batch
+    Vector2 onScreenVertices[4];
+    computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
+    
+    const int baseIdx = 4 * batchSize;
+    for (int i=0; i<4; i++) {
+        vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
+        vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
+        vertices[(baseIdx + i) * 3 + 2] = -rc.z;
+    }
+    
+    uvs[baseIdx * 2 + 0] = rc.uv[0].X;
+    uvs[baseIdx * 2 + 1] = 1-rc.uv[0].Y;
+    uvs[baseIdx * 2 + 2] = rc.uv[1].X;
+    uvs[baseIdx * 2 + 3] = 1-rc.uv[0].Y;
+    uvs[baseIdx * 2 + 4] = rc.uv[0].X;
+    uvs[baseIdx * 2 + 5] = 1-rc.uv[1].Y;
+    uvs[baseIdx * 2 + 6] = rc.uv[1].X;
+    uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
+    
+    indices[batchSize * 6 + 0] = baseIdx + 0;
+    indices[batchSize * 6 + 1] = baseIdx + 1;
+    indices[batchSize * 6 + 2] = baseIdx + 2;
+    indices[batchSize * 6 + 3] = baseIdx + 1;
+    indices[batchSize * 6 + 4] = baseIdx + 3;
+    indices[batchSize * 6 + 5] = baseIdx + 2;
+    #endif
+}
+
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera) {
 	const Shader& shader = effectRefToShader(ref, _firstCall);
 	GL_OPERATION(glUseProgram(shader.program))
@@ -130,7 +210,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     GL_OPERATION(glDepthMask(true))
     GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
-	InternalTexture boundTexture = InternalTexture::Invalid, t;
+	InternalTexture boundTexture = InternalTexture::Invalid;
 	Color currentColor(1,1,1,1);
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
@@ -139,6 +219,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     const unsigned count = commands.count;
     for (unsigned i=0; i<count; i++) {
 		RenderCommand& rc = commands.commands[i];
+
+        // HANDLE BEGIN/END FRAME MARKERS
         if (rc.texture == BeginFrameMarker) {
             assert(batchSize == 0);
             #ifdef ENABLE_PROFILING
@@ -159,62 +241,53 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
 		        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
 
+            // setup initial GL state
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
+            GL_OPERATION(glColorMask(true, true, true, true))
             continue;
         } else if (rc.texture == EndFrameMarker) {
-			// LOGW("Frame drawn: %u", rc.rotateUV);
 			break;
 		}
-		else if (rc.texture == ToggleZWriteMarker) {
+
+        // HANDLE RENDERING FLAGS (GL state switch)
+        if (rc.flags) {
+            // flush batch before changing state
             batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-            GL_OPERATION(glDepthMask(false))
-            continue;
-        } else if (rc.texture == EnableBlending) {
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-			firstCall = false;
-			GL_OPERATION(glEnable(GL_BLEND))
-			if (currentEffect == DefaultEffectRef) {
-				currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
-			}
-			continue;
-		} else if (rc.effectRef != currentEffect) {
+            if (rc.flags & EnableZWriteBit) {
+                GL_OPERATION(glDepthMask(true))
+            } else if (rc.flags & DisableZWriteBit) {
+                GL_OPERATION(glDepthMask(false))
+            } if (rc.flags & EnableBlendingBit) {
+                firstCall = false;
+                GL_OPERATION(glEnable(GL_BLEND))
+                if (currentEffect == DefaultEffectRef) {
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+                }
+            } else if (rc.flags & DisableBlendingBit) {
+                 GL_OPERATION(glDisable(GL_BLEND))
+            } if (rc.flags & EnableColorWriteBit) {
+                GL_OPERATION(glColorMask(true, true, true, true))
+            } else if (rc.flags & DisableColorWriteBit) {
+                GL_OPERATION(glColorMask(false, false, false, false))
+            }
+        }
+        // EFFECT HAS CHANGED ?
+		if (rc.effectRef != currentEffect) {
+            // flush before changing effect
 			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
 			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera);
 		}
 
+        // SETUP TEXTURING
 		if (rc.texture != InvalidTextureRef) {
-			const TextureInfo& info = textures[rc.texture];
-			rc.glref = info.glref;
-			Vector2 offset(rc.uv[0]);
-			Vector2 scale(rc.uv[1]);
-			Vector2 uvS (info.uv[1] - info.uv[0]);
-			#ifdef USE_VBO
-			float uvso[4];
-			uvso[0] = scale.X * uvS.X;
-			uvso[1] = scale.Y * uvS.Y;
-			uvso[2] = info.uv[0].X + offset.X * uvS.X;
-			uvso[3] = info.uv[0].Y + offset.Y * uvS.Y;
-			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
-			#else
-			if (info.rotateUV) {
-				std::swap(offset.X, offset.Y);
-				std::swap(scale.X, scale.Y);
-				offset.Y = 1 - (scale.Y + offset.Y);
-			}
-			{
-				rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
-				rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
-			}
-			#endif
-            if (rc.mirrorH) {
-                if (info.rotateUV)
-                    std::swap(rc.uv[0].Y, rc.uv[1].Y);
-                else
-                    std::swap(rc.uv[0].X, rc.uv[1].X);
-            }
-			rc.rotateUV = info.rotateUV;
+            const TextureInfo& info = textures[rc.texture];   
+            #ifdef USE_VBO
+            computeUV(rc, info, effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset);
+            #else
+            computeUV(rc, info);
+            #endif
 		} else {
 			rc.glref = InternalTexture::Invalid;
 			rc.glref.color = whiteTexture;
@@ -229,8 +302,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
 			#endif
 		}
-		t = rc.glref;
+
+        // TEXTURE OR COLOR HAS CHANGED ?
 		if (boundTexture != rc.glref || currentColor != rc.color) {
+            // flush before changing texture/color
 			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
 			boundTexture = rc.glref;
 			if (currentColor != rc.color) {
@@ -239,46 +314,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			}
 		}
 
-		#ifdef USE_VBO
-		// rc.position.X /= 2 * rc.halfSize.X;
-		// rc.position.Y /= 2 * rc.halfSize.Y;
-		float hW = 0.5 * screenW;
-		float hH = 0.5 * screenH;
-		GLfloat mat[16];
-		loadOrthographicMatrix(-hW - rc.position.X + camPos.X, hW - rc.position.X + camPos.X, -hH - rc.position.Y + camPos.Y, hH - rc.position.Y + camPos.Y, 0, 1, mat);
-		GL_OPERATION(glUniform1f(effectRefToShader(currentEffect, firstCall).uniformRotation, -rc.rotation))
-		float scale[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y };
-		GL_OPERATION(glUniform2fv(effectRefToShader(currentEffect, firstCall).uniformScale, 1, scale))
-		GL_OPERATION(glUniformMatrix4fv(effectRefToShader(currentEffect, firstCall).uniformMatrix, 1, GL_FALSE, mat))
-		#else
-		// fill batch
-		Vector2 onScreenVertices[4];
-		computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
-
-		const int baseIdx = 4 * batchSize;
-		for (int i=0; i<4; i++) {
-			vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
-			vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
-			vertices[(baseIdx + i) * 3 + 2] = -rc.z;
-		}
-
-		uvs[baseIdx * 2 + 0] = rc.uv[0].X;
-		uvs[baseIdx * 2 + 1] = 1-rc.uv[0].Y;
-		uvs[baseIdx * 2 + 2] = rc.uv[1].X;
-		uvs[baseIdx * 2 + 3] = 1-rc.uv[0].Y;
-		uvs[baseIdx * 2 + 4] = rc.uv[0].X;
-		uvs[baseIdx * 2 + 5] = 1-rc.uv[1].Y;
-		uvs[baseIdx * 2 + 6] = rc.uv[1].X;
-		uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
-
-		indices[batchSize * 6 + 0] = baseIdx + 0;
-		indices[batchSize * 6 + 1] = baseIdx + 1;
-		indices[batchSize * 6 + 2] = baseIdx + 2;
-		indices[batchSize * 6 + 3] = baseIdx + 1;
-		indices[batchSize * 6 + 4] = baseIdx + 3;
-		indices[batchSize * 6 + 5] = baseIdx + 2;
-		#endif
-
+        // ADD TO BATCH
+        #ifdef USE_VBO
+		addRenderCommandToBatch(screenW, screenH, rc, camPos, effectRefToShader(currentEffect, firstCall));
+        #else
+        addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
+        #endif
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
@@ -334,7 +375,7 @@ void RenderingSystem::render() {
 	PROFILE("Renderer", "render", EndEvent);
 }
 
-void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
+static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
 	const float cr = cos(rotation);
 	const float sr = -sin(rotation);
 
