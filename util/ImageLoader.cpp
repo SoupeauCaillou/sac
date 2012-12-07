@@ -151,10 +151,11 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
     result.mipmap = 0;
 	return result;
 }
-ImageDesc ImageLoader::loadEct1(const std::string&, const FileBuffer&) {
 #ifdef ANDROID
+ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
 	#define BE_16_TO_H betoh16
 #else
+ImageDesc ImageLoader::loadEct1(const std::string&, const FileBuffer&) {
 	#define BE_16_TO_H be16toh
 #endif
 
