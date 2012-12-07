@@ -151,7 +151,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
     result.mipmap = 0;
 	return result;
 }
-ImageDesc ImageLoader::loadEct1(const std::string& context __attribute__((unused)), const FileBuffer& file __attribute__((unused))) {
+ImageDesc ImageLoader::loadEct1(const std::string&, const FileBuffer&) {
 #ifdef ANDROID
 	#define BE_16_TO_H betoh16
 #else
@@ -198,7 +198,7 @@ static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t
 }
 #endif
 
-ImageDesc ImageLoader::loadPvr(const std::string& context __attribute__((unused)), const FileBuffer& file) {
+ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
 	ImageDesc result;
 	result.datas = 0;
 	struct PVRTexHeader {

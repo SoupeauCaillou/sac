@@ -36,7 +36,7 @@ class Game {
 
         virtual bool willConsumeBackEvent() { return false; }
 
-        virtual void togglePause(bool pause __attribute__((unused))) { }
+        virtual void togglePause(bool) { }
 
         void resetTime();
 

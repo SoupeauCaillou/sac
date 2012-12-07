@@ -127,7 +127,7 @@ class ComponentSystemImpl: public ComponentSystem {
 		}
 
 		#ifdef DEBUG
-		virtual void preDeletionCheck(Entity entity __attribute__((unused))) { };
+		virtual void preDeletionCheck(Entity) { };
 		#endif
 
 		void Delete(Entity entity) {

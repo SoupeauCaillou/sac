@@ -13,7 +13,7 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(z, tc), 0.001));
 }
 
-void TransformationSystem::DoUpdate(float dt __attribute__((unused))) {
+void TransformationSystem::DoUpdate(float) {
 	//update orphans first
     FOR_EACH_COMPONENT(Transformation, bc)
 		if (!bc->parent) {

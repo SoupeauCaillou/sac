@@ -445,7 +445,7 @@ void MusicSystem::oggDecompRunLoop() {
 #endif
 
 #ifndef EMSCRIPTEN
-bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int forceFeedCount __attribute__((unused)), float dt) {
+bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
 	    LOGW("Achtung, musicref : %d not found", m);

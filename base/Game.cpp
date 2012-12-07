@@ -94,7 +94,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 		sscanf(line.c_str(), "%d,%d,%d", &c, &w, &h);
 		h2wratio[c] = (float)w / h;
 	}
- 
+
 	delete[] file.data;
 	h2wratio[' '] = h2wratio['r'];
 	h2wratio[0x97] = 1;
@@ -148,8 +148,8 @@ void Game::backPressed() {
 	profStarted++;
 	#endif
 }
-		
-int Game::saveState(uint8_t** out __attribute__((unused))) {
+
+int Game::saveState(uint8_t**) {
     theRenderingSystem.setFrameQueueWritable(false);
 	return 0;
 }
@@ -169,7 +169,7 @@ void Game::step() {
             delta = DDD;
         }
         #endif
-        
+
         theTouchInputManager.Update(delta);
         #ifdef ENABLE_PROFILING
         std::stringstream framename;
@@ -264,7 +264,7 @@ void Game::render() {
             fpsStats.reset(t);
         }
     }
-    
+
     if (0) {
         struct timespec ts;
         ts.tv_sec = 0;

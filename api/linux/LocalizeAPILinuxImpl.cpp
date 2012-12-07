@@ -55,11 +55,12 @@ void LocalizeAPILinuxImpl::init() {
 
 #define _(STRING)    gettext(STRING)
 
-std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc __attribute__((unused))) {
 #ifdef EMSCRIPTEN
+std::string LocalizeAPILinuxImpl::text(const std::string&, const std::string& spc) {
 	return _(spc.c_str());
-
-#else
-	return _idToMessage[s];
-#endif
 }
+#else
+std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string&) {
+	return _idToMessage[s];
+}
+#endif

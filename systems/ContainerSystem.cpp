@@ -17,7 +17,7 @@ static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, Tra
 	maxY = MathUtil::Max(maxY, tc->worldPosition.Y + tc->size.Y * 0.5f);
 }
 
-void ContainerSystem::DoUpdate(float dt __attribute__((unused))) {
+void ContainerSystem::DoUpdate(float) {
 	if (components.empty())
 		return;
 

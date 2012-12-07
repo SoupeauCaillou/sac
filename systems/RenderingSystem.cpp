@@ -256,7 +256,7 @@ static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& 
     return true;
 }
 
-void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
+void RenderingSystem::DoUpdate(float) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
     if (outQueue.count != 0) {
@@ -327,12 +327,12 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         if (cull(camLeft, camRight, cRight))
                             semiOpaqueCommands.push_back(cRight);
                     }
-                    
+
                     RenderCommand cTop(c);
                     modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
                     if (cull(camLeft, camRight, cTop))
                         semiOpaqueCommands.push_back(cTop);
-                    
+
                     RenderCommand cBottom(c);
                     modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
                     if (cull(camLeft, camRight, cBottom))

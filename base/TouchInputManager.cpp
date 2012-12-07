@@ -28,7 +28,7 @@ static Vector2 absoluteToCameraPos(const Vector2& pos) {
     return pos;
 }
 
-void TouchInputManager::Update(float dt __attribute__((unused)) ) {
+void TouchInputManager::Update(float) {
 	Vector2 windowPos;
 
     for (int i=0; i<2; i++) {

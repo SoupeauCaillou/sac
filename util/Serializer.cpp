@@ -11,7 +11,7 @@ Property::Property(unsigned long pOffset, unsigned pSize) : offset(pOffset), _si
 
 }
 
-unsigned Property::size(void* object __attribute__((unused))) const {
+unsigned Property::size(void*) const {
     return _size;
 }
 
@@ -33,7 +33,7 @@ EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(E
 
 }
 
-unsigned EntityProperty::size(void* object __attribute__((unused))) const {
+unsigned EntityProperty::size(void*) const {
     return sizeof(Entity);
 }
 
