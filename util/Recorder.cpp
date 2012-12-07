@@ -137,9 +137,11 @@ Recorder::Recorder(int width, int height){
 }
 
 Recorder::~Recorder(){
-	if (pthread_cancel (th1) != 0) {
-		std::cout << "pthread_cancel error for thread" << std::endl;
-	}
+    if (recording) {
+    	if (pthread_cancel (th1) != 0) {
+    		std::cout << "pthread_cancel error for thread" << std::endl;
+    	}
+    }
 	vpx_codec_destroy(&codec);
 	vpx_img_free (&raw);
 
