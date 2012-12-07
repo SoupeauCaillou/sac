@@ -38,26 +38,26 @@ public abstract class SacActivity extends SwarmActivity {
 	PowerManager.WakeLock wl;
 
 	public Vibrator vibrator;
-	
+
 	public abstract int getSwarmGameID();
-	public abstract String getSwarmGameKey(); 
+	public abstract String getSwarmGameKey();
 	public abstract int[] getSwarmBoards();
-	
+
 	public abstract boolean canShowAppRater();
 	public abstract String getBundleKey();
-	
+
 	public abstract int getLayoutId();
 	public abstract int getParentViewId();
-	
+
 	public abstract String getCharboostAppId();
 	public abstract String getCharboostAppSignature();
-	
+
 	public abstract View getNameInputView();
 	public abstract EditText getNameInputEdit();
 	public abstract Button getNameInputButton();
 	public void preNameInputViewShow() {}
- 
-	float factor = .8f;
+
+	float factor = 1.f;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		android.util.Log.i("sac", "-> onCreate [" + savedInstanceState);
@@ -77,14 +77,14 @@ public abstract class SacActivity extends SwarmActivity {
 	        		AdAPI.adWaitingAdDisplay = false;
 	        		AdAPI.adHasBeenShown = true;
 	        	}
-	
+
 	        	@Override
 	        	public void didFailToLoadInterstitial() {
 	        		super.didFailToLoadInterstitial();
 	        		AdAPI.adWaitingAdDisplay = false;
 	        		AdAPI.adHasBeenShown = true;
 	        	}
-	
+
 	        	@Override
 	        	public boolean shouldDisplayInterstitial(View interstitialView) {
 	        		if (AdAPI.adWaitingAdDisplay && interstitialView != null) {
@@ -95,7 +95,7 @@ public abstract class SacActivity extends SwarmActivity {
 	        		}
 	        	}
 			});
-	
+
 	        _cb.cacheInterstitial();
         } else {
         	//Log.w("sac", "Chartboost not initialized");
@@ -108,12 +108,12 @@ public abstract class SacActivity extends SwarmActivity {
 
         setContentView(getLayoutId());
         RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
-        
-        
+
+
         mGLView = new GLSurfaceView(this);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
         int width = getWindowManager().getDefaultDisplay().getWidth();
-        
+
         int height = getWindowManager().getDefaultDisplay().getHeight();
         android.view.SurfaceHolder holder = mGLView.getHolder();
         holder.setFixedSize((int)(width * factor), (int)((height) * factor));
@@ -141,7 +141,7 @@ public abstract class SacActivity extends SwarmActivity {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        
+
         SharedPreferences prefs = getSharedPreferences("apprater", 0);
         long newValue = prefs.getLong("launch_count", 0) + 1;
         SharedPreferences.Editor editor = prefs.edit();
@@ -202,7 +202,7 @@ public abstract class SacActivity extends SwarmActivity {
     protected void onSaveInstanceState(Bundle outState) {
     	android.util.Log.i("sac", "Activity LifeCycle ##### ON SAVE INSTANCE");
     	if (game == 0)
-    		return; 
+    		return;
     	/* save current state; we'll be used only if app get killed */
     	synchronized (mutex) {
     		//Log.i("Sac", "Save state!");
@@ -222,7 +222,7 @@ public abstract class SacActivity extends SwarmActivity {
     		return false;
     	final int action = event.getActionMasked();
     	final int ptrIdx = event.getActionIndex();
-    	
+
     	switch (action) {
     	/*
     		activePointersId.add(0);
@@ -268,7 +268,7 @@ public abstract class SacActivity extends SwarmActivity {
     	if (Swarm.isInitialized())
     		Swarm.logOut();
     }
-    
+
     @Override
     public void onBackPressed() {
     	if (SacJNILib.willConsumeBackEvent(game)) {
