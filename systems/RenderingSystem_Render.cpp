@@ -57,40 +57,45 @@ static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSi
 
 bool firstCall;
 #ifdef USE_VBO
-static void drawBatchES2(const RenderingSystem::InternalTexture& glref, bool reverseUV) {
+#define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, reverseUV)
+static int drawBatchES2(const RenderingSystem::InternalTexture& glref, bool reverseUV) {
 #else
-static void drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
+#define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, vert, uv, indices, batchSize)
+static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 #endif
-	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
-	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
-
-	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
-	if (firstCall) {
-		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
-	} else {
-        GL_OPERATION(glActiveTexture(GL_TEXTURE1))
-		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
-	}
-
-#ifdef USE_VBO
-	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[reverseUV ? 1 : 0]))
-
-	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
-	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
-	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
-
-	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
-	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
-#else
-	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
-	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
-	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
-
-	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+    if (batchSize > 0) {
+    	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
+    	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
+    	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
+    
+    	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
+    	if (firstCall) {
+    		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+    	} else {
+            GL_OPERATION(glActiveTexture(GL_TEXTURE1))
+    		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
+    	}
+    
+    #ifdef USE_VBO
+    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[reverseUV ? 1 : 0]))
+    
+    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
+    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+    	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
+    	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
+    
+    	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
+    	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
+    #else
+    	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
+    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
+    	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
+    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+    
+    	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 #endif
+    }
+    return 0;
 }
 
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera) {
@@ -162,28 +167,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			// LOGW("Frame drawn: %u", rc.rotateUV);
 			break;
 		}
-		else if (rc.texture == DisableZWriteMarker) {
-			if (batchSize > 0) {
-				// execute batch
-				#ifdef USE_VBO
-				LOGE("Error batching unsupported with VBO");
-				#else
-				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
-				batchSize = 0;
-			}
+		else if (rc.texture == ToggleZWriteMarker) {
+            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
             GL_OPERATION(glDepthMask(false))
             continue;
         } else if (rc.texture == EnableBlending) {
-            if (batchSize > 0) {
-                 // execute batch
-                 #ifdef USE_VBO
-                 LOGE("Error batching unsupported with VBO");
-                 #else
-                 drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-                 #endif
-                 batchSize = 0;
-            }
+            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
 			firstCall = false;
 			GL_OPERATION(glEnable(GL_BLEND))
 			if (currentEffect == DefaultEffectRef) {
@@ -191,15 +180,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			}
 			continue;
 		} else if (rc.effectRef != currentEffect) {
-			if (batchSize > 0) {
-				// execute batch
-				#ifdef USE_VBO
-				LOGE("Error batching unsupported with VBO");
-				#else
-				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
-				batchSize = 0;
-			}
+			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
 			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera);
 		}
 
@@ -250,16 +231,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 		t = rc.glref;
 		if (boundTexture != rc.glref || currentColor != rc.color) {
-			if (batchSize > 0) {
-				// execute batch
-				#ifdef USE_VBO
-				LOGE("Error batching unsupported with VBO");
-				#else
-				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
-
-				batchSize = 0;
-			}
+			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
 			boundTexture = rc.glref;
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
@@ -310,22 +282,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
-				#ifdef USE_VBO
-				drawBatchES2(boundTexture, rc.rotateUV);
-				#else
-				drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-				#endif
-			batchSize = 0;
+            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, rc.rotateUV);
 		}
 	}
-
-	if (batchSize > 0) {
-		#ifdef USE_VBO
-		LOGE("Error batching unsupported with VBO");
-		#else
-		drawBatchES2(boundTexture, vertices, uvs, indices, batchSize);
-		#endif
-	}
+    batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
 }
 #include <errno.h>
 

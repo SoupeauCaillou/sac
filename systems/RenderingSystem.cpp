@@ -370,7 +370,7 @@ void RenderingSystem::DoUpdate(float) {
         outQueue.commands[0] = dummy;// outQueue.commands.push_back(dummy);
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[1]);
         outQueue.count = 1 + opaqueCommands.size();
-        outQueue.commands[outQueue.count++].texture = DisableZWriteMarker;
+        outQueue.commands[outQueue.count++].texture = ToggleZWriteMarker;
         outQueue.commands[outQueue.count++].texture = EnableBlending;
         std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();

@@ -14,14 +14,16 @@
 #endif
 
 #define EndFrameMarker -10
-#define DisableZWriteMarker -11
+#define ToggleZWriteMarker -11
 #define BeginFrameMarker -12
 #define EnableBlending -13
+#define ToggleColorWriteMarker -14
+
 enum {
     ATTRIB_VERTEX = 0,
     ATTRIB_UV,
- ATTRIB_POS_ROT,
- ATTRIB_SCALE,
+    ATTRIB_POS_ROT,
+    ATTRIB_SCALE,
     NUM_ATTRIBS
 };
 

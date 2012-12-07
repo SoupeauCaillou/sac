@@ -35,12 +35,12 @@ typedef int EffectRef;
 #define DefaultEffectRef -1
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
 
 	TextureRef texture;
 	EffectRef effectRef;
 	Color color;
-	bool hide, mirrorH;
+	bool hide, mirrorH, zPrePass;
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
