@@ -143,19 +143,26 @@ struct RenderQueue {
 };
 
 struct TextureInfo {
+    // GL texture(s)
 	InternalTexture glref;
-	unsigned int rotateUV;
+    // is image rotated in atlas
+	unsigned short rotateUV;
+    // which atlas
+    short atlasIndex;
+    // uv coords in atlas
 	Vector2 uv[2];
-	int atlasIndex;
-	Vector2 size;
+    // texture original size
+	unsigned short originalWidth, originalHeight;
+    // texture redux offset/size
+    Vector2 reduxStart, reduxSize;
+    // coordinates of opaque region in alpha-enabled texture (optional)
     Vector2 opaqueStart, opaqueSize;
-    enum Type {
-        Default,
-        PartialOpaque,
-        OnlySubRectangle,
-    } type;
-
-	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, TextureInfo::Type t = Default, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero, int atlasIdx = -1);
+	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid,
+        const Vector2& posInAtlas = Vector2::Zero, const Vector2& sizeInAtlas = Vector2::Zero, bool rot = false,
+        const Vector2& atlasSize = Vector2::Zero,
+        const Vector2& offsetInOriginal = Vector2::Zero, const Vector2& originalSize=Vector2::Zero,
+        const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero,
+        int atlasIdx = -1);
 };
 struct Atlas {
 	std::string name;
@@ -221,7 +228,7 @@ static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall);
-const Vector2& getTextureSize(const std::string& textureName) const;
+Vector2 getTextureSize(const std::string& textureName) const;
 void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;
 

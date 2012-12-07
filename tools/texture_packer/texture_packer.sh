@@ -21,9 +21,11 @@ while read data; do
 		w=`echo $data | cut -d: -f2 | cut -d, -f1`
 		h=`echo $data | cut -d, -f2`
 		echo "Atlas size: $w x $h"
+
 		convert -size ${w}x${h} xc:transparent ${output}
 		#convert -size ${w}x${h} xc:transparent ${output_alpha}
 		echo "$w,$h" > ${desc}
+        #echo "# image,original width, original height, redux offset x, redux offset y, pox x in atlas, pos y in atlas, width, height, rotate[, opaque box min x, min y, max x, max y]" > ${desc}
 	else
 		image=`echo $data | cut -d, -f1`
 		x=`echo $data | cut -d, -f2`
@@ -31,6 +33,8 @@ while read data; do
 		w=`echo $data | cut -d, -f4`
 		h=`echo $data | cut -d, -f5`
 		rot=`echo $data | cut -d, -f6`
+        base=`basename ${image}`
+        real_size=`identify ${base} | cut -d\  -f3 | sed 's/x/,/'`
 
 		if [ ${rot} -ne "0" ]
 		then
@@ -50,11 +54,13 @@ while read data; do
 		#largest_rectangle script 
 		opaque=`../../sac/tools/texture_packer/largest_rectangle.py ${image}.png`
         used_rect=`../../sac/tools/texture_packer/tiniest_rectangle.py ${image}.png`
+        used_rect_x=`echo ${used_rect} | cut -d, -f3`
+        used_rect_y=`echo ${used_rect} | cut -d, -f4`
 
 		if [ -n "$opaque" ]; then
-			echo "${image},${x},${y},${w},${h},${rot},opaque,${opaque}" >> ${desc}
+			echo "`basename ${image}`,${real_size},${used_rect_x},${used_rect_y},${x},${y},${w},${h},${rot},${opaque}" >> ${desc}
 		else
-			echo "${image},${x},${y},${w},${h},${rot},sub,${used_rect}" >> ${desc}
+			echo "`basename ${image}`,${real_size},${used_rect_x},${used_rect_y},${x},${y},${w},${h},${rot}" >> ${desc}
 		fi
 	fi
 done

@@ -33,7 +33,7 @@ def tiniest(im, mat):
 					maxY = j
 
 
-	print "%d,%d,%d,%d" % (minX, minY, maxX, maxY)
+	print "%d,%d,%d,%d" % (maxX - minX + 1, maxY - minY + 1, minX, minY)
 
 def __s2m(s):
 	tab = []

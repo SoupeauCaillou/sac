@@ -202,6 +202,12 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
     }
 }
 
+static inline void modifyQ(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
+    const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
+    r.position = r.position  + Vector2::Rotate(- r.halfSize + offset, r.rotation);
+    r.halfSize = size * r.halfSize;
+}
+
 static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
     const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
     r.position = r.position  + Vector2::Rotate(- r.halfSize + offset, r.rotation);
@@ -296,40 +302,38 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                     }
                 }
-                if (info.type == RenderingSystem::TextureInfo::OnlySubRectangle) {
-                    modifyR(c, info.opaqueStart, info.opaqueSize);
-                } else if (info.type == RenderingSystem::TextureInfo::PartialOpaque) {
-                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
-                        // add a smaller full-opaque block at the center
-                        RenderCommand cCenter(c);
-                        modifyR(cCenter, info.opaqueStart, info.opaqueSize);
+                modifyQ(c, info.reduxStart, info.reduxSize);
 
-                        if (cull(camLeft, camRight, cCenter))
-                            opaqueCommands.push_back(cCenter);
+                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
+                    // add a smaller full-opaque block at the center
+                    RenderCommand cCenter(c);
+                    modifyR(cCenter, info.opaqueStart, info.opaqueSize);
 
-                        const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
-                        const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
-                        RenderCommand cLeft(c);
-                        modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                        if (cull(camLeft, camRight, cLeft))
-                            semiOpaqueCommands.push_back(cLeft);
+                    if (cull(camLeft, camRight, cCenter))
+                        opaqueCommands.push_back(cCenter);
 
-                        RenderCommand cRight(c);
-                        modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                        if (cull(camLeft, camRight, cRight))
-                            semiOpaqueCommands.push_back(cRight);
+                    const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
+                    const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
+                    RenderCommand cLeft(c);
+                    modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                    if (cull(camLeft, camRight, cLeft))
+                        semiOpaqueCommands.push_back(cLeft);
 
-                        RenderCommand cTop(c);
-                        modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
-                        if (cull(camLeft, camRight, cTop))
-                            semiOpaqueCommands.push_back(cTop);
-
-                        RenderCommand cBottom(c);
-                        modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
-                        if (cull(camLeft, camRight, cBottom))
-                            semiOpaqueCommands.push_back(cBottom);
-                        continue;
-                    }
+                    RenderCommand cRight(c);
+                    modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                    if (cull(camLeft, camRight, cRight))
+                        semiOpaqueCommands.push_back(cRight);
+                    
+                    RenderCommand cTop(c);
+                    modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
+                    if (cull(camLeft, camRight, cTop))
+                        semiOpaqueCommands.push_back(cTop);
+                    
+                    RenderCommand cBottom(c);
+                    modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
+                    if (cull(camLeft, camRight, cBottom))
+                        semiOpaqueCommands.push_back(cBottom);
+                    continue;
                 }
              }
 
