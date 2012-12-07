@@ -418,8 +418,6 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	if (it != assetTextures.end()) {
 		result = it->second;
 	} else {
-		result = nextValidRef++;
-		assetTextures[assetName] = result;
 		LOGW("Texture '%s' doesn't belong to any atlas. This is not supported", assetName.c_str());
         return InvalidTextureRef;
 	}
