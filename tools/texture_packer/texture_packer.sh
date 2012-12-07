@@ -38,7 +38,7 @@ while read data; do
 
 		if [ ${rot} -ne "0" ]
 		then
-			convert -rotate 90 ${image} ${tmp_image}
+			convert -rotate 90 ${image} PNG32:${tmp_image}
 		else
 			cp ${image} ${tmp_image}
 		fi
