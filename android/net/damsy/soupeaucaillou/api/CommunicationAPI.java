@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
+import android.util.Log;
+
 import com.swarmconnect.Swarm;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
 
@@ -15,8 +17,8 @@ public class CommunicationAPI {
 		static public boolean swarmEnabled() {
 			return Swarm.isLoggedIn();
 		}
- 
-		static public void swarmRegistering(int mode, int difficulty) {
+
+		static public void swarmRegistering() {
 			SacJNILib.activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
@@ -25,29 +27,31 @@ public class CommunicationAPI {
 					} else {
 						Swarm.showDashboard();
 					}
-				} 
+				}
 			});
-
 		}
 
 		static public void giftizMissionDone() {
-			//GiftizSDK.missionComplete(SacJNILib.activity);
+			Log.i("Sac", "Mission done!");
+			GiftizSDK.missionComplete(SacJNILib.activity);
 		}
 
 		static public int giftizGetButtonState() {
-			/*GiftizSDK.Inner.GiftizButtonStatus i = GiftizSDK.Inner.getButtonStatus(SacJNILib.activity);
-			if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonBadge) return 0;
-			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonInvisible) return 1;
-			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonNaked) return 2;
-			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonBadge) return 3;
-			*/
+			GiftizSDK.Inner.GiftizButtonStatus i = GiftizSDK.Inner.getButtonStatus(SacJNILib.activity);
+			if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonInvisible) return 0;
+			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonNaked) return 1;
+			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonBadge) return 2;
+			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonWarning) return 3;
+
+			Log.i("Sac", "Button state :" + i);
 			return -1;
 		}
-		
+
 		static public void giftizButtonClicked() {
-			//GiftizSDK.Inner.buttonClicked(SacJNILib.activity);
+			Log.i("Sac", "Giftiz clicked!");
+			GiftizSDK.Inner.buttonClicked(SacJNILib.activity);
 		}
-		
+
 		static public void shareFacebook() {
 			//Intent sharingIntent = new Intent(Intent.ACTION_SEND);
 			//sharingIntent.setType("plain/text");

@@ -51,7 +51,7 @@ void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/CommunicationAPI"));
 
    datas->swarmInstalled = jniMethodLookup(env, datas->cls, "swarmEnabled", "()Z");
-   datas->swarmRegistering = jniMethodLookup(env, datas->cls, "swarmRegistering", "(II)V");
+   datas->swarmRegistering = jniMethodLookup(env, datas->cls, "swarmRegistering", "()V");
 
    datas->giftizMissionDone = jniMethodLookup(env, datas->cls, "giftizMissionDone", "()V");
    datas->giftizGetButtonState = jniMethodLookup(env, datas->cls, "giftizGetButtonState", "()I");
@@ -79,8 +79,8 @@ bool CommunicationAPIAndroidImpl::swarmInstalled() {
    return env->CallStaticBooleanMethod(datas->cls, datas->swarmInstalled);
 }
 
-void CommunicationAPIAndroidImpl::swarmRegistering(int mode, int difficulty) {
-   env->CallStaticBooleanMethod(datas->cls, datas->swarmRegistering, mode, difficulty);
+void CommunicationAPIAndroidImpl::swarmRegistering() {
+   env->CallStaticBooleanMethod(datas->cls, datas->swarmRegistering);
 }
 
 void CommunicationAPIAndroidImpl::giftizMissionDone() {

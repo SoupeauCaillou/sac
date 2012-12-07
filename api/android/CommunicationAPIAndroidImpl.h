@@ -11,7 +11,7 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI {
 		void uninit();
 
 		bool swarmInstalled();
-		void swarmRegistering(int mode, int difficulty);
+		void swarmRegistering();
 
 		void giftizMissionDone();
 		int  giftizGetButtonState();
