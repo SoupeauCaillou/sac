@@ -214,6 +214,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 	Color currentColor(1,1,1,1);
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+    int currentFlags = 0;
 
 	EffectRef currentEffect = InvalidTextureRef;
     const unsigned count = commands.count;
@@ -246,13 +247,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
+            currentFlags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
             continue;
         } else if (rc.texture == EndFrameMarker) {
 			break;
 		}
 
         // HANDLE RENDERING FLAGS (GL state switch)
-        if (rc.flags) {
+        if (rc.flags != currentFlags) {
             // flush batch before changing state
             batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
             if (rc.flags & EnableZWriteBit) {
@@ -272,6 +274,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             } else if (rc.flags & DisableColorWriteBit) {
                 GL_OPERATION(glColorMask(false, false, false, false))
             }
+            currentFlags = rc.flags;
         }
         // EFFECT HAS CHANGED ?
 		if (rc.effectRef != currentEffect) {

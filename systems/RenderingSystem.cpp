@@ -192,7 +192,11 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
 			if (r1.texture == r2.texture) {
 	            return r1.color < r2.color;
 	        } else {
-	            return r1.texture < r2.texture;
+                if (r1.texture == r2.texture) {
+                    return r1.flags > r2.flags;
+                } else {
+	                return r1.texture < r2.texture;
+                }
 	        }
 		} else {
 			return r1.effectRef < r2.effectRef;
@@ -293,7 +297,13 @@ void RenderingSystem::DoUpdate(float) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
-            c.flags = 0;
+            if (rc->zPrePass) {
+                c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
+            } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
+                c.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+            } else {
+                c.flags = (DisableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
+            }
 
             if (c.texture != InvalidTextureRef) {
                 const TextureInfo& info = textures[c.texture];
@@ -308,6 +318,7 @@ void RenderingSystem::DoUpdate(float) {
                 if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
                     // add a smaller full-opaque block at the center
                     RenderCommand cCenter(c);
+                    cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
                     modifyR(cCenter, info.opaqueStart, info.opaqueSize);
 
                     if (cull(camLeft, camRight, cCenter))
@@ -371,7 +382,7 @@ void RenderingSystem::DoUpdate(float) {
         outQueue.commands[0] = dummy;// outQueue.commands.push_back(dummy);
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[1]);
         outQueue.count = 1 + opaqueCommands.size();
-        semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
+        // semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
         std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();
     }
