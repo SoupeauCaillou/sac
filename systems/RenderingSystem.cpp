@@ -214,7 +214,7 @@ static inline void modifyQ(RenderingSystem::RenderCommand& r, const Vector2& off
 
 static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
     const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
-    r.position = r.position  + Vector2::Rotate(- r.halfSize + offset, r.rotation);
+    r.position = r.position  + Vector2((r.mirrorH ? -1 : 1), 1) * Vector2::Rotate(- r.halfSize + offset, r.rotation);
     r.halfSize = size * r.halfSize;
     r.uv[0] = offsetPos;
     r.uv[1] = size;
@@ -323,7 +323,11 @@ void RenderingSystem::DoUpdate(float) {
 
                     if (cull(camLeft, camRight, cCenter))
                         opaqueCommands.push_back(cCenter);
-
+                    #if 0
+                    if (cull(camLeft, camRight, c))
+                        semiOpaqueCommands.push_back(c);
+                    continue;
+                    #endif
                     const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
                     const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
                     if (leftBorder > 0) {
