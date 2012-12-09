@@ -84,15 +84,15 @@ void CommunicationAPIAndroidImpl::swarmRegistering() {
 }
 
 void CommunicationAPIAndroidImpl::giftizMissionDone() {
-   env->CallStaticBooleanMethod(datas->cls, datas->giftizMissionDone);
+   env->CallStaticVoidMethod(datas->cls, datas->giftizMissionDone);
 }
 
 int CommunicationAPIAndroidImpl::giftizGetButtonState() {
-   return env->CallStaticBooleanMethod(datas->cls, datas->giftizGetButtonState);
+   return env->CallStaticIntMethod(datas->cls, datas->giftizGetButtonState);
 }
 
 void CommunicationAPIAndroidImpl::giftizButtonClicked() {
-   env->CallStaticBooleanMethod(datas->cls, datas->giftizButtonClicked);
+   env->CallStaticVoidMethod(datas->cls, datas->giftizButtonClicked);
 }
 
 void CommunicationAPIAndroidImpl::shareFacebook() {
