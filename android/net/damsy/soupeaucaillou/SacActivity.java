@@ -10,7 +10,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
-// import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,8 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
-import com.chartboost.sdk.ChartBoost;
-import com.chartboost.sdk.ChartBoostDelegate;
+import com.chartboost.sdk.Chartboost;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
 import com.swarmconnect.Swarm;
 import com.swarmconnect.SwarmActivity;
@@ -38,6 +36,8 @@ public abstract class SacActivity extends SwarmActivity {
 	PowerManager.WakeLock wl;
 
 	public Vibrator vibrator;
+	
+	public Chartboost cb;
 
 	public abstract int getSwarmGameID();
 	public abstract String getSwarmGameKey();
@@ -66,38 +66,13 @@ public abstract class SacActivity extends SwarmActivity {
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
 
-        ChartBoost _cb = ChartBoost.getSharedChartBoost(this);
         if (getCharboostAppId() != null) {
-	        _cb.setAppId(getCharboostAppId());
-	        _cb.setAppSignature(getCharboostAppSignature());
-	        _cb.install();
-	        _cb.setDelegate(new ChartBoostDelegate() {
-	        	@Override
-	        	public void didCloseInterstitial(View interstitialView) {
-	        		super.didCloseInterstitial(interstitialView);
-	        		AdAPI.adWaitingAdDisplay = false;
-	        		AdAPI.adHasBeenShown = true;
-	        	}
+        	cb = Chartboost.sharedChartboost();
+        	cb.onCreate(this, getCharboostAppId(), getCharboostAppSignature(), new AdAPI.CharboostDelegate());
+        	cb.startSession();
+        	// cb.install();
 
-	        	@Override
-	        	public void didFailToLoadInterstitial() {
-	        		super.didFailToLoadInterstitial();
-	        		AdAPI.adWaitingAdDisplay = false;
-	        		AdAPI.adHasBeenShown = true;
-	        	}
-
-	        	@Override
-	        	public boolean shouldDisplayInterstitial(View interstitialView) {
-	        		if (AdAPI.adWaitingAdDisplay && interstitialView != null) {
-	        			AdAPI.adWaitingAdDisplay = false;
-	        			return true;
-	        		} else {
-	        			return false;
-	        		}
-	        	}
-			});
-
-	        _cb.cacheInterstitial();
+	        cb.cacheInterstitial();
         } else {
         	//Log.w("sac", "Chartboost not initialized");
         }
@@ -180,8 +155,6 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     protected void onResume() {
-    	ChartBoost.getSharedChartBoost(this);
-
         super.onResume();
         if (wl != null)
         	wl.acquire();
@@ -272,10 +245,24 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     public void onBackPressed() {
-    	if (SacJNILib.willConsumeBackEvent(game)) {
+    	if (cb.onBackPressed()) {
+    		return;
+    	} else if (SacJNILib.willConsumeBackEvent(game)) {
     		backPressed = true;
     	} else {
     		super.onBackPressed();
     	}
+    }
+    
+    @Override
+    protected void onStart() {
+    	super.onStart();
+    	cb.onStart(this);    
+    }
+
+    @Override
+    protected void onStop() {
+    	super.onStop();
+    	cb.onStop(this);
     }
 }
