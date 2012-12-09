@@ -71,14 +71,17 @@ void AnimationSystem::DoUpdate(float dt) {
 }
 
 void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextAnim, Interval<float> nextAnimWait) {
-    assert (animations.find(name) == animations.end());
-    Anim* a = new Anim();
-    a->textures = textures;
-    a->playbackSpeed = playbackSpeed;
-    a->loopCount = loopCount;
-    a->nextAnim = nextAnim;
-    a->nextAnimWait = nextAnimWait;
-    animations[name] = a;
+    if (animations.find(name) == animations.end()) {
+        Anim* a = new Anim();
+        a->textures = textures;
+        a->playbackSpeed = playbackSpeed;
+        a->loopCount = loopCount;
+        a->nextAnim = nextAnim;
+        a->nextAnimWait = nextAnimWait;
+        animations[name] = a;
+    } else {
+        LOGW("Animation '%s' already defined", name.c_str());
+    }
 }
 
 void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& next, Interval<float> nextAnimWait) {

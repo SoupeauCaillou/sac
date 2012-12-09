@@ -44,8 +44,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
-                     std::cout << entity << " -> clicked" <<std::endl;
-
+                        #ifndef ANDROID
+                        std::cout << entity << " -> clicked" <<std::endl;
+                        #endif
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
                         }
@@ -57,5 +58,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 			comp->touchStartOutside = touching & !over;
 			comp->mouseOver = touching & over;
 		}
-	}
+	} else {
+        comp->mouseOver = false;
+    }
 }
