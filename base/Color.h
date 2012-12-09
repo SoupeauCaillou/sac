@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 struct Color {
 	union {
@@ -24,7 +25,15 @@ struct Color {
 
      bool operator!=(const Color& c) const;
      bool operator<(const Color& c) const;
-     
-     
 };
+
+inline std::ostream& operator<<(std::ostream& s, const Color& c) {
+    unsigned int a;
+    a = (((int)(255 * c.r)) & 0xff) << 24;
+    a |= (((int)(255 * c.g)) & 0xff) << 16;
+    a |= (((int)(255 * c.b)) & 0xff) << 8;
+    a |= (((int)(255 * c.a)) & 0xff);
+    s << std::hex << '{' << a << '}' << std::dec;
+    return s;
+}
 
