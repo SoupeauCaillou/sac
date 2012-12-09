@@ -40,6 +40,7 @@ public class AssetAPI {
 		Log.i("sac", "chunked asset : " + idx + " chunk, total size: " + totalLength);
 		byte[] data = new byte[totalLength];
 		int offset = 0;
+		boolean failed = false;
 		for (int i=0; i<idx; i++) {
 			try {
 				InputStream stream = mgr.open(assetName + ".0" + Integer.toString(i));
@@ -47,9 +48,23 @@ public class AssetAPI {
 				stream.read(data, offset, l);
 				offset += l;
 			} catch (IOException exc) {
-				Log.e("sac", "load asset error: " + exc.toString(), exc);
-				return null;
+				Log.e("sac", "load asset error. Falling back to byte per byte", exc);
+				failed = true;
+				break;
 			}
+		}
+		if (failed) {
+			for (int i=0; i<idx; i++) {
+				try {
+					InputStream stream = mgr.open(assetName + ".0" + Integer.toString(i));
+					int l = stream.available();
+					for(int j=0; j<l; j++)
+						data[offset++] = (byte)stream.read();
+				} catch (IOException exc) {
+					Log.e("sac", "load asset error: " + exc.toString(), exc);
+					return null;
+				}
+			}	
 		}
 		return data;
 	}
