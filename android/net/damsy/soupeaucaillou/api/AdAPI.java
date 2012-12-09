@@ -2,7 +2,8 @@ package net.damsy.soupeaucaillou.api;
 
 import net.damsy.soupeaucaillou.SacJNILib;
 
-import com.chartboost.sdk.ChartBoost;
+import com.chartboost.sdk.Chartboost;
+import com.chartboost.sdk.ChartboostDelegate;
 
 public class AdAPI {
 	public static boolean adHasBeenShown, adWaitingAdDisplay;
@@ -11,8 +12,8 @@ public class AdAPI {
 		// AdsAPI
 		// -------------------------------------------------------------------------
 		static public boolean showAd() {
-			ChartBoost _cb = ChartBoost.getSharedChartBoost(SacJNILib.activity);
-			if (_cb.getAppId() == null) {
+			Chartboost _cb = SacJNILib.activity.cb;
+			if (_cb == null) {
 				AdAPI.adHasBeenShown = true;
 				return false;
 			}
@@ -49,5 +50,107 @@ public class AdAPI {
 
 		static public boolean done() {
 			return AdAPI.adHasBeenShown;
+		}
+		
+		
+		public static class CharboostDelegate implements ChartboostDelegate {
+
+			@Override
+			public void didCacheInterstitial(String arg0) {
+				
+			}
+
+			@Override
+			public void didCacheMoreApps() {
+				
+			}
+
+			@Override
+			public void didClickInterstitial(String arg0) {
+				
+			}
+
+			@Override
+			public void didClickMoreApps() {
+				
+			}
+
+			@Override
+			public void didCloseInterstitial(String arg0) {
+				AdAPI.adWaitingAdDisplay = false;
+        		AdAPI.adHasBeenShown = true;
+			}
+
+			@Override
+			public void didCloseMoreApps() {
+				
+			}
+
+			@Override
+			public void didDismissInterstitial(String arg0) {
+				AdAPI.adWaitingAdDisplay = false;
+        		AdAPI.adHasBeenShown = true;
+			}
+
+			@Override
+			public void didDismissMoreApps() {
+				
+			}
+
+			@Override
+			public void didFailToLoadInterstitial(String arg0) {
+				AdAPI.adWaitingAdDisplay = false;
+        		AdAPI.adHasBeenShown = true;
+			}
+
+			@Override
+			public void didFailToLoadMoreApps() {
+				
+			}
+
+			@Override
+			public void didShowInterstitial(String arg0) {
+				
+			}
+
+			@Override
+			public void didShowMoreApps() {
+				
+			}
+
+			@Override
+			public boolean shouldDisplayInterstitial(String arg0) {
+				if (AdAPI.adWaitingAdDisplay) {
+        			AdAPI.adWaitingAdDisplay = false;
+        			return true;
+        		} else {
+        			return false;
+        		}
+			}
+
+			@Override
+			public boolean shouldDisplayLoadingViewForMoreApps() {
+				return true;
+			}
+
+			@Override
+			public boolean shouldDisplayMoreApps() {
+				return false;
+			}
+
+			@Override
+			public boolean shouldRequestInterstitial(String arg0) {
+				return true;
+			}
+
+			@Override
+			public boolean shouldRequestInterstitialsInFirstSession() {
+				return true;
+			}
+
+			@Override
+			public boolean shouldRequestMoreApps() {
+				return false;
+			}
 		}
 }
