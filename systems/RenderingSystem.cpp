@@ -115,7 +115,7 @@ void RenderingSystem::init() {
 	defaultShader = buildShader("default.vs", "default.fs");
 	defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
 	#endif
-	GL_OPERATION(glClearColor(0, 0, 0, 1.0))
+	GL_OPERATION(glClearColor(148.0/255, 148.0/255, 148.0/255, 1.0)) // temp setting for RR
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};
