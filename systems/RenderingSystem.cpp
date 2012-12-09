@@ -15,7 +15,7 @@ RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), initDone(false) {
 	nextValidRef = nextEffectRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
@@ -41,11 +41,19 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
 
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-    #else
-    inotifyFd = inotify_init();
-    #endif
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
+    initDone = true;
+}
+
+RenderingSystem::~RenderingSystem() {
+#ifndef EMSCRIPTEN
+    pthread_mutex_destroy(&mutexes[L_RENDER]);
+    pthread_mutex_destroy(&mutexes[L_QUEUE]);
+    pthread_mutex_destroy(&mutexes[L_TEXTURE]);
+    pthread_cond_destroy(&cond[0]);
+    pthread_cond_destroy(&cond[1]);
+#endif
+    initDone = false;
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
@@ -541,6 +549,8 @@ void RenderingSystem::reloadEffects() {
 }
 
 void RenderingSystem::setFrameQueueWritable(bool b) {
+    if (frameQueueWritable == b || !initDone)
+        return;
     LOGI("Writable: %d", b);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
     frameQueueWritable = b;

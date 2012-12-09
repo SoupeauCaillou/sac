@@ -59,6 +59,7 @@ struct RenderingComponent {
 UPDATABLE_SYSTEM(Rendering)
 
 public:
+~RenderingSystem();
 void init();
 
 void loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading = false);
@@ -206,16 +207,7 @@ EffectRef nextEffectRef;
 std::map<std::string, EffectRef> nameToEffectRefs;
 std::map<EffectRef, Shader> ref2Effects;
 
-/* open gl es1 var */
-
-#ifndef ANDROID
-int inotifyFd;
-struct NotifyInfo {
-    int wd;
-    std::string asset;
-};
-std::vector<NotifyInfo> notifyList;
-#endif
+bool initDone;
 
 private:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
