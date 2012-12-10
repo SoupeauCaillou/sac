@@ -26,14 +26,14 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 
     comp->clicked = false;
 
-    if (!touching && !comp->mouseOver)
-        return;
+    if (!touching)
+        comp->touchStartOutside = false;
 
 	const Vector2& pos = TRANSFORM(entity)->worldPosition;
 	const Vector2& size = TRANSFORM(entity)->size;
 
 	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
-	if (comp->enabled) {
+	if (comp->enabled && !comp->touchStartOutside) {
         if (comp->mouseOver) {
 			if (touching) {
 				comp->mouseOver = over;
