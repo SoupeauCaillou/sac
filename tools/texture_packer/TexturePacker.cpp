@@ -1,7 +1,7 @@
 // Licence: see TexturePacker.h
 #include "TexturePacker.h"
 #include <assert.h>
-
+#include <iostream>
 #pragma warning(disable:4100 4244)
 
 namespace TEXTURE_PACKER
@@ -294,19 +294,17 @@ public:
       mLongestEdge = nextPow2(mLongestEdge);
     }
 
-    width  = mLongestEdge * 2;              // The width is no more than the longest edge of any rectangle passed in
+youpi:
+    width = mLongestEdge;              // The width is no more than the longest edge of any rectangle passed in
     int count = mTotalArea / (mLongestEdge*mLongestEdge);
-    height = (count+5)*mLongestEdge;            // We guess that the height is no more than twice the longest edge.  On exit, this will get shrunk down to the actual tallest height.
+    height = (count+2)*mLongestEdge;            // We guess that the height is no more than twice the longest edge.  On exit, this will get shrunk down to the actual tallest height.
 
-	while (height > 1024 && width < 1024) {
-		width *= 2;
-		height /= 2;
-	}
-	while (width > 1024 && height < 1024) {
-		height *= 2;
-		width /= 2;
-	}
-
+    if (height > 1024 && width < 1024) {
+        std::cout << width << "x" << height << ": " << mLongestEdge << std::endl;
+        mLongestEdge *= 2;
+        goto youpi;
+    }
+std::cout << width << "x" << height << ": " << mLongestEdge << std::endl;
     mDebugCount = 0;
     newFree(0,0,width,height);
 
