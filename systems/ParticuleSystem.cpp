@@ -63,7 +63,8 @@ void ParticuleSystem::DoUpdate(float dt) {
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
                 rc->hide = false;
-
+                if (pc->texture == InvalidTextureRef && pc->initialColor.t1.a == 1 && pc->initialColor.t2.a == 1)
+                    rc->opaqueType = RenderingComponent::FULL_OPAQUE;
                 if (pc->mass) {
                     ADD_COMPONENT(e, Physics);
                     PhysicsComponent* ppc = PHYSICS(e);
