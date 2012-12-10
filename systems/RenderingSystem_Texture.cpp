@@ -249,13 +249,17 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
- if (colorOrAlpha && image.mipmap > 0) {
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
- GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
- } else {
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
- }
+#ifdef ANDROID
+     if (colorOrAlpha && image.mipmap > 0) {
+#else
+     if (colorOrAlpha) {
+#endif
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
+     } else {
+    	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+    	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+     }
 
 	GLenum format;
 	switch (image.channels) {
@@ -304,10 +308,12 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	#endif
 	}
 
-    if (0 && image.mipmap == 0) {
+#ifndef ANDROID
+    if (image.mipmap == 0) {
         LOGI("Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);
     }
+#endif
 	free (image.datas);
 	pow2Size.X = realSize.X = image.width;
 	pow2Size.Y = realSize.Y = image.height;
