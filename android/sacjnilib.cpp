@@ -78,15 +78,17 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
     pthread_mutex_init(&hld->mutex, 0);
     pthread_cond_init(&hld->cond, 0);
     hld->renderingStarted = hld->drawQueueChanged = false;
-
+    LOGW("%s <--", __FUNCTION__);
 	return (jlong)hld;
 }
 
 JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
   (JNIEnv *env, jclass, jlong g) {
+    LOGW("%s -->", __FUNCTION__);
     GameHolder* hld = (GameHolder*) g;
     delete hld->game;
     delete hld;
+    LOGW("%s <--", __FUNCTION__);
 }
 
 /*
@@ -117,6 +119,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderT
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
   (JNIEnv *env, jclass, jobject asset, jlong g, jbyteArray jstate) {
+    LOGW("%s -->", __FUNCTION__);
   	GameHolder* hld = (GameHolder*) g;
   	bool fullInit = true;
 
@@ -151,11 +154,12 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
     hld->game->resetTime();
     theRenderingSystem.Update(0);
+    LOGW("%s <--", __FUNCTION__);
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread
   (JNIEnv *env, jclass, jlong g) {
-  LOGW("%s -->", __FUNCTION__);
+    LOGW("%s -->", __FUNCTION__);
 	GameHolder* hld = (GameHolder*) g;
 	hld->gameThreadJNICtx->uninit(env);
 	LOGW("%s <--", __FUNCTION__);
@@ -186,7 +190,7 @@ float pauseTime;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
   (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
-
+    LOGW("%s -->", __FUNCTION__);
 	if (!hld)
   		return;
   	float d = TimeUtil::getTime();
@@ -195,6 +199,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
   	if ((d - pauseTime) <= 5) {
 	  	theMusicSystem.toggleMute(theSoundSystem.mute);
   	}
+    LOGW("%s <--", __FUNCTION__);
 }
 
 float renderingPrevTime = 0;
