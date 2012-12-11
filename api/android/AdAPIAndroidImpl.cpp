@@ -49,6 +49,6 @@ bool AdAPIAndroidImpl::showAd() {
 }
 
 bool AdAPIAndroidImpl::done() {
-    env->CallStaticBooleanMethod(datas->cls, datas->done);
+    return env->CallStaticBooleanMethod(datas->cls, datas->done);
 }
 
