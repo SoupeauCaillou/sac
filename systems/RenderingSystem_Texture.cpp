@@ -287,21 +287,19 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 		GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
 	} else {
 	   #ifdef ANDROID
-		if (pvrSupported) {
-            char* ptr = image.datas;
-			LOGI("Using PVR texture version (%dx%d - %d mipmap)", image.width, image.height, image.mipmap);
-            for (int level=0; level<=image.mipmap; level++) {
-                int width = MathUtil::Max(1, image.width >> level);
-                int height = MathUtil::Max(1, image.height >> level);
-                unsigned imgSize = ( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
-                LOGI("\t- mipmap #%d : %dx%d", level, width, height);
-			    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, width, height, 0, imgSize, ptr))
-                ptr += imgSize;
-            }
-		} else {
-			LOGI("Using ETC texture version");
-			#define ECT1_HEADER_SIZE 16
-			GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
+        char* ptr = image.datas;
+		LOGI("Using %s texture version (%dx%d - %d mipmap)", pvrSupported ? "PVR" : "ETC1", image.width, image.height, image.mipmap);
+        for (int level=0; level<=image.mipmap; level++) {
+            int width = MathUtil::Max(1, image.width >> level);
+            int height = MathUtil::Max(1, image.height >> level);
+            unsigned imgSize = 0;
+            if (pvrSupported) 
+                imgSize =( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
+            else
+                imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
+            LOGI("\t- mipmap #%d : %dx%d", level, width, height);
+		    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
+            ptr += imgSize;
 		}
 	#else
 		assert (false && "ETC compression not supported");
