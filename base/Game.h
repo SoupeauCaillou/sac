@@ -26,15 +26,21 @@ class Game {
 
 		virtual void init(const uint8_t* in = 0, int size = 0) = 0;
 
+        virtual void quickInit() = 0;
+
         void step();
 
         void render();
 
-		virtual void backPressed();
-
 		virtual int saveState(uint8_t** out);
 
+#ifdef ENABLE_PROFILING
+        void backPressed();
+        bool willConsumeBackEvent() { return true; }
+#else
+        virtual void backPressed();
         virtual bool willConsumeBackEvent() { return false; }
+#endif
 
         virtual void togglePause(bool) { }
 
