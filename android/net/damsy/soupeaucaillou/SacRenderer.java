@@ -5,7 +5,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
-//import android.util.Log;
 
 import com.swarmconnect.Swarm;
 
@@ -88,7 +87,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 					activity.game = 0;
 				}
 			}
-		});
+		}, "GameUpdate");
     	// gameThread.setPriority(Thread.MAX_PRIORITY);
 		gameThread.start();
     }
@@ -135,7 +134,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	}
 
     	String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
-    	//Log.i("H", "Extensions supported: " + extensions);
+    	android.util.Log.i("sac", "Extensions supported: " + extensions);
     	if (activity.game == 0) {
     		android.util.Log.i("sac", "Activity LifeCycle ##### Game instance creation (onSurfaceCreated)");
     		initDone = false;
