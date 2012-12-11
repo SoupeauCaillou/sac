@@ -4,14 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
+import net.damsy.soupeaucaillou.api.CommunicationAPI;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Button;
@@ -30,7 +33,7 @@ public abstract class SacActivity extends SwarmActivity {
 	public byte[] savedState;
 	public boolean isRunning;
 	public boolean requestPausedFromJava, backPressed;
-	public GLSurfaceView mGLView;
+	// public GLSurfaceView mGLView;
 	final public int openGLESVersion = 2;
 	protected SacRenderer renderer;
 	PowerManager.WakeLock wl;
@@ -85,8 +88,7 @@ public abstract class SacActivity extends SwarmActivity {
         setContentView(getLayoutId());
         RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
 
-
-        mGLView = new GLSurfaceView(this);
+        GLSurfaceView mGLView = new GLSurfaceView(this);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
         int width = getWindowManager().getDefaultDisplay().getWidth();
 
@@ -100,6 +102,25 @@ public abstract class SacActivity extends SwarmActivity {
         	renderer = new SacRenderer(this, getAssets());
             mGLView.setRenderer(renderer);
 		}
+        holder.addCallback(new SurfaceHolder.Callback() {
+			
+			@Override
+			public void surfaceDestroyed(SurfaceHolder holder) {
+				Log.i("sac", "SURFACE DESTROYED!" + holder.getSurface().hashCode());
+				
+			}
+			
+			@Override
+			public void surfaceCreated(SurfaceHolder holder) {
+				Log.i("sac", "SURFACE CREATED!" + holder.getSurface().hashCode());
+			}
+			
+			@Override
+			public void surfaceChanged(SurfaceHolder holder, int format, int width,
+					int height) {
+				Log.i("sac", "SURFACE CHANGED!" + holder.getSurface().hashCode());
+			}
+		});
 
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
@@ -123,18 +144,36 @@ public abstract class SacActivity extends SwarmActivity {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putLong("launch_count", newValue);
         editor.commit();
+        
+        CommunicationAPI.buttonStatus = GiftizSDK.Inner.getButtonStatus(this);
+        GiftizSDK.Inner.setButtonNeedsUpdateDelegate(new CommunicationAPI.GiftizDelegate());
     }
 
     @Override
     protected void onPause() {
+    	super.onPause();
     	android.util.Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
     	SacJNILib.stopRendering();
-    	synchronized (mGLView) {
-	       	if (renderer != null) {
-	       		// must be done before super.pause()
-	       		mGLView.onPause();
-	       	}
-	    }
+    	
+    	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
+    	int count = layout.getChildCount();
+    	for (int i=0; i<count; i++) {
+    		View v = layout.getChildAt(i);
+    		if (v instanceof GLSurfaceView) {
+    			Log.i("sac", "Found GLSurfaceView child -> pause it");
+    			GLSurfaceView mGLView = (GLSurfaceView) v;
+    	    	synchronized (mGLView) {
+    		       	if (renderer != null) {
+    		       		// must be done before super.pause()
+    		       		mGLView.onPause();
+    		       	}
+    		    }
+    	    	break;
+    		}
+    	}
+    	
+
+    	
         if (wl != null)
         	wl.release();
 
@@ -146,30 +185,38 @@ public abstract class SacActivity extends SwarmActivity {
 	        	// HeriswapJNILib.invalidateTextures(HeriswapActivity.game);
 			}
         }
-        Swarm.setInactive(this);
 		GiftizSDK.onResumeMainActivity(this);
-
-        //OpenFeint.onPause();
-        super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
+    			LayoutParams.FLAG_FULLSCREEN);
         if (wl != null)
         	wl.acquire();
         SacJNILib.resetTimestep(game);
         requestPausedFromJava = false;
         isRunning = true;
 
-        synchronized (mGLView) {
-        	if (renderer != null) {
-        		mGLView.onResume();
-        	}
-        }
+    	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
+    	int count = layout.getChildCount();
+    	for (int i=0; i<count; i++) {
+    		View v = layout.getChildAt(i);
+    		if (v instanceof GLSurfaceView) {
+    			Log.i("sac", "Found GLSurfaceView child -> resume it");
+    			GLSurfaceView mGLView = (GLSurfaceView) v;
+    	        synchronized (mGLView) {
+    	        	if (renderer != null) {
+    	        		mGLView.onResume();
+    	        	}
+    	        }
+    	    	break;
+    		}
+    	}
+
 
 		GiftizSDK.onResumeMainActivity(this);
-        Swarm.setActive(this);
     }
 
     @Override
