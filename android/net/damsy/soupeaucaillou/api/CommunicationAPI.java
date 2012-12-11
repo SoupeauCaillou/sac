@@ -9,8 +9,11 @@ import android.util.Log;
 
 import com.swarmconnect.Swarm;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
+import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.ButtonNeedsUpdateDelegate;
 
 public class CommunicationAPI {
+		static public GiftizSDK.Inner.GiftizButtonStatus buttonStatus;
+		
 		// -------------------------------------------------------------------------
 		// CommunicationAPI
 		// -------------------------------------------------------------------------
@@ -25,7 +28,7 @@ public class CommunicationAPI {
 					if (!Swarm.isInitialized()) {
 						Swarm.init(SacJNILib.activity, SacJNILib.activity.getSwarmGameID(), SacJNILib.activity.getSwarmGameKey());
 					} else {
-						Swarm.showDashboard();
+						Swarm.showLeaderboards();
 					}
 				}
 			});
@@ -37,14 +40,18 @@ public class CommunicationAPI {
 		}
 
 		static public int giftizGetButtonState() {
-			GiftizSDK.Inner.GiftizButtonStatus i = GiftizSDK.Inner.getButtonStatus(SacJNILib.activity);
-			if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonInvisible) return 0;
-			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonNaked) return 1;
-			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonBadge) return 2;
-			else if (i == GiftizSDK.Inner.GiftizButtonStatus.ButtonWarning) return 3;
-
-			Log.i("Sac", "Button state :" + i);
-			return -1;
+			switch (buttonStatus) {
+				case ButtonInvisible:
+					return 0;
+				case ButtonNaked:
+					return 1;
+				case ButtonBadge:
+					return 2;
+				case ButtonWarning:
+					return 3;
+				default:
+					return -1;
+			}
 		}
 
 		static public void giftizButtonClicked() {
@@ -96,5 +103,12 @@ public class CommunicationAPI {
 			SharedPreferences.Editor editor = prefs.edit();
 			editor.putBoolean("dontshowagain", true);
 			editor.commit();
+		}
+		
+		static public class GiftizDelegate implements ButtonNeedsUpdateDelegate {
+			@Override
+			public void buttonNeedsUpdate() {
+				buttonStatus = GiftizSDK.Inner.getButtonStatus(SacJNILib.activity);
+			}
 		}
 }
