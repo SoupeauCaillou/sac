@@ -121,27 +121,32 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
   (JNIEnv *env, jclass, jobject asset, jlong g, jbyteArray jstate) {
     LOGW("%s -->", __FUNCTION__);
   	GameHolder* hld = (GameHolder*) g;
-  	bool fullInit = true;
-
-  	if (hld->gameThreadJNICtx->env && hld->gameThreadJNICtx->env != env && !jstate)
-  		fullInit = false;
+    // init JNI env
 	hld->gameThreadJNICtx->init(env, asset);
 
 	theMusicSystem.musicAPI = &hld->gameThreadJNICtx->musicAPI;
 	theMusicSystem.assetAPI = &hld->gameThreadJNICtx->asset;
 	theSoundSystem.soundAPI = &hld->gameThreadJNICtx->soundAPI;
 
+    // really needed ?
 	theSoundSystem.init();
 
+    // restore from state if any ?
 	uint8_t* state = 0;
 	int size = 0;
 	if (jstate) {
 		size = env->GetArrayLength(jstate);
 		state = (uint8_t*)env->GetByteArrayElements(jstate, NULL);
 		LOGW("Restoring saved state (size:%d)", size);
-	} else if (hld->initDone) {
+	}
+    // we don't need to re-init the game
+    else if (hld->initDone) {
+        hld->game->quickInit();
+        LOGW("%s <-- (early)", __FUNCTION__);
 		return;
-	} else {
+	}
+    // full init
+    else {
 		LOGW("No saved state: creating a new Game instance from scratch");
 	}
 
@@ -153,7 +158,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 	hld->initDone = true;
 
     hld->game->resetTime();
-    theRenderingSystem.Update(0);
+    // theRenderingSystem.Update(0);
     LOGW("%s <--", __FUNCTION__);
 }
 
@@ -237,7 +242,9 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBa
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
   (JNIEnv *env, jclass, jlong g) {
      LOGW("%s -->", __FUNCTION__);
-     theRenderingSystem.setFrameQueueWritable(false);
+     if (RenderingSystem::GetInstancePointer()) {
+        theRenderingSystem.setFrameQueueWritable(false);
+     }
      LOGW("%s <--", __FUNCTION__);
 }
 
