@@ -151,42 +151,9 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
     result.mipmap = 0;
 	return result;
 }
-#ifdef ANDROID
+
 ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
-	#define BE_16_TO_H betoh16
-#else
-ImageDesc ImageLoader::loadEct1(const std::string&, const FileBuffer&) {
-	#define BE_16_TO_H be16toh
-#endif
-
-	 #ifdef ANDROID
-	ImageDesc result;
-	result.datas = 0;
-    result.mipmap = 0;
-
-	unsigned offset = 0;
-	if (strncmp("PKM ", (const char*)file.data, 4)) {
-		LOGW("ETC: %s wrong magic header '%02x %02x %02x %02x'", context.c_str(), file.data[0], file.data[1], file.data[2], file.data[3]);
-		return result;
-	}
-	offset += 4;
-
-	// skip version/type
-	offset += 4;
-	// skip extended width/height
-	offset += 2 * 2;
-	// read width/height
-
-	result.width = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
-	offset += 2;
-	result.height = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
-	offset += 2;
-	// memcpy
-	result.datas = (char*) malloc(file.size - offset);
-	memcpy(result.datas, &file.data[offset], file.size - offset);
-
-	return result;
-#endif
+    return loadPvr(context, file);
 }
 
 #ifndef __EMSCRIPTEN
