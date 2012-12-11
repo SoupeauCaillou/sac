@@ -45,10 +45,13 @@ public class AssetAPI {
 			try {
 				InputStream stream = mgr.open(assetName + ".0" + Integer.toString(i));
 				int l = stream.available();
-				stream.read(data, offset, l);
+				int r = stream.read(data, offset, l);
+				if (r < l) {
+					Log.e("sac", "Different read count: " + r + " read, expected: " + l);
+				}
 				offset += l;
 			} catch (IOException exc) {
-				Log.e("sac", "load asset error. Falling back to byte per byte", exc);
+				Log.e("sac", "load asset error. Falling back to byte per byte (" + exc.toString() + ")");
 				failed = true;
 				break;
 			}
