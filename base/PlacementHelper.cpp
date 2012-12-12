@@ -56,3 +56,7 @@ float PlacementHelper::GimpXToScreen(int x) {
 Vector2 PlacementHelper::GimpSizeToScreen(const Vector2& v) {
  	return Vector2(GimpWidthToScreen(v.X), GimpHeightToScreen(v.Y));
 }
+
+Vector2 PlacementHelper::GimpPositionToScreen(const Vector2& v) {
+    return Vector2(GimpXToScreen(v.X), GimpYToScreen(v.Y));
+}

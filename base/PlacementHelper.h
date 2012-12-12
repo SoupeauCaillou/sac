@@ -13,4 +13,5 @@ struct PlacementHelper {
 
     static float GimpYToScreen(int y);
     static float GimpXToScreen(int x);
+    static Vector2 GimpPositionToScreen(const Vector2& v);
 };
