@@ -8,8 +8,8 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
 		void swarmRegistering() { LOGI("swarm registered"); }
 
 		void giftizMissionDone() { }
-		int  giftizGetButtonState() { return MathUtil::RandomInt(4); };
-		void giftizButtonClicked() { };
+		int  giftizGetButtonState() { return ((int)TimeUtil::getTime()) % 4; }
+		void giftizButtonClicked() { }
 
 		void shareFacebook() { LOGI("facebook share"); }
 		void shareTwitter() { LOGI("twitter share"); }
