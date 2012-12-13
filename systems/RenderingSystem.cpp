@@ -195,16 +195,16 @@ static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const Rend
 }
 
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-	if (r1.z == r2.z) {
+    #define EPSILON 0.0001
+	if (MathUtil::Abs(r1.z - r2.z) <= EPSILON) {
 		if (r1.effectRef == r2.effectRef) {
 			if (r1.texture == r2.texture) {
-	            return r1.color < r2.color;
-	        } else {
-                if (r1.texture == r2.texture) {
+                if (r1.flags != r2.flags)
                     return r1.flags > r2.flags;
-                } else {
-	                return r1.texture < r2.texture;
-                }
+                else
+	                return r1.color < r2.color;
+	        } else {
+	            return r1.texture < r2.texture;
 	        }
 		} else {
 			return r1.effectRef < r2.effectRef;
@@ -323,7 +323,10 @@ void RenderingSystem::DoUpdate(float) {
                 }
                 modifyQ(c, info.reduxStart, info.reduxSize);
 
-                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
+                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                    c.color.a >= 1 &&
+                    info.opaqueSize != Vector2::Zero && 
+                    !rc->zPrePass) {
                     // add a smaller full-opaque block at the center
                     RenderCommand cCenter(c);
                     cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
