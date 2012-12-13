@@ -23,7 +23,7 @@ struct CacheKey {
         charHeight = tc->charHeight;
         positioning = tc->positioning;
         hide = tc->hide;
-        flags = tc->hide;
+        flags = tc->flags;
         memcpy(&caret, &tc->caret, sizeof(caret));
         cameraBitMask = tc->cameraBitMask;
         int length = tc->text.length();
