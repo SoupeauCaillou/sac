@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
 import net.damsy.soupeaucaillou.api.CommunicationAPI;
+import net.damsy.soupeaucaillou.recursiveRunner.RecursiveRunnerActivity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
@@ -37,6 +38,8 @@ public abstract class SacActivity extends SwarmActivity {
 	final public int openGLESVersion = 2;
 	protected SacRenderer renderer;
 	PowerManager.WakeLock wl;
+	
+	public static final String UseLowGfxPref = "UseLowGfxPref";
 
 	public Vibrator vibrator;
 	
@@ -92,6 +95,17 @@ public abstract class SacActivity extends SwarmActivity {
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
         int width = getWindowManager().getDefaultDisplay().getWidth();
 
+        SharedPreferences preferences = this
+				.getSharedPreferences(RecursiveRunnerActivity.HERISWAP_SHARED_PREF, 0);
+        
+        if (preferences.getBoolean(UseLowGfxPref, false)) {
+        	factor = 0.6f;
+        	Log.i("sac", "Current GFX value: LOW RES");
+        } else {
+        	factor = 0.9f;
+        	Log.i("sac", "Current GFX value: HIGH RES");
+        }
+        
         int height = getWindowManager().getDefaultDisplay().getHeight();
         android.view.SurfaceHolder holder = mGLView.getHolder();
         holder.setFixedSize((int)(width * factor), (int)((height) * factor));
