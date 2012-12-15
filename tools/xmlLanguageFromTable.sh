@@ -1,96 +1,110 @@
 #!/bin/sh
 
-#todo : 
-# - faire le csv automatiquement (probleme avec le séparateur + les accents)
-# - lien du DL fonction du jeu ?
-
-###CHECK_ARGS
-
-print_usage() {
-	echo "Usage : sh xmlLanguageFromTable.sh CSV_FILE.csv PATH_TO_RES SEPARATOR_IN_CSV"
-	echo "\texample: sh xmlLanguageFromTable.sh rawTrans.csv ~/code/heriswap/res \n"
+### FUNCTIONS
+usage() {
+	echo "Usage:   sh xmlLanguageFromTable.sh"
+	echo "Bybye every body!"
+	exit
 }
 
-if [ -z "$1" ]; then
-	echo "Wrong parameters"
-	print_usage
-	echo "Auf wiedersehen !"
-	exit
-fi
+error_and_quit() {
+	echo "######## $1 ########"
+	usage
+}
 
-if [ -z "$2" ]; then
-	echo "Need res path. Example : code/c/heriswap/heriswap/res"
-	print_usage
-	echo "Auf wiedersehen !"
-	exit
+######### Start : check arguments
+if [ $# != 0 ]; then
+	error_and_quit "Wrong parameters count"
 fi
-
-if [ -z "$3" ]; then
-	echo "Need separator char. Example (~) : \tdiff_1~easy~facile~facillio~uberswuz"
-	print_usage
-	echo "Auf wiedersehen !"
-	exit
-fi
-
-separateur=$3
 
 ######### FIRST : download the google doc file ######
-wget -O /tmp/tmp$PPID.odt "docs.google.com/spreadsheet/ccc?key=0AiBDfxibD5bHdGVHRzFLSjJLRVZ1bmNWY3R0Z2VieUE&output=ods"
-echo "please export the file to csv! Remember: save it at $1 and the delimiter is $separateur (missed the \ character ?)"
-libreoffice /tmp/tmp$PPID.odt
-######### 
+	#LINKS ARE HARD LINKED
+	Hdrive="docs.google.com/spreadsheet/ccc?key=0AiBDfxibD5bHdGVHRzFLSjJLRVZ1bmNWY3R0Z2VieUE&output=txt"
+	RRdrive="docs.google.com/spreadsheet/ccc?key=0AmvXloUjXatzdC1TQXJtcGxCOGo0cG5nVFBMMTlRQXc&output=txt"
+
+	csvFILE=/tmp/tmp$PPID.txt
+
+	GAME_IS=`cd "$(dirname "$0")" && cd ../.. && pwd`
+	if [ `echo "$GAME_IS" | grep -i "heriswap"` ]; then
+		#heriswap
+		wget "$Hdrive" -O $csvFILE
+	elif [ `echo "$GAME_IS" | grep -i "runner"` ]; then
+		#RR
+		wget "$RRdrive" -O $csvFILE
+	else
+		error_and_quit "This is NOR heriswap and recursiveRunner ($PWD doesn't contain both of us). abort"
+	fi
+
+	#by default, google save the docs with tabulations so we need to change \t to ~
+	#(even if it could work with tabulations)
+	sed -i 's/\t/~/g' $csvFILE
+	#and set a \n at the end of the file (google doesn't)
+	echo '' >> $csvFILE
 
 ######## SECOND : treat the csv file…
+	#- echo "remove old values*/strings.xml files ? (y/n)"
+	#- read confirm
+	#- if [ "$confirm" != "y" ]; then
+		#- echo "aborded"
+		#- exit
+	#- fi
 
+	echo "rm -r $GAME_IS/res/values*/strings.xml"
+	rm -r $GAME_IS/res/values*/strings.xml 2>/dev/null
 
-echo "remove old values dir ? (y/n)"
-read confirm
-if [ "$confirm" = "n" ]; then
-	echo "aborded"
-	exit
-fi
+	rm -r /tmp/xmlFromTable 2>/dev/null
+	mkdir /tmp/xmlFromTable
 
-echo "rm -r $2/values*"
-rm -r $2/values* 2>/dev/null
+	separateur=\~
+	firstLine=`head -n 1 "$csvFILE"`
+	number=`echo "$firstLine" | grep -o "$separateur" | wc -l`
+	for i in `seq $number`; do
+		echo "mkdir /tmp/xmlFromTable/values-$i"
+		mkdir /tmp/xmlFromTable/values-$i
+		echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>" > /tmp/xmlFromTable/values-$i/strings.xml
+	done
 
-rm -r /tmp/xmlFromTable 2>/dev/null
-mkdir /tmp/xmlFromTable
+	while read -r line; do
+		#don't keep the "language" line
+		if [ -z "`echo $line | grep languages | grep en`" ]; then
+			keyWord=`printf '%s' "$line" | cut -d$separateur -f1`
+			for j in `seq $number`; do
+				jPlusUn=`expr $j + 1`
+				translation=`printf '%s' "$line" | cut -d$separateur -f $jPlusUn`
 
-firstLine=`head -n 1 "$1"`
-number=`echo "$firstLine" | grep -o "$separateur" | wc -l`
-for i in `seq $number`; do
-	echo "mkdir /tmp/xmlFromTable/values-$i"
-	mkdir /tmp/xmlFromTable/values-$i
-	echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>" > /tmp/xmlFromTable/values-$i/strings.xml
-done
+				#fill with english transl if there isn't one in this language
+				if [ -z "$translation" ]; then
+					translation=`printf '%s\n' "$line" | cut -d$separateur -f2`
+				fi
+				printf '\t<string name="%s">"%s"</string>\n' "$keyWord" "$translation" >> /tmp/xmlFromTable/values-$j/strings.xml
+			done
+		fi
+	done < $csvFILE
 
-while read -r line
-do
-	if [ "$line" != "languages$separateuren$separateurfr$separateurde$separateurit$separateurnl$separateures" ]; then
-		keyWord=`printf '%s' "$line" | cut -d$separateur -f1`
-		for j in `seq $number`; do
-			jPlusUn=`expr $j + 1`
-			translation=`printf '%s' "$line" | cut -d$separateur -f $jPlusUn`
-			
-			#fill with english transl if there isn't one in this language
-			if [ -z "$translation" ]; then
-				translation=`printf '%s\n' "$line" | cut -d$separateur -f2`				
-			fi
-			printf '\t<string name="%s">"%s"</string>\n' "$keyWord" "$translation" >> /tmp/xmlFromTable/values-$j/strings.xml
-		done
+	#rename dir by their lang name
+	for i in `seq $number`; do
+		echo "</resources>" >> /tmp/xmlFromTable/values-$i/strings.xml
+		iPlusUn=`expr $i + 1`
+		lang=`echo $firstLine | cut -d$separateur -f "$iPlusUn"`
+		echo "mv /tmp/xmlFromTable/values-$i $GAME_IS/res/values-$lang"
+
+		#2 use case here: the res already exist (and then we juste move
+		#the file), or not (and we need to move the entire folder)
+		if [ -d $GAME_IS/res/values-$lang ]; then
+			mv /tmp/xmlFromTable/values-$i/strings.xml $GAME_IS/res/values-$lang/
+		else
+			mv /tmp/xmlFromTable/values-$i $GAME_IS/res/values-$lang
+		fi
+	done
+
+	if [ -d $GAME_IS/res/values ]; then
+		mv $GAME_IS/res/values-en/* $GAME_IS/res/values
+		rm -r $GAME_IS/res/values-en
+	else
+		mv $GAME_IS/res/values-en $GAME_IS/res/values
 	fi
-done < $1
 
+	#then clean tmp files..
+	rm -r /tmp/xmlFromTable
 
-
-#rename dir by their lang name
-for i in `seq $number`; do
-	echo "</resources>" >> /tmp/xmlFromTable/values-$i/strings.xml
-	iPlusUn=`expr $i + 1`
-	lang=`echo $firstLine | cut -d$separateur -f "$iPlusUn"`
-	echo "mv /tmp/xmlFromTable/values-$i $2/values-$lang"
-	mv /tmp/xmlFromTable/values-$i $2/values-$lang
-done
-
-mv $2/values-en $2/values
-rm -r /tmp/xmlFromTable
+	rm $csvFILE
