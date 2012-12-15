@@ -54,7 +54,7 @@ fi
 
 if [ ! -z `echo $1 | grep c` ]; then
 	echo "Compiling..."
-	$PATH_sdk/tools/android update project -p . -t 8 -n $nameUpper --subprojects
+	$PATH_sdk/tools/android update project -p . -t "android-8" -n $nameUpper --subprojects
 	ant debug
 fi
 
