@@ -157,6 +157,7 @@ int Game::saveState(uint8_t**) {
 const float DDD = 1.0/60.f;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
+    
     theRenderingSystem.waitDrawingComplete();
 
     float t = TimeUtil::getTime();
@@ -226,13 +227,13 @@ void Game::step() {
         lastUpdateTime = t;
         delta = TimeUtil::getTime() - t;
 
-        /*while (delta < 0.016) {
+        while (delta < 0.016) {
             struct timespec ts;
             ts.tv_sec = 0;
             ts.tv_nsec = (0.016 - delta) * 1000000000LL;
             nanosleep(&ts, 0);
             delta = TimeUtil::getTime() - t;
-        }*/
+        }
     } else {
         struct timespec ts;
         ts.tv_sec = 0;

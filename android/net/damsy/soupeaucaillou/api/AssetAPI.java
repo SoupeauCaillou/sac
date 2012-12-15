@@ -37,7 +37,9 @@ public class AssetAPI {
 			}
 		
 		} while (true);
-		Log.i("sac", "chunked asset : " + idx + " chunk, total size: " + totalLength);
+		if (totalLength == 0)
+			return null;
+		Log.i("sac", "chunked asset '" + assetName + "' : " + idx + " chunk, total size: " + totalLength);
 		byte[] data = new byte[totalLength];
 		int offset = 0;
 		boolean failed = false;

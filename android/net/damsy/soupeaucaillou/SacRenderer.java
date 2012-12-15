@@ -5,6 +5,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import com.swarmconnect.Swarm;
 
@@ -29,6 +30,14 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     		}
 
     		SacJNILib.render(activity.game);
+    		frameCount++;
+    	}
+    	
+    	long t = System.currentTimeMillis();
+    	if ((t - time) >= 10000) {
+    		Log.w("sac", "FPS : " + (1000 * frameCount) / (float)(t - time));
+    		time = t;
+    		frameCount = 0;
     	}
         /*int err;
         while( (err = gl.glGetError()) != GL10.GL_NO_ERROR) {

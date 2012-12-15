@@ -35,12 +35,12 @@ typedef int EffectRef;
 #define DefaultEffectRef -1
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
 
 	TextureRef texture;
 	EffectRef effectRef;
 	Color color;
-	bool hide, mirrorH, zPrePass;
+	bool hide, mirrorH, zPrePass, fastCulling;
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
@@ -78,8 +78,8 @@ void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 public:
 AssetAPI* assetAPI;
 
-bool isEntityVisible(Entity e, int cameraIndex = -1);
-bool isVisible(const TransformationComponent* tc, int cameraIndex = -1);
+bool isEntityVisible(Entity e, int cameraIndex = -1) const;
+bool isVisible(const TransformationComponent* tc, int cameraIndex = -1) const;
 
 void reloadTextures();
 void reloadEffects();
@@ -200,7 +200,7 @@ struct Shader {
 	#endif
 };
 
-Shader defaultShader, defaultShaderNoAlpha;
+Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
 GLuint whiteTexture;
 
 EffectRef nextEffectRef;
@@ -219,8 +219,8 @@ GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& 
 public:
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
-const Shader& effectRefToShader(EffectRef ref, bool firstCall);
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera, bool colorEnabled = true);
+const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
 Vector2 getTextureSize(const std::string& textureName) const;
 void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;

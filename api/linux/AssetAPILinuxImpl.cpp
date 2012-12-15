@@ -1,5 +1,6 @@
 #include "AssetAPILinuxImpl.h"
 #include "base/Log.h"
+#include <cstring>
 
 void AssetAPILinuxImpl::init() {
 
@@ -14,8 +15,13 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     std::string full = "assets/" + asset;
 #endif
     FILE* file = fopen(full.c_str(), "rb");
-    if (!file)
-        return fb;
+    if (!file) {
+        // try in pc specific folder
+        full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
+        file = fopen(full.c_str(), "rb");
+        if (!file)
+            return fb;
+    }
     fseek(file, 0, SEEK_END);
     fb.size = ftell(file);
     rewind(file);

@@ -60,6 +60,7 @@ void ParticuleSystem::DoUpdate(float dt) {
 
                 ADD_COMPONENT(e, Rendering);
                 RenderingComponent* rc = RENDERING(e);
+                rc->fastCulling = true;
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
                 rc->hide = false;

@@ -37,6 +37,8 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.a, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(hide, tc), sizeof(bool)));
     componentSerializer.add(new Property(OFFSET(mirrorH, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(zPrePass, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(fastCulling, tc), sizeof(bool)));
     componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
@@ -119,9 +121,11 @@ void RenderingSystem::init() {
 	#ifdef USE_VBO
 	defaultShader = buildShader("default_vbo.vs", "default.fs");
 	defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
+    defaultShaderEmpty = buildShader("default_vbo.vs", "empty.fs");
 	#else
 	defaultShader = buildShader("default.vs", "default.fs");
 	defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
+    defaultShaderEmpty = buildShader("default.vs", "empty.fs");
 	#endif
 	GL_OPERATION(glClearColor(148.0/255, 148.0/255, 148.0/255, 1.0)) // temp setting for RR
 
@@ -368,20 +372,23 @@ void RenderingSystem::DoUpdate(float) {
                 }
              }
 
-             if (cull(camLeft, camRight, c)) {
-                 switch (rc->opaqueType) {
-                 	case RenderingComponent::NON_OPAQUE:
-        	         	semiOpaqueCommands.push_back(c);
-        	         	break;
-        	         case RenderingComponent::FULL_OPAQUE:
-        	         	opaqueCommands.push_back(c);
-        	         	break;
-                     default:
-                        LOGW("Entity will not be drawn");
-                        break;
-                 }
+             if (!rc->fastCulling) {
+                if (!cull(camLeft, camRight, c)) {
+                    continue;
+                }
              }
-    	}
+             switch (rc->opaqueType) {
+             	case RenderingComponent::NON_OPAQUE:
+    	         	semiOpaqueCommands.push_back(c);
+    	         	break;
+    	         case RenderingComponent::FULL_OPAQUE:
+    	         	opaqueCommands.push_back(c);
+    	         	break;
+                 default:
+                    LOGW("Entity will not be drawn");
+                    break;
+             }
+        }
 
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
@@ -423,11 +430,11 @@ void RenderingSystem::DoUpdate(float) {
     pthread_mutex_unlock(&mutexes[L_RENDER]);
 }
 
-bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) {
+bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
 	return isVisible(TRANSFORM(e), cameraIndex);
 }
 
-bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) {
+bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) const {
     if (cameraIndex < 0) {
         for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
             if (isVisible(tc, camIdx)) {
@@ -437,17 +444,14 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
         return false;
     }
     const Camera& camera = cameras[cameraIndex];
-	const Vector2 halfSize = tc->size * 0.5;
-	Vector2 pos = tc->worldPosition - camera.worldPosition;
+	const Vector2 halfSize(tc->size * 0.5);
+	const Vector2 pos(tc->worldPosition - camera.worldPosition);
+    const Vector2 camHalfSize(camera.worldSize * .5);
 
-	if ((pos.X + halfSize.X) < -camera.worldSize.X * 0.5)
-		return false;
-	if ((pos.X - halfSize.X) > camera.worldSize.X * 0.5)
-		return false;
-	if ((pos.Y + halfSize.Y) < -camera.worldSize.Y * 0.5)
-		return false;
-	if ((pos.Y - halfSize.Y) > camera.worldSize.Y * 0.5)
-		return false;
+	if ((pos.X + halfSize.X) < -camHalfSize.X) return false;
+	if ((pos.X - halfSize.X) > camHalfSize.X) return false;
+	if ((pos.Y + halfSize.Y) < -camHalfSize.Y) return false;
+	if ((pos.Y - halfSize.Y) > camHalfSize.Y) return false;
 	return true;
 }
 

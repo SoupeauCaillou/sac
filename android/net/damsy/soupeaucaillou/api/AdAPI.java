@@ -88,8 +88,8 @@ public class AdAPI {
 
 			@Override
 			public void didDismissInterstitial(String arg0) {
-				AdAPI.adWaitingAdDisplay = false;
-        		AdAPI.adHasBeenShown = true;
+				// AdAPI.adWaitingAdDisplay = false;
+        		// AdAPI.adHasBeenShown = true;
 			}
 
 			@Override

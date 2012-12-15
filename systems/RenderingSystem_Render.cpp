@@ -178,8 +178,8 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera) {
-	const Shader& shader = effectRefToShader(ref, _firstCall);
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera, bool colorEnabled) {
+	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled);
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
 
@@ -271,8 +271,18 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                  GL_OPERATION(glDisable(GL_BLEND))
             } if (rc.flags & EnableColorWriteBit) {
                 GL_OPERATION(glColorMask(true, true, true, true))
+                if (!(currentFlags & EnableColorWriteBit)) {
+                    if (currentEffect == DefaultEffectRef) {
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+                    }
+                }
             } else if (rc.flags & DisableColorWriteBit) {
                 GL_OPERATION(glColorMask(false, false, false, false))
+                if (!(currentFlags & DisableColorWriteBit)) {
+                    if (currentEffect == DefaultEffectRef) {
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera, false);
+                    }
+                }
             }
             currentFlags = rc.flags;
         }
@@ -280,7 +290,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
 			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera);
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING
@@ -313,7 +323,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			boundTexture = rc.glref;
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
-	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformColor, 1, currentColor.rgba))
+	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformColor, 1, currentColor.rgba))
 			}
 		}
 
@@ -334,21 +344,27 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #include <errno.h>
 
 void RenderingSystem::waitDrawingComplete() {
-    PROFILE("Renderer", "wait-drawing-done", BeginEvent);
+    PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_lock(&mutexes[L_RENDER]);
     while (renderQueue[readQueue].count > 0 && frameQueueWritable)
         pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
-    PROFILE("Renderer", "wait-drawing-done", EndEvent);
+    PROFILE("Renderer", "wait-drawing-donE", EndEvent);
 }
 
 void RenderingSystem::render() {
+#ifdef ENABLE_LOG
+    float enter = TimeUtil::getTime();
+#endif
     PROFILE("Renderer", "wait-frame", BeginEvent);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
     while (!newFrameReady && frameQueueWritable) {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }
+#ifdef ENABLE_LOG
+    float frameready = TimeUtil::getTime();
+#endif
     if (!frameQueueWritable) {
         LOGI("Rendering disabled");
         pthread_mutex_unlock(&mutexes[L_QUEUE]);
@@ -360,11 +376,25 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "wait-frame", EndEvent);
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
+#ifdef ENABLE_LOG
+    float aftertexture= TimeUtil::getTime();
+#endif
     PROFILE("Renderer", "load-textures", EndEvent);
 	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
 		LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes[L_RENDER]);
 	}
+#ifdef ENABLE_LOG
+    float ppp = TimeUtil::getTime();
+    float diff =  ppp - enter;
+    if (diff > 0.001) {
+        LOGI("Diff : %.1f ms / %.1f ms -> %.1f ms -> %.1f ms",
+            diff * 1000, 
+            1000 * (frameready - enter), 
+            1000 * (aftertexture - frameready),
+            1000 * (ppp - aftertexture));
+    }
+#endif
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
         LOGW("Arg, nothing to render - probably a bug (queue=%d)", readQueue);
@@ -432,9 +462,9 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     */
 }
 
-const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall) {
+const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
 	if (ref == DefaultEffectRef) {
-		return firstCall ? defaultShaderNoAlpha : defaultShader;
+		return colorEnabled ? (firstCall ? defaultShaderNoAlpha : defaultShader) : defaultShaderEmpty;
 	} else {
 		return ref2Effects[ref];
 	}
