@@ -1,12 +1,35 @@
 #! /bin/sh
 
-# *** check we are in build/linux
-if [ -z `pwd | grep "/build/linux"` ]; then
-	echo "Wrong dir. Please go to $game/build/linux path to use the script."
-	echo "You are currently in $PWD"
+###### Cool things ##############################
+#colors
+reset="[0m"
+red="[1m[31m"
+green="[1m[32m"
+
+info() {
+	if [ $# = 1 ]; then
+		echo "${green}$1${reset}"
+	else
+		echo "$2$1${reset}"
+	fi
+}
+
+#get location of the script
+whereAmI=`cd "$(dirname "$0")" && pwd`
+
+
+##########End of cool things ######################
+
+
+if [ ! -z "`echo $whereAmI | grep sac`" ]; then
+	echo "You can't run the script from sac directory! You must copy the build \
+directory in the root of the game."
 	exit 1
+else
+	# *** go to the script dir
+	cd $whereAmI
 fi
-	
+
 
 if [ $# != 1 ] || [`echo $1 | grep -- -h` ]; then
 	echo "Usage: $0 options"
@@ -22,11 +45,11 @@ if [ $# != 1 ] || [`echo $1 | grep -- -h` ]; then
 fi
 
 if [ `echo $1 | grep r` ]; then
-	reset	
+	reset
 fi
 
 if [ `echo $1 | grep C` ]; then
-	echo "cleaning"
+	info "Cleaning.."
 	rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
 fi
 
@@ -38,24 +61,27 @@ gameName=`pwd | cut -d/ -f$count`
 #delete the executable (in case of compilation errors)
 rm -f linux/$gameName
 
-echo "compiling"
+info "Compiling.."
 cmake ../..
 make -j
 
 
-
-
-
 if [ `echo $1 | grep d` ]; then
+	#permet de lancer gdb avec directement "r" en paramètre
+	#ne fonctionne pas pour cgdb :(
+	info "A bug? Gdb on the way!"
 	(echo r; cat) | gdb ./linux/$gameName
 elif [ `echo $1 | grep R` ]; then
 	if [ `echo $1 | grep -e v -e c` ]; then
 		if [ `echo $1 | grep c` ]; then
+			info "Launch with colored log."
 			./linux/$gameName -v | ./colorlog.sh $1
 		else
+			info "Launch with log."
 			./linux/$gameName -v
 		fi
 	else
+		info "Launch game."
 		./linux/$gameName
 	fi
 fi

@@ -1,5 +1,25 @@
 #!/bin/sh
 
+###### Cool things ##############################
+#colors
+reset="[0m"
+red="[1m[31m"
+green="[1m[32m"
+
+info() {
+	if [ $# = 1 ]; then
+		echo "${green}$1${reset}"
+	else
+		echo "$2$1${reset}"
+	fi
+}
+
+#get location of the script
+whereAmI=`cd "$(dirname "$0")" && pwd`
+
+
+##########End of cool things ######################
+
 ### FUNCTIONS
 usage() {
 	echo "Usage:   sh xmlLanguageFromTable.sh"
@@ -8,7 +28,7 @@ usage() {
 }
 
 error_and_quit() {
-	echo "######## $1 ########"
+	info "######## $1 ########" $red
 	usage
 }
 
@@ -27,9 +47,11 @@ fi
 	GAME_IS=`cd "$(dirname "$0")" && cd ../.. && pwd`
 	if [ `echo "$GAME_IS" | grep -i "heriswap"` ]; then
 		#heriswap
+		info "wget HeriswapGoogleDoc"
 		wget "$Hdrive" -O $csvFILE
 	elif [ `echo "$GAME_IS" | grep -i "runner"` ]; then
 		#RR
+		info "wget RecursiveRunnerGoogleDoc"
 		wget "$RRdrive" -O $csvFILE
 	else
 		error_and_quit "This is NOR heriswap and recursiveRunner ($PWD doesn't contain both of us). abort"
@@ -49,7 +71,7 @@ fi
 		#- exit
 	#- fi
 
-	echo "rm -r $GAME_IS/res/values*/strings.xml"
+	info "rm -r $GAME_IS/res/values*/strings.xml"
 	rm -r $GAME_IS/res/values*/strings.xml 2>/dev/null
 
 	rm -r /tmp/xmlFromTable 2>/dev/null
@@ -59,7 +81,7 @@ fi
 	firstLine=`head -n 1 "$csvFILE"`
 	number=`echo "$firstLine" | grep -o "$separateur" | wc -l`
 	for i in `seq $number`; do
-		echo "mkdir /tmp/xmlFromTable/values-$i"
+		info "mkdir /tmp/xmlFromTable/values-$i"
 		mkdir /tmp/xmlFromTable/values-$i
 		echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>" > /tmp/xmlFromTable/values-$i/strings.xml
 	done
@@ -86,7 +108,7 @@ fi
 		echo "</resources>" >> /tmp/xmlFromTable/values-$i/strings.xml
 		iPlusUn=`expr $i + 1`
 		lang=`echo $firstLine | cut -d$separateur -f "$iPlusUn"`
-		echo "mv /tmp/xmlFromTable/values-$i $GAME_IS/res/values-$lang"
+		info "mv /tmp/xmlFromTable/values-$i $GAME_IS/res/values-$lang"
 
 		#2 use case here: the res already exist (and then we juste move
 		#the file), or not (and we need to move the entire folder)
