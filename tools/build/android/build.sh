@@ -31,7 +31,7 @@ check_package() {
 check_package "android" "android-sdk/tools"
 check_package "ndk-build" "android-ndk"
 check_package "adb" "android-sdk/platform-tools"
-check_package "ant2" "ant"
+check_package "ant" "ant"
 
 
 if [ ! -z "`echo $whereAmI | grep sac`" ]; then
@@ -56,12 +56,11 @@ fi
 
 
 # *** go to the root dir
-if [ "`echo $whereAmI [ grep -e 'sac/'`" ]; then
+if [ ! -z "`echo $whereAmI | grep -e 'sac/'`" ]; then
 	cd $whereAmI/../../../..
 else
 	cd $whereAmI/../..
 fi
-
 
 # *** get name of the game
 count=`pwd | tr -c -d / | wc -c`

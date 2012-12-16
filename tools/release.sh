@@ -36,8 +36,10 @@ info "Generating languages done."
 # step : build android versions (apks)
 info "Building APKs..."
 
+	#go to the root of the game
 	cd $whereAmI/../..
 
+	#get name of the game
 	count=`pwd | tr -c -d / | wc -c`
 	count=`expr $count + 1`
 	nameLower=`pwd | cut -d/ -f $count`
@@ -48,20 +50,23 @@ info "Building APKs..."
 	cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
 
 
-	ARMversions="armeabi-v7a armeabi"
-	for i in $ARMversions; do
+	SCREENres="testk" #to be completed
+	for i in $SCREENres; do
+		#need to generate the right atlas
+
+
 		GPUcompression="testj" #to be completed
 		for j in $GPUcompression; do
-			SCREENres="testk" #to be completed
-			for k in $SCREENres; do
-				info "ndk-build -j in $PWD for $i"
-				ndk-build -j APP_ABI=$i NDK_APPLICATION_MK=android/Application.mk
+			ARMversions="armeabi-v7a armeabi"
+			for k in $ARMversions; do
+				info "ndk-build -j in $PWD for $k"
+				ndk-build -j APP_ABI=$k NDK_APPLICATION_MK=android/Application.mk
 
 				info "Compiling..."
 				android update project -p . -t "android-8" -n $nameUpper --subprojects
 				ant debug
 
-				mv bin/$nameUpper-debug.apk bin/$nameUpper-debug-$i-$j-$k.apk
+				mv bin/$nameUpper-debug.apk bin/$nameUpper-debug-$k-$j-$i.apk
 			done
 		done
 	done
