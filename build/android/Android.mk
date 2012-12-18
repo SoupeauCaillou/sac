@@ -4,15 +4,15 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := sac
 
-LOCAL_CFLAGS := -DANDROID_NDK -DENABLE_LOG \
+LOCAL_CFLAGS := -DANDROID_NDK \
 				-I$(BASE_PATH)
 
-LOCAL_CXXFLAGS := -DANDROID_NDK -DENABLE_LOG  \
+LOCAL_CXXFLAGS := -DANDROID_NDK  \
 				-I$(LOCAL_PATH)/base \
 				-I$(LOCAL_PATH)/systems \
 				-I$(LOCAL_PATH)/libs \
 				-I$(LOCAL_PATH)/libs/libpng/jni \
-                -ffast-math -O3 -funroll-loops
+                -ffast-math -Os -funroll-loops
 
 LOCAL_ARM_MODE := arm
 
