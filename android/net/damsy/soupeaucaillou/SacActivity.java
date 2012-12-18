@@ -12,7 +12,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
-import android.util.Log;
+//import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -100,10 +100,10 @@ public abstract class SacActivity extends SwarmActivity {
         
         if (preferences.getBoolean(UseLowGfxPref, false)) {
         	factor = 0.6f;
-        	Log.i("sac", "Current GFX value: LOW RES");
+        	// Log.i("sac", "Current GFX value: LOW RES");
         } else {
         	factor = 0.9f;
-        	Log.i("sac", "Current GFX value: HIGH RES");
+        	// Log.i("sac", "Current GFX value: HIGH RES");
         }
         
         int height = getWindowManager().getDefaultDisplay().getHeight();
@@ -120,19 +120,19 @@ public abstract class SacActivity extends SwarmActivity {
 			
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {
-				Log.i("sac", "SURFACE DESTROYED!" + holder.getSurface().hashCode());
+				// Log.i("sac", "SURFACE DESTROYED!" + holder.getSurface().hashCode());
 				
 			}
 			
 			@Override
 			public void surfaceCreated(SurfaceHolder holder) {
-				Log.i("sac", "SURFACE CREATED!" + holder.getSurface().hashCode());
+				// Log.i("sac", "SURFACE CREATED!" + holder.getSurface().hashCode());
 			}
 			
 			@Override
 			public void surfaceChanged(SurfaceHolder holder, int format, int width,
 					int height) {
-				Log.i("sac", "SURFACE CHANGED!" + holder.getSurface().hashCode());
+				// Log.i("sac", "SURFACE CHANGED!" + holder.getSurface().hashCode());
 			}
 		});
 
@@ -174,7 +174,7 @@ public abstract class SacActivity extends SwarmActivity {
     	for (int i=0; i<count; i++) {
     		View v = layout.getChildAt(i);
     		if (v instanceof GLSurfaceView) {
-    			Log.i("sac", "Found GLSurfaceView child -> pause it");
+    			// Log.i("sac", "Found GLSurfaceView child -> pause it");
     			GLSurfaceView mGLView = (GLSurfaceView) v;
     	    	synchronized (mGLView) {
     		       	if (renderer != null) {
@@ -218,7 +218,7 @@ public abstract class SacActivity extends SwarmActivity {
     	for (int i=0; i<count; i++) {
     		View v = layout.getChildAt(i);
     		if (v instanceof GLSurfaceView) {
-    			Log.i("sac", "Found GLSurfaceView child -> resume it");
+    			// Log.i("sac", "Found GLSurfaceView child -> resume it");
     			GLSurfaceView mGLView = (GLSurfaceView) v;
     	        synchronized (mGLView) {
     	        	if (renderer != null) {

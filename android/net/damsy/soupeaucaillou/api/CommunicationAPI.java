@@ -35,7 +35,7 @@ public class CommunicationAPI {
 		}
 
 		static public void giftizMissionDone() {
-			Log.i("Sac", "Mission done!");
+			//Log.i("Sac", "Mission done!");
 			GiftizSDK.missionComplete(SacJNILib.activity);
 		}
 
@@ -55,7 +55,7 @@ public class CommunicationAPI {
 		}
 
 		static public void giftizButtonClicked() {
-			Log.i("Sac", "Giftiz clicked!");
+			//Log.i("Sac", "Giftiz clicked!");
 			GiftizSDK.Inner.buttonClicked(SacJNILib.activity);
 		}
 

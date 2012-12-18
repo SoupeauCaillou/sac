@@ -19,7 +19,7 @@ public class AssetAPI {
 			stream.read(data);
 			return data;
 		} catch (Exception exc) {
-			Log.e("sac", "load asset error: " + exc.toString(), exc);
+			//Log.e("sac", "load asset error: " + exc.toString(), exc);
 			return null;
 		}
 	}
@@ -39,7 +39,7 @@ public class AssetAPI {
 		} while (true);
 		if (totalLength == 0)
 			return null;
-		Log.i("sac", "chunked asset '" + assetName + "' : " + idx + " chunk, total size: " + totalLength);
+		//Log.i("sac", "chunked asset '" + assetName + "' : " + idx + " chunk, total size: " + totalLength);
 		byte[] data = new byte[totalLength];
 		int offset = 0;
 		boolean failed = false;
@@ -49,11 +49,11 @@ public class AssetAPI {
 				int l = stream.available();
 				int r = stream.read(data, offset, l);
 				if (r < l) {
-					Log.e("sac", "Different read count: " + r + " read, expected: " + l);
+					//Log.e("sac", "Different read count: " + r + " read, expected: " + l);
 				}
 				offset += l;
 			} catch (IOException exc) {
-				Log.e("sac", "load asset error. Falling back to byte per byte (" + exc.toString() + ")");
+				//Log.e("sac", "load asset error. Falling back to byte per byte (" + exc.toString() + ")");
 				failed = true;
 				break;
 			}
@@ -66,7 +66,7 @@ public class AssetAPI {
 					for(int j=0; j<l; j++)
 						data[offset++] = (byte)stream.read();
 				} catch (IOException exc) {
-					Log.e("sac", "load asset error: " + exc.toString(), exc);
+					//Log.e("sac", "load asset error: " + exc.toString(), exc);
 					return null;
 				}
 			}	
