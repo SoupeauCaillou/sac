@@ -53,13 +53,14 @@ void PhysicsSystem::DoUpdate(float dt) {
 			linearAccel /= pc->mass;
 			angAccel /= pc->momentOfInertia;
 
-			// dumb integration
-			pc->linearVelocity += linearAccel * dt;
-			tc->position += pc->linearVelocity * dt;
-			pc->angularVelocity += angAccel * dt;
-			tc->rotation += pc->angularVelocity * dt;
-
-			// pc->forces.clear();
+			// acceleration is constant over dt: use basic Euler integration for velocity
+            const Vector2 nextVelocity(pc->linearVelocity + linearAccel * dt);
+            tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5;
+            // velocity varies over dt: use Verlet integration for position
+            pc->linearVelocity = nextVelocity;
+			const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
+			tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5;
+            pc->angularVelocity = nextAngularVelocity;
 	    }
 	}
     //copy parent property to its sons
