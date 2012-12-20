@@ -38,16 +38,23 @@ MusicSystem::~MusicSystem() {
     pthread_join(oggDecompressionThread, 0);
     LOGW("MusicSystem uninitinalized");
     #endif
+    #ifndef EMSCRIPTEN
     for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
         delete it->second.buffer;
         ov_clear(it->second.ovf);
         delete it->second.ovf;
+    #else
+    for (std::map<MusicRef, Mix_Chunk*>::iterator it=musics.begin(); it!=musics.end(); ++it) {
+        // delete ...
+    #endif
     }
     musics.clear();
+    #ifndef EMSCRIPTEN
     for (std::map<std::string, FileBuffer>::iterator it=name2buffer.begin(); it!=name2buffer.end(); ++it) {
         delete[] it->second.data;
     }
     name2buffer.clear();
+    #endif
 }
 
 #ifndef EMSCRIPTEN
