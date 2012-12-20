@@ -9,5 +9,9 @@ class TimeUtil
 		static float getTime();
 
 	private:
+        #ifndef EMSCRIPTEN
 		static struct timespec startup_time;
+        #else
+        static struct timeval startup_time;
+        #endif
 };
