@@ -58,15 +58,7 @@ separateur=\~
 		error_and_quit "This is NOR heriswap and recursiveRunner ($PWD doesn't contain both of us). abort"
 	fi
 
-	#first delete empty lines
-	count=`head -n 1 $csvFILE | grep -o "$separateur" | wc -l`
-	pattern=""
-	for i in `seq $count`; do
-		pattern+='\t'
-	done
 
-	#we delete every lines beginning by the pattern
-	sed -i '/^$pattern/d' $csvFILE
 
 	#by default, google save the docs with tabulations so we need to change \t to ~
 	#(even if it could work with tabulations)
@@ -74,7 +66,16 @@ separateur=\~
 	#and set a \n at the end of the file (google doesn't)
 	echo '' >> $csvFILE
 
-	cp $csvFILE ~/test.txt
+	#delete empty lines (only separators on the line) and playstore presentation
+	count=`head -n 1 $csvFILE | grep -o "$separateur" | wc -l`
+	pattern=""
+	for i in `seq $count`; do
+		pattern+=$separateur
+	done
+
+	#we delete every lines beginning by the patterns
+	sed -i "/^$pattern/d" $csvFILE
+	sed -i "/^PRESENTATION/d" $csvFILE
 
 ######### 2 : Clean and setup the lab… #########
 
@@ -121,7 +122,6 @@ separateur=\~
 
 	#read the file line per line
 	while read -r line; do
-
 		#don't keep the "language" line (first of the file, only used for the script)
 		if [ ! -z "`echo $line | grep languages | grep en`" ]; then
 			continue
