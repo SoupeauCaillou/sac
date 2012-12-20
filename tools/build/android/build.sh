@@ -81,6 +81,7 @@ if [ ! -z `echo $1 | grep n` ]; then
 		ndk-build NDK_APPLICATION_MK=android/Application.mk
 	fi
 fi
+cd sac/libs/tremor; git checkout *; cd ../../..
 
 if [ ! -z `echo $1 | grep c` ]; then
 	info "Compiling..."
