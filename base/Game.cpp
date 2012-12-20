@@ -163,7 +163,7 @@ void Game::step() {
     float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
 
-    if (true || delta > 0.008) {
+    if (true) {
         #if 0
         if (delta < DDD) {
             t += (DDD - delta);
@@ -226,7 +226,7 @@ void Game::step() {
 
         lastUpdateTime = t;
         delta = TimeUtil::getTime() - t;
-
+        #ifndef EMSCRIPTEN
         while (delta < 0.016) {
             struct timespec ts;
             ts.tv_sec = 0;
@@ -234,6 +234,7 @@ void Game::step() {
             nanosleep(&ts, 0);
             delta = TimeUtil::getTime() - t;
         }
+        #endif
     } else {
         struct timespec ts;
         ts.tv_sec = 0;
