@@ -528,6 +528,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 }
 
 void MusicSystem::toggleMute(bool enable) {
+#ifndef EMSCRIPTEN
     if (enable && !muted) {
         muted = true;
         FOR_EACH_COMPONENT(Music, m)
@@ -536,6 +537,9 @@ void MusicSystem::toggleMute(bool enable) {
     } else if (!enable && muted) {
         muted = false;
     }
+#else
+    muted = true;
+#endif
 }
 
 #ifndef EMSCRIPTEN

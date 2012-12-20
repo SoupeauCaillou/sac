@@ -90,6 +90,8 @@ void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* 
 	    setPosition(ptr, pos + offset);
     }
     AL_OPERATION(alSourcePlay(openalptr->source))
+#else
+    // Mix_Resume(-1);
 #endif
 }
 
@@ -107,7 +109,7 @@ void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
 #ifndef EMSCRIPTEN
     AL_OPERATION(alSourcePause(openalptr->source))
 #else
-    LOGW("Pause unsupported");
+    Mix_Pause(openalptr->channel);
 #endif
 }
 

@@ -17,8 +17,13 @@
 #include <cstdio>
 extern bool __log_enabled;
 
+#ifdef ENABLE_LOG
 #define LOGE(...) if (__log_enabled) {printf("ERRO-[%s] ", __PRETTY_FUNCTION__); printf(__VA_ARGS__); printf("\n");}
 #define LOGW(...) if (__log_enabled) {printf("WARN-[%s] ", __PRETTY_FUNCTION__);printf(__VA_ARGS__);printf("\n");}
 #define LOGI(...) if (__log_enabled) {printf("INFO-[%s] ", __PRETTY_FUNCTION__);printf(__VA_ARGS__);printf("\n");}
-
+#else
+#define LOGI(...)
+#define LOGW(...)
+#define LOGE(...)
+#endif
 #endif
