@@ -105,7 +105,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 #ifdef USE_VBO
 	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
 	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
-	out.uniformScale = glGetUniformLocation(out.program, "uScale");
+	out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
 #endif
 
 	glDeleteShader(vs);
@@ -326,7 +326,8 @@ void RenderingSystem::DoUpdate(float) {
                     }
                 }
                 modifyQ(c, info.reduxStart, info.reduxSize);
-
+                #ifndef USEE_VBO
+                
                 if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                     c.color.a >= 1 &&
                     info.opaqueSize != Vector2::Zero && 
@@ -338,11 +339,7 @@ void RenderingSystem::DoUpdate(float) {
 
                     if (cull(camLeft, camRight, cCenter))
                         opaqueCommands.push_back(cCenter);
-                    #if 0
-                    if (cull(camLeft, camRight, c))
-                        semiOpaqueCommands.push_back(c);
-                    continue;
-                    #endif
+
                     const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
                     const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
                     if (leftBorder > 0) {
@@ -370,13 +367,16 @@ void RenderingSystem::DoUpdate(float) {
                         semiOpaqueCommands.push_back(cBottom);
                     continue;
                 }
+                #endif
              }
 
+             #ifndef USE_VBO
              if (!rc->fastCulling) {
                 if (!cull(camLeft, camRight, c)) {
                     continue;
                 }
              }
+             #endif
              switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
@@ -416,18 +416,22 @@ void RenderingSystem::DoUpdate(float) {
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
     cccc++;
-	// LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
-    // LOGW("Wrote frame %u", dummy.rotateUV);
+	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
+    //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
 
+#ifndef EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
     pthread_mutex_lock(&mutexes[L_RENDER]);
     // Lock for notifying queue change
     pthread_mutex_lock(&mutexes[L_QUEUE]);
+#endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
+#ifndef EMSCRIPTEN
     pthread_cond_signal(&cond[C_FRAME_READY]);
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
+#endif
 }
 
 bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
@@ -559,12 +563,16 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
     if (frameQueueWritable == b || !initDone)
         return;
     LOGI("Writable: %d", b);
+#ifndef EMSCRIPTEN
     pthread_mutex_lock(&mutexes[L_QUEUE]);
+#endif
     frameQueueWritable = b;
+#ifndef EMSCRIPTEN
     pthread_cond_signal(&cond[C_FRAME_READY]);
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
 
     pthread_mutex_lock(&mutexes[L_RENDER]);
     pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
+#endif
 }

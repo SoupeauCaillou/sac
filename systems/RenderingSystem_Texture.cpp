@@ -251,6 +251,8 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 #ifdef ANDROID
      if (colorOrAlpha && image.mipmap > 0) {
+#elif defined(EMSCRIPTEN)
+    if (false) {
 #else
      if (colorOrAlpha) {
 #endif
@@ -306,7 +308,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	#endif
 	}
 
-#ifndef ANDROID
+#if !defined(ANDROID) && !defined(EMSCRIPTEN)
     if (image.mipmap == 0) {
         LOGI("Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);

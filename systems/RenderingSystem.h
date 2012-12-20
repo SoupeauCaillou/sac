@@ -191,15 +191,17 @@ private:
 pthread_mutex_t mutexes[3];
 pthread_cond_t cond[2];
 #endif
-
+#ifdef USE_VBO
+public:
+#endif
 struct Shader {
 	GLuint program;
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 	#ifdef USE_VBO
-	GLuint uniformUVScaleOffset, uniformRotation, uniformScale;
+	GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
 	#endif
 };
-
+private:
 Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
 GLuint whiteTexture;
 
@@ -210,13 +212,13 @@ std::map<EffectRef, Shader> ref2Effects;
 bool initDone;
 
 private:
-static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 GLuint compileShader(const std::string& assetName, GLuint type);
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
+static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera, bool colorEnabled = true);

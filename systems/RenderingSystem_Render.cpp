@@ -57,13 +57,14 @@ static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSi
 
 bool firstCall;
 #ifdef USE_VBO
-#define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, reverseUV)
-static int drawBatchES2(const RenderingSystem::InternalTexture& glref, bool reverseUV) {
+#define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
+static int drawBatchES2(const RenderingSystem::InternalTexture& glref, bool rotateUV, int batchSize) {
 #else
 #define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, vert, uv, indices, batchSize)
 static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 #endif
-    if (batchSize > 0) {
+    if (batchSize > 0)
+    {
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
     	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
@@ -77,7 +78,7 @@ static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLf
     	}
     
     #ifdef USE_VBO
-    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[reverseUV ? 1 : 0]))
+    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
     
     	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
     	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
@@ -106,15 +107,8 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const Rendering
      rc.glref = info.glref;
      Vector2 offset(rc.uv[0]);
      Vector2 scale(rc.uv[1]);
-     Vector2 uvS (info.uv[1] - info.uv[0]);
-     #ifdef USE_VBO
-     float uvso[4];
-     uvso[0] = scale.X * uvS.X;
-     uvso[1] = scale.Y * uvS.Y;
-     uvso[2] = info.uv[0].X + offset.X * uvS.X;
-     uvso[3] = info.uv[0].Y + offset.Y * uvS.Y;
-     GL_OPERATION(glUniform4fv(unif, 1, uvso))
-     #else
+     const Vector2 uvS (info.uv[1] - info.uv[0]);
+
      if (info.rotateUV) {
          std::swap(offset.X, offset.Y);
          std::swap(scale.X, scale.Y);
@@ -124,18 +118,25 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const Rendering
          rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
          rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
      }
+    if (rc.mirrorH) {
+        if (info.rotateUV)
+            std::swap(rc.uv[0].Y, rc.uv[1].Y);
+        else
+            std::swap(rc.uv[0].X, rc.uv[1].X);
+    }
+    rc.rotateUV = info.rotateUV;
+     #ifdef USE_VBO
+     float uvso[4];
+     uvso[0] = rc.uv[1].X - rc.uv[0].X;
+     uvso[1] = rc.uv[1].Y - rc.uv[0].Y;
+     uvso[2] = rc.uv[0].X;
+     uvso[3] = rc.uv[0].Y;
+     GL_OPERATION(glUniform4fv(unif, 1, uvso))
      #endif
-        if (rc.mirrorH) {
-            if (info.rotateUV)
-                std::swap(rc.uv[0].Y, rc.uv[1].Y);
-            else
-                std::swap(rc.uv[0].X, rc.uv[1].X);
-        }
-     rc.rotateUV = info.rotateUV;
 }
 
 #ifdef USE_VBO
-static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderCommand& rc, const Vector2& camPos, RenderingSystem::Shader& shader) {
+static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const RenderingSystem::Camera& camera, const RenderingSystem::Shader& shader) {
 #else
 static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
 #endif
@@ -143,10 +144,15 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     float hW = 0.5 * screenW;
     float hH = 0.5 * screenH;
     GLfloat mat[16];
-    loadOrthographicMatrix(-hW - rc.position.X + camPos.X, hW - rc.position.X + camPos.X, -hH - rc.position.Y + camPos.Y, hH - rc.position.Y + camPos.Y, 0, 1, mat);
+    RenderingSystem::loadOrthographicMatrix(
+        -hW - rc.position.X + camera.worldPosition.X,
+        hW - rc.position.X + camera.worldPosition.X,
+        -hH - rc.position.Y + camera.worldPosition.Y,
+        hH - rc.position.Y + camera.worldPosition.Y,
+        0, 1, mat);
     GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
-    float scale[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y };
-    GL_OPERATION(glUniform2fv(shader.uniformScale, 1, scale))
+    float scaleZ[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y, rc.z };
+    GL_OPERATION(glUniform3fv(shader.uniformScaleZ, 1, scaleZ))
     GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
     #else
     // fill batch
@@ -183,12 +189,14 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16];
 
+#ifndef USE_VBO
     const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
     const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
     const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
 	loadOrthographicMatrix(left, right, camera.mirrorY ? top : bottom, camera.mirrorY ? bottom : top, 0, 1, mat);
 	GL_OPERATION(glUniform1fv(shader.uniformMatrix, 6, mat))
+#endif
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
 	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
@@ -297,7 +305,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.texture != InvalidTextureRef) {
             const TextureInfo& info = textures[rc.texture];   
             #ifdef USE_VBO
-            computeUV(rc, info, effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset);
+            computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
             #else
             computeUV(rc, info);
             #endif
@@ -312,7 +320,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			float uvso[4];
 			uvso[0] = uvso[1] = 1;
 			uvso[2] = uvso[3] = 0;
-			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall).uniformUVScaleOffset, 1, uvso))
+			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset, 1, uvso))
 			#endif
 		}
 
@@ -329,7 +337,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // ADD TO BATCH
         #ifdef USE_VBO
-		addRenderCommandToBatch(screenW, screenH, rc, camPos, effectRefToShader(currentEffect, firstCall));
+		addRenderCommandToBatch(screenW, screenH, rc, camera, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
         #else
         addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
         #endif
@@ -344,6 +352,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #include <errno.h>
 
 void RenderingSystem::waitDrawingComplete() {
+#ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     pthread_mutex_lock(&mutexes[L_RENDER]);
@@ -351,40 +360,49 @@ void RenderingSystem::waitDrawingComplete() {
         pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
     PROFILE("Renderer", "wait-drawing-donE", EndEvent);
+#endif
 }
 
 void RenderingSystem::render() {
 #ifdef ENABLE_LOG
     float enter = TimeUtil::getTime();
 #endif
+#ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
     pthread_mutex_lock(&mutexes[L_QUEUE]);
     while (!newFrameReady && frameQueueWritable) {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }
+#endif
 #ifdef ENABLE_LOG
     float frameready = TimeUtil::getTime();
 #endif
     if (!frameQueueWritable) {
         LOGI("Rendering disabled");
+        #ifndef EMSCRIPTEN
         pthread_mutex_unlock(&mutexes[L_QUEUE]);
+        #endif
         return;
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
+#ifndef EMSCRIPTEN
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
     PROFILE("Renderer", "wait-frame", EndEvent);
+#endif
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
 #ifdef ENABLE_LOG
     float aftertexture= TimeUtil::getTime();
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
+#ifndef EMSCRIPTEN
 	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
 		LOGW("HMM Busy render lock");
 		pthread_mutex_lock(&mutexes[L_RENDER]);
 	}
-#ifdef ENABLE_LOG
+#endif
+#if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
     float ppp = TimeUtil::getTime();
     float diff =  ppp - enter;
     if (diff > 0.001) {
@@ -403,8 +421,10 @@ void RenderingSystem::render() {
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
+#ifndef EMSCRIPTEN
     pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
+#endif
 	PROFILE("Renderer", "render", EndEvent);
 }
 
@@ -436,14 +456,14 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     float ty = - (top + bottom) / t_b;
     float tz = - (far + near) / f_n;
 
+#ifndef USE_VBO
     mat[0] = 2.0f / r_l;
     mat[1] = 2.0f / t_b;
     mat[2] = -2.0f / f_n;
     mat[3] = tx;
     mat[4] = ty;
     mat[5] = tz;
-
-    /*
+#else
     mat[0] = 2.0f / r_l;
     mat[1] = mat[2] = mat[3] = 0.0f;
 
@@ -459,7 +479,7 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     mat[13] = ty;
     mat[14] = tz;
     mat[15] = 1.0f;
-    */
+#endif
 }
 
 const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
