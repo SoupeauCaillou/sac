@@ -1,3 +1,5 @@
+#ifndef EMSCRIPTEN
+
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
 #include "../base/EntityManager.h"
@@ -293,3 +295,4 @@ void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& m
         changeMode(EditorMode::Selection);
     }
 }
+#endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef EMSCRIPTEN
 #include <GL/glew.h>
 #include <GL/glfw.h>
 #include <cstdlib>
@@ -55,3 +56,4 @@ class Recorder {
 		pthread_mutex_t mutex_buf;
         pthread_cond_t cond;
 };
+#endif

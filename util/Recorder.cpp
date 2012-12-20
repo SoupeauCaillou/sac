@@ -1,3 +1,4 @@
+#ifndef EMSCRIPTEN
 #include "Recorder.h"
 #include <iostream>
 #include <sstream>
@@ -360,3 +361,4 @@ void Recorder::addFrame(GLubyte *ptr){
     PROFILE("Recorder", "write-disk", EndEvent);
 	++this->frameCounter;
 }
+#endif
