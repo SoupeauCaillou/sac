@@ -1,3 +1,4 @@
+#ifndef EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
 #include "../../base/Log.h"
@@ -346,3 +347,4 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
     } else
         LOGI("allo : %s", tmmmm);
 }
+#endif

@@ -107,7 +107,7 @@ void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
 #ifndef EMSCRIPTEN
     AL_OPERATION(alSourcePause(openalptr->source))
 #else
- Mix_PauseChannel(openalptr->channel);
+    LOGW("Pause unsupported");
 #endif
 }
 
