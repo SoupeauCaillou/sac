@@ -32,8 +32,9 @@ public:
 	#ifdef DEBUG
 	void preDeletionCheck(Entity e) {
 		FOR_EACH_COMPONENT(Transformation, bc)
-			if (bc->parent == e)
+			if (bc->parent == e) {
 				LOGE("deleting an entities which is parent ! (Entity %ld)", e);
+			}
 		}
 	}
 	#endif
