@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef EMSCRIPTEN
 #include <GL/glew.h>
 #include <GL/glfw.h>
 #include <cstdlib>
@@ -39,9 +40,7 @@ class Recorder {
 		bool recording;
 		
 		GLuint pboIds[PBO_COUNT];
-		
-		GLubyte *test;
-		
+
 		std::queue<GLubyte*> buf;
 				
 		vpx_codec_ctx_t codec;
@@ -57,3 +56,4 @@ class Recorder {
 		pthread_mutex_t mutex_buf;
         pthread_cond_t cond;
 };
+#endif

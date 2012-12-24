@@ -1,14 +1,47 @@
 #!/bin/sh
 
-#test the command line
-if [ "$0" != "./build.sh" ]; then
-	echo "Please don't execute $0 but: ./build.sh"
-	echo "Abort."
-	exit
+###### Cool things ##############################
+#colors
+reset="[0m"
+red="[1m[31m"
+green="[1m[32m"
+
+info() {
+	if [ $# = 1 ]; then
+		echo "${green}$1${reset}"
+	else
+		echo "$2$1${reset}"
+	fi
+}
+
+#get location of the script
+whereAmI=`cd "$(dirname "$0")" && pwd`
+
+
+##########End of cool things ######################
+
+check_package() {
+	if [ ! -z "`type $1 | grep 'not found'`" ]; then
+		info "Please ensure you have added $2 to your PATH variable ($1 program missing)" $red
+		exit
+	fi
+}
+
+#test that the path contains android SDK and android NDK as required
+check_package "android" "android-sdk/tools"
+check_package "ndk-build" "android-ndk"
+check_package "adb" "android-sdk/platform-tools"
+check_package "ant" "ant"
+
+
+if [ ! -z "`echo $whereAmI | grep sac`" ]; then
+	info "You can't run the script from sac directory! You must copy the build \
+directory in the root of the game." $red
+	exit 1
 fi
 
-if [ ! -f "build.sh" ] || [ $# != 2 ] || [ `echo $1 | grep -- -h` ]; then
-	echo "Usage: $0 menuChoice optimizeOrNot"
+if [ $# -gt 2 ] || [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
+	echo "Usage: $0 menuChoice [optimizeOrNot=yes]"
 	echo "	menuchoice:"
 	echo "		- n: ndk-build (compile libs and .cpp files)"
 	echo "		- c: compile java code (.java)"
@@ -20,17 +53,14 @@ if [ ! -f "build.sh" ] || [ $# != 2 ] || [ `echo $1 | grep -- -h` ]; then
 	echo "\nExample: \"$0 n-c-i yes\" will compile with optimized parameters, then install the app on device."
 	exit 1
 fi
-esc=""
 
-  
-PATH_sdk=$HOME/code/c/tools/android-sdk-linux
-PATH_ndk=$HOME/code/c/tools/android-ndk
-echo "PATH_sdk=$PATH_sdk"
-echo "PATH_ndk=$PATH_ndk"
-echo "${esc}[31mIf it's not valid, please edit them in the script and try again${esc}[0m"
-	
+
 # *** go to the root dir
-cd ../..
+if [ ! -z "`echo $whereAmI | grep -e 'sac/'`" ]; then
+	cd $whereAmI/../../../..
+else
+	cd $whereAmI/../..
+fi
 
 # *** get name of the game
 count=`pwd | tr -c -d / | wc -c`
@@ -40,33 +70,32 @@ nameUpper=`echo $nameLower | sed 's/^./\u&/'`
 
 
 if [ ! -z `echo $1 | grep n` ]; then
-	echo "Building tremor lib..."
+	info "Building tremor lib..."
 	cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
-	
-	if [ ! -z `echo $2 | grep yes` ]; then
-		echo "ndk-build -j4 in $PWD"
-		$PATH_ndk/ndk-build -j4 APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
+
+	if [ $# != 2 ] || [ ! -z `echo $2 | grep yes` ]; then
+		info "ndk-build -j in $PWD"
+		ndk-build -j APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
 	else
-		echo "ndk-build in $PWD"
-		$PATH_ndk/ndk-build NDK_APPLICATION_MK=android/Application.mk
+		info "ndk-build in $PWD"
+		ndk-build NDK_APPLICATION_MK=android/Application.mk
 	fi
 fi
+cd sac/libs/tremor; git checkout *; cd ../../..
 
 if [ ! -z `echo $1 | grep c` ]; then
-	echo "Compiling..."
-	$PATH_sdk/tools/android update project -p . -t 4 -n $nameUpper --subprojects
+	info "Compiling..."
+	android update project -p . -t "android-8" -n $nameUpper --subprojects
 	ant debug
 fi
 
 if [ ! -z `echo $1 | grep i` ]; then
-	echo "Installing on device ..."
+	info "Installing on device ..."
 	ant installd -e
 fi
 
 if [ ! -z `echo $1 | grep r` ]; then
-	echo "Running app $nameUpper..."
+	info "Running app $nameUpper..."
 	adb shell am start -n net.damsy.soupeaucaillou.$nameLower/net.damsy.soupeaucaillou.$nameLower.${nameUpper}Activity
 fi
 
-
-# *** cd build/android

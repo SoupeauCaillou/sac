@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "CommunicationAPIAndroidImpl.h"
 
 #include <string>
@@ -23,97 +5,119 @@
 #include "../../base/Log.h"
 
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
-    jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
-    if (!mId) {
-        LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
-    }
-    return mId;
+   jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
+   if (!mId) {
+      LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
+   }
+   return mId;
 }
 
 struct CommunicationAPIAndroidImpl::CommunicationAPIAndroidImplDatas {
-    jclass cls;
+   jclass cls;
 
-    jmethodID swarmInstalled;
-    jmethodID swarmRegistering;
-    jmethodID shareFacebook;
-    jmethodID shareTwitter;
-    jmethodID mustShowRateDialog;
-    jmethodID rateItNow;
-    jmethodID rateItLater;
-    jmethodID rateItNever;
+   jmethodID swarmInstalled;
+   jmethodID swarmRegistering;
+   jmethodID giftizMissionDone;
+   jmethodID giftizGetButtonState;
+   jmethodID giftizButtonClicked;
+   jmethodID shareFacebook;
+   jmethodID shareTwitter;
+   jmethodID mustShowRateDialog;
+   jmethodID rateItNow;
+   jmethodID rateItLater;
+   jmethodID rateItNever;
 
-    bool initialized;
+   bool initialized;
 };
 
 CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl() {
-	datas = new CommunicationAPIAndroidImplDatas();
-	datas->initialized = false;
+   datas = new CommunicationAPIAndroidImplDatas();
+   datas->initialized = false;
 }
 
 CommunicationAPIAndroidImpl::~CommunicationAPIAndroidImpl() {
-	if (datas->initialized) {
-    	env->DeleteGlobalRef(datas->cls);
-	}
-    delete datas;
+   if (datas->initialized) {
+      env->DeleteGlobalRef(datas->cls);
+   }
+   delete datas;
 }
 
 void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
-	if (datas->initialized) {
-		LOGW("CommunicationAPI not properly uninitialized");
-	}
-	env = pEnv;
+   if (datas->initialized) {
+      LOGW("CommunicationAPI not properly uninitialized");
+   }
+   env = pEnv;
 
-    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/CommunicationAPI"));
-    datas->swarmInstalled = jniMethodLookup(env, datas->cls, "swarmEnabled", "()Z");
-    datas->swarmRegistering = jniMethodLookup(env, datas->cls, "swarmRegistering", "(II)V");
-    datas->shareFacebook = jniMethodLookup(env, datas->cls, "shareFacebook", "()V");
-    datas->shareTwitter = jniMethodLookup(env, datas->cls, "shareTwitter", "()V");
-    datas->mustShowRateDialog = jniMethodLookup(env, datas->cls, "mustShowRateDialog", "()Z");
-    datas->rateItNow = jniMethodLookup(env, datas->cls, "rateItNow", "()V");
-    datas->rateItLater = jniMethodLookup(env, datas->cls, "rateItLater", "()V");
-    datas->rateItNever = jniMethodLookup(env, datas->cls, "rateItNever", "()V");
+   datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/CommunicationAPI"));
 
-    datas->initialized = true;
+   datas->swarmInstalled = jniMethodLookup(env, datas->cls, "swarmEnabled", "()Z");
+   datas->swarmRegistering = jniMethodLookup(env, datas->cls, "swarmRegistering", "()V");
+
+   datas->giftizMissionDone = jniMethodLookup(env, datas->cls, "giftizMissionDone", "()V");
+   datas->giftizGetButtonState = jniMethodLookup(env, datas->cls, "giftizGetButtonState", "()I");
+   datas->giftizButtonClicked = jniMethodLookup(env, datas->cls, "giftizButtonClicked", "()V");
+
+   datas->shareFacebook = jniMethodLookup(env, datas->cls, "shareFacebook", "()V");
+   datas->shareTwitter = jniMethodLookup(env, datas->cls, "shareTwitter", "()V");
+
+   datas->mustShowRateDialog = jniMethodLookup(env, datas->cls, "mustShowRateDialog", "()Z");
+   datas->rateItNow = jniMethodLookup(env, datas->cls, "rateItNow", "()V");
+   datas->rateItLater = jniMethodLookup(env, datas->cls, "rateItLater", "()V");
+   datas->rateItNever = jniMethodLookup(env, datas->cls, "rateItNever", "()V");
+
+   datas->initialized = true;
 }
 
 void CommunicationAPIAndroidImpl::uninit() {
-	if (datas->initialized) {
-		env->DeleteGlobalRef(datas->cls);
-		datas->initialized = false;
-	}
+   if (datas->initialized) {
+      env->DeleteGlobalRef(datas->cls);
+      datas->initialized = false;
+   }
 }
 
 bool CommunicationAPIAndroidImpl::swarmInstalled() {
-	return env->CallStaticBooleanMethod(datas->cls, datas->swarmInstalled);
+   return env->CallStaticBooleanMethod(datas->cls, datas->swarmInstalled);
 }
 
-void CommunicationAPIAndroidImpl::swarmRegistering(int mode, int difficulty) {
-	env->CallStaticBooleanMethod(datas->cls, datas->swarmRegistering, mode, difficulty);
+void CommunicationAPIAndroidImpl::swarmRegistering() {
+   env->CallStaticBooleanMethod(datas->cls, datas->swarmRegistering);
+}
+
+void CommunicationAPIAndroidImpl::giftizMissionDone() {
+   env->CallStaticVoidMethod(datas->cls, datas->giftizMissionDone);
+}
+
+int CommunicationAPIAndroidImpl::giftizGetButtonState() {
+   return env->CallStaticIntMethod(datas->cls, datas->giftizGetButtonState);
+}
+
+void CommunicationAPIAndroidImpl::giftizButtonClicked() {
+   env->CallStaticVoidMethod(datas->cls, datas->giftizButtonClicked);
 }
 
 void CommunicationAPIAndroidImpl::shareFacebook() {
-	LOGI("share facebook !");
-	env->CallStaticBooleanMethod(datas->cls, datas->shareFacebook);
+   LOGI("share facebook !");
+   env->CallStaticBooleanMethod(datas->cls, datas->shareFacebook);
 }
 
 void CommunicationAPIAndroidImpl::shareTwitter() {
-	LOGI("share twitter !");
-	env->CallStaticBooleanMethod(datas->cls, datas->shareTwitter);
+   LOGI("share twitter !");
+   env->CallStaticBooleanMethod(datas->cls, datas->shareTwitter);
 }
 
 
 bool CommunicationAPIAndroidImpl::mustShowRateDialog(){
-	return env->CallStaticBooleanMethod(datas->cls, datas->mustShowRateDialog);
+   return env->CallStaticBooleanMethod(datas->cls, datas->mustShowRateDialog);
 }
 
 void CommunicationAPIAndroidImpl::rateItNow(){
-	env->CallStaticBooleanMethod(datas->cls, datas->rateItNow);
+   env->CallStaticBooleanMethod(datas->cls, datas->rateItNow);
 }
 
 void CommunicationAPIAndroidImpl::rateItLater(){
-	env->CallStaticBooleanMethod(datas->cls, datas->rateItLater);
+   env->CallStaticBooleanMethod(datas->cls, datas->rateItLater);
 }
 
 void CommunicationAPIAndroidImpl::rateItNever(){
-	env->CallStaticBooleanMethod(datas->cls, datas->rateItNever);
+   env->CallStaticBooleanMethod(datas->cls, datas->rateItNever);
 }

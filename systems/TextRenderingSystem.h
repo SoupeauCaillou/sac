@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #pragma once
 
 #if defined(ANDROID) || defined(EMSCRIPTEN)
@@ -38,16 +20,16 @@ struct TextRenderingComponent {
     const static float LEFT;
     const static float CENTER;
     const static float RIGHT;
-    
+
     const static int IsANumberBit = 1 << 0;
     const static int AdjustHeightToFillWidthBit = 1 << 1;
 	const static int MultiLineBit = 1 << 2;
-	
-	TextRenderingComponent() : 
-		text(""), 
-		fontName("typo"), 
-		positioning(CENTER), 
-		hide(false), 
+
+	TextRenderingComponent() :
+		text(""),
+		fontName("typo"),
+		positioning(CENTER),
+		hide(false),
 		flags(0),
         cameraBitMask(~0U) {
 			caret.show = false;

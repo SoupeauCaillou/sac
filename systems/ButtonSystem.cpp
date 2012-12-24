@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "ButtonSystem.h"
 #include "base/TimeUtil.h"
 #include "util/IntersectionUtil.h"
@@ -28,7 +10,7 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     vibrateAPI = 0;
 }
 
-void ButtonSystem::DoUpdate(float dt __attribute__((unused))) {
+void ButtonSystem::DoUpdate(float) {
     bool touch = theTouchInputManager.isTouched(0);
 	const Vector2& pos = theTouchInputManager.getTouchLastPosition(0);
     FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)
@@ -44,14 +26,14 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 
     comp->clicked = false;
 
-    if (!touching && !comp->mouseOver)
-        return;
+    if (!touching)
+        comp->touchStartOutside = false;
 
 	const Vector2& pos = TRANSFORM(entity)->worldPosition;
 	const Vector2& size = TRANSFORM(entity)->size;
 
 	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
-	if (comp->enabled) {
+	if (comp->enabled && !comp->touchStartOutside) {
         if (comp->mouseOver) {
 			if (touching) {
 				comp->mouseOver = over;
@@ -62,8 +44,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
-                     std::cout << entity << " -> clicked" <<std::endl;
-                     
+                        #ifndef ANDROID
+                        std::cout << entity << " -> clicked" <<std::endl;
+                        #endif
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
                         }
@@ -75,5 +58,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 			comp->touchStartOutside = touching & !over;
 			comp->mouseOver = touching & over;
 		}
-	}
+	} else {
+        comp->mouseOver = false;
+    }
 }

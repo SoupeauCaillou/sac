@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #pragma once
 
 #include <string>
@@ -36,8 +18,8 @@
 #define Entity unsigned long
 
 #define COMPONENT(x) struct x##Component
-#define PERSISTENT_PROP 
-#define RUNTIME_PROP 
+#define PERSISTENT_PROP
+#define RUNTIME_PROP
 
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
@@ -76,7 +58,7 @@
         for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
             Entity ent = it->first;\
             type##Component* comp = it->second;
-    
+
     #define FOR_EACH_COMPONENT(type, comp) \
         for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
             type##Component* comp = it->second;
@@ -95,7 +77,7 @@ class ComponentSystem {
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
 
 		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); DoUpdate(dt); PROFILE("SystemUpdate", name, EndEvent); }
-			
+
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
@@ -104,7 +86,7 @@ class ComponentSystem {
 			}
 			return (*it).second;
 		}
-		
+
 		static std::vector<std::string> registeredSystemNames();
 
 	protected:
@@ -145,9 +127,9 @@ class ComponentSystemImpl: public ComponentSystem {
 		}
 
 		#ifdef DEBUG
-		virtual void preDeletionCheck(Entity entity __attribute__((unused))) { };
+		virtual void preDeletionCheck(Entity) { };
 		#endif
-		
+
 		void Delete(Entity entity) {
 		#ifdef DEBUG
 		    preDeletionCheck(entity);
@@ -219,7 +201,7 @@ class ComponentSystemImpl: public ComponentSystem {
             if (!out) {
                 out = new uint8_t[sizeof(T)];
             }
-            memcpy(out, Get(entity), sizeof(T)); 
+            memcpy(out, Get(entity), sizeof(T));
             return out;
         }
 

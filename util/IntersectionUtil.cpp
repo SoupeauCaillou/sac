@@ -1,22 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "IntersectionUtil.h"
 #include "../base/MathUtil.h"
 #include "../systems/TransformationSystem.h"
@@ -64,36 +45,36 @@ bool IntersectionUtil::lineLine(const Vector2& pA, const Vector2& pB, const Vect
     return false;
 }
 
-bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2& rectASize, float rectARot, 
+bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2& rectASize, float rectARot,
             const Vector2& rectBPos, const Vector2& rectBSize, float rectBRot) {
     // quick out
     if (Vector2::DistanceSquared(rectAPos, rectBPos) > pow(MathUtil::Max(rectASize.X, rectASize.Y) + MathUtil::Max(rectBSize.X, rectBSize.Y), 2)) {
         return false;
     }
-    
+
     #define SIGN(x) ((x) > 0 ? 1:-1)
     const float coeff[] = {
-        -0.5, 0.5,            
+        -0.5, 0.5,
         0.5, 0.5,
         0.5, -0.5,
         -0.5, -0.5
     };
-    
+
     Vector2 aPoints[4];
     Vector2 bPoints[4];
-    
+
     for (int i=0; i<4; i++) {
         aPoints[i] = rectAPos + Vector2::Rotate(Vector2(rectASize.X * coeff[2*i], rectASize.Y * coeff[2*i+1]), rectARot);
         bPoints[i] = rectBPos + Vector2::Rotate(Vector2(rectBSize.X * coeff[2*i], rectBSize.Y * coeff[2*i+1]), rectBRot);
     }
-    
+
     // check A edges againts B points
     for (int i=0; i<4; i++) {
         Vector2 edge(aPoints[(i+1)%4] - aPoints[i]);
         float tmp = edge.X;
         edge.X = -edge.Y;
         edge.Y = tmp;
-        
+
         bool success = true;
         int j, side = SIGN(Vector2::Dot(edge, bPoints[0] - aPoints[i]));
         for (j=1; success && j<4; j++) {
@@ -111,14 +92,14 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
                 return false;
         }
     }
-    
+
     // check B edges againts A points
     for (int i=0; i<4; i++) {
         Vector2 edge(bPoints[(i+1)%4] - bPoints[i]);
         float tmp = edge.X;
         edge.X = -edge.Y;
         edge.Y =tmp;
-        
+
         bool success = true;
         int j, side = SIGN(Vector2::Dot(edge, aPoints[0] - bPoints[i]));
         for (j=1; success && j<4; j++) {

@@ -1,21 +1,4 @@
-/*
- This file is part of Heriswap.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
+#ifndef EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
 #include "../../base/Log.h"
@@ -36,14 +19,14 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
         ENetHost * client;
         ENetPeer *peer;
     } lobby;
-    
+
     struct {
         ENetHost* host;
         ENetPeer* peer;
         bool connected, masterMode;
     } match;
 
-    
+
 };
 
 static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t port);
@@ -85,7 +68,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     ENetEvent event;
     enet_address_set_host (&address, datas->lobby.server.c_str());
     address.port = 54321;
-    
+
     LOGI("Trying to connect to loby server: %s:%d", datas->lobby.server.c_str(), address.port);
     datas->lobby.peer = enet_host_connect (datas->lobby.client, &address, 2, 0);
     if (enet_host_service (datas->lobby.client, &event, 50000) > 0) {
@@ -98,19 +81,19 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     }
 
     // on successfull connect, send nickname
-    
-    
+
+
     enet_peer_send(datas->lobby.peer, 0, convertPacket(createNickNamePacket(datas->lobby.nickName), ENET_PACKET_FLAG_RELIABLE));
     enet_host_flush(datas->lobby.client);
-    
-    
+
+
     std::string remoteName, remoteAddr;
     uint16_t localPort, remotePort;
     bool serverMode;
     bool failure = false, gotP2PInfo = false;
     while (!failure && !gotP2PInfo) {
         int ret = enet_host_service(datas->lobby.client, &event, 0);
-        
+
         if (ret < 0) {
             failure  = true;
         } else {
@@ -160,7 +143,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
         enet_host_destroy(datas->lobby.client);
         datas->lobby.client = 0;
     }
-    
+
 }
 
 bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort) {
@@ -168,7 +151,7 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint1
     LOGI("Creating server socket (%d)", localPort);
     address.host = ENET_HOST_ANY;
     address.port = localPort;
-    datas->match.host = enet_host_create (&address /* the address to bind the server host to */, 
+    datas->match.host = enet_host_create (&address /* the address to bind the server host to */,
                                   32      /* allow up to 32 clients and/or outgoing connections */,
                                   2      /* allow up to 2 channels to be used, 0 and 1 */,
                                   0      /* assume any amount of incoming bandwidth */,
@@ -212,13 +195,13 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
     ENetAddress address;
     enet_address_set_host (&address, addr);
     address.port = remotePort;
-    
+
     datas->match.peer = enet_host_connect (datas->match.host, &address, 2, 0);
 
     // send local socket port
     int localPort = 0;
-    
-    
+
+
 
 
     float begin = TimeUtil::getTime();
@@ -242,7 +225,7 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
             default:
                 break;
         }
-        
+
         if (localPort == 0) {
             struct sockaddr_in sin;
             socklen_t addrlen = sizeof(sin);
@@ -351,8 +334,8 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
     c.sin_port = htons(port);
     c.sin_family = AF_INET;
 
-    if (inet_pton(AF_INET, addr, &c.sin_addr) != 1) LOGE("inet_pton"); 
-    
+    if (inet_pton(AF_INET, addr, &c.sin_addr) != 1) LOGE("inet_pton");
+
     int n = sendto(socket, tmp, 4, 0, (struct sockaddr*)&c, sizeof(struct sockaddr_in));
     LOGI("sendto result: %d (socket: %d addr: %s port: %d)", n, socket, addr, port);
     if (n < 0)
@@ -364,3 +347,4 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
     } else
         LOGI("allo : %s", tmmmm);
 }
+#endif

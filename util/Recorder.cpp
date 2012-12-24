@@ -1,3 +1,4 @@
+#ifndef EMSCRIPTEN
 #include "Recorder.h"
 #include <iostream>
 #include <sstream>
@@ -137,16 +138,17 @@ Recorder::Recorder(int width, int height){
 }
 
 Recorder::~Recorder(){
-	if (pthread_cancel (th1) != 0) {
-		std::cout << "pthread_cancel error for thread" << std::endl;
-	}
+    if (recording) {
+    	if (pthread_cancel (th1) != 0) {
+    		std::cout << "pthread_cancel error for thread" << std::endl;
+    	}
+    }
 	vpx_codec_destroy(&codec);
 	vpx_img_free (&raw);
 
 	pthread_mutex_destroy(&mutex_buf);
 	
 	glDeleteBuffers(PBO_COUNT, pboIds);
-	delete [] test;
 }
 
 bool Recorder::initOpenGl_PBO (){
@@ -280,7 +282,7 @@ void Recorder::record(){
 													GL_READ_ONLY);
 			if(ptr)
 			{
-				test = new GLubyte[width*height * CHANNEL_COUNT];
+				GLubyte *test = new GLubyte[width*height * CHANNEL_COUNT];
 				memcpy (test, ptr, width*height*CHANNEL_COUNT );
 
 				pthread_mutex_lock (&mutex_buf);
@@ -359,3 +361,4 @@ void Recorder::addFrame(GLubyte *ptr){
     PROFILE("Recorder", "write-disk", EndEvent);
 	++this->frameCounter;
 }
+#endif

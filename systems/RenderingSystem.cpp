@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
@@ -33,10 +15,11 @@ RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering") {
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), initDone(false) {
 	nextValidRef = nextEffectRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
+    newFrameReady = false;
 #ifndef EMSCRIPTEN
     pthread_mutex_init(&mutexes[L_RENDER], 0);
     pthread_mutex_init(&mutexes[L_QUEUE], 0);
@@ -53,13 +36,26 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.b, tc), 0.001));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.a, tc), 0.001));
     componentSerializer.add(new Property(OFFSET(hide, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(mirrorH, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(zPrePass, tc), sizeof(bool)));
+    componentSerializer.add(new Property(OFFSET(fastCulling, tc), sizeof(bool)));
     componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
     componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-    #else
-    inotifyFd = inotify_init();
-    #endif
+    componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
+
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
+    initDone = true;
+}
+
+RenderingSystem::~RenderingSystem() {
+#ifndef EMSCRIPTEN
+    pthread_mutex_destroy(&mutexes[L_RENDER]);
+    pthread_mutex_destroy(&mutexes[L_QUEUE]);
+    pthread_mutex_destroy(&mutexes[L_TEXTURE]);
+    pthread_cond_destroy(&cond[0]);
+    pthread_cond_destroy(&cond[1]);
+#endif
+    initDone = false;
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
@@ -109,7 +105,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 #ifdef USE_VBO
 	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
 	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
-	out.uniformScale = glGetUniformLocation(out.program, "uScale");
+	out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
 #endif
 
 	glDeleteShader(vs);
@@ -121,15 +117,17 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 void RenderingSystem::init() {
 	const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 	pvrSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
-	
+
 	#ifdef USE_VBO
 	defaultShader = buildShader("default_vbo.vs", "default.fs");
 	defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
+    defaultShaderEmpty = buildShader("default_vbo.vs", "empty.fs");
 	#else
 	defaultShader = buildShader("default.vs", "default.fs");
 	defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
+    defaultShaderEmpty = buildShader("default.vs", "empty.fs");
 	#endif
-	GL_OPERATION(glClearColor(0, 0, 0, 1.0))
+	GL_OPERATION(glClearColor(148.0/255, 148.0/255, 148.0/255, 1.0)) // temp setting for RR
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};
@@ -158,7 +156,7 @@ void RenderingSystem::init() {
  #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
-	
+
 #ifdef USE_VBO
 	glGenBuffers(3, squareBuffers);
 GLfloat sqArray[] = {
@@ -201,10 +199,14 @@ static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const Rend
 }
 
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-	if (r1.z == r2.z) {
+    #define EPSILON 0.0001
+	if (MathUtil::Abs(r1.z - r2.z) <= EPSILON) {
 		if (r1.effectRef == r2.effectRef) {
 			if (r1.texture == r2.texture) {
-	            return r1.color < r2.color;
+                if (r1.flags != r2.flags)
+                    return r1.flags > r2.flags;
+                else
+	                return r1.color < r2.color;
 	        } else {
 	            return r1.texture < r2.texture;
 	        }
@@ -216,15 +218,61 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
     }
 }
 
+static inline void modifyQ(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
+    const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
+    r.position = r.position  + Vector2((r.mirrorH ? -1 : 1), 1) * Vector2::Rotate(- r.halfSize + offset, r.rotation);
+    r.halfSize = size * r.halfSize;
+}
+
 static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
     const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
-    r.position = r.position  + Vector2::Rotate(- r.halfSize + offset, r.rotation);
+    r.position = r.position  + Vector2((r.mirrorH ? -1 : 1), 1) * Vector2::Rotate(- r.halfSize + offset, r.rotation);
     r.halfSize = size * r.halfSize;
     r.uv[0] = offsetPos;
     r.uv[1] = size;
 }
 
-void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
+static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& c) {
+    if (c.rotation == 0) {
+        assert (c.halfSize.X != 0);
+        const float invWidth = 1.0f / (2 * c.halfSize.X);
+        // left culling !
+        {
+            float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+            if (cullLeftX > 0) {
+                if (cullLeftX >= 2 * c.halfSize.X)
+                    return false;
+                const float prop = cullLeftX * invWidth; // € [0, 1]
+                if (!c.mirrorH) {
+                    c.uv[0].X += prop * c.uv[1].X;
+                }
+                c.uv[1].X *= (1 - prop);
+                c.halfSize.X *= (1 - prop);
+                c.position.X += 0.5 * cullLeftX;
+                return true;
+            }
+        }
+        // right culling !
+        {
+            float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+            if (cullRightX > 0) {
+                if (cullRightX >= 2 * c.halfSize.X)
+                    return false;
+                const float prop = cullRightX * invWidth; // € [0, 1]
+                if (c.mirrorH) {
+                    c.uv[0].X += prop * c.uv[1].X;
+                }
+                c.uv[1].X *= (1 - prop);
+                c.halfSize.X *= (1 - prop);
+                c.position.X -= 0.5 * cullRightX;
+                return true;
+            }
+        }
+    }
+    return true;
+}
+
+void RenderingSystem::DoUpdate(float) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
     if (outQueue.count != 0) {
@@ -244,7 +292,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		if (rc->hide || rc->color.a <= 0 || !ccc) {
     			continue;
     		}
-    
+
     		const TransformationComponent* tc = TRANSFORM(a);
             if (!isVisible(tc, camIdx)) {
                 continue;
@@ -261,6 +309,13 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
+            if (rc->zPrePass) {
+                c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
+            } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
+                c.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+            } else {
+                c.flags = (DisableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
+            }
 
             if (c.texture != InvalidTextureRef) {
                 const TextureInfo& info = textures[c.texture];
@@ -270,55 +325,58 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                         LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
                     }
                 }
-                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE && c.color.a >= 1 && info.opaqueSize != Vector2::Zero) {
+                modifyQ(c, info.reduxStart, info.reduxSize);
+                #ifndef USEE_VBO
+                
+                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                    c.color.a >= 1 &&
+                    info.opaqueSize != Vector2::Zero && 
+                    !rc->zPrePass) {
                     // add a smaller full-opaque block at the center
                     RenderCommand cCenter(c);
+                    cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
                     modifyR(cCenter, info.opaqueStart, info.opaqueSize);
-                    opaqueCommands.push_back(cCenter);
-                    
+
+                    if (cull(camLeft, camRight, cCenter))
+                        opaqueCommands.push_back(cCenter);
+
                     const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
                     const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
-                    RenderCommand cLeft(c);
-                    modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                    semiOpaqueCommands.push_back(cLeft);
+                    if (leftBorder > 0) {
+                        RenderCommand cLeft(c);
+                        modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                        if (cull(camLeft, camRight, cLeft))
+                            semiOpaqueCommands.push_back(cLeft);
+                    }
 
-                    RenderCommand cRight(c);
-                    modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                    semiOpaqueCommands.push_back(cRight);
-                    
+                    if (rightBorder < 1) {
+                        RenderCommand cRight(c);
+                        modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                        if (cull(camLeft, camRight, cRight))
+                            semiOpaqueCommands.push_back(cRight);
+                    }
+
                     RenderCommand cTop(c);
                     modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
-                    semiOpaqueCommands.push_back(cTop);
-                    
+                    if (cull(camLeft, camRight, cTop))
+                        semiOpaqueCommands.push_back(cTop);
+
                     RenderCommand cBottom(c);
                     modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
-                    semiOpaqueCommands.push_back(cBottom);
+                    if (cull(camLeft, camRight, cBottom))
+                        semiOpaqueCommands.push_back(cBottom);
+                    continue;
+                }
+                #endif
+             }
+
+             #ifndef USE_VBO
+             if (!rc->fastCulling) {
+                if (!cull(camLeft, camRight, c)) {
                     continue;
                 }
              }
-             if (c.rotation == 0) {
-                // left culling !
-                float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
-                if (cullLeftX > 0) {
-                    if (!c.mirrorH) {
-                        c.uv[0].X = cullLeftX / tc->size.X;
-                    }
-                    c.uv[1].X -= cullLeftX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullLeftX;
-                    c.position.X += 0.5 * cullLeftX;
-                }
-                // right culling !
-                float cullRightX = (c.position.X + c.halfSize.X) - camRight;
-                if (cullRightX > 0) {
-                    if (c.mirrorH) {
-                        c.uv[0].X = cullRightX / tc->size.X;
-                    }
-                    c.uv[1].X -= cullRightX / tc->size.X;
-                    c.halfSize.X -= 0.5 * cullRightX;
-                    c.position.X -= 0.5 * cullRightX;
-                }
-            }
-            
+             #endif
              switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
@@ -330,8 +388,8 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
                     LOGW("Entity will not be drawn");
                     break;
              }
-    	}
-    
+        }
+
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 
@@ -346,8 +404,7 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
         outQueue.commands[0] = dummy;// outQueue.commands.push_back(dummy);
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[1]);
         outQueue.count = 1 + opaqueCommands.size();
-        outQueue.commands[outQueue.count++].texture = DisableZWriteMarker;
-        outQueue.commands[outQueue.count++].texture = EnableBlending;
+        // semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
         std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();
     }
@@ -359,25 +416,29 @@ void RenderingSystem::DoUpdate(float dt __attribute__((unused))) {
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
     cccc++;
-	// LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
-    // LOGW("Wrote frame %u", dummy.rotateUV);
+	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
+    //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
 
+#ifndef EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
     pthread_mutex_lock(&mutexes[L_RENDER]);
     // Lock for notifying queue change
     pthread_mutex_lock(&mutexes[L_QUEUE]);
+#endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
+#ifndef EMSCRIPTEN
     pthread_cond_signal(&cond[C_FRAME_READY]);
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
+#endif
 }
 
-bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) {
+bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
 	return isVisible(TRANSFORM(e), cameraIndex);
 }
 
-bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) {
+bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) const {
     if (cameraIndex < 0) {
         for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
             if (isVisible(tc, camIdx)) {
@@ -387,17 +448,14 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
         return false;
     }
     const Camera& camera = cameras[cameraIndex];
-	const Vector2 halfSize = tc->size * 0.5;
-	Vector2 pos = tc->worldPosition - camera.worldPosition;
+	const Vector2 halfSize(tc->size * 0.5);
+	const Vector2 pos(tc->worldPosition - camera.worldPosition);
+    const Vector2 camHalfSize(camera.worldSize * .5);
 
-	if ((pos.X + halfSize.X) < -camera.worldSize.X * 0.5)
-		return false;
-	if ((pos.X - halfSize.X) > camera.worldSize.X * 0.5)
-		return false;
-	if ((pos.Y + halfSize.Y) < -camera.worldSize.Y * 0.5)
-		return false;
-	if ((pos.Y - halfSize.Y) > camera.worldSize.Y * 0.5)
-		return false;
+	if ((pos.X + halfSize.X) < -camHalfSize.X) return false;
+	if ((pos.X - halfSize.X) > camHalfSize.X) return false;
+	if ((pos.Y + halfSize.Y) < -camHalfSize.Y) return false;
+	if ((pos.Y - halfSize.Y) > camHalfSize.Y) return false;
 	return true;
 }
 
@@ -464,7 +522,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
 		it != nameToEffectRefs.end();
 		++it) {
-		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);		
+		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
 	}
 }
 
@@ -479,13 +537,13 @@ EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
 		result = nextEffectRef++;
 		nameToEffectRefs[name] = result;
 	}
-	
+
 	#ifdef USE_VBO
 	ref2Effects[result] = buildShader("default_vbo.vs", assetName);
 	#else
 	ref2Effects[result] = buildShader("default.vs", assetName);
 	#endif
-	
+
 	return result;
 }
 
@@ -497,18 +555,24 @@ void RenderingSystem::reloadEffects() {
 		ref2Effects[it->second] = buildShader("default_vbo.vs", it->first);
 		#else
 		ref2Effects[it->second] = buildShader("default.vs", it->first);
-		#endif 		
+		#endif
 	}
 }
 
 void RenderingSystem::setFrameQueueWritable(bool b) {
+    if (frameQueueWritable == b || !initDone)
+        return;
     LOGI("Writable: %d", b);
+#ifndef EMSCRIPTEN
     pthread_mutex_lock(&mutexes[L_QUEUE]);
+#endif
     frameQueueWritable = b;
+#ifndef EMSCRIPTEN
     pthread_cond_signal(&cond[C_FRAME_READY]);
     pthread_mutex_unlock(&mutexes[L_QUEUE]);
 
     pthread_mutex_lock(&mutexes[L_RENDER]);
     pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
+#endif
 }

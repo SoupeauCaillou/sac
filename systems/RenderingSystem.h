@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #pragma once
 
 #include <cstdio>
@@ -53,12 +35,12 @@ typedef int EffectRef;
 #define DefaultEffectRef -1
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
 
 	TextureRef texture;
 	EffectRef effectRef;
 	Color color;
-	bool hide, mirrorH;
+	bool hide, mirrorH, zPrePass, fastCulling;
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
@@ -77,6 +59,7 @@ struct RenderingComponent {
 UPDATABLE_SYSTEM(Rendering)
 
 public:
+~RenderingSystem();
 void init();
 
 void loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading = false);
@@ -95,8 +78,8 @@ void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 public:
 AssetAPI* assetAPI;
 
-bool isEntityVisible(Entity e, int cameraIndex = -1);
-bool isVisible(const TransformationComponent* tc, int cameraIndex = -1);
+bool isEntityVisible(Entity e, int cameraIndex = -1) const;
+bool isVisible(const TransformationComponent* tc, int cameraIndex = -1) const;
 
 void reloadTextures();
 void reloadEffects();
@@ -151,6 +134,7 @@ struct RenderCommand {
 	Color color;
 	Vector2 position;
 	float rotation;
+    int flags;
     bool mirrorH;
 };
 
@@ -161,14 +145,26 @@ struct RenderQueue {
 };
 
 struct TextureInfo {
+    // GL texture(s)
 	InternalTexture glref;
-	unsigned int rotateUV;
+    // is image rotated in atlas
+	unsigned short rotateUV;
+    // which atlas
+    short atlasIndex;
+    // uv coords in atlas
 	Vector2 uv[2];
-	int atlasIndex;
-	Vector2 size;
+    // texture original size
+	unsigned short originalWidth, originalHeight;
+    // texture redux offset/size
+    Vector2 reduxStart, reduxSize;
+    // coordinates of opaque region in alpha-enabled texture (optional)
     Vector2 opaqueStart, opaqueSize;
-
-	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid, int x = 0, int y = 0, int w = 0, int h = 0, bool rot = false, const Vector2& size = Vector2::Zero, const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero, int atlasIdx = -1);
+	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid,
+        const Vector2& posInAtlas = Vector2::Zero, const Vector2& sizeInAtlas = Vector2::Zero, bool rot = false,
+        const Vector2& atlasSize = Vector2::Zero,
+        const Vector2& offsetInOriginal = Vector2::Zero, const Vector2& originalSize=Vector2::Zero,
+        const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero,
+        int atlasIdx = -1);
 };
 struct Atlas {
 	std::string name;
@@ -195,46 +191,39 @@ private:
 pthread_mutex_t mutexes[3];
 pthread_cond_t cond[2];
 #endif
-
+#ifdef USE_VBO
+public:
+#endif
 struct Shader {
 	GLuint program;
 	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 	#ifdef USE_VBO
-	GLuint uniformUVScaleOffset, uniformRotation, uniformScale;
+	GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
 	#endif
 };
-
-Shader defaultShader, defaultShaderNoAlpha;
+private:
+Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
 GLuint whiteTexture;
 
 EffectRef nextEffectRef;
 std::map<std::string, EffectRef> nameToEffectRefs;
 std::map<EffectRef, Shader> ref2Effects;
 
-/* open gl es1 var */
-
-#ifndef ANDROID
-int inotifyFd;
-struct NotifyInfo {
-    int wd;
-    std::string asset;
-};
-std::vector<NotifyInfo> notifyList;
-#endif
+bool initDone;
 
 private:
-static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 GLuint compileShader(const std::string& assetName, GLuint type);
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
+static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera);
-const Shader& effectRefToShader(EffectRef ref, bool firstCall);
-const Vector2& getTextureSize(const std::string& textureName) const;
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera, bool colorEnabled = true);
+const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
+Vector2 getTextureSize(const std::string& textureName) const;
 void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;
 

@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "MusicAPILinuxOpenALImpl.h"
 
 #ifndef EMSCRIPTEN
@@ -36,7 +18,7 @@ static void check_AL_errors(const char* context);
      (x); \
      check_AL_errors(#x);
 #else
-#define AL_OPERATION(x) 
+#define AL_OPERATION(x)
 #endif
 #define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
@@ -59,7 +41,7 @@ void MusicAPILinuxOpenALImpl::init() {
 #endif
 }
 
-OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int sampleRate __attribute__((unused))) {
+OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int) {
     OpenALOpaqueMusicPtr* result = new OpenALOpaqueMusicPtr();
     // create source
     AL_OPERATION(alGenSources(1, &result->source))
@@ -78,7 +60,7 @@ void MusicAPILinuxOpenALImpl::deallocate(int8_t* b) {
     delete[] b;
 }
 
-int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr* ptr __attribute__((unused))) {
+int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr*) {
     return 10;
 }
 
@@ -108,6 +90,8 @@ void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* 
 	    setPosition(ptr, pos + offset);
     }
     AL_OPERATION(alSourcePlay(openalptr->source))
+#else
+    // Mix_Resume(-1);
 #endif
 }
 
@@ -125,7 +109,7 @@ void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
 #ifndef EMSCRIPTEN
     AL_OPERATION(alSourcePause(openalptr->source))
 #else
- Mix_PauseChannel(openalptr->channel);
+    Mix_Pause(openalptr->channel);
 #endif
 }
 
@@ -173,7 +157,7 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     // destroy source
     AL_OPERATION(alDeleteSources(1, &openalptr->source))
 #endif
-    delete ptr; 
+    delete ptr;
 }
 
 #ifndef EMSCRIPTEN

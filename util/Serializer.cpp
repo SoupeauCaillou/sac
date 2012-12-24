@@ -1,21 +1,3 @@
-/*
- This file is part of Heriswap.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "Serializer.h"
 #include "systems/System.h"
 #ifdef SAC_NETWORK
@@ -26,10 +8,10 @@
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 
 Property::Property(unsigned long pOffset, unsigned pSize) : offset(pOffset), _size(pSize) {
- 
+
 }
 
-unsigned Property::size(void* object __attribute__((unused))) const {
+unsigned Property::size(void*) const {
     return _size;
 }
 
@@ -51,7 +33,7 @@ EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(E
 
 }
 
-unsigned EntityProperty::size(void* object) const {
+unsigned EntityProperty::size(void*) const {
     return sizeof(Entity);
 }
 
@@ -73,18 +55,18 @@ int EntityProperty::deserialize(uint8_t* in, void* object) const {
 StringProperty::StringProperty(unsigned long pOffset) : Property(pOffset, 0) {}
 
 unsigned StringProperty::size(void* object) const {
-   std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+   std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
    return (a->size() + 1);
 }
 
 bool StringProperty::different(void* object, void* refObject) const {
-    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     std::string* b = (std::string*) PTR_OFFSET_2_PTR(refObject, offset);
     return (a->compare(*b) != 0);
 }
 
 int StringProperty::serialize(uint8_t* out, void* object) const {
-    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     uint8_t length = (uint8_t)a->size();
     memcpy(out, &length, 1);
     memcpy(&out[1], a->c_str(), length);
@@ -93,9 +75,16 @@ int StringProperty::serialize(uint8_t* out, void* object) const {
 
 int StringProperty::deserialize(uint8_t* in, void* object) const {
     uint8_t length = in[0];
-    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset); 
+    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     *a = std::string((const char*)&in[1], length);
     return length + 1;
+}
+
+Serializer::~Serializer() {
+    for (unsigned i=0; i<properties.size(); i++) {
+        delete properties[i];
+    }
+    properties.clear();
 }
 
 int Serializer::size(void* object) {

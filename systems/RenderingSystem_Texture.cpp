@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 
@@ -42,18 +24,23 @@
 #include <GLES2/gl2ext.h>
 #endif
 
-RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, int y, int w, int h, bool rot, const Vector2& size, const Vector2& _opaqueStart, const Vector2& _opaqueSize, int atlasIdx) {
+RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref,
+        const Vector2& posInAtlas, const Vector2& sizeInAtlas, bool rot,
+        const Vector2& atlasSize,
+        const Vector2& offsetInOriginal, const Vector2& originalSize,
+        const Vector2& _opaqueStart, const Vector2& _opaqueSize,
+        int atlasIdx) {
 	glref = ref;
 
-	if (size == Vector2::Zero) {
+	if (originalSize == Vector2::Zero) {
 		uv[0].X = uv[0].Y = 0;
 		uv[1].X = uv[1].Y = 1;
 		rotateUV = 0;
 	} else if (atlasIdx >= 0) {
-		float blX = x / size.X;
-		float trX = (x+w) / size.X;
-		float blY = 1 - (y+h) / size.Y;
-		float trY = 1 - y / size.Y;
+		float blX = posInAtlas.X / atlasSize.X;
+		float trX = (posInAtlas.X + sizeInAtlas.X) / atlasSize.X;
+		float blY = 1 - (posInAtlas.Y + sizeInAtlas.Y) / atlasSize.Y;
+		float trY = 1 - posInAtlas.Y / atlasSize.Y;
 
 		uv[0].X = blX;
 		uv[1].X = trX;
@@ -61,46 +48,60 @@ RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref, int x, in
 		uv[1].Y = trY;
 		rotateUV = rot;
 	} else {
-		uv[0].X = x / size.X;
-		uv[0].Y = y / size.Y;
-		uv[1].X = (x+w) / size.X;
-		uv[1].Y = (y+h) / size.Y;
+		uv[0].X = posInAtlas.X / atlasSize.X;
+		uv[0].Y = posInAtlas.Y / atlasSize.Y;
+		uv[1].X = (posInAtlas.X + sizeInAtlas.X) / atlasSize.X;
+		uv[1].Y = (posInAtlas.Y + sizeInAtlas.Y) / atlasSize.Y;
 		rotateUV = 0;
 	}
 	atlasIndex = atlasIdx;
-	this->size.X = w;
-	this->size.Y = h;
-	if (rot)
-		std::swap(this->size.X, this->size.Y);
-    if (this->size.Y > 0) {
-        opaqueSize = Vector2(_opaqueSize.X / this->size.X, _opaqueSize.Y / this->size.Y);
-        opaqueStart = Vector2(_opaqueStart.X / this->size.X, 1 - (opaqueSize.Y + _opaqueStart.Y / this->size.Y));
+
+    originalWidth = originalSize.X;
+    originalHeight = originalSize.Y;
+
+    Vector2 _sizeInAtlas(sizeInAtlas);
+	if (rot) {
+		std::swap(_sizeInAtlas.X, _sizeInAtlas.Y);
+    }
+    if (_sizeInAtlas.Y > 0) {
+        opaqueSize = Vector2(_opaqueSize.X / _sizeInAtlas.X, _opaqueSize.Y / _sizeInAtlas.Y);
+        opaqueStart = Vector2(_opaqueStart.X / _sizeInAtlas.X, 1 - (opaqueSize.Y + _opaqueStart.Y / _sizeInAtlas.Y));
+
+        reduxSize = Vector2(_sizeInAtlas.X / originalSize.X, _sizeInAtlas.Y / originalSize.Y);
+        reduxStart = Vector2(offsetInOriginal.X / originalSize.X, 1 - (reduxSize.Y + offsetInOriginal.Y / originalSize.Y));
     }
 }
 
 #include <fstream>
 
-static void parse(const std::string& line, std::string& assetName, int& x, int& y, int& w, int& h, bool& rot, Vector2& opaqueStart, Vector2& opaqueEnd) {
-	std::string substrings[10];
+static void parse(const std::string& line, std::string& assetName, Vector2& originalSize, Vector2& reduxOffset, Vector2& posInAtlas, Vector2& sizeInAtlas, bool& rotate, Vector2& opaqueStart, Vector2& opaqueEnd) {
+	std::string substrings[14];
 	int from = 0, to = 0, count = 0;
-	for (count=0; count<10; count++) {
+	for (count=0; count<14; count++) {
 		to = line.find_first_of(',', from);
 		substrings[count] = line.substr(from, to - from);
-        if (to == std::string::npos)
+        if (to == (int)std::string::npos) {
+            count++;
             break;
+        }
 		from = to + 1;
 	}
+    // image,original width, original height, redux offset x, redux offset y, pox x in atlas, pos y in atlas, width, height, rotate[, opaque box min x, min y, max x, max y]
 	assetName = substrings[0];
-	x = atoi(substrings[1].c_str());
-	y = atoi(substrings[2].c_str());
-	w = atoi(substrings[3].c_str());
-	h = atoi(substrings[4].c_str());
-	rot = atoi(substrings[5].c_str());
-    if (count > 6) {
-        opaqueStart.X = atoi(substrings[6].c_str());
-        opaqueStart.Y = atoi(substrings[7].c_str());
-        opaqueEnd.X = atoi(substrings[8].c_str());
-        opaqueEnd.Y = atoi(substrings[9].c_str());
+	originalSize.X = atoi(substrings[1].c_str());
+	originalSize.Y = atoi(substrings[2].c_str());
+	reduxOffset.X = atoi(substrings[3].c_str());
+	reduxOffset.Y = atoi(substrings[4].c_str());
+    posInAtlas.X = atoi(substrings[5].c_str());
+    posInAtlas.Y = atoi(substrings[6].c_str());
+    sizeInAtlas.X = atoi(substrings[7].c_str());
+    sizeInAtlas.Y = atoi(substrings[8].c_str());
+	rotate = atoi(substrings[9].c_str());
+    if (count == 14) {
+        opaqueStart.X = atoi(substrings[10].c_str());
+        opaqueStart.Y = atoi(substrings[11].c_str());
+        opaqueEnd.X = atoi(substrings[12].c_str());
+        opaqueEnd.Y = atoi(substrings[13].c_str());
     }
 }
 
@@ -131,13 +132,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	// read texture size
 	sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-	LOGI("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')", 
-		atlasName.c_str(), 
-		atlasIndex, 
-		a.glref.color, 
-		a.glref.alpha, 
-		forceImmediateTextureLoading ? atlasSize.X : .0f, 
-		forceImmediateTextureLoading ? atlasSize.Y : .0f, 
+	LOGI("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')",
+		atlasName.c_str(),
+		atlasIndex,
+		a.glref.color,
+		a.glref.alpha,
+		forceImmediateTextureLoading ? atlasSize.X : .0f,
+		forceImmediateTextureLoading ? atlasSize.Y : .0f,
 		s.c_str());
 	int count = 0;
 
@@ -149,18 +150,14 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		count++;
 		// LOGI("atlas - line: %s", s.c_str());
 		std::string assetName;
-		int x, y, w, h;
-        Vector2 opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
+        Vector2 originalSize, reduxOffset, posInAtlas, sizeInAtlas, opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
 		bool rot;
-
-		parse(s, assetName, x, y, w, h, rot, opaqueStart, opaqueEnd);
+		parse(s, assetName, originalSize, reduxOffset, posInAtlas, sizeInAtlas, rot, opaqueStart, opaqueEnd);
 
 		TextureRef result = nextValidRef++;
 		LOGI("----- %s -> %d", assetName.c_str(), result);
 		assetTextures[assetName] = result;
-		textures[result] = TextureInfo(a.glref, x, y, w, h, rot, atlasSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
-
-
+		textures[result] = TextureInfo(a.glref, posInAtlas, sizeInAtlas, rot, atlasSize, reduxOffset, originalSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
 	} while (!s.empty());
 
 	delete[] file.data;
@@ -229,7 +226,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	}
 	LOGI("Image format: %dx%d %d [%s]", s->w, s->h, s->format->BitsPerPixel, a.str().c_str());
 	image.channels = s->format->BitsPerPixel / 8;
-	
+
 	image.width = s->w;
 	image.height = s->h;
 	image.datas = new char[image.width * image.height * image.channels];
@@ -245,20 +242,26 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	SDL_FreeSurface(s);
 	png = true;
 #endif
- 
+
 	// for now, just assume power of 2 size
 	GLuint out;
 	GL_OPERATION(glGenTextures(1, &out))
 	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, out))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
 	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
- if (colorOrAlpha && image.mipmap > 0) {
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
- GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
- } else {
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
- }
+#ifdef ANDROID
+     if (colorOrAlpha && image.mipmap > 0) {
+#elif defined(EMSCRIPTEN)
+    if (false) {
+#else
+     if (colorOrAlpha) {
+#endif
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
+     } else {
+    	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+    	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+     }
 
 	GLenum format;
 	switch (image.channels) {
@@ -286,31 +289,31 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 		GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
 	} else {
 	   #ifdef ANDROID
-		if (pvrSupported) {
-            char* ptr = image.datas;
-			LOGI("Using PVR texture version (%dx%d - %d mipmap)", image.width, image.height, image.mipmap);
-            for (int level=0; level<=image.mipmap; level++) {
-                int width = MathUtil::Max(1, image.width >> level);
-                int height = MathUtil::Max(1, image.height >> level);
-                unsigned imgSize = ( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
-                LOGI("\t- mipmap #%d : %dx%d", level, width, height);
-			    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, width, height, 0, imgSize, ptr))
-                ptr += imgSize;
-            }
-		} else {
-			LOGI("Using ETC texture version");
-			#define ECT1_HEADER_SIZE 16
-			GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, image.width, image.height, 0, file.size - ECT1_HEADER_SIZE, image.datas))
+        char* ptr = image.datas;
+		LOGI("Using %s texture version (%dx%d - %d mipmap)", pvrSupported ? "PVR" : "ETC1", image.width, image.height, image.mipmap);
+        for (int level=0; level<=image.mipmap; level++) {
+            int width = MathUtil::Max(1, image.width >> level);
+            int height = MathUtil::Max(1, image.height >> level);
+            unsigned imgSize = 0;
+            if (pvrSupported) 
+                imgSize =( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
+            else
+                imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
+            LOGI("\t- mipmap #%d : %dx%d", level, width, height);
+		    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
+            ptr += imgSize;
 		}
 	#else
 		assert (false && "ETC compression not supported");
 	#endif
 	}
- 
-    if (0 && image.mipmap == 0) {
+
+#if !defined(ANDROID) && !defined(EMSCRIPTEN)
+    if (image.mipmap == 0) {
         LOGI("Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);
     }
+#endif
 	free (image.datas);
 	pow2Size.X = realSize.X = image.width;
 	pow2Size.Y = realSize.Y = image.height;
@@ -327,8 +330,7 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 	out.alpha = createGLTexture(assetName + "_alpha", false, realSize, pow2Size);
 }
 
-void RenderingSystem::reloadTextures() {
-	Vector2 size, psize;
+void RenderingSystem::reloadTextures() {	
 	LOGI("Reloading textures begin");
 	LOGI("\t- atlas : %lu", atlas.size());
 	// reload atlas texture
@@ -341,9 +343,8 @@ void RenderingSystem::reloadTextures() {
 		if (info.atlasIndex >= 0) {
 			info.glref = atlas[info.atlasIndex].glref;
 		} else {
-			InternalTexture t;
-			loadTexture(it->first, size, psize, t);
-			textures[it->second] = TextureInfo(t, 0, 0, size.X, size.Y, false, psize);
+            Vector2 size, psize;
+			loadTexture(it->first, size, psize, info.glref);
 		}
 	}
 	LOGI("Reloading textures done");
@@ -376,7 +377,7 @@ void RenderingSystem::processDelayedTextureJobs() {
         #endif
 	}
 	delayedAtlasIndexLoad.clear();
-
+/*
 	// load textures
 	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
 		Vector2 size, powSize;
@@ -385,13 +386,13 @@ void RenderingSystem::processDelayedTextureJobs() {
 		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 		#endif
 		loadTexture(*it, size, powSize, t);
-		textures[assetTextures[*it]] = TextureInfo(t, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
+		textures[assetTextures[*it]] = TextureInfo(t, Vector2::Zero, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
 		#ifndef EMSCRIPTEN
 		pthread_mutex_lock(&mutexes[L_TEXTURE]);
 		#endif
 	}
 	delayedLoads.clear();
-
+*/
 	// delete textures
 	for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
 	    #ifndef EMSCRIPTEN
@@ -419,14 +420,13 @@ void RenderingSystem::processDelayedTextureJobs() {
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
 	TextureRef result = InvalidTextureRef;
-	
+
 	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(assetName);
 	if (it != assetTextures.end()) {
 		result = it->second;
 	} else {
-		result = nextValidRef++;
-		assetTextures[assetName] = result;
-		LOGW("Texture '%s' doesn't belong to any atlas. Will be loaded individually", assetName.c_str());
+		LOGW("Texture '%s' doesn't belong to any atlas. This is not supported", assetName.c_str());
+        return InvalidTextureRef;
 	}
 	if (textures.find(result) == textures.end()) {
 		PROFILE("RequestLoadTexture", assetName, InstantEvent);
@@ -443,10 +443,11 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	return result;
 }
 
-const Vector2& RenderingSystem::getTextureSize(const std::string& textureName) const {
+Vector2 RenderingSystem::getTextureSize(const std::string& textureName) const {
 	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(textureName);
 	if (it != assetTextures.end()) {
-		return (textures.find(it->second)->second).size;
+        const TextureInfo& info = textures.find(it->second)->second;
+        return Vector2(info.originalWidth, info.originalHeight);
 	} else {
 		LOGE("Unable to find texture '%s'", textureName.c_str());
 		return Vector2::Zero;

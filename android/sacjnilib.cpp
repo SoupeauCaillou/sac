@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "sacjnilib.h"
 #include <errno.h>
 
@@ -60,7 +42,7 @@ struct AndroidNativeTouchState : public NativeTouchState{
         // map stable order ?
         std::map<int, GameHolder::__input>::iterator it = holder->input.begin();
         for (int i=0; i<index && it!=holder->input.end(); ++it, i++) ;
-         
+
         if (it == holder->input.end())
             return false;
 
@@ -70,6 +52,10 @@ struct AndroidNativeTouchState : public NativeTouchState{
 		return it->second.touching;
 	}
 };
+
+GameHolder::~GameHolder() {
+    delete gameThreadJNICtx;
+}
 
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
@@ -92,16 +78,17 @@ JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
     pthread_mutex_init(&hld->mutex, 0);
     pthread_cond_init(&hld->cond, 0);
     hld->renderingStarted = hld->drawQueueChanged = false;
-
+    LOGW("%s <--", __FUNCTION__);
 	return (jlong)hld;
 }
 
 JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
   (JNIEnv *env, jclass, jlong g) {
+    LOGW("%s -->", __FUNCTION__);
     GameHolder* hld = (GameHolder*) g;
-    theMusicSystem.uninit();
     delete hld->game;
     delete hld;
+    LOGW("%s <--", __FUNCTION__);
 }
 
 /*
@@ -132,28 +119,34 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderT
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
   (JNIEnv *env, jclass, jobject asset, jlong g, jbyteArray jstate) {
+    LOGW("%s -->", __FUNCTION__);
   	GameHolder* hld = (GameHolder*) g;
-  	bool fullInit = true;
-
-  	if (hld->gameThreadJNICtx->env && hld->gameThreadJNICtx->env != env && !jstate)
-  		fullInit = false;
+    // init JNI env
 	hld->gameThreadJNICtx->init(env, asset);
 
 	theMusicSystem.musicAPI = &hld->gameThreadJNICtx->musicAPI;
 	theMusicSystem.assetAPI = &hld->gameThreadJNICtx->asset;
 	theSoundSystem.soundAPI = &hld->gameThreadJNICtx->soundAPI;
 
+    // really needed ?
 	theSoundSystem.init();
 
+    // restore from state if any ?
 	uint8_t* state = 0;
 	int size = 0;
 	if (jstate) {
 		size = env->GetArrayLength(jstate);
 		state = (uint8_t*)env->GetByteArrayElements(jstate, NULL);
 		LOGW("Restoring saved state (size:%d)", size);
-	} else if (hld->initDone) {
+	}
+    // we don't need to re-init the game
+    else if (hld->initDone) {
+        hld->game->quickInit();
+        LOGW("%s <-- (early)", __FUNCTION__);
 		return;
-	} else {
+	}
+    // full init
+    else {
 		LOGW("No saved state: creating a new Game instance from scratch");
 	}
 
@@ -163,14 +156,15 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
 	hld->game->init(state, size);
 	hld->initDone = true;
- 
+
     hld->game->resetTime();
-    theRenderingSystem.Update(0);
+    // theRenderingSystem.Update(0);
+    LOGW("%s <--", __FUNCTION__);
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread
   (JNIEnv *env, jclass, jlong g) {
-  LOGW("%s -->", __FUNCTION__);
+    LOGW("%s -->", __FUNCTION__);
 	GameHolder* hld = (GameHolder*) g;
 	hld->gameThreadJNICtx->uninit(env);
 	LOGW("%s <--", __FUNCTION__);
@@ -201,7 +195,7 @@ float pauseTime;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
   (JNIEnv *env, jclass, jlong g) {
   	GameHolder* hld = (GameHolder*) g;
-
+    LOGW("%s -->", __FUNCTION__);
 	if (!hld)
   		return;
   	float d = TimeUtil::getTime();
@@ -210,6 +204,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
   	if ((d - pauseTime) <= 5) {
 	  	theMusicSystem.toggleMute(theSoundSystem.mute);
   	}
+    LOGW("%s <--", __FUNCTION__);
 }
 
 float renderingPrevTime = 0;
@@ -247,7 +242,9 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBa
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
   (JNIEnv *env, jclass, jlong g) {
      LOGW("%s -->", __FUNCTION__);
-     theRenderingSystem.setFrameQueueWritable(false);
+     if (RenderingSystem::GetInstancePointer()) {
+        theRenderingSystem.setFrameQueueWritable(false);
+     }
      LOGW("%s <--", __FUNCTION__);
 }
 
@@ -288,7 +285,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
 
 	if (g == 0)
 		return;
-    
+
     GameHolder::__input& input = hld->input[pointerIndex];
 
 	/* ACTION_DOWN == 0 | ACTION_MOVE == 2 */
@@ -342,7 +339,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadText
   theRenderingSystem.reloadTextures();
   theRenderingSystem.reloadEffects();
   theRenderingSystem.setFrameQueueWritable(true);
-  
+
   LOGW("%s <--", __FUNCTION__);
 }
 

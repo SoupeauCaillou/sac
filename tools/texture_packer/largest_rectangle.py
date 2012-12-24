@@ -110,7 +110,5 @@ if __name__=="__main__":
 		
 		# return the rectangle only if hes > 10% of the total size
 		if ( m[0][0] * m[0][1] > 0.10 * im.size[0] * im.size[1] ):
-			print m[1][0]+1,",", m[1][1]+1,",", m[0][0]+m[1][0],",", m[0][1]+m[1][1]-1
-		
-	
-	
+			print "%d,%d,%d,%d" % (m[1][0]+1, m[1][1]+1, m[0][0]+m[1][0], m[0][1]+m[1][1]-1)
+

@@ -33,7 +33,7 @@ def tiniest(im, mat):
 					maxY = j
 
 
-	print minX,",",minY, ",",maxX,",",maxY
+	print "%d,%d,%d,%d" % (maxX - minX + 1, maxY - minY + 1, minX, minY)
 
 def __s2m(s):
 	tab = []
@@ -48,6 +48,6 @@ if __name__=="__main__":
 	else:
 		im = Image.open(str(sys.argv[1]))
 
-		for i in range(im.size[1]):
-			print [im.load()[j,i][3] for j in range(im.size[0])]
+		#for i in range(im.size[1]):
+		#	print [im.load()[j,i][3] for j in range(im.size[0])]
 		tiniest(im, __s2m(im.load()))

@@ -94,7 +94,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 		sscanf(line.c_str(), "%d,%d,%d", &c, &w, &h);
 		h2wratio[c] = (float)w / h;
 	}
- 
+
 	delete[] file.data;
 	h2wratio[' '] = h2wratio['r'];
 	h2wratio[0x97] = 1;
@@ -148,8 +148,8 @@ void Game::backPressed() {
 	profStarted++;
 	#endif
 }
-		
-int Game::saveState(uint8_t** out __attribute__((unused))) {
+
+int Game::saveState(uint8_t**) {
     theRenderingSystem.setFrameQueueWritable(false);
 	return 0;
 }
@@ -157,19 +157,20 @@ int Game::saveState(uint8_t** out __attribute__((unused))) {
 const float DDD = 1.0/60.f;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
+    
     theRenderingSystem.waitDrawingComplete();
 
     float t = TimeUtil::getTime();
     float delta = t - lastUpdateTime;
 
-    if (true || delta > 0.008) {
+    if (true) {
         #if 0
         if (delta < DDD) {
             t += (DDD - delta);
             delta = DDD;
         }
         #endif
-        
+
         theTouchInputManager.Update(delta);
         #ifdef ENABLE_PROFILING
         std::stringstream framename;
@@ -190,9 +191,9 @@ void Game::step() {
                 delta = 0;
                 break;
             default:
-                if (glfwGetKey(GLFW_KEY_KP_ADD)) {
+                if (glfwGetKey(GLFW_KEY_KP_ADD) || glfwGetKey(GLFW_KEY_F6)) {
                     speedFactor += 1 * delta;
-                } else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT)) {
+                } else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT) || glfwGetKey(GLFW_KEY_F5)) {
                     speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
                 } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
                     speedFactor = 1;
@@ -225,14 +226,15 @@ void Game::step() {
 
         lastUpdateTime = t;
         delta = TimeUtil::getTime() - t;
-
-        /*while (delta < 0.016) {
+        #ifndef EMSCRIPTEN
+        while (delta < 0.016) {
             struct timespec ts;
             ts.tv_sec = 0;
             ts.tv_nsec = (0.016 - delta) * 1000000000LL;
             nanosleep(&ts, 0);
             delta = TimeUtil::getTime() - t;
-        }*/
+        }
+        #endif
     } else {
         struct timespec ts;
         ts.tv_sec = 0;
@@ -264,7 +266,7 @@ void Game::render() {
             fpsStats.reset(t);
         }
     }
-    
+
     if (0) {
         struct timespec ts;
         ts.tv_sec = 0;

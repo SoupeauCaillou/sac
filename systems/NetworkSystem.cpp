@@ -1,21 +1,3 @@
-/*
- This file is part of Heriswap.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "NetworkSystem.h"
 #include "../api/NetworkAPI.h"
 #include "../base/EntityManager.h"
@@ -25,7 +7,7 @@ struct StatusCache {
     std::map<std::string, uint8_t*> components;
 };
 std::map<Entity, StatusCache> statusCache;
-typedef std::map<std::string, uint8_t*>::iterator CacheIt; 
+typedef std::map<std::string, uint8_t*>::iterator CacheIt;
 
 static unsigned bytesSentLastSec, bytesReceivedLastSec;
 static float counterTime;
@@ -72,7 +54,7 @@ struct NetworkMessageHeader {
 static void sendHandShakePacket(NetworkAPI* net, unsigned nonce);
 
 INSTANCE_IMPL(NetworkSystem);
- 
+
  unsigned myNonce;
  bool hsDone;
 NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) {
@@ -149,7 +131,7 @@ void NetworkSystem::DoUpdate(float dt) {
             }
         }
     }
-    
+
     if (!hsDone) {
         sendHandShakePacket(networkAPI, myNonce);
         return;
@@ -188,7 +170,7 @@ void NetworkSystem::DoUpdate(float dt) {
             updateEntity(e, nc, dt);
         }
     }
-    
+
     float diff = TimeUtil::getTime() - counterTime;
     if (diff >= 0.5) {
         bytesSent += bytesSentLastSec;
@@ -203,10 +185,10 @@ void NetworkSystem::DoUpdate(float dt) {
 void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
     static uint8_t temp[1024];
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (comp);
-    
+
     if (!nc->ownedLocally || nc->systemUpdatePeriod.empty())
         return;
-    
+
     if (!nc->entityExistsGlobally) {
         // later nc->entityExistsGlobally = true;
         nc->guid = (nextGuid += 2);
@@ -223,18 +205,18 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
     }
     StatusCache& cache = statusCache[e];
-    
+
     NetworkPacket pkt;
     // build packet header
     NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
     header->type = NetworkMessageHeader::UpdateEntity;
     header->entityGuid = nc->guid;
     pkt.size = sizeof(NetworkMessageHeader);
-    
+
     // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
     for (std::map<std::string, float>::iterator jt = nc->systemUpdatePeriod.begin(); jt!=nc->systemUpdatePeriod.end(); ++jt) {
         float& accum = nc->lastUpdateAccum[jt->first];
-        
+
         if (accum >= 0)
             accum += dt;
         // time to update
@@ -274,7 +256,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
     // finish up packet
     pkt.data = temp;
     SEND(pkt);
-    
+
     if (nc->newOwnerShipRequest >= 0) {
         uint8_t temp[64];
         NetworkPacket pkt;

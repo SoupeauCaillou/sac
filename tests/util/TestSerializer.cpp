@@ -1,21 +1,3 @@
-/*
- This file is part of Heriswap.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include <UnitTest++.h>
 
 #include "util/Serializer.h"
@@ -128,7 +110,7 @@ TEST (MapPropertyDifference)
     for (int i=0; i<10; i++)
         v["a" + i] = i;
     MapProperty<std::string, float> p(0);
-    
+
     CHECK(p.different(&v, &w));
     CHECK(!p.different(&v, &v));
     w = v;
@@ -142,7 +124,7 @@ TEST (StructSerializer)
         float b;
         std::string c;
     } test1, test2;
-    
+
     test1.a = 12;
     test1.b = -2.6;
     test1.c = "plop";
@@ -167,7 +149,7 @@ TEST (StructSerializerNoDiff)
         float b;
         std::string c;
     } test1, test2;
-    
+
     test1.a = 12; test1.b = -2.6; test1.c = "plop";
     test2 = test1;
 
@@ -178,4 +160,15 @@ TEST (StructSerializerNoDiff)
 
     uint8_t* buf;
     CHECK_EQUAL(0, s.serializeObject(&buf, &test1, &test2));
+}
+
+TEST (TestInterval)
+{
+    uint8_t buf[2 * sizeof(float)];
+    Interval<float> i(-0.3, 12.4), j;
+    IntervalProperty<float> ip(0);
+    ip.serialize(buf, &i);
+    ip.deserialize(buf, &j);
+    CHECK_CLOSE(i.t1, j.t1, 0.001);
+    CHECK_CLOSE(i.t2, j.t2, 0.001);
 }

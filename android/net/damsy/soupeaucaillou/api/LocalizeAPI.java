@@ -11,7 +11,7 @@ public class LocalizeAPI {
 		final Resources res = SacJNILib.activity.getResources();
 		
 		int id = res.getIdentifier(name, "string",
-				"net.damsy.soupeaucaillou.heriswap");
+				"net.damsy.soupeaucaillou.recursiveRunner");
 		if (id == 0) {
 			//NOLOGLog.e(HeriswapActivity.Tag, "Cannot find text entry : '" + name+ "' for localization");
 			return "LOC" + name + "LOC";

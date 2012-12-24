@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "ImageLoader.h"
 #include "../base/Log.h"
 
@@ -169,41 +151,9 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
     result.mipmap = 0;
 	return result;
 }
-ImageDesc ImageLoader::loadEct1(const std::string& context __attribute__((unused)), const FileBuffer& file __attribute__((unused))) {
-#ifdef ANDROID
-	#define BE_16_TO_H betoh16
-#else
-	#define BE_16_TO_H be16toh
-#endif
 
-	 #ifdef ANDROID
-	ImageDesc result;
-	result.datas = 0;
-    result.mipmap = 0;
-
-	unsigned offset = 0;
-	if (strncmp("PKM ", (const char*)file.data, 4)) {
-		LOGW("ETC: %s wrong magic header '%02x %02x %02x %02x'", context.c_str(), file.data[0], file.data[1], file.data[2], file.data[3]);
-		return result;
-	}
-	offset += 4;
-
-	// skip version/type
-	offset += 4;
-	// skip extended width/height
-	offset += 2 * 2;
-	// read width/height
-
-	result.width = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
-	offset += 2;
-	result.height = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
-	offset += 2;
-	// memcpy
-	result.datas = (char*) malloc(file.size - offset);
-	memcpy(result.datas, &file.data[offset], file.size - offset);
-
-	return result;
-#endif
+ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
+    return loadPvr(context, file);
 }
 
 #ifndef __EMSCRIPTEN
@@ -216,7 +166,7 @@ static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t
 }
 #endif
 
-ImageDesc ImageLoader::loadPvr(const std::string& context __attribute__((unused)), const FileBuffer& file) {
+ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
 	ImageDesc result;
 	result.datas = 0;
 	struct PVRTexHeader {

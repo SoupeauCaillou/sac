@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "ParticuleSystem.h"
 #include "TransformationSystem.h"
 #include "PhysicsSystem.h"
@@ -25,19 +7,6 @@
 
 INSTANCE_IMPL(ParticuleSystem);
 
-    float emissionRate, duration;
-    TextureRef texture;
-    Interval<float> lifetime;
-    Interval<Color> initialColor;
-    Interval<Color> finalColor;
-    Interval<float> initialSize;
-    Interval<float> finalSize;
-    Interval<float> forceDirection;
-    Interval<float> forceAmplitude;
-    Interval<float> moment;
-    float spawnLeftOver;
-    float mass;
-    
 ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Particule") {
     /* nothing saved */
     minUsedIdx = maxUsedIdx = 0;
@@ -61,7 +30,7 @@ void ParticuleSystem::DoUpdate(float dt) {
  // return;
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         TransformationComponent* ptc = TRANSFORM(a);
-        
+
         if (pc->duration >= 0) {
         	pc->duration -= dt;
         	if (pc->duration <= 0) {
@@ -91,10 +60,12 @@ void ParticuleSystem::DoUpdate(float dt) {
 
                 ADD_COMPONENT(e, Rendering);
                 RenderingComponent* rc = RENDERING(e);
+                rc->fastCulling = true;
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
                 rc->hide = false;
-
+                if (pc->texture == InvalidTextureRef && pc->initialColor.t1.a == 1 && pc->initialColor.t2.a == 1)
+                    rc->opaqueType = RenderingComponent::FULL_OPAQUE;
                 if (pc->mass) {
                     ADD_COMPONENT(e, Physics);
                     PhysicsComponent* ppc = PHYSICS(e);

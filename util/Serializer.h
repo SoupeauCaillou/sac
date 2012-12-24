@@ -1,21 +1,3 @@
-/*
- This file is part of Heriswap.
-
- @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
- @author Soupe au Caillou - Gautier Pelloux-Prayer
-
- Heriswap is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, version 3.
-
- Heriswap is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #pragma once
 #include <vector>
 #include <map>
@@ -80,7 +62,6 @@ template <typename T>
 class IntervalProperty : public Property {
     public:
         IntervalProperty(unsigned long offset);
-        unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
         int deserialize(uint8_t* in, void* object) const;
@@ -103,8 +84,9 @@ class MapProperty : public Property {
 
 class Serializer {
     std::vector<Property*> properties;
-    
+
     public:
+    ~Serializer();
     void add(Property* p) { properties.push_back(p); }
     int size(void* object);
     int serializeObject(uint8_t* out, void* object, void* refObject = 0);

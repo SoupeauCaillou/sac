@@ -180,6 +180,7 @@
     <None Include="api\android\CommunicationAPIAndroidImpl.h" />
     <None Include="util\Recorder.h" />
     <None Include="util\LevelEditor.h" />
+    <None Include="api\linux\CommunicationAPILinuxImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

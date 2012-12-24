@@ -186,6 +186,11 @@ Vector2 Vector2::operator*(const Vector2& v) const
     return Vector2(X * v.X, Y * v.Y);
 }
 
+Vector2 Vector2::operator/(const Vector2& v) const
+{
+    return Vector2(X / v.X, Y / v.Y);
+}
+
 Vector2& Vector2::operator+=(const Vector2 &v)
 {
     X += v.X;

@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "MusicAPIAndroidImpl.h"
 #include "../../base/Log.h"
 #include "../../base/MathUtil.h"
@@ -26,7 +8,7 @@ struct AndroidOpaquePtr : public OpaqueMusicPtr {
 	jobject audioTrack;
 	int queuedSize;
 };
-struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {	
+struct MusicAPIAndroidImpl::MusicAPIAndroidImplData {
 	jclass javaMusicApi;
 	jmethodID createPlayer;
     jmethodID pcmBufferSize;
@@ -105,7 +87,7 @@ OpaqueMusicPtr* MusicAPIAndroidImpl::createPlayer(int sampleRate) {
 	ptr->queuedSize = 0;
 
 	return ptr;
-} 
+}
 
 int MusicAPIAndroidImpl::pcmBufferSize(int sampleRate) {
     return env->CallStaticIntMethod(datas->javaMusicApi, datas->pcmBufferSize, sampleRate);
@@ -113,7 +95,7 @@ int MusicAPIAndroidImpl::pcmBufferSize(int sampleRate) {
 
 int8_t* MusicAPIAndroidImpl::allocate(int size) {
 	return new int8_t[size];
-	
+
     // retrieve byte[] from Java
     jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, size);
     // buffer is either a copy or a direct pointer to underlying byte[] storage
@@ -142,7 +124,7 @@ void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, int8_t* data, int
     jbyteArray b = (jbyteArray) env->CallStaticObjectMethod(datas->javaMusicApi, datas->allocate, size);
     env->SetByteArrayRegion(b, 0, size, (jbyte*)data);
     delete[] data;
-    
+
     env->CallStaticObjectMethod(datas->javaMusicApi, datas->queueMusicData, ptr->audioTrack, b, size, sampleRate);
 #else
     jbyteArray jdata;
@@ -173,10 +155,10 @@ void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr, OpaqueMusicPtr* mas
         return;
 
 	env->CallStaticVoidMethod(
-		datas->javaMusicApi, 
-		datas->startPlaying, 
-		ptr->audioTrack, 
-		master ? (static_cast<AndroidOpaquePtr*>(master))->audioTrack : 0, 
+		datas->javaMusicApi,
+		datas->startPlaying,
+		ptr->audioTrack,
+		master ? (static_cast<AndroidOpaquePtr*>(master))->audioTrack : 0,
 		offset);
      ptr->queuedSize = 0;
 }

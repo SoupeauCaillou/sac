@@ -1,21 +1,3 @@
-/*
-	This file is part of Heriswap.
-
-	@author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-	@author Soupe au Caillou - Gautier Pelloux-Prayer
-
-	Heriswap is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, version 3.
-
-	Heriswap is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "SoundSystem.h"
 #ifdef MUSIC_VISU
 #include "RenderingSystem.h"
@@ -27,6 +9,13 @@ INSTANCE_IMPL(SoundSystem);
 
 SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextValidRef(1), mute(false) {
     /* nothing saved */
+}
+
+SoundSystem::~SoundSystem() {
+    for (std::map<SoundRef, OpaqueSoundPtr*>::iterator it=sounds.begin(); it!=sounds.end(); ++it) {
+        delete it->second;
+    }
+    sounds.clear();
 }
 
 void SoundSystem::init() {
@@ -58,7 +47,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
     }
 }
 
-void SoundSystem::DoUpdate(float dt __attribute__((unused))) {
+void SoundSystem::DoUpdate(float) {
 	if (mute) {
 		FOR_EACH_COMPONENT(Sound, rc)
             rc->sound = InvalidSoundRef;
