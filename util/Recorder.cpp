@@ -14,9 +14,9 @@
 static void* videoEncoder_Callback(void* obj){
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	
+
 	static_cast<Recorder*>(obj)->thread_video_encode();
-	
+
 	pthread_exit(0);
 }
 
@@ -36,7 +36,7 @@ static void write_ivf_file_header(FILE *outfile,
                                   const vpx_codec_enc_cfg_t *cfg,
                                   int frame_cnt) {
     char header[32];
- 
+
     if(cfg->g_pass != VPX_RC_ONE_PASS && cfg->g_pass != VPX_RC_LAST_PASS)
         return;
     header[0] = 'D';
@@ -52,7 +52,7 @@ static void write_ivf_file_header(FILE *outfile,
     mem_put_le32(header+20, cfg->g_timebase.num); /* scale */
     mem_put_le32(header+24, frame_cnt);           /* length */
     mem_put_le32(header+28, 0);                   /* unused */
- 
+
     if(fwrite(header, 1, 32, outfile)){}
 }
 
@@ -61,17 +61,17 @@ static void write_ivf_frame_header(FILE *outfile,
 {
     char             header[12];
     vpx_codec_pts_t  pts;
- 
+
     if(pkt->kind != VPX_CODEC_CX_FRAME_PKT){
 		std::cout << "Error";
         return;
     }
- 
+
     pts = pkt->data.frame.pts;
     mem_put_le32(header, pkt->data.frame.sz);
     mem_put_le32(header+4, pts&0xFFFFFFFF);
     mem_put_le32(header+8, pts >> 32);
- 
+
     if(fwrite(header, 1, 12, outfile)){}
 }
 
@@ -147,7 +147,7 @@ Recorder::~Recorder(){
 	vpx_img_free (&raw);
 
 	pthread_mutex_destroy(&mutex_buf);
-	
+
 	glDeleteBuffers(PBO_COUNT, pboIds);
 }
 
@@ -160,7 +160,7 @@ bool Recorder::initOpenGl_PBO (){
 	glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ);
 
 	return true;
-} 
+}
 
 bool Recorder::initVP8 (){
 	// init VP8 encoder
@@ -181,21 +181,21 @@ bool Recorder::initVP8 (){
 	cfg.g_timebase.den = 60; /* fps = 30 */
 	cfg.rc_end_usage = VPX_VBR; /* --end-usage=cbr */
 	cfg.g_threads = 2;
-	
+
 	if (vpx_codec_enc_init(&codec, interface, &cfg, 0)){
 		std::cout << "Failed to initialize encoder" << std::endl;
 		return false;
 	}
-	
-	vpx_codec_control(&codec, VP8E_SET_CPUUSED, (cfg.g_threads > 1) ? 10 : 10); 
+
+	vpx_codec_control(&codec, VP8E_SET_CPUUSED, (cfg.g_threads > 1) ? 10 : 10);
 	vpx_codec_control(&codec, VP8E_SET_STATIC_THRESHOLD, 0);
 	vpx_codec_control(&codec, VP8E_SET_ENABLEAUTOALTREF, 1);
-	
+
 	if (cfg.g_threads > 1) {
 		if (vpx_codec_control(&codec, VP8E_SET_TOKEN_PARTITIONS, (vp8e_token_partitions) cfg.g_threads) != VPX_CODEC_OK) {
 			std::cout << "VP8: failed to set multiple token partition" << std::endl;
 		} else {
-			std::cout << "VP8: multiple token partitions used" << std::endl;
+			//- std::cout << "VP8: multiple token partitions used" << std::endl;
 		}
 	}
 
@@ -203,7 +203,7 @@ bool Recorder::initVP8 (){
 		std::cout << "Failed to allocate image" << std::endl;
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -219,7 +219,7 @@ void Recorder::start(){
         char tmp[256];
 		long H = time(NULL);
         strftime(tmp, sizeof(tmp), "videos/rr_%d%m%Y_%X.webm", localtime(&H));
-		
+
 		if(!(outfile = fopen(tmp, "wb"))){
 			std::cout << "Failed to open '" << tmp << "' for writing"<< std::endl;
 			outfile = NULL;
@@ -228,7 +228,7 @@ void Recorder::start(){
 		write_ivf_file_header(outfile, &cfg, 0);
 		this->frameCounter = 0;
 		recording = true;
-		
+
 		// on lance le thread pour l'encodage
 		if (pthread_create (&th1, NULL, videoEncoder_Callback, (void*) this) < 0) {
 			std::cout << "pthread_create error for thread" << std::endl;
@@ -289,7 +289,7 @@ void Recorder::record(){
 				buf.push(test);
                 pthread_cond_signal(&cond);
 				pthread_mutex_unlock (&mutex_buf);
-				
+
 				glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 			}
 
@@ -332,10 +332,10 @@ void Recorder::thread_video_encode(){
 void Recorder::addFrame(GLubyte *ptr){
 	vpx_codec_iter_t iter = NULL;
 	const vpx_codec_cx_pkt_t *pkt;
-	
+
 	if (ptr)
 		RGB_To_YV12(ptr, width, height, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
-	
+
     PROFILE("Recorder", "encode-image", BeginEvent);
 	if(vpx_codec_encode(&codec, ptr ? &raw : NULL, this->frameCounter,
 						1, flags, VPX_DL_REALTIME)){
@@ -353,7 +353,7 @@ void Recorder::addFrame(GLubyte *ptr){
 			write_ivf_frame_header(outfile, pkt);
 			if(fwrite(pkt->data.frame.buf, 1, pkt->data.frame.sz,
 					  outfile)){}
-			break;                                                    
+			break;
 		default:
 			break;
 		}
