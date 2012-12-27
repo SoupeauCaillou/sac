@@ -230,7 +230,12 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				if (newLine) {
 					y -= 1.2 * charHeight;
 					x = startX;
+					if (lineEnd == i) {
+					  continue;
+					}
 				}
+
+
 			}
 			std::stringstream a;
 			char letter = trc->text[i];
