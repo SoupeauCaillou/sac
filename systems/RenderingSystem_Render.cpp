@@ -68,7 +68,7 @@ static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLf
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
     	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
-    
+
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
     	if (firstCall) {
     		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
@@ -76,15 +76,15 @@ static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLf
             GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
     	}
-    
+
     #ifdef USE_VBO
     	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
-    
+
     	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
     	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
     	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
     	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
-    
+
     	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
     #else
@@ -92,7 +92,7 @@ static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLf
     	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
     	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
     	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
-    
+
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 #endif
     }
@@ -158,14 +158,14 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     // fill batch
     Vector2 onScreenVertices[4];
     computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
-    
+
     const int baseIdx = 4 * batchSize;
     for (int i=0; i<4; i++) {
         vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
         vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
         vertices[(baseIdx + i) * 3 + 2] = -rc.z;
     }
-    
+
     uvs[baseIdx * 2 + 0] = rc.uv[0].X;
     uvs[baseIdx * 2 + 1] = 1-rc.uv[0].Y;
     uvs[baseIdx * 2 + 2] = rc.uv[1].X;
@@ -174,7 +174,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     uvs[baseIdx * 2 + 5] = 1-rc.uv[1].Y;
     uvs[baseIdx * 2 + 6] = rc.uv[1].X;
     uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
-    
+
     indices[batchSize * 6 + 0] = baseIdx + 0;
     indices[batchSize * 6 + 1] = baseIdx + 1;
     indices[batchSize * 6 + 2] = baseIdx + 2;
@@ -303,7 +303,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // SETUP TEXTURING
 		if (rc.texture != InvalidTextureRef) {
-            const TextureInfo& info = textures[rc.texture];   
+            const TextureInfo& info = textures[rc.texture];
             #ifdef USE_VBO
             computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
             #else
@@ -406,11 +406,11 @@ void RenderingSystem::render() {
     float ppp = TimeUtil::getTime();
     float diff =  ppp - enter;
     if (diff > 0.001) {
-        LOGI("Diff : %.1f ms / %.1f ms -> %.1f ms -> %.1f ms",
-            diff * 1000, 
-            1000 * (frameready - enter), 
-            1000 * (aftertexture - frameready),
-            1000 * (ppp - aftertexture));
+        //- LOGI("Diff : %.1f ms / %.1f ms -> %.1f ms -> %.1f ms",
+            //- diff * 1000,
+            //- 1000 * (frameready - enter),
+            //- 1000 * (aftertexture - frameready),
+            //- 1000 * (ppp - aftertexture));
     }
 #endif
     PROFILE("Renderer", "render", BeginEvent);
