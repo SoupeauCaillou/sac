@@ -29,7 +29,7 @@ struct TextRenderingComponent {
 		text(""),
 		fontName("typo"),
 		positioning(CENTER),
-		hide(false),
+		hide(true),
 		flags(0),
         cameraBitMask(~0U) {
 			caret.show = false;
