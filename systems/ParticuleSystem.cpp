@@ -12,9 +12,9 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     minUsedIdx = maxUsedIdx = 0;
 
     ParticuleComponent tc;
-    componentSerializer.add(new Property(OFFSET(emissionRate, tc), sizeof(float)));
-    componentSerializer.add(new Property(OFFSET(duration, tc), sizeof(float)));
-    componentSerializer.add(new Property(OFFSET(texture, tc), sizeof(TextureRef)));
+    componentSerializer.add(new Property<float>(OFFSET(emissionRate, tc)));
+    componentSerializer.add(new Property<float>(OFFSET(duration, tc)));
+    componentSerializer.add(new Property<TextureRef>(OFFSET(texture, tc)));
     componentSerializer.add(new IntervalProperty<float>(OFFSET(lifetime, tc)));
     componentSerializer.add(new IntervalProperty<Color>(OFFSET(initialColor, tc)));
     componentSerializer.add(new IntervalProperty<Color>(OFFSET(finalColor, tc)));
@@ -23,7 +23,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     componentSerializer.add(new IntervalProperty<float>(OFFSET(forceDirection, tc)));
     componentSerializer.add(new IntervalProperty<float>(OFFSET(forceAmplitude, tc)));
     componentSerializer.add(new IntervalProperty<float>(OFFSET(moment, tc)));
-    componentSerializer.add(new Property(OFFSET(mass, tc), sizeof(float)));
+    componentSerializer.add(new Property<float>(OFFSET(mass, tc)));
 }
 
 void ParticuleSystem::DoUpdate(float dt) {

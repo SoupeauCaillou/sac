@@ -12,7 +12,8 @@ INSTANCE_IMPL(ADSRSystem);
 
 ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
     ADSRComponent a;
-    componentSerializer.add(new Property(0, sizeof(a)));
+    std::cerr << "TODO " << __FUNCTION__ << std::endl;
+    // componentSerializer.add("arg", new Property<ADSRComponent>(0));
 }
 
 void ADSRSystem::DoUpdate(float dt) {

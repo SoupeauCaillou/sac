@@ -4,32 +4,34 @@
 #include "systems/NetworkSystem.h"
 #endif
 #include <cstring>
+#include <sstream>
+#include <iomanip>
 
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 
-Property::Property(unsigned long pOffset, unsigned pSize) : offset(pOffset), _size(pSize) {
+IProperty::IProperty(unsigned long pOffset, unsigned pSize) : offset(pOffset), _size(pSize) {
 
 }
 
-unsigned Property::size(void*) const {
+unsigned IProperty::size(void*) const {
     return _size;
 }
 
-bool Property::different(void* object, void* refObject) const {
+bool IProperty::different(void* object, void* refObject) const {
     return (memcmp(PTR_OFFSET_2_PTR(object, offset), PTR_OFFSET_2_PTR(refObject, offset), _size) != 0);
 }
 
-int Property::serialize(uint8_t* out, void* object) const {
+int IProperty::serialize(uint8_t* out, void* object) const {
     memcpy(out, PTR_OFFSET_2_PTR(object, offset), _size);
     return _size;
 }
 
-int Property::deserialize(uint8_t* in, void* object) const {
+int IProperty::deserialize(uint8_t* in, void* object) const {
     memcpy(PTR_OFFSET_2_PTR(object, offset), in, _size);
     return _size;
 }
 
-EntityProperty::EntityProperty(unsigned long offset) : Property(offset, sizeof(Entity)) {
+EntityProperty::EntityProperty(unsigned long offset) : IProperty(offset, sizeof(Entity)) {
 
 }
 
@@ -52,7 +54,7 @@ int EntityProperty::deserialize(uint8_t* in, void* object) const {
     return sizeof(Entity);
 }
 
-StringProperty::StringProperty(unsigned long pOffset) : Property(pOffset, 0) {}
+StringProperty::StringProperty(unsigned long pOffset) : IProperty(pOffset, 0) {}
 
 unsigned StringProperty::size(void* object) const {
    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);

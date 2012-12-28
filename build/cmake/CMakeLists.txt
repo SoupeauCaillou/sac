@@ -2,7 +2,7 @@
 file(
         GLOB_RECURSE
         source_files
-        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
+        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp ../../libs/iniparser/*
 )
 
 file(
@@ -22,6 +22,7 @@ include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/tinyxml2/)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/iniparser/src)
 
 if (EMSCRIPTEN_BUILD)
 add_library(sac ${source_files})
@@ -34,6 +35,7 @@ include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqrat/include)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/squirrel/include)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/iniparser/src)
 
 file(
 	GLOB_RECURSE

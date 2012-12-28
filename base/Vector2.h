@@ -261,3 +261,8 @@ inline std::ostream& operator<<(std::ostream& s, const Vector2& v) {
 	return s;
 }
 
+inline std::istream& operator>>(std::istream& s, Vector2& v) {
+    s >> v.X >> v.Y;
+    return s;
+}
+

@@ -5,13 +5,11 @@ INSTANCE_IMPL(PhysicsSystem);
 
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
     PhysicsComponent tc;
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(linearVelocity.X, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(linearVelocity.Y, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(angularVelocity, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(mass, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(gravity.X, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(gravity.Y, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(momentOfInertia, tc), 0.001));
+    componentSerializer.add(new Property<Vector2>(OFFSET(linearVelocity, tc), Vector2(0.001, 0)));
+    componentSerializer.add(new Property<float>(OFFSET(angularVelocity, tc), 0.001));
+    componentSerializer.add(new Property<float>(OFFSET(mass, tc), 0.001));
+    componentSerializer.add(new Property<Vector2>(OFFSET(gravity, tc), Vector2(0.001, 0)));
+    componentSerializer.add(new Property<float>(OFFSET(momentOfInertia, tc), 0.001));
 }
 
 void PhysicsSystem::DoUpdate(float dt) {

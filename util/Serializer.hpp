@@ -1,17 +1,40 @@
 #include <algorithm>
 #include <string>
+#include <sstream>
+#include "base/Color.h"
+
+template <>
+inline bool Property<Color>::different(void* object, void* refObject) const {
+    Color* a = (Color*) ((uint8_t*)object + offset);
+    Color* b = (Color*) ((uint8_t*)refObject + offset);
+    return *a != *b;
+}
+
+template <>
+inline bool Property<Vector2>::different(void* object, void* refObject) const {
+    Vector2* a = (Vector2*) ((uint8_t*)object + offset);
+    Vector2* b = (Vector2*) ((uint8_t*)refObject + offset);
+    return (*a - *b).LengthSquared() > epsilon.LengthSquared();
+}
 
 template <typename T>
-VectorProperty<T>::VectorProperty(unsigned long offset) : Property(offset, 0) {}
+inline bool Property<T>::different(void* object, void* refObject) const {
+    T* a = (T*) ((uint8_t*)object + offset);
+    T* b = (T*) ((uint8_t*)refObject + offset);
+    return (MathUtil::Abs(*a - *b) > epsilon);
+}
 
 template <typename T>
-unsigned VectorProperty<T>::size(void* object) const {
+VectorProperty<T>::VectorProperty(unsigned long offset) : IProperty(offset, 0) {}
+
+template <typename T>
+inline unsigned VectorProperty<T>::size(void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     return sizeof(unsigned) + v->size() * sizeof(T);
 }
 
 template <typename T>
-bool VectorProperty<T>::different(void* object, void* refObject) const {
+inline bool VectorProperty<T>::different(void* object, void* refObject) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     std::vector<T>* w = (std::vector<T>*) ((uint8_t*)refObject + offset);
     if (v->size() != w->size())
@@ -24,7 +47,7 @@ bool VectorProperty<T>::different(void* object, void* refObject) const {
 }
 
 template <typename T>
-int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
+inline int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     unsigned size = v->size();
     int idx = 0;
@@ -38,7 +61,7 @@ int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T>
-int VectorProperty<T>::deserialize(uint8_t* in, void* object) const {
+inline int VectorProperty<T>::deserialize(uint8_t* in, void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -54,19 +77,18 @@ int VectorProperty<T>::deserialize(uint8_t* in, void* object) const {
     return idx;
 }
 
+template <typename T>
+IntervalProperty<T>::IntervalProperty(unsigned long offset) : IProperty(offset, 2 * sizeof(T)) {}
 
 template <typename T>
-IntervalProperty<T>::IntervalProperty(unsigned long offset) : Property(offset, 2 * sizeof(T)) {}
-
-template <typename T>
-bool IntervalProperty<T>::different(void* object, void* refObject) const {
+inline bool IntervalProperty<T>::different(void* object, void* refObject) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     Interval<T>* w = (Interval<T>*) ((uint8_t*)refObject + offset);
     return v->t1 != w->t1 || v->t2 != w->t2;
 }
 
 template <typename T>
-int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
+inline int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     memcpy(out, &v->t1, sizeof(T));
     memcpy(out + sizeof(T), &v->t2, sizeof(T));
@@ -74,7 +96,7 @@ int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T>
-int IntervalProperty<T>::deserialize(uint8_t* in, void* object) const {
+inline int IntervalProperty<T>::deserialize(uint8_t* in, void* object) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     memcpy(&v->t1, in, sizeof(T));
     memcpy(&v->t2, in + sizeof(T), sizeof(T));
@@ -82,16 +104,16 @@ int IntervalProperty<T>::deserialize(uint8_t* in, void* object) const {
 }
 
 template <typename T, typename U>
-MapProperty<T,U>::MapProperty(unsigned long offset) : Property(offset, 0) {}
+MapProperty<T,U>::MapProperty(unsigned long offset) : IProperty(offset, 0) {}
 
 template <typename T, typename U>
-unsigned MapProperty<T,U>::size(void* object) const {
+inline unsigned MapProperty<T,U>::size(void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     return sizeof(unsigned) + v->size() * (sizeof(T) + sizeof(U));
 }
 
 template <typename T, typename U>
-bool MapProperty<T,U>::different(void* object, void* refObject) const {
+inline bool MapProperty<T,U>::different(void* object, void* refObject) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     std::map<T, U>* w = (std::map<T, U>*) ((uint8_t*)refObject + offset);
     if (v->size() != w->size())
@@ -106,7 +128,7 @@ bool MapProperty<T,U>::different(void* object, void* refObject) const {
 }
 
 template <typename T, typename U>
-int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
+inline int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     unsigned size = v->size();
     int idx = 0;
@@ -122,7 +144,7 @@ int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T, typename U>
-int MapProperty<T,U>::deserialize(uint8_t* in, void* object) const {
+inline int MapProperty<T,U>::deserialize(uint8_t* in, void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -190,4 +212,5 @@ inline int MapProperty<std::string, float>::deserialize(uint8_t* in, void* objec
     }
     return idx;
 }
+
 

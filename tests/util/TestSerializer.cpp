@@ -6,7 +6,7 @@ TEST (DefaultProperty)
 {
     int i = 10, j=1, k;
     uint8_t buf[sizeof(int)];
-    Property p(0, sizeof(int));
+    Property<int> p(0);
     CHECK_EQUAL(sizeof(int), p.size(0));
     CHECK_EQUAL(true, p.different(&i, &j));
     p.serialize(buf, &i);
@@ -27,7 +27,7 @@ TEST (DefaultPropertyStruct)
     myStruct.s1 = 123;
     myStruct.f2 = 1.56;
 
-    Property p(OFFSET(s1, myStruct), sizeof(myStruct.s1));
+    Property<uint16_t> p(OFFSET(s1, myStruct));
     p.serialize(buf, &myStruct);
 
     myStruct2.f1 = 5.26;
@@ -42,7 +42,7 @@ TEST (DefaultPropertyStruct)
 TEST (EpsilonPropertyFloat)
 {
     float i = 10.5, j=9, k = 10.49;
-    EpsilonProperty<float> p(0, 0.1);
+    Property<float> p(0, 0.1);
     CHECK_EQUAL(true, p.different(&i, &j));
     CHECK_EQUAL(false, p.different(&i, &k));
 }
@@ -130,8 +130,8 @@ TEST (StructSerializer)
     test1.c = "plop";
 
     Serializer s;
-    s.add(new Property(OFFSET(a, test1), sizeof(int)));
-    s.add(new EpsilonProperty<float>(OFFSET(b, test1), 0.1));
+    s.add(new Property<int>(OFFSET(a, test1)));
+    s.add(new Property<float>(OFFSET(b, test1), 0.1));
     s.add(new StringProperty(OFFSET(c, test1)));
 
     uint8_t* buf;
@@ -154,8 +154,8 @@ TEST (StructSerializerNoDiff)
     test2 = test1;
 
     Serializer s;
-    s.add(new Property(OFFSET(a, test1), sizeof(int)));
-    s.add(new EpsilonProperty<float>(OFFSET(b, test1), 0.1));
+    s.add(new Property<int>(OFFSET(a, test1)));
+    s.add(new Property<float>(OFFSET(b, test1), 0.1));
     s.add(new StringProperty(OFFSET(c, test1)));
 
     uint8_t* buf;
@@ -171,4 +171,15 @@ TEST (TestInterval)
     ip.deserialize(buf, &j);
     CHECK_CLOSE(i.t1, j.t1, 0.001);
     CHECK_CLOSE(i.t2, j.t2, 0.001);
+}
+
+TEST (TestVector2)
+{
+    uint8_t buf[sizeof(Vector2)];
+    Vector2 i(1.5, -7.6), j;
+    Property<Vector2> vp(0, Vector2(0.001, 0));
+    vp.serialize(buf, &i);
+    vp.deserialize(buf, &j);
+    CHECK_CLOSE(i.X, j.X, 0.001);
+    CHECK_CLOSE(i.Y, j.Y, 0.001);
 }

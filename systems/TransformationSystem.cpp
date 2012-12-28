@@ -5,12 +5,10 @@ INSTANCE_IMPL(TransformationSystem);
 TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") {
     TransformationComponent tc;
     componentSerializer.add(new EntityProperty(OFFSET(parent, tc)));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(position.X, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(position.Y, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(size.X, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(size.Y, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(rotation, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(z, tc), 0.001));
+    componentSerializer.add(new Property<Vector2>(OFFSET(position, tc), Vector2(0.001, 0)));
+    componentSerializer.add(new Property<Vector2>(OFFSET(size, tc), Vector2(0.001, 0)));
+    componentSerializer.add(new Property<float>(OFFSET(rotation, tc), 0.001));
+    componentSerializer.add(new Property<float>(OFFSET(z, tc), 0.001));
 }
 
 void TransformationSystem::DoUpdate(float) {

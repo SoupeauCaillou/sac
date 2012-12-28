@@ -6,19 +6,30 @@
 #include "base/MathUtil.h"
 #include "base/Interval.h"
 
-class Property {
+class IProperty {
+    protected:
+        IProperty(unsigned long offset, unsigned size);
     public:
-        Property(unsigned long offset, unsigned size);
+        virtual ~IProperty() {}
         virtual unsigned size(void* object) const;
         virtual bool different(void* object, void* refObject) const;
         virtual int serialize(uint8_t* out, void* object) const;
         virtual int deserialize(uint8_t* in, void* object) const;
-    protected:
+    public:
         unsigned long offset;
         unsigned _size;
 };
 
-class EntityProperty : public Property {
+template<typename T>
+class Property : public IProperty {
+    public:
+        Property(unsigned long offset, T pEpsilon = 0) : IProperty(offset, sizeof(T)), epsilon(pEpsilon) {}
+        bool different(void* object, void* refObject) const;
+    private:
+        T epsilon;
+};
+
+class EntityProperty : public IProperty {
     public:
         EntityProperty(unsigned long offset);
         unsigned size(void* object) const;
@@ -26,20 +37,7 @@ class EntityProperty : public Property {
         int deserialize(uint8_t* in, void* object) const;
 };
 
-template <typename T>
-class EpsilonProperty : public Property {
-    public:
-        EpsilonProperty(unsigned long offset, T pEpsilon) : Property(offset, sizeof(T)), epsilon(pEpsilon) {}
-            bool different(void* object, void* refObject) const {
-            T* a = (T*) ((uint8_t*)object + offset);
-            T* b = (T*) ((uint8_t*)refObject + offset);
-            return (MathUtil::Abs(*a - *b) > epsilon);
-        }
-    private:
-        T epsilon;
-};
-
-class StringProperty : public Property {
+class StringProperty : public IProperty {
     public:
         StringProperty(unsigned long offset);
         unsigned size(void* object) const;
@@ -49,7 +47,7 @@ class StringProperty : public Property {
 };
 
 template <typename T>
-class VectorProperty : public Property {
+class VectorProperty : public IProperty {
     public:
         VectorProperty(unsigned long offset);
         unsigned size(void* object) const;
@@ -59,7 +57,7 @@ class VectorProperty : public Property {
 };
 
 template <typename T>
-class IntervalProperty : public Property {
+class IntervalProperty : public IProperty {
     public:
         IntervalProperty(unsigned long offset);
         bool different(void* object, void* refObject) const;
@@ -69,7 +67,7 @@ class IntervalProperty : public Property {
 
 
 template <typename T, typename U>
-class MapProperty : public Property {
+class MapProperty : public IProperty {
     public:
         MapProperty(unsigned long offset);
         virtual unsigned size(void* object) const;
@@ -78,16 +76,18 @@ class MapProperty : public Property {
         virtual int deserialize(uint8_t* in, void* object) const;
 };
 
+#define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
+
 #include "Serializer.hpp"
 
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
 
 class Serializer {
-    std::vector<Property*> properties;
+    std::vector<IProperty*> properties;
 
     public:
     ~Serializer();
-    void add(Property* p) { properties.push_back(p); }
+    void add(IProperty* p) { properties.push_back(p); }
     int size(void* object);
     int serializeObject(uint8_t* out, void* object, void* refObject = 0);
     int serializeObject(uint8_t** out, void* object, void* refObject = 0);

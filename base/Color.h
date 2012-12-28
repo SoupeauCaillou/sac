@@ -37,3 +37,8 @@ inline std::ostream& operator<<(std::ostream& s, const Color& c) {
     return s;
 }
 
+inline std::istream& operator>>(std::istream& s, Color& c) {
+    s >> c.r >> c.g >> c.b >> c.a;
+    return s;
+}
+

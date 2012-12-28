@@ -14,8 +14,8 @@ INSTANCE_IMPL(AnimationSystem);
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") {
     AnimationComponent tc;
     componentSerializer.add(new StringProperty(OFFSET(name, tc)));
-    componentSerializer.add(new Property(OFFSET(playbackSpeed, tc), sizeof(float)));
-    componentSerializer.add(new Property(OFFSET(loopCount, tc), sizeof(int)));
+    componentSerializer.add(new Property<float>(OFFSET(playbackSpeed, tc), 0.001));
+    componentSerializer.add(new Property<int>(OFFSET(loopCount, tc)));
 }
 
 AnimationSystem::~AnimationSystem() {

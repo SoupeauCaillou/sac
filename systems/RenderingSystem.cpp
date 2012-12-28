@@ -29,19 +29,15 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 #endif
 
     RenderingComponent tc;
-    componentSerializer.add(new Property(OFFSET(texture, tc), sizeof(TextureRef)));
-    componentSerializer.add(new Property(OFFSET(effectRef, tc), sizeof(EffectRef)));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.r, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.g, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.b, tc), 0.001));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(color.a, tc), 0.001));
-    componentSerializer.add(new Property(OFFSET(hide, tc), sizeof(bool)));
-    componentSerializer.add(new Property(OFFSET(mirrorH, tc), sizeof(bool)));
-    componentSerializer.add(new Property(OFFSET(zPrePass, tc), sizeof(bool)));
-    componentSerializer.add(new Property(OFFSET(fastCulling, tc), sizeof(bool)));
-    componentSerializer.add(new Property(OFFSET(opaqueType, tc), sizeof(RenderingComponent::Opacity)));
-    componentSerializer.add(new EpsilonProperty<float>(OFFSET(opaqueSeparation, tc), 0.001));
-    componentSerializer.add(new Property(OFFSET(cameraBitMask, tc), sizeof(unsigned)));
+    componentSerializer.add(new Property<TextureRef>(OFFSET(texture, tc)));
+    componentSerializer.add(new Property<EffectRef>(OFFSET(effectRef, tc)));
+    componentSerializer.add(new Property<Color>(OFFSET(color, tc)));
+    componentSerializer.add(new Property<bool>(OFFSET(hide, tc)));
+    componentSerializer.add(new Property<bool>(OFFSET(mirrorH, tc)));
+    componentSerializer.add(new Property<bool>(OFFSET(zPrePass, tc)));
+    componentSerializer.add(new Property<bool>(OFFSET(fastCulling, tc)));
+    componentSerializer.add(new Property<int>(OFFSET(opaqueType, tc)));
+    componentSerializer.add(new Property<int>(OFFSET(cameraBitMask, tc)));
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;
