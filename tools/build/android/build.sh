@@ -34,7 +34,7 @@ check_package "adb" "android-sdk/platform-tools"
 check_package "ant" "ant"
 
 
-if [ ! -z "`echo $whereAmI | grep sac`" ]; then
+if [ ! -z "`echo $whereAmI | grep -e /sac/tools/build`" ]; then
 	info "You can't run the script from sac directory! You must copy the build \
 directory in the root of the game." $red
 	exit 1
@@ -56,7 +56,7 @@ fi
 
 
 # *** go to the root dir
-if [ ! -z "`echo $whereAmI | grep -e 'sac/'`" ]; then
+if [ ! -z "`echo $whereAmI | grep -e 'sac/tools/build'`" ]; then
 	cd $whereAmI/../../../..
 else
 	cd $whereAmI/../..
