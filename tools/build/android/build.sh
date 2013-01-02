@@ -33,6 +33,13 @@ check_package "ndk-build" "android-ndk"
 check_package "adb" "android-sdk/platform-tools"
 check_package "ant" "ant"
 
+
+if [ ! -z "`echo $whereAmI | grep -e /sac/tools/build`" ]; then
+	info "You can't run the script from sac directory! You must copy the build \
+directory in the root of the game." $red
+	exit 1
+fi
+
 if [ $# -gt 2 ] || [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
 	echo "Usage: $0 menuChoice [optimizeOrNot=yes]"
 	echo "	menuchoice:"
@@ -46,6 +53,7 @@ if [ $# -gt 2 ] || [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
 	echo "\nExample: \"$0 n-c-i yes\" will compile with optimized parameters, then install the app on device."
 	exit 1
 fi
+
 
 # *** go to the root dir
 if [ ! -z "`echo $whereAmI | grep -e 'sac/tools/build'`" ]; then
@@ -66,14 +74,17 @@ if [ ! -z `echo $1 | grep n` ]; then
 	cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
 
 	if [ $# != 2 ] || [ ! -z `echo $2 | grep yes` ]; then
-		info "ndk-build -j in $PWD"
-		ndk-build -j APP_ABI=armeabi-v7a NDK_APPLICATION_MK=android/Application.mk
+		opti="-j APP_ABI=armeabi-v7a"
 	else
-		info "ndk-build in $PWD"
-		ndk-build NDK_APPLICATION_MK=android/Application.mk
+		opti="-j4"
+	fi
+
+	info "ndk-build $opti in $PWD"
+	if (!(ndk-build $opti NDK_APPLICATION_MK=android/Application.mk)); then
+			info "ndk-build failed" $red
+			exit 1
 	fi
 fi
-
 cd sac/libs/tremor; git checkout *; cd ../../..
 
 if [ ! -z `echo $1 | grep c` ]; then
