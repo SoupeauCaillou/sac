@@ -31,7 +31,7 @@ else
 fi
 
 
-if [ $# == 0 || [`echo $1 | grep -- -h` ]; then
+if [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
 	echo "Usage: $0 options"
 	echo "	- n: simply compile"
 	echo "	- C: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)"

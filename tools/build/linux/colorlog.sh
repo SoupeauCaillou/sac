@@ -23,11 +23,11 @@ if [ $# != 1 ] || [ `echo $1 | grep -- -h` ]; then
 	exit -1
 fi
 
-info=`echo $1 | grep -e all -e I`
+info=`echo $1 | grep -i -e all -e I`
 
-warn=`echo $1 | grep -e all -e W`
+warn=`echo $1 | grep -i -e all -e W`
 
-erro=`echo $1 | grep -e all -e E`
+erro=`echo $1 | grep -i -e all -e E`
 
 nocolors=`echo $1 | grep C`
 
@@ -37,7 +37,7 @@ if [ -z $info ] && [ -z "$warn" ] && [ -z "$erro" ]; then
 	echo "${red}Warning, no LOG INFO, WARN and ERRO to print!(only std::cout codes)"
 	echo "Use 'all' option to enable all of them!${reset}"
 fi
-	
+
 while read LINE; do
 	n=`echo $LINE | grep INFO`
 	w=`echo $LINE | grep WARN`
@@ -48,10 +48,10 @@ while read LINE; do
 		if [ -z $info ]; then
 			continue
 		fi
-		
+
 		if [ -z $nocolors ]; then
 			echo "${green}$LINE${reset}"
-		else 
+		else
 			echo "$LINE"
 		fi
 	# *** show warnings?
@@ -59,10 +59,10 @@ while read LINE; do
 		if [ -z $warn ]; then
 			continue
 		fi
-		
+
 		if [ -z $nocolors ]; then
 			echo "${yellow}$LINE${reset}"
-		else 
+		else
 			echo "$LINE"
 		fi
 	# *** show errors?
@@ -70,15 +70,15 @@ while read LINE; do
 		if [ -z $erro ]; then
 			continue
 		fi
-		
+
 		if [ -z $nocolors ]; then
 			echo "${red}$LINE${reset}"
-		else 
+		else
 			echo "$LINE"
 		fi
 	elif [ ! -z "$LINE" ]; then
 		echo "(std::cout)$LINE"
 	fi
 done
-	
+
 exit 0
