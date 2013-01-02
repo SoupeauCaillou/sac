@@ -10,6 +10,7 @@ class LocalizeAPIAndroidImpl : public LocalizeAPI {
 		void init(JNIEnv *env);
 		void uninit();
 		std::string text(const std::string& s, const std::string& spc);
+		void changeLanguage(const std::string& s);
 
     	JNIEnv *env;
     private:

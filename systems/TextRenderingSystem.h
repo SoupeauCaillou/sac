@@ -17,33 +17,34 @@
 #include "RenderingSystem.h"
 
 struct TextRenderingComponent {
-    const static float LEFT;
-    const static float CENTER;
-    const static float RIGHT;
+	const static float LEFT;
+	const static float CENTER;
+	const static float RIGHT;
 
-    const static int IsANumberBit = 1 << 0;
-    const static int AdjustHeightToFillWidthBit = 1 << 1;
+	const static int IsANumberBit = 1 << 0;
+	const static int AdjustHeightToFillWidthBit = 1 << 1;
 	const static int MultiLineBit = 1 << 2;
 
-	TextRenderingComponent() :
-		text(""),
-		fontName("typo"),
-		positioning(CENTER),
-		hide(true),
-		flags(0),
-        cameraBitMask(~0U) {
-			caret.show = false;
-			caret.speed = caret.dt = 0;
-            blink.offDuration =
-                blink.onDuration =
-                    blink.accum = 0;
-		}
+	TextRenderingComponent() : text(""), fontName("typo"),
+	positioning(CENTER), hide(true), flags(0), cameraBitMask(~0U) {
+		caret.show = false;
+		caret.speed = caret.dt = 0;
+		blink.offDuration =
+		blink.onDuration =
+		blink.accum = 0;
+	}
+
 	std::string text;
 	Color color;
+
+	//if its localizable
+	std::string localizableID;
+
 	union {
 		float charHeight;
 		float maxCharHeight;
 	};
+
 	std::string fontName;
 	float positioning;
 	bool hide;
@@ -53,12 +54,13 @@ struct TextRenderingComponent {
 		float speed;
 		float dt;
 	} caret;
-    struct {
-        float offDuration;
-        float onDuration;
-        float accum;
-    } blink;
-    unsigned cameraBitMask;
+	struct {
+		float offDuration;
+		float onDuration;
+		float accum;
+	} blink;
+	unsigned cameraBitMask;
+
 	// managed by systems
 	std::vector<Entity> drawing;
 };

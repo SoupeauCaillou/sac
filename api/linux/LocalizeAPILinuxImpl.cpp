@@ -28,24 +28,30 @@
 
 #include "../../base/Log.h"
 
-void LocalizeAPILinuxImpl::init() { 
+int LocalizeAPILinuxImpl::init(const std::string & lang) {
 #ifdef DATADIR
-    char* lang = strdup(getenv("LANG"));
-    lang[2] = '\0';
     std::string filename = DATADIR;
     filename += "../res/values";
-    if (strncmp(lang, "en", 2) != 0)
-        filename += "-" + std::string(lang);
+
+    if (strcmp(lang.c_str(),"en")) {
+    //- if (lang != "en") {
+        filename += "-";
+        filename += lang.c_str();
+    }
     filename += "/strings.xml";
-    LOGI("%s -> %s", lang, filename.c_str());
+    LOGI("%s -> %s", lang.c_str(), filename.c_str());
 #else
     std::string filename = "assets/strings.xml";
 #endif
+
+    //first, clean the map
+    _idToMessage.clear();
+
     tinyxml2::XMLDocument doc;
-    
+
     if (doc.LoadFile(filename.c_str())) {
         LOGE("can't open xml file %s\n", filename.c_str());
-        return;
+        return -1;
     }
 
     tinyxml2::XMLHandle hDoc(&doc);
@@ -66,6 +72,12 @@ void LocalizeAPILinuxImpl::init() {
         _idToMessage[pElem->Attribute("name")] = s;
     }
     LOGW("Localize strings count: %d", _idToMessage.size());
+
+    return 0;
+}
+
+void LocalizeAPILinuxImpl::changeLanguage(const std::string& s) {
+    init(s);
 }
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {

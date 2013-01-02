@@ -60,3 +60,7 @@ std::string LocalizeAPIAndroidImpl::text(const std::string& s, const std::string
 	datas->cache[s] = b;
 	return b;
 }
+
+void LocalizeAPIAndroidImpl::changeLanguage(const std::string& s) {
+
+}

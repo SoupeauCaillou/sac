@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
-import android.util.Log;
-
 import com.swarmconnect.Swarm;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
 import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.ButtonNeedsUpdateDelegate;
