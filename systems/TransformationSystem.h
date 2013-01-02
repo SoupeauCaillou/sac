@@ -33,7 +33,7 @@ public:
 	void preDeletionCheck(Entity e) {
 		FOR_EACH_COMPONENT(Transformation, bc)
 			if (bc->parent == e) {
-				LOGE("deleting an entities which is parent ! (Entity %ld)", e);
+				LOGE("deleting an entity which is parent ! (Entity %ld)", e);
 			}
 		}
 	}
