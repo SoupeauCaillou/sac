@@ -5,11 +5,11 @@ initializeANSI()
 {
   esc=""
 
-  red="${esc}[31m"
-  green="${esc}[32m"
-  yellow="${esc}[33m"
+	reset="[0m"
+	red="[1m[31m"
+	green="[1m[32m"
+	yellow="[1m[33m"
 
-  reset="${esc}[0m"
 }
 
 if [ $# != 1 ] || [ `echo $1 | grep -- -h` ]; then
