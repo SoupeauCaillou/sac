@@ -204,6 +204,7 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     protected void onResume() {
+    	android.util.Log.i("sac", "Activity LifeCycle ##### onResume");
         super.onResume();
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
     			LayoutParams.FLAG_FULLSCREEN);
@@ -236,16 +237,24 @@ public abstract class SacActivity extends SwarmActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
     	android.util.Log.i("sac", "Activity LifeCycle ##### ON SAVE INSTANCE");
+    	if (savedState != null) {
+    		android.util.Log.i("sac", "Return the same savedState");
+    		outState.putByteArray(getBundleKey(), savedState);
+    		return;
+    	}
     	if (game == 0)
     		return;
     	/* save current state; we'll be used only if app get killed */
     	synchronized (mutex) {
-    		//Log.i("Sac", "Save state!");
+    		android.util.Log.i("sac", "Save state!");
 	    	byte[] savedState = SacJNILib.serialiazeState(game);
 	    	if (savedState != null) {
 	    		outState.putByteArray(getBundleKey(), savedState);
+	    		android.util.Log.i("sac", "State saved: " + savedState.length + " bytes");
+	    	} else {
+	    		android.util.Log.i("sac", "No state saved");
 	    	}
-	    	//Log.i("Sac", "State saved");
+	    	
     	}
     	super.onSaveInstanceState(outState);
     }

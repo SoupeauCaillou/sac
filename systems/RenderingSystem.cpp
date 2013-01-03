@@ -470,9 +470,19 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 	*out = new uint8_t[size];
 	uint8_t* ptr = *out;
     int camCount = cameras.size();
+    LOGI("Will save %d cameras", camCount);
     ptr = (uint8_t*) mempcpy(ptr, &camCount, sizeof(int));
     for (int i=0; i<camCount; i++) {
-        ptr = (uint8_t*) mempcpy(ptr, &cameras[i], sizeof(Camera));
+        const Camera& cam = cameras[i];
+        ptr = (uint8_t*) mempcpy(ptr, &cam, sizeof(Camera));
+        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d",
+            i,
+            cam.worldPosition.X, cam.worldPosition.Y,
+            cam.worldSize.X, cam.worldSize.Y,
+            cam.screenPosition.X, cam.screenPosition.Y,
+            cam.screenSize.X, cam.screenSize.Y,
+            cam.enable, cam.mirrorY
+            );
     }
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
@@ -489,14 +499,24 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	nextEffectRef = 1;
 	int idx = 0;
     int camCount = 0;
+    LOGI("Clearing cameras");
     cameras.clear();
     memcpy(&camCount, &in[idx], sizeof(int));
+    LOGI("Will restore %d cameras", camCount);
     idx += sizeof(int);
     for (int i=0; i<camCount; i++) {
         Camera cam;
         memcpy(&cam, &in[idx], sizeof(Camera));
         idx += sizeof(Camera);
         cameras.push_back(cam);
+        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d", 
+            i,
+            cam.worldPosition.X, cam.worldPosition.Y,
+            cam.worldSize.X, cam.worldSize.Y,
+            cam.screenPosition.X, cam.screenPosition.Y,
+            cam.screenSize.X, cam.screenSize.Y,
+            cam.enable, cam.mirrorY
+            );
     }
 	while (idx < size) {
 		char name[128];

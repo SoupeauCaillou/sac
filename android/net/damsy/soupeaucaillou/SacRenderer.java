@@ -52,7 +52,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 				activity.runGameLoop = true;
 				SacJNILib.initFromGameThread(asset, activity.game, activity.savedState);
 				// force gc before starting game
-				System.gc();
+				// System.gc();
 
 				activity.savedState = null;
 				initDone = true;
@@ -93,6 +93,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 					SacJNILib.destroyGame(activity.game);
 					android.util.Log.i("sac", "Clearing game ref");
 					activity.game = 0;
+					activity.mutex.notifyAll();
 				}
 			}
 		}, "GameUpdate");
@@ -102,7 +103,11 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 
     boolean initDone = false;
     public void onSurfaceChanged(GL10 gl, final int width, final int height) {
-    	//Log.i("RR", "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
+    	android.util.Log.i("sac", "surface changed-> width: " + width + ", height: " + height + ", " + initDone);
+    	if (width < height) {
+    		android.util.Log.i("sac", "Do nothing!");
+    		return;
+    	}
     	if (!initDone) {
     		SacJNILib.initFromRenderThread(asset, activity.game, width, height);
     		// TilematchJNILib.initAndReloadTextures(TilematchActivity.game);
@@ -114,10 +119,10 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	} else {
     		activity.runGameLoop = true;
     		if (gameThread == null) {
-    			// Log.i(HeriswapActivity.Tag, "Start game thread");
+    			android.util.Log.i("sac", "Start game thread");
     			startGameThread();
     		} else {
-    			// Log.i(HeriswapActivity.Tag, "Wake up game thread");
+    			android.util.Log.i("sac", "Wake up game thread");
     			synchronized (gameThread) {
     				gameThread.notify();
 				}
@@ -132,7 +137,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
     	int id = activity.getSwarmGameID();
-    	if (/*Swarm.isEnabled() &&*/ id != 0) {
+    	if (false && /*Swarm.isEnabled() &&*/ id != 0) {
 		    activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
