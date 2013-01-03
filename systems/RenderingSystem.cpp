@@ -61,8 +61,11 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
 
-    // create default camera
-    cameras.push_back(Camera(Vector2::Zero, Vector2(screenW, screenH), Vector2::Zero, Vector2(1, 1)));
+    if (cameras.empty()) {
+        LOGI("Create default camera");
+        // create default camera
+        cameras.push_back(Camera(Vector2::Zero, Vector2(screenW, screenH), Vector2::Zero, Vector2(1, 1)));
+    }
 }
 
 RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
