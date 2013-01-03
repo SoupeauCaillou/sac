@@ -45,7 +45,8 @@ struct MusicComponent {
     float positionF;
     #endif
     float fadeOut, fadeIn; // sec
-    float volume, currentVolume;
+    float volume;
+    float currentVolume; //handled by system - do not modify
     bool looped, paused;
     MusicControl::Enum control;
 
