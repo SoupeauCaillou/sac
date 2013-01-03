@@ -155,7 +155,7 @@ inline int MapProperty<T,U>::deserialize(uint8_t* in, void* object) const {
         memcpy(&t, &in[idx], sizeof(T));
         idx += sizeof(T);
         U u;
-        memcpy(&u, &in[idx], sizeof(T));
+        memcpy(&u, &in[idx], sizeof(U));
         idx += sizeof(U);
         v->insert(std::make_pair(t, u));
     }
