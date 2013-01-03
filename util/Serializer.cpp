@@ -114,7 +114,9 @@ int Serializer::serializeObject(uint8_t** out, void* object, void* refObject) {
     int s = 0;
     for (unsigned i=0;i <properties.size(); i++) {
         if (!refObject || properties[i]->different(object, refObject)) {
-            s += 1 + properties[i]->size(object);
+            unsigned propSize = properties[i]->size(object);
+            s += 1 + propSize;
+            assert (s >= 0);
         }
     }
     *out = new uint8_t[s];
