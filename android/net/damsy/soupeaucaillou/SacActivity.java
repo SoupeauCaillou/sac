@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
+import com.revmob.RevMob;
 import com.chartboost.sdk.Chartboost;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
 import com.swarmconnect.Swarm;
@@ -44,7 +45,8 @@ public abstract class SacActivity extends SwarmActivity {
 	public Vibrator vibrator;
 	
 	public Chartboost cb;
-
+	public RevMob revmob;
+	
 	public abstract int getSwarmGameID();
 	public abstract String getSwarmGameKey();
 	public abstract int[] getSwarmBoards();
@@ -55,6 +57,8 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract int getLayoutId();
 	public abstract int getParentViewId();
 
+	public abstract String getRevMobAppId();
+	
 	public abstract String getCharboostAppId();
 	public abstract String getCharboostAppSignature();
 
@@ -72,6 +76,10 @@ public abstract class SacActivity extends SwarmActivity {
         SacJNILib.activity = this;
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
 
+        if (getRevMobAppId() != null) {
+        	revmob = RevMob.start(this, getRevMobAppId());
+        }
+        /*
         if (getCharboostAppId() != null) {
         	cb = Chartboost.sharedChartboost();
         	cb.onCreate(this, getCharboostAppId(), getCharboostAppSignature(), new AdAPI.CharboostDelegate());
@@ -81,7 +89,7 @@ public abstract class SacActivity extends SwarmActivity {
 	        cb.cacheInterstitial();
         } else {
         	//Log.w("sac", "Chartboost not initialized");
-        }
+        }*/
 
         mutex = new Object();
 

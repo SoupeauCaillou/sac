@@ -2,16 +2,23 @@ package net.damsy.soupeaucaillou.api;
 
 import net.damsy.soupeaucaillou.SacJNILib;
 
+import com.revmob.RevMob;
+
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 
 public class AdAPI {
 	public static boolean adHasBeenShown, adWaitingAdDisplay;
-	
+
 	// --- ----------------------------------------------------------------------
 		// AdsAPI
 		// -------------------------------------------------------------------------
 		static public boolean showAd() {
+			RevMob _revmob = SacJNILib.activity.revmob;
+
+			_revmob.showFullscreen(SacJNILib.activity);
+			return true;
+			/*
 			Chartboost _cb = SacJNILib.activity.cb;
 			if (_cb == null) {
 				AdAPI.adHasBeenShown = true;
@@ -51,28 +58,28 @@ public class AdAPI {
 		static public boolean done() {
 			return AdAPI.adHasBeenShown;
 		}
-		
-		
+
+
 		public static class CharboostDelegate implements ChartboostDelegate {
 
 			@Override
 			public void didCacheInterstitial(String arg0) {
-				
+
 			}
 
 			@Override
 			public void didCacheMoreApps() {
-				
+
 			}
 
 			@Override
 			public void didClickInterstitial(String arg0) {
-				
+
 			}
 
 			@Override
 			public void didClickMoreApps() {
-				
+
 			}
 
 			@Override
@@ -83,7 +90,7 @@ public class AdAPI {
 
 			@Override
 			public void didCloseMoreApps() {
-				
+
 			}
 
 			@Override
@@ -94,7 +101,7 @@ public class AdAPI {
 
 			@Override
 			public void didDismissMoreApps() {
-				
+
 			}
 
 			@Override
@@ -105,17 +112,17 @@ public class AdAPI {
 
 			@Override
 			public void didFailToLoadMoreApps() {
-				
+
 			}
 
 			@Override
 			public void didShowInterstitial(String arg0) {
-				
+
 			}
 
 			@Override
 			public void didShowMoreApps() {
-				
+
 			}
 
 			@Override
@@ -151,6 +158,6 @@ public class AdAPI {
 			@Override
 			public boolean shouldRequestMoreApps() {
 				return false;
-			}
+			}*/
 		}
 }
