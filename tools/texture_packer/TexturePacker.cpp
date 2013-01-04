@@ -2,7 +2,6 @@
 #include "TexturePacker.h"
 #include <assert.h>
 #include <iostream>
-#pragma warning(disable:4100 4244)
 
 namespace TEXTURE_PACKER
 {
@@ -211,7 +210,7 @@ public:
     mTextureIndex = 0;
     mFreeList = 0;
   }
-  ~MyTexturePacker(void)
+  virtual ~MyTexturePacker(void)
   {
     reset();
   }
@@ -522,7 +521,7 @@ youpi:
       else
       {
         y = t.mY + t.mHeight;
-      }	  
+      }
 
       if ( y > height )
         height = y;
