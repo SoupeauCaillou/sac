@@ -16,7 +16,7 @@ class NetworkAPILinuxImpl : public NetworkAPI {
 
         void runLobbyThread();
     private:
-        class NetworkAPILinuxImplDatas;
+        struct NetworkAPILinuxImplDatas;
         NetworkAPILinuxImplDatas* datas;
 
         bool connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort);

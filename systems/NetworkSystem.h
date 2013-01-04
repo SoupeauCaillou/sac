@@ -2,7 +2,7 @@
 
 #include "System.h"
 class NetworkAPI;
-class NetworkComponentPriv;
+struct NetworkComponentPriv;
 
 struct NetworkComponent {
     NetworkComponent() : newOwnerShipRequest(-1) {

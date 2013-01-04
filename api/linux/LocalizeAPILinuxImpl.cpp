@@ -60,9 +60,11 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
     pElem = hDoc.FirstChildElement().ToElement();
     tinyxml2::XMLHandle hRoot(pElem);
 
-    pElem = hRoot.FirstChildElement().ToElement();
-    for (pElem; pElem; pElem = pElem->NextSiblingElement()) {
+    for (pElem = hRoot.FirstChildElement().ToElement(); pElem;
+    pElem = pElem->NextSiblingElement()) {
+
         std::string s = pElem->GetText();
+
         while (s.find("\\n") != std::string::npos) {
             s.replace(s.find("\\n"), 2, "\n");
         }
@@ -71,7 +73,7 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
         }
         _idToMessage[pElem->Attribute("name")] = s;
     }
-    LOGW("Localize strings count: %d", _idToMessage.size());
+    LOGW("Localize strings count: %d", (int)_idToMessage.size());
 
     return 0;
 }
@@ -80,6 +82,6 @@ void LocalizeAPILinuxImpl::changeLanguage(const std::string& s) {
     init(s);
 }
 
-std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string& spc) {
+std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string&) {
     return _idToMessage[s];
 }

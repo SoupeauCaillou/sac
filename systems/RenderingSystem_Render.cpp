@@ -374,8 +374,8 @@ void RenderingSystem::render() {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }
 #endif
-#ifdef ENABLE_LOG
-    float frameready = TimeUtil::getTime();
+#if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
+    //float frameready = TimeUtil::getTime();
 #endif
     if (!frameQueueWritable) {
         LOGI("Rendering disabled");
@@ -392,8 +392,8 @@ void RenderingSystem::render() {
 #endif
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
-#ifdef ENABLE_LOG
-    float aftertexture= TimeUtil::getTime();
+#if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
+    //float aftertexture= TimeUtil::getTime();
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
 #ifndef EMSCRIPTEN

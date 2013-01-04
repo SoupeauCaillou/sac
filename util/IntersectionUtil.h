@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../base/Vector2.h"
-class TransformationComponent;
+struct TransformationComponent;
 
 class IntersectionUtil {
 	public:
