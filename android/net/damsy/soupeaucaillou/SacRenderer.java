@@ -137,7 +137,9 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
     	int id = activity.getSwarmGameID();
-    	if (false && /*Swarm.isEnabled() &&*/ id != 0) {
+
+	//don't start swarm if this is not the first launch OR it's not enabled
+    	if (false && (/*storage->isFirstLaunch ||*/ Swarm.isEnabled()) && id != 0) {
 		    activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
