@@ -85,6 +85,9 @@ elif [ `echo $1 | grep R` ]; then
 				./linux/$gameName -v | ./colorlog.sh $2
 			else
 				info "No arg for color script ?\nUsage: $0 $1 args-for-it" $red
+				info "Using 'all' tag there"
+				sleep 3
+				./linux/$gameName -v | ./colorlog.sh 'all'
 			fi
 		else
 			info "Launch with log."
