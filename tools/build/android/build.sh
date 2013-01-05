@@ -47,6 +47,7 @@ if [ $# -gt 2 ] || [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
 	echo "		- c: compile java code (.java)"
 	echo "		- i: install on device"
 	echo "		- r: run on device"
+	echo "		- l: run adb logcat"
 	echo "	optimizeOrNot:"
 	echo "		- yes: ndk-build -j4 and only one ARM version build (armeabi-v7a)"
 	echo "		- else: ndk-build and 2 ARMs version"
@@ -103,3 +104,7 @@ if [ ! -z `echo $1 | grep r` ]; then
 	adb shell am start -n net.damsy.soupeaucaillou.$nameLower/net.damsy.soupeaucaillou.$nameLower.${nameUpper}Activity
 fi
 
+if [ ! -z `echo $1 | grep l` ]; then
+	info "Launching adb logcat..."
+	adb logcat -C | grep sac
+fi
