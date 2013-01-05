@@ -78,18 +78,24 @@ public abstract class SacActivity extends SwarmActivity {
 
         if (getRevMobAppId() != null) {
         	revmob = RevMob.start(this, getRevMobAppId());
+        	AdAPI._revmobFullscreen = revmob.createFullscreen(SacJNILib.activity, new AdAPI.revmobListener());
+        } else {
+        	//Log.w("sac", "Revmob not initialized");
         }
-        /*
+
+        
         if (getCharboostAppId() != null) {
         	cb = Chartboost.sharedChartboost();
         	cb.onCreate(this, getCharboostAppId(), getCharboostAppSignature(), new AdAPI.CharboostDelegate());
         	cb.startSession();
         	// cb.install();
 
+        	AdAPI._cb = cb;
+        	
 	        cb.cacheInterstitial();
         } else {
         	//Log.w("sac", "Chartboost not initialized");
-        }*/
+        }
 
         mutex = new Object();
 
