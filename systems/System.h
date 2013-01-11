@@ -7,13 +7,14 @@
 #include <iostream>
 #include <cstring>
 #include <cassert>
+#include <climits>
+
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
 
 // #define USE_VECTOR_STORAGE 1
-#include <climits>
 
 #define Entity unsigned long
 

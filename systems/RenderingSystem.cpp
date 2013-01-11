@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
+#include "base/MathUtil.h"
+#include "base/Log.h"
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #else
 #include <sys/inotify.h>
@@ -326,10 +328,10 @@ void RenderingSystem::DoUpdate(float) {
                 }
                 modifyQ(c, info.reduxStart, info.reduxSize);
                 #ifndef USEE_VBO
-                
+
                 if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                     c.color.a >= 1 &&
-                    info.opaqueSize != Vector2::Zero && 
+                    info.opaqueSize != Vector2::Zero &&
                     !rc->zPrePass) {
                     // add a smaller full-opaque block at the center
                     RenderCommand cCenter(c);
@@ -509,7 +511,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
         memcpy(&cam, &in[idx], sizeof(Camera));
         idx += sizeof(Camera);
         cameras.push_back(cam);
-        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d", 
+        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d",
             i,
             cam.worldPosition.X, cam.worldPosition.Y,
             cam.worldSize.X, cam.worldSize.Y,

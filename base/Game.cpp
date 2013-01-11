@@ -19,6 +19,7 @@
 #include "systems/AutoDestroySystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
+#include "base/TouchInputManager.h"
 #include "base/Profiler.h"
 #include <sstream>
 
@@ -157,7 +158,7 @@ int Game::saveState(uint8_t**) {
 const float DDD = 1.0/60.f;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
-    
+
     theRenderingSystem.waitDrawingComplete();
 
     float t = TimeUtil::getTime();

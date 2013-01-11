@@ -1,5 +1,6 @@
 #include "AnimationSystem.h"
-#include "base/MathUtil.h"
+
+#include "base/Interval.h"
 
 struct AnimationSystem::Anim {
     std::vector<TextureRef> textures;

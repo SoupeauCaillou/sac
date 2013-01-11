@@ -1,7 +1,11 @@
 #include "ParticuleSystem.h"
 #include "TransformationSystem.h"
+#include "RenderingSystem.h"
 #include "PhysicsSystem.h"
 #include "base/EntityManager.h"
+
+#include "base/MathUtil.h"
+
 
 #define MAX_PARTICULE_COUNT 4096
 

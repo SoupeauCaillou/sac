@@ -1,14 +1,12 @@
 #pragma once
 
-#include "base/MathUtil.h"
-#include "base/Log.h"
-#include "base/Interval.h"
 
-#include "RenderingSystem.h"
 #include "System.h"
 
-#include <vector>
+#include "base/Interval.h"
+
 #include <list>
+
 
 struct ParticuleComponent {
 	ParticuleComponent() : emissionRate(0), duration(-1), texture(InvalidTextureRef), spawnLeftOver(0) {}

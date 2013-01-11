@@ -1,5 +1,6 @@
 #include "AutonomousAgentSystem.h"
-#include "../steering/SteeringBehavior.h"
+
+#include "base/MathUtil.h"
 #include "TransformationSystem.h"
 #include "PhysicsSystem.h"
 

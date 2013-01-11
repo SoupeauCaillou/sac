@@ -1,10 +1,6 @@
 #pragma once
 
-#include "base/MathUtil.h"
-#include "base/Log.h"
-
 #include "System.h"
-#include <vector>
 
 struct Force {
     Vector2 vector;

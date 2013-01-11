@@ -1,9 +1,6 @@
 #include "SoundSystem.h"
-#ifdef MUSIC_VISU
-#include "RenderingSystem.h"
-#include "base/PlacementHelper.h"
-#include "base/EntityManager.h"
-#endif
+
+#include "base/Log.h"
 
 INSTANCE_IMPL(SoundSystem);
 

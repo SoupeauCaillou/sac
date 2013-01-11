@@ -1,4 +1,7 @@
 #include "ADSRSystem.h"
+
+#include "base/MathUtil.h"
+
 /*
  *        /\
  * 		 /  \ D

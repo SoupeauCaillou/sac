@@ -2,6 +2,13 @@
 #include <ctype.h>
 #include <sstream>
 
+#include "base/Vector2.h"
+#include "base/EntityManager.h"
+#include "base/MathUtil.h"
+
+#include "TransformationSystem.h"
+#include "RenderingSystem.h"
+
 static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed );
 
 struct CacheKey {

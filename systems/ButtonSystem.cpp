@@ -2,7 +2,9 @@
 #include "base/TimeUtil.h"
 #include "util/IntersectionUtil.h"
 #include "../api/VibrateAPI.h"
+#include "base/TouchInputManager.h"
 
+#include "TransformationSystem.h"
 INSTANCE_IMPL(ButtonSystem);
 
 ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {

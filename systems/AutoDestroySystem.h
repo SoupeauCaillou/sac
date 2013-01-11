@@ -1,7 +1,6 @@
 #pragma once
 
 #include "System.h"
-#include "RenderingSystem.h"
 
 struct AutoDestroyComponent {
     AutoDestroyComponent() {

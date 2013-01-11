@@ -1,7 +1,9 @@
 #include "AutoDestroySystem.h"
+
+#include "base/EntityManager.h"
+
 #include "systems/RenderingSystem.h"
 #include "systems/TextRenderingSystem.h"
-#include "base/EntityManager.h"
 
 INSTANCE_IMPL(AutoDestroySystem);
 

@@ -1,7 +1,9 @@
 #include "ScrollingSystem.h"
-#include "base/EntityManager.h"
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
+
+#include "base/EntityManager.h"
+#include "base/MathUtil.h"
 
 INSTANCE_IMPL(ScrollingSystem);
 

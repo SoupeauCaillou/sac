@@ -2,22 +2,20 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <algorithm>
+
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #else
 #include <GL/glew.h>
 #endif
-#include <map>
+
 #include <set>
 #include <queue>
 #include <list>
 
 #include "base/Vector2.h"
-#include "base/MathUtil.h"
-#include "base/Log.h"
 #include "base/Color.h"
 #include "../api/AssetAPI.h"
 

@@ -1,12 +1,6 @@
 #pragma once
 
-#include "base/TouchInputManager.h"
-#include "base/MathUtil.h"
-#include "base/Log.h"
-
 #include "System.h"
-#include "RenderingSystem.h"
-#include "TransformationSystem.h"
 
 class VibrateAPI;
 

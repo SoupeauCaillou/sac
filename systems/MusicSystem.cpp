@@ -23,7 +23,8 @@
 #include <sstream>
 #endif
 
-
+#include "base/MathUtil.h"
+#include "base/Log.h"
 
 INSTANCE_IMPL(MusicSystem);
 

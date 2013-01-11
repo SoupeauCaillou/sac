@@ -2,14 +2,8 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <list>
 #include <algorithm>
-#include <map>
-
-#include "base/Vector2.h"
-#include "base/MathUtil.h"
-#include "base/Log.h"
 
 #include "System.h"
 #include "api/SoundAPI.h"

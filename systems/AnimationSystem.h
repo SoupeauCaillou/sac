@@ -2,7 +2,7 @@
 
 #include "System.h"
 #include "RenderingSystem.h"
-#include "../base/Interval.h"
+
 
 struct AnimationComponent {
     AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), textureIndex(0) {

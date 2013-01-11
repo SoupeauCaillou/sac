@@ -1,6 +1,5 @@
 #pragma once
 
-#include "base/MathUtil.h"
 #include "../steering/SteeringBehavior.h"
 
 #include "System.h"

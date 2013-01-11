@@ -6,15 +6,7 @@
 #include <GL/glew.h>
 #endif
 
-#include <map>
-
-#include "base/Vector2.h"
-#include "base/EntityManager.h"
-#include "base/MathUtil.h"
-
-#include "TransformationSystem.h"
 #include "System.h"
-#include "RenderingSystem.h"
 
 struct TextRenderingComponent {
 	const static float LEFT;

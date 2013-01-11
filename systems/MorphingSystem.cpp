@@ -1,5 +1,7 @@
 #include "MorphingSystem.h"
 
+#include "base/MathUtil.h"
+
 INSTANCE_IMPL(MorphingSystem);
 
 MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") {

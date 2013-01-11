@@ -1,7 +1,5 @@
 #pragma once
 
-#include "base/Log.h"
-
 #include "System.h"
 
 class TaskAI {

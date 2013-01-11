@@ -1,9 +1,5 @@
 #pragma once
 
-#include <map>
-
-#include "base/MathUtil.h"
-#include "base/Log.h"
 struct OggVorbis_File;
 #include "System.h"
 #include "../api/AssetAPI.h"
