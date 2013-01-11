@@ -18,11 +18,11 @@ class TouchInputManager {
 
 		void init(Vector2 worldSize, Vector2 windowSize);
 
-		bool wasTouched(int idx) const { return wasTouching[idx]; }
+		bool wasTouched(int idx = 0) const { return wasTouching[idx]; }
 
-		bool isTouched(int idx) const { return touching[idx]; }
-		const Vector2& getTouchLastScreenPosition(int idx) const { return lastTouchedScreenPosition[idx]; }
-        const Vector2& getTouchLastPosition(int idx) const { return lastTouchedPosition[idx]; }
+		bool isTouched(int idx = 0) const { return touching[idx]; }
+		const Vector2& getTouchLastScreenPosition(int idx = 0) const { return lastTouchedScreenPosition[idx]; }
+        const Vector2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
 
 		void Update(float dt);
 
