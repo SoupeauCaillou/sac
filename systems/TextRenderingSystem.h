@@ -8,6 +8,8 @@
 
 #include "System.h"
 
+#include <list>
+
 struct TextRenderingComponent {
 	const static float LEFT;
 	const static float CENTER;

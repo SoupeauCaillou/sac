@@ -3,6 +3,8 @@
 
 #include "System.h"
 
+#include "RenderingSystem.h"
+
 #include "base/Interval.h"
 
 #include <list>

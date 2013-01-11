@@ -1,8 +1,9 @@
 #include "NameInputAPILinuxImpl.h"
 #include "base/Log.h"
 #include <iostream>
-#include "../../systems/TextRenderingSystem.h"
-#include "../../systems/ButtonSystem.h"
+#include "systems/TextRenderingSystem.h"
+#include "systems/RenderingSystem.h"
+#include "systems/ButtonSystem.h"
 
 void NameInputAPILinuxImpl::show() {
     __log_enabled = false;

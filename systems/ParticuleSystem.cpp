@@ -1,6 +1,5 @@
 #include "ParticuleSystem.h"
 #include "TransformationSystem.h"
-#include "RenderingSystem.h"
 #include "PhysicsSystem.h"
 #include "base/EntityManager.h"
 
