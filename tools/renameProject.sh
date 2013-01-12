@@ -12,19 +12,26 @@ source $whereAmI/coolStuff.sh
 ######### 0 : Check arguments. #########
    #check arg count
    if [ "$#" -lt 3 ]; then
-      error_and_quit "Need 3+ args [and NOT '$#']."
+      error_and_usage_and_quit "Need 3+ args [and NOT '$#']."
    fi
 
    #check that the gamepath does exist
    gamePath="$1"
    if [ ! -e "$gamePath" ]; then
-      error_and_quit "The game path '$gamePath' doesn't exist ! Abort."
+      error_and_usage_and_quit "The game path '$gamePath' doesn't exist ! Abort."
    fi
 
+   # Remove potentials spaces in names and make lower / upper case.
+   oldNameLower=`echo $2 | tr -d " " | sed 's/^./\l&/'`
+   newNameLower=`echo $3 | tr -d " " | sed 's/^./\l&/'`
+
+   oldNameUpper=`echo $2 | tr -d " " | sed 's/^./\u&/'`
+   newNameUpper=`echo $3 | tr -d " " | sed 's/^./\u&/'`
+
    #check that the new gamepath does NOT exist
-   newGamePath=`cd $gamePath && cd .. && pwd`/$newNameLower
+   newGamePath=$(cd $gamePath/.. && pwd)"/$newNameLower"
    if [ -e "$newGamePath" ]; then
-      error_and_quit "$newGamePath already exist ! Please delete it to continue! Abort."
+      error_and_usage_and_quit "$newGamePath already exist ! Please delete it to continue! Abort."
    fi
 
    #look if we have to apply change
@@ -35,12 +42,7 @@ source $whereAmI/coolStuff.sh
       applyChanges="yes"
    fi
 
-######### 1 : Remove potentials spaces in names and make lower / upper case. #########
-   oldNameLower=`echo $2 | tr -d " " | sed 's/^./\l&/'`
-   newNameLower=`echo $3 | tr -d " " | sed 's/^./\l&/'`
 
-   oldNameUpper=`echo $2 | tr -d " " | sed 's/^./\u&/'`
-   newNameUpper=`echo $3 | tr -d " " | sed 's/^./\u&/'`
 
 
 
