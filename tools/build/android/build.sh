@@ -1,31 +1,38 @@
-#!/bin/sh
+#!/bin/bash
 
-###### Cool things ##############################
-#colors
-reset="[0m"
-red="[1m[31m"
-green="[1m[32m"
+#how to use the script
+export USAGE="$0 menuChoice [optimizeOrNot=yes]"
+export OPTIONS="menuchoice:
+\t\t- n: ndk-build (compile libs and .cpp files)
+\t\t- c: compile java code (.java)
+\t\t- i: install on device
+\t\t- r: run on device
+\t\t- l: run adb logcat
+\toptimizeOrNot:
+\t\t- yes: ndk-build -j4 and only one ARM version build (armeabi-v7a)
+\t\t- else: ndk-build and 2 ARMs version"
 
-info() {
-	if [ $# = 1 ]; then
-		echo "${green}$1${reset}"
-	else
-		echo "$2$1${reset}"
-	fi
-}
+export EXAMPLE="'$0 n-c-i yes' will compile with optimized parameters, then install the app on device."
 
-#get location of the script
+#where the script is
 whereAmI=`cd "$(dirname "$0")" && pwd`
+#import cool stuff
+if [ ! -z "$(echo $whereAmI | grep /sac/tools/build/linux)" ]; then
+	source $whereAmI/../..coolStuff.sh
+else
+	source $whereAmI/../../sac/tools/coolStuff.sh
+fi
 
+######### 0 : Check arguments. #########
 
-##########End of cool things ######################
+if [ ! -z "`echo $whereAmI | grep -e /sac/tools/build`" ]; then
+	error_and_quit "You can't run the script from sac directory! You must copy the build directory in the root of the game."
+fi
 
-check_package() {
-	if [ ! -z "`type $1 | grep 'not found'`" ]; then
-		info "Please ensure you have added $2 to your PATH variable ($1 program missing)" $red
-		exit
-	fi
-}
+if [ $# -gt 2 ] || [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
+	usage_and_quit
+
+fi
 
 #test that the path contains android SDK and android NDK as required
 check_package "android" "android-sdk/tools"
@@ -34,26 +41,6 @@ check_package "adb" "android-sdk/platform-tools"
 check_package "ant" "ant"
 
 
-if [ ! -z "`echo $whereAmI | grep -e /sac/tools/build`" ]; then
-	info "You can't run the script from sac directory! You must copy the build \
-directory in the root of the game." $red
-	exit 1
-fi
-
-if [ $# -gt 2 ] || [ $# = 0 ] || [ `echo $1 | grep -- -h` ]; then
-	echo "Usage: $0 menuChoice [optimizeOrNot=yes]"
-	echo "	menuchoice:"
-	echo "		- n: ndk-build (compile libs and .cpp files)"
-	echo "		- c: compile java code (.java)"
-	echo "		- i: install on device"
-	echo "		- r: run on device"
-	echo "		- l: run adb logcat"
-	echo "	optimizeOrNot:"
-	echo "		- yes: ndk-build -j4 and only one ARM version build (armeabi-v7a)"
-	echo "		- else: ndk-build and 2 ARMs version"
-	echo "\nExample: \"$0 n-c-i yes\" will compile with optimized parameters, then install the app on device."
-	exit 1
-fi
 
 
 # *** go to the root dir

@@ -1,40 +1,26 @@
 #!/bin/sh
 
-###### Cool things ##############################
-#colors
-reset="[0m"
-red="[1m[31m"
-green="[1m[32m"
-
-info() {
-	if [ $# = 1 ]; then
-		echo "${green}$1${reset}"
-	else
-		echo "$2$1${reset}"
-	fi
-}
-
-
-#get location of the script
+#how to use the script
+export USAGE="$0 pathOfGame OldName NewName [--preview]"
+export OPTIONS="--preview : don't apply changes."
+export EXAMPLE="$0 /tmp/heriswap Heriswap Prototype"
+#where the script is
 whereAmI=`cd "$(dirname "$0")" && pwd`
+#import cool stuff
+source $whereAmI/coolStuff.sh
 
+######### 0 : Check arguments. #########
+	if [ $PWD != $whereAmI ]; then
+		error_and_usage_and_quit "Need to launch $0 from its directory"
+	fi
 
-##########End of cool things ######################
+######### 1 : Generate languages from google doc #########
+	info "Generating languages"
+		./xmlLanguageFromTable.sh
+	info "Generating languages done."
 
-# step 0 : check we are at the right place
-if [ $PWD != $whereAmI ]; then
-	info "Need to launch $0 from its directory" "$red"
-	exit
-fi
-
-
-# step : generate languages from google doc
-info "Generating languages"
-	#- ./xmlLanguageFromTable.sh
-info "Generating languages done."
-
-# step : build android versions (apks)
-info "Building APKs..."
+######### 1 : Build android versions (apks) #########
+	info "Building APKs..."
 
 	#go to the root of the game
 	cd $whereAmI/../..
@@ -71,5 +57,5 @@ info "Building APKs..."
 		done
 	done
 
-info "APKs built."
+	info "APKs built."
 

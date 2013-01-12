@@ -1,38 +1,15 @@
 #!/bin/bash
 
-######### Cool things #########
-	#colors
-	reset="[0m"
-	red="[1m[31m"
-	green="[1m[32m"
-
-	info() {
-		if [ $# = 1 ]; then
-			echo "${green}$1${reset}"
-		else
-			echo "$2$1${reset}"
-		fi
-	}
-
-	#get location of the script
-	whereAmI=`cd "$(dirname "$0")" && pwd`
-
-
-######### FUNCTIONS #########
-	usage() {
-		echo "Usage:   sh xmlLanguageFromTable.sh"
-		echo "Bybye every body!"
-		exit
-	}
-
-	error_and_quit() {
-		info "######## $1 ########" $red
-		usage
-	}
+#how to use the script
+export USAGE="$0"
+#where the script is
+whereAmI=`cd "$(dirname "$0")" && pwd`
+#import cool stuff
+source $whereAmI/coolStuff.sh
 
 ######### 0 : Check arguments. #########
 	if [ $# != 0 ]; then
-		error_and_quit "Wrong parameters count"
+		error_and_usage_and_quit "Need 0 args [and NOT '$#']."
 	fi
 
 
@@ -55,7 +32,7 @@ separateur=\~
 		info "wget RecursiveRunnerGoogleDoc"
 		wget "$RRdrive" -O $csvFILE
 	else
-		error_and_quit "This is NOR heriswap and recursiveRunner ($PWD doesn't contain both of us). abort"
+		error_and_usage_and_quit "This is NOR heriswap and recursiveRunner ('$PWD' doesn't contain any of them)"
 	fi
 
 
@@ -80,7 +57,7 @@ separateur=\~
 ######### 2 : Clean and setup the lab… #########
 
 	#remove old strings from res
-	echo "remove old values*/strings.xml files ? (y/n)"
+	info "remove old values*/strings.xml files ? (y/n)" $blue
 	read confirm
 	if [ "$confirm" != "y" ]; then
 		echo "aborded"
