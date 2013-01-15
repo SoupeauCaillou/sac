@@ -301,6 +301,7 @@ void RenderingSystem::DoUpdate(float) {
 
     		RenderCommand c;
     		c.z = tc->worldZ;
+		assert(c.z > 0 && c.z <= 1 && "Z is outside its intervale");
     		c.texture = rc->texture;
     		c.effectRef = rc->effectRef;
     		c.halfSize = tc->size * 0.5f;
