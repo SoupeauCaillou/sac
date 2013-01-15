@@ -2,7 +2,6 @@
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
 #include <cmath>
-#include <cassert>
 #include <sstream>
 #include "base/MathUtil.h"
 #include "base/Log.h"
@@ -11,6 +10,10 @@
 #include <sys/inotify.h>
 #include <GL/glew.h>
 #include <unistd.h>
+#endif
+
+#ifdef DEBUG
+#include "base/Assert.h"
 #endif
 
 RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
@@ -298,10 +301,11 @@ void RenderingSystem::DoUpdate(float) {
             if (!isVisible(tc, camIdx)) {
                 continue;
             }
+		if (!tc->worldZ) LOGW("Entity %ld: RENDERING()->z = 0, entity won't be rendable", a);
+	       ASSERT(tc->worldZ >= 0 && tc->worldZ <= 1, "Entity " << a << ": rendering->z=" << tc->worldZ << " outside allowed interval [0, 1]");
 
     		RenderCommand c;
     		c.z = tc->worldZ;
-		assert(c.z > 0 && c.z <= 1 && "Z is outside its intervale");
     		c.texture = rc->texture;
     		c.effectRef = rc->effectRef;
     		c.halfSize = tc->size * 0.5f;
