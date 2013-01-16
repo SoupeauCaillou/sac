@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# From zed on github: https://gist.github.com/776423
 import sys
 
 from PIL import Image
@@ -17,11 +17,11 @@ def max_size(mat, value=0):
 	"""Find height, width of the largest rectangle containing all `value`'s.
 
 	For each row solve "Largest Rectangle in a Histrogram" problem [1]:
-	
+
 	[1]: http://blog.csdn.net/arbuckle/archive/2006/05/06/710988.aspx
 	"""
 	it = iter(mat)
-	
+
 	hist = [(el==value) for el in next(it, [])]
 	max_size = max_rectangle_size(hist)[0]
 	cpt = 0
@@ -74,18 +74,18 @@ def max_rectangle_size(histogram):
 				if (m != max_size):
 					pointY = top().start
 					max_size = m
-					
+
 				start, _ = stack.pop()
 				continue
 			break # height == top().height goes here
-				
+
 	pos += 1
 	for start, height in stack:
 		m = max(max_size, (height, (pos - start)), key=area)
 		if (m != max_size):
-			pointY = -1 #que fait ce code ? 
+			pointY = -1 #que fait ce code ?
 			max_size = m
-	
+
 	return (max_size, pointY)
 
 def area(size):
@@ -97,17 +97,17 @@ def __s2m(s):
 		new = [s[i,j][3]<255 for j in range(im.size[1])]
 		tab.append(new)
 	return tab
-		
-		
+
+
 if __name__=="__main__":
 	if (len(sys.argv) != 2):
 		print "Need the image in arg1: ./image.py image.png"
 	else:
 		im = Image.open(str(sys.argv[1]))
-		
+
 		# m[0] is the size of the rect, m[1] the top left corner point
 		m = max_size(__s2m(im.load()))
-		
+
 		# return the rectangle only if hes > 10% of the total size
 		if ( m[0][0] * m[0][1] > 0.10 * im.size[0] * im.size[1] ):
 			print "%d,%d,%d,%d" % (m[1][0]+1, m[1][1]+1, m[0][0]+m[1][0], m[0][1]+m[1][1]-1)
