@@ -1,5 +1,7 @@
 #include "AutonomousAgentSystem.h"
 
+#include <base/Assert.h>
+
 #include "base/MathUtil.h"
 #include "TransformationSystem.h"
 #include "PhysicsSystem.h"
@@ -12,6 +14,9 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
 
 void AutonomousAgentSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
+		ASSERT(e != agent->seekTarget, e << ": I can't be my own target!");
+		ASSERT(e != agent->fleeTarget, e << ": I can't be my own predator!");
+
 		Vector2 force(Vector2::Zero);
 
 		if (agent->seekTarget && agent->seekWeight > 0) {
