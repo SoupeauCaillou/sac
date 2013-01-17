@@ -1,3 +1,9 @@
+/*!
+ * \file RenderingSystem.h
+ * \brief 
+ * \author Pierre-Eric Pelloux-Prayer
+ * \author Gautier Pelloux-Prayer
+ */
 #pragma once
 
 #include <cstdio>
@@ -32,13 +38,17 @@ typedef int TextureRef;
 typedef int EffectRef;
 #define DefaultEffectRef -1
 
+/*! \struct RenderingComponent
+ *  \brief ? */
 struct RenderingComponent {
 	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(~0U) {}
 
-	TextureRef texture;
-	EffectRef effectRef;
-	Color color;
-	bool hide, mirrorH, zPrePass, fastCulling;
+	TextureRef texture; //!< ?
+	EffectRef effectRef; //!< ?
+	Color color; //!< ?
+	bool hide, mirrorH, zPrePass, fastCulling; //!< ?
+    /*! \enum Opacity
+     *  \brief ? */
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE,
@@ -46,65 +56,119 @@ struct RenderingComponent {
 		OPAQUE_UNDER,
 		OPAQUE_CENTER,
 	} ;
-	Opacity opaqueType;
-	float opaqueSeparation; // €[0, 1], meaning depends of opaqueType
-    unsigned cameraBitMask;
+	Opacity opaqueType; //!< ?
+	float opaqueSeparation; //!< ? €[0, 1], meaning depends of opaqueType
+    unsigned cameraBitMask; //!< ?
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
 #define RENDERING(e) theRenderingSystem.Get(e)
 
+/*! \class Rendering
+ *  \brief ? */
 UPDATABLE_SYSTEM(Rendering)
 
 public:
 ~RenderingSystem();
+
+/*! \brief ? */
 void init();
 
+/*! \brief ?
+ *  \param atlasName
+ *  \param forceImmediateTextureLoading */
 void loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading = false);
+
+/*! \brief ?
+ *  \param atlasName */
 void unloadAtlas(const std::string& atlasName);
+
+/*! \brief ? */
 void invalidateAtlasTextures();
 
+/*! \brief ?
+ *  \param out
+ *  \return  */
 int saveInternalState(uint8_t** out);
+
+/*! \brief ?
+ *  \param in
+ *  \param size */
 void restoreInternalState(const uint8_t* in, int size);
 
+/*! \brief ?
+ *  \param w
+ *  \param h
+ *  \param sW
+ *  \param sH */
 void setWindowSize(int w, int h, float sW, float sH);
 
+/*! \brief ?
+ *  \param assetName
+ *  \return  */
 TextureRef loadTextureFile(const std::string& assetName);
+
+/*! \brief ?
+ *  \param assetName
+ *  \return */
 EffectRef loadEffectFile(const std::string& assetName);
+
+/*! \brief ?
+ *  \param ref
+ *  \param allowUnloadAtlas */
 void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
 public:
-AssetAPI* assetAPI;
+AssetAPI* assetAPI; //!<
 
+/*! \brief ?
+ *  \param e
+ *  \param cameraIndex
+ *  \return */
 bool isEntityVisible(Entity e, int cameraIndex = -1) const;
+
+/*! \brief ?
+ *  \param tc
+ *  \param cameraIndex
+ *  \return */
 bool isVisible(const TransformationComponent* tc, int cameraIndex = -1) const;
 
+/*! \brief ? */
 void reloadTextures();
+
+/*! \brief ? */
 void reloadEffects();
 
+/*! \brief ? */
 void render();
+
+/*! \brief ? */
 void waitDrawingComplete();
 
 public:
-int windowW, windowH;
-float screenW, screenH;
+int windowW, windowH; //!< ?
+float screenW, screenH; //!< ?
 
+/*! \struct Camera
+ *  \brief ? */
 struct Camera {
     Camera() {}
     Camera(const Vector2& pWorldPos, const Vector2& pWorldSize, const Vector2& pScreenPos, const Vector2& pScreenSize) :
         worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize), enable(true), mirrorY(false) {}
-    Vector2 worldPosition, worldSize;
-    Vector2 screenPosition, screenSize;
-    bool enable, mirrorY;
+    Vector2 worldPosition, worldSize; //!< ?, ?
+    Vector2 screenPosition, screenSize; //!< ?, ?
+    bool enable, mirrorY; //!< ?, ?
 };
 
 /* textures cache */
-TextureRef nextValidRef;
-std::map<std::string, TextureRef> assetTextures;
+TextureRef nextValidRef; //!< ?
+std::map<std::string, TextureRef> assetTextures; //!< ?
 
+/*! \struct InternalTexture
+ *  \brief */
 struct InternalTexture {
-	GLuint color;
-	GLuint alpha;
+	GLuint color; //!< ?
+	GLuint alpha; //!< ?
 
 	bool operator==(const InternalTexture& t) const {
 		return color == t.color && alpha == t.alpha;
@@ -116,47 +180,53 @@ struct InternalTexture {
 		return color < t.color;
 	}
 
-	static InternalTexture Invalid;
+	static InternalTexture Invalid; //!< ?
 };
 
+/*! \struct RenderCommand
+ *  \brief ? */
 struct RenderCommand {
-	float z;
-	EffectRef effectRef;
+	float z; //!< ?
+	EffectRef effectRef; //!< ?
 	union {
-		TextureRef texture;
-		InternalTexture glref;
+		TextureRef texture; //!< ?
+		InternalTexture glref; //!< ?
 	};
-	unsigned int rotateUV;
-	Vector2 uv[2];
-	Vector2 halfSize;
-	Color color;
-	Vector2 position;
-	float rotation;
-    int flags;
-    bool mirrorH;
+	unsigned int rotateUV; //!< ?
+	Vector2 uv[2]; //!< ?
+	Vector2 halfSize; //!< ?
+	Color color; //!< ?
+	Vector2 position; //!< ?
+	float rotation; //!< ?
+    int flags; //!< ?
+    bool mirrorH; //!< ?
 };
 
+/*! \struct RenderQueue
+ *  \brief ? */
 struct RenderQueue {
 	RenderQueue() : count(0) {}
-	uint16_t count;
-	RenderCommand commands[512];
+	uint16_t count; //!< ?
+	RenderCommand commands[512]; //!< ?
 };
 
+/*! \struct TextureInfo
+ *  \brief */
 struct TextureInfo {
     // GL texture(s)
-	InternalTexture glref;
+	InternalTexture glref; //!< ?
     // is image rotated in atlas
-	unsigned short rotateUV;
+	unsigned short rotateUV; //!< ?
     // which atlas
-    short atlasIndex;
+    short atlasIndex; //!< ?
     // uv coords in atlas
-	Vector2 uv[2];
+	Vector2 uv[2]; //!< ?
     // texture original size
-	unsigned short originalWidth, originalHeight;
+	unsigned short originalWidth, originalHeight; //!< ?
     // texture redux offset/size
-    Vector2 reduxStart, reduxSize;
+    Vector2 reduxStart, reduxSize; //!< ?
     // coordinates of opaque region in alpha-enabled texture (optional)
-    Vector2 opaqueStart, opaqueSize;
+    Vector2 opaqueStart, opaqueSize; //!< ?
 	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid,
         const Vector2& posInAtlas = Vector2::Zero, const Vector2& sizeInAtlas = Vector2::Zero, bool rot = false,
         const Vector2& atlasSize = Vector2::Zero,
@@ -164,21 +234,24 @@ struct TextureInfo {
         const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero,
         int atlasIdx = -1);
 };
+
+/*! \struct Atlas
+ *  \brief */
 struct Atlas {
-	std::string name;
-	InternalTexture glref;
+	std::string name; //!< ?
+	InternalTexture glref; //!< ?
 };
 
-std::map<TextureRef, TextureInfo> textures;
-std::set<std::string> delayedLoads;
-std::set<int> delayedAtlasIndexLoad;
-std::set<InternalTexture> delayedDeletes;
-std::vector<Atlas> atlas;
-std::vector<Camera> cameras;
+std::map<TextureRef, TextureInfo> textures; //!< ?
+std::set<std::string> delayedLoads; //!< ?
+std::set<int> delayedAtlasIndexLoad; //!< ?
+std::set<InternalTexture> delayedDeletes; //!< ?
+std::vector<Atlas> atlas; //!< ?
+std::vector<Camera> cameras; //!< ?
 
-bool newFrameReady, frameQueueWritable;
-int currentWriteQueue;
-RenderQueue renderQueue[2];
+bool newFrameReady, frameQueueWritable; //!< ?
+int currentWriteQueue; //!< ?
+RenderQueue renderQueue[2]; //!< ?
 #ifdef USE_VBO
 public:
 GLuint squareBuffers[3];
@@ -192,38 +265,104 @@ pthread_cond_t cond[2];
 #ifdef USE_VBO
 public:
 #endif
+/*! \struct Shader
+ *  \brief ? */
 struct Shader {
-	GLuint program;
-	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
+	GLuint program; //!< ?
+	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor; //!< ?, ?, ?, ?
 	#ifdef USE_VBO
 	GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
 	#endif
 };
 private:
-Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
-GLuint whiteTexture;
+Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty; //!< ?, ?, ?
+GLuint whiteTexture; //!< ?
 
-EffectRef nextEffectRef;
-std::map<std::string, EffectRef> nameToEffectRefs;
-std::map<EffectRef, Shader> ref2Effects;
+EffectRef nextEffectRef; //!< ?
+std::map<std::string, EffectRef> nameToEffectRefs; //!< ?
+std::map<EffectRef, Shader> ref2Effects; //!< ?
 
-bool initDone;
+bool initDone; //!< ?
 
 private:
+/*! \brief ?
+ *  \param assetName
+ *  \param type
+ *  \return ? */
 GLuint compileShader(const std::string& assetName, GLuint type);
-void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
-void drawRenderCommands(RenderQueue& commands);
-void processDelayedTextureJobs();
-GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
-public:
-static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
-static void check_GL_errors(const char* context);
-Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera, bool colorEnabled = true);
-const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
-Vector2 getTextureSize(const std::string& textureName) const;
-void removeExcessiveFrames(int& readQueue, int& writeQueue);
-bool pvrSupported;
 
+/*! \brief ?
+ *  \param assetName
+ *  \param realSize
+ *  \param pow2Size
+ *  \param out */
+void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
+
+/*! \brief ?
+ *  \param commands */
+void drawRenderCommands(RenderQueue& commands);
+
+/*! \brief ? */
+void processDelayedTextureJobs();
+
+/*! \brief ?
+ *  \param basename
+ *  \param colorOrAlpha
+ *  \param realSize
+ *  \param pow2Size
+ *  \return ? */
+GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
+
+public:
+/*! \brief ?
+ *  \param left
+ *  \param right
+ *  \param bottom
+ *  \param top
+ *  \param near
+ *  \param far
+ *  \param mat */
+static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
+
+/*! \brief ?
+ *  \param context */
+static void check_GL_errors(const char* context);
+
+/*! \brief ?
+ *  \param vs
+ *  \param fs
+ *  \return ? */
+Shader buildShader(const std::string& vs, const std::string& fs);
+
+/*! \brief ?
+ *  \param ref
+ *  \param firstCall
+ *  \param color
+ *  \param camera
+ *  \param colorEnabled
+ *  \return ? */
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera, bool colorEnabled = true);
+
+/*! \brief ?
+ *  \param ref
+ *  \param firstCall
+ *  \param colorEnabled
+ *  \return ? */
+const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
+
+/*! \brief ?
+ *  \param textureName
+ *  \return ? */
+Vector2 getTextureSize(const std::string& textureName) const;
+
+/*! \brief ?
+ *  \param readQueue
+ *  \param writeQueue */
+void removeExcessiveFrames(int& readQueue, int& writeQueue);
+
+bool pvrSupported; //!< ?
+
+/*! \brief ?
+ *  \param b */
 void setFrameQueueWritable(bool b);
 };

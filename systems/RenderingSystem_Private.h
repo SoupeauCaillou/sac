@@ -1,4 +1,10 @@
-#pragma once
+/*!
+ * \file RenderingSystem_Private.h
+ * \brief 
+ * \author Pierre-Eric Pelloux-Prayer
+ * \author Gautier Pelloux-Prayer
+ */
+ #pragma once
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
 #define CHECK_GL_ERROR

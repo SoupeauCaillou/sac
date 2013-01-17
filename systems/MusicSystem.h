@@ -1,3 +1,9 @@
+/*!
+ * \file MusicSystem.h
+ * \brief 
+ * \author Pierre-Eric Pelloux-Prayer
+ * \author Gautier Pelloux-Prayer
+ */
 #pragma once
 
 struct OggVorbis_File;
@@ -25,6 +31,8 @@ namespace MusicControl {
     };
 }
 
+/*! \struct MusicComponent
+ *  \brief ? */
 struct MusicComponent {
 	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(MusicControl::Stop) {
 		opaque[0] = opaque[1] = 0;
@@ -32,42 +40,55 @@ struct MusicComponent {
         paused = false;
 	}
 
-    MusicRef music, loopNext;
-    MusicRef previousEnding;
-    MusicComponent* master;
-    float loopAt; // sec
-    int positionI; // in [0,1]
+    MusicRef music, loopNext; //!< ?
+    MusicRef previousEnding; //!< ?
+    MusicComponent* master; //!< ?
+    float loopAt; //!< sec 
+    int positionI; //!< in [0,1]
     #ifdef MUSIC_VISU
-    float positionF;
+    float positionF; //!< ?
     #endif
-    float fadeOut, fadeIn; // sec
-    float volume;
-    float currentVolume; //handled by system - do not modify
-    bool looped, paused;
-    MusicControl::Enum control;
+    float fadeOut, fadeIn; //!< sec
+    float volume; //!< ?
+    float currentVolume; //!< handled by system - do not modify
+    bool looped, paused; //!< ?
+    MusicControl::Enum control; //!< ?
 
-    // 2 opaque structure to allow overlapping looping
-    struct OpaqueMusicPtr* opaque[2];
+    struct OpaqueMusicPtr* opaque[2]; //!< 2 opaque structure to allow overlapping looping
 };
 
 #define theMusicSystem MusicSystem::GetInstance()
 #define MUSIC(e) theMusicSystem.Get(e)
 
+/*! \class Music
+ *  \brief */
 UPDATABLE_SYSTEM(Music)
 
 public:
 ~MusicSystem();
+
+/*! \brief ? */
 void init();
+
+/*! \brief ? */
 bool isMuted() const { return muted; }
 
+/*! \brief
+ *  \param assetName
+ *  \return */
 MusicRef loadMusicFile(const std::string& assetName);
+
+/*! \brief
+ *  \param ref */
 void unloadMusic(MusicRef ref);
 
+/*! \brief
+ *  \param enable */
 void toggleMute(bool enable);
 
 private:
 /* textures cache */
-MusicRef nextValidRef;
+MusicRef nextValidRef; //!< ?
 
 #ifndef EMSCRIPTEN
 struct MusicInfo {
@@ -108,14 +129,29 @@ std::map<Entity, std::pair<Entity, Entity> > visualisationEntities;
 int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount, float dt);
 #endif
+
+/*! \brief
+ *  \param m
+ *  \param r
+ *  \param master
+ *  \param offset
+ *  \return */
 OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
+
+/*! \brief
+ *  \param m */
 void stopMusic(MusicComponent* m);
+
+/*! \brief
+ *  \param ref */
 void clearAndRemoveInfo(MusicRef ref);
 public:
-MusicAPI* musicAPI;
-AssetAPI* assetAPI;
+MusicAPI* musicAPI; //!< 
+AssetAPI* assetAPI; //!<
 
+/*! \brief */
 void oggDecompRunLoop();
-bool runDecompLoop;
+
+bool runDecompLoop; //!<
 };
 

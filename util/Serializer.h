@@ -1,3 +1,9 @@
+/*!
+ * \file Serializer.h
+ * \brief 
+ * \author Pierre-Eric Pelloux-Prayer
+ * \author Gautier Pelloux-Prayer
+ */
 #pragma once
 #include <vector>
 #include <map>
@@ -6,6 +12,10 @@
 #include "base/MathUtil.h"
 #include "base/Interval.h"
 
+/*!
+ * \class IProperty
+ * \brief
+ */
 class IProperty {
     protected:
         IProperty(unsigned long offset, unsigned size);
@@ -20,6 +30,10 @@ class IProperty {
         unsigned _size;
 };
 
+/*!
+ * \class Property
+ * \brief
+ */
 template<typename T>
 class Property : public IProperty {
     public:
@@ -29,6 +43,10 @@ class Property : public IProperty {
         T epsilon;
 };
 
+/*!
+ * \class EntityProperty
+ * \brief
+ */
 class EntityProperty : public IProperty {
     public:
         EntityProperty(unsigned long offset);
@@ -46,6 +64,10 @@ class StringProperty : public IProperty {
         int deserialize(uint8_t* in, void* object) const;
 };
 
+/*!
+ * \class VectorProperty
+ * \brief
+ */
 template <typename T>
 class VectorProperty : public IProperty {
     public:
@@ -56,6 +78,10 @@ class VectorProperty : public IProperty {
         int deserialize(uint8_t* in, void* object) const;
 };
 
+/*!
+ * \class IntervalProperty
+ * \brief
+ */
 template <typename T>
 class IntervalProperty : public IProperty {
     public:
@@ -65,7 +91,10 @@ class IntervalProperty : public IProperty {
         int deserialize(uint8_t* in, void* object) const;
 };
 
-
+/*!
+ * \class MapProperty
+ * \brief
+ */
 template <typename T, typename U>
 class MapProperty : public IProperty {
     public:
@@ -82,6 +111,10 @@ class MapProperty : public IProperty {
 
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
 
+/*!
+ * \class Serializer
+ * \brief
+ */
 class Serializer {
     std::vector<IProperty*> properties;
 
