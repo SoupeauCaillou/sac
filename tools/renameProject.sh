@@ -44,7 +44,14 @@ source $whereAmI/coolStuff.sh
 
 
 
-
+   #command to rename file
+   renameC="mv"
+   info "Do you want to use 'git mv' instead of 'mv' ? (y/N)" $blue
+   read confirm
+   if [ "$confirm" = "y" ]; then
+      renameC="git mv"
+   fi
+   info "Rename command will be: '$renameC'" $green
 
    info "
    INFO: the name you chose is '$newNameUpper'
@@ -52,9 +59,12 @@ source $whereAmI/coolStuff.sh
    * WARNING: don't use a common name else you could overwrite wrong files        *
    * Eg: don't call it 'test' or each files TestPhysics.cpp,... will be renamed!  *
    ********************************************************************************
-   " $blue
+   " $yellow
+
+
+
 ######### 2 : Wait for confirmation to continue #########
-   echo "Continue ? (y/N)"
+   info "Contirm ? (y/N)" $blue
    read confirm
    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
       info "Aborted" $red
@@ -85,7 +95,7 @@ source $whereAmI/coolStuff.sh
 
       info "Renaming directory $first to $new"
       if [ ! -z $applyChanges ]; then
-         git mv $first $new
+         $renameC $first $new
       else
          break
       fi
@@ -102,7 +112,8 @@ source $whereAmI/coolStuff.sh
       info "Renaming file $file to $new"
 
       if [ ! -z $applyChanges ]; then
-         git mv $file $new
+         echo $renameC $file $new
+         $renameC $file $new
       fi
    done
 
