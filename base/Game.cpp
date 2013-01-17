@@ -213,6 +213,7 @@ void Game::step() {
         theAnimationSystem.Update(delta);
         theButtonSystem.Update(delta);
         theParticuleSystem.Update(delta);
+        theAutonomousAgentSystem.Update(delta);
         theMorphingSystem.Update(delta);
         thePhysicsSystem.Update(delta);
         theScrollingSystem.Update(delta);
