@@ -29,6 +29,9 @@ struct CameraTargetComponent {
     float maxCameraSpeed;
     bool enabled;
     Vector2 cameraSpeed;
+    struct {
+        Vector2 min, max;
+    } limits;
 };
 
 #define theCameraTargetSystem CameraTargetSystem::GetInstance()

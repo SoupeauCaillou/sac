@@ -198,9 +198,9 @@ void Game::step() {
                 delta = 0;
                 break;
             default:
-                if (glfwGetKey(GLFW_KEY_KP_ADD) || glfwGetKey(GLFW_KEY_F6)) {
+                if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
                     speedFactor += 1 * delta;
-                } else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT) || glfwGetKey(GLFW_KEY_F5)) {
+                } else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
                     speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
                 } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
                     speedFactor = 1;

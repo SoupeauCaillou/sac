@@ -39,6 +39,8 @@ void CameraTargetSystem::DoUpdate(float dt) {
         if (!ctc->enabled)
             continue;
         Vector2 target (TRANSFORM(a)->position + ctc->offset);
+        target.X = MathUtil::Min(ctc->limits.max.X, MathUtil::Max(ctc->limits.min.X, target.X));
+        target.Y = MathUtil::Min(ctc->limits.max.Y, MathUtil::Max(ctc->limits.min.Y, target.Y));
         Vector2 force = SteeringBehavior::arrive(
             theRenderingSystem.cameras[ctc->cameraIndex].worldPosition,
             ctc->cameraSpeed,
