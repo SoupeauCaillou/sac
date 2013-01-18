@@ -282,11 +282,13 @@ void RenderingSystem::DoUpdate(float) {
     if (outQueue.count != 0) {
         LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
     }
+
     outQueue.count = 0;
-    for (int camIdx = cameras.size()-1; camIdx >= 0; camIdx--) {
+    for (int camIdx = 0; camIdx<cameras.size(); camIdx++) {//cameras.size()-1; camIdx >= 0; camIdx--) {
         const Camera& camera = cameras[camIdx];
         if (!camera.enable)
             continue;
+
     	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
         const float camLeft = (camera.worldPosition.X - camera.worldSize.X * 0.5);
         const float camRight = (camera.worldPosition.X + camera.worldSize.X * 0.5);
@@ -407,13 +409,15 @@ void RenderingSystem::DoUpdate(float) {
         dummy.position = camera.screenSize;
         dummy.effectRef = camera.mirrorY;
         dummy.rotateUV = cccc;
-        outQueue.commands[0] = dummy;// outQueue.commands.push_back(dummy);
-        std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[1]);
-        outQueue.count = 1 + opaqueCommands.size();
+        outQueue.commands[outQueue.count] = dummy;
+        outQueue.count++;
+        std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[outQueue.count]);
+        outQueue.count += opaqueCommands.size();
         // semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
         std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();
     }
+
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;
     dummy.rotateUV = cccc;
@@ -454,14 +458,14 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
         return false;
     }
     const Camera& camera = cameras[cameraIndex];
-	const Vector2 halfSize(tc->size * 0.5);
 	const Vector2 pos(tc->worldPosition - camera.worldPosition);
     const Vector2 camHalfSize(camera.worldSize * .5);
 
-	if ((pos.X + halfSize.X) < -camHalfSize.X) return false;
-	if ((pos.X - halfSize.X) > camHalfSize.X) return false;
-	if ((pos.Y + halfSize.Y) < -camHalfSize.Y) return false;
-	if ((pos.Y - halfSize.Y) > camHalfSize.Y) return false;
+    const float biggestHalfEdge = MathUtil::Max(tc->size.X * 0.5, tc->size.Y * 0.5);
+	if ((pos.X + biggestHalfEdge) < -camHalfSize.X) return false;
+	if ((pos.X - biggestHalfEdge) > camHalfSize.X) return false;
+	if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
+	if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
 	return true;
 }
 

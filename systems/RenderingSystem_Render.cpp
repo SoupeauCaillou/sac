@@ -231,7 +231,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // HANDLE BEGIN/END FRAME MARKERS
         if (rc.texture == BeginFrameMarker) {
-            assert(batchSize == 0);
+            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+
             #ifdef ENABLE_PROFILING
             std::stringstream framename;
             framename << "render-frame-" << (unsigned int)rc.rotateUV;
