@@ -50,7 +50,7 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
     tinyxml2::XMLDocument doc;
 
     if (doc.LoadFile(filename.c_str())) {
-        LOGE("can't open xml file %s\n", filename.c_str());
+        LOGW("can't open xml file %s\n", filename.c_str());
         return -1;
     }
 
