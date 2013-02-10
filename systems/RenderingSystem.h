@@ -139,7 +139,7 @@ struct RenderCommand {
 struct RenderQueue {
 	RenderQueue() : count(0) {}
 	uint16_t count;
-	RenderCommand commands[512];
+	std::vector<RenderCommand> commands;
 };
 
 struct TextureInfo {

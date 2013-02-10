@@ -283,6 +283,7 @@ void RenderingSystem::DoUpdate(float) {
         LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
     }
 
+    // outQueue.commands.clear();
     outQueue.count = 0;
     for (int camIdx = 0; camIdx<cameras.size(); camIdx++) {//cameras.size()-1; camIdx >= 0; camIdx--) {
         const Camera& camera = cameras[camIdx];
@@ -398,6 +399,9 @@ void RenderingSystem::DoUpdate(float) {
              }
         }
 
+
+        outQueue.commands.resize(
+            outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1);
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 
@@ -411,17 +415,19 @@ void RenderingSystem::DoUpdate(float) {
         dummy.rotateUV = cccc;
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
-        std::copy(opaqueCommands.begin(), opaqueCommands.end(), &outQueue.commands[outQueue.count]);
+        std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);//&outQueue.commands[outQueue.count]);
         outQueue.count += opaqueCommands.size();
         // semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
-        std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), &outQueue.commands[outQueue.count]);
+        std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), outQueue.commands.begin() + outQueue.count); //&outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();
     }
 
+    outQueue.commands.reserve(outQueue.count + 1);
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;
     dummy.rotateUV = cccc;
     outQueue.commands[outQueue.count++] = dummy;
+    outQueue.count++;
     std::stringstream framename;
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
