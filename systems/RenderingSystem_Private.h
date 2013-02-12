@@ -37,3 +37,18 @@ enum {
 
 #define C_RENDER_DONE 0
 #define C_FRAME_READY 1
+
+class RenderTargetComponent;
+
+void packCameraAttributes(
+    const TransformationComponent* camera,
+    const TransformationComponent* renderZone,
+    const RenderTargetComponent* renderAttr,
+    RenderingSystem::RenderCommand& out);
+
+void unpackCameraAttributes(
+    const RenderingSystem::RenderCommand& in,
+    TransformationComponent* camera,
+    TransformationComponent* renderZone,
+    RenderTargetComponent* renderAttr);
+

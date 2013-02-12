@@ -57,6 +57,7 @@ LevelEditor::~LevelEditor() {
 }
 
 void LevelEditor::tick(float dt) {
+#if 0
     Vector2 position;
     int x, y;
     glfwGetMousePos(&x, &y);
@@ -86,6 +87,7 @@ void LevelEditor::tick(float dt) {
             datas->updateModeGallery(dt, position, wheelDiff);
             break;
     }
+#endif
 }
 
 void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {
@@ -105,6 +107,7 @@ void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {
 }
 
 void LevelEditor::LevelEditorDatas::buildGallery() {
+#if 0
     int textureCount = theRenderingSystem.assetTextures.size();
     float width = theRenderingSystem.cameras[activeCameraIndex].worldSize.X;
     const int elementPerRow = 7;
@@ -144,6 +147,7 @@ void LevelEditor::LevelEditorDatas::buildGallery() {
         galleryItems.push_back(e);
     }
     gallerySelected = galleryItems.front();
+#endif
 }
 
 void LevelEditor::LevelEditorDatas::destroyGallery() {
@@ -155,6 +159,7 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
 }
 
 void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+#if 0
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
             if (selected)
@@ -262,9 +267,11 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
         } else
             changeMode(EditorMode::Gallery);
     }
+#endif
 }
 
 void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+#if 0
     if (glfwGetKey(GLFW_KEY_SPACE)) {
         spaceWasPressed = true;
     } else if (spaceWasPressed) {
@@ -294,5 +301,6 @@ void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& m
         }
         changeMode(EditorMode::Selection);
     }
+#endif
 }
 #endif

@@ -17,8 +17,8 @@
 #include "systems/AnimationSystem.h"
 #include "systems/NetworkSystem.h"
 #include "systems/AutoDestroySystem.h"
-#include "systems/CameraDepSystem.h"
-#include "systems/CameraTargetSystem.h"
+#include "systems/CameraSystem.h"
+#include "systems/RenderTargetSystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
 #include "base/TouchInputManager.h"
@@ -54,8 +54,8 @@ Game::Game() {
     AutonomousAgentSystem::CreateInstance();
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
-    CameraDepSystem::CreateInstance();
-    CameraTargetSystem::CreateInstance();
+    CameraSystem::CreateInstance();
+    RenderTargetSystem::CreateInstance();
 #ifdef SAC_NETWORK
     NetworkSystem::CreateInstance();
 #endif
@@ -81,8 +81,8 @@ Game::~Game() {
     AutonomousAgentSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
-    CameraDepSystem::DestroyInstance();
-    CameraTargetSystem::DestroyInstance();
+    CameraSystem::DestroyInstance();
+    RenderTargetSystem::DestroyInstance();
 #ifdef SAC_NETWORK
     NetworkSystem::DestroyInstance();
 #endif
@@ -215,8 +215,8 @@ void Game::step() {
         #ifdef SAC_NETWORK
         theNetworkSystem.Update(delta);
         #endif
-        theCameraTargetSystem.Update(delta);
-        theCameraDepSystem.Update(delta);
+        theRenderTargetSystem.Update(delta);
+        theCameraSystem.Update(delta);
         theADSRSystem.Update(delta);
         theAnimationSystem.Update(delta);
         theButtonSystem.Update(delta);

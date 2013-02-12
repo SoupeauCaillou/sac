@@ -1,10 +1,12 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
+#include "RenderTargetSystem.h"
 #include <cmath>
 #include <sstream>
 #include "base/MathUtil.h"
 #include "base/Log.h"
+#include "util/IntersectionUtil.h"
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #else
 #include <sys/inotify.h>
@@ -65,12 +67,6 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenW = sW;
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
-
-    if (cameras.empty()) {
-        LOGI("Create default camera");
-        // create default camera
-        cameras.push_back(Camera(Vector2::Zero, Vector2(screenW, screenH), Vector2::Zero, Vector2(1, 1)));
-    }
 }
 
 RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
@@ -106,6 +102,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
 	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
 	out.uniformColor= glGetUniformLocation(out.program, "vColor");
+    out.uniformCamera = glGetUniformLocation(out.program, "uCamera");
 #ifdef USE_VBO
 	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
 	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
@@ -283,29 +280,33 @@ void RenderingSystem::DoUpdate(float) {
         LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
     }
 
-    // outQueue.commands.clear();
+    // retrieve all render targets
+    std::vector<Entity> renderTargets = theRenderTargetSystem.RetrieveAllEntityWithComponent();
+    // remove non active ones
+    std::remove_if(renderTargets.begin(), renderTargets.end(), RenderTargetSystem::isDisabled);
+    // sort along z
+    std::sort(renderTargets.begin(), renderTargets.end(), RenderTargetSystem::sortAlongZ);
+
     outQueue.count = 0;
-    for (int camIdx = 0; camIdx<cameras.size(); camIdx++) {//cameras.size()-1; camIdx >= 0; camIdx--) {
-        const Camera& camera = cameras[camIdx];
-        if (!camera.enable)
-            continue;
+    for (unsigned idx = 0; idx<renderTargets.size(); idx++) {
+        const Entity camera = RENDER_TARGET(renderTargets[idx])->camera;
+        const TransformationComponent* camTrans = TRANSFORM(camera);
 
     	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
-        const float camLeft = (camera.worldPosition.X - camera.worldSize.X * 0.5);
-        const float camRight = (camera.worldPosition.X + camera.worldSize.X * 0.5);
+
     	/* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
-            bool ccc = rc->cameraBitMask & (0x1 << camIdx);
-    		if (rc->hide || rc->color.a <= 0 || !ccc) {
+            bool ccc = rc->cameraBitMask & (0x1 << idx);
+    		if (rc->hide || rc->color.a <= 0 /*|| !ccc */) {
     			continue;
     		}
 
     		const TransformationComponent* tc = TRANSFORM(a);
-            if (!isVisible(tc, camIdx)) {
+            if (!IntersectionUtil::rectangleRectangle(camTrans, tc)) {
                 continue;
             }
-		if (!tc->worldZ) LOGW("Entity %ld: RENDERING()->z = 0, entity won't be rendable", a);
-	       ASSERT(tc->worldZ >= 0 && tc->worldZ <= 1, "Entity " << a << ": rendering->z=" << tc->worldZ << " outside allowed interval [0, 1]");
+		    if (!tc->worldZ) LOGW("Entity %ld: RENDERING()->z = 0, entity won't be rendable", a);
+            ASSERT(tc->worldZ >= 0 && tc->worldZ <= 1, "Entity " << a << ": rendering->z=" << tc->worldZ << " outside allowed interval [0, 1]");
 
     		RenderCommand c;
     		c.z = tc->worldZ;
@@ -335,57 +336,8 @@ void RenderingSystem::DoUpdate(float) {
                     }
                 }
                 modifyQ(c, info.reduxStart, info.reduxSize);
-                #ifndef USEE_VBO
-
-                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
-                    c.color.a >= 1 &&
-                    info.opaqueSize != Vector2::Zero &&
-                    !rc->zPrePass) {
-                    // add a smaller full-opaque block at the center
-                    RenderCommand cCenter(c);
-                    cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
-                    modifyR(cCenter, info.opaqueStart, info.opaqueSize);
-
-                    if (cull(camLeft, camRight, cCenter))
-                        opaqueCommands.push_back(cCenter);
-
-                    const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
-                    const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
-                    if (leftBorder > 0) {
-                        RenderCommand cLeft(c);
-                        modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                        if (cull(camLeft, camRight, cLeft))
-                            semiOpaqueCommands.push_back(cLeft);
-                    }
-
-                    if (rightBorder < 1) {
-                        RenderCommand cRight(c);
-                        modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                        if (cull(camLeft, camRight, cRight))
-                            semiOpaqueCommands.push_back(cRight);
-                    }
-
-                    RenderCommand cTop(c);
-                    modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
-                    if (cull(camLeft, camRight, cTop))
-                        semiOpaqueCommands.push_back(cTop);
-
-                    RenderCommand cBottom(c);
-                    modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
-                    if (cull(camLeft, camRight, cBottom))
-                        semiOpaqueCommands.push_back(cBottom);
-                    continue;
-                }
-                #endif
              }
 
-             #ifndef USE_VBO
-             if (!rc->fastCulling) {
-                if (!cull(camLeft, camRight, c)) {
-                    continue;
-                }
-             }
-             #endif
              switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
@@ -407,12 +359,7 @@ void RenderingSystem::DoUpdate(float) {
 
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
-        dummy.halfSize = camera.worldPosition;
-        dummy.uv[0] = camera.worldSize;
-        dummy.uv[1] = camera.screenPosition;
-        dummy.position = camera.screenSize;
-        dummy.effectRef = camera.mirrorY;
-        dummy.rotateUV = cccc;
+        packCameraAttributes(camTrans, TRANSFORM(renderTargets[idx]), RENDER_TARGET(renderTargets[idx]), dummy);
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);//&outQueue.commands[outQueue.count]);
@@ -455,6 +402,8 @@ bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
 }
 
 bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) const {
+    return true;
+    #if 0
     if (cameraIndex < 0) {
         for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
             if (isVisible(tc, camIdx)) {
@@ -473,34 +422,15 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 	if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
 	if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
 	return true;
+    #endif
 }
 
 int RenderingSystem::saveInternalState(uint8_t** out) {
 	int size = 0;
-    size += sizeof(int) + cameras.size() * sizeof(Camera);
-	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
-		size += (*it).first.length() + 1;
-		size += sizeof(TextureRef);
-		size += sizeof(TextureInfo);
-	}
 
 	*out = new uint8_t[size];
 	uint8_t* ptr = *out;
-    int camCount = cameras.size();
-    LOGI("Will save %d cameras", camCount);
-    ptr = (uint8_t*) mempcpy(ptr, &camCount, sizeof(int));
-    for (int i=0; i<camCount; i++) {
-        const Camera& cam = cameras[i];
-        ptr = (uint8_t*) mempcpy(ptr, &cam, sizeof(Camera));
-        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d",
-            i,
-            cam.worldPosition.X, cam.worldPosition.Y,
-            cam.worldSize.X, cam.worldSize.Y,
-            cam.screenPosition.X, cam.screenPosition.Y,
-            cam.screenSize.X, cam.screenSize.Y,
-            cam.enable, cam.mirrorY
-            );
-    }
+
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
 		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
@@ -515,26 +445,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 	nextValidRef = 1;
 	nextEffectRef = 1;
 	int idx = 0;
-    int camCount = 0;
-    LOGI("Clearing cameras");
-    cameras.clear();
-    memcpy(&camCount, &in[idx], sizeof(int));
-    LOGI("Will restore %d cameras", camCount);
-    idx += sizeof(int);
-    for (int i=0; i<camCount; i++) {
-        Camera cam;
-        memcpy(&cam, &in[idx], sizeof(Camera));
-        idx += sizeof(Camera);
-        cameras.push_back(cam);
-        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d",
-            i,
-            cam.worldPosition.X, cam.worldPosition.Y,
-            cam.worldSize.X, cam.worldSize.Y,
-            cam.screenPosition.X, cam.screenPosition.Y,
-            cam.screenSize.X, cam.screenSize.Y,
-            cam.enable, cam.mirrorY
-            );
-    }
+
 	while (idx < size) {
 		char name[128];
 		int i=0;
@@ -611,4 +522,36 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
     pthread_cond_signal(&cond[C_RENDER_DONE]);
     pthread_mutex_unlock(&mutexes[L_RENDER]);
 #endif
+}
+
+void packCameraAttributes(
+    const TransformationComponent* camera,
+    const TransformationComponent* renderZone,
+    const RenderTargetComponent* renderAttr,
+    RenderingSystem::RenderCommand& out) {
+    out.uv[0] = camera->worldPosition;
+    out.uv[1] = camera->size;
+    out.z = camera->worldRotation;
+
+    out.halfSize = renderZone->size;
+    out.position = renderZone->worldPosition;
+    out.rotation = renderZone->worldRotation;
+
+    out.mirrorH = renderAttr->mirrorY;
+}
+
+void unpackCameraAttributes(
+    const RenderingSystem::RenderCommand& in,
+    TransformationComponent* camera,
+    TransformationComponent* renderZone,
+    RenderTargetComponent* renderAttr) {
+    camera->worldPosition = in.uv[0];
+    camera->size = in.uv[1];
+    camera->worldRotation = in.z;
+
+    renderZone->size = in.halfSize;
+    renderZone->worldPosition = in.position;
+    renderZone->worldRotation = in.rotation;
+
+    renderAttr->mirrorY = in.mirrorH;
 }

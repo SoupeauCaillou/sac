@@ -1,5 +1,6 @@
 #include "EntityManager.h"
 #include "MathUtil.h"
+#include "systems/System.h"
 #include <cstring>
 
 #if defined(ANDROID) || defined(EMSCRIPTEN)

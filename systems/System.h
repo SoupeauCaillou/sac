@@ -9,14 +9,13 @@
 #include <cassert>
 #include <climits>
 
+#include "base/Entity.h"
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
 
 // #define USE_VECTOR_STORAGE 1
-
-#define Entity unsigned long
 
 #define COMPONENT(x) struct x##Component
 #define PERSISTENT_PROP

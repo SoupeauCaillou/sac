@@ -18,12 +18,12 @@ void TouchInputManager::init(Vector2 pWorldSize, Vector2 pWindowSize) {
 }
 
 static Vector2 absoluteToCameraPos(const Vector2& pos) {
-    for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
+    /*for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
         const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
         if (IntersectionUtil::pointRectangle(pos, cam.screenPosition, cam.screenSize) && cam.enable) {
             return cam.worldPosition + pos * cam.worldSize;
         }
-    }
+    }*/
     LOGW("Click outside cameras");
     return pos;
 }

@@ -1,5 +1,6 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
+#include "RenderTargetSystem.h"
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
@@ -146,10 +147,10 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     float hH = 0.5 * screenH;
     GLfloat mat[16];
     RenderingSystem::loadOrthographicMatrix(
-        -hW - rc.position.X + camera.worldPosition.X,
-        hW - rc.position.X + camera.worldPosition.X,
-        -hH - rc.position.Y + camera.worldPosition.Y,
-        hH - rc.position.Y + camera.worldPosition.Y,
+        -hW - rc.position.X, // + camera.worldPosition.X,
+        hW - rc.position.X, // + camera.worldPosition.X,
+        -hH - rc.position.Y, // + camera.worldPosition.Y,
+        hH - rc.position.Y, // + camera.worldPosition.Y,
         0, 1, mat);
     GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
     float scaleZ[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y, rc.z };
@@ -185,18 +186,22 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera, bool colorEnabled) {
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled) {
 	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled);
 	GL_OPERATION(glUseProgram(shader.program))
-	GLfloat mat[16];
+	GLfloat mat[16], camera[3];
 
 #ifndef USE_VBO
-    const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X);
-    const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
-    const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
-    const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
-	loadOrthographicMatrix(left, right, camera.mirrorY ? top : bottom, camera.mirrorY ? bottom : top, 0, 1, mat);
+    const float left = (-cameraTransf.size.X * 0.5);
+    const float right = (cameraTransf.size.X * 0.5);
+    const float bottom = (-cameraTransf.size.Y * 0.5);
+    const float top = (cameraTransf.size.Y * 0.5);
+	loadOrthographicMatrix(left, right, bottom /*camera.mirrorY ? top : bottom*/, top /*camera.mirrorY ? bottom : top*/, 0, 1, mat);
 	GL_OPERATION(glUniform1fv(shader.uniformMatrix, 6, mat))
+    camera[0] = cameraTransf.worldPosition.X;
+    camera[1] = cameraTransf.worldPosition.Y;
+    camera[2] = cameraTransf.worldRotation;
+    GL_OPERATION(glUniform3fv(shader.uniformCamera, 1, camera))
 #endif
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
@@ -214,7 +219,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
-    Camera camera;
+    struct {
+        TransformationComponent worldPos;
+        TransformationComponent renderArea;
+        RenderTargetComponent renderAttr;
+    } camera;
 	int batchSize = 0;
     GL_OPERATION(glDepthMask(true))
     GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
@@ -241,19 +250,17 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #endif
 
             firstCall = true;
-            camera.worldPosition = rc.halfSize;
-            camera.worldSize = rc.uv[0];
-            camera.screenPosition = rc.uv[1];
-            camera.screenSize = rc.position;
-            camera.mirrorY = rc.effectRef;
+            unpackCameraAttributes(rc, &camera.worldPos, &camera.renderArea, &camera.renderAttr);
+            assert (camera.renderArea.worldRotation == 0);
 
+            const Vector2 size(camera.renderArea.size.X / screenW, camera.renderArea.size.Y / screenH);
 			GL_OPERATION(glViewport(
-		        (camera.screenPosition.X - camera.screenSize.X * 0.5 + 0.5) * windowW,
-		        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
-		        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
+		        (camera.renderArea.worldPosition.X - size.X * 0.5 + 0.5) * windowW,
+		        (camera.renderArea.worldPosition.Y - size.Y * 0.5 + 0.5) * windowH,
+		        windowW * size.X, windowH * size.Y))
 
             // setup initial GL state
-            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
@@ -275,7 +282,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 firstCall = false;
                 GL_OPERATION(glEnable(GL_BLEND))
                 if (currentEffect == DefaultEffectRef) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
                 }
             } else if (rc.flags & DisableBlendingBit) {
                  GL_OPERATION(glDisable(GL_BLEND))
@@ -283,14 +290,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 GL_OPERATION(glColorMask(true, true, true, true))
                 if (!(currentFlags & EnableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
                     }
                 }
             } else if (rc.flags & DisableColorWriteBit) {
                 GL_OPERATION(glColorMask(false, false, false, false))
                 if (!(currentFlags & DisableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera, false);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos, false);
                     }
                 }
             }
@@ -300,7 +307,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
 			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera, currentFlags & EnableColorWriteBit);
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera.worldPos, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING

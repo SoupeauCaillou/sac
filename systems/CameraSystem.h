@@ -14,22 +14,18 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with sac.  If not, see <http://www.gnu.org/licenses/>.
+    along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #pragma once
 
 #include "System.h"
 
-struct CameraDepComponent {
-    Vector2 screenScalePosition;
-    Vector2 screenScaleSize;
-    int cameraIndex;
+struct CameraComponent {
+
 };
 
-#define theCameraDepSystem CameraDepSystem::GetInstance()
-#define CAMERA_DEP(e) theCameraDepSystem.Get(e)
+#define theCameraSystem CameraSystem::GetInstance()
+#define CAMERA(e) theCameraSystem.Get(e)
 
-UPDATABLE_SYSTEM(CameraDep)
-
+UPDATABLE_SYSTEM(Camera)
 };

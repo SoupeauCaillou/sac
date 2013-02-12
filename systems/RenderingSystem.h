@@ -89,15 +89,6 @@ public:
 int windowW, windowH;
 float screenW, screenH;
 
-struct Camera {
-    Camera() {}
-    Camera(const Vector2& pWorldPos, const Vector2& pWorldSize, const Vector2& pScreenPos, const Vector2& pScreenSize) :
-        worldPosition(pWorldPos), worldSize(pWorldSize), screenPosition(pScreenPos), screenSize(pScreenSize), enable(true), mirrorY(false) {}
-    Vector2 worldPosition, worldSize;
-    Vector2 screenPosition, screenSize;
-    bool enable, mirrorY;
-};
-
 /* textures cache */
 TextureRef nextValidRef;
 std::map<std::string, TextureRef> assetTextures;
@@ -174,7 +165,6 @@ std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
-std::vector<Camera> cameras;
 
 bool newFrameReady, frameQueueWritable;
 int currentWriteQueue;
@@ -194,7 +184,7 @@ public:
 #endif
 struct Shader {
 	GLuint program;
-	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
+	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor, uniformCamera;
 	#ifdef USE_VBO
 	GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
 	#endif
@@ -219,7 +209,7 @@ public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
-EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const Camera& camera, bool colorEnabled = true);
+EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled = true);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
 Vector2 getTextureSize(const std::string& textureName) const;
 void removeExcessiveFrames(int& readQueue, int& writeQueue);

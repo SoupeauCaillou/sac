@@ -102,8 +102,8 @@
     <Compile Include="api\android\CommunicationAPIAndroidImpl.cpp" />
     <Compile Include="util\Recorder.cpp" />
     <Compile Include="util\LevelEditor.cpp" />
-    <Compile Include="systems\CameraDepSystem.cpp" />
-    <Compile Include="systems\CameraTargetSystem.cpp" />
+    <Compile Include="systems\CameraSystem.cpp" />
+    <Compile Include="systems\RenderTargetSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -183,8 +183,9 @@
     <None Include="util\Recorder.h" />
     <None Include="util\LevelEditor.h" />
     <None Include="api\linux\CommunicationAPILinuxImpl.h" />
-    <None Include="systems\CameraDepSystem.h" />
-    <None Include="systems\CameraTargetSystem.h" />
+    <None Include="base\Entity.h" />
+    <None Include="systems\CameraSystem.h" />
+    <None Include="systems\RenderTargetSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

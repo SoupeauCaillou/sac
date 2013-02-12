@@ -1,11 +1,14 @@
 #pragma once
 
-#include "systems/System.h"
+#include "Entity.h"
 #define theEntityManager (*EntityManager::Instance())
 
 #include <map>
 #include <list>
+#include <vector>
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
+
+class ComponentSystem;
 
 namespace EntityType {
     enum Enum {
