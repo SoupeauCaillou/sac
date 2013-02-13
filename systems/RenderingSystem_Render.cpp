@@ -1,6 +1,7 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
-#include "RenderTargetSystem.h"
+#include "CameraSystem.h"
+#include "TransformationSystem.h"
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
@@ -58,25 +59,35 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
 bool firstCall;
+
+RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo) {
+    if (useFbo) {
+        RenderingSystem::Framebuffer b = ref2Framebuffers[fbo];
+        return std::make_pair(b.texture, b.texture);
+    } else {
+        return std::make_pair(tex.color, tex.alpha);
+    }
+} 
+
 #ifdef USE_VBO
 #define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
-static int drawBatchES2(const RenderingSystem::InternalTexture& glref, bool rotateUV, int batchSize) {
+static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, bool rotateUV, int batchSize) {
 #else
 #define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, vert, uv, indices, batchSize)
-static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
+static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 #endif
     if (batchSize > 0)
     {
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
-    	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
+    	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
 
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
     	if (firstCall) {
     		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
     	} else {
             GL_OPERATION(glActiveTexture(GL_TEXTURE1))
-    		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
+    		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
     	}
 
     #ifdef USE_VBO
@@ -221,18 +232,19 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
     struct {
         TransformationComponent worldPos;
-        TransformationComponent renderArea;
-        RenderTargetComponent renderAttr;
+        CameraComponent cameraAttr;
     } camera;
 	int batchSize = 0;
     GL_OPERATION(glDepthMask(true))
-    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+    
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid;
+    FramebufferRef fboRef = DefaultFrameBufferRef;
 	Color currentColor(1,1,1,1);
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
     int currentFlags = 0;
+    bool useFbo = false;
 
 	EffectRef currentEffect = InvalidTextureRef;
     const unsigned count = commands.count;
@@ -241,7 +253,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // HANDLE BEGIN/END FRAME MARKERS
         if (rc.texture == BeginFrameMarker) {
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 
             #ifdef ENABLE_PROFILING
             std::stringstream framename;
@@ -250,20 +262,25 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #endif
 
             firstCall = true;
-            unpackCameraAttributes(rc, &camera.worldPos, &camera.renderArea, &camera.renderAttr);
-            assert (camera.renderArea.worldRotation == 0);
+            unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
 
-            const Vector2 size(camera.renderArea.size.X / screenW, camera.renderArea.size.Y / screenH);
-			GL_OPERATION(glViewport(
-		        (camera.renderArea.worldPosition.X - size.X * 0.5 + 0.5) * windowW,
-		        (camera.renderArea.worldPosition.Y - size.Y * 0.5 + 0.5) * windowH,
-		        windowW * size.X, windowH * size.Y))
+            FramebufferRef fboRef = camera.cameraAttr.fb;
+            if (fboRef == DefaultFrameBufferRef) {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                GL_OPERATION(glViewport(0, 0, windowW, windowH))
+            } else {
+                const Framebuffer& fb = ref2Framebuffers[fboRef];
+                glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
+                GL_OPERATION(glViewport(0, 0, fb.width, fb.height))
+            }
 
             // setup initial GL state
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
+            GL_OPERATION(glClearColor(camera.cameraAttr.clearColor.r, camera.cameraAttr.clearColor.g, camera.cameraAttr.clearColor.b, camera.cameraAttr.clearColor.a))
+            GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
             currentFlags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
             continue;
         } else if (rc.texture == EndFrameMarker) {
@@ -273,7 +290,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
             // flush batch before changing state
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
             if (rc.flags & EnableZWriteBit) {
                 GL_OPERATION(glDepthMask(true))
             } else if (rc.flags & DisableZWriteBit) {
@@ -306,18 +323,23 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // EFFECT HAS CHANGED ?
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
-			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera.worldPos, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING
 		if (rc.texture != InvalidTextureRef) {
-            const TextureInfo& info = textures[rc.texture];
-            #ifdef USE_VBO
-            computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
-            #else
-            computeUV(rc, info);
-            #endif
+            if (!rc.fbo) {
+                const TextureInfo& info = textures[rc.texture];
+                #ifdef USE_VBO
+                computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
+                #else
+                computeUV(rc, info);
+                #endif
+            } else {
+                rc.uv[0] = Vector2::Zero;
+                rc.uv[1] = Vector2(1,1);
+            }
 		} else {
 			rc.glref = InternalTexture::Invalid;
 			rc.glref.color = whiteTexture;
@@ -334,10 +356,17 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // TEXTURE OR COLOR HAS CHANGED ?
-		if (boundTexture != rc.glref || currentColor != rc.color) {
+		if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
             // flush before changing texture/color
-			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-			boundTexture = rc.glref;
+			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+            if (rc.fbo) {
+                fboRef = rc.framebuffer;
+                boundTexture = InternalTexture::Invalid;
+            } else {
+                fboRef = DefaultFrameBufferRef;
+                boundTexture = rc.glref;
+            }
+			useFbo = rc.fbo;
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
 	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformColor, 1, currentColor.rgba))
@@ -353,10 +382,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, rc.rotateUV);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, rc.rotateUV);
 		}
 	}
-    batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+    batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 }
 #include <errno.h>
 

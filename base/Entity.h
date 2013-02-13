@@ -18,21 +18,5 @@
 */
 #pragma once
 
-#include "System.h"
-
-struct RenderTargetComponent {
-    RenderTargetComponent() : z(0), enable(false), mirrorY(false), camera(0) {}
-    float z;
-    bool enable, mirrorY;
-    Entity camera;
-};
-
-#define theRenderTargetSystem RenderTargetSystem::GetInstance()
-#define RENDER_TARGET(e) theRenderTargetSystem.Get(e)
-
-UPDATABLE_SYSTEM(RenderTarget)
-
-public:
-    static bool isDisabled(Entity e);
-    static bool sortAlongZ(Entity e, Entity f);
-};
+#include <stdint.h>
+typedef uint64_t Entity;

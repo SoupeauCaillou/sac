@@ -19,13 +19,24 @@
 #pragma once
 
 #include "System.h"
+#include "RenderingSystem.h"
 
 struct CameraComponent {
-
+    CameraComponent() : fb(DefaultFrameBufferRef), clearColor(0,0,0), enable(false), order(0) {}
+    // assume complete draw of FB
+    FramebufferRef fb;
+    Color clearColor;
+    bool enable;
+    int order;
+    int id;
 };
 
 #define theCameraSystem CameraSystem::GetInstance()
 #define CAMERA(e) theCameraSystem.Get(e)
 
 UPDATABLE_SYSTEM(Camera)
+
+public:
+    static bool isDisabled(Entity e);
+    static bool sort(Entity e, Entity f);
 };

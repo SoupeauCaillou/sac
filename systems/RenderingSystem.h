@@ -20,7 +20,6 @@
 #include "../api/AssetAPI.h"
 
 #include "System.h"
-#include "TransformationSystem.h"
 
 typedef int TextureRef;
 #define InvalidTextureRef -1
@@ -32,22 +31,28 @@ typedef int TextureRef;
 typedef int EffectRef;
 #define DefaultEffectRef -1
 
-struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(0x1) {}
+typedef int FramebufferRef;
+#define DefaultFrameBufferRef -1
 
-	TextureRef texture;
+class TransformationComponent;
+
+struct RenderingComponent {
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(0x1) {
+        fbo = false;
+    }
+
+    union {
+	    TextureRef texture;
+        FramebufferRef framebuffer;
+    };
 	EffectRef effectRef;
 	Color color;
-	bool hide, mirrorH, zPrePass, fastCulling;
+	bool hide, mirrorH, zPrePass, fastCulling, fbo;
 	enum Opacity {
 		NON_OPAQUE = 0,
-		FULL_OPAQUE,
-		OPAQUE_ABOVE,
-		OPAQUE_UNDER,
-		OPAQUE_CENTER,
+		FULL_OPAQUE
 	} ;
 	Opacity opaqueType;
-	float opaqueSeparation; // €[0, 1], meaning depends of opaqueType
     unsigned cameraBitMask;
 };
 
@@ -71,6 +76,8 @@ void setWindowSize(int w, int h, float sW, float sH);
 
 TextureRef loadTextureFile(const std::string& assetName);
 EffectRef loadEffectFile(const std::string& assetName);
+FramebufferRef createFramebuffer(const std::string& fbName, int width, int height);
+FramebufferRef getFramebuffer(const std::string& fbName) const ;
 void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
 public:
@@ -110,28 +117,8 @@ struct InternalTexture {
 	static InternalTexture Invalid;
 };
 
-struct RenderCommand {
-	float z;
-	EffectRef effectRef;
-	union {
-		TextureRef texture;
-		InternalTexture glref;
-	};
-	unsigned int rotateUV;
-	Vector2 uv[2];
-	Vector2 halfSize;
-	Color color;
-	Vector2 position;
-	float rotation;
-    int flags;
-    bool mirrorH;
-};
-
-struct RenderQueue {
-	RenderQueue() : count(0) {}
-	uint16_t count;
-	std::vector<RenderCommand> commands;
-};
+struct RenderCommand;
+struct RenderQueue;
 
 struct TextureInfo {
     // GL texture(s)
@@ -160,15 +147,23 @@ struct Atlas {
 	InternalTexture glref;
 };
 
+struct Framebuffer {
+    GLuint fbo, rbo, texture;
+    int width, height;
+};
+
 std::map<TextureRef, TextureInfo> textures;
 std::set<std::string> delayedLoads;
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
+FramebufferRef nextValidFBRef;
+std::map<std::string, FramebufferRef> nameToFramebuffer;
+std::map<FramebufferRef, Framebuffer> ref2Framebuffers;
 
 bool newFrameReady, frameQueueWritable;
 int currentWriteQueue;
-RenderQueue renderQueue[2];
+RenderQueue* renderQueue;
 #ifdef USE_VBO
 public:
 GLuint squareBuffers[3];
@@ -216,4 +211,6 @@ void removeExcessiveFrames(int& readQueue, int& writeQueue);
 bool pvrSupported;
 
 void setFrameQueueWritable(bool b);
+typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
+ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 };

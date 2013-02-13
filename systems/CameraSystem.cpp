@@ -28,3 +28,10 @@ void CameraSystem::DoUpdate(float dt) {
     // no need
 }
 
+bool CameraSystem::isDisabled(Entity e) {
+    return !CAMERA(e)->enable;
+}
+
+bool CameraSystem::sort(Entity e, Entity f) {
+    return CAMERA(e)->order < CAMERA(f)->order;
+}

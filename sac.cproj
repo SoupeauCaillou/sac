@@ -103,7 +103,6 @@
     <Compile Include="util\Recorder.cpp" />
     <Compile Include="util\LevelEditor.cpp" />
     <Compile Include="systems\CameraSystem.cpp" />
-    <Compile Include="systems\RenderTargetSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -185,7 +184,6 @@
     <None Include="api\linux\CommunicationAPILinuxImpl.h" />
     <None Include="base\Entity.h" />
     <None Include="systems\CameraSystem.h" />
-    <None Include="systems\RenderTargetSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

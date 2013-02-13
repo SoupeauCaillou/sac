@@ -1,7 +1,8 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
-#include "RenderTargetSystem.h"
+#include "TransformationSystem.h"
+#include "CameraSystem.h"
 #include <cmath>
 #include <sstream>
 #include "base/MathUtil.h"
@@ -24,6 +25,7 @@ INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), initDone(false) {
 	nextValidRef = nextEffectRef = 1;
+    nextValidFBRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
     newFrameReady = false;
@@ -48,6 +50,8 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;
+
+    renderQueue = new RenderQueue[2];
 }
 
 RenderingSystem::~RenderingSystem() {
@@ -59,6 +63,7 @@ RenderingSystem::~RenderingSystem() {
     pthread_cond_destroy(&cond[1]);
 #endif
     initDone = false;
+    delete[] renderQueue;
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
@@ -280,24 +285,25 @@ void RenderingSystem::DoUpdate(float) {
         LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
     }
 
-    // retrieve all render targets
-    std::vector<Entity> renderTargets = theRenderTargetSystem.RetrieveAllEntityWithComponent();
+    // retrieve all cameras
+    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     // remove non active ones
-    std::remove_if(renderTargets.begin(), renderTargets.end(), RenderTargetSystem::isDisabled);
+    std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
     // sort along z
-    std::sort(renderTargets.begin(), renderTargets.end(), RenderTargetSystem::sortAlongZ);
+    std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
 
     outQueue.count = 0;
-    for (unsigned idx = 0; idx<renderTargets.size(); idx++) {
-        const Entity camera = RENDER_TARGET(renderTargets[idx])->camera;
+    for (unsigned idx = 0; idx<cameras.size(); idx++) {
+        const Entity camera = cameras[idx];
+        const CameraComponent* camComp = CAMERA(camera);
         const TransformationComponent* camTrans = TRANSFORM(camera);
 
     	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
     	/* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
-            bool ccc = rc->cameraBitMask & (0x1 << idx);
-    		if (rc->hide || rc->color.a <= 0 /*|| !ccc */) {
+            bool ccc = rc->cameraBitMask & (0x1 << camComp->id);
+    		if (rc->hide || rc->color.a <= 0 || !ccc ) {
     			continue;
     		}
 
@@ -319,6 +325,7 @@ void RenderingSystem::DoUpdate(float) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
+            c.fbo = rc->fbo;
             if (rc->zPrePass) {
                 c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
@@ -327,7 +334,7 @@ void RenderingSystem::DoUpdate(float) {
                 c.flags = (DisableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
             }
 
-            if (c.texture != InvalidTextureRef) {
+            if (c.texture != InvalidTextureRef && !c.fbo) {
                 const TextureInfo& info = textures[c.texture];
                 int atlasIdx = info.atlasIndex;
                 if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
@@ -359,7 +366,7 @@ void RenderingSystem::DoUpdate(float) {
 
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
-        packCameraAttributes(camTrans, TRANSFORM(renderTargets[idx]), RENDER_TARGET(renderTargets[idx]), dummy);
+        packCameraAttributes(camTrans, camComp, dummy);
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);//&outQueue.commands[outQueue.count]);
@@ -427,6 +434,12 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 
 int RenderingSystem::saveInternalState(uint8_t** out) {
 	int size = 0;
+
+    for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+        size += (*it).first.length() + 1;
+        size += sizeof(TextureRef);
+        size += sizeof(TextureInfo);
+    }
 
 	*out = new uint8_t[size];
 	uint8_t* ptr = *out;
@@ -524,34 +537,78 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
 #endif
 }
 
+FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int width, int height) {
+    Framebuffer fb;
+    fb.width = width;
+    fb.height = height;
+
+    // create a texture object
+    glGenTextures(1, &fb.texture);
+    glBindTexture(GL_TEXTURE_2D, fb.texture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // create a renderbuffer object to store depth info
+    glGenRenderbuffers(1, &fb.rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb.rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // create a framebuffer object
+    glGenFramebuffers(1, &fb.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
+
+    // attach the texture to FBO color attachment point
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
+    // attach the renderbuffer to depth attachment point
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb.rbo);
+
+    // check FBO status
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if(status != GL_FRAMEBUFFER_COMPLETE)
+        LOGE("FBO not complete: %d", status);
+
+    // switch back to window-system-provided framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    FramebufferRef result = nextValidFBRef++;
+    nameToFramebuffer[name] = result;
+    ref2Framebuffers[result] = fb;
+    return result;
+}
+
+FramebufferRef RenderingSystem::getFramebuffer(const std::string& fbName) const {
+    std::map<std::string, FramebufferRef>::const_iterator it = nameToFramebuffer.find(fbName);
+    if (it == nameToFramebuffer.end())
+        LOGE("Framebuffer '%s' does not exist", fbName.c_str());
+    return it->second;
+}
+
 void packCameraAttributes(
-    const TransformationComponent* camera,
-    const TransformationComponent* renderZone,
-    const RenderTargetComponent* renderAttr,
+    const TransformationComponent* cameraTrans,
+    const CameraComponent* cameraComp,
     RenderingSystem::RenderCommand& out) {
-    out.uv[0] = camera->worldPosition;
-    out.uv[1] = camera->size;
-    out.z = camera->worldRotation;
+    out.uv[0] = cameraTrans->worldPosition;
+    out.uv[1] = cameraTrans->size;
+    out.z = cameraTrans->worldRotation;
 
-    out.halfSize = renderZone->size;
-    out.position = renderZone->worldPosition;
-    out.rotation = renderZone->worldRotation;
-
-    out.mirrorH = renderAttr->mirrorY;
+    out.rotateUV = cameraComp->fb;
+    out.color = cameraComp->clearColor;
 }
 
 void unpackCameraAttributes(
     const RenderingSystem::RenderCommand& in,
     TransformationComponent* camera,
-    TransformationComponent* renderZone,
-    RenderTargetComponent* renderAttr) {
+    CameraComponent* ccc) {
     camera->worldPosition = in.uv[0];
     camera->size = in.uv[1];
     camera->worldRotation = in.z;
 
-    renderZone->size = in.halfSize;
-    renderZone->worldPosition = in.position;
-    renderZone->worldRotation = in.rotation;
-
-    renderAttr->mirrorY = in.mirrorH;
+    ccc->fb = in.rotateUV;
+    ccc->clearColor = in.color;
 }
