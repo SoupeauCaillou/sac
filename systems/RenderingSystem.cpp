@@ -306,6 +306,7 @@ void RenderingSystem::DoUpdate(float) {
             }
 		if (!tc->worldZ) LOGW("Entity %ld: RENDERING()->z = 0, entity won't be rendable", a);
 	       ASSERT(tc->worldZ >= 0 && tc->worldZ <= 1, "Entity " << a << ": rendering->z=" << tc->worldZ << " outside allowed interval [0, 1]");
+			ASSERT(tc->size != Vector2::Zero, "Null size for " << a);
 
     		RenderCommand c;
     		c.z = tc->worldZ;
