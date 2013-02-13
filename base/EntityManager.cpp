@@ -35,7 +35,11 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(EntityType::Enum type) {
+Entity EntityManager::CreateEntity(const std::string&
+        #ifdef DEBUG
+            name
+        #endif
+        , EntityType::Enum type) {
 	Entity e = nextEntity++;
 
 	switch (type) {
@@ -47,8 +51,32 @@ Entity EntityManager::CreateEntity(EntityType::Enum type) {
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
+    #ifdef DEBUG
+    if (name2entity.find(name) != name2entity.end()) {
+        name2entity.insert(std::make_pair(name, e));
+    } else {
+        std::stringstream namesuffix(name);
+        do {
+            namesuffix << MathUtil::RandomInt(10);
+        } while (name2entity.find(namesuffix.str()) != name2entity.end());
+        name2entity.insert(std::make_pair(name, e));
+    }
+    #endif
 	return e;
 }
+
+#ifdef DEBUG
+const std::string& EntityManager::entityName(Entity e) const {
+    for (std::map<std::string, Entity>::const_iterator it=name2entity.begin();
+        it!=name2entity.end(); ++it) {
+        if (e == it->second)
+            return it->first;
+    }
+    LOGW("Unknown entity: '%lu'", e);
+    static std::string u("unknown");
+    return u;
+}
+#endif
 
 void EntityManager::DeleteEntity(Entity e) {
 	std::list<ComponentSystem*>& l = entityComponents[e];

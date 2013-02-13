@@ -14,6 +14,9 @@
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
+#ifdef DEBUG
+#include "base/EntityManager.h"
+#endif
 
 // #define USE_VECTOR_STORAGE 1
 
@@ -172,7 +175,14 @@ class ComponentSystemImpl: public ComponentSystem {
                     #ifndef ANDROID
                     // crash here
                     if (failIfNotfound) {
+                        #ifdef DEBUG
+                        LOGE("Entity '%s' (%lu) has no component of type '%s'", 
+                            theEntityManager.entityName(entity).c_str(),
+                            entity,
+                            getName().c_str());
+                        #else
                         LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
+                        #endif
                         assert (false);
                     }
                     #endif
