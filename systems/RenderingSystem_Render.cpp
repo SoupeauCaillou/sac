@@ -337,8 +337,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 computeUV(rc, info);
                 #endif
             } else {
-                rc.uv[0] = Vector2::Zero;
-                rc.uv[1] = Vector2(1,1);
+                rc.uv[0] = Vector2(0, 1);
+                rc.uv[1] = Vector2(1, 0);
+                rc.rotateUV = 0;
             }
 		} else {
 			rc.glref = InternalTexture::Invalid;
