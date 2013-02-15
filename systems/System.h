@@ -40,45 +40,54 @@
 
 #if USE_VECTOR_STORAGE
     #define FOR_EACH_ENTITY(ent) \
-        for(std::vector<EntityNextFree>::iterator it=entityWithComponent.begin(); it!=entityWithComponent.end(); ++it) { \
+        for(std::vector<EntityNextFree>::iterator it=entityWithComponent.begin(); it!=entityWithComponent.end();) { \
             Entity ent = *it;\
+            ++it; \
             if (ent == 0) continue;
 
     #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
-        for(unsigned ___i=0, ___s=components.size(); ___i<___s; ++___i) {\
+        for(unsigned ___i=0, ___s=components.size(); ___i<___s;) {\
             Entity ent = entityWithComponent[___i].entity;\
-            if (ent == 0) continue; \
-            type##Component* comp = &components[___i];
+            if (ent == 0) { ++___i; continue; } \
+            type##Component* comp = &components[___i]; \
+            ++___i;
 #else
     #define FOR_EACH_ENTITY(type, ent) \
-        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
-            Entity ent = it->first;
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end();) { \
+            Entity ent = it->first; \
+				++it;
 
     #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
-        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end();) { \
             Entity ent = it->first;\
-            type##Component* comp = it->second;
+            type##Component* comp = it->second; \
+				++it;
 
     #define FOR_EACH_COMPONENT(type, comp) \
-        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
-            type##Component* comp = it->second;
+        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end();) { \
+            type##Component* comp = it->second; \
+				++it;
 
 
     #define FOR_EACH_EXT_ENTITY(type, ent) \
         std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
-        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end(); ++it) { \
-            Entity ent = *it;
+        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end();) { \
+            Entity ent = *it; \
+				++it;
+
 
     #define FOR_EACH_EXT_ENTITY_COMPONENT(type, ent, comp) \
         std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
-        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end(); ++it) { \
+        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end();) { \
             Entity ent = *it;\
-	    type##Component* comp = the##type##System.Get(*it);
+				type##Component* comp = the##type##System.Get(*it); \
+				++it;
 
     #define FOR_EACH_EXT_COMPONENT(type, comp) \
         std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
-        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end(); ++it) { \
-	    type##Component* comp = the##type##System.Get(*it);
+        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end();) { \
+				type##Component* comp = the##type##System.Get(*it); \
+				++it;
 
 #endif
 
