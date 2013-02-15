@@ -1,10 +1,13 @@
 #pragma once
 
+#include "base/MathUtil.h"
 #include "../steering/SteeringBehavior.h"
 
 #include "System.h"
 
 struct AutonomousAgentComponent {
+	AutonomousAgentComponent() : seekTarget(0), fleeTarget(0) {}
+
 	float maxSpeed, maxForce;
 	union {
 		Entity seekTarget;
@@ -25,9 +28,11 @@ struct AutonomousAgentComponent {
 };
 
 #define theAutonomousAgentSystem AutonomousAgentSystem::GetInstance()
-#define AUTONOMOUS_AGENT(entity) theAutonomousAgentSystem.Get(entity)
+#define AUTONOMOUS(entity) theAutonomousAgentSystem.Get(entity)
 
 UPDATABLE_SYSTEM(AutonomousAgent)
+public:
+	static bool isArrived(Entity e);
 
 };
 
