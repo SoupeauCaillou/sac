@@ -16,24 +16,24 @@ void RenderingSystem::check_GL_errors(const char* context) {
         switch(error)
         {
             case GL_INVALID_ENUM:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_ENUM\n", maxIterations, context); break;
+            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_ENUM"; break;
             case GL_INVALID_VALUE:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_VALUE\n", maxIterations, context); break;
+                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_VALUE"; break;
             case GL_INVALID_OPERATION:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_OPERATION\n", maxIterations, context); break;
+            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_OPERATION"; break;
             case GL_OUT_OF_MEMORY:
-            	LOGE("[%2d]GL error: '%s' -> GL_OUT_OF_MEMORY\n", maxIterations, context); break;
+            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_OUT_OF_MEMORY"; break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_FRAMEBUFFER_OPERATION\n", maxIterations, context); break;
+            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_FRAMEBUFFER_OPERATION"; break;
             default:
-            	LOGE("[%2d]GL error: '%s' -> %x\n", maxIterations, context, error);
+                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> " << error; break;
         }
 		  maxIterations--;
     }
 }
 
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
-    LOGI("Compiling '%s' shader...", assetName.c_str());
+    VLOG(1) << "Compiling '" << assetName << "' shader...";
 	FileBuffer fb = assetAPI->loadAsset(assetName);
 	GLuint shader = glCreateShader(type);
 	GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, &fb.size))
@@ -46,12 +46,12 @@ GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type)
     {
         char *log = new char[logLength];
         GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
-        LOGE("GL shader error: %s\n", log);
+        LOG(ERROR) << "GL shader error: " << log;
  		delete[] log;
     }
 
    if (!glIsShader(shader)) {
-   	LOGW("Weird; %d is not a shader", shader);
+   	    LOG(ERROR) << "Weird; " << shader << "d is not a shader";
    }
 	return shader;
 }
@@ -417,7 +417,7 @@ void RenderingSystem::render() {
     //float frameready = TimeUtil::getTime();
 #endif
     if (!frameQueueWritable) {
-        LOGI("Rendering disabled");
+        LOG(INFO) << "Rendering disabled";
         #ifndef EMSCRIPTEN
         pthread_mutex_unlock(&mutexes[L_QUEUE]);
         #endif
@@ -437,7 +437,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", EndEvent);
 #ifndef EMSCRIPTEN
 	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
-		LOGW("HMM Busy render lock");
+		VLOG(1) << "HMM Busy render lock";
 		pthread_mutex_lock(&mutexes[L_RENDER]);
 	}
 #endif
@@ -454,7 +454,7 @@ void RenderingSystem::render() {
 #endif
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
-        LOGW("Arg, nothing to render - probably a bug (queue=%d)", readQueue);
+        LOG(WARNING) << "Arg, nothing to render - probably a bug (queue=" << readQueue << ')';
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);

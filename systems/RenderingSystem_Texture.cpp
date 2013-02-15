@@ -111,7 +111,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
-		LOGE("Unable to load atlas desc %s", atlasDesc.c_str());
+		LOG(FATAL) << "Unable to load atlas description file '" << atlasDesc << "'";
 		return;
 	}
 
@@ -132,14 +132,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	// read texture size
 	sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-	LOGI("atlas '%s' -> index: %d, glref: [%u, %u], size:[%f;%f] ('%s')",
-		atlasName.c_str(),
-		atlasIndex,
-		a.glref.color,
-		a.glref.alpha,
-		forceImmediateTextureLoading ? atlasSize.X : .0f,
-		forceImmediateTextureLoading ? atlasSize.Y : .0f,
-		s.c_str());
+	VLOG(1) << "atlas '" << atlasName << "' -> index: " << atlasIndex;
 	int count = 0;
 
 	do {
@@ -155,13 +148,13 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		parse(s, assetName, originalSize, reduxOffset, posInAtlas, sizeInAtlas, rot, opaqueStart, opaqueEnd);
 
 		TextureRef result = nextValidRef++;
-		LOGI("----- %s -> %d", assetName.c_str(), result);
+		VLOG(2) << "----- " << assetName << " -> " << result;
 		assetTextures[assetName] = result;
 		textures[result] = TextureInfo(a.glref, posInAtlas, sizeInAtlas, rot, atlasSize, reduxOffset, originalSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
 	} while (!s.empty());
 
 	delete[] file.data;
-	LOGI("Atlas '%s' loaded %d images", atlasName.c_str(), count);
+	VLOG(1) << "Atlas '" << atlasName << "' loaded " << count << " images";
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
@@ -171,7 +164,7 @@ void RenderingSystem::invalidateAtlasTextures() {
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
-	LOGI("Unload atlas '%s' texture", atlasName.c_str());
+	LOG(INFO) << "Unload atlas '" << atlasName << "' texture";
 	for (unsigned int idx=0; idx<atlas.size(); idx++) {
 		if (atlasName == atlas[idx].name) {
 			for(std::map<TextureRef, TextureInfo>::iterator it=textures.begin(); it!=textures.end(); ++it) {
@@ -221,10 +214,10 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	std::string aa = a.str();
 	SDL_Surface* s = IMG_Load(aa.c_str());
 	if (s == 0) {
-		LOGE("Failed to load %s", a.str().c_str());
+		LOG(WARNING) << "Failed to load '" << a.str() << "'";
 		return whiteTexture;
 	}
-	LOGI("Image format: %dx%d %d [%s]", s->w, s->h, s->format->BitsPerPixel, a.str().c_str());
+	VLOG(1) << ("Image format: " << s->w << 'x' << s->h << ' ' << s->format->BitsPerPixel);
 	image.channels = s->format->BitsPerPixel / 8;
 
 	image.width = s->w;
@@ -280,7 +273,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	}
 
 	if (png) {
-		LOGI("Using PNG texture version (%dx%d)", image.width, image.height);
+		VLOG(2) << "Using PNG texture version " << image.width << 'x' << image.height;
 	 	#ifdef EMSCRIPTEN
 	 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
 		#else
@@ -290,7 +283,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 	} else {
 	   #ifdef ANDROID
         char* ptr = image.datas;
-		LOGI("Using %s texture version (%dx%d - %d mipmap)", pvrSupported ? "PVR" : "ETC1", image.width, image.height, image.mipmap);
+		VLOG(2) << "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)";
         for (int level=0; level<=image.mipmap; level++) {
             int width = MathUtil::Max(1, image.width >> level);
             int height = MathUtil::Max(1, image.height >> level);
@@ -299,18 +292,18 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
                 imgSize =( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
-            LOGI("\t- mipmap #%d : %dx%d", level, width, height);
+            VLOG(3) << "\t- mipmap " << level << " : " << width << 'x' << height;
 		    GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
             ptr += imgSize;
 		}
 	#else
-		assert (false && "ETC compression not supported");
+        LOG(FATAL) << "ETC compression not supported";
 	#endif
 	}
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
     if (image.mipmap == 0) {
-        LOGI("Generating mipmaps");
+        VLOG(1) << "Generating mipmaps";
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 #endif
@@ -323,7 +316,7 @@ GLuint RenderingSystem::createGLTexture(const std::string& basename, bool colorO
 
 
 void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
-	LOGI("loadTexture: %s", assetName.c_str());
+	VLOG(1) << "loadTexture: '" << assetName << "'";
 
 	/* create GL texture */
  	out.color = createGLTexture(assetName, true, realSize, pow2Size);
@@ -331,13 +324,13 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 }
 
 void RenderingSystem::reloadTextures() {	
-	LOGI("Reloading textures begin");
-	LOGI("\t- atlas : %lu", atlas.size());
+	LOG(INFO) << "Reloading textures begin";
+	LOG(INFO) << "\t- atlas count: " << atlas.size();
 	// reload atlas texture
 	for (unsigned int i=0; i<atlas.size(); i++) {
 		atlas[i].glref = InternalTexture::Invalid;
 	}
-	LOGI("\t - textures: %lu", assetTextures.size());
+    LOG(INFO) << "\t- textures count: " << assetTextures.size();
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		TextureInfo& info = textures[it->second];
 		if (info.atlasIndex >= 0) {
@@ -347,7 +340,7 @@ void RenderingSystem::reloadTextures() {
 			loadTexture(it->first, size, psize, info.glref);
 		}
 	}
-	LOGI("Reloading textures done");
+	LOG(INFO) << "Reloading textures done";
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
@@ -364,7 +357,7 @@ void RenderingSystem::processDelayedTextureJobs() {
 		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
 		#endif
 		loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
-		LOGI("Atlas '%s' loaded (%u/%u)", atlas[atlasIndex].name.c_str(), atlas[atlasIndex].glref.color, atlas[atlasIndex].glref.alpha);
+		VLOG(1) << "Atlas '" << atlas[atlasIndex].name << "' loaded (" << atlas[atlasIndex].glref.color << '/' << atlas[atlasIndex].glref.alpha << ')';
 
 		for (std::map<std::string, TextureRef>::iterator jt=assetTextures.begin(); jt!=assetTextures.end(); ++jt) {
 			TextureInfo& info = textures[jt->second];
@@ -399,11 +392,11 @@ void RenderingSystem::processDelayedTextureJobs() {
         pthread_mutex_unlock(&mutexes[L_TEXTURE]);
         #endif
 		if (it->color != whiteTexture) {
-			LOGI("Color texture delete: %u", it->color);
+			VLOG(1) << "Color texture delete:" << it->color;
 			glDeleteTextures(1, &it->color);
 		}
 		if (it->alpha > 0 && it->alpha != whiteTexture) {
-			LOGI("Alpha texture delete: %u", it->alpha);
+			VLOG(1) << "Alpha texture delete: " << it->alpha;
 			glDeleteTextures(1, &it->alpha);
 		}
 	    #ifndef EMSCRIPTEN
@@ -425,7 +418,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	if (it != assetTextures.end()) {
 		result = it->second;
 	} else {
-		LOGW("Texture '%s' doesn't belong to any atlas. This is not supported", assetName.c_str());
+		LOG(FATAL) << "Texture '" << assetName << "' doesn't belong to any atlas. This is not supported";
         return InvalidTextureRef;
 	}
 	if (textures.find(result) == textures.end()) {
@@ -449,7 +442,7 @@ Vector2 RenderingSystem::getTextureSize(const std::string& textureName) const {
         const TextureInfo& info = textures.find(it->second)->second;
         return Vector2(info.originalWidth, info.originalHeight);
 	} else {
-		LOGE("Unable to find texture '%s'", textureName.c_str());
+		LOG(FATAL) << "Unable to find texture '" << textureName << "'";
 		return Vector2::Zero;
 	}
 }
@@ -458,7 +451,7 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 	if (ref != InvalidTextureRef) {
 		TextureInfo i = textures[ref];
 		if (i.atlasIndex >= 0 && !allowUnloadAtlas) {
-			LOGE("Cannot delete texture '%d' (is an atlas)", ref);
+			LOG(ERROR) << "Cannot delete texture '" << ref << "' (is an atlas";
 			return;
 		}
 		for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
@@ -475,7 +468,7 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 			}
 		}
 	} else {
-		LOGE("Tried to delete an InvalidTextureRef");
+		LOG(ERROR) << "Tried to delete an InvalidTextureRef";
 	}
 }
 

@@ -263,17 +263,14 @@ void Game::render() {
         float dt = t - prevT;
         prevT = t;
 
-        fpsStats.frameCount++;
         if (dt > fpsStats.maxDt)
             fpsStats.maxDt = dt;
         if (dt < fpsStats.minDt) {
             fpsStats.minDt = dt;
         }
-        if (fpsStats.frameCount == 1000) {
-            LOGW("FPS avg/min/max : %.2f / %.2f / %.2f",
-                fpsStats.frameCount / (t - fpsStats.since), 1.0 / fpsStats.maxDt, 1.0 / fpsStats.minDt);
-            fpsStats.reset(t);
-        }
+        LOG_EVERY_N(INFO, 1000) << "FPS avg/min/max : " <<
+            (google::COUNTER / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt);
+        fpsStats.reset(t);
     }
 
     if (0) {

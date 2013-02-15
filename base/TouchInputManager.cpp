@@ -1,5 +1,5 @@
 #include "TouchInputManager.h"
-#include "Log.h"
+#include <glog/logging.h>
 #include "../systems/RenderingSystem.h"
 #include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"
@@ -24,7 +24,7 @@ static Vector2 absoluteToCameraPos(const Vector2& pos) {
             return cam.worldPosition + pos * cam.worldSize;
         }
     }*/
-    LOGW("Click outside cameras");
+    LOG(WARNING) << "Click outside cameras";
     return pos;
 }
 

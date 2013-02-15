@@ -81,7 +81,7 @@ void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureR
         a->nextAnimWait = nextAnimWait;
         animations[name] = a;
     } else {
-        LOGW("Animation '%s' already defined", name.c_str());
+        LOG(ERROR) << "Animation '" << name << "' already defined";
     }
 }
 

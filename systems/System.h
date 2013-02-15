@@ -10,7 +10,7 @@
 #include <climits>
 
 #include "base/Entity.h"
-#include "base/Log.h"
+#include <glog/logging.h>
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
@@ -32,8 +32,8 @@
 		public:	\
             static type##System* GetInstancePointer() { return _instance; } \
 			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); LOGI(#type "System new instance created: %p", _instance);} \
-			static void DestroyInstance() { if (_instance) delete _instance; LOGI(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
+			static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
+			static void DestroyInstance() { if (_instance) delete _instance; LOG(INFO) << #type "System instance destroyed, was: " <<  _instance; _instance = NULL; } \
 			void DoUpdate(float dt); \
             void updateEntityComponent(float dt, Entity e, type##Component* t); \
 		\
@@ -84,7 +84,7 @@ class ComponentSystem {
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
-				LOGE("System with name: '%s' does not exist", n.c_str());
+                LOG(ERROR) << "System with name: '" << n << "' does not exist";
 				return 0;
 			}
 			return (*it).second;
@@ -163,7 +163,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
                     if (failIfNotfound) {
-                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
+                        LOG(ERROR) << "Entity '" << entity << "' has no component of type " << getName();
                         assert (false);
                     }
                     return 0;
@@ -176,12 +176,10 @@ class ComponentSystemImpl: public ComponentSystem {
                     // crash here
                     if (failIfNotfound) {
                         #ifdef DEBUG
-                        LOGE("Entity '%s' (%lu) has no component of type '%s'", 
-                            theEntityManager.entityName(entity).c_str(),
-                            entity,
-                            getName().c_str());
+                         LOG(ERROR) << "Entity '" << theEntityManager.entityName(entity)
+                            << "' (" << entity << ") has no component of type '" << getName();
                         #else
-                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
+                        LOG(ERROR) << "Entity '" << entity << "' has no component of type '" << getName();
                         #endif
                         assert (false);
                     }

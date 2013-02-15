@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <cassert>
-#include "base/Log.h"
+#include <glog/logging.h>
 
 #ifndef EMSCRIPTEN
 static const char* errToString(ALenum err);
@@ -39,7 +39,7 @@ void SoundAPILinuxOpenALImpl::init() {
 	#else
 	int ret = Mix_OpenAudio(0, 0, 0, 0);
 	if (ret != 0) {
-		LOGE("Mix_OpenAudio failed: %d", ret);
+		LOG(ERROR) << "Mix_OpenAudio failed: " <<ret;
 	}
 	#endif
 }
@@ -58,12 +58,12 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     const char* nm = s.c_str();
     FILE* fd = fopen(nm, "rb");
     if (!fd) {
-        LOGW("Cannot open %s", nm);
+        LOG(WARNING) << "Cannot open " << nm;
         return 0;
     }
     OggVorbis_File vf;
     if (ov_open(fd, &vf, 0, 0)) {
-        LOGW("Failed loading: %s", nm);
+        LOG(WARNING) << "Failed loading: "<< nm;
         return 0;
     }
     int bitstream;
@@ -80,7 +80,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
             break;
         readCount += n;
     } while (true);
-    LOGW("%d != %d", readCount, sizeInBytes);
+    LOG_IF(WARNING, readCount != sizeInBytes) << "Weird byte count read: " << readCount << '/' << sizeInBytes;
     assert(readCount == sizeInBytes);
 
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
@@ -94,7 +94,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 	OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
 	out->sample = Mix_LoadWAV(a.str().c_str());
 	if (out->sample == 0) {
-		LOGE("Cannot load %s", a.str().c_str());
+		LOG(WARNING) << "Cannot load " << a.str();
 	}
 	return out;
 #endif
@@ -127,7 +127,7 @@ static void check_AL_errors(const char* context) {
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOGW("OpenAL error during '%s' -> %s", context, errToString(error));
+        LOG(WARNING) << "OpenAL error during '" << context << "' -> " << errToString(error);
         maxIterations--;
         err = true;
     }

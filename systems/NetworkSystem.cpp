@@ -85,7 +85,7 @@ void NetworkSystem::DoUpdate(float dt) {
             switch (header->type) {
                 case NetworkMessageHeader::HandShake: {
                     if (header->HANDSHAKE.nonce == myNonce) {
-                        LOGW("Handshake done");
+                        LOG(INFO) << "Handshake done";
                         hsDone = true;
                     } else {
                         sendHandShakePacket(networkAPI, header->HANDSHAKE.nonce);
@@ -98,7 +98,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
                     nc->guid = header->entityGuid;
                     nc->ownedLocally = false;
-                    std::cout << "Create entity :" << e << " / " << nc->guid << std::endl;
+                    VLOG(1) << "Create entity :" << e << " / " << nc->guid;
                     break;
                 }
                 case NetworkMessageHeader::DeleteEntity: {
@@ -124,7 +124,7 @@ void NetworkSystem::DoUpdate(float dt) {
                             nc->ownedLocally = (header->CHANGE_OWNERSHIP.newOwner == 1);
                         }
                         nc->entityExistsGlobally = true;
-                        std::cout << "guid " << header->entityGuid << " changed owner : " << header->CHANGE_OWNERSHIP.newOwner << " (isLocal: " << nc->ownedLocally << ")" << std::endl;
+                        VLOG(1) << "guid " << header->entityGuid << " changed owner : " << header->CHANGE_OWNERSHIP.newOwner << " (isLocal: " << nc->ownedLocally << ")";
                     }
                     break;
                 }
@@ -202,7 +202,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         pkt.size = sizeof(NetworkMessageHeader);
         pkt.data = temp;
         SEND(pkt);
-        std::cout << "NOTIFY create : " << e << "/" << nc->guid << std::endl;
+        VLOG(1) << "NOTIFY create : " << e << "/" << nc->guid;
     }
     StatusCache& cache = statusCache[e];
 
@@ -273,7 +273,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
             nc->ownedLocally = (nc->newOwnerShipRequest==1);
         }
         nc->newOwnerShipRequest = -1;
-        std::cout << "Send change ownrship request for entity " << e << "/" << nc->guid << " :" << header->CHANGE_OWNERSHIP.newOwner << "(is local: " << nc->ownedLocally << ")" << std::endl;
+        VLOG(1) << "Send change ownrship request for entity " << e << "/" << nc->guid << " :" << header->CHANGE_OWNERSHIP.newOwner << "(is local: " << nc->ownedLocally << ")";
     }
 }
 
@@ -297,7 +297,7 @@ Entity NetworkSystem::guidToEntity(unsigned int guid) {
         if (nc->guid == guid)
             return e;
     }
-    LOGE("Did not find entity with guid: %u", guid);
+    LOG(ERROR) << "Did not find entity with guid: " << guid;
     return 0;
 }
 
@@ -310,14 +310,13 @@ void NetworkSystem::deleteAllNonLocalEntities() {
             count++;
         }
     }
-    LOGI("Removed %d non local entities", count);
+    LOG(INFO) << "Removed " << count << " non local entities";
 }
 
 unsigned int NetworkSystem::entityToGuid(Entity e) {
     NetworkComponent* ncc = Get(e, false);
     if (ncc == 0) {
-        LOGE("Entity %lu has no ntework component", e);
-        assert (false);
+        LOG(FATAL) << "Entity " << e << " has no ntework component";
         return 0;
     }
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);

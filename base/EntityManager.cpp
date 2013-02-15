@@ -17,7 +17,7 @@ EntityManager* EntityManager::instance = 0;
 EntityManager::EntityManager() : nextEntity(1) {
 	EntityTypeMask = 1;
 	EntityTypeMask <<= (sizeof(Entity) * 8 - 1);
-	LOGI("EntityTypeMask: %lx (sizeof Entity: %lu, %lu)", EntityTypeMask, sizeof(Entity), sizeof(Entity) * 8 - 1);
+	VLOG(1) << "EntityTypeMask: " << EntityTypeMask << " (sizeof Entity: " << sizeof(Entity) << ", " <<  (sizeof(Entity) * 8 - 1);
 }
 
 EntityManager* EntityManager::Instance() {
@@ -25,8 +25,7 @@ EntityManager* EntityManager::Instance() {
 }
 
 void EntityManager::CreateInstance() {
-	if (instance)
-		LOGW("Recreating EntityManager");
+	CHECK (instance == 0) << "Recreating EntityManager";
 	instance = new EntityManager;
 }
 
@@ -72,7 +71,7 @@ const std::string& EntityManager::entityName(Entity e) const {
         if (e == it->second)
             return it->first;
     }
-    LOGW("Unknown entity: '%lu'", e);
+    LOG(WARNING) << "Unknown entity: " << e;
     static std::string u("unknown");
     return u;
 }
@@ -173,7 +172,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		memcpy(&e, &in[index], sizeof(e)); index += sizeof(e);
 
 		if (!(e & EntityTypeMask)) {
-			LOGW("EntityManager deserializing a non-persistent entity");
+			LOG(WARNING) << "EntityManager deserializing a non-persistent entity";
 		}
 
 		int cCount = 0;
@@ -189,7 +188,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			}
 			ComponentSystem* system = ComponentSystem::Named(tmp);
 			if (system == 0) {
-				LOGE("Failed to properly restore state: index=%d/%d i=%d/%d entity=%lu", index, length, i, cCount, e & ~EntityTypeMask );
+				LOG(ERROR) << "Failed to properly restore state: index=" << index << '/' << length << " i=" << i << "/" << cCount << ", entity=" << (e & ~EntityTypeMask);
 			}
 			int size = 0;
 			memcpy(&size, &in[index], sizeof(int)); index += sizeof(int);
@@ -201,7 +200,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			l.push_back(system);
 		}
 		entityComponents[e] = l;
-        LOGI(" - restored entite '%lu' with %lu components", e & ~EntityTypeMask, l.size());
+        VLOG(1) << " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components";
 		nextEntity = MathUtil::Max(nextEntity, e + 1);
 	}
 }

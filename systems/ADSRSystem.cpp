@@ -15,7 +15,6 @@ INSTANCE_IMPL(ADSRSystem);
 
 ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
     ADSRComponent a;
-    std::cerr << "TODO " << __FUNCTION__ << std::endl;
     // componentSerializer.add("arg", new Property<ADSRComponent>(0));
 }
 
@@ -43,9 +42,6 @@ void ADSRSystem::DoUpdate(float dt) {
 
 			// phase D
 			} else if (adsr->activationTime < (adsr->attackTiming + adsr->decayTiming)) {
-				if (adsr->decayTiming && adsr->attackValue < adsr->sustainValue) {
-					LOGW("Entity '%lu' -> ADSR decay timing %.2f used with attack value %.2f < sustain value %.2f", entity, adsr->decayTiming, adsr->attackValue, adsr->sustainValue);
-				}
 				if (adsr->decayMode == Linear) {
 				adsr->value = MathUtil::Lerp(
 					adsr->attackValue,

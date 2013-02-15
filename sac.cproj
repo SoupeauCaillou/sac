@@ -103,6 +103,8 @@
     <Compile Include="util\Recorder.cpp" />
     <Compile Include="util\LevelEditor.cpp" />
     <Compile Include="systems\CameraSystem.cpp" />
+    <Compile Include="base\NamedAssetLibrary.cpp" />
+    <Compile Include="systems\opengl\AtlasLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -184,6 +186,8 @@
     <None Include="api\linux\CommunicationAPILinuxImpl.h" />
     <None Include="base\Entity.h" />
     <None Include="systems\CameraSystem.h" />
+    <None Include="base\NamedAssetLibrary.h" />
+    <None Include="systems\opengl\AtlasLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
@@ -191,5 +195,6 @@
     <Folder Include="steering\" />
     <Folder Include="tools\lobby\" />
     <Folder Include="build\cmake\" />
+    <Folder Include="systems\opengl\" />
   </ItemGroup>
 </Project>

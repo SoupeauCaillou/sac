@@ -1,6 +1,6 @@
 #include "TimeUtil.h"
 #include <time.h>
-#include "Log.h"
+#include <glog/logging.h>
 
 #ifndef EMSCRIPTEN
 struct timespec TimeUtil::startup_time;
@@ -42,7 +42,7 @@ float TimeUtil::getTime() {
     #ifndef EMSCRIPTEN
 	struct timespec tv;
 	if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
-        LOGE("clock_gettime failure");
+        LOG(FATAL) << "clock_gettime failure";
     }
      sub(tv, startup_time);
     #else

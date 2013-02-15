@@ -1,6 +1,5 @@
 #include "SoundSystem.h"
 
-#include "base/Log.h"
 
 INSTANCE_IMPL(SoundSystem);
 
@@ -32,7 +31,7 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
     } else {
         OpaqueSoundPtr* ptr = soundAPI->loadSound(assetName);
         if (!ptr) {
-            LOGE("Unable to load sound file: '%s'", assetName.c_str());
+            LOG(ERROR) << "Unable to load sound file: '" << assetName << "'";
             PROFILE("Sound", "loadSoundFile", EndEvent);
             return InvalidSoundRef;
         } else {

@@ -2,7 +2,7 @@
 file(
         GLOB_RECURSE
         source_files
-        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp ../../libs/iniparser/*
+        ../../base/* ../../systems/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp ../../libs/iniparser/* ../../libs/glog-gflags/*.cc
 )
 
 file(
@@ -20,6 +20,7 @@ file(
 
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glog-gflags)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/tinyxml2/)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/iniparser/src)

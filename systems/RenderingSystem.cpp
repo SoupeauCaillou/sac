@@ -6,7 +6,6 @@
 #include <cmath>
 #include <sstream>
 #include "base/MathUtil.h"
-#include "base/Log.h"
 #include "util/IntersectionUtil.h"
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #else
@@ -76,22 +75,22 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 
 RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
 	Shader out;
-	LOGI("building shader ...");
+	VLOG(1) << "building shader ...";
 	out.program = glCreateProgram();
 	check_GL_errors("glCreateProgram");
 
-	LOGI("Compiling shaders: %s/%s\n", vsName.c_str(), fsName.c_str());
+	VLOG(1) << "Compiling shaders: " << vsName << '/' << fsName;
 	GLuint vs = compileShader(vsName, GL_VERTEX_SHADER);
 	GLuint fs = compileShader(fsName, GL_FRAGMENT_SHADER);
 
 	GL_OPERATION(glAttachShader(out.program, vs))
 	GL_OPERATION(glAttachShader(out.program, fs))
-	LOGI("Binding GLSL attribs\n");
+	VLOG(2) << "Binding GLSL attribs";
 	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_VERTEX, "aPosition"))
 	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_UV, "aTexCoord"))
 	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_POS_ROT, "aPosRot"))
 
-	LOGI("Linking GLSL program\n");
+	VLOG(2) << "Linking GLSL program";
 	GL_OPERATION(glLinkProgram(out.program))
 
 	GLint logLength;
@@ -99,7 +98,8 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 	if (logLength > 1) {
 		char *log = new char[logLength];
 		glGetProgramInfoLog(out.program, logLength, &logLength, log);
-		LOGE("GL shader program error: '%s'", log);
+		LOG(FATAL) << "GL shader program error: '" << log << "'";
+        
 		delete[] log;
 	}
 
@@ -281,9 +281,8 @@ static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& 
 void RenderingSystem::DoUpdate(float) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
-    if (outQueue.count != 0) {
-        LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
-    }
+
+    LOG_IF(WARNING, outQueue.count != 0) << "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')';
 
     // retrieve all cameras
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
@@ -311,8 +310,9 @@ void RenderingSystem::DoUpdate(float) {
             if (!IntersectionUtil::rectangleRectangle(camTrans, tc)) {
                 continue;
             }
-		    if (!tc->worldZ) LOGW("Entity %ld: RENDERING()->z = 0, entity won't be rendable", a);
-            ASSERT(tc->worldZ >= 0 && tc->worldZ <= 1, "Entity " << a << ": rendering->z=" << tc->worldZ << " outside allowed interval [0, 1]");
+            #ifdef DEBUG
+            LOG_IF(WARNING, tc->worldZ < 0 || tc->worldZ > 1) << "Entity '" << theEntityManager.entityName(a) << " has invalid z value: " << tc->worldZ << ". Will not be drawn";
+            #endif
 
     		RenderCommand c;
     		c.z = tc->worldZ;
@@ -339,7 +339,7 @@ void RenderingSystem::DoUpdate(float) {
                 int atlasIdx = info.atlasIndex;
                 if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
                     if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
-                        LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
+                        LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
                     }
                 }
                 modifyQ(c, info.reduxStart, info.reduxSize);
@@ -353,7 +353,7 @@ void RenderingSystem::DoUpdate(float) {
     	         	opaqueCommands.push_back(c);
     	         	break;
                  default:
-                    LOGW("Entity will not be drawn");
+                    LOG(WARNING) << "Entity will not be drawn";
                     break;
              }
         }
@@ -522,7 +522,7 @@ void RenderingSystem::reloadEffects() {
 void RenderingSystem::setFrameQueueWritable(bool b) {
     if (frameQueueWritable == b || !initDone)
         return;
-    LOGI("Writable: %d", b);
+    LOG(INFO) << "Writable: " << b;
 #ifndef EMSCRIPTEN
     pthread_mutex_lock(&mutexes[L_QUEUE]);
 #endif
@@ -571,7 +571,7 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     // check FBO status
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
-        LOGE("FBO not complete: %d", status);
+        LOG(FATAL) << "FBO not complete: " << status;
 
     // switch back to window-system-provided framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -585,7 +585,7 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
 FramebufferRef RenderingSystem::getFramebuffer(const std::string& fbName) const {
     std::map<std::string, FramebufferRef>::const_iterator it = nameToFramebuffer.find(fbName);
     if (it == nameToFramebuffer.end())
-        LOGE("Framebuffer '%s' does not exist", fbName.c_str());
+        LOG(FATAL) << "Framebuffer '" << fbName << "' does not exist";
     return it->second;
 }
 

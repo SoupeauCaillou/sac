@@ -1,6 +1,7 @@
 #include "VibrateAPILinuxImpl.h"
+#include <glog/logging.h>
 
 void VibrateAPILinuxImpl::vibrate(float d) {
-    LOGI("Vibrate : %f", d);
+    LOG(INFO) << "Vibrate : " << d;
 }
 

@@ -24,7 +24,6 @@
 #endif
 
 #include "base/MathUtil.h"
-#include "base/Log.h"
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -37,7 +36,7 @@ MusicSystem::~MusicSystem() {
     runDecompLoop = false;
     pthread_cond_signal(&cond);
     pthread_join(oggDecompressionThread, 0);
-    LOGW("MusicSystem uninitinalized");
+    LOG(INFO) << "MusicSystem uninitinalized";
     #endif
     #ifndef EMSCRIPTEN
     for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
@@ -86,7 +85,7 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
 	pthread_mutex_lock(&mutex);
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
     if (it == musics.end()) {
-	    LOGW("Weird, cannot find: %d music ref", ref);
+	    LOG(WARNING) << "Weird, cannot find: " << ref << " music ref";
     } else {
     	// LOGW("Delayed erase music ref: %d", ref);
     	it->second.toRemove = true;
@@ -200,7 +199,7 @@ void MusicSystem::DoUpdate(float dt) {
 	        #else
 	        if (!musicAPI->isPlaying(m->opaque[0])) {
 	        #endif
-	            LOGI("(music) %p Player 0 has finished (isPlaying:%d pos:%d m->music:%d)", m, musicAPI->isPlaying(m->opaque[0]), m->positionI, m->music);
+	            VLOG(1) << "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music;
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
@@ -224,7 +223,7 @@ void MusicSystem::DoUpdate(float dt) {
 
                 if (loop) {
 	                #ifndef EMSCRIPTEN
-                    LOGI("(music) %p Begin loop (%d >= %d) - m->music:%d becomas loopNext:%d [master=%p]", m, m->positionI, SEC_TO_SAMPLES(m->loopAt, sampleRate0), m->music, m->loopNext, m->master);
+                    VLOG(1) << "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']';
                     #endif
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
@@ -270,16 +269,16 @@ void MusicSystem::DoUpdate(float dt) {
                 // remove m->loopNext from musics
                 clearAndRemoveInfo(m->previousEnding);
                 m->previousEnding = InvalidMusicRef;
-                LOGI("(music) %p Player 1 has finished", m);
+                VLOG(1) << "(music) " << m << " Player 1 has finished";
             }
 		}
 
         if (!m->opaque[0] && m->master && m->loopNext != InvalidMusicRef && m->control == MusicControl::Play) {
 	        if (m->master->looped) {
-		        LOGI("(music) Restarting because master has looped (current: %d -> next: %d) [%p/%p]", m->music, m->loopNext, m->opaque[0], m->opaque[1]);
+		        VLOG(1) << "(music) Restarting because master has looped (current: " << m->music << " -> next: " << m->loopNext << ')';
 		        m->music = m->loopNext;
 		        if (m->opaque[1]) {
-			        LOGW("(music) Weird, shouldn't happen");
+			        LOG(WARNING) << "(music) Weird, shouldn't happen";
 			        musicAPI->deletePlayer(m->opaque[1]);
 			        clearAndRemoveInfo(m->previousEnding);
 			        m->previousEnding = InvalidMusicRef;
@@ -413,7 +412,7 @@ void MusicSystem::oggDecompRunLoop() {
         			delete info.ovf;
 	            }
     			if (info.buffer) {
-	    			LOGW("delete %p", info.buffer);
+	    			VLOG(1) << "delete " << info.buffer;
     				delete info.buffer;
     				info.buffer = 0;
     			}
@@ -456,7 +455,7 @@ void MusicSystem::oggDecompRunLoop() {
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
-	    LOGW("Achtung, musicref : %d not found", m);
+	    LOG(WARNING) << "Achtung, musicref : " << m << " not found";
 	    return false;
     }
 
@@ -481,7 +480,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
 		    musicAPI->queueMusicData(ptr, b, info.pcmBufferSize, info.sampleRate);
 		    dt -= chunkDuration;
 	    } else {
-		    LOGW("Fcuk, not enough data: %u < %d", count, info.pcmBufferSize);
+		    LOG(WARNING) << "Fcuk, not enough data: " << count << " < " << info.pcmBufferSize;
 		    break;
 	    }
 	}
@@ -496,7 +495,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 #ifndef EMSCRIPTEN
 	MusicInfo& info = musics[r];
     if (info.sampleRate <=0) {
-        LOGW("Invalid sample rate: %d", info.sampleRate);
+        LOG(WARNING) << "Invalid sample rate: " << info.sampleRate;
     }
     OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(info.sampleRate);
 
@@ -517,9 +516,9 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 	if (m->fadeIn > 0) {
 		musicAPI->setVolume(ptr, 0);
 		m->currentVolume = 0;
-		LOGW("(music) volume - Start with fading: %.2f - %.2f", m->fadeIn, m->volume);
+		VLOG(1) << "(music) volume - Start with fading: " << m->fadeIn << " - " << m->volume;
 	} else {
-		LOGW("(music) volume - Start without fading: %.2f - %.2f", m->fadeIn, m->volume);
+		VLOG(1) << "(music) volume - Start without fading: " << m->fadeIn << " - " << m->volume;
 		musicAPI->setVolume(ptr, m->volume);
 		m->currentVolume = m->volume;
 	}
@@ -557,7 +556,7 @@ struct DataSource {
 };
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
-	LOGI("loadMusicFile %s", assetName.c_str());
+	LOG(INFO) << "loadMusicFile " << assetName;
 	if (!assetAPI)
 		return InvalidMusicRef;
 	PROFILE("Music", "loadMusicFile", BeginEvent);
@@ -568,7 +567,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
         b = assetAPI->loadAsset(assetName);
         PROFILE("Music", "loadAsset", EndEvent);
         if (!b.data) {
-	        LOGE("Unable to load %s", assetName.c_str());
+	        LOG(ERROR) << "Unable to load " << assetName;
 	        PROFILE("Music", "loadMusicFile", EndEvent);
 	        return InvalidMusicRef;
         }
@@ -605,7 +604,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.nbSamples = ov_pcm_total(f, -1);
     info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
-    LOGI("(music) File: %s / rate: %d duration: %.4f nbSample: %d -> %d", assetName.c_str(), info.sampleRate, info.totalTime, info.nbSamples, nextValidRef);
+    VLOG(1) << "(music) File: " << assetName << " / rate: " << info.sampleRate << " duration: " << info.totalTime << " nbSample: " << info.nbSamples << " -> " << nextValidRef;
     PROFILE("Music", "mutex-section", BeginEvent);
     pthread_mutex_lock(&mutex);
     #ifdef MUSIC_VISU
@@ -623,7 +622,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 	std::stringstream a;
 	a << "assets/" << assetName;
     musics[nextValidRef] = Mix_LoadWAV(a.str().c_str());
-    LOGI("Load music file %s, result: %p", a.str().c_str(), musics[nextValidRef]);
+    VLOG(1) << "Load music file " << a.str() << " -> " <<< musics[nextValidRef];
 #endif
 	PROFILE("Music", "loadMusicFile", EndEvent);
     return nextValidRef++;
@@ -644,7 +643,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
             // EOF
             break;
         } else if (n < 0) {
-            LOGI("Error in vorbis read: %d", n);
+            LOG(WARNING) << "Error in vorbis read: " << n;
             break;
         } else {
             read += n;

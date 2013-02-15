@@ -1,5 +1,5 @@
 #include "ImageLoader.h"
-#include "../base/Log.h"
+#include <glog/logging.h>
 
 #ifdef __EMSCRIPTEN
 #include <SDL/SDL.h>
@@ -29,21 +29,21 @@ ImageDesc ImageLoader::loadPng(const std::string& context, const FileBuffer& fil
 	uint8_t PNG_header[8];
 	memcpy(PNG_header, file.data, 8);
 	if (png_sig_cmp(PNG_header, 0, 8) != 0) {
-		LOGW("%s is not a PNG\n", context.c_str());
+		LOG(WARNING) << context << " is not a PNG";
 		return result;
 	}
 
 	png_structp PNG_reader = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (PNG_reader == NULL)
 	{
-		LOGW("Can't start reading %s.\n", context.c_str());
+		LOG(WARNING) << "Can't start reading " << context;
 		return result;
 	}
 
 	png_infop PNG_info = png_create_info_struct(PNG_reader);
 	if (PNG_info == NULL)
 	{
-		LOGW("ERROR: Can't get info for %s\n", context.c_str());
+        LOG(WARNING) << "ERROR: Can't get info for " << context;
 		png_destroy_read_struct(&PNG_reader, NULL, NULL);
 		return result;
 	}
@@ -52,7 +52,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 
 	if (setjmp(png_jmpbuf(PNG_reader)))
 	{
-		LOGW("ERROR: Can't load %s\n", context.c_str());
+        LOG(WARNING) << "ERROR: Can't load " << context;
 		png_destroy_read_struct(&PNG_reader, &PNG_info, &PNG_info);
 		return result;
 	}
@@ -87,7 +87,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	} else if (color_type == PNG_COLOR_TYPE_RGBA) {
 		result.channels = 4;
 	} else {
-		LOGW("%s INVALID color type: %u", context.c_str(), color_type);
+		LOG(WARNING) << context << " INVALID color type: " << color_type;
 		assert(false);
 	}
 
