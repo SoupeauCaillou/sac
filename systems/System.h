@@ -6,17 +6,16 @@
 #include <stdint.h>
 #include <iostream>
 #include <cstring>
-#include <cassert>
-#include <climits>
-
+#include "base/Assert.h"
 #include "base/Log.h"
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
 
 // #define USE_VECTOR_STORAGE 1
+#include <climits>
 
-#define Entity unsigned long
+#include <base/EntityDef.h>
 
 #define COMPONENT(x) struct x##Component
 #define PERSISTENT_PROP
@@ -51,7 +50,7 @@
             if (ent == 0) continue; \
             type##Component* comp = &components[___i];
 #else
-    #define FOR_EACH_ENTITY(ent) \
+    #define FOR_EACH_ENTITY(type, ent) \
         for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
             Entity ent = it->first;
 
@@ -63,6 +62,24 @@
     #define FOR_EACH_COMPONENT(type, comp) \
         for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end(); ++it) { \
             type##Component* comp = it->second;
+
+
+    #define FOR_EACH_EXT_ENTITY(type, ent) \
+        std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
+        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end(); ++it) { \
+            Entity ent = *it;
+
+    #define FOR_EACH_EXT_ENTITY_COMPONENT(type, ent, comp) \
+        std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
+        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end(); ++it) { \
+            Entity ent = *it;\
+	    type##Component* comp = the##type##System.Get(*it);
+
+    #define FOR_EACH_EXT_COMPONENT(type, comp) \
+        std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
+        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end(); ++it) { \
+	    type##Component* comp = the##type##System.Get(*it);
+
 #endif
 
 class ComponentSystem {
@@ -173,8 +190,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     #ifndef ANDROID
                     // crash here
                     if (failIfNotfound) {
-                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
-                        assert (false);
+                        ASSERT(false, "Entity " << entity << " has no component of type: " << getName().c_str());
                     }
                     #endif
     				return 0;
@@ -244,7 +260,11 @@ class ComponentSystemImpl: public ComponentSystem {
         std::map<Entity, unsigned> entityToIndice;
         unsigned _freelist;
 #else
+#ifdef DEBUG
+	public:
+#endif
 		std::map<Entity, T*> components;
+	protected:
         typedef typename std::map<Entity, T*> ComponentMap;
         typedef typename std::map<Entity, T*>::iterator ComponentIt;
         typedef typename std::map<Entity, T*>::const_iterator ComponentConstIt;
