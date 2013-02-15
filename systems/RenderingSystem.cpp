@@ -311,7 +311,7 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
             #ifdef DEBUG
-            LOG_IF(WARNING, tc->worldZ < 0 || tc->worldZ > 1) << "Entity '" << theEntityManager.entityName(a) << " has invalid z value: " << tc->worldZ << ". Will not be drawn";
+            LOG_IF(WARNING, tc->worldZ <= 0 || tc->worldZ > 1) << "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn";
             #endif
 
     		RenderCommand c;

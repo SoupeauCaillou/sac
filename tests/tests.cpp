@@ -10,8 +10,6 @@ int main(int argc, char ** argv) {
     google::InstallFailureSignalHandler();
     google::ParseCommandLineFlags(&argc, &argv, true);
 
-    LOG(INFO) << "Found " << 3 << " cookies";
-
 	EntityManager::CreateInstance();
 	return UnitTest::RunAllTests();
 }

@@ -51,14 +51,15 @@ Entity EntityManager::CreateEntity(const std::string&
 	}
 	// maybe hide the TypeBit from the rest of the world...
     #ifdef DEBUG
-    if (name2entity.find(name) != name2entity.end()) {
+    if (name2entity.find(name) == name2entity.end()) {
         name2entity.insert(std::make_pair(name, e));
     } else {
-        std::stringstream namesuffix(name);
+        std::stringstream namesuffix;
+        namesuffix << name;
         do {
             namesuffix << MathUtil::RandomInt(10);
         } while (name2entity.find(namesuffix.str()) != name2entity.end());
-        name2entity.insert(std::make_pair(name, e));
+        name2entity.insert(std::make_pair(namesuffix.str(), e));
     }
     #endif
 	return e;
