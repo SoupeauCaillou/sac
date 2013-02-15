@@ -43,10 +43,12 @@
 		exit 2
 	}
 
-	#ensure that a package is installed
+	#ensure that a package ($1, first arg) is installed (optionnaly in $2)
 	check_package() {
-		if [ ! -z "`type $1 | grep 'not found'`" ]; then
-			info "Please ensure you have added $2 to your PATH variable ($1 program missing)" $red
-			exit 3
+		msg="Please ensure you have installed AND added '$1' to your PATH variable"
+		if [ $# = 2 ]; then
+			msg+="(PATH should be '$2')"
 		fi
+
+		type $1 >/dev/null 2>&1 || { info "$msg" $red; exit 3; }
 	}
