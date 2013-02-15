@@ -116,7 +116,7 @@
 #if !defined(STACKTRACE_H) && defined(HAVE_EXECINFO_H)
 # define STACKTRACE_H "stacktrace_generic-inl.h"
 #endif
-
+#undef STACKTRACE_H
 #if defined(STACKTRACE_H)
 # define HAVE_STACKTRACE
 #endif

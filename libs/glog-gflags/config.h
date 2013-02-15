@@ -59,7 +59,7 @@
 #define HAVE_RWLOCK 1
 
 /* Define if you have the `sigaltstack' function */
-#define HAVE_SIGALTSTACK 1
+/* #undef HAVE_SIGALTSTACK 1*/
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
