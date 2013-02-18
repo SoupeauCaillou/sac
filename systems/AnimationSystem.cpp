@@ -93,3 +93,9 @@ void AnimationSystem::registerAnim(const std::string& name, std::string* texture
     }
     registerAnim(name, textures, playbackSpeed, loopCount, next, nextAnimWait);
 }
+
+#ifdef INGAME_EDITORS
+void AnimationSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

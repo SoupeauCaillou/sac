@@ -72,3 +72,9 @@ void ADSRSystem::DoUpdate(float dt) {
 		}
 	}
 }
+
+#ifdef INGAME_EDITORS
+void ADSRSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

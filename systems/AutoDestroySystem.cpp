@@ -46,3 +46,8 @@ void AutoDestroySystem::DoUpdate(float dt) {
     }
 }
 
+#ifdef INGAME_EDITORS
+void AutoDestroySystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

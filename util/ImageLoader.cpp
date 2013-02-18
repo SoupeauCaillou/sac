@@ -129,7 +129,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	int actual = rowbytes / result.width;
 	if (actual > result.channels) {
 		int newrow = result.channels * result.width;
-		png_byte* PNG_image_buffer2 = (png_byte*) malloc(newrow * result.height);
+		png_byte* PNG_image_buffer2 = new png_byte[newrow * result.height];
 		for (row = 0; row < result.height; ++row) {
 			for (int i=0; i<result.width; i++) {
 				memcpy(&PNG_image_buffer2[newrow * row + i * result.channels], &PNG_image_buffer[rowbytes * row + i * actual], result.channels);

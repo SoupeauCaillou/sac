@@ -13,7 +13,7 @@ Color Color::random() {
 
 void Color::nameColor(const Color& c, const std::string& name) {
     VLOG(1) << "Add color " << name << " = " << c;
-	CHECK(name2Color.insert(std::make_pair(name, c)).second) << "Warning, color with name " << name << " already existed.";
+	name2Color.insert(std::make_pair(name, c));
 }
 
 Color::Color(float _r, float _g, float _b, float _a):

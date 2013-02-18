@@ -60,3 +60,8 @@ void ContainerSystem::DoUpdate(float) {
 	}
 }
 
+#ifdef INGAME_EDITORS
+void ContainerSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

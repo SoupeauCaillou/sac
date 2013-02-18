@@ -103,3 +103,46 @@ void ParticuleSystem::DoUpdate(float dt) {
         }
     }
 }
+    float emissionRate, duration;
+    TextureRef texture;
+    Interval<float> lifetime;
+    Interval<Color> initialColor;
+    Interval<Color> finalColor;
+    Interval<float> initialSize;
+    Interval<float> finalSize;
+    Interval<float> forceDirection;
+    Interval<float> forceAmplitude;
+    Interval<float> moment;
+    float spawnLeftOver;
+    float mass;
+#ifdef INGAME_EDITORS
+void ParticuleSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    ParticuleComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "emissionRate", TW_TYPE_FLOAT, &tc->emissionRate, "group=Particule min=0");
+    TwAddVarRW(bar, "min lifetime", TW_TYPE_FLOAT, &tc->lifetime.t1, "group=ParticuleLifetime step=0,05 min=0");
+    TwAddVarRW(bar, "max lifetime", TW_TYPE_FLOAT, &tc->lifetime.t2, "group=ParticuleLifetime step=0,05");
+    TwAddVarRW(bar, "init color A", TW_TYPE_COLOR4F, &tc->initialColor.t1, "group=ParticuleColor");
+    TwAddVarRW(bar, "init color B", TW_TYPE_COLOR4F, &tc->initialColor.t2, "group=ParticuleColor");
+    TwAddVarRW(bar, "final color A", TW_TYPE_COLOR4F, &tc->finalColor.t1, "group=ParticuleColor");
+    TwAddVarRW(bar, "final color B", TW_TYPE_COLOR4F, &tc->finalColor.t2, "group=ParticuleColor");
+    TwAddVarRW(bar, "min initial size", TW_TYPE_FLOAT, &tc->initialSize.t1, "group=ParticuleSize step=0,01 min=0");
+    TwAddVarRW(bar, "max initial size", TW_TYPE_FLOAT, &tc->initialSize.t2, "group=ParticuleSize step=0,01 min=0");
+    TwAddVarRW(bar, "min final size", TW_TYPE_FLOAT, &tc->finalSize.t1, "group=ParticuleSize step=0,01 min=0");
+    TwAddVarRW(bar, "max final size", TW_TYPE_FLOAT, &tc->finalSize.t2, "group=ParticuleSize step=0,01 min=0");
+    TwAddVarRW(bar, "min force direction", TW_TYPE_FLOAT, &tc->forceDirection.t1, "group=ParticulePhysics step=0,01");
+    TwAddVarRW(bar, "max force direction", TW_TYPE_FLOAT, &tc->forceDirection.t2, "group=ParticulePhysics step=0,01");
+    TwAddVarRW(bar, "min force amplitude", TW_TYPE_FLOAT, &tc->forceAmplitude.t1, "group=ParticulePhysics step=0,1 min=0");
+    TwAddVarRW(bar, "max force amplitude", TW_TYPE_FLOAT, &tc->forceAmplitude.t2, "group=ParticulePhysics step=0,1 min=0");
+    TwAddVarRW(bar, "min moment", TW_TYPE_FLOAT, &tc->moment.t1, "group=ParticulePhysics step=0,01 min=0");
+    TwAddVarRW(bar, "max moment", TW_TYPE_FLOAT, &tc->moment.t2, "group=ParticulePhysics step=0,01 min=0");
+    TwAddVarRW(bar, "mass", TW_TYPE_FLOAT, &tc->mass, "group=ParticulePhysics step=0,01 min=0");
+
+    std::stringstream groups;
+    groups << TwGetBarName(bar) << '/' << "ParticuleLifetime group=Particule\t\n"
+        << TwGetBarName(bar) << '/' << "ParticuleColor group=Particule\t\n"
+        << TwGetBarName(bar) << '/' << "ParticuleSize group=Particule\t\n"
+        << TwGetBarName(bar) << '/' << "ParticulePhysics group=Particule\t\n";
+    TwDefine(groups.str().c_str());
+}
+#endif

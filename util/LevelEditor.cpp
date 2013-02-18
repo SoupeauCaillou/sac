@@ -7,7 +7,9 @@
 #include "../base/PlacementHelper.h"
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
+#include "../systems/CameraSystem.h"
 #include <GL/glfw.h>
+#include <AntTweakBar.h>
 
 namespace EditorMode {
     enum Enum {
@@ -39,8 +41,34 @@ struct LevelEditor::LevelEditorDatas {
     void updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff);
 };
 
+static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
+    TwBar* bar = TwNewBar(barName.c_str());
+    std::vector<std::string> systems = ComponentSystem::registeredSystemNames();
+    for (unsigned i=0; i<systems.size(); i++) {
+        ComponentSystem* system = ComponentSystem::Named(systems[i]);
+        system->addEntityPropertiesToBar(e, bar);
+    }
+    return bar;
+}
+
+static void showTweakBarForEntity(Entity e) {
+    std::stringstream barName;
+    barName << theEntityManager.entityName(e);
+    TwBar* bar = TwGetBarByName(barName.str().c_str());
+    if (bar == 0) {
+        bar = createTweakBarForEntity(e, barName.str());
+        barName << " alpha=190";
+        TwDefine (barName.str().c_str());
+    } else {
+        barName << " visible=true iconified=false";
+        TwDefine(barName.str().c_str());
+    }
+    TwDefine(" GLOBAL iconpos=bottomright");
+}
+
 static void select(Entity e) {
     RENDERING(e)->effectRef = theRenderingSystem.loadEffectFile("selected.fs");
+    showTweakBarForEntity(e);
 }
 static void deselect(Entity e) {
     RENDERING(e)->effectRef = DefaultEffectRef;
@@ -50,6 +78,13 @@ LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
+    TwInit(TW_OPENGL, NULL);
+
+    glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
+    glfwSetMousePosCallback((GLFWmouseposfun)TwEventMousePosGLFW);
+    glfwSetMouseWheelCallback((GLFWmousewheelfun)TwEventMouseWheelGLFW);
+    glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
+    glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
 }
 
 LevelEditor::~LevelEditor() {
@@ -57,18 +92,26 @@ LevelEditor::~LevelEditor() {
 }
 
 void LevelEditor::tick(float dt) {
-#if 0
-    Vector2 position;
-    int x, y;
-    glfwGetMousePos(&x, &y);
-    Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
-    for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
-        const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
-        if (IntersectionUtil::pointRectangle(windowPos, cam.screenPosition, cam.screenSize) && cam.enable) {
-            position = cam.worldPosition + windowPos * cam.worldSize;
+    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    Entity camera = 0;
+    for (unsigned i=0; i<cameras.size(); i++) {
+        if (CAMERA(cameras[i])->fb == DefaultFrameBufferRef) {
+            camera = cameras[i];
             break;
         }
     }
+    if (!camera) {
+        LOG(ERROR) << "No active camera";
+        return;
+    }
+
+    int x, y;
+    glfwGetMousePos(&x, &y);
+    Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
+
+    const Vector2 position = TRANSFORM(camera)->worldPosition + Vector2::Rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
+    LOG_EVERY_N(INFO, 100) << "Mouse position: " << position;
+
     static int prevWheel = 0;
     int wheel = glfwGetMouseWheel();
     int wheelDiff = wheel - prevWheel;
@@ -79,6 +122,7 @@ void LevelEditor::tick(float dt) {
         datas->lastMouseOverPosition = position;
     }
 
+
     switch (datas->mode) {
         case EditorMode::Selection:
             datas->updateModeSelection(dt, position, wheelDiff);
@@ -87,7 +131,6 @@ void LevelEditor::tick(float dt) {
             datas->updateModeGallery(dt, position, wheelDiff);
             break;
     }
-#endif
 }
 
 void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {
@@ -159,7 +202,7 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
 }
 
 void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
-#if 0
+#if 1
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
             if (selected)
@@ -189,11 +232,14 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
                 if (selected)
                     deselect(selected);
                 selected = over;
+                LOG(INFO) << "Selected entity: '" << theEntityManager.entityName(selected) << "'";
                 select(selected);
                 over = 0;
             }
         }
-    } else {
+    } 
+#if 0
+    else {
         if (selected) {
             TRANSFORM(selected)->position = selectedOriginalPos + mouseWorldPos - lastMouseOverPosition;
         }
@@ -216,7 +262,8 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
             }
         }
     }
-
+#endif
+#if 0
     // camera movement
     {
         RenderingSystem::Camera& camera = theRenderingSystem.cameras[activeCameraIndex];
@@ -267,6 +314,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
         } else
             changeMode(EditorMode::Gallery);
     }
+#endif
 #endif
 }
 

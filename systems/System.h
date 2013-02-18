@@ -17,6 +17,9 @@
 #ifdef DEBUG
 #include "base/EntityManager.h"
 #endif
+#ifdef INGAME_EDITORS
+#include "libs/AntTweakBar/include/AntTweakBar.h"
+#endif
 
 // #define USE_VECTOR_STORAGE 1
 
@@ -27,19 +30,38 @@
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
+#ifdef INGAME_EDITORS
 #define UPDATABLE_SYSTEM(type) \
-	class type##System : public ComponentSystemImpl<type##Component> {	\
-		public:	\
+    class type##System : public ComponentSystemImpl<type##Component> {  \
+        public: \
             static type##System* GetInstancePointer() { return _instance; } \
-			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
-			static void DestroyInstance() { if (_instance) delete _instance; LOG(INFO) << #type "System instance destroyed, was: " <<  _instance; _instance = NULL; } \
-			void DoUpdate(float dt); \
+            static type##System& GetInstance() { return (*_instance); } \
+            static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
+            static void DestroyInstance() { if (_instance) delete _instance; LOG(INFO) << #type "System instance destroyed, was: " <<  _instance; _instance = NULL; } \
+            void DoUpdate(float dt); \
             void updateEntityComponent(float dt, Entity e, type##Component* t); \
-		\
-			type##System();	\
-		private:	\
-			static type##System* _instance;
+        \
+            type##System(); \
+            void addEntityPropertiesToBar(Entity , TwBar* ); \
+        private:    \
+            static type##System* _instance;
+
+#else
+#define UPDATABLE_SYSTEM(type) \
+    class type##System : public ComponentSystemImpl<type##Component> {  \
+        public: \
+            static type##System* GetInstancePointer() { return _instance; } \
+            static type##System& GetInstance() { return (*_instance); } \
+            static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
+            static void DestroyInstance() { if (_instance) delete _instance; LOG(INFO) << #type "System instance destroyed, was: " <<  _instance; _instance = NULL; } \
+            void DoUpdate(float dt); \
+            void updateEntityComponent(float dt, Entity e, type##Component* t); \
+        \
+            type##System(); \
+        private:    \
+            static type##System* _instance;
+#endif
+
 
 #if USE_VECTOR_STORAGE
     #define FOR_EACH_ENTITY(ent) \
@@ -91,6 +113,10 @@ class ComponentSystem {
 		}
 
 		static std::vector<std::string> registeredSystemNames();
+
+#ifdef INGAME_EDITORS
+        virtual void addEntityPropertiesToBar(Entity , TwBar* ) {}
+#endif
 
 	protected:
 		virtual void DoUpdate(float dt) = 0;

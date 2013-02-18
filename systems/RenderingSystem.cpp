@@ -17,6 +17,9 @@
 #ifdef DEBUG
 #include "base/Assert.h"
 #endif
+#ifdef INGAME_EDITORS
+#include <AntTweakBar.h>
+#endif
 
 RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
 
@@ -71,6 +74,9 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenW = sW;
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
+    #ifdef INGAME_EDITORS
+    TwWindowSize(width, height);
+    #endif
 }
 
 RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
@@ -612,3 +618,9 @@ void unpackCameraAttributes(
     ccc->fb = in.rotateUV;
     ccc->clearColor = in.color;
 }
+
+#ifdef INGAME_EDITORS
+void RenderingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

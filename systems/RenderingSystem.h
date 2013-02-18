@@ -4,13 +4,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-#include <GLES2/gl2.h>
-#include <EGL/egl.h>
-#else
-#include <GL/glew.h>
-#endif
-
+#include "opengl/OpenglHelper.h"
 #include <set>
 #include <queue>
 #include <list>
@@ -202,7 +196,6 @@ void processDelayedTextureJobs();
 GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
 public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
-static void check_GL_errors(const char* context);
 Shader buildShader(const std::string& vs, const std::string& fs);
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled = true);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);

@@ -377,3 +377,9 @@ static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed )
 
  return h;
 }
+
+#ifdef INGAME_EDITORS
+void TextRenderingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

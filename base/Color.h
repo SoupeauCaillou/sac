@@ -2,8 +2,9 @@
 
 #include <string>
 #include <iostream>
-
+ 
 struct Color {
+    public:
 	union {
 		struct {
 			float rgba[4];

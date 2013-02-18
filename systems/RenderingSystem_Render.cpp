@@ -7,30 +7,9 @@
 #include <cassert>
 #include <sstream>
 #include <pthread.h>
-
-void RenderingSystem::check_GL_errors(const char* context) {
-	 int maxIterations=10;
-    GLenum error;
-    while (((error = glGetError()) != GL_NO_ERROR) && maxIterations > 0)
-    {
-        switch(error)
-        {
-            case GL_INVALID_ENUM:
-            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_ENUM"; break;
-            case GL_INVALID_VALUE:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_VALUE"; break;
-            case GL_INVALID_OPERATION:
-            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_OPERATION"; break;
-            case GL_OUT_OF_MEMORY:
-            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_OUT_OF_MEMORY"; break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-            	LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_FRAMEBUFFER_OPERATION"; break;
-            default:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> " << error; break;
-        }
-		  maxIterations--;
-    }
-}
+#ifdef INGAME_EDITORS
+#include <AntTweakBar.h>
+#endif
 
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
     VLOG(1) << "Compiling '" << assetName << "' shader...";
@@ -465,6 +444,9 @@ void RenderingSystem::render() {
     pthread_mutex_unlock(&mutexes[L_RENDER]);
 #endif
 	PROFILE("Renderer", "render", EndEvent);
+    #ifdef INGAME_EDITORS
+    TwDraw();
+    #endif
 }
 
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {

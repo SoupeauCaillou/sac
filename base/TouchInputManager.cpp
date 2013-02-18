@@ -24,7 +24,7 @@ static Vector2 absoluteToCameraPos(const Vector2& pos) {
             return cam.worldPosition + pos * cam.worldSize;
         }
     }*/
-    LOG(WARNING) << "Click outside cameras";
+    // LOG(WARNING) << "Click outside cameras";
     return pos;
 }
 

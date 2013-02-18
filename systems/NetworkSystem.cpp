@@ -333,3 +333,9 @@ static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
     pkt.data = temp;
     SEND(pkt);
 }
+
+#ifdef INGAME_EDITORS
+void NetworkSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

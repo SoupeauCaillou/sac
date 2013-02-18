@@ -1,18 +1,5 @@
 #pragma once
 
-#if !defined(ANDROID) && !defined(EMSCRIPTEN)
-#define CHECK_GL_ERROR
-#endif
-
-#ifdef CHECK_GL_ERROR
- #define GL_OPERATION(x) \
-     (x); \
-     RenderingSystem::check_GL_errors(#x);
-#else
- #define GL_OPERATION(x) \
-     (x);
-#endif
-
 #define EndFrameMarker -10
 #define BeginFrameMarker -12
 

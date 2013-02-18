@@ -73,3 +73,21 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const Vector
 			break;
 	}
 }
+
+#ifdef INGAME_EDITORS
+void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    TransformationComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.X, "group=local precision=3");
+    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.Y, "group=local precision=3"); 
+    TwAddVarRW(bar, "rotation", TW_TYPE_FLOAT, &tc->rotation, "group=local step=0,05 precision=3");
+    TwAddVarRW(bar, "Z", TW_TYPE_FLOAT, &tc->z, "group=local precision=3");
+    TwAddVarRW(bar, "_position.X", TW_TYPE_FLOAT, &tc->worldPosition.X, "group=world precision=3");
+    TwAddVarRO(bar, "_position.Y", TW_TYPE_FLOAT, &tc->worldPosition.Y, "group=world precision=3"); 
+    TwAddVarRO(bar, "_rotation", TW_TYPE_FLOAT, &tc->worldRotation, "group=world step=0,05 precision=3");
+    TwAddVarRO(bar, "_Z", TW_TYPE_FLOAT, &tc->worldZ, "group=world precision=3");
+    std::stringstream groups;
+    groups << TwGetBarName(bar) << '/' << "local group=Transformation\t\n" << TwGetBarName(bar) << '/' << "world group=Transformation";
+    TwDefine(groups.str().c_str());
+}
+#endif

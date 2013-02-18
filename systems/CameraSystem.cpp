@@ -35,3 +35,9 @@ bool CameraSystem::isDisabled(Entity e) {
 bool CameraSystem::sort(Entity e, Entity f) {
     return CAMERA(e)->order < CAMERA(f)->order;
 }
+
+#ifdef INGAME_EDITORS
+void CameraSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

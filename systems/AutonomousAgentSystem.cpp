@@ -46,3 +46,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 		TRANSFORM(e)->rotation = MathUtil::AngleFromVector(PHYSICS(e)->linearVelocity);
 	}
 }
+
+#ifdef INGAME_EDITORS
+void AutonomousAgentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif
+
