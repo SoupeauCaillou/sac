@@ -21,11 +21,12 @@ struct Color {
 	Color(const std::string& name);
 
     Color operator*(float s) const;
-     Color operator+(const Color& c) const;
-     bool operator==(const Color& c) const;
+    Color operator+(const Color& c) const;
+    const Color& operator+=(const Color& c);
+    bool operator==(const Color& c) const;
 
-     bool operator!=(const Color& c) const;
-     bool operator<(const Color& c) const;
+    bool operator!=(const Color& c) const;
+    bool operator<(const Color& c) const;
 };
 
 inline std::ostream& operator<<(std::ostream& s, const Color& c) {

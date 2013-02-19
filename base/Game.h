@@ -67,6 +67,6 @@ class Game {
     float lastUpdateTime;
 #ifdef INGAME_EDITORS
     GameType::Enum gameType;
-    LevelEditor levelEditor;
+    LevelEditor* levelEditor;
 #endif
 };

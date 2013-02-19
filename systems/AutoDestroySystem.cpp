@@ -47,7 +47,18 @@ void AutoDestroySystem::DoUpdate(float dt) {
 }
 
 #ifdef INGAME_EDITORS
-void AutoDestroySystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
-
+void AutoDestroySystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    AutoDestroyComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwEnumVal modes[] = { {AutoDestroyComponent::OUT_OF_SCREEN, "Out of screen"}, {AutoDestroyComponent::LIFETIME, "Lifetime"} };
+    TwType type = TwDefineEnum("Type", modes, 2);
+    TwAddVarRW(bar, "type", type, &tc->type, "group=AutoDestroy");
+    TwAddVarRW(bar, "ad_value", TW_TYPE_FLOAT, &tc->params.lifetime.value, "group=lifetime");
+    TwAddVarRO(bar, "ad_accum", TW_TYPE_FLOAT, &tc->params.lifetime.accum, "group=lifetime");
+    TwAddVarRW(bar, "map2AlphaRendering", TW_TYPE_BOOLCPP, &tc->params.lifetime.map2AlphaRendering, "group=lifetime");
+    TwAddVarRW(bar, "map2AlphaTextRendering", TW_TYPE_BOOLCPP, &tc->params.lifetime.map2AlphaTextRendering, "group=lifetime");
+    std::stringstream groups;
+    groups << TwGetBarName(bar) << '/' << "lifetime group=AutoDestroy";
+    TwDefine(groups.str().c_str());
 }
 #endif

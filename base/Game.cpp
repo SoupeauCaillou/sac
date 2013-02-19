@@ -61,6 +61,9 @@ Game::Game() {
 
     fpsStats.reset(0);
     lastUpdateTime = TimeUtil::getTime();
+#ifdef INGAME_EDITORS
+    levelEditor = new LevelEditor();
+#endif
 }
 
 Game::~Game() {
@@ -193,7 +196,7 @@ void Game::step() {
             gameType = GameType::LevelEditor;
         switch (gameType) {
             case GameType::LevelEditor:
-                levelEditor.tick(delta);
+                levelEditor->tick(delta);
                 delta = 0;
                 break;
             default:

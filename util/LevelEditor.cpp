@@ -23,6 +23,9 @@ struct LevelEditor::LevelEditorDatas {
 
     Entity over;
     Entity selected, gallerySelected;
+    Entity selectionDisplay, overDisplay;
+    Color originalColor;
+    float selectionColorChangeSpeed;
 
     Vector2 lastMouseOverPosition;
     Vector2 selectedOriginalPos;
@@ -39,6 +42,9 @@ struct LevelEditor::LevelEditorDatas {
 
     void updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff);
     void updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff);
+
+    void select(Entity e);
+    void deselect(Entity e);
 };
 
 static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
@@ -47,6 +53,9 @@ static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
     for (unsigned i=0; i<systems.size(); i++) {
         ComponentSystem* system = ComponentSystem::Named(systems[i]);
         system->addEntityPropertiesToBar(e, bar);
+        std::stringstream fold;
+        fold << TwGetBarName(bar) << '/' << systems[i] << " opened=false";
+        TwDefine(fold.str().c_str());
     }
     return bar;
 }
@@ -57,7 +66,7 @@ static void showTweakBarForEntity(Entity e) {
     TwBar* bar = TwGetBarByName(barName.str().c_str());
     if (bar == 0) {
         bar = createTweakBarForEntity(e, barName.str());
-        barName << " alpha=190";
+        barName << " alpha=190 refresh=0,016";
         TwDefine (barName.str().c_str());
     } else {
         barName << " visible=true iconified=false";
@@ -66,18 +75,35 @@ static void showTweakBarForEntity(Entity e) {
     TwDefine(" GLOBAL iconpos=bottomright");
 }
 
-static void select(Entity e) {
-    RENDERING(e)->effectRef = theRenderingSystem.loadEffectFile("selected.fs");
+void LevelEditor::LevelEditorDatas::select(Entity e) {
     showTweakBarForEntity(e);
+    TRANSFORM(selectionDisplay)->parent = e;
+    TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + Vector2(0.1);
+    RENDERING(selectionDisplay)->hide = false;
+    originalColor = RENDERING(e)->color;
+    // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
 }
-static void deselect(Entity e) {
-    RENDERING(e)->effectRef = DefaultEffectRef;
+void LevelEditor::LevelEditorDatas::deselect(Entity e) {
+    RENDERING(selectionDisplay)->hide = true;
 }
 
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
+    datas->selectionColorChangeSpeed = -0.5;
+    datas->selectionDisplay = theEntityManager.CreateEntity();
+    ADD_COMPONENT(datas->selectionDisplay, Rendering);
+    ADD_COMPONENT(datas->selectionDisplay, Transformation);
+    TRANSFORM(datas->selectionDisplay)->z = -0.01;
+    RENDERING(datas->selectionDisplay)->color = Color(1, 0, 0, 0.7);
+
+    datas->overDisplay = theEntityManager.CreateEntity();
+    ADD_COMPONENT(datas->overDisplay, Rendering);
+    ADD_COMPONENT(datas->overDisplay, Transformation);
+    TRANSFORM(datas->overDisplay)->z = -0.01;
+    RENDERING(datas->overDisplay)->color = Color(0, 0, 1, 0.7);
+
     TwInit(TW_OPENGL, NULL);
 
     glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
@@ -121,6 +147,17 @@ void LevelEditor::tick(float dt) {
         glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
         datas->lastMouseOverPosition = position;
     }
+    
+    Color& selectedColor = RENDERING(datas->selectionDisplay)->color;
+    selectedColor.a += datas->selectionColorChangeSpeed * dt;
+    if (selectedColor.a < 0.5) {
+        selectedColor.a = 0.5;
+        datas->selectionColorChangeSpeed *= -1;
+    } else if (selectedColor.a > 1) {
+        selectedColor.a = 1;
+        datas->selectionColorChangeSpeed *= -1;
+    }
+    RENDERING(datas->overDisplay)->color.a = selectedColor.a;
 
 
     switch (datas->mode) {
@@ -207,26 +244,33 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
             if (selected)
                 selectedOriginalPos = TRANSFORM(selected)->position;
-            if (over)
-                RENDERING(over)->effectRef = DefaultEffectRef;
-
+            over = 0;
+            
             std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
-                float nearest = 10000;
-                for (unsigned i=0; i<entities.size(); i++) {
-                    if (entities[i] == selected)
-                        continue;
-                    if (RENDERING(entities[i])->hide)
-                        continue;
-                    if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
-                        float d = Vector2::DistanceSquared(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
-                        if (d < nearest) {
-                            over = entities[i];
-                            nearest = d;
-                        }
+            float nearest = 10000;
+            for (unsigned i=0; i<entities.size(); i++) {
+                if (entities[i] == overDisplay || entities[i] == selectionDisplay)
+                    continue;
+                if (entities[i] == selected)
+                    continue;
+                if (RENDERING(entities[i])->hide)
+                    continue;
+                if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
+                    float d = Vector2::DistanceSquared(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
+                    if (d < nearest) {
+                        over = entities[i];
+                        nearest = d;
                     }
                 }
-                if (over)
-                    RENDERING(over)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
+            }
+
+            if (over) {
+                TRANSFORM(overDisplay)->parent = over;
+                TRANSFORM(overDisplay)->size = TRANSFORM(over)->size + Vector2(0.1);
+                RENDERING(overDisplay)->hide = false;
+            } else {
+                RENDERING(overDisplay)->hide = true;
+            }
         } else {
             if (over) {
                 if (selected)
@@ -235,6 +279,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
                 LOG(INFO) << "Selected entity: '" << theEntityManager.entityName(selected) << "'";
                 select(selected);
                 over = 0;
+                RENDERING(overDisplay)->hide = true;
             }
         }
     } 

@@ -620,7 +620,15 @@ void unpackCameraAttributes(
 }
 
 #ifdef INGAME_EDITORS
-void RenderingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
-
+void RenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    RenderingComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "color", TW_TYPE_COLOR4F, &tc->color, "group=Rendering");
+    TwAddVarRW(bar, "hide", TW_TYPE_BOOLCPP, &tc->hide, "group=Rendering");
+    TwEnumVal opa[] = { {RenderingComponent::NON_OPAQUE, "NonOpaque"}, {RenderingComponent::FULL_OPAQUE, "Opaque"} };
+    TwType op = TwDefineEnum("OpaqueType", opa, 2);
+    TwAddVarRW(bar, "opaque", op, &tc->opaqueType, "group=Rendering");
+    TwAddVarRW(bar, "effect", TW_TYPE_INT32, &tc->effectRef, "group=Rendering");
+    TwAddVarRW(bar, "texture", TW_TYPE_INT32, &tc->texture, "group=Rendering");
 }
 #endif

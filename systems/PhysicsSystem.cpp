@@ -95,11 +95,11 @@ void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 void PhysicsSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     PhysicsComponent* tc = Get(entity, false);
     if (!tc) return;
-    TwAddVarRW(bar, "velocity.X", TW_TYPE_FLOAT, &tc->linearVelocity.X, "group=Physics precision=2");
-    TwAddVarRW(bar, "velocity.Y", TW_TYPE_FLOAT, &tc->linearVelocity.Y, "group=Physics precision=2"); 
-    TwAddVarRW(bar, "angularVelocity", TW_TYPE_FLOAT, &tc->angularVelocity, "group=Physics step=0,05 precision=2");
+    TwAddVarRW(bar, "velocity.X", TW_TYPE_FLOAT, &tc->linearVelocity.X, "group=Physics precision=2 step=0,01");
+    TwAddVarRW(bar, "velocity.Y", TW_TYPE_FLOAT, &tc->linearVelocity.Y, "group=Physics precision=2 step=0,01"); 
+    TwAddVarRW(bar, "angularVelocity", TW_TYPE_FLOAT, &tc->angularVelocity, "group=Physics step=0,01 precision=2");
     TwAddVarRW(bar, "mass", TW_TYPE_FLOAT, &tc->mass, "group=Physics precision=1");
-    TwAddVarRW(bar, "gravity.X", TW_TYPE_FLOAT, &tc->gravity.X, "group=Physics precision=2");
-    TwAddVarRW(bar, "gravity.Y", TW_TYPE_FLOAT, &tc->gravity.Y, "group=Physics precision=2");
+    TwAddVarRW(bar, "gravity.X", TW_TYPE_FLOAT, &tc->gravity.X, "group=Physics precision=2 step=0,01");
+    TwAddVarRW(bar, "gravity.Y", TW_TYPE_FLOAT, &tc->gravity.Y, "group=Physics precision=2 step=0,01");
 }
 #endif
