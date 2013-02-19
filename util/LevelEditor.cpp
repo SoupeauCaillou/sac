@@ -133,6 +133,7 @@ void LevelEditor::tick(float dt) {
         std::vector<Entity> entities = theEntityManager.allEntities();
         TwRemoveAllVars(entityListBar);
         for (unsigned i=0; i<entities.size(); i++) {
+            if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay) continue;
             TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), &buttonCallback, (void*)entities[i], "");
         }
         accum = 0;
