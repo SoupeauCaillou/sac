@@ -41,8 +41,8 @@ void CameraSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     CameraComponent* tc = Get(entity, false);
     if (!tc) return;
     TwAddVarRW(bar, "framebuffer", TW_TYPE_INT32, &tc->fb, "group=Camera");
-    TwAddVarRO(bar, "clearColor", TW_TYPE_COLOR4F, &tc->clearColor, "group=Camera");
-    TwAddVarRO(bar, "camEnabled", TW_TYPE_BOOLCPP, &tc->enable, "group=Camera");
+    TwAddVarRW(bar, "clearColor", TW_TYPE_COLOR4F, &tc->clearColor, "group=Camera");
+    TwAddVarRW(bar, "camEnabled", TW_TYPE_BOOLCPP, &tc->enable, "group=Camera");
     TwAddVarRW(bar, "order", TW_TYPE_INT32, &tc->order, "group=Camera");
     TwAddVarRW(bar, "cameraId", TW_TYPE_INT32, &tc->id, "group=Camera");
 }
