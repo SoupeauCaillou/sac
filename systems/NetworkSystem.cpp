@@ -84,6 +84,7 @@ void NetworkSystem::DoUpdate(float dt) {
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
             switch (header->type) {
                 case NetworkMessageHeader::HandShake: {
+                    VLOG(1) << "Received HANDSHAKE msg";
                     if (header->HANDSHAKE.nonce == myNonce) {
                         LOG(INFO) << "Handshake done";
                         hsDone = true;
@@ -93,6 +94,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::CreateEntity: {
+                    VLOG(1) << "Received CREATE_ENTITY msg";
                     Entity e = theEntityManager.CreateEntity();
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
@@ -102,6 +104,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::DeleteEntity: {
+                    VLOG(1) << "Received DELETE_ENTITY msg";
                     Entity e = guidToEntity(header->entityGuid);
                     if (e) {
                         theEntityManager.DeleteEntity(e);
@@ -109,6 +112,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::UpdateEntity: {
+                    VLOG(2) << "Received UPDATE_ENTITY msg";
                     NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
                     if (nc) {
                         nc->packetToProcess.push(pkt);
@@ -116,6 +120,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::ChangeEntityOwner: {
+                    VLOG(1) << "Received CHANGE_OWNER msg";
                     NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
                     if (nc) {
                         if (networkAPI->amIGameMaster()) {

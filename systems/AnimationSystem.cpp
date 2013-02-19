@@ -94,11 +94,6 @@ void AnimationSystem::registerAnim(const std::string& name, std::string* texture
     registerAnim(name, textures, playbackSpeed, loopCount, next, nextAnimWait);
 }
 
-    std::string name, previousName;
-    float accum, playbackSpeed;
-    int loopCount, textureIndex;
-    float waitAccum;
-    
 #ifdef INGAME_EDITORS
 void AnimationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     AnimationComponent* tc = Get(entity, false);
