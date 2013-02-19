@@ -82,6 +82,8 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const Vector
 void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TransformationComponent* tc = Get(entity, false);
     if (!tc) return;
+    TwAddVarRW(bar, "size.X", TW_TYPE_FLOAT, &tc->size.X, "group=Transformation precision=3 step=0,01");
+    TwAddVarRW(bar, "size.Y", TW_TYPE_FLOAT, &tc->size.Y, "group=Transformation precision=3 step=0,01"); 
     TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.X, "group=local precision=3 step=0,01");
     TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.Y, "group=local precision=3 step=0,01"); 
     TwAddVarRW(bar, "rotation", TW_TYPE_FLOAT, &tc->rotation, "group=local step=0,01 precision=3");

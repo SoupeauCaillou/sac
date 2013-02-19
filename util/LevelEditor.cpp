@@ -75,6 +75,10 @@ static void showTweakBarForEntity(Entity e) {
     TwDefine(" GLOBAL iconpos=bottomright");
 }
 
+static void buttonCallback(void* e) {
+    showTweakBarForEntity((Entity)(e));
+}
+
 void LevelEditor::LevelEditorDatas::select(Entity e) {
     showTweakBarForEntity(e);
     TRANSFORM(selectionDisplay)->parent = e;
@@ -87,6 +91,7 @@ void LevelEditor::LevelEditorDatas::deselect(Entity e) {
     RENDERING(selectionDisplay)->hide = true;
 }
 
+TwBar* entityListBar;
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
@@ -111,6 +116,9 @@ LevelEditor::LevelEditor() {
     glfwSetMouseWheelCallback((GLFWmousewheelfun)TwEventMouseWheelGLFW);
     glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
     glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
+
+    entityListBar = TwNewBar("EntityList");
+    TwDefine(" EntityList iconified=true ");
 }
 
 LevelEditor::~LevelEditor() {
@@ -118,6 +126,17 @@ LevelEditor::~LevelEditor() {
 }
 
 void LevelEditor::tick(float dt) {
+    // update entity list every sec
+    static float accum = 1;
+    accum += dt;
+    if (accum > 1) {
+        std::vector<Entity> entities = theEntityManager.allEntities();
+        TwRemoveAllVars(entityListBar);
+        for (unsigned i=0; i<entities.size(); i++) {
+            TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), &buttonCallback, (void*)entities[i], "");
+        }
+        accum = 0;
+    }
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     Entity camera = 0;
     for (unsigned i=0; i<cameras.size(); i++) {
