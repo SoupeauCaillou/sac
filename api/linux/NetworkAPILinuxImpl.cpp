@@ -67,7 +67,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     ENetAddress address;
     ENetEvent event;
     enet_address_set_host (&address, datas->lobby.server.c_str());
-    address.port = 54321;
+    address.port = 50000;
 
     LOG(INFO) << "Trying to connect to loby server: " << datas->lobby.server << ':' << address.port;
     datas->lobby.peer = enet_host_connect (datas->lobby.client, &address, 2, 0);
@@ -344,6 +344,6 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
     if (inet_ntop(AF_INET, &c, tmmmm, INET6_ADDRSTRLEN) == 0) {
         LOG(ERROR) << "plouf";
     } else
-        LOG(INFO) << "allo : " << tmmmm;
+        LOG(INFO) << "allo : " << addr << " failed";
 }
 #endif

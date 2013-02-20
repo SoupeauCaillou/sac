@@ -10,12 +10,30 @@
 #include "../systems/CameraSystem.h"
 #include <GL/glfw.h>
 #include <AntTweakBar.h>
+#include <pthread.h>
 
 namespace EditorMode {
     enum Enum {
         Selection,
         Gallery
     };
+}
+
+static pthread_mutex_t twMutex;
+static void _lock() {
+    pthread_mutex_lock(&twMutex);
+}
+
+static void _unlock() {
+    pthread_mutex_unlock(&twMutex);
+}
+
+void LevelEditor::lock() {
+    _lock();
+}
+
+void LevelEditor::unlock() {
+    _unlock();
 }
 
 struct LevelEditor::LevelEditorDatas {
@@ -76,11 +94,15 @@ static void showTweakBarForEntity(Entity e) {
 }
 
 static void buttonCallback(void* e) {
+    _lock();
     showTweakBarForEntity((Entity)(e));
+    _unlock();
 }
 
 void LevelEditor::LevelEditorDatas::select(Entity e) {
+    _lock();
     showTweakBarForEntity(e);
+    _unlock();
     TRANSFORM(selectionDisplay)->parent = e;
     TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + Vector2(0.1);
     RENDERING(selectionDisplay)->hide = false;
@@ -93,6 +115,7 @@ void LevelEditor::LevelEditorDatas::deselect(Entity e) {
 
 TwBar* entityListBar;
 LevelEditor::LevelEditor() {
+    pthread_mutex_init(&twMutex, 0);
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
@@ -130,6 +153,7 @@ void LevelEditor::tick(float dt) {
     static float accum = 1;
     accum += dt;
     if (accum > 1) {
+        lock();
         std::vector<Entity> entities = theEntityManager.allEntities();
         TwRemoveAllVars(entityListBar);
         for (unsigned i=0; i<entities.size(); i++) {
@@ -137,6 +161,7 @@ void LevelEditor::tick(float dt) {
             TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), &buttonCallback, (void*)entities[i], "");
         }
         accum = 0;
+        unlock();
     }
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     Entity camera = 0;
@@ -156,7 +181,7 @@ void LevelEditor::tick(float dt) {
     Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
 
     const Vector2 position = TRANSFORM(camera)->worldPosition + Vector2::Rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
-    LOG_EVERY_N(INFO, 100) << "Mouse position: " << position;
+    LOG_EVERY_N(INFO, 1000) << "Mouse position: " << position;
 
     static int prevWheel = 0;
     int wheel = glfwGetMouseWheel();

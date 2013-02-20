@@ -9,6 +9,7 @@
 #include <pthread.h>
 #ifdef INGAME_EDITORS
 #include <AntTweakBar.h>
+#include "util/LevelEditor.h"
 #endif
 
 GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
@@ -445,7 +446,9 @@ void RenderingSystem::render() {
 #endif
 	PROFILE("Renderer", "render", EndEvent);
     #ifdef INGAME_EDITORS
+    LevelEditor::lock();
     TwDraw();
+    LevelEditor::unlock();
     #endif
 }
 

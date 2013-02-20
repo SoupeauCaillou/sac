@@ -222,7 +222,6 @@ void Game::step() {
         theADSRSystem.Update(delta);
         theAnimationSystem.Update(delta);
         theButtonSystem.Update(delta);
-        theParticuleSystem.Update(delta);
         theAutonomousAgentSystem.Update(delta);
         theMorphingSystem.Update(delta);
         thePhysicsSystem.Update(delta);
@@ -231,6 +230,7 @@ void Game::step() {
         theSoundSystem.Update(delta);
         theMusicSystem.Update(delta);
         theTransformationSystem.Update(delta);
+        theParticuleSystem.Update(delta);
         theContainerSystem.Update(delta);
         theAutoDestroySystem.Update(delta);
         // produce 1 new frame
@@ -266,13 +266,14 @@ void Game::render() {
         float dt = t - prevT;
         prevT = t;
 
-        if (dt > fpsStats.maxDt)
+        if (dt > fpsStats.maxDt) {
             fpsStats.maxDt = dt;
+        }
         if (dt < fpsStats.minDt) {
             fpsStats.minDt = dt;
         }
         LOG_EVERY_N(INFO, 1000) << "FPS avg/min/max : " <<
-            (google::COUNTER / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt);
+            (1000 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt), 
         fpsStats.reset(t);
     }
 

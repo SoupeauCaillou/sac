@@ -52,7 +52,6 @@
     <Compile Include="tests\tests.cpp" />
     <Compile Include="systems\PhysicsSystem.cpp" />
     <Compile Include="systems\ParticuleSystem.cpp" />
-    <Compile Include="base\Log.cpp" />
     <Compile Include="systems\ScrollingSystem.cpp" />
     <Compile Include="systems\MorphingSystem.cpp" />
     <Compile Include="tests\systems\TestMorphingSystem.cpp" />
@@ -110,7 +109,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
-    <None Include="base\Log.h" />
     <None Include="base\MathUtil.h" />
     <None Include="base\TimeUtil.h" />
     <None Include="base\TouchInputManager.h" />
