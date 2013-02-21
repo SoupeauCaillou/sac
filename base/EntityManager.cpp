@@ -85,6 +85,9 @@ void EntityManager::DeleteEntity(Entity e) {
 		(*it)->Delete(e);
 	}
 	entityComponents.erase(e);
+    #ifdef DEBUG
+    name2entity.erase(entityName(e));
+    #endif
 }
 
 void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
