@@ -24,7 +24,7 @@ struct NetworkComponentPriv : NetworkComponent {
 
 struct NetworkMessageHeader {
     enum Type {
-        HandShake,
+        HandShake = 0,
         CreateEntity,
         DeleteEntity,
         UpdateEntity,
@@ -84,7 +84,7 @@ void NetworkSystem::DoUpdate(float dt) {
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
             switch (header->type) {
                 case NetworkMessageHeader::HandShake: {
-                    VLOG(1) << "Received HANDSHAKE msg";
+                    VLOG(1) << "Received HANDSHAKE msg / " << header->HANDSHAKE.nonce;
                     if (header->HANDSHAKE.nonce == myNonce) {
                         LOG(INFO) << "Handshake done";
                         hsDone = true;
@@ -177,12 +177,13 @@ void NetworkSystem::DoUpdate(float dt) {
     }
 
     float diff = TimeUtil::getTime() - counterTime;
-    if (diff >= 0.5) {
+    if (diff >= 1.0) {
         bytesSent += bytesSentLastSec;
         bytesReceived += bytesReceivedLastSec;
         ulRate = bytesSentLastSec / diff;
         dlRate = bytesReceivedLastSec / diff;
         counterTime = TimeUtil::getTime();
+        LOG(INFO) << "Network statititics: DL=" << bytesReceivedLastSec/1024.<< " kB/s UL=" << bytesSentLastSec/1024. << " kB/s";
         bytesSentLastSec = bytesReceivedLastSec = 0;
     }
 }
@@ -232,24 +233,31 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
             #if 1
             CacheIt c = cache.components.find(jt->first);
             if (c == cache.components.end()) {
-                cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
+                // cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
+                LOG(WARNING) << "No cache found for component: " << jt->first;
             } else {
                 cacheEntry = c->second;
             }
             #endif
             uint8_t* out;
             int size = system->serialize(e, &out, cacheEntry);
-            #if 1
-            system->saveComponent(e, cacheEntry);
-            #endif
-            uint8_t nameLength = strlen(jt->first.c_str());
-            temp[pkt.size++] = nameLength;
-            memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);
-            pkt.size += nameLength;
-            memcpy(&temp[pkt.size], &size, 4);
-            pkt.size += 4;
-            memcpy(&temp[pkt.size], out, size);
-            pkt.size += size;
+            if (size > 0) {
+                LOG_EVERY_N(INFO, 250) << jt->first << " size: " << size;
+                uint8_t nameLength = strlen(jt->first.c_str());
+                temp[pkt.size++] = nameLength;
+                memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);
+                pkt.size += nameLength;
+                memcpy(&temp[pkt.size], &size, 4);
+                pkt.size += 4;
+                memcpy(&temp[pkt.size], out, size);
+                pkt.size += size;
+
+                cacheEntry = system->saveComponent(e, cacheEntry);
+                if (c == cache.components.end()) {
+                    cache.components.insert(std::make_pair(jt->first, cacheEntry));
+                }
+                delete[] out;
+            }
             accum = 0;
         }
         // if peridocity <= 0 => update only once
@@ -257,6 +265,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
             accum = -1;
         }
     }
+    LOG_EVERY_N(INFO, 500) << pkt.size << " b for entity " << theEntityManager.entityName(e);
     nc->entityExistsGlobally = true;
     // finish up packet
     pkt.data = temp;
@@ -321,7 +330,7 @@ void NetworkSystem::deleteAllNonLocalEntities() {
 unsigned int NetworkSystem::entityToGuid(Entity e) {
     NetworkComponent* ncc = Get(e, false);
     if (ncc == 0) {
-        LOG(FATAL) << "Entity " << e << " has no ntework component";
+        LOG(FATAL) << "Entity " << e << " has no network component";
         return 0;
     }
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
@@ -334,6 +343,7 @@ static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
     NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
     header->type = NetworkMessageHeader::HandShake;
     header->HANDSHAKE.nonce = nonce;
+    VLOG(1) << "Send handshake packet :" << nonce;
     pkt.size = sizeof(NetworkMessageHeader);
     pkt.data = temp;
     SEND(pkt);

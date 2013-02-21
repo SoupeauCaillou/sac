@@ -106,6 +106,7 @@
     <Compile Include="systems\opengl\AtlasLibrary.cpp" />
     <Compile Include="systems\opengl\TextureLibrary.cpp" />
     <Compile Include="systems\opengl\OpenglHelper.cpp" />
+    <Compile Include="util\MurmurHash.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -190,6 +191,7 @@
     <None Include="systems\opengl\AtlasLibrary.h" />
     <None Include="systems\opengl\TextureLibrary.h" />
     <None Include="systems\opengl\OpenglHelper.h" />
+    <None Include="util\MurmurHash.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
