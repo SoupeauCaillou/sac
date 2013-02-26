@@ -34,8 +34,8 @@
 			void DoUpdate(float dt); \
             void updateEntityComponent(float dt, Entity e, type##Component* t); \
 		\
+		private: \
 			type##System();	\
-		private:	\
 			static type##System* _instance;
 
 #if USE_VECTOR_STORAGE
