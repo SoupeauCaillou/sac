@@ -85,8 +85,8 @@ void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureR
     }
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& next, Interval<float> nextAnimWait) {
-    assert (animations.find(name) == animations.end());
+void AnimationSystem::registerAnim(const std::string& name, const std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& next, Interval<float> nextAnimWait) {
+    LOG_IF(FATAL, animations.find(name) != animations.end()) << " Animation called '" << name << "' already exists (registered anim count: " << animations.size() << ")";
     std::vector<TextureRef> textures;
     for (int i=0; i<count; i++) {
         textures.push_back(theRenderingSystem.loadTextureFile(textureNames[i]));
