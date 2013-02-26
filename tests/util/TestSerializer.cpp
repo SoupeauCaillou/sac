@@ -90,8 +90,11 @@ TEST (MapProperty)
 TEST (MapPropertyStringKey)
 {
     std::map<std::string, float> v, w;
-    for (int i=0; i<10; i++)
-        v["a" + i] = 1+i;
+    for (int i=0; i<10; i++){
+	std::stringstream a;
+        a << "a_" << i;
+        v[a.str()] = 1+i;
+    }
     MapProperty<std::string, float> p(0);
     uint8_t buf[256];
     CHECK(p.size(&v) <= 256);
