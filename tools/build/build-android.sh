@@ -72,6 +72,7 @@ source ../coolStuff.sh
 	cd sac/libs/tremor; git checkout *; cd ../../..
 
 	if [ ! -z $(echo $1 | grep c) ]; then
+		mkdir -f $rootPath/src
 		info "Compiling..."
 		android update project -p . -t "android-8" -n $nameUpper --subprojects
 		ant debug
