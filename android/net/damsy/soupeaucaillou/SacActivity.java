@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.damsy.soupeaucaillou.api.AdAPI;
 import net.damsy.soupeaucaillou.api.CommunicationAPI;
-import net.damsy.soupeaucaillou.recursiveRunner.RecursiveRunnerActivity;
+import net.damsy.soupeaucaillou.prototype.PrototypeActivity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
@@ -62,6 +62,8 @@ public abstract class SacActivity extends SwarmActivity {
 	public abstract String getCharboostAppId();
 	public abstract String getCharboostAppSignature();
 
+	public abstract boolean giftizEnabled();
+	
 	public abstract View getNameInputView();
 	public abstract EditText getNameInputEdit();
 	public abstract Button getNameInputButton();
@@ -110,7 +112,7 @@ public abstract class SacActivity extends SwarmActivity {
         int width = getWindowManager().getDefaultDisplay().getWidth();
 
         SharedPreferences preferences = this
-				.getSharedPreferences(RecursiveRunnerActivity.HERISWAP_SHARED_PREF, 0);
+				.getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
         
         if (preferences.getBoolean(UseLowGfxPref, false)) {
         	factor = 0.6f;
@@ -173,8 +175,10 @@ public abstract class SacActivity extends SwarmActivity {
         editor.putLong("launch_count", newValue);
         editor.commit();
         
-        CommunicationAPI.buttonStatus = GiftizSDK.Inner.getButtonStatus(this);
-        GiftizSDK.Inner.setButtonNeedsUpdateDelegate(new CommunicationAPI.GiftizDelegate());
+        if (giftizEnabled()) {
+        	CommunicationAPI.buttonStatus = GiftizSDK.Inner.getButtonStatus(this);
+        	GiftizSDK.Inner.setButtonNeedsUpdateDelegate(new CommunicationAPI.GiftizDelegate());
+        }
     }
 
     @Override
@@ -213,7 +217,7 @@ public abstract class SacActivity extends SwarmActivity {
 	        	// HeriswapJNILib.invalidateTextures(HeriswapActivity.game);
 			}
         }
-		GiftizSDK.onResumeMainActivity(this);
+        if (giftizEnabled()) GiftizSDK.onResumeMainActivity(this);
     }
 
     @Override
@@ -244,8 +248,7 @@ public abstract class SacActivity extends SwarmActivity {
     		}
     	}
 
-
-		GiftizSDK.onResumeMainActivity(this);
+    	if (giftizEnabled()) GiftizSDK.onResumeMainActivity(this);
     }
 
     @Override
@@ -329,7 +332,7 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     public void onBackPressed() {
-    	if (cb.onBackPressed()) {
+    	if ((getCharboostAppId() != null) && cb.onBackPressed()) {
     		return;
     	} else if (SacJNILib.willConsumeBackEvent(game)) {
     		backPressed = true;
@@ -341,12 +344,12 @@ public abstract class SacActivity extends SwarmActivity {
     @Override
     protected void onStart() {
     	super.onStart();
-    	cb.onStart(this);    
+    	if (getCharboostAppId() != null) cb.onStart(this);    
     }
 
     @Override
     protected void onStop() {
     	super.onStop();
-    	cb.onStop(this);
+    	if (getCharboostAppId() != null) cb.onStop(this);
     }
 }

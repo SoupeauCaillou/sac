@@ -3,8 +3,6 @@ package net.damsy.soupeaucaillou;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import net.damsy.soupeaucaillou.recursiveRunner.api.StorageAPI;
-
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
 
@@ -141,7 +139,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	int id = activity.getSwarmGameID();
 
 	//start swarm if this is the first launch (0 coin) OR it's enabled
-    	if ((StorageAPI.getCoinsCount() == 0 || Swarm.isEnabled()) && id != 0) {
+    	if ((/*StorageAPI.firstLaunch() == 0 ||*/ Swarm.isEnabled()) && id != 0) {
 		    activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
