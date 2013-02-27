@@ -132,7 +132,7 @@ source $whereAmI/coolStuff.sh
    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
       info "rm -rf build && cp -r sac/tools/build ."
       if [ ! -z $applyChanges ]; then
-         rm -rf build && cp -r sac/tools/build .
+         rm -rf build
       fi
    fi
 

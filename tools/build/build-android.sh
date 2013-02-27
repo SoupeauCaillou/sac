@@ -48,9 +48,7 @@ source ../coolStuff.sh
 	cd $rootPath
 
 ######### 4 : Execute query. #########
-	count=$(pwd | tr -c -d / | wc -c)
-	count=$(expr $count + 1)
-	nameLower=$(pwd | cut -d/ -f $count)
+	nameLower=$(ls android/src/net/damsy/soupeaucaillou/ | tr -d '/')
 	nameUpper=$(echo $nameLower | sed 's/^./\u&/')
 
 	if [ ! -z $(echo $1 | grep n) ]; then
@@ -72,7 +70,7 @@ source ../coolStuff.sh
 	cd sac/libs/tremor; git checkout *; cd ../../..
 
 	if [ ! -z $(echo $1 | grep c) ]; then
-		mkdir -f $rootPath/src
+		mkdir $rootPath/src 2>/dev/null
 		info "Compiling..."
 		android update project -p . -t "android-8" -n $nameUpper --subprojects
 		ant debug
