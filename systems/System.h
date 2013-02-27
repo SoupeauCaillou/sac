@@ -29,11 +29,21 @@
 		public:	\
             static type##System* GetInstancePointer() { return _instance; } \
 			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { if (_instance != NULL) { LOGW("Creating another instance of type##System"); } _instance = new type##System(); LOGI(#type "System new instance created: %p", _instance);} \
-			static void DestroyInstance() { if (_instance) delete _instance; LOGI(#type "System instance destroyed, was: %p", _instance); _instance = NULL; } \
+			static void CreateInstance() { \
+			    if (_instance != NULL) { \
+				LOGW("Creating another instance of type##System");\
+			    }\
+			    _instance = new type##System();\
+			    LOGI(#type "System new instance created: %p", _instance);\
+			} \
+			static void DestroyInstance() {\
+			    if (_instance)\
+				delete _instance;\
+			    LOGI(#type "System instance destroyed, was: %p", _instance);\
+			    _instance = NULL;\
+			} \
 			void DoUpdate(float dt); \
-            void updateEntityComponent(float dt, Entity e, type##Component* t); \
-		\
+			void updateEntityComponent(float dt, Entity e, type##Component* t); \
 		private: \
 			type##System();	\
 			static type##System* _instance;
