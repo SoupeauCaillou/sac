@@ -49,15 +49,15 @@ source ../coolStuff.sh
 
 ######### 4 : Execute query. #########
 	count=$(pwd | tr -c -d / | wc -c)
-	count=`expr $count + 1`
+	count=$(expr $count + 1)
 	nameLower=$(pwd | cut -d/ -f $count)
 	nameUpper=$(echo $nameLower | sed 's/^./\u&/')
 
-	if [ ! -z `echo $1 | grep n` ]; then
+	if [ ! -z $(echo $1 | grep n) ]; then
 		info "Building tremor lib..."
-		cd $rootPath/sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
+		cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
 
-		if [ $# != 2 ] || [ ! -z `echo $2 | grep yes` ]; then
+		if [ $# != 2 ] || [ ! -z $(echo $2 | grep yes) ]; then
 			opti="-j APP_ABI=armeabi-v7a"
 		else
 			opti="-j4"
@@ -71,23 +71,23 @@ source ../coolStuff.sh
 	fi
 	cd sac/libs/tremor; git checkout *; cd ../../..
 
-	if [ ! -z `echo $1 | grep c` ]; then
+	if [ ! -z $(echo $1 | grep c) ]; then
 		info "Compiling..."
 		android update project -p . -t "android-8" -n $nameUpper --subprojects
 		ant debug
 	fi
 
-	if [ ! -z `echo $1 | grep i` ]; then
+	if [ ! -z $(echo $1 | grep i) ]; then
 		info "Installing on device ..."
 		ant installd -e
 	fi
 
-	if [ ! -z `echo $1 | grep r` ]; then
+	if [ ! -z $(echo $1 | grep r) ]; then
 		info "Running app $nameUpper..."
 		adb shell am start -n net.damsy.soupeaucaillou.$nameLower/net.damsy.soupeaucaillou.$nameLower.${nameUpper}Activity
 	fi
 
-	if [ ! -z `echo $1 | grep l` ]; then
+	if [ ! -z $(echo $1 | grep l) ]; then
 		info "Launching adb logcat..."
 		adb logcat -C | grep sac
 	fi
