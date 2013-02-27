@@ -34,6 +34,9 @@ LOCAL_SRC_FILES := \
 	systems/AutoDestroySystem.cpp \
 	systems/AutonomousAgentSystem.cpp \
 	systems/ButtonSystem.cpp \
+	systems/CameraDepSystem.cpp \
+	systems/CameraTargetSystem.cpp \
+	systems/ContainerSystem.cpp \
 	systems/ContainerSystem.cpp \
 	systems/MorphingSystem.cpp \
 	systems/MusicSystem.cpp \
