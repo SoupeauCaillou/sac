@@ -78,12 +78,12 @@ source ../coolStuff.sh
 				info "Launch with colored log."
 
 				if [ $# = 2 ]; then
-					./linux/$gameName -v | ./colorlog.sh $2
+					./linux/$gameName -v | $rootPath/sac/tools/build/linux-coloredLogs.sh $2
 				else
 					info "No arg for color script ?\nUsage: $0 $1 args-for-it" $red
 					info "Using 'all' tag there"
 					sleep 3
-					./linux/$gameName -v | ./colorlog.sh 'all'
+					./linux/$gameName -v | $rootPath/sac/tools/build/linux-coloredLogs.sh 'all'
 				fi
 			else
 				info "Launch with log."
