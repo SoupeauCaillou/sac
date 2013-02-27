@@ -47,14 +47,6 @@ static int setSegmentEntity(Entity e, Entity from, Entity to, const Color & c) {
 	Vector2 toV = TRANSFORM(to)->worldPosition;
 
 
-	//don't draw segment if Entity need to cross edges
-	if (Vector2::edgeToCross(fromV, toV) != 0) {
-		return 0;
-	}
-
-
-
-
 	RENDERING(e)->color = c;
 	RENDERING(e)->color.a = 0.5;
 	TRANSFORM(e)->parent = 0;
