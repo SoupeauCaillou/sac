@@ -58,7 +58,7 @@ source ../coolStuff.sh
 
 	if [ ! -z `echo $1 | grep n` ]; then
 		info "Building tremor lib..."
-		cd sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
+		cd $rootPath/sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
 
 		if [ $# != 2 ] || [ ! -z `echo $2 | grep yes` ]; then
 			opti="-j APP_ABI=armeabi-v7a"
