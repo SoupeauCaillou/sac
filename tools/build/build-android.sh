@@ -47,15 +47,15 @@ source ../coolStuff.sh
 	mkdir -p $rootPath/build/android
 
 ######### 3 : Go into build/emscripten #########
-	cd $rootPath/build/android
+	cd $rootPath
 
 ######### 4 : Execute query. #########
-	count=`pwd | tr -c -d / | wc -c`
+	count=$(pwd | tr -c -d / | wc -c)
 	count=`expr $count + 1`
-	nameLower=`pwd | cut -d/ -f $count`
-	nameUpper=`echo $nameLower | sed 's/^./\u&/'`
+	nameLower=$(pwd | cut -d/ -f $count)
+	nameUpper=$(echo $nameLower | sed 's/^./\u&/')
 
-
+	echo $nameLower $nameUpper
 	if [ ! -z `echo $1 | grep n` ]; then
 		info "Building tremor lib..."
 		cd $rootPath/sac/libs/tremor; git checkout *; cd ..; ./convert_tremor_asm.sh; cd ../..
