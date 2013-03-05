@@ -147,7 +147,6 @@ bool initDone;
 
 private:
 GLuint compileShader(const std::string& assetName, GLuint type);
-void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 

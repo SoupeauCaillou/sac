@@ -62,7 +62,6 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 	a.name = atlasImage;
 	if (forceImmediateTextureLoading) {
         a.ref = textureLibrary.load(atlasName);
-		// loadTexture(atlasName, atlasSize, pow2Size, a.glref);
 	} else {
 		a.ref = InvalidTextureRef;
 	}
@@ -106,15 +105,6 @@ void RenderingSystem::invalidateAtlasTextures() {
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     textureLibrary.unload(atlasName);
-}
-
-void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
-	VLOG(1) << "loadTexture: '" << assetName << "'";
-
-	/* create GL texture */
- 	out.color = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, realSize);
-	out.alpha = OpenGLTextureCreator::loadFromFile(assetAPI, assetName + "_alpha", realSize);
-    pow2Size = realSize;
 }
 
 void RenderingSystem::reloadTextures() {
