@@ -6,6 +6,7 @@
 
 #include "opengl/OpenglHelper.h"
 #include "opengl/OpenGLTextureCreator.h"
+#include "opengl/TextureLibrary.h"
 #include <set>
 #include <queue>
 #include <list>
@@ -91,52 +92,9 @@ public:
 int windowW, windowH;
 float screenW, screenH;
 
-/* textures cache */
-TextureRef nextValidRef;
-std::map<std::string, TextureRef> assetTextures;
-
-struct InternalTexture {
-	GLuint color;
-	GLuint alpha;
-
-	bool operator==(const InternalTexture& t) const {
-		return color == t.color && alpha == t.alpha;
-	}
-	bool operator!=(const InternalTexture& t) const {
-		return color != t.color || alpha != t.alpha;
-	}
-	bool operator<(const InternalTexture& t) const {
-		return color < t.color;
-	}
-
-	static InternalTexture Invalid;
-};
-
 struct RenderCommand;
 struct RenderQueue;
 
-struct TextureInfo {
-    // GL texture(s)
-	InternalTexture glref;
-    // is image rotated in atlas
-	unsigned short rotateUV;
-    // which atlas
-    short atlasIndex;
-    // uv coords in atlas
-	Vector2 uv[2];
-    // texture original size
-	unsigned short originalWidth, originalHeight;
-    // texture redux offset/size
-    Vector2 reduxStart, reduxSize;
-    // coordinates of opaque region in alpha-enabled texture (optional)
-    Vector2 opaqueStart, opaqueSize;
-	TextureInfo (const InternalTexture& glref = InternalTexture::Invalid,
-        const Vector2& posInAtlas = Vector2::Zero, const Vector2& sizeInAtlas = Vector2::Zero, bool rot = false,
-        const Vector2& atlasSize = Vector2::Zero,
-        const Vector2& offsetInOriginal = Vector2::Zero, const Vector2& originalSize=Vector2::Zero,
-        const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero,
-        int atlasIdx = -1);
-};
 struct Atlas {
 	std::string name;
 	InternalTexture glref;
@@ -147,8 +105,7 @@ struct Framebuffer {
     int width, height;
 };
 
-std::map<TextureRef, TextureInfo> textures;
-std::set<std::string> delayedLoads;
+
 std::set<int> delayedAtlasIndexLoad;
 std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
@@ -183,6 +140,7 @@ private:
 Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
 GLuint whiteTexture;
 
+TextureLibrary textureLibrary;
 EffectRef nextEffectRef;
 std::map<std::string, EffectRef> nameToEffectRefs;
 std::map<EffectRef, Shader> ref2Effects;

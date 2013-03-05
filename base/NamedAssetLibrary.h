@@ -30,8 +30,12 @@ template <typename T, typename TRef>
 class NamedAssetLibrary {
     #define InvalidRef -1
     public:
-        NamedAssetLibrary(AssetAPI* _assetAPI) : nextValidRef(1), assetAPI(_assetAPI) {
+        NamedAssetLibrary() : nextValidRef(1) {
             pthread_mutex_init(&mutex, 0);
+        }
+
+        void init(AssetAPI* pAssetAPI) {
+            assetAPI = pAssetAPI;
         }
 
         virtual ~NamedAssetLibrary() {
@@ -69,7 +73,7 @@ class NamedAssetLibrary {
                 T asset;
                 TRef ref = nameToRef[*it];
                 VLOG(2) << "\tLoad '" << *it << "' -> " << ref;
-                doLoad(*it, asset);
+                doLoad(*it, asset, ref);
                 ref2asset.insert(std::make_pair(ref, asset));
                 pthread_mutex_unlock(&mutex);
             }
@@ -94,6 +98,18 @@ class NamedAssetLibrary {
             pthread_mutex_unlock(&mutex);
         }
 
+        const T& get(const TRef& ref) const {
+            typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
+            LOG_IF(FATAL, it == ref2asset.end()) << "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size();
+            return it->second;
+        }
+
+        const T& get(const std::string& name) const {
+            typename std::map<std::string, TRef>::const_iterator it = nameToRef.find(name);
+            LOG_IF(FATAL, it == nameToRef.end()) << "Unkown asset requested: " << name << ". Asset count: " << nameToRef.size();
+            return get(it->second);
+        }
+
     protected:
         void setNextValidRef(TRef r) {
             nextValidRef = r;
@@ -103,11 +119,11 @@ class NamedAssetLibrary {
         virtual bool doLoad(const std::string& name, T& out, const TRef& ref) = 0;
         virtual void doUnload(const std::string& name, const T& in) = 0;
         virtual void reload(const std::string& name, T& out) = 0;
-        AssetAPI* assetAPI;
 
-    private:
+    protected:
         pthread_mutex_t mutex;
         TRef nextValidRef;
+        AssetAPI* assetAPI;
 
         std::map<std::string, TRef> nameToRef;
         std::map<TRef, T> ref2asset;

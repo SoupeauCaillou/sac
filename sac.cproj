@@ -108,6 +108,7 @@
     <Compile Include="util\MurmurHash.cpp" />
     <Compile Include="systems\CollisionSystem.cpp" />
     <Compile Include="systems\opengl\OpenGLTextureCreator.cpp" />
+    <Compile Include="systems\opengl\TextureLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -194,6 +195,7 @@
     <None Include="util\MurmurHash.h" />
     <None Include="systems\CollisionSystem.h" />
     <None Include="systems\opengl\OpenGLTextureCreator.h" />
+    <None Include="systems\opengl\TextureLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

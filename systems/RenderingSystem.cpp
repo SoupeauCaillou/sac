@@ -21,12 +21,10 @@
 #include <AntTweakBar.h>
 #endif
 
-RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
-
 INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), initDone(false) {
-	nextValidRef = nextEffectRef = 1;
+	nextEffectRef = 1;
     nextValidFBRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
@@ -340,7 +338,7 @@ void RenderingSystem::DoUpdate(float) {
             }
 
             if (c.texture != InvalidTextureRef && !c.fbo) {
-                const TextureInfo& info = textures[c.texture];
+                const TextureInfo& info = textureLibrary.get(c.texture);
                 int atlasIdx = info.atlasIndex;
                 if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
                     if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
@@ -439,7 +437,8 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 
 int RenderingSystem::saveInternalState(uint8_t** out) {
 	int size = 0;
-
+    LOG(WARNING) << "TODO";
+    #if 0
     for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
         size += (*it).first.length() + 1;
         size += sizeof(TextureRef);
@@ -454,10 +453,13 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
 		ptr = (uint8_t*) mempcpy(ptr, &(textures[it->second]), sizeof(TextureInfo));
 	}
+    #endif
 	return size;
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
+    LOG(WARNING) << "TODO";
+    #if 0
 	assetTextures.clear();
 	textures.clear();
 	nextValidRef = 1;
@@ -489,6 +491,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		++it) {
 		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
 	}
+    #endif
 }
 
 EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {

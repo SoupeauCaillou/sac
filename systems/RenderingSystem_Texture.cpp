@@ -6,7 +6,6 @@
 #include <cassert>
 #include <sstream>
 #include <sys/select.h>
-//~#include <sys/inotify.h>
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -14,64 +13,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "../util/ImageLoader.h"
-
-#ifdef EMSCRIPTEN
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_rwops.h>
-#elif defined(ANDROID)
-#include <GLES2/gl2ext.h>
-#endif
-
-RenderingSystem::TextureInfo::TextureInfo (const InternalTexture& ref,
-        const Vector2& posInAtlas, const Vector2& sizeInAtlas, bool rot,
-        const Vector2& atlasSize,
-        const Vector2& offsetInOriginal, const Vector2& originalSize,
-        const Vector2& _opaqueStart, const Vector2& _opaqueSize,
-        int atlasIdx) {
-	glref = ref;
-
-	if (originalSize == Vector2::Zero) {
-		uv[0].X = uv[0].Y = 0;
-		uv[1].X = uv[1].Y = 1;
-		rotateUV = 0;
-	} else if (atlasIdx >= 0) {
-		float blX = posInAtlas.X / atlasSize.X;
-		float trX = (posInAtlas.X + sizeInAtlas.X) / atlasSize.X;
-		float blY = 1 - (posInAtlas.Y + sizeInAtlas.Y) / atlasSize.Y;
-		float trY = 1 - posInAtlas.Y / atlasSize.Y;
-
-		uv[0].X = blX;
-		uv[1].X = trX;
-		uv[0].Y = blY;
-		uv[1].Y = trY;
-		rotateUV = rot;
-	} else {
-		uv[0].X = posInAtlas.X / atlasSize.X;
-		uv[0].Y = posInAtlas.Y / atlasSize.Y;
-		uv[1].X = (posInAtlas.X + sizeInAtlas.X) / atlasSize.X;
-		uv[1].Y = (posInAtlas.Y + sizeInAtlas.Y) / atlasSize.Y;
-		rotateUV = 0;
-	}
-	atlasIndex = atlasIdx;
-
-    originalWidth = originalSize.X;
-    originalHeight = originalSize.Y;
-
-    Vector2 _sizeInAtlas(sizeInAtlas);
-	if (rot) {
-		std::swap(_sizeInAtlas.X, _sizeInAtlas.Y);
-    }
-    if (_sizeInAtlas.Y > 0) {
-        opaqueSize = Vector2(_opaqueSize.X / _sizeInAtlas.X, _opaqueSize.Y / _sizeInAtlas.Y);
-        opaqueStart = Vector2(_opaqueStart.X / _sizeInAtlas.X, 1 - (opaqueSize.Y + _opaqueStart.Y / _sizeInAtlas.Y));
-
-        reduxSize = Vector2(_sizeInAtlas.X / originalSize.X, _sizeInAtlas.Y / originalSize.Y);
-        reduxStart = Vector2(offsetInOriginal.X / originalSize.X, 1 - (reduxSize.Y + offsetInOriginal.Y / originalSize.Y));
-    }
-}
-
 #include <fstream>
 
 static void parse(const std::string& line, std::string& assetName, Vector2& originalSize, Vector2& reduxOffset, Vector2& posInAtlas, Vector2& sizeInAtlas, bool& rotate, Vector2& opaqueStart, Vector2& opaqueEnd) {
@@ -147,10 +88,8 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		bool rot;
 		parse(s, assetName, originalSize, reduxOffset, posInAtlas, sizeInAtlas, rot, opaqueStart, opaqueEnd);
 
-		TextureRef result = nextValidRef++;
-		VLOG(2) << "----- " << assetName << " -> " << result;
-		assetTextures[assetName] = result;
-		textures[result] = TextureInfo(a.glref, posInAtlas, sizeInAtlas, rot, atlasSize, reduxOffset, originalSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
+        const TextureInfo info(a.glref, posInAtlas, sizeInAtlas, rot, atlasSize, reduxOffset, originalSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
+        textureLibrary.add(assetName, info);
 	} while (!s.empty());
 
 	delete[] file.data;
@@ -164,6 +103,8 @@ void RenderingSystem::invalidateAtlasTextures() {
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
+    LOG(WARNING) << "TODO";
+    #if 0
 	LOG(INFO) << "Unload atlas '" << atlasName << "' texture";
 	for (unsigned int idx=0; idx<atlas.size(); idx++) {
 		if (atlasName == atlas[idx].name) {
@@ -177,6 +118,7 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
 			break;
 		}
 	}
+    #endif
 }
 
 void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out) {
@@ -188,7 +130,9 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
     pow2Size = realSize;
 }
 
-void RenderingSystem::reloadTextures() {	
+void RenderingSystem::reloadTextures() {
+    LOG(WARNING) << "TODO";
+    #if 0
 	LOG(INFO) << "Reloading textures begin";
 	LOG(INFO) << "\t- atlas count: " << atlas.size();
 	// reload atlas texture
@@ -206,6 +150,7 @@ void RenderingSystem::reloadTextures() {
 		}
 	}
 	LOG(INFO) << "Reloading textures done";
+    #endif
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
@@ -224,33 +169,23 @@ void RenderingSystem::processDelayedTextureJobs() {
 		loadTexture(atlas[atlasIndex].name, atlasSize, pow2Size, atlas[atlasIndex].glref);
 		VLOG(1) << "Atlas '" << atlas[atlasIndex].name << "' loaded (" << atlas[atlasIndex].glref.color << '/' << atlas[atlasIndex].glref.alpha << ')';
 
+        LOG(ERROR) << "TODO: update atlas members glref";
+        #if 0
 		for (std::map<std::string, TextureRef>::iterator jt=assetTextures.begin(); jt!=assetTextures.end(); ++jt) {
 			TextureInfo& info = textures[jt->second];
 			if (info.atlasIndex == atlasIndex) {
 				info.glref = atlas[atlasIndex].glref;
 			}
 		}
+        #endif
 	    #ifndef EMSCRIPTEN
         pthread_mutex_lock(&mutexes[L_TEXTURE]);
         #endif
 	}
 	delayedAtlasIndexLoad.clear();
-/*
-	// load textures
-	for (std::set<std::string>::iterator it=delayedLoads.begin(); it != delayedLoads.end(); ++it) {
-		Vector2 size, powSize;
-		InternalTexture t;
-		#ifndef EMSCRIPTEN
-		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
-		#endif
-		loadTexture(*it, size, powSize, t);
-		textures[assetTextures[*it]] = TextureInfo(t, Vector2::Zero, 1+1, 1+1, size.X-1, size.Y-1, false, powSize);
-		#ifndef EMSCRIPTEN
-		pthread_mutex_lock(&mutexes[L_TEXTURE]);
-		#endif
-	}
-	delayedLoads.clear();
-*/
+    
+    textureLibrary.update();
+
 	// delete textures
 	for (std::set<InternalTexture>::iterator it=delayedDeletes.begin(); it != delayedDeletes.end(); ++it) {
 	    #ifndef EMSCRIPTEN
@@ -277,42 +212,17 @@ void RenderingSystem::processDelayedTextureJobs() {
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
-	TextureRef result = InvalidTextureRef;
-
-	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(assetName);
-	if (it != assetTextures.end()) {
-		result = it->second;
-	} else {
-		LOG(FATAL) << "Texture '" << assetName << "' doesn't belong to any atlas. This is not supported";
-        return InvalidTextureRef;
-	}
-	if (textures.find(result) == textures.end()) {
-		PROFILE("RequestLoadTexture", assetName, InstantEvent);
-
-		#ifndef EMSCRIPTEN
-		pthread_mutex_lock(&mutexes[L_TEXTURE]);
-		#endif
-		delayedLoads.insert(assetName);
-		#ifndef EMSCRIPTEN
-		pthread_mutex_unlock(&mutexes[L_TEXTURE]);
-		#endif
-	}
-	PROFILE("Texture", "loadTextureFile", EndEvent);
-	return result;
+    return textureLibrary.load(assetName);
 }
 
 Vector2 RenderingSystem::getTextureSize(const std::string& textureName) const {
-	std::map<std::string, TextureRef>::const_iterator it = assetTextures.find(textureName);
-	if (it != assetTextures.end()) {
-        const TextureInfo& info = textures.find(it->second)->second;
-        return Vector2(info.originalWidth, info.originalHeight);
-	} else {
-		LOG(FATAL) << "Unable to find texture '" << textureName << "'";
-		return Vector2::Zero;
-	}
+    const TextureInfo& info = textureLibrary.get(textureName);
+    return Vector2(info.originalWidth, info.originalHeight);
 }
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
+    LOG(WARNING) << "TODO";
+    /*
 	if (ref != InvalidTextureRef) {
 		TextureInfo i = textures[ref];
 		if (i.atlasIndex >= 0 && !allowUnloadAtlas) {
@@ -335,5 +245,6 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 	} else {
 		LOG(ERROR) << "Tried to delete an InvalidTextureRef";
 	}
+    */
 }
 
