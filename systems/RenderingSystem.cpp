@@ -29,7 +29,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     nextValidFBRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
-    newFrameReady = false;
+    newFrameReady = true;
 #ifndef EMSCRIPTEN
     pthread_mutex_init(&mutexes[L_RENDER], 0);
     pthread_mutex_init(&mutexes[L_QUEUE], 0);
@@ -346,8 +346,8 @@ void RenderingSystem::DoUpdate(float) {
                 if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {//InternalTexture::Invalid) {
                     atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
                     LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
+                    modifyQ(c, info.reduxStart, info.reduxSize);
                 }
-                modifyQ(c, info.reduxStart, info.reduxSize);
              }
 
              switch (rc->opaqueType) {

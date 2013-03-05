@@ -138,7 +138,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
     return textureLibrary.load(assetName);
 }
 
-Vector2 RenderingSystem::getTextureSize(const std::string& textureName) const {
+Vector2 RenderingSystem::getTextureSize(const std::string& textureName) {
     const TextureInfo& info = textureLibrary.get(textureName);
     return Vector2(info.originalWidth, info.originalHeight);
 }

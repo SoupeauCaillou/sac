@@ -24,6 +24,11 @@
 #include <set>
 #include <pthread.h>
 
+#if !defined(ANDROID)
+#define USE_COND_SIGNALING 1
+#else
+#undef USE_COND_SIGNALING
+#endif
 class AssetAPI;
 
 template <typename T, typename TRef>
@@ -32,6 +37,9 @@ class NamedAssetLibrary {
     public:
         NamedAssetLibrary() : nextValidRef(1), assetAPI(0) {
             pthread_mutex_init(&mutex, 0);
+            #if USE_COND_SIGNALING
+            pthread_cond_init(&cond, 0);
+            #endif
         }
 
         void init(AssetAPI* pAssetAPI) {
@@ -47,9 +55,9 @@ class NamedAssetLibrary {
             pthread_mutex_lock(&mutex);
             typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
             if (it == nameToRef.end()) {
-                VLOG(1) << "Put asset '" << name << "' on delayed load queue";
                 delayed.loads.insert(name);
                 result = nextValidRef++;
+                VLOG(1) << "Put asset '" << name << "' on delayed load queue. Ref value: " << result;
                 nameToRef.insert(std::make_pair(name, result));
             } else {
                 result = it->second;
@@ -110,16 +118,29 @@ class NamedAssetLibrary {
             pthread_mutex_lock(&mutex);
             delayed.loads.clear();
             delayed.unloads.clear();
+            #if USE_COND_SIGNALING
+            pthread_cond_signal(&cond);
+            #endif
             pthread_mutex_unlock(&mutex);
         }
 
-        const T& get(const TRef& ref) const {
+        const T& get(const TRef& ref) {
+            pthread_mutex_lock(&mutex);
             typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
+            #if USE_COND_SIGNALING
+            if (it == ref2asset.end()) {
+                // wait for next load end, the requested resource might be loaded in the next batch
+                while (!delayed.loads.empty())
+                    pthread_cond_wait(&cond, &mutex);
+                it = ref2asset.find(ref);
+            }
+            #endif
             LOG_IF(FATAL, it == ref2asset.end()) << "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size();
+            pthread_mutex_unlock(&mutex);
             return it->second;
         }
 
-        const T& get(const std::string& name) const {
+        const T& get(const std::string& name) {
             typename std::map<std::string, TRef>::const_iterator it = nameToRef.find(name);
             LOG_IF(FATAL, it == nameToRef.end()) << "Unkown asset requested: " << name << ". Asset count: " << nameToRef.size();
             return get(it->second);
@@ -137,6 +158,9 @@ class NamedAssetLibrary {
 
     protected:
         pthread_mutex_t mutex;
+        #if !defined(ANDROID)
+        pthread_cond_t cond;
+        #endif
         TRef nextValidRef;
         AssetAPI* assetAPI;
 
