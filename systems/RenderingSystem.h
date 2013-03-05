@@ -96,7 +96,8 @@ struct RenderQueue;
 
 struct Atlas {
 	std::string name;
-	InternalTexture glref;
+    TextureRef ref;
+	// InternalTexture glref;
 };
 
 struct Framebuffer {
@@ -105,8 +106,6 @@ struct Framebuffer {
 };
 
 
-std::set<int> delayedAtlasIndexLoad;
-std::set<InternalTexture> delayedDeletes;
 std::vector<Atlas> atlas;
 FramebufferRef nextValidFBRef;
 std::map<std::string, FramebufferRef> nameToFramebuffer;

@@ -95,14 +95,8 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
 #ifdef USE_VBO
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info, GLint unif) {
 #else
-static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info, const std::vector<RenderingSystem::Atlas>& atlas) {
+static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
 #endif
-    if (info.atlasIndex >= 0) {
-        LOG_IF(FATAL, info.atlasIndex >= atlas.size()) << "Invalid atlas index: " << info.atlasIndex << " >= atlas count : " << atlas.size();
-        rc.glref = atlas[info.atlasIndex].glref;
-    } else {
-        rc.glref = info.glref;
-    }
      Vector2 offset(rc.uv[0]);
      Vector2 scale(rc.uv[1]);
      const Vector2 uvS (info.uv[1] - info.uv[0]);
@@ -316,10 +310,16 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.texture != InvalidTextureRef) {
             if (!rc.fbo) {
                 const TextureInfo& info = textureLibrary.get(rc.texture);
+                if (info.atlasIndex >= 0) {
+                    LOG_IF(FATAL, info.atlasIndex >= atlas.size()) << "Invalid atlas index: " << info.atlasIndex << " >= atlas count : " << atlas.size();
+                    rc.glref = textureLibrary.get(atlas[info.atlasIndex].ref).glref;
+                } else {
+                    rc.glref = info.glref;
+                }
                 #ifdef USE_VBO
                 computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
                 #else
-                computeUV(rc, info, atlas);
+                computeUV(rc, info);
                 #endif
             } else {
                 rc.uv[0] = Vector2(0, 1);

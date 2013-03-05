@@ -24,7 +24,7 @@
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), initDone(false) {
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
 	nextEffectRef = 1;
     nextValidFBRef = 1;
 	currentWriteQueue = 0;
@@ -126,7 +126,9 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 }
 
 void RenderingSystem::init() {
+    LOG_IF(FATAL, !assetAPI) << "AssetAPI must be set before init is called";
     OpenGLTextureCreator::detectSupportedTextureFormat();
+    textureLibrary.init(assetAPI);
 
 	#ifdef USE_VBO
 	defaultShader = buildShader("default_vbo.vs", "default.fs");
@@ -341,10 +343,9 @@ void RenderingSystem::DoUpdate(float) {
             if (c.texture != InvalidTextureRef && !c.fbo) {
                 const TextureInfo& info = textureLibrary.get(c.texture);
                 int atlasIdx = info.atlasIndex;
-                if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
-                    if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
-                        LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
-                    }
+                if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {//InternalTexture::Invalid) {
+                    atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
+                    LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
                 }
                 modifyQ(c, info.reduxStart, info.reduxSize);
              }

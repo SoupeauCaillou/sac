@@ -65,12 +65,12 @@ struct TextureInfo {
 typedef int TextureRef;
 
 class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef> {
-    public:
+    protected:
         bool doLoad(const std::string& name, TextureInfo& out, const TextureRef& ref);
 
         void doUnload(const std::string& name, const TextureInfo& in);
 
         void reload(const std::string& name, TextureInfo& out);
-
+    public:
         void add(const std::string& name, const TextureInfo& info);
 };

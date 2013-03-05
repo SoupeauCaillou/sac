@@ -64,6 +64,21 @@ class NamedAssetLibrary {
             pthread_mutex_unlock(&mutex);
         }
 
+        void unload(const TRef& ref) {
+            pthread_mutex_lock(&mutex);
+            for (typename std::map<std::string, TRef>::iterator it=nameToRef.begin(); it!=nameToRef.end(); ++it) {
+                if (it->second == ref) {
+                    delayed.unloads.insert(it->first);
+                    break;
+                }
+            }
+            pthread_mutex_unlock(&mutex);
+        }
+
+        void reloadAll() {
+            LOG(WARNING) << "TODO";
+        }
+
         void update() {
             VLOG_IF(1, !delayed.loads.empty()) << "Process delayed loads";
             for (std::set<std::string>::iterator it=delayed.loads.begin();
