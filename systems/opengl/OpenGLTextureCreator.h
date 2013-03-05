@@ -18,9 +18,9 @@
 */
 #pragma once
 
-#include "base/NamedAssetLibrary.h"
 #include "base/Vector2.h"
 #include "util/ImageLoader.h"
+class AssetAPI;
 
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #include <GLES2/gl2.h>
@@ -29,26 +29,16 @@
 #include <GL/glew.h>
 #endif
 
-// Internal representation of a GL texture
-struct Texture {
-    GLuint id;
-    Vector2 size;
-};
 
-typedef int TextureRef;
-
-class TextureLibrary : public NamedAssetLibrary<Texture, TextureRef> {
+class OpenGLTextureCreator {
     public:
-        bool doLoad(const std::string& name, Texture& out, const TextureRef& ref);
+        OpenGLTextureCreator();
+        
+        void detectSupportedTextureFormat();
 
-        void doUnload(const std::string& name, const Texture& in);
+        GLuint loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
 
-
-        void reload(const std::string& name, Texture& out);
-
-        void setPvrFormatSupported(bool s) { pvrFormatSupported = s; }
-
-        void setPkmFormatSupported(bool s) { pkmFormatSupported = s; }
+        GLuint create(const Vector2& size, int channels, void* imageData = 0);
 
     private:
         ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng) const;

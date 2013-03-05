@@ -127,8 +127,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 }
 
 void RenderingSystem::init() {
-	const GLubyte* extensions = glGetString(GL_EXTENSIONS);
-	pvrSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+    openGLTextureCreator.detectSupportedTextureFormat();
 
 	#ifdef USE_VBO
 	defaultShader = buildShader("default_vbo.vs", "default.fs");

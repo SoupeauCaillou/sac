@@ -1,4 +1,4 @@
-#include "TextureLibrary.h"
+#include "OpenGLTextureCreator.h"
 #include "api/AssetAPI.h"
 #include <glog/logging.h>
 
@@ -6,7 +6,81 @@
 
 #define ALPHA_MASK_TAG "_alpha"
 
-bool TextureLibrary::doLoad(const std::string& name, Texture& texture, const TextureRef& ) {
+OpenGLTextureCreator::OpenGLTextureCreator() :
+    pvrFormatSupported(false), pkmFormatSupported(false) {
+
+}
+
+void OpenGLTextureCreator::detectSupportedTextureFormat() {
+    const GLubyte* extensions = glGetString(GL_EXTENSIONS);
+    pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+    #ifdef ANDROID
+    pkmFormatSupported = true;
+    #endif
+}
+
+static GLenum channelCountToGLFormat(int channelCount) {
+    GLenum format;
+    switch (channelCount) {
+        case 1:
+            format = GL_ALPHA;
+            break;
+        case 2:
+            format = GL_LUMINANCE_ALPHA;
+            break;
+        case 3:
+            format = GL_RGB;
+            break;
+        case 4:
+            format = GL_RGBA;
+            break;
+        default:
+            LOG(FATAL) << "Invalid channel count: " << channelCount;
+    }
+    return format;
+}
+
+static GLuint createAndInitTexture(bool enableMipmapping) {
+    GLuint result;
+    // Create OpenGL texture, and initialize
+    GL_OPERATION(glGenTextures(1, &result))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, result))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+
+    // Enable mipmapping when supported
+    if (enableMipmapping) {
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
+    } else {
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+    }
+    return result;
+}
+
+GLuint OpenGLTextureCreator::create(const Vector2& size, int channels, void* imageData) {
+    GLenum format = channelCountToGLFormat(channels);
+
+    GLuint result = createAndInitTexture(false);
+
+    // Create OpenGL texture, and initialize
+    GL_OPERATION(glGenTextures(1, &result))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, result))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
+
+    // Allocate texture space
+    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, size.X, size.Y, 0, format, GL_UNSIGNED_BYTE, NULL))
+
+    // upload data, if any
+    if (imageData)
+        GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.X, size.Y, format, GL_UNSIGNED_BYTE, imageData))
+
+    return result;
+}
+
+GLuint OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize) {
     // Determine if file is a color or alpha, based on name convention
     enum { COLOR, ALPHA_MASK } type;
     if (name.find(ALPHA_MASK_TAG) != std::string::npos) {
@@ -51,43 +125,20 @@ bool TextureLibrary::doLoad(const std::string& name, Texture& texture, const Tex
         return false;
     }
 
-    // Create OpenGL texture, and initialize
-    GL_OPERATION(glGenTextures(1, &texture.id))
-    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture.id))
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
-    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
-
-    // Enable mipmapping when supported
+    const bool enableMipMapping =
 #ifdef ANDROID
-    if ((type == COLOR) && image.mipmap > 0) {
+    ((type == COLOR) && image.mipmap > 0);
 #elif defined(EMSCRIPTEN)
-    if (false) {
+    false;
 #else
-    if (type == COLOR) {
+    (type == COLOR);
 #endif
-        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST))
-    } else {
-        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-        GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-    }
+
+    // Create GL texture object
+    GLuint result = createAndInitTexture(enableMipMapping);
 
     // Determine GL format based on channel count
-    GLenum format;
-    switch (image.channels) {
-        case 1:
-            format = GL_ALPHA;
-            break;
-        case 2:
-            format = GL_LUMINANCE_ALPHA;
-            break;
-        case 3:
-            format = GL_RGB;
-            break;
-        case 4:
-            format = GL_RGBA;
-            break;
-    }
+    GLenum format = channelCountToGLFormat(image.channels);
 
     if (png) {
         VLOG(2) << "Using PNG texture version " << image.width << 'x' << image.height;
@@ -115,7 +166,7 @@ bool TextureLibrary::doLoad(const std::string& name, Texture& texture, const Tex
         }
         #else
         LOG(FATAL) << "ETC compression not supported";
-        return false;
+        return 0;
         #endif
     }
 
@@ -126,22 +177,13 @@ bool TextureLibrary::doLoad(const std::string& name, Texture& texture, const Tex
     }
 #endif
     delete[] image.datas;
-    texture.size.X = image.width;
-    texture.size.Y = image.height;
+    outSize.X = image.width;
+    outSize.Y = image.height;
 
-    return true;
+    return result;
 }
 
-
-void TextureLibrary::doUnload(const std::string& name, const Texture& in) {
-
-}
-
-void TextureLibrary::reload(const std::string& name, Texture& out) {
-
-}
-
-ImageDesc TextureLibrary::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) const {
+ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) const {
 #ifndef EMSCRIPTEN
     // load image
     return isPng ? ImageLoader::loadPng(basename, file) : pvrFormatSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);

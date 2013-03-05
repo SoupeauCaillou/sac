@@ -214,6 +214,9 @@ void Game::step() {
         tick(delta);
         #endif
 
+        #ifdef INGAME_EDITORS
+        if (delta > 0) {
+        #endif
         #ifdef SAC_NETWORK
         theNetworkSystem.Update(delta);
         #endif
@@ -233,6 +236,11 @@ void Game::step() {
         theParticuleSystem.Update(delta);
         theContainerSystem.Update(delta);
         theAutoDestroySystem.Update(delta);
+        #ifdef INGAME_EDITORS
+        } else {
+            theTransformationSystem.Update(delta);
+        }
+        #endif
         // produce 1 new frame
         theRenderingSystem.Update(0);
 

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "opengl/OpenglHelper.h"
+#include "opengl/OpenGLTextureCreator.h"
 #include <set>
 #include <queue>
 #include <list>
@@ -187,13 +188,14 @@ std::map<std::string, EffectRef> nameToEffectRefs;
 std::map<EffectRef, Shader> ref2Effects;
 
 bool initDone;
+OpenGLTextureCreator openGLTextureCreator; 
 
 private:
 GLuint compileShader(const std::string& assetName, GLuint type);
 void loadTexture(const std::string& assetName, Vector2& realSize, Vector2& pow2Size, InternalTexture& out);
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
-GLuint createGLTexture(const std::string& basename, bool colorOrAlpha, Vector2& realSize, Vector2& pow2Size);
+
 public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 Shader buildShader(const std::string& vs, const std::string& fs);
@@ -201,7 +203,6 @@ EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color,
 const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
 Vector2 getTextureSize(const std::string& textureName) const;
 void removeExcessiveFrames(int& readQueue, int& writeQueue);
-bool pvrSupported;
 
 void setFrameQueueWritable(bool b);
 typedef std::pair<GLuint, GLuint> ColorAlphaTextures;

@@ -13,7 +13,7 @@
     </Compiler>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
+    <DebugSymbols>True</DebugSymbols>
     <OutputPath>bin\Debug</OutputPath>
     <DefineSymbols>DEBUG MONODEVELOP</DefineSymbols>
     <SourceDirectory>.</SourceDirectory>
@@ -104,9 +104,10 @@
     <Compile Include="systems\CameraSystem.cpp" />
     <Compile Include="base\NamedAssetLibrary.cpp" />
     <Compile Include="systems\opengl\AtlasLibrary.cpp" />
-    <Compile Include="systems\opengl\TextureLibrary.cpp" />
     <Compile Include="systems\opengl\OpenglHelper.cpp" />
     <Compile Include="util\MurmurHash.cpp" />
+    <Compile Include="systems\CollisionSystem.cpp" />
+    <Compile Include="systems\opengl\OpenGLTextureCreator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -189,9 +190,10 @@
     <None Include="systems\CameraSystem.h" />
     <None Include="base\NamedAssetLibrary.h" />
     <None Include="systems\opengl\AtlasLibrary.h" />
-    <None Include="systems\opengl\TextureLibrary.h" />
     <None Include="systems\opengl\OpenglHelper.h" />
     <None Include="util\MurmurHash.h" />
+    <None Include="systems\CollisionSystem.h" />
+    <None Include="systems\opengl\OpenGLTextureCreator.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
