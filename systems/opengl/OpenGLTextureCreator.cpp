@@ -22,15 +22,19 @@ static GLenum channelCountToGLFormat(int channelCount) {
     switch (channelCount) {
         case 1:
             format = GL_ALPHA;
+            VLOG(2) << channelCount << " -> GL_ALPHA";
             break;
         case 2:
             format = GL_LUMINANCE_ALPHA;
+            VLOG(2) << channelCount << " -> GL_LUMINANCE_ALPHA";
             break;
         case 3:
             format = GL_RGB;
+            VLOG(2) << channelCount << " -> GL_RGB";
             break;
         case 4:
             format = GL_RGBA;
+            VLOG(2) << channelCount << " -> GL_RGBA";
             break;
         default:
             LOG(FATAL) << "Invalid channel count: " << channelCount;
@@ -78,15 +82,20 @@ GLuint OpenGLTextureCreator::create(const Vector2& size, int channels, void* ima
     return result;
 }
 
-GLuint OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize) {
-    // Determine if file is a color or alpha, based on name convention
-    enum { COLOR, ALPHA_MASK } type;
-    if (name.find(ALPHA_MASK_TAG) != std::string::npos) {
-        type = ALPHA_MASK;
+InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize) {
+    InternalTexture result;
+    result.color = result.alpha = 0;
+    int imgChannelCount = 0;
+    result.color = loadSplittedFromFile(assetAPI, name, COLOR, outSize, imgChannelCount);
+    if (result.color && imgChannelCount == 4) {
+        VLOG(1) << name << " texture has 4 channels. Use it for alpha as well";
+        result.alpha = loadSplittedFromFile(assetAPI, name, ALPHA_MASK, outSize, imgChannelCount);
     } else {
-        type = COLOR;
+        result.alpha = loadSplittedFromFile(assetAPI, name + "_alpha", ALPHA_MASK, outSize, imgChannelCount);
     }
-
+    return result;
+}
+GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, Vector2& outSize, int& imgChannelCount) {
     // Read file content
     FileBuffer file;
     bool png = false;
@@ -116,13 +125,12 @@ GLuint OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string&
 
     // Parse image
     ImageDesc image = parseImageContent(name, file, png);
-
     delete[] file.data;
     if (!image.datas) {
         LOG(ERROR) << "Could not read image, aborting";
         return false;
     }
-
+    imgChannelCount = image.channels;
     const bool enableMipMapping =
 #ifdef ANDROID
     ((type == COLOR) && image.mipmap > 0);
@@ -169,8 +177,8 @@ GLuint OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string&
     }
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
-    if (image.mipmap == 0) {
-        VLOG(1) << "Generating mipmaps";
+    if (image.mipmap == 0 && enableMipMapping) {
+        VLOG(1) << "Generating mipmaps for " << name;
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 #endif

@@ -91,8 +91,8 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 		assert(false);
 	}
 
-	if (color_type & PNG_COLOR_MASK_ALPHA)
-        png_set_strip_alpha(PNG_reader);
+	// if (color_type & PNG_COLOR_MASK_ALPHA)
+    //    png_set_strip_alpha(PNG_reader);
 
 	if (png_get_valid(PNG_reader, PNG_info, PNG_INFO_tRNS))
 	{

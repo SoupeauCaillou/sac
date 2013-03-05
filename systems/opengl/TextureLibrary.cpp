@@ -55,9 +55,7 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
     LOG_IF(FATAL, assetAPI == 0) << "Unitialized assetAPI member";
     VLOG(1) << "loadTexture: '" << assetName << "'";
 
-    // TODO: create both texture from a single image file
-    out.glref.color = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.reduxSize);
-    out.glref.alpha = OpenGLTextureCreator::loadFromFile(assetAPI, assetName + "_alpha", out.reduxSize);
+    out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.reduxSize);
 
     out.rotateUV = false;
     out.atlasIndex = -1;

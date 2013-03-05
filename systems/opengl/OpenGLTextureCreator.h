@@ -20,6 +20,7 @@
 
 #include "base/Vector2.h"
 #include "util/ImageLoader.h"
+#include "TextureLibrary.h"
 class AssetAPI;
 
 #if defined(ANDROID) || defined(EMSCRIPTEN)
@@ -34,10 +35,12 @@ class OpenGLTextureCreator {
     public:        
         static void detectSupportedTextureFormat();
 
-        static GLuint loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
+        static InternalTexture loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
 
         static GLuint create(const Vector2& size, int channels, void* imageData = 0);
 
     private:
+        enum Type { COLOR, ALPHA_MASK };
         static ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng);
+        static GLuint loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, Vector2& outSize, int& imgChannelCount);
 };
