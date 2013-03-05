@@ -31,17 +31,13 @@ class AssetAPI;
 
 
 class OpenGLTextureCreator {
-    public:
-        OpenGLTextureCreator();
-        
-        void detectSupportedTextureFormat();
+    public:        
+        static void detectSupportedTextureFormat();
 
-        GLuint loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
+        static GLuint loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
 
-        GLuint create(const Vector2& size, int channels, void* imageData = 0);
+        static GLuint create(const Vector2& size, int channels, void* imageData = 0);
 
     private:
-        ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng) const;
-
-        bool pvrFormatSupported, pkmFormatSupported;
+        static ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng);
 };

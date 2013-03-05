@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include "opengl/OpenglHelper.h"
-#include "opengl/OpenGLTextureCreator.h"
 #include "opengl/TextureLibrary.h"
 #include <set>
 #include <queue>
@@ -146,7 +145,6 @@ std::map<std::string, EffectRef> nameToEffectRefs;
 std::map<EffectRef, Shader> ref2Effects;
 
 bool initDone;
-OpenGLTextureCreator openGLTextureCreator; 
 
 private:
 GLuint compileShader(const std::string& assetName, GLuint type);

@@ -7,6 +7,7 @@
 #include <sstream>
 #include "base/MathUtil.h"
 #include "util/IntersectionUtil.h"
+#include "opengl/OpenGLTextureCreator.h"
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #else
 #include <sys/inotify.h>
@@ -125,7 +126,7 @@ RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, 
 }
 
 void RenderingSystem::init() {
-    openGLTextureCreator.detectSupportedTextureFormat();
+    OpenGLTextureCreator::detectSupportedTextureFormat();
 
 	#ifdef USE_VBO
 	defaultShader = buildShader("default_vbo.vs", "default.fs");

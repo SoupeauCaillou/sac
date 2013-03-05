@@ -20,7 +20,7 @@
 
 #include "base/NamedAssetLibrary.h"
 #include "base/Vector2.h"
-#include "OpenGLTextureCreator.h"
+#include "OpenglHelper.h"
 
 struct InternalTexture {
     GLuint color;
@@ -73,7 +73,4 @@ class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef> {
         void reload(const std::string& name, TextureInfo& out);
 
         void add(const std::string& name, const TextureInfo& info);
-
-    private:
-        OpenGLTextureCreator openGLTextureCreator;
 };

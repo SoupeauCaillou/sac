@@ -1,5 +1,6 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
+#include "opengl/OpenGLTextureCreator.h"
 
 #include "base/EntityManager.h"
 #include <cmath>
@@ -82,7 +83,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		if (s.empty())
 			break;
 		count++;
-		// LOGI("atlas - line: %s", s.c_str());
+		VLOG(2) << "atlas - line: " << s;
 		std::string assetName;
         Vector2 originalSize, reduxOffset, posInAtlas, sizeInAtlas, opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
 		bool rot;
@@ -125,8 +126,8 @@ void RenderingSystem::loadTexture(const std::string& assetName, Vector2& realSiz
 	VLOG(1) << "loadTexture: '" << assetName << "'";
 
 	/* create GL texture */
- 	out.color = openGLTextureCreator.loadFromFile(assetAPI, assetName, realSize);
-	out.alpha = openGLTextureCreator.loadFromFile(assetAPI, assetName + "_alpha", realSize);
+ 	out.color = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, realSize);
+	out.alpha = OpenGLTextureCreator::loadFromFile(assetAPI, assetName + "_alpha", realSize);
     pow2Size = realSize;
 }
 

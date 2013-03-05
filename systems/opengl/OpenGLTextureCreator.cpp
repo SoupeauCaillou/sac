@@ -6,10 +6,8 @@
 
 #define ALPHA_MASK_TAG "_alpha"
 
-OpenGLTextureCreator::OpenGLTextureCreator() :
-    pvrFormatSupported(false), pkmFormatSupported(false) {
-
-}
+static bool pvrFormatSupported = false;
+static bool pkmFormatSupported = false;
 
 void OpenGLTextureCreator::detectSupportedTextureFormat() {
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
@@ -183,7 +181,7 @@ GLuint OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string&
     return result;
 }
 
-ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) const {
+ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) {
 #ifndef EMSCRIPTEN
     // load image
     return isPng ? ImageLoader::loadPng(basename, file) : pvrFormatSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);

@@ -30,7 +30,7 @@ template <typename T, typename TRef>
 class NamedAssetLibrary {
     #define InvalidRef -1
     public:
-        NamedAssetLibrary() : nextValidRef(1) {
+        NamedAssetLibrary() : nextValidRef(1), assetAPI(0) {
             pthread_mutex_init(&mutex, 0);
         }
 
