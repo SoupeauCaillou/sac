@@ -31,7 +31,7 @@
 #endif
 class AssetAPI;
 
-template <typename T, typename TRef>
+template <typename T, typename TRef, typename SourceDataType>
 class NamedAssetLibrary {
     #define InvalidRef -1
     public:
@@ -48,6 +48,9 @@ class NamedAssetLibrary {
 
         virtual ~NamedAssetLibrary() {
             pthread_mutex_destroy(&mutex);
+            #if USE_COND_SIGNALING
+            pthread_cond_destroy(&cond);
+            #endif
         }
 
         TRef load(const std::string& name) {
@@ -146,6 +149,13 @@ class NamedAssetLibrary {
             return get(it->second);
         }
 
+        void registerDataSource(TRef r, SourceDataType type) {
+            if (dataSource.find(r) != dataSource.end())
+                LOG(WARNING) << "Asset " << r << " already have one data source registered";
+            dataSource.insert(std::make_pair(r, type));
+        }
+        
+
     protected:
         void setNextValidRef(TRef r) {
             nextValidRef = r;
@@ -158,7 +168,7 @@ class NamedAssetLibrary {
 
     protected:
         pthread_mutex_t mutex;
-        #if !defined(ANDROID)
+        #if USE_COND_SIGNALING
         pthread_cond_t cond;
         #endif
         TRef nextValidRef;
@@ -166,6 +176,7 @@ class NamedAssetLibrary {
 
         std::map<std::string, TRef> nameToRef;
         std::map<TRef, T> ref2asset;
+        std::map<TRef, SourceDataType> dataSource;
         struct {
             std::set<std::string> loads;
             std::set<std::string> unloads;

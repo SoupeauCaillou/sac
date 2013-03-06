@@ -131,13 +131,35 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
         return false;
     }
     imgChannelCount = image.channels;
+
+    GLuint result = loadFromImageDesc(image, name, type, outSize);
+
+    delete[] image.datas;
+
+    return result;
+}
+
+static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
+    switch (type) {
+        case OpenGLTextureCreator::COLOR:
+            return GL_RGB;
+        case OpenGLTextureCreator::ALPHA_MASK:
+            return GL_ALPHA;
+        case OpenGLTextureCreator::COLOR_ALPHA:
+            return GL_RGBA;
+        default:
+            LOG(FATAL) << "Unhandled typeToFormat value: " << type;
+     }
+}
+
+GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& name, Type type, Vector2& outSize) {
     const bool enableMipMapping =
 #ifdef ANDROID
     ((type == COLOR) && image.mipmap > 0);
 #elif defined(EMSCRIPTEN)
     false;
 #else
-    (type == COLOR);
+    (type == COLOR) || (type == COLOR_ALPHA);
 #endif
 
     // Create GL texture object
@@ -146,12 +168,12 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     // Determine GL format based on channel count
     GLenum format = channelCountToGLFormat(image.channels);
 
-    if (png) {
+    if (image.type == ImageDesc::RAW) {
         VLOG(2) << "Using PNG texture version " << image.width << 'x' << image.height;
         #ifdef EMSCRIPTEN
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
         #else
-        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, (type == COLOR) ? GL_RGB:GL_ALPHA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, typeToFormat(type), image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
         #endif
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
@@ -182,7 +204,6 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 #endif
-    delete[] image.datas;
     outSize.X = image.width;
     outSize.Y = image.height;
 

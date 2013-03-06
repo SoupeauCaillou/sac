@@ -21,6 +21,7 @@
 #include "base/NamedAssetLibrary.h"
 #include "base/Vector2.h"
 #include "OpenglHelper.h"
+#include "util/ImageLoader.h"
 
 struct InternalTexture {
     GLuint color;
@@ -64,7 +65,7 @@ struct TextureInfo {
 
 typedef int TextureRef;
 
-class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef> {
+class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef, ImageDesc> {
     protected:
         bool doLoad(const std::string& name, TextureInfo& out, const TextureRef& ref);
 

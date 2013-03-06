@@ -32,15 +32,18 @@ class AssetAPI;
 
 
 class OpenGLTextureCreator {
-    public:        
+    public: 
+        enum Type { COLOR, ALPHA_MASK, COLOR_ALPHA };
+
         static void detectSupportedTextureFormat();
 
         static InternalTexture loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
 
+        static GLuint loadFromImageDesc(const ImageDesc& imageDesc, const std::string& name, Type type, Vector2& outSize);
+
         static GLuint create(const Vector2& size, int channels, void* imageData = 0);
 
     private:
-        enum Type { COLOR, ALPHA_MASK };
         static ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng);
         static GLuint loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, Vector2& outSize, int& imgChannelCount);
 };

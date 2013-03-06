@@ -134,11 +134,12 @@ struct Shader {
 	GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
 	#endif
 };
+TextureLibrary textureLibrary;
 private:
 Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
 GLuint whiteTexture;
 
-TextureLibrary textureLibrary;
+
 EffectRef nextEffectRef;
 std::map<std::string, EffectRef> nameToEffectRefs;
 std::map<EffectRef, Shader> ref2Effects;

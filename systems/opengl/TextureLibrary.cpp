@@ -53,9 +53,19 @@ TextureInfo::TextureInfo (const InternalTexture& ref,
 
 bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, const TextureRef& ref) {
     LOG_IF(FATAL, assetAPI == 0) << "Unitialized assetAPI member";
-    VLOG(1) << "loadTexture: '" << assetName << "'";
+    
 
-    out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.reduxSize);
+    std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
+    if (it == dataSource.end()) {
+        VLOG(1) << "loadTexture: '" << assetName << "' from file";
+        out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.reduxSize);
+    } else {
+        const ImageDesc& imageDesc = it->second;
+        VLOG(1) << "loadTexture: '" << assetName << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')';
+        out.glref.color =
+            out.glref.alpha =
+                OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.reduxSize);
+    }
 
     out.rotateUV = false;
     out.atlasIndex = -1;
