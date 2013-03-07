@@ -74,6 +74,11 @@ class NamedAssetLibrary {
             delayed.unloads.insert(name);
             pthread_mutex_unlock(&mutex);
         }
+        void reload(const std::string& name) {
+            pthread_mutex_lock(&mutex);
+            delayed.reloads.insert(name);
+            pthread_mutex_unlock(&mutex);        
+        }
 
         void unload(const TRef& ref) {
             pthread_mutex_lock(&mutex);
@@ -118,9 +123,21 @@ class NamedAssetLibrary {
                 pthread_mutex_unlock(&mutex);
             }
 
+            VLOG_IF(1, !delayed.unloads.empty()) << "Process delayed reloads";
+            for (std::set<std::string>::iterator it=delayed.reloads.begin();
+                it!=delayed.reloads.end();
+                ++it) {
+                pthread_mutex_lock(&mutex);
+                const std::string& name = *it;
+                VLOG(2) << "Reload '" << name << "'";
+                TRef ref = nameToRef[name];
+                doReload(name, ref);
+                pthread_mutex_unlock(&mutex);
+            }
             pthread_mutex_lock(&mutex);
             delayed.loads.clear();
             delayed.unloads.clear();
+            delayed.reloads.clear();
             #if USE_COND_SIGNALING
             pthread_cond_signal(&cond);
             #endif
@@ -164,7 +181,7 @@ class NamedAssetLibrary {
     protected:
         virtual bool doLoad(const std::string& name, T& out, const TRef& ref) = 0;
         virtual void doUnload(const std::string& name, const T& in) = 0;
-        virtual void reload(const std::string& name, T& out) = 0;
+        virtual void doReload(const std::string& name, const TRef& ref) = 0;
 
     protected:
         pthread_mutex_t mutex;

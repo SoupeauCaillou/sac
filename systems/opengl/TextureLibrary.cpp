@@ -53,7 +53,6 @@ TextureInfo::TextureInfo (const InternalTexture& ref,
 
 bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, const TextureRef& ref) {
     LOG_IF(FATAL, assetAPI == 0) << "Unitialized assetAPI member";
-    
 
     std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
@@ -81,8 +80,16 @@ void TextureLibrary::doUnload(const std::string& name, const TextureInfo& in) {
     LOG(WARNING) << "TODO";
 }
 
-void TextureLibrary::reload(const std::string& name, TextureInfo& out) {
-    LOG(WARNING) << "TODO";
+void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
+    TextureInfo& info = ref2asset[ref];
+    std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
+    if (it == dataSource.end()) {
+        VLOG(1) << "TODO";
+    } else {
+        const ImageDesc& imageDesc = it->second;
+        VLOG(1) << "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')';
+        OpenGLTextureCreator::updateFromImageDesc(imageDesc, info.glref.color, OpenGLTextureCreator::COLOR_ALPHA);
+    }   
 }
 
 void TextureLibrary::add(const std::string& name, const TextureInfo& info) {

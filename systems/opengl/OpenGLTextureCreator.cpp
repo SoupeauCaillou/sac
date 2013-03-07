@@ -49,7 +49,6 @@ static GLuint createAndInitTexture(bool enableMipmapping) {
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, result))
     GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
     GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
-
     // Enable mipmapping when supported
     if (enableMipmapping) {
         GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
@@ -152,7 +151,7 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
      }
 }
 
-GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& name, Type type, Vector2& outSize) {
+void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type type) {
     const bool enableMipMapping =
 #ifdef ANDROID
     ((type == COLOR) && image.mipmap > 0);
@@ -162,8 +161,7 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
     (type == COLOR) || (type == COLOR_ALPHA);
 #endif
 
-    // Create GL texture object
-    GLuint result = createAndInitTexture(enableMipMapping);
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture))
 
     // Determine GL format based on channel count
     GLenum format = channelCountToGLFormat(image.channels);
@@ -194,16 +192,33 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
         }
         #else
         LOG(FATAL) << "ETC compression not supported";
-        return 0;
+        return;
         #endif
     }
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
     if (image.mipmap == 0 && enableMipMapping) {
-        VLOG(1) << "Generating mipmaps for " << name;
+        VLOG(1) << "Generating mipmaps";
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 #endif
+}
+
+GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& name, Type type, Vector2& outSize) {
+    const bool enableMipMapping =
+#ifdef ANDROID
+    ((type == COLOR) && image.mipmap > 0);
+#elif defined(EMSCRIPTEN)
+    false;
+#else
+    (type == COLOR) || (type == COLOR_ALPHA);
+#endif
+
+    // Create GL texture object
+    GLuint result = createAndInitTexture(enableMipMapping);
+    
+    updateFromImageDesc(image, result, type);
+
     outSize.X = image.width;
     outSize.Y = image.height;
 

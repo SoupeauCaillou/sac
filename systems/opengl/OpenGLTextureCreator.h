@@ -41,6 +41,8 @@ class OpenGLTextureCreator {
 
         static GLuint loadFromImageDesc(const ImageDesc& imageDesc, const std::string& name, Type type, Vector2& outSize);
 
+        static void updateFromImageDesc(const ImageDesc& imagedesc, GLuint texture, Type type);
+
         static GLuint create(const Vector2& size, int channels, void* imageData = 0);
 
     private:

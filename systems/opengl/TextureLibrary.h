@@ -71,7 +71,7 @@ class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef, ImageDe
 
         void doUnload(const std::string& name, const TextureInfo& in);
 
-        void reload(const std::string& name, TextureInfo& out);
+        void doReload(const std::string& name, const TextureRef& ref);
     public:
         void add(const std::string& name, const TextureInfo& info);
 };
