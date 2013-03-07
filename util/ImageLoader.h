@@ -4,7 +4,10 @@
 #include "../api/AssetAPI.h"
 
 struct ImageDesc {
-	char* datas;
+    union {
+	    char* datas;
+        unsigned char* udatas;
+    };
 	int width, height;
     int channels, mipmap;
 	enum {

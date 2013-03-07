@@ -109,6 +109,7 @@
     <Compile Include="systems\CollisionSystem.cpp" />
     <Compile Include="systems\opengl\OpenGLTextureCreator.cpp" />
     <Compile Include="systems\opengl\TextureLibrary.cpp" />
+    <Compile Include="systems\GraphSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -196,6 +197,7 @@
     <None Include="systems\CollisionSystem.h" />
     <None Include="systems\opengl\OpenGLTextureCreator.h" />
     <None Include="systems\opengl\TextureLibrary.h" />
+    <None Include="systems\GraphSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

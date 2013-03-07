@@ -18,6 +18,7 @@
 #include "systems/NetworkSystem.h"
 #include "systems/AutoDestroySystem.h"
 #include "systems/CameraSystem.h"
+#include "systems/GraphSystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
 #include "base/TouchInputManager.h"
@@ -54,6 +55,7 @@ Game::Game() {
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
     CameraSystem::CreateInstance();
+    GraphSystem::CreateInstance();
 
 #ifdef SAC_NETWORK
     NetworkSystem::CreateInstance();
@@ -84,6 +86,7 @@ Game::~Game() {
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
     CameraSystem::DestroyInstance();
+    GraphSystem::DestroyInstance();
 
 #ifdef SAC_NETWORK
     NetworkSystem::DestroyInstance();
@@ -236,6 +239,7 @@ void Game::step() {
         theParticuleSystem.Update(delta);
         theContainerSystem.Update(delta);
         theAutoDestroySystem.Update(delta);
+        theGraphSystem.Update(delta);
         #ifdef INGAME_EDITORS
         } else {
             theTransformationSystem.Update(delta);

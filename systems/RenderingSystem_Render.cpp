@@ -393,7 +393,9 @@ void RenderingSystem::render() {
 #endif
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
+    processDelayedTextureJobs();
     pthread_mutex_lock(&mutexes[L_QUEUE]);
+    
     while (!newFrameReady && frameQueueWritable) {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }

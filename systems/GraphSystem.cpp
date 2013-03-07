@@ -18,7 +18,7 @@ void GraphSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Graph, entity, gc)
         std::map<Entity, ImageDesc>::iterator jt;
         if ( (jt = entity2Image.find(entity)) != entity2Image.end()) {
-            drawTexture(jt->second.datas, gc);
+            drawTexture(jt->second.udatas, gc);
         }
         else {
             LOG_IF(FATAL, RENDERING(entity)->texture != InvalidTextureRef) << "Entity mustn't have texture yet";
@@ -31,17 +31,18 @@ void GraphSystem::DoUpdate(float dt) {
             desc.type = ImageDesc::RAW;
             desc.datas = new char[desc.width * desc.height * desc.channels];
 
-            drawTexture(desc.datas, gc);
+            drawTexture(desc.udatas, gc);
 
             theRenderingSystem.textureLibrary.registerDataSource(RENDERING(entity)->texture, desc);
 
             entity2Image.insert(std::make_pair(entity, desc));
         }
+        theRenderingSystem.textureLibrary.reload(theEntityManager.entityName(entity));
     }
 }
 
-void GraphSystem::drawTexture(char *textureTab, GraphComponent *gc) {
-
+void GraphSystem::drawTexture(unsigned char *textureTab, GraphComponent *gc) {
+    memset(textureTab, 0x80, SIZE * SIZE * CHANNEL);
     gc->minScaleX = gc->pointsList.begin()->first, gc->minScaleY = gc->pointsList.begin()->second, gc->maxScaleX = gc->pointsList.begin()->first, gc->maxScaleY = gc->pointsList.begin()->second;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
         gc->minScaleX = std::min(gc->minScaleX, it->first);
@@ -59,19 +60,20 @@ void GraphSystem::drawTexture(char *textureTab, GraphComponent *gc) {
         int value_x = (it->first - gc->minScaleX) * (SIZE-1) / (gc->maxScaleX-gc->minScaleX);
         int value_y = (it->second - gc->minScaleY) * (SIZE-1) / (gc->maxScaleY-gc->minScaleY);
 
-        textureTab[value_x + SIZE * value_y] = 0xFF;
+        // textureTab[value_x + SIZE * value_y] = 0xFF;
         memset(textureTab + CHANNEL * (value_x + SIZE * value_y), 0xFF, 4); 
     }
 
     drawLine(textureTab);
 }
 
-void GraphSystem::drawLine(char *textureTab) {
+void GraphSystem::drawLine(unsigned char *textureTab) {
 
     std::pair<int, int> firstPoint, secondPoint;
     for (int x=0; x<SIZE; ++x) {
         for (int y=0; y<SIZE; ++y) {
             if (textureTab[CHANNEL * (x + SIZE * y)] == 0xFF) {
+                
                 if (firstPoint.first == -1){
                     firstPoint.first = x;
                     firstPoint.second = y;
@@ -215,23 +217,31 @@ void GraphSystem::drawLine(char *textureTab) {
                     else {
                         if ((dy = secondPoint.second - firstPoint.second) != 0) {
                             if (dy < 0) {
-                                for (int i=firstPoint.second; i!= secondPoint.second; ++i) {
+                                for (int i=firstPoint.second; i!= secondPoint.second; --i) {
                                     memset(textureTab + CHANNEL * (firstPoint.second + SIZE * i), 0xFF, 4);
                                 }
                             }
                             else {
-                                for (int i=firstPoint.second; i!= secondPoint.second; --i) {
+                                for (int i=firstPoint.second; i!= secondPoint.second; ++i) {
                                     memset(textureTab + CHANNEL * (firstPoint.second + SIZE * i), 0xFF, 4);
                                 }
                             }
                         }
                     }
-                firstPoint.first = secondPoint.first;
-                firstPoint.second = secondPoint.second;
-                secondPoint.first = secondPoint.second = -1;
+                    firstPoint.first = secondPoint.first;
+                    firstPoint.second = secondPoint.second;
+                    secondPoint.first = secondPoint.second = -1;
                 }
             }
         }
     }
 }
+
+#ifdef INGAME_EDITORS
+void GraphSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    GraphComponent* tc = Get(entity, false);
+    if (!tc) return;
+
+}
+#endif
 
