@@ -7,12 +7,16 @@
 #include "util/ImageLoader.h"
 
 struct GraphComponent {
-    
+
+    GraphComponent():maxY(0), maxX(0), minY(0), minX(0), setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false) {}
+
     std::list<std::pair<float, float> > pointsList;
 
-    float minScaleX, maxScaleX;
-    float minScaleY, maxScaleY;
-    uint listSize;
+    float maxY, maxX, minY, minX;
+
+    bool setFixedScaleMinMaxX;
+    bool setFixedScaleMinMaxY;
+
 };
 
 #define theGraphSystem GraphSystem::GetInstance()
@@ -21,7 +25,7 @@ struct GraphComponent {
 UPDATABLE_SYSTEM(Graph)
 
     void drawTexture(unsigned char *textureTab, GraphComponent *points);
-    void drawLine(unsigned char *textureTab);
+    void drawLine(unsigned char *textureTab, std::pair<int, int> firstPoint, std::pair<int, int> secondPoint);
 
     std::map<Entity, ImageDesc> entity2Image;
 };
