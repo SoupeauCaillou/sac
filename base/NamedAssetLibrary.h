@@ -144,26 +144,32 @@ class NamedAssetLibrary {
             pthread_mutex_unlock(&mutex);
         }
 
-        const T& get(const TRef& ref) {
+        const T* get(const TRef& ref, bool waitIfLoadingInProgress) {
             pthread_mutex_lock(&mutex);
             typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
-            #if USE_COND_SIGNALING
             if (it == ref2asset.end()) {
-                // wait for next load end, the requested resource might be loaded in the next batch
-                while (!delayed.loads.empty())
-                    pthread_cond_wait(&cond, &mutex);
-                it = ref2asset.find(ref);
+                #if USE_COND_SIGNALING
+                if (waitIfLoadingInProgress) {
+                    // wait for next load end, the requested resource might be loaded in the next batch
+                    while (!delayed.loads.empty())
+                        pthread_cond_wait(&cond, &mutex);
+                    it = ref2asset.find(ref);
+                } else {
+                #endif
+                    pthread_mutex_unlock(&mutex);
+                    return 0;
+                }
             }
-            #endif
+
             LOG_IF(FATAL, it == ref2asset.end()) << "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size();
             pthread_mutex_unlock(&mutex);
-            return it->second;
+            return &(it->second);
         }
 
         const T& get(const std::string& name) {
             typename std::map<std::string, TRef>::const_iterator it = nameToRef.find(name);
             LOG_IF(FATAL, it == nameToRef.end()) << "Unkown asset requested: " << name << ". Asset count: " << nameToRef.size();
-            return get(it->second);
+            return *get(it->second, true);
         }
 
         void registerDataSource(TRef r, SourceDataType type) {

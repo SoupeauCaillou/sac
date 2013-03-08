@@ -29,7 +29,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     nextValidFBRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
-    newFrameReady = true;
+    newFrameReady = false;
 #ifndef EMSCRIPTEN
     pthread_mutex_init(&mutexes[L_RENDER], 0);
     pthread_mutex_init(&mutexes[L_QUEUE], 0);
@@ -341,12 +341,14 @@ void RenderingSystem::DoUpdate(float) {
             }
 
             if (c.texture != InvalidTextureRef && !c.fbo) {
-                const TextureInfo& info = textureLibrary.get(c.texture);
-                int atlasIdx = info.atlasIndex;
-                if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {//InternalTexture::Invalid) {
-                    atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
-                    LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
-                    modifyQ(c, info.reduxStart, info.reduxSize);
+                const TextureInfo* info = textureLibrary.get(c.texture, false);
+                if (info) {
+                    int atlasIdx = info->atlasIndex;
+                    if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {//InternalTexture::Invalid) {
+                        atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
+                        LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
+                        modifyQ(c, info->reduxStart, info->reduxSize);
+                    }
                 }
              }
 

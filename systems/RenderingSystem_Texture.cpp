@@ -125,7 +125,10 @@ void RenderingSystem::processDelayedTextureJobs() {
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
-    return textureLibrary.load(assetName);
+    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    TextureRef result = textureLibrary.load(assetName);
+    pthread_mutex_unlock(&mutexes[L_QUEUE]);
+    return result;
 }
 
 Vector2 RenderingSystem::getTextureSize(const std::string& textureName) {
@@ -135,11 +138,13 @@ Vector2 RenderingSystem::getTextureSize(const std::string& textureName) {
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 	if (ref != InvalidTextureRef) {
-		const TextureInfo& info = textureLibrary.get(ref);
-		if (info.atlasIndex >= 0 && !allowUnloadAtlas) {
-            LOG(ERROR) << "Cannot delete texture '" << ref << "' (is an atlas)";
-	    } else {
-            textureLibrary.unload(ref);
+		const TextureInfo* info = textureLibrary.get(ref, true);
+        if (info) {
+    		if (info->atlasIndex >= 0 && !allowUnloadAtlas) {
+                LOG(ERROR) << "Cannot delete texture '" << ref << "' (is an atlas)";
+    	    } else {
+                textureLibrary.unload(ref);
+            }
         }
 	} else {
 		LOG(ERROR) << "Tried to delete an InvalidTextureRef";

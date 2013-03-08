@@ -309,17 +309,18 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // SETUP TEXTURING
 		if (rc.texture != InvalidTextureRef) {
             if (!rc.fbo) {
-                const TextureInfo& info = textureLibrary.get(rc.texture);
-                if (info.atlasIndex >= 0) {
-                    LOG_IF(FATAL, info.atlasIndex >= atlas.size()) << "Invalid atlas index: " << info.atlasIndex << " >= atlas count : " << atlas.size();
-                    rc.glref = textureLibrary.get(atlas[info.atlasIndex].ref).glref;
+                const TextureInfo* info = textureLibrary.get(rc.texture, false);
+                LOG_IF(FATAL, info == 0) << "Invalid texture " << rc.texture << " : can not be found";
+                if (info->atlasIndex >= 0) {
+                    LOG_IF(FATAL, info->atlasIndex >= atlas.size()) << "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size();
+                    rc.glref = textureLibrary.get(atlas[info->atlasIndex].ref, false)->glref;
                 } else {
-                    rc.glref = info.glref;
+                    rc.glref = info->glref;
                 }
                 #ifdef USE_VBO
-                computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
+                computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
                 #else
-                computeUV(rc, info);
+                computeUV(rc, *info);
                 #endif
             } else {
                 rc.uv[0] = Vector2(0, 1);
@@ -393,9 +394,9 @@ void RenderingSystem::render() {
 #endif
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
-    processDelayedTextureJobs();
-    pthread_mutex_lock(&mutexes[L_QUEUE]);
     
+    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    // processDelayedTextureJobs();
     while (!newFrameReady && frameQueueWritable) {
         pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
     }
