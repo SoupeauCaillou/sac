@@ -64,6 +64,7 @@ struct TextureInfo {
 };
 
 typedef int TextureRef;
+#define InvalidTextureRef -1
 
 class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef, ImageDesc> {
     protected:

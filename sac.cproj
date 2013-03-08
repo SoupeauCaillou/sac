@@ -110,6 +110,7 @@
     <Compile Include="systems\opengl\OpenGLTextureCreator.cpp" />
     <Compile Include="systems\opengl\TextureLibrary.cpp" />
     <Compile Include="systems\GraphSystem.cpp" />
+    <Compile Include="systems\opengl\EffectLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -198,6 +199,13 @@
     <None Include="systems\opengl\OpenGLTextureCreator.h" />
     <None Include="systems\opengl\TextureLibrary.h" />
     <None Include="systems\GraphSystem.h" />
+    <None Include="systems\opengl\EffectLibrary.h" />
+    <None Include="systems\opengl\shaders\default_fs.h" />
+    <None Include="systems\opengl\shaders\default_vbo_vs.h" />
+    <None Include="systems\opengl\shaders\default_vs.h" />
+    <None Include="systems\opengl\shaders\default.fs" />
+    <None Include="systems\opengl\shaders\default.vs" />
+    <None Include="systems\opengl\shaders\default_vbo.vs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
@@ -206,5 +214,6 @@
     <Folder Include="tools\lobby\" />
     <Folder Include="build\cmake\" />
     <Folder Include="systems\opengl\" />
+    <Folder Include="systems\opengl\shaders\" />
   </ItemGroup>
 </Project>

@@ -135,11 +135,6 @@ void Game::sacInit(int windowW, int windowH) {
 
 	theRenderingSystem.init();
     theRenderingSystem.setFrameQueueWritable(true);
-
-    #ifdef INGAME_EDITORS
-    theRenderingSystem.loadEffectFile("selected.fs");
-    theRenderingSystem.loadEffectFile("over.fs");
-    #endif
 }
 
 void Game::backPressed() {

@@ -42,7 +42,7 @@ class NamedAssetLibrary {
             #endif
         }
 
-        void init(AssetAPI* pAssetAPI) {
+        virtual void init(AssetAPI* pAssetAPI) {
             assetAPI = pAssetAPI;
         }
 

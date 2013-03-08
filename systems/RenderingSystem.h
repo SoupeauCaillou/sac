@@ -6,6 +6,7 @@
 
 #include "opengl/OpenglHelper.h"
 #include "opengl/TextureLibrary.h"
+#include "opengl/EffectLibrary.h"
 #include <set>
 #include <queue>
 #include <list>
@@ -16,15 +17,9 @@
 
 #include "System.h"
 
-typedef int TextureRef;
-#define InvalidTextureRef -1
-
 #ifdef EMSCRIPTEN
 #define USE_VBO
 #endif
-
-typedef int EffectRef;
-#define DefaultEffectRef -1
 
 typedef int FramebufferRef;
 #define DefaultFrameBufferRef -1
@@ -70,7 +65,6 @@ void restoreInternalState(const uint8_t* in, int size);
 void setWindowSize(int w, int h, float sW, float sH);
 
 TextureRef loadTextureFile(const std::string& assetName);
-EffectRef loadEffectFile(const std::string& assetName);
 FramebufferRef createFramebuffer(const std::string& fbName, int width, int height);
 FramebufferRef getFramebuffer(const std::string& fbName) const ;
 void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
@@ -82,7 +76,6 @@ bool isEntityVisible(Entity e, int cameraIndex = -1) const;
 bool isVisible(const TransformationComponent* tc, int cameraIndex = -1) const;
 
 void reloadTextures();
-void reloadEffects();
 
 void render();
 void waitDrawingComplete();
@@ -127,33 +120,24 @@ pthread_cond_t cond[2];
 #ifdef USE_VBO
 public:
 #endif
-struct Shader {
-	GLuint program;
-	GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor, uniformCamera;
-	#ifdef USE_VBO
-	GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
-	#endif
-};
+
 TextureLibrary textureLibrary;
+EffectLibrary effectLibrary;
+
 private:
-Shader defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
+EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
 GLuint whiteTexture;
-
-
-EffectRef nextEffectRef;
-std::map<std::string, EffectRef> nameToEffectRefs;
-std::map<EffectRef, Shader> ref2Effects;
 
 bool initDone;
 
 private:
-GLuint compileShader(const std::string& assetName, GLuint type);
+
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 
 public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
-Shader buildShader(const std::string& vs, const std::string& fs);
+
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled = true);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
 Vector2 getTextureSize(const std::string& textureName);

@@ -25,7 +25,6 @@
 INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
-	nextEffectRef = 1;
     nextValidFBRef = 1;
 	currentWriteQueue = 0;
     frameQueueWritable = true;
@@ -78,67 +77,18 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
     #endif
 }
 
-RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
-	Shader out;
-	VLOG(1) << "building shader ...";
-	out.program = glCreateProgram();
-	check_GL_errors("glCreateProgram");
-
-	VLOG(1) << "Compiling shaders: " << vsName << '/' << fsName;
-	GLuint vs = compileShader(vsName, GL_VERTEX_SHADER);
-	GLuint fs = compileShader(fsName, GL_FRAGMENT_SHADER);
-
-	GL_OPERATION(glAttachShader(out.program, vs))
-	GL_OPERATION(glAttachShader(out.program, fs))
-	VLOG(2) << "Binding GLSL attribs";
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_VERTEX, "aPosition"))
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_UV, "aTexCoord"))
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_POS_ROT, "aPosRot"))
-
-	VLOG(2) << "Linking GLSL program";
-	GL_OPERATION(glLinkProgram(out.program))
-
-	GLint logLength;
-	glGetProgramiv(out.program, GL_INFO_LOG_LENGTH, &logLength);
-	if (logLength > 1) {
-		char *log = new char[logLength];
-		glGetProgramInfoLog(out.program, logLength, &logLength, log);
-		LOG(FATAL) << "GL shader program error: '" << log << "'";
-        
-		delete[] log;
-	}
-
-	out.uniformMatrix = glGetUniformLocation(out.program, "uMvp");
-	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
-	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
-	out.uniformColor= glGetUniformLocation(out.program, "vColor");
-    out.uniformCamera = glGetUniformLocation(out.program, "uCamera");
-#ifdef USE_VBO
-	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
-	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
-	out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
-#endif
-
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-
-	return out;
-}
-
 void RenderingSystem::init() {
     LOG_IF(FATAL, !assetAPI) << "AssetAPI must be set before init is called";
     OpenGLTextureCreator::detectSupportedTextureFormat();
     textureLibrary.init(assetAPI);
+    effectLibrary.init(assetAPI);
 
-	#ifdef USE_VBO
-	defaultShader = buildShader("default_vbo.vs", "default.fs");
-	defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
-    defaultShaderEmpty = buildShader("default_vbo.vs", "empty.fs");
-	#else
-	defaultShader = buildShader("default.vs", "default.fs");
-	defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
-    defaultShaderEmpty = buildShader("default.vs", "empty.fs");
-	#endif
+	defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
+	defaultShaderNoAlpha = effectLibrary.load("default_no_alpha.fs");
+    defaultShaderEmpty = effectLibrary.load("empty.fs");
+
+    effectLibrary.update();
+
 	GL_OPERATION(glClearColor(148.0/255, 148.0/255, 148.0/255, 1.0)) // temp setting for RR
 
 	// create 1px white texture
@@ -496,39 +446,6 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
 	}
     #endif
-}
-
-EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
-	EffectRef result = DefaultEffectRef;
-	std::string name(assetName);
-
-	if (nameToEffectRefs.find(name) != nameToEffectRefs.end()) {
-		result = nameToEffectRefs[name];
-		return result;
-	} else {
-		result = nextEffectRef++;
-		nameToEffectRefs[name] = result;
-	}
-
-	#ifdef USE_VBO
-	ref2Effects[result] = buildShader("default_vbo.vs", assetName);
-	#else
-	ref2Effects[result] = buildShader("default.vs", assetName);
-	#endif
-
-	return result;
-}
-
-void RenderingSystem::reloadEffects() {
-	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
-		it != nameToEffectRefs.end();
-		++it) {
-		#ifdef USE_VBO
-		ref2Effects[it->second] = buildShader("default_vbo.vs", it->first);
-		#else
-		ref2Effects[it->second] = buildShader("default.vs", it->first);
-		#endif
-	}
 }
 
 void RenderingSystem::setFrameQueueWritable(bool b) {

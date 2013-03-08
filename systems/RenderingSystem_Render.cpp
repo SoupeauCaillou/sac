@@ -12,30 +12,6 @@
 #include "util/LevelEditor.h"
 #endif
 
-GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
-    VLOG(1) << "Compiling '" << assetName << "' shader...";
-	FileBuffer fb = assetAPI->loadAsset(assetName);
-	GLuint shader = glCreateShader(type);
-	GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, &fb.size))
-	GL_OPERATION(glCompileShader(shader))
-
-	delete[] fb.data;
-  	GLint logLength;
-   GL_OPERATION(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength))
-    if (logLength > 1)
-    {
-        char *log = new char[logLength];
-        GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
-        LOG(ERROR) << "GL shader error: " << log;
- 		delete[] log;
-    }
-
-   if (!glIsShader(shader)) {
-   	    LOG(ERROR) << "Weird; " << shader << "d is not a shader";
-   }
-	return shader;
-}
-
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
 bool firstCall;
@@ -73,18 +49,18 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     #ifdef USE_VBO
     	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
 
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
 
     	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
     #else
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
 
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 #endif
@@ -312,7 +288,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
                 LOG_IF(FATAL, info == 0) << "Invalid texture " << rc.texture << " : can not be found";
                 if (info->atlasIndex >= 0) {
-                    LOG_IF(FATAL, info->atlasIndex >= atlas.size()) << "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size();
+                    LOG_IF(FATAL, (unsigned)info->atlasIndex >= atlas.size()) << "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size();
                     rc.glref = textureLibrary.get(atlas[info->atlasIndex].ref, false)->glref;
                 } else {
                     rc.glref = info->glref;
@@ -514,10 +490,9 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
 #endif
 }
 
-const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
+const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
 	if (ref == DefaultEffectRef) {
-		return colorEnabled ? (firstCall ? defaultShaderNoAlpha : defaultShader) : defaultShaderEmpty;
-	} else {
-		return ref2Effects[ref];
+		ref = (colorEnabled ? (firstCall ? defaultShaderNoAlpha : defaultShader) : defaultShaderEmpty);
 	}
+	return *effectLibrary.get(ref, false);
 }
