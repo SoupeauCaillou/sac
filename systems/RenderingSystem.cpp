@@ -103,10 +103,6 @@ void RenderingSystem::init() {
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
 
-    /*GL_OPERATION(glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST))
-    GL_OPERATION(glEnable(GL_CULL_FACE))
-    GL_OPERATION(glShadeModel(GL_SMOOTH))*/
-
 	// GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
@@ -194,9 +190,11 @@ static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos,
     r.uv[1] = size;
 }
 
-static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& c) {
-    if (c.rotation == 0) {
-        assert (c.halfSize.X != 0);
+static bool cull(const TransformationComponent* camera, RenderingSystem::RenderCommand& c) {
+    if (c.rotation == 0 && c.halfSize.X > 0) {
+        const float camLeft = camera->worldPosition.X - camera->size.X * .5f;
+        const float camRight = camera->worldPosition.X + camera->size.X * .5f;
+
         const float invWidth = 1.0f / (2 * c.halfSize.X);
         // left culling !
         {
@@ -294,15 +292,67 @@ void RenderingSystem::DoUpdate(float) {
                 const TextureInfo* info = textureLibrary.get(c.texture, false);
                 if (info) {
                     int atlasIdx = info->atlasIndex;
-                    if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {//InternalTexture::Invalid) {
-                        atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
+                    // If atlas texture is not loaded yet, load it
+                    if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
                         LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
-                        modifyQ(c, info->reduxStart, info->reduxSize);
+                        atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
                     }
+                    // Only display the required area of the texture
+                    modifyQ(c, info->reduxStart, info->reduxSize);
+            
+                   #ifndef USE_VBO
+                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                        c.color.a >= 1 &&
+                        info->opaqueSize != Vector2::Zero &&
+                        !rc->zPrePass) {
+                        // add a smaller full-opaque block at the center
+                        RenderCommand cCenter(c);
+                        cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+                        modifyR(cCenter, info->opaqueStart, info->opaqueSize);
+
+                        if (cull(camTrans, cCenter))
+                            opaqueCommands.push_back(cCenter);
+
+                        const float leftBorder = info->opaqueStart.X, rightBorder = info->opaqueStart.X + info->opaqueSize.X;
+                        const float bottomBorder = info->opaqueStart.Y + info->opaqueSize.Y;
+                        if (leftBorder > 0) {
+                            RenderCommand cLeft(c);
+                            modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                            if (cull(camTrans, cLeft))
+                                semiOpaqueCommands.push_back(cLeft);
+                        }
+
+                        if (rightBorder < 1) {
+                            RenderCommand cRight(c);
+                            modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                            if (cull(camTrans, cRight))
+                                semiOpaqueCommands.push_back(cRight);
+                        }
+
+                        RenderCommand cTop(c);
+                        modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info->opaqueStart.Y));
+                        if (cull(camTrans, cTop))
+                            semiOpaqueCommands.push_back(cTop);
+
+                        RenderCommand cBottom(c);
+                        modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
+                        if (cull(camTrans, cBottom))
+                            semiOpaqueCommands.push_back(cBottom);
+                        continue;
+                    }
+                    #endif
+                }
+            }
+
+             #ifndef USE_VBO
+             if (!rc->fastCulling) {
+                if (!cull(camTrans, c)) {
+                    continue;
                 }
              }
+             #endif
 
-             switch (rc->opaqueType) {
+            switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
     	         	break;
@@ -312,9 +362,8 @@ void RenderingSystem::DoUpdate(float) {
                  default:
                     LOG(WARNING) << "Entity will not be drawn";
                     break;
-             }
+            }
         }
-
 
         outQueue.commands.resize(
             outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1);

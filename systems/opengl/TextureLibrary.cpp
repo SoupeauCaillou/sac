@@ -63,7 +63,8 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
         VLOG(1) << "loadTexture: '" << assetName << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')';
         out.glref.color =
             out.glref.alpha =
-                OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.reduxSize);
+                OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.opaqueSize);
+        out.reduxSize = Vector2(1,1);
     }
 
     out.rotateUV = false;
