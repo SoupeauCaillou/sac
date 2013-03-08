@@ -6,12 +6,12 @@ InternalTexture InternalTexture::Invalid;
 TextureInfo::TextureInfo (const InternalTexture& ref,
         const Vector2& posInAtlas, const Vector2& sizeInAtlas, bool rot,
         const Vector2& atlasSize,
-        const Vector2& offsetInOriginal, const Vector2& originalSize,
+        const Vector2& offsetInOriginal, const Vector2& pOriginalSize,
         const Vector2& _opaqueStart, const Vector2& _opaqueSize,
         int atlasIdx) {
     glref = ref;
 
-    if (originalSize == Vector2::Zero) {
+    if (pOriginalSize == Vector2::Zero) {
         uv[0].X = uv[0].Y = 0;
         uv[1].X = uv[1].Y = 1;
         rotateUV = 0;
@@ -35,8 +35,7 @@ TextureInfo::TextureInfo (const InternalTexture& ref,
     }
     atlasIndex = atlasIdx;
 
-    originalWidth = originalSize.X;
-    originalHeight = originalSize.Y;
+    originalSize = pOriginalSize;
 
     Vector2 _sizeInAtlas(sizeInAtlas);
     if (rot) {
@@ -57,22 +56,22 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
     std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
         VLOG(1) << "loadTexture: '" << assetName << "' from file";
-        out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.reduxSize);
+        out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.originalSize);
     } else {
         const ImageDesc& imageDesc = it->second;
         VLOG(1) << "loadTexture: '" << assetName << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')';
         out.glref.color =
             out.glref.alpha =
-                OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.opaqueSize);
+                OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.originalSize);
         out.reduxSize = Vector2(1,1);
+        out.opaqueSize = Vector2::Zero;
     }
 
     out.rotateUV = false;
     out.atlasIndex = -1;
     out.uv[0] = Vector2::Zero;
     out.uv[1] = Vector2(1, 1);
-    out.originalWidth = out.reduxSize.X;
-    out.originalHeight = out.reduxSize.Y;
+    out.reduxSize = Vector2(1,1);
     out.reduxStart = out.opaqueStart = out.opaqueSize = Vector2::Zero;
     return true;
 }

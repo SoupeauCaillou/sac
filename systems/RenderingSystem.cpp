@@ -297,6 +297,7 @@ void RenderingSystem::DoUpdate(float) {
                         LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
                         atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
                     }
+
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
             

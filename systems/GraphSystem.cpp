@@ -7,13 +7,13 @@
 
 #define SIZE 256
 
-void putPixel(ImageDesc &textureDesc, int pos, unsigned char value=0xFF) {
+static void putPixel(ImageDesc &textureDesc, int pos, unsigned char value=0xFF) {
 	if ( pos > -1 &&  pos < textureDesc.width* textureDesc.height* textureDesc.channels) {
         memset(textureDesc.datas + pos, value, 4);
     }
 }
 
-void putPoint(ImageDesc &textureDesc, int pos) {
+static void putPoint(ImageDesc &textureDesc, int pos) {
     for (int i=-1; i<2; ++i) {
         for (int j=-1; j<2; ++j) {
                 putPixel(textureDesc, pos + j*textureDesc.channels + i * textureDesc.width * textureDesc.channels);
@@ -32,7 +32,7 @@ GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>("Graph") {
 
 void GraphSystem::DoUpdate(float dt) {
 	for (std::map<TextureRef, ImageDesc>::iterator it=textureRef2Image.begin(); it != textureRef2Image.end(); ++it) {
-		memset(it->second.datas, 0, it->second.width*it->second.height*it->second.channels);
+		memset(it->second.datas, 0x40, it->second.width * it->second.height * it->second.channels);
 	}
     FOR_EACH_ENTITY_COMPONENT(Graph, entity, gc)
         TextureRef texture = theRenderingSystem.textureLibrary.load(gc->textureName);

@@ -23,7 +23,7 @@ struct GraphComponent {
 };
 
 #define theGraphSystem GraphSystem::GetInstance()
-#define GRAPH_SYSTEM(e) theGraphSystem.Get(e)
+#define GRAPH(e) theGraphSystem.Get(e)
 
 UPDATABLE_SYSTEM(Graph)
 

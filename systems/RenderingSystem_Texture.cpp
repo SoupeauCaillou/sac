@@ -131,9 +131,9 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
     return result;
 }
 
-Vector2 RenderingSystem::getTextureSize(const std::string& textureName) {
+const Vector2& RenderingSystem::getTextureSize(const std::string& textureName) {
     const TextureInfo& info = textureLibrary.get(textureName);
-    return Vector2(info.originalWidth, info.originalHeight);
+    return info.originalSize;
 }
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {

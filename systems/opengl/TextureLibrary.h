@@ -50,7 +50,7 @@ struct TextureInfo {
     // uv coords in atlas
     Vector2 uv[2];
     // texture original size
-    unsigned short originalWidth, originalHeight;
+    Vector2 originalSize;
     // texture redux offset/size
     Vector2 reduxStart, reduxSize;
     // coordinates of opaque region in alpha-enabled texture (optional)

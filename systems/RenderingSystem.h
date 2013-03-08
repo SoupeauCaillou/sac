@@ -140,7 +140,7 @@ static void loadOrthographicMatrix(float left, float right, float bottom, float 
 
 EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled = true);
 const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
-Vector2 getTextureSize(const std::string& textureName);
+const Vector2& getTextureSize(const std::string& textureName);
 void removeExcessiveFrames(int& readQueue, int& writeQueue);
 
 void setFrameQueueWritable(bool b);
