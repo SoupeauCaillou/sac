@@ -1,6 +1,10 @@
 #pragma once
 
-#include <sys/time.h>
+#ifdef LINUX
+	#include <time.h>
+#else
+	#include <Windows.h>
+#endif
 
 class TimeUtil
 {
@@ -9,9 +13,12 @@ class TimeUtil
 		static float getTime();
 
 	private:
-        #ifndef EMSCRIPTEN
-		static struct timespec startup_time;
-        #else
-        static struct timeval startup_time;
+        #ifdef EMSCRIPTEN
+		static struct timeval startup_time;
+        #elif defined(LINUX)
+        static struct timespec startup_time;
+		#else
+		static __int64 startup_time;
+		static float frequency;
         #endif
 };
