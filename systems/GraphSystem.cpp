@@ -7,20 +7,22 @@
 
 #define SIZE 256
 
-static void putPixel(ImageDesc &textureDesc, int pos, unsigned char value=0xFF) {
-	if ( pos > -1 &&  pos < textureDesc.width* textureDesc.height* textureDesc.channels) {
-        memset(textureDesc.datas + pos, value, 4);
+static void putPixel(ImageDesc &textureDesc, int pos_x, int pos_y, unsigned char value=0xFF) {
+	if ( pos_x > -1 &&  pos_x < textureDesc.width && pos_y > -1 &&  pos_y < textureDesc.height) {
+        memset(textureDesc.datas + (pos_x + (textureDesc.width * (textureDesc.height-1 - pos_y))) * textureDesc.channels, value, 4);
     }
 }
 
-static void putPoint(ImageDesc &textureDesc, int pos) {
-    for (int i=-1; i<2; ++i) {
-        for (int j=-1; j<2; ++j) {
-                putPixel(textureDesc, pos + j*textureDesc.channels + i * textureDesc.width * textureDesc.channels);
-                if (pos + textureDesc.channels * (j + i * textureDesc.width) + 3 > -1 && 
-                	pos + textureDesc.channels * (j + i * textureDesc.width) + 3 < textureDesc.width * textureDesc.height * textureDesc.channels)
-                	textureDesc.datas[pos + j*textureDesc.channels + i * textureDesc.width * textureDesc.channels + 3] = ((i==j || i==-j) && (i == -1 || i == 1)) ? 0x80 : 0xFF;
-        }
+static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth=1) {
+	if (lineWidth == 0)
+		lineWidth = 2;
+    for (int i=-lineWidth / 2; i < lineWidth / 2; ++i) {
+        for (int j=-lineWidth / 2; j < lineWidth / 2; ++j) {
+			putPixel(textureDesc, pos_x + i, pos_y + j);
+			//~ if ( pos_x+i > -1 &&  pos_x+i < textureDesc.width && pos_y+j > -1 &&  pos_y+j < textureDesc.height) {
+				//~ textureDesc.datas[textureDesc.channels * (pos_x+i + (textureDesc.height-1 -(pos_y+j))*textureDesc.width) + 3] = ((i==j || i==-j) && (i == -lineWidth / 2 || i == lineWidth / 2 - 1)) ? 0x80 : 0xFF;
+			//~ }
+		}
     }    
 }
 
@@ -87,7 +89,6 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
         maxScaleY = gc->maxY;
     }
 
-    
     int previousValue_x = -1, previousValue_y = -1;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
         //~ normalisée = (originale - MIN) * (max - min) / (MAX - MIN) + min
@@ -98,16 +99,17 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
         int value_x = (it->first - minScaleX) * (textureDesc.width - 1) / (maxScaleX - minScaleX);
         int value_y = (it->second - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
 
-        putPoint(textureDesc, textureDesc.channels * (value_x + textureDesc.width * value_y));
+        //~ putPoint(textureDesc, textureDesc.channels * (value_x + textureDesc.width * value_y), gc->lineWidth*textureDesc.width);
+        putPoint(textureDesc, value_x, value_y, gc->lineWidth*textureDesc.width);
         if (previousValue_x != -1 && previousValue_y != -1) {
-            drawLine(textureDesc, std::make_pair(previousValue_x, previousValue_y), std::make_pair(value_x, value_y));
+            drawLine(textureDesc, std::make_pair(previousValue_x, previousValue_y), std::make_pair(value_x, value_y), gc->lineWidth*textureDesc.width);
         }
         previousValue_x = value_x;
         previousValue_y = value_y;
     }
 }
 
-void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoint, std::pair<int, int> secondPoint) {
+void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoint, std::pair<int, int> secondPoint, int lineWidth=1) {
     int dx, dy;
     if ( (dx = secondPoint.first - firstPoint.first) != 0) {
         if (dx > 0) {
@@ -118,7 +120,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = e * 2;
                         dy = dy * 2;
                         for (int i=firstPoint.first; i != secondPoint.first; ++i) {
-                        	putPixel(textureDesc, textureDesc.channels * (i + textureDesc.width * firstPoint.second));
+                        	putPoint(textureDesc, i, firstPoint.second, lineWidth);
                             
                             if ( (e -= dy) < 0) {
                                 firstPoint.second += 1;
@@ -131,7 +133,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dy = e * 2;
                         dx = dx * 2;
                         for (int i=firstPoint.second; i != secondPoint.second; ++i) {
-                        	putPixel(textureDesc, textureDesc.channels * (firstPoint.first + textureDesc.width * i));
+                        	putPoint(textureDesc, firstPoint.first, i, lineWidth);
 
                             if ( (e -= dx) < 0) {
                                 firstPoint.first += 1;
@@ -146,7 +148,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = e * 2;
                         dy = dy * 2;
                         for (int i=firstPoint.first; i != secondPoint.first; ++i) {
-							putPixel(textureDesc, textureDesc.channels * (i + textureDesc.width * firstPoint.second));
+							putPoint(textureDesc, i, firstPoint.second, lineWidth);
                             if ( (e+=dy) < 0) {
                                 firstPoint.second -= 1;
                                 e += dx;
@@ -158,7 +160,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dy = e * 2;
                         dx = dx * 2;
                         for (int i=firstPoint.second; i != secondPoint.second; --i) {
-                        	putPixel(textureDesc, textureDesc.channels * (firstPoint.first + textureDesc.width * i));
+                        	putPoint(textureDesc, firstPoint.first, i, lineWidth);
 
                             if ( (e += dx) > 0) {
                                 firstPoint.first += 1;
@@ -170,7 +172,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
             }
             else {
                 for (int i=firstPoint.first; i != secondPoint.first; ++i) {
-                    putPixel(textureDesc, textureDesc.channels * (i + textureDesc.width * firstPoint.second));
+                    putPoint(textureDesc, i, firstPoint.second, lineWidth);
                 }
             }
         }
@@ -182,7 +184,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = e * 2;
                         dy = dy * 2;
                         for (int i=firstPoint.first; i!= secondPoint.first; --i) {
-                            putPixel(textureDesc, textureDesc.channels * (i + textureDesc.width * firstPoint.second));
+                            putPoint(textureDesc, i,firstPoint.second, lineWidth);
                             if ( (e+=dy) >= 0) {
                                 firstPoint.second += 1;
                                 e += dx;
@@ -194,7 +196,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = dx * 2;
                         dy = e * 2;
                         for (int i=firstPoint.second; i!= secondPoint.second; ++i) {
-                            putPixel(textureDesc, textureDesc.channels * (firstPoint.first + textureDesc.width * i));
+                            putPoint(textureDesc, firstPoint.first, i, lineWidth);
                             if ( (e+=dx) >= 0) {
                                 firstPoint.first -= 1;
                                 e += dy;
@@ -208,7 +210,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = e * 2;
                         dy = dy * 2;
                         for (int i=firstPoint.first; i!= secondPoint.first; --i) {                                            
-                            putPixel(textureDesc, textureDesc.channels * (i + textureDesc.width * firstPoint.second));
+                            putPoint(textureDesc, i, firstPoint.second, lineWidth);
 
                             if ( (e-=dy) >= 0) {
                                 firstPoint.second -= 1;
@@ -221,7 +223,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = dx * 2;
                         dy = e * 2;
                         for (int i=firstPoint.second; i!= secondPoint.second; --i) {
-                            putPixel(textureDesc, textureDesc.channels * (firstPoint.first + textureDesc.width * i));
+                            putPoint(textureDesc, firstPoint.first, i, lineWidth);
 
                             if ( (e-=dx) >= 0) {
                                 firstPoint.first -= 1;
@@ -233,7 +235,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
             }
             else {
                 for (int i=firstPoint.first; i!= secondPoint.first; --i) {
-                    putPixel(textureDesc, textureDesc.channels * (i + textureDesc.width * firstPoint.second));
+                    putPoint(textureDesc, i, firstPoint.second, lineWidth);
                 }
             }
         }
@@ -242,12 +244,12 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
         if ((dy = secondPoint.second - firstPoint.second) != 0) {
             if (dy < 0) {
                 for (int i=firstPoint.second; i!= secondPoint.second; --i) {
-                    putPixel(textureDesc, textureDesc.channels * (firstPoint.second + textureDesc.width * i));
+                    putPoint(textureDesc, firstPoint.second, i, lineWidth);
                 }
             }
             else {
                 for (int i=firstPoint.second; i!= secondPoint.second; ++i) {
-                    putPixel(textureDesc, textureDesc.channels * (firstPoint.second + textureDesc.width * i));
+                    putPoint(textureDesc, firstPoint.second, i, lineWidth);
                 }
             }
         }
