@@ -80,6 +80,7 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
         gc->maxY = std::max(maxScaleY, gc->maxY);
         gc->minY = std::min(minScaleY, gc->minY);
     }
+    
     if (gc->maxX != gc->minX) {
         minScaleX = gc->minX;
         maxScaleX = gc->maxX;
@@ -89,6 +90,10 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
         maxScaleY = gc->maxY;
     }
 
+    minScaleX *= (minScaleX<0 ? 1.1f : 0.9f);
+    maxScaleX *= (maxScaleX<0 ? 0.9f : 1.1f);
+    minScaleY *= (minScaleY<0 ? 1.1f : 0.9f);
+    maxScaleY *= (maxScaleY<0 ? 0.9f : 1.1f);
     int previousValue_x = -1, previousValue_y = -1;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
         //~ normalisée = (originale - MIN) * (max - min) / (MAX - MIN) + min
