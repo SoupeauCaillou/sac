@@ -111,6 +111,7 @@
     <Compile Include="systems\opengl\TextureLibrary.cpp" />
     <Compile Include="systems\GraphSystem.cpp" />
     <Compile Include="systems\opengl\EffectLibrary.cpp" />
+    <Compile Include="systems\opengl\AnimDescriptor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -206,6 +207,7 @@
     <None Include="systems\opengl\shaders\default.fs" />
     <None Include="systems\opengl\shaders\default.vs" />
     <None Include="systems\opengl\shaders\default_vbo.vs" />
+    <None Include="systems\opengl\AnimDescriptor.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />

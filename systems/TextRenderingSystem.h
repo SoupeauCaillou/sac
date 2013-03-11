@@ -77,5 +77,5 @@ public :
 private:
     std::map<Entity, unsigned int> cache;
 	std::list<Entity> renderingEntitiesPool;
-	std::map<std::string, std::map<unsigned char, float> > fontRegistry;
+	std::map<std::string, std::map<unsigned char, float> > fontRegistry; // UTF8 8->32 bits : utiliser un unsigned int
 };

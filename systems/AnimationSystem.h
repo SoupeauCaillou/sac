@@ -3,6 +3,7 @@
 #include "System.h"
 #include "RenderingSystem.h"
 
+class AnimDescriptor;
 
 struct AnimationComponent {
     AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), textureIndex(0) {
@@ -25,8 +26,6 @@ public:
     void registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextanim="", Interval<float> nextAnimWait = Interval<float>(0,0));
 
 private:
-    struct Anim;
-
-    std::map<std::string, Anim*> animations;
-    typedef std::map<std::string, Anim*>::iterator AnimIt;
+    std::map<std::string, AnimDescriptor*> animations;
+    typedef std::map<std::string, AnimDescriptor*>::iterator AnimIt;
 };

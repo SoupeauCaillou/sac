@@ -1,14 +1,5 @@
 #include "AnimationSystem.h"
-
-#include "base/Interval.h"
-
-struct AnimationSystem::Anim {
-    std::vector<TextureRef> textures;
-    float playbackSpeed;
-    Interval<int> loopCount;
-    std::string nextAnim;
-    Interval<float> nextAnimWait;
-};
+#include "opengl/AnimDescriptor.h"
 
 INSTANCE_IMPL(AnimationSystem);
 
@@ -30,7 +21,7 @@ void AnimationSystem::DoUpdate(float dt) {
         AnimIt jt = animations.find(bc->name);
         if (jt == animations.end())
             continue;
-        Anim* anim = jt->second;
+        AnimDescriptor* anim = jt->second;
 
         if (bc->previousName != bc->name) {
             bc->textureIndex = 0;
@@ -73,7 +64,7 @@ void AnimationSystem::DoUpdate(float dt) {
 
 void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextAnim, Interval<float> nextAnimWait) {
     if (animations.find(name) == animations.end()) {
-        Anim* a = new Anim();
+        AnimDescriptor* a = new AnimDescriptor();
         a->textures = textures;
         a->playbackSpeed = playbackSpeed;
         a->loopCount = loopCount;
