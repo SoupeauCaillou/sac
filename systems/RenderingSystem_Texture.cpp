@@ -125,11 +125,9 @@ void RenderingSystem::processDelayedTextureJobs() {
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
-    //~ pthread_mutex_lock(&mutexes[L_QUEUE]);
-    lockes[L_QUEUE].lock();
+    mutexes[L_QUEUE].lock();
     TextureRef result = textureLibrary.load(assetName);
-    //~ pthread_mutex_unlock(&mutexes[L_QUEUE]);
-    lockes[L_QUEUE].unlock();
+    mutexes[L_QUEUE].unlock();
     return result;
 }
 

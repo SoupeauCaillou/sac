@@ -6,7 +6,6 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
-#include <pthread.h>
 #ifdef INGAME_EDITORS
 #include <AntTweakBar.h>
 #include "util/LevelEditor.h"
@@ -356,13 +355,10 @@ void RenderingSystem::waitDrawingComplete() {
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
-    //~ pthread_mutex_lock(&mutexes[L_RENDER]);
-    lockes[L_RENDER].lock();
+    std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
     while (renderQueue[readQueue].count > 0 && frameQueueWritable)
-        cond[C_RENDER_DONE].wait(lockes[L_RENDER]);
-        //~ pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
-    //~ pthread_mutex_unlock(&mutexes[L_RENDER]);
-    lockes[L_RENDER].unlock();
+        cond[C_RENDER_DONE].wait(lock);
+    lock.unlock();
     PROFILE("Renderer", "wait-drawing-donE", EndEvent);
 #endif
 }
@@ -373,13 +369,11 @@ void RenderingSystem::render() {
 #endif
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
-    
-    //~ pthread_mutex_lock(&mutexes[L_QUEUE]);
-    lockes[L_QUEUE].lock();
+
+    std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);
     // processDelayedTextureJobs();
     while (!newFrameReady && frameQueueWritable) {
-        cond[C_FRAME_READY].wait(lockes[L_QUEUE]);
-        //~ pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
+        cond[C_FRAME_READY].wait(lock);
     }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
@@ -388,16 +382,14 @@ void RenderingSystem::render() {
     if (!frameQueueWritable) {
         LOG(INFO) << "Rendering disabled";
         #ifndef EMSCRIPTEN
-        lockes[L_QUEUE].unlock();
-        //~ pthread_mutex_unlock(&mutexes[L_QUEUE]);
+        lock.unlock();
         #endif
         return;
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
 #ifndef EMSCRIPTEN
-    //~ pthread_mutex_unlock(&mutexes[L_QUEUE]);
-    lockes[L_QUEUE].unlock();
+    lock.unlock();
     PROFILE("Renderer", "wait-frame", EndEvent);
 #endif
     PROFILE("Renderer", "load-textures", BeginEvent);
@@ -407,11 +399,9 @@ void RenderingSystem::render() {
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
 #ifndef EMSCRIPTEN
-	if (!lockes[L_RENDER].try_lock()) {
-		VLOG(1) << "HMM Busy render lock";
-		//~ pthread_mutex_lock(&mutexes[L_RENDER]);
-		lockes[L_RENDER].lock();
-	}
+    if (!mutexes[L_RENDER].try_lock()) {
+        VLOG(1) << "HMM Busy render lock";
+    }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
     float ppp = TimeUtil::getTime();
@@ -433,10 +423,8 @@ void RenderingSystem::render() {
         inQueue.count = 0;
     }
 #ifndef EMSCRIPTEN
-    //~ pthread_cond_signal(&cond[C_RENDER_DONE]);
-    cond[C_RENDER_DONE].notify_one();
-    //~ pthread_mutex_unlock(&mutexes[L_RENDER]);
-    lockes[L_RENDER].unlock();
+    cond[C_RENDER_DONE].notify_all();
+    mutexes[L_RENDER].unlock();
 #endif
 	PROFILE("Renderer", "render", EndEvent);
     #ifdef INGAME_EDITORS

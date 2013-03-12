@@ -119,11 +119,8 @@ private:
 #endif
 
 #ifndef EMSCRIPTEN
-std::unique_lock<std::mutex> *lockes;
 std::mutex *mutexes;
 std::condition_variable *cond;
-//~ pthread_mutex_t mutexes[3];
-//~ pthread_cond_t cond[2];
 #endif
 #ifdef USE_VBO
 public:

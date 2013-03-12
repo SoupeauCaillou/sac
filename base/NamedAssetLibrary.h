@@ -22,7 +22,7 @@
 #include <map>
 #include <string>
 #include <set>
-#include <pthread.h>
+
 #include <mutex>
 #include <condition_variable>
 
@@ -38,11 +38,6 @@ class NamedAssetLibrary {
     #define InvalidRef -1
     public:
         NamedAssetLibrary() : nextValidRef(1), assetAPI(0) {
-            ul = std::unique_lock<std::mutex>(mutex, std::defer_lock);
-            //~ pthread_mutex_init(&mutex, 0);
-            #if USE_COND_SIGNALING
-            //~ pthread_cond_init(&cond, 0);
-            #endif
         }
 
         virtual void init(AssetAPI* pAssetAPI) {
@@ -50,16 +45,11 @@ class NamedAssetLibrary {
         }
 
         virtual ~NamedAssetLibrary() {
-            //~ pthread_mutex_destroy(&mutex);
-            #if USE_COND_SIGNALING
-            //~ pthread_cond_destroy(&cond);
-            #endif
         }
 
         TRef load(const std::string& name) {
             TRef result = InvalidRef;
-            //~ pthread_mutex_lock(&mutex);
-            ul.lock();
+            mutex.lock();
             typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
             if (it == nameToRef.end()) {
                 delayed.loads.insert(name);
@@ -69,37 +59,30 @@ class NamedAssetLibrary {
             } else {
                 result = it->second;
             }
-            //~ pthread_mutex_unlock(&mutex);
-            ul.unlock();
+            mutex.unlock();
             return result;
         }
 
         void unload(const std::string& name) {
-            //~ pthread_mutex_lock(&mutex);
-            ul.lock();
+            mutex.lock();
             delayed.unloads.insert(name);
-            //~ pthread_mutex_unlock(&mutex);
-            ul.unlock();
+            mutex.unlock();
         }
         void reload(const std::string& name) {
-            //~ pthread_mutex_lock(&mutex);
-            ul.lock();
+            mutex.lock();
             delayed.reloads.insert(name);
-            //~ pthread_mutex_unlock(&mutex);        
-            ul.unlock();        
+            mutex.unlock();        
         }
 
         void unload(const TRef& ref) {
-            //~ pthread_mutex_lock(&mutex);
-            ul.lock();
+            mutex.lock();
             for (typename std::map<std::string, TRef>::iterator it=nameToRef.begin(); it!=nameToRef.end(); ++it) {
                 if (it->second == ref) {
                     delayed.unloads.insert(it->first);
                     break;
                 }
             }
-            //~ pthread_mutex_unlock(&mutex);
-            ul.unlock();
+            mutex.unlock();
         }
 
         void reloadAll() {
@@ -111,82 +94,69 @@ class NamedAssetLibrary {
             for (std::set<std::string>::iterator it=delayed.loads.begin();
                 it!=delayed.loads.end();
                 ++it) {
-                //~ pthread_mutex_lock(&mutex);
-                ul.lock();
+                mutex.lock();
                 T asset;
                 TRef ref = nameToRef[*it];
                 VLOG(2) << "\tLoad '" << *it << "' -> " << ref;
                 doLoad(*it, asset, ref);
                 ref2asset.insert(std::make_pair(ref, asset));
-                //~ pthread_mutex_unlock(&mutex);
-                ul.unlock();
+                mutex.unlock();
             }
 
             VLOG_IF(1, !delayed.unloads.empty()) << "Process delayed unloads";
             for (std::set<std::string>::iterator it=delayed.unloads.begin();
                 it!=delayed.unloads.end();
                 ++it) {
-                //~ pthread_mutex_lock(&mutex);
-                ul.lock();
+                mutex.lock();
                 const std::string& name = *it;
                 VLOG(2) << "\tUnload '" << name << "'";
                 TRef ref = nameToRef[name];
                 doUnload(name, ref2asset[ref]);
                 ref2asset.erase(ref);
                 nameToRef.erase(name);
-                //~ pthread_mutex_unlock(&mutex);
-                ul.unlock();
+                mutex.unlock();
             }
 
             VLOG_IF(1, !delayed.unloads.empty()) << "Process delayed reloads";
             for (std::set<std::string>::iterator it=delayed.reloads.begin();
                 it!=delayed.reloads.end();
                 ++it) {
-                //~ pthread_mutex_lock(&mutex);
-                ul.lock();
+                mutex.lock();
                 const std::string& name = *it;
                 VLOG(2) << "Reload '" << name << "'";
                 TRef ref = nameToRef[name];
                 doReload(name, ref);
-                //~ pthread_mutex_unlock(&mutex);
-                ul.unlock();
+                mutex.unlock();
             }
-            //~ pthread_mutex_lock(&mutex);
-            ul.lock();
+            mutex.lock();
             delayed.loads.clear();
             delayed.unloads.clear();
             delayed.reloads.clear();
             #if USE_COND_SIGNALING
-            //~ pthread_cond_signal(&cond);
-            cond.notify_one();
+            cond.notify_all();
             #endif
-            //~ pthread_mutex_unlock(&mutex);
-            ul.unlock();
+            mutex.unlock();
         }
 
         const T* get(const TRef& ref, bool waitIfLoadingInProgress) {
-            //~ pthread_mutex_lock(&mutex);
-            ul.lock();
+            std::unique_lock<std::mutex> lock(mutex);
             typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
             if (it == ref2asset.end()) {
                 #if USE_COND_SIGNALING
                 if (waitIfLoadingInProgress) {
                     // wait for next load end, the requested resource might be loaded in the next batch
                     while (!delayed.loads.empty())
-                        //~ pthread_cond_wait(&cond, &mutex);
-                        cond.wait(ul);
+                        cond.wait(lock);
                     it = ref2asset.find(ref);
                 } else {
                 #endif
-                    //~ pthread_mutex_unlock(&mutex);
-                    ul.unlock();
+                    lock.unlock();
                     return 0;
                 }
             }
 
             LOG_IF(FATAL, it == ref2asset.end()) << "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size();
-            //~ pthread_mutex_unlock(&mutex);
-            ul.unlock();
+            lock.unlock();
             return &(it->second);
         }
 
@@ -214,11 +184,8 @@ class NamedAssetLibrary {
         virtual void doReload(const std::string& name, const TRef& ref) = 0;
 
     protected:
-        //~ pthread_mutex_t mutex;
         std::mutex mutex;
-        std::unique_lock<std::mutex> ul;
         #if USE_COND_SIGNALING
-        //~ pthread_cond_t cond;
         std::condition_variable cond;
         #endif
         TRef nextValidRef;
