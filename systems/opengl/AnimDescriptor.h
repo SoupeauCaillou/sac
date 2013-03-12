@@ -5,7 +5,12 @@
 #include <vector>
 #include <string>
 
+class FileBuffer;
+
 class AnimDescriptor {
+    public:
+        bool load(const FileBuffer& fb);
+
     public:
         std::vector<TextureRef> textures;
         float playbackSpeed;

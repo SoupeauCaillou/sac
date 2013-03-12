@@ -7,7 +7,8 @@
 
 int main(int argc, char ** argv) {
     google::InitGoogleLogging(argv[0]);
-    google::InstallFailureSignalHandler();
+    FLAGS_logtostderr = true;
+    FLAGS_colorlogtostderr = true;
     google::ParseCommandLineFlags(&argc, &argv, true);
 
 	EntityManager::CreateInstance();

@@ -112,6 +112,9 @@
     <Compile Include="systems\GraphSystem.cpp" />
     <Compile Include="systems\opengl\EffectLibrary.cpp" />
     <Compile Include="systems\opengl\AnimDescriptor.cpp" />
+    <Compile Include="tests\systems\TestAnimationDescriptor.cpp" />
+    <Compile Include="util\DataFileParser.cpp" />
+    <Compile Include="tests\util\TestDataFileParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -208,6 +211,7 @@
     <None Include="systems\opengl\shaders\default.vs" />
     <None Include="systems\opengl\shaders\default_vbo.vs" />
     <None Include="systems\opengl\AnimDescriptor.h" />
+    <None Include="util\DataFileParser.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
