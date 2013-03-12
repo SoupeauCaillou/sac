@@ -34,8 +34,10 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), asset
 MusicSystem::~MusicSystem() {
     #ifndef EMSCRIPTEN
     runDecompLoop = false;
-    pthread_cond_signal(&cond);
-    pthread_join(oggDecompressionThread, 0);
+    //~ pthread_cond_signal(&cond);
+    cond.notify_one();
+    //~ pthread_join(oggDecompressionThread, 0);
+    oggDecompressionThread.join();
     LOG(INFO) << "MusicSystem uninitinalized";
     #endif
     #ifndef EMSCRIPTEN
@@ -69,10 +71,12 @@ void MusicSystem::init() {
     nextValidRef = 1;
 
 #ifndef EMSCRIPTEN
-    pthread_mutex_init(&mutex, 0);
-    pthread_cond_init(&cond, 0);
+    //~ pthread_mutex_init(&mutex, 0);
+    //~ pthread_cond_init(&cond, 0);
 
-    pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
+    lock = std::unique_lock<std::mutex>(mutex, std::defer_lock);
+    //~ pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
+    oggDecompressionThread = std::thread(_startOggThread, this);
     // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
     // sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
 #endif
@@ -80,18 +84,21 @@ void MusicSystem::init() {
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
 #ifndef EMSCRIPTEN
-	if (ref == InvalidMusicRef)
-		return;
-	pthread_mutex_lock(&mutex);
+    if (ref == InvalidMusicRef)
+        return;
+    //~ pthread_mutex_lock(&mutex);
+    lock.lock();
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
     if (it == musics.end()) {
-	    LOG(WARNING) << "Weird, cannot find: " << ref << " music ref";
+        LOG(WARNING) << "Weird, cannot find: " << ref << " music ref";
     } else {
-    	// LOGW("Delayed erase music ref: %d", ref);
-    	it->second.toRemove = true;
+        // LOGW("Delayed erase music ref: %d", ref);
+        it->second.toRemove = true;
     }
-    pthread_mutex_unlock(&mutex);
-    pthread_cond_signal(&cond);
+    //~ pthread_mutex_unlock(&mutex);
+    lock.unlock();
+    //~ pthread_cond_signal(&cond);
+    cond.notify_one();
 #else
 	Mix_FreeChunk(musics[ref]);
 	musics.erase(ref);
@@ -393,7 +400,8 @@ void MusicSystem::DoUpdate(float dt) {
 void MusicSystem::oggDecompRunLoop() {
     runDecompLoop = true;
 
-    pthread_mutex_lock(&mutex);
+    //~ pthread_mutex_lock(&mutex);
+    lock.lock();
 
     // one static buffer to rule them all
     int8_t tempBuffer[48000 * 2]; // 1 sec * 48Hz * 2 bytes/sample
@@ -441,11 +449,13 @@ void MusicSystem::oggDecompRunLoop() {
         PROFILE("Music", "DecompressMusic", EndEvent);
         // release mutex while waiting
         if (!roomForImprovement) {
-        	pthread_cond_wait(&cond, &mutex);
+        	cond.wait(lock);
         	// mutex is auto acquired on wake up
         } else {
-	        pthread_mutex_unlock(&mutex);
-	        pthread_mutex_lock(&mutex);
+	        //~ pthread_mutex_unlock(&mutex);
+            lock.unlock();
+            lock.lock();
+	        //~ pthread_mutex_lock(&mutex);
         }
     }
 }
@@ -472,7 +482,8 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
 	    // LOGW("%d) DATA AVAILABLE: %d >= %d ?", m, count, info.pcmBufferSize);
 	    if (count < info.pcmBufferSize * 3) {
 		    // wake-up decomp thread via notify
-		    pthread_cond_signal(&cond);
+		    //~ pthread_cond_signal(&cond);
+		    cond.notify_one();
 	    }
 	    if (count >= info.pcmBufferSize) {
 		    int8_t* b = musicAPI->allocate(info.pcmBufferSize);
@@ -606,7 +617,8 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
     VLOG(1) << "(music) File: " << assetName << " / rate: " << info.sampleRate << " duration: " << info.totalTime << " nbSample: " << info.nbSamples << " -> " << nextValidRef;
     PROFILE("Music", "mutex-section", BeginEvent);
-    pthread_mutex_lock(&mutex);
+    //~ pthread_mutex_lock(&mutex);
+    lock.lock();
     #ifdef MUSIC_VISU
     int start = assetName.find("audio/") + 6;
     int end = assetName.find(".ogg");
@@ -614,10 +626,12 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     #endif
     musics[nextValidRef] = info;
     // LOGI("================================ ++ %d => %lu", nextValidRef, musics.size());
-    pthread_mutex_unlock(&mutex);
+    //~ pthread_mutex_unlock(&mutex);
+    lock.unlock();
     PROFILE("Music", "mutex-section", EndEvent);
     // wake-up decompression thread
-    pthread_cond_signal(&cond);
+    //~ pthread_cond_signal(&cond);
+    cond.notify_one();
 #else
 	std::stringstream a;
 	a << "assets/" << assetName;

@@ -30,11 +30,17 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     frameQueueWritable = true;
     newFrameReady = false;
 #ifndef EMSCRIPTEN
-    pthread_mutex_init(&mutexes[L_RENDER], 0);
-    pthread_mutex_init(&mutexes[L_QUEUE], 0);
-    pthread_mutex_init(&mutexes[L_TEXTURE], 0);
-	pthread_cond_init(&cond[0], 0);
-    pthread_cond_init(&cond[1], 0);
+    mutexes = new std::mutex[3];
+    lockes = new std::unique_lock<std::mutex>[3];
+    for (int i=0; i<3; ++i) {
+        lockes[i] = std::unique_lock<std::mutex>(mutexes[i], std::defer_lock);
+    }
+    cond = new std::condition_variable[2];
+    //~ pthread_mutex_init(&mutexes[L_RENDER], 0);
+    //~ pthread_mutex_init(&mutexes[L_QUEUE], 0);
+    //~ pthread_mutex_init(&mutexes[L_TEXTURE], 0);
+	//~ pthread_cond_init(&cond[0], 0);
+    //~ pthread_cond_init(&cond[1], 0);
 #endif
 
     RenderingComponent tc;
@@ -56,11 +62,14 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
 RenderingSystem::~RenderingSystem() {
 #ifndef EMSCRIPTEN
-    pthread_mutex_destroy(&mutexes[L_RENDER]);
-    pthread_mutex_destroy(&mutexes[L_QUEUE]);
-    pthread_mutex_destroy(&mutexes[L_TEXTURE]);
-    pthread_cond_destroy(&cond[0]);
-    pthread_cond_destroy(&cond[1]);
+    delete[] mutexes;
+    delete[] lockes;
+    delete[] cond;
+    //~ pthread_mutex_destroy(&mutexes[L_RENDER]);
+    //~ pthread_mutex_destroy(&mutexes[L_QUEUE]);
+    //~ pthread_mutex_destroy(&mutexes[L_TEXTURE]);
+    //~ pthread_cond_destroy(&cond[0]);
+    //~ pthread_cond_destroy(&cond[1]);
 #endif
     initDone = false;
     delete[] renderQueue;
@@ -398,16 +407,21 @@ void RenderingSystem::DoUpdate(float) {
 
 #ifndef EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
-    pthread_mutex_lock(&mutexes[L_RENDER]);
+    //~ pthread_mutex_lock(&mutexes[L_RENDER]);
+    lockes[L_RENDER].lock();
     // Lock for notifying queue change
-    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    lockes[L_QUEUE].lock();
+    //~ pthread_mutex_lock(&mutexes[L_QUEUE]);
 #endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
 #ifndef EMSCRIPTEN
-    pthread_cond_signal(&cond[C_FRAME_READY]);
-    pthread_mutex_unlock(&mutexes[L_QUEUE]);
-    pthread_mutex_unlock(&mutexes[L_RENDER]);
+    cond[C_FRAME_READY].notify_one();
+    lockes[L_QUEUE].unlock();
+    lockes[L_RENDER].unlock();
+    //~ pthread_cond_signal(&cond[C_FRAME_READY]);
+    //~ pthread_mutex_unlock(&mutexes[L_QUEUE]);
+    //~ pthread_mutex_unlock(&mutexes[L_RENDER]);
 #endif
 }
 
@@ -503,16 +517,23 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
         return;
     LOG(INFO) << "Writable: " << b;
 #ifndef EMSCRIPTEN
-    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    //~ pthread_mutex_lock(&mutexes[L_QUEUE]);
+    lockes[L_QUEUE].lock();
 #endif
     frameQueueWritable = b;
 #ifndef EMSCRIPTEN
-    pthread_cond_signal(&cond[C_FRAME_READY]);
-    pthread_mutex_unlock(&mutexes[L_QUEUE]);
+    //~ pthread_cond_signal(&cond[C_FRAME_READY]);
+    //~ pthread_mutex_unlock(&mutexes[L_QUEUE]);
 
-    pthread_mutex_lock(&mutexes[L_RENDER]);
-    pthread_cond_signal(&cond[C_RENDER_DONE]);
-    pthread_mutex_unlock(&mutexes[L_RENDER]);
+    cond[C_FRAME_READY].notify_one();
+    lockes[L_QUEUE].unlock();
+
+    lockes[L_RENDER].lock();
+    cond[C_RENDER_DONE].notify_one();
+    lockes[L_RENDER].unlock();
+    //~ pthread_mutex_lock(&mutexes[L_RENDER]);
+    //~ pthread_cond_signal(&cond[C_RENDER_DONE]);
+    //~ pthread_mutex_unlock(&mutexes[L_RENDER]);
 #endif
 }
 

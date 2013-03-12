@@ -4,6 +4,11 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include <thread>
+#include <condition_variable>
+#include <mutex>
+
+
 #include "opengl/OpenglHelper.h"
 #include "opengl/TextureLibrary.h"
 #include "opengl/EffectLibrary.h"
@@ -114,8 +119,11 @@ private:
 #endif
 
 #ifndef EMSCRIPTEN
-pthread_mutex_t mutexes[3];
-pthread_cond_t cond[2];
+std::unique_lock<std::mutex> *lockes;
+std::mutex *mutexes;
+std::condition_variable *cond;
+//~ pthread_mutex_t mutexes[3];
+//~ pthread_cond_t cond[2];
 #endif
 #ifdef USE_VBO
 public:

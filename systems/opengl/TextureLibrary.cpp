@@ -93,9 +93,10 @@ void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
 }
 
 void TextureLibrary::add(const std::string& name, const TextureInfo& info) {
-    pthread_mutex_lock(&mutex);
+    //~ pthread_mutex_lock(&mutex);
+    ul.lock();
     TextureRef ref = nextValidRef++;
     nameToRef.insert(std::make_pair(name, ref));
     ref2asset.insert(std::make_pair(ref, info));
-    pthread_mutex_unlock(&mutex);
+    ul.unlock();
 }

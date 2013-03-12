@@ -4,7 +4,10 @@ struct OggVorbis_File;
 #include "System.h"
 #include "../api/AssetAPI.h"
 #include "../api/MusicAPI.h"
-#include <pthread.h>
+//~ #include <pthread.h>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 typedef int MusicRef;
 
@@ -93,9 +96,13 @@ std::map<MusicRef, Mix_Chunk*> musics;
 
 bool muted;
 #ifndef EMSCRIPTEN
-pthread_t oggDecompressionThread;
-pthread_mutex_t mutex;
-pthread_cond_t cond;
+std::thread oggDecompressionThread;
+//~ pthread_t oggDecompressionThread;
+//~ pthread_mutex_t mutex;
+std::mutex mutex;
+std::unique_lock<std::mutex> lock;
+//~ pthread_cond_t cond;
+std::condition_variable cond;
 // map<filename, audio_compressed_content>
 std::map<std::string, FileBuffer> name2buffer;
 #endif
