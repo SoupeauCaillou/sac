@@ -11,7 +11,7 @@
 struct GraphComponent {
 
     GraphComponent():lineWidth(0), maxY(0), maxX(0), minY(0), minX(0), 
-    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false) {}
+    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false), reloadTexture(false) {}
 
     std::list<std::pair<float, float> > pointsList;
 	
@@ -23,6 +23,8 @@ struct GraphComponent {
 
     bool setFixedScaleMinMaxX;
     bool setFixedScaleMinMaxY;
+    
+    bool reloadTexture;
 };
 
 #define theGraphSystem GraphSystem::GetInstance()

@@ -57,12 +57,14 @@ void GraphSystem::DoUpdate(float dt) {
 
             textureRef2Image.insert(std::make_pair(texture, desc));
         }
-        theRenderingSystem.textureLibrary.reload(gc->textureName);
+        if(gc->reloadTexture) {
+        	theRenderingSystem.textureLibrary.reload(gc->textureName);
+        	gc->reloadTexture = false;
+        }
     }
 }
 
 void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
-    
     float minScaleX = gc->pointsList.begin()->first, minScaleY = gc->pointsList.begin()->second, maxScaleX = gc->pointsList.begin()->first, maxScaleY = gc->pointsList.begin()->second;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
         minScaleX = std::min(minScaleX, it->first);
