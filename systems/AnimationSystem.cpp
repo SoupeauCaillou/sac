@@ -62,27 +62,19 @@ void AnimationSystem::DoUpdate(float dt) {
     }
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextAnim, Interval<float> nextAnimWait) {
-    if (animations.find(name) == animations.end()) {
-        AnimDescriptor* a = new AnimDescriptor();
-        a->textures = textures;
-        a->playbackSpeed = playbackSpeed;
-        a->loopCount = loopCount;
-        a->nextAnim = nextAnim;
-        a->nextAnimWait = nextAnimWait;
-        animations[name] = a;
+void AnimationSystem::loadAnim(const std::string& name) {
+    FileBuffer file = assetAPI->loadAsset("anim/" + name + ".anim");
+    if (file.size) {
+        AnimDescriptor* desc = new AnimDescriptor;
+        if (desc->load(file)) {
+            animations.insert(std::make_pair(name, desc));
+        } else {
+            LOG(ERROR) << "Invalid animation file: " << name << ".anim";
+            delete desc;
+        }
     } else {
-        LOG(ERROR) << "Animation '" << name << "' already defined";
+        LOG(ERROR) << "Empty animation file: " << name << ".anim";
     }
-}
-
-void AnimationSystem::registerAnim(const std::string& name, const std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& next, Interval<float> nextAnimWait) {
-    LOG_IF(FATAL, animations.find(name) != animations.end()) << " Animation called '" << name << "' already exists (registered anim count: " << animations.size() << ")";
-    std::vector<TextureRef> textures;
-    for (int i=0; i<count; i++) {
-        textures.push_back(theRenderingSystem.loadTextureFile(textureNames[i]));
-    }
-    registerAnim(name, textures, playbackSpeed, loopCount, next, nextAnimWait);
 }
 
 #ifdef INGAME_EDITORS

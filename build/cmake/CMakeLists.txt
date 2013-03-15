@@ -64,7 +64,7 @@ file(
         ../../tests/*
 )
 
-#add_executable(sac_tests ${test_source_files})
-#target_link_libraries(sac_tests sac AntTweakBar GLEW glfw openal sqlite3  vorbisfile vorbis z UnitTest++)
-#add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
+add_executable(sac_tests ${test_source_files})
+target_link_libraries(sac_tests sac AntTweakBar GLEW glfw openal sqlite3  vorbisfile vorbis z UnitTest++)
+add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
 endif()

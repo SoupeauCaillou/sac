@@ -79,7 +79,7 @@ void DataFileParser::unload() {
     data = 0;
 }
 
-const std::string& DataFileParser::keyValue(const std::string& section, const std::string& var) const {
+const std::string& DataFileParser::keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const {
     static const std::string empty = "";
     if (!data) {
         LOG(ERROR) << "No data loaded before requesting key value : " << section << '/' << var;
@@ -91,7 +91,7 @@ const std::string& DataFileParser::keyValue(const std::string& section, const st
     }
     std::map<std::string, std::string>::const_iterator jt = sectPtr->find(var);
     if (jt == sectPtr->end()) {
-        LOG(ERROR) << "Cannot find var '" << var << "' in section '" << section << "'";
+        LOG_IF(ERROR, warnIfNotFound) << "Cannot find var '" << var << "' in section '" << section << "'";
         return empty;
     }
     return jt->second;

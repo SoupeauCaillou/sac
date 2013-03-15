@@ -16,7 +16,7 @@ class DataFileParser {
         void unload();
 
         template <class T>
-        bool get(const std::string& section, const std::string& var, T* out, const int count = 1);
+        bool get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true);
         
         template <class T>
         bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1);
@@ -25,7 +25,7 @@ class DataFileParser {
         
 
     private:
-        const std::string& keyValue(const std::string& section, const std::string& var) const;
+        const std::string& keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const;
         const std::string& indexValue(const std::string& section, unsigned index, std::string& varName) const;
 
         template <class T>
@@ -61,9 +61,9 @@ bool DataFileParser::parse(const std::string& value, T* out, const int count) {
 }
 
 template <class T>
-bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count) {
+bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound) {
     // Retrieve value
-    const std::string& val = keyValue(section, var);
+    const std::string& val = keyValue(section, var, warnIfNotFound);
     if (val.empty())
         return false;
 
