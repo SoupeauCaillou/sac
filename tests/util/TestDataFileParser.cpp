@@ -22,6 +22,38 @@ TEST (TestValueSplitting)
     CHECK_EQUAL(11, index[3]);
 }
 
+TEST (TestGlobalSection)
+{
+    DataFileParser dfp;
+    const char* str= "plop=a, b,   c, d";
+    CHECK(dfp.load(FB(str)));
+    CHECK_EQUAL(1, dfp.sectionSize(DataFileParser::GlobalSection));
+    std::string res[] = {"a", "b", "c", "d"};
+    std::string out[4];
+    CHECK(dfp.get(DataFileParser::GlobalSection, "plop", out, 4));
+    for (int i=0; i<4; i++) {
+        CHECK_EQUAL(res[i], out[i]);
+    }
+}
+
+TEST (TestGetByIndex)
+{
+    DataFileParser dfp;
+    const char* str= "plop=4\n" \
+        "entry2=23";
+    CHECK(dfp.load(FB(str)));
+    CHECK_EQUAL(2, dfp.sectionSize(DataFileParser::GlobalSection));
+    std::string name[2];
+    int value[2];
+    for (int i=0; i<2; i++)
+        CHECK(dfp.get(DataFileParser::GlobalSection, i, name[i], &value[i], 1));
+    CHECK((value[0] == 4 && value[1] == 23) || (value[0] == 23 && value[1] == 4));
+    for (int i=0; i<2; i++) {
+        if (value[i] == 4) CHECK_EQUAL("plop", name[i]);
+        else CHECK_EQUAL("entry2", name[i]);
+    }
+}
+
 TEST (TestParseString)
 {
     DataFileParser dfp;

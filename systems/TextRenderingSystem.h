@@ -7,8 +7,9 @@
 #endif
 
 #include "System.h"
+#include "opengl/TextureLibrary.h"
 
-#include <list>
+#include <vector>
 
 struct TextRenderingComponent {
 	const static float LEFT;
@@ -54,9 +55,6 @@ struct TextRenderingComponent {
 		float accum;
 	} blink;
 	unsigned cameraBitMask;
-
-	// managed by systems
-	std::vector<Entity> drawing;
 };
 
 #define theTextRenderingSystem TextRenderingSystem::GetInstance()
@@ -65,17 +63,20 @@ struct TextRenderingComponent {
 UPDATABLE_SYSTEM(TextRendering)
 
 public :
-	Entity CreateEntity();
-	void DeleteEntity(Entity e);
+	void registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio);
 
-	void registerFont(const std::string& fontName, const std::map<unsigned char, float>& charH2Wratio) {
-		fontRegistry[fontName] = charH2Wratio;
-	}
+	float computeTextRenderingComponentWidth(TextRenderingComponent* trc) const;
 
-	float computeTextRenderingComponentWidth(TextRenderingComponent* trc);
-
+    struct CharInfo {
+        float h2wRatio;
+        TextureRef texture;
+    };
+    struct FontDesc {
+        uint32_t highestUnicode;
+        CharInfo* entries;
+    };
 private:
     std::map<Entity, unsigned int> cache;
-	std::list<Entity> renderingEntitiesPool;
-	std::map<std::string, std::map<unsigned char, float> > fontRegistry; // UTF8 8->32 bits : utiliser un unsigned int
+	std::vector<Entity> renderingEntitiesPool;
+	std::map<std::string, FontDesc> fontRegistry;
 };

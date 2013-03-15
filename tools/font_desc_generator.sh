@@ -14,5 +14,5 @@ do
 	c=`echo $i | cut -d_ -f1`
 	width=`echo $size | cut -dx -f1`
 	height=`echo $size | cut -dx -f2`
-	echo "$c,$width,$height"
+	echo "$c=$width,$height"
 done

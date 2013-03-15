@@ -47,7 +47,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
     for (unsigned i=0; i<toRemove.size(); i++) {
         const std::pair<Entity, bool>& p = toRemove[i];
         if (p.second) {
-            theTextRenderingSystem.DeleteEntity(p.first);
+            theEntityManager.DeleteEntity(p.first);
         } else {
             theEntityManager.DeleteEntity(p.first);
         }

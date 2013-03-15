@@ -1,12 +1,34 @@
 #include "DataFileParser.h"
 #include <map>
 
-struct Section {
-    std::map<std::string, std::string> keyValues;
-};
+const std::string DataFileParser::GlobalSection = "";
+
+typedef std::map<std::string, std::string> Section;
 
 struct DataFileParser::DataFileParserData {
-    std::map<std::string, Section> sections;
+    Section global;
+    std::map<std::string, Section*> sections;
+
+    ~DataFileParserData() {
+        for(std::map<std::string, Section*>::iterator it=sections.begin();
+            it!=sections.end(); ++it) {
+            delete it->second;
+        }
+        sections.clear();
+    }
+    bool selectSectionByName(const std::string& name, const Section** sectPtr) const {
+        if (name == GlobalSection) {
+            *sectPtr = &global;
+        } else {
+            std::map<std::string, Section*>::const_iterator it = sections.find(name);
+            if (it == sections.end()) {
+                LOG(ERROR) << "Cannot find section '" << name << "'";
+                return false;
+            }
+            *sectPtr = it->second;
+        }
+        return true;
+    }
 };
 
 DataFileParser::DataFileParser() : data(0) {
@@ -24,8 +46,7 @@ bool DataFileParser::load(const FileBuffer& fb) {
         return false;
     data = new DataFileParserData();
 
-    std::map<std::string, Section>::iterator it = data->sections.end();
-
+    Section* currentSection = &data->global;
     std::stringstream f(std::string((const char*)fb.data, fb.size), std::ios_base::in);
 
     std::string s;
@@ -38,15 +59,14 @@ bool DataFileParser::load(const FileBuffer& fb) {
         if (s[0] == '[') {
             // start new section
             std::string section = s.substr(1, s.find(']') - 1);
-            it = data->sections.insert(std::make_pair(section, Section())).first;
-        } else {
-            if (it == data->sections.end()) {
-                LOG(ERROR) << "No section before line: " << s;
-                return false;
+            currentSection = new Section;
+            if (!data->sections.insert(std::make_pair(section, currentSection)).second) {
+                LOG(WARNING) << "Duplicate section found: '" << section << "'. This is not supported";
             }
+        } else {
             std::string key = s.substr(0, s.find('='));
             std::string value = s.substr(s.find('=') + 1);
-            it->second.keyValues.insert(std::make_pair(key, value));
+            currentSection->insert(std::make_pair(key, value));
         }
     }
         
@@ -65,17 +85,51 @@ const std::string& DataFileParser::keyValue(const std::string& section, const st
         LOG(ERROR) << "No data loaded before requesting key value : " << section << '/' << var;
         return empty;
     }
-    std::map<std::string, Section>::const_iterator it = data->sections.find(section);
-    if (it == data->sections.end()) {
-        LOG(ERROR) << "Cannot find section '" << section << "'";
+    const Section* sectPtr = 0;
+    if (!data->selectSectionByName(section, &sectPtr)) {
         return empty;
     }
-    std::map<std::string, std::string>::const_iterator jt = it->second.keyValues.find(var);
-    if (jt == it->second.keyValues.end()) {
+    std::map<std::string, std::string>::const_iterator jt = sectPtr->find(var);
+    if (jt == sectPtr->end()) {
         LOG(ERROR) << "Cannot find var '" << var << "' in section '" << section << "'";
         return empty;
     }
     return jt->second;
+}
+
+const std::string& DataFileParser::indexValue(const std::string& section, unsigned index, std::string& varName) const {
+    static const std::string empty = "";
+    if (!data) {
+        LOG(ERROR) << "No data loaded before requesting section " << section << " index " << index;
+        return empty;
+    }
+    const Section* sectPtr = 0;
+    if (!data->selectSectionByName(section, &sectPtr)) {
+        return empty;
+    }
+    if (sectPtr->size() <= index) {
+        LOG(ERROR) << "Requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements";
+        return empty;
+    }
+    Section::const_iterator jt = sectPtr->begin();
+    for (unsigned i=0; i<index; i++) jt++;
+    varName = jt->first;
+    return jt->second;
+}
+
+unsigned DataFileParser::sectionSize(const std::string& section) const {
+    if (!data) {
+        LOG(ERROR) << "No data loaded before requesting section size : " << section;
+        return 0;
+    }
+    if (section == GlobalSection)
+        return data->global.size();
+    std::map<std::string, Section*>::const_iterator it = data->sections.find(section);
+    if (it == data->sections.end()) {
+        LOG(ERROR) << "Cannot find section '" << section << "'";
+        return 0;
+    }
+    return it->second->size();
 }
 
 bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes) {
