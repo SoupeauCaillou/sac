@@ -94,18 +94,27 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
     maxScaleX *= (maxScaleX<0 ? 0.9f : 1.1f);
     minScaleY *= (minScaleY<0 ? 1.1f : 0.9f);
     maxScaleY *= (maxScaleY<0 ? 0.9f : 1.1f);
+    
+	if (gc->maxX != gc->minX) {
+		int value_xmin = (gc->minX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
+		int value_xmax = (gc->maxX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
+		
+		drawLine(textureDesc, std::make_pair(value_xmax, 0), std::make_pair(value_xmax, 255), gc->lineWidth*textureDesc.width);
+		drawLine(textureDesc, std::make_pair(value_xmin, 0), std::make_pair(value_xmin, 255), gc->lineWidth*textureDesc.width);
+	}
+	if (gc->maxY != gc->minY) {
+		int value_ymin = (gc->minY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
+		int value_ymax = (gc->maxY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
+		
+		drawLine(textureDesc, std::make_pair(0, value_ymax), std::make_pair(255, value_ymax), gc->lineWidth*textureDesc.width);
+		drawLine(textureDesc, std::make_pair(0, value_ymin), std::make_pair(255, value_ymin), gc->lineWidth*textureDesc.width);
+	}
+    
     int previousValue_x = -1, previousValue_y = -1;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
-        //~ normalisée = (originale - MIN) * (max - min) / (MAX - MIN) + min
-        //~ [MIN,MAX] : interval d'origine
-        //~ [min,max] : interval cible
-        //~ originale : valeur dans l'interval d'origine
-        //~ normalisée : valeur normalisée dans l'interval cible
         int value_x = (it->first - minScaleX) * (textureDesc.width - 1) / (maxScaleX - minScaleX);
         int value_y = (it->second - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
 
-        //~ putPoint(textureDesc, textureDesc.channels * (value_x + textureDesc.width * value_y), gc->lineWidth*textureDesc.width);
-        putPoint(textureDesc, value_x, value_y, gc->lineWidth*textureDesc.width);
         if (previousValue_x != -1 && previousValue_y != -1) {
             drawLine(textureDesc, std::make_pair(previousValue_x, previousValue_y), std::make_pair(value_x, value_y), gc->lineWidth*textureDesc.width);
         }

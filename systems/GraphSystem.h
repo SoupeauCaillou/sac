@@ -10,13 +10,13 @@
 
 struct GraphComponent {
 
-    GraphComponent():maxY(0), maxX(0), minY(0), minX(0), 
-    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false),
-    lineWidth(0)  {}
+    GraphComponent():lineWidth(0), maxY(0), maxX(0), minY(0), minX(0), 
+    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false) {}
 
     std::list<std::pair<float, float> > pointsList;
 	
 	std::string textureName;
+	
 	float lineWidth; // between ]0:1] (percent) if 0 -> 1 pixel
 	
     float maxY, maxX, minY, minX;
