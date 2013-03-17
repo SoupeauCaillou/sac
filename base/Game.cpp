@@ -19,6 +19,7 @@
 #include "systems/AutoDestroySystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/GraphSystem.h"
+#include "systems/DebuggingSystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
 #include "base/TouchInputManager.h"
@@ -57,6 +58,7 @@ Game::Game() {
     AutoDestroySystem::CreateInstance();
     CameraSystem::CreateInstance();
     GraphSystem::CreateInstance();
+    DebuggingSystem::CreateInstance();
 
 #ifdef SAC_NETWORK
     NetworkSystem::CreateInstance();
@@ -88,7 +90,8 @@ Game::~Game() {
     AutoDestroySystem::DestroyInstance();
     CameraSystem::DestroyInstance();
     GraphSystem::DestroyInstance();
-
+	DebuggingSystem::DestroyInstance();
+	
 #ifdef SAC_NETWORK
     NetworkSystem::DestroyInstance();
 #endif
@@ -174,6 +177,7 @@ int Game::saveState(uint8_t**) {
 }
 
 const float DDD = 1.0/60.f;
+float countD = 0;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
 
@@ -230,23 +234,94 @@ void Game::step() {
         #ifdef SAC_NETWORK
         theNetworkSystem.Update(delta);
         #endif
-
+		
+		++countD;
+		
+		theDebuggingSystem.addValue(DebuggingSystem::fpsGraphEntity, std::make_pair(countD, 1/delta));
+		theDebuggingSystem.addValue(DebuggingSystem::entityGraphEntity, std::make_pair(countD, theEntityManager.getNumberofEntity()));
+		
+		float t1 = TimeUtil::getTime();
         theCameraSystem.Update(delta);
+        float t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::CameraSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theADSRSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::ADSRSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theAnimationSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::AnimationSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theButtonSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::ButtonSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theAutonomousAgentSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::AutonomousAgentSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theMorphingSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::MorphingSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         thePhysicsSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::PhysicsSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theScrollingSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::ScrollingSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theSoundSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::SoundSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theMusicSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::MusicSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theTextRenderingSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::TextRenderingSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theTransformationSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::TransformationSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theParticuleSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::ParticuleSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theContainerSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::ContainerSystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theAutoDestroySystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::AutoDestroySystemEntity, std::make_pair(countD, t2-t1));
+        
+        t1 = TimeUtil::getTime();
         theGraphSystem.Update(delta);
+        t2 = TimeUtil::getTime();
+        theDebuggingSystem.addValue(DebuggingSystem::GraphSystemEntity, std::make_pair(countD, t2-t1));
+        
+        theDebuggingSystem.Update(delta);
+        
         #ifdef INGAME_EDITORS
         } else {
             theTransformationSystem.Update(delta);
