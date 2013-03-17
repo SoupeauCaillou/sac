@@ -21,16 +21,23 @@ void TransformationSystem::DoUpdate(float) {
 		}
 	}
 	//copy parent property to its sons
-    FOR_EACH_COMPONENT(Transformation, bc)
-		Entity parent = bc->parent;
-		if (parent) {
-			while (TRANSFORM(parent)->parent) {
+    FOR_EACH_ENTITY_COMPONENT(Transformation, entity, bc)
+		if (bc->parent) {
+			Entity child = entity;
+			Entity parent = bc->parent;
+			do {
+			// while (TRANSFORM(parent)->parent) {
+				TransformationComponent* ptc = Get(parent, false);
+				if (!ptc) {
+					LOG(FATAL) << "Entity '" << theEntityManager.entityName(child) << "' s parent '" << theEntityManager.entityName(parent) << "' has not Transform";
+				}
                 Entity p = TRANSFORM(parent)->parent;
                 #ifdef DEBUG
                 LOG_IF(FATAL, p == parent) << "Entity '" << theEntityManager.entityName(parent) << "' parent is itself";
                 #endif
+                child = parent;
                 parent = p;
-			}
+			} while (parent);
 			const TransformationComponent* pbc = TRANSFORM(bc->parent);
 			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, pbc->worldRotation);
 			bc->worldRotation = pbc->worldRotation + bc->rotation;
