@@ -6,7 +6,7 @@ include_directories(${PROJECT_SOURCE_DIR}/sac/libs/tinyxml2/)
 file(
 	GLOB_RECURSE
 	source_files
-	../../base/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp ../../libs/iniparser/*
+	../../base/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
 )
 
 file(
@@ -45,6 +45,7 @@ if (NOT EMSCRIPTEN_BUILD)
 	find_package (OpenAL)
 	if (OPENAL_FOUND)
 		include_directories(${OPENAL_INCLUDE_DIR})
+        target_link_libraries (sac ${OPENAL_LIBRARY})
 	endif ()
 
 	# find_package (Sqlite3)
@@ -53,27 +54,28 @@ if (NOT EMSCRIPTEN_BUILD)
 	  # target_link_libraries (${PROJECT_NAME} ${SQLITE3_LIBRARIES})
 	# endif ()
 
-	# find_package (VorbisFile)
-	# if (VORBISFILE_FOUND)
-	  # include_directories(${VORBISFILE_INCLUDE_DIRS})
-	  # target_link_libraries (${PROJECT_NAME} ${VORBISFILE_LIBRARIES})
-	# endif ()
+	find_package (VorbisFile)
+	if (VORBISFILE_FOUND)
+	  include_directories(${VORBISFILE_INCLUDE_DIR})
+	  target_link_libraries (sac ${VORBISFILE_LIBRARY})
+    endif ()
 
 	# find_package (Vorbis)
 	# if (VORBIS_FOUND)
 	  # include_directories(${VORBIS_INCLUDE_DIRS})
 	  # target_link_libraries (${PROJECT_NAME} ${VORBIS_LIBRARIES})
-	# endif ()
+	#endif ()
 
-	# find_package (Vpx)
-	# if (VPX_FOUND)
-	  # include_directories(${VPX_INCLUDE_DIRS})
-	  # target_link_libraries (${PROJECT_NAME} ${VPX_LIBRARIES})
-	# endif ()
+	find_package (VPX)
+	if (VPX_FOUND)
+	  include_directories(${VPX_INCLUDE_DIR})
+	  target_link_libraries (sac ${VPX_LIBRARY})
+	endif ()
 
 	find_package (ZLIB)
 	if (ZLIB_FOUND)
 	  include_directories(${ZLIB_INCLUDE_DIRS})
+      target_link_libraries (sac ${ZLIB_LIBRARIES})
 	endif ()
 
 

@@ -14,7 +14,7 @@ void TimeUtil::init() {
 #ifdef EMSCRIPTEN
     gettimeofday(&startup_time, 0);
 #elif defined(LINUX)
-	gettick(CLOCK_MONOTONIC, &startup_time);    
+	clock_gettime(CLOCK_MONOTONIC, &startup_time);    
 #else
 	QueryPerformanceCounter((LARGE_INTEGER*)&startup_time);
 	__int64 invertfrequency;
