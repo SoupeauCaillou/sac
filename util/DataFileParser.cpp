@@ -156,7 +156,9 @@ void DataFileParser::defineVariable(const std::string& name, const std::string& 
     if (!data) {
         LOG(ERROR) << "No data loaded before setting variable";
     } else {
-        data->variables["$" + name] = value;
+        std::stringstream v;
+        v << '$' << name;
+        data->variables[v.str()] = value;
     }
 }
 

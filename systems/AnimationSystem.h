@@ -24,7 +24,7 @@ UPDATABLE_SYSTEM(Animation)
 public:
     ~AnimationSystem();
 
-    void loadAnim(const std::string& name);
+    void loadAnim(const std::string& name, const std::string& file, std::string* variables = 0, int varcount = 0);
 
     AssetAPI* assetAPI;
 private:

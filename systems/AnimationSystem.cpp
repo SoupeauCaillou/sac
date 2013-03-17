@@ -77,18 +77,18 @@ void AnimationSystem::DoUpdate(float dt) {
     }
 }
 
-void AnimationSystem::loadAnim(const std::string& name) {
-    FileBuffer file = assetAPI->loadAsset("anim/" + name + ".anim");
+void AnimationSystem::loadAnim(const std::string& name, const std::string& filename, std::string* variables, int varcount) {
+    FileBuffer file = assetAPI->loadAsset("anim/" + filename + ".anim");
     if (file.size) {
         AnimDescriptor* desc = new AnimDescriptor;
-        if (desc->load(file)) {
+        if (desc->load(file, variables, varcount)) {
             animations.insert(std::make_pair(name, desc));
         } else {
-            LOG(ERROR) << "Invalid animation file: " << name << ".anim";
+            LOG(ERROR) << "Invalid animation file: " << filename << ".anim";
             delete desc;
         }
     } else {
-        LOG(ERROR) << "Empty animation file: " << name << ".anim";
+        LOG(ERROR) << "Empty animation file: " << filename << ".anim";
     }
     delete[] file.data;
 }

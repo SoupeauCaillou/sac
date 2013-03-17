@@ -4,10 +4,13 @@
 #include "util/DataFileParser.h"
 #include "systems/RenderingSystem.h"
 
-bool AnimDescriptor::load(const FileBuffer& fb) {
+bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varcount) {
     DataFileParser dfp;
     if (!dfp.load(fb)) {
         return false;
+    }
+    for (int i=0; i<varcount; i++) {
+        dfp.defineVariable(variables[2*i], variables[2*i+1]);
     }
     // Parse meta info
     const std::string meta = "meta";
