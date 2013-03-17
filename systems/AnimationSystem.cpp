@@ -1,5 +1,18 @@
 #include "AnimationSystem.h"
+#include "TransformationSystem.h"
 #include "opengl/AnimDescriptor.h"
+
+static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {
+    RENDERING(e)->texture = frame.texture;
+    LOG_IF(WARNING, animComp->subPart.size() != frame.transforms.size()) << "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size();
+    for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
+        TransformationComponent* tc = TRANSFORM(animComp->subPart[i]);
+        const AnimDescriptor::AnimFrame::Transform& trans = frame.transforms[i];
+        tc->position = trans.position;
+        tc->size = trans.size;
+        tc->rotation = trans.rotation;
+    }
+}
 
 INSTANCE_IMPL(AnimationSystem);
 
@@ -25,7 +38,8 @@ void AnimationSystem::DoUpdate(float dt) {
 
         if (bc->previousName != bc->name) {
             bc->frameIndex = 0;
-            RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
+            applyFrameToEntity(a, bc, anim->frames[bc->frameIndex]);
+            // RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
             bc->accum = 0;
             bc->previousName = bc->name;
             bc->loopCount = anim->loopCount.random();
@@ -55,7 +69,8 @@ void AnimationSystem::DoUpdate(float dt) {
                 } else {
                     bc->frameIndex++;
                 }
-                RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
+                applyFrameToEntity(a, bc, anim->frames[bc->frameIndex]);
+                // RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
                 bc->accum -= 1;
             }
         }

@@ -13,6 +13,7 @@ struct AnimationComponent {
     float accum, playbackSpeed;
     int loopCount, frameIndex;
     float waitAccum;
+    std::vector<Entity> subPart;
 };
 
 #define theAnimationSystem AnimationSystem::GetInstance()
