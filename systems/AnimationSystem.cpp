@@ -24,8 +24,8 @@ void AnimationSystem::DoUpdate(float dt) {
         AnimDescriptor* anim = jt->second;
 
         if (bc->previousName != bc->name) {
-            bc->textureIndex = 0;
-            RENDERING(a)->texture = anim->textures[bc->textureIndex];
+            bc->frameIndex = 0;
+            RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
             bc->accum = 0;
             bc->previousName = bc->name;
             bc->loopCount = anim->loopCount.random();
@@ -41,10 +41,10 @@ void AnimationSystem::DoUpdate(float dt) {
             }
 
             while(bc->accum >= 1) {
-                bool lastImage = (bc->textureIndex == (int)anim->textures.size() - 1);
+                bool lastImage = (bc->frameIndex == (int)anim->frames.size() - 1);
                 if (lastImage) {
                     if (bc->loopCount != 0) {
-                        bc->textureIndex = 0;
+                        bc->frameIndex = 0;
                         bc->loopCount--;
                     } else if (!anim->nextAnim.empty()) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
@@ -53,9 +53,9 @@ void AnimationSystem::DoUpdate(float dt) {
                         break;
                     }
                 } else {
-                    bc->textureIndex++;
+                    bc->frameIndex++;
                 }
-                RENDERING(a)->texture = anim->textures[bc->textureIndex];
+                RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
                 bc->accum -= 1;
             }
         }
@@ -75,6 +75,7 @@ void AnimationSystem::loadAnim(const std::string& name) {
     } else {
         LOG(ERROR) << "Empty animation file: " << name << ".anim";
     }
+    delete[] file.data;
 }
 
 #ifdef INGAME_EDITORS
@@ -86,7 +87,7 @@ void AnimationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TwAddVarRO(bar, "accum", TW_TYPE_FLOAT, &tc->accum, "group=Animation");
     TwAddVarRW(bar, "playbackSpeed", TW_TYPE_FLOAT, &tc->playbackSpeed, "group=Animation");
     TwAddVarRW(bar, "loopCount", TW_TYPE_INT32, &tc->loopCount, "group=Animation");
-    TwAddVarRO(bar, "textureIndex", TW_TYPE_INT32, &tc->textureIndex, "group=Animation");
+    TwAddVarRO(bar, "textureIndex", TW_TYPE_INT32, &tc->frameIndex, "group=Animation");
     TwAddVarRO(bar, "waitAccum", TW_TYPE_FLOAT, &tc->waitAccum, "group=Animation");
 }
 #endif

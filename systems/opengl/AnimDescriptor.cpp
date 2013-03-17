@@ -58,7 +58,23 @@ bool AnimDescriptor::load(const FileBuffer& fb) {
             std::string texture;
             if (dfp.get(section, "texture", &texture, 1)) {
                 VLOG(1) << "\t" << section << ':' << texture;
-                textures.push_back(theRenderingSystem.loadTextureFile(texture));
+                AnimFrame frame;
+                frame.texture = theRenderingSystem.loadTextureFile(texture);
+                
+                int subEntityIndex = 0;
+                do {
+                    std::stringstream transformS;
+                    transformS << "entity_transform_" << subEntityIndex;
+                    
+                    AnimFrame::Transform tr;
+                    if (dfp.get(section, transformS.str(), &tr.position.X, 5, false)) {
+                        frame.transforms.push_back(tr);
+                        subEntityIndex++;   
+                    } else {
+                        break;  
+                    }
+                } while (true);
+                frames.push_back(frame);
             } else {
                 LOG(ERROR) << "Missing texture attribute in section '" << section << "'";
                 return false;

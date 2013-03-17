@@ -12,7 +12,17 @@ class AnimDescriptor {
         bool load(const FileBuffer& fb);
 
     public:
-        std::vector<TextureRef> textures;
+        struct AnimFrame {
+            TextureRef texture;
+            struct Transform {
+                Vector2 position, size;
+                float rotation;
+            };
+            std::vector<Transform> transforms;
+        };
+        
+    public:
+        std::vector<AnimFrame> frames;
         float playbackSpeed;
         Interval<int> loopCount;
         std::string nextAnim;

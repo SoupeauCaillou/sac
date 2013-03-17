@@ -6,12 +6,12 @@
 class AnimDescriptor;
 
 struct AnimationComponent {
-    AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), textureIndex(0) {
+    AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), frameIndex(0) {
         waitAccum = 0;
     }
     std::string name, previousName;
     float accum, playbackSpeed;
-    int loopCount, textureIndex;
+    int loopCount, frameIndex;
     float waitAccum;
 };
 
