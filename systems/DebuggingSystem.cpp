@@ -13,7 +13,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 	ADD_COMPONENT(fpsGraph, Transformation);
 	TRANSFORM(fpsGraph)->size = Vector2(10);
     TRANSFORM(fpsGraph)->position = Vector2(-10, 0);
-    TRANSFORM(fpsGraph)->z = 1;
+//    TRANSFORM(fpsGraph)->z = 1;
 	ADD_COMPONENT(fpsGraph, Rendering);
 	RENDERING(fpsGraph)->hide = false;
     RENDERING(fpsGraph)->texture = theRenderingSystem.loadTextureFile("fpsGraph");
@@ -26,7 +26,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 	ADD_COMPONENT(entityGraph, Transformation);
 	TRANSFORM(entityGraph)->size = Vector2(10);
     TRANSFORM(entityGraph)->position = Vector2(10, 0);
-    TRANSFORM(entityGraph)->z = 1;
+    // TRANSFORM(entityGraph)->z = 1;
 	ADD_COMPONENT(entityGraph, Rendering);
 	RENDERING(entityGraph)->hide = false;
     RENDERING(entityGraph)->texture = theRenderingSystem.loadTextureFile("entityGraph");
@@ -42,7 +42,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 		ADD_COMPONENT(timeSpentinSystemGraph[i], Transformation);
 		TRANSFORM(timeSpentinSystemGraph[i])->size = Vector2(10);
 	    TRANSFORM(timeSpentinSystemGraph[i])->position = Vector2::Zero;
-	    TRANSFORM(timeSpentinSystemGraph[i])->z = 1;
+//	    TRANSFORM(timeSpentinSystemGraph[i])->z = 1;
 		ADD_COMPONENT(timeSpentinSystemGraph[i], Rendering);
 		RENDERING(timeSpentinSystemGraph[i])->hide = i == 0 ? false : true;
 	    RENDERING(timeSpentinSystemGraph[i])->texture = theRenderingSystem.loadTextureFile("timeSpentinSystemGraph");
@@ -56,12 +56,11 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 
 void DebuggingSystem::DoUpdate(float dt) {
 	
-	if (activeCamera && CAMERA(activeCamera)->fb == DefaultFrameBufferRef) {
+	if (!activeCamera) {
 		std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
-		if ( cameras.size() != 0) {
-			activeCamera = 0;
+		if (!cameras.empty()) {
 			for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
-				if (CAMERA(*it)->fb != DefaultFrameBufferRef) {
+				if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
 					activeCamera = *it;
 					break;
 				}

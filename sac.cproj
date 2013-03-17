@@ -115,6 +115,7 @@
     <Compile Include="tests\systems\TestAnimationDescriptor.cpp" />
     <Compile Include="util\DataFileParser.cpp" />
     <Compile Include="tests\util\TestDataFileParser.cpp" />
+    <Compile Include="systems\DebuggingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -212,6 +213,7 @@
     <None Include="systems\opengl\shaders\default_vbo.vs" />
     <None Include="systems\opengl\AnimDescriptor.h" />
     <None Include="util\DataFileParser.h" />
+    <None Include="systems\DebuggingSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
