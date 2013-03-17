@@ -111,18 +111,7 @@ void ParticuleSystem::DoUpdate(float dt) {
         }
     }
 }
-    float emissionRate, duration;
-    TextureRef texture;
-    Interval<float> lifetime;
-    Interval<Color> initialColor;
-    Interval<Color> finalColor;
-    Interval<float> initialSize;
-    Interval<float> finalSize;
-    Interval<float> forceDirection;
-    Interval<float> forceAmplitude;
-    Interval<float> moment;
-    float spawnLeftOver;
-    float mass;
+
 #ifdef INGAME_EDITORS
 void ParticuleSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     ParticuleComponent* tc = Get(entity, false);
