@@ -46,6 +46,9 @@ class EntityManager {
         #ifdef DEBUG
         const std::string& entityName(Entity e) const;
         #endif
+        
+        int getNumberofEntity() {return entityComponents.size();}
+        
 	private:
 		unsigned long nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
