@@ -8,6 +8,7 @@ typedef std::map<std::string, std::string> Section;
 struct DataFileParser::DataFileParserData {
     Section global;
     std::map<std::string, Section*> sections;
+    std::map<std::string, std::string> variables;
 
     ~DataFileParserData() {
         for(std::map<std::string, Section*>::iterator it=sections.begin();
@@ -149,4 +150,23 @@ bool DataFileParser::determineSubStringIndexes(const std::string& str, int count
     }
     VLOG(2) << (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')';
     return true;
+}
+
+void DataFileParser::defineVariable(const std::string& name, const std::string& value) {
+    if (!data) {
+        LOG(ERROR) << "No data loaded before setting variable";
+    } else {
+        data->variables["$" + name] = value;
+    }
+}
+
+std::string DataFileParser::replaceVariables(const std::string& str) const {
+    std::string result(str);
+    for (auto it=data->variables.begin(); it!=data->variables.end(); ++it) {
+        size_t idx;
+        while ((idx = result.find(it->first)) != std::string::npos) {
+            result = result.replace(idx, it->first.size(), it->second);
+        }
+    }
+    return result;
 }

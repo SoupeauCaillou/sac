@@ -88,3 +88,18 @@ TEST (TestParse2Float)
     CHECK_CLOSE(1.23, out[0], 0.001);
     CHECK_CLOSE(-5.6, out[1], 0.001);
 }
+
+TEST (TestVariables)
+{
+    DataFileParser dfp;
+    const char* str= "plop=$a, b,   $c, d";
+    CHECK(dfp.load(FB(str)));
+    dfp.defineVariable("a", "truc");
+    dfp.defineVariable("c", "machin");
+    std::string out[4];
+    std::string res[] = {"truc", "b", "machin", "d"};
+    CHECK(dfp.get(DataFileParser::GlobalSection, "plop", out, 4));
+    for (int i=0; i<4; i++) {
+        CHECK_EQUAL(res[i], out[i]);
+    }
+}

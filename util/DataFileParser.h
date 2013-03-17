@@ -22,7 +22,8 @@ class DataFileParser {
         bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1);
 
         unsigned sectionSize(const std::string& section) const;
-        
+
+        void defineVariable(const std::string& name, const std::string& value);        
 
     private:
         const std::string& keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const;
@@ -33,6 +34,7 @@ class DataFileParser {
 
     public:
         bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes);
+        std::string replaceVariables(const std::string& str) const;
 
     private:
         struct DataFileParserData;
@@ -52,7 +54,7 @@ bool DataFileParser::parse(const std::string& value, T* out, const int count) {
         // trim begin/end
         while (value[st] == ' ' || value[st] == '\t') { st++; len--; }
         while (value[st + len - 1] == ' ' || value[st + len - 1] == '\t') { len--; }
-        std::string str = value.substr(st, len);
+        std::string str = replaceVariables(value.substr(st, len));
         std::istringstream iss(str);
         startIndex = endIndexes[i] + 2;
         iss >> out[i];
