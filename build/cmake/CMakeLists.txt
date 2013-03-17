@@ -1,3 +1,5 @@
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/Modules")
+
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
@@ -54,11 +56,11 @@ if (NOT EMSCRIPTEN_BUILD)
 	  # target_link_libraries (${PROJECT_NAME} ${SQLITE3_LIBRARIES})
 	# endif ()
 
-	find_package (VorbisFile)
-	if (VORBISFILE_FOUND)
-	  include_directories(${VORBISFILE_INCLUDE_DIR})
-	  target_link_libraries (sac ${VORBISFILE_LIBRARY})
-    endif ()
+	#~ find_package (VorbisFile)
+	#~ if (VORBISFILE_FOUND)
+	  #~ include_directories(${VORBISFILE_INCLUDE_DIR})
+	  #~ target_link_libraries (sac ${VORBISFILE_LIBRARY})
+    #~ endif ()
 
 	# find_package (Vorbis)
 	# if (VORBIS_FOUND)
