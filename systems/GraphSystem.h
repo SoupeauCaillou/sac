@@ -7,11 +7,13 @@
 #include <string>
 #include "opengl/TextureLibrary.h"
 #include "util/ImageLoader.h"
+#include "base/Color.h"
 
 struct GraphComponent {
 
     GraphComponent():lineWidth(0), maxY(0), maxX(0), minY(0), minX(0), 
-    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false), reloadTexture(false) {}
+    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false), reloadTexture(false),
+    lineColor(Color(1, 1, 1)) {}
 
     std::list<std::pair<float, float> > pointsList;
 	
@@ -25,6 +27,8 @@ struct GraphComponent {
     bool setFixedScaleMinMaxY;
     
     bool reloadTexture;
+    
+    Color lineColor;
 };
 
 #define theGraphSystem GraphSystem::GetInstance()
@@ -33,7 +37,7 @@ struct GraphComponent {
 UPDATABLE_SYSTEM(Graph)
 
     void drawTexture(ImageDesc &textureDesc, GraphComponent *points);
-    void drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoint, std::pair<int, int> secondPoint, int lineWidth);
+    void drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoint, std::pair<int, int> secondPoint, int lineWidth, Color color);
 
     std::map<TextureRef, ImageDesc> textureRef2Image;
 };
