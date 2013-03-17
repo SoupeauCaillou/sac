@@ -1,4 +1,5 @@
 #include "TransformationSystem.h"
+#include <set>
 
 INSTANCE_IMPL(TransformationSystem);
 
@@ -11,38 +12,40 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
     componentSerializer.add(new Property<float>(OFFSET(z, tc), 0.001));
 }
 
+
+struct CompareParentChain {
+    bool operator() (TransformationComponent* t1, TransformationComponent* t2) const {
+        if (t1->parent == t2->parent) {
+            return (t1 < t2);
+        } else if (t1->parent && t2->parent) {
+            return operator()(TRANSFORM(t1->parent), TRANSFORM(t2->parent));
+        } else if (t1->parent) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+};
+
 void TransformationSystem::DoUpdate(float) {
-	//update orphans first
+    std::set<TransformationComponent*, CompareParentChain> cp;
+
+    // sort all, root node first
     FOR_EACH_COMPONENT(Transformation, bc)
-		if (!bc->parent) {
-			bc->worldPosition = bc->position;
-			bc->worldRotation = bc->rotation;
-            bc->worldZ = bc->z;
-		}
-	}
-	//copy parent property to its sons
-    FOR_EACH_ENTITY_COMPONENT(Transformation, entity, bc)
-		if (bc->parent) {
-			Entity child = entity;
-			Entity parent = bc->parent;
-			do {
-			// while (TRANSFORM(parent)->parent) {
-				TransformationComponent* ptc = Get(parent, false);
-				if (!ptc) {
-					LOG(FATAL) << "Entity '" << theEntityManager.entityName(child) << "' s parent '" << theEntityManager.entityName(parent) << "' has not Transform";
-				}
-                Entity p = TRANSFORM(parent)->parent;
-                #ifdef DEBUG
-                LOG_IF(FATAL, p == parent) << "Entity '" << theEntityManager.entityName(parent) << "' parent is itself";
-                #endif
-                child = parent;
-                parent = p;
-			} while (parent);
-			const TransformationComponent* pbc = TRANSFORM(bc->parent);
-			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, pbc->worldRotation);
-			bc->worldRotation = pbc->worldRotation + bc->rotation;
-            bc->worldZ = pbc->worldZ + bc->z;
-		}
+        cp.insert(bc);
+    }
+
+    for (auto trans: cp) {
+        if (!trans->parent) {
+            trans->worldPosition = trans->position;
+            trans->worldRotation = trans->rotation;
+            trans->worldZ = trans->z;
+        } else {
+            const TransformationComponent* pbc = TRANSFORM(trans->parent);
+            trans->worldPosition = pbc->worldPosition + Vector2::Rotate(trans->position, pbc->worldRotation);
+            trans->worldRotation = pbc->worldRotation + trans->rotation;
+            trans->worldZ = pbc->worldZ + trans->z;
+        }
     }
 }
 
