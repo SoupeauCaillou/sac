@@ -35,6 +35,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
     GRAPH(entityGraph)->maxY = 0;
     GRAPH(entityGraph)->minY = 70;
     GRAPH(entityGraph)->setFixedScaleMinMaxY = true;
+    
 	
 	for (int i=0; i<17; ++i) {
 		timeSpentinSystemGraph[i] = theEntityManager.CreateEntity("timeSpentinSystemGraph");
@@ -49,6 +50,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 		GRAPH(timeSpentinSystemGraph[i])->textureName = "timeSpentinSystemGraph";
 	    GRAPH(timeSpentinSystemGraph[i])->maxY = 0.020f;
 	    GRAPH(timeSpentinSystemGraph[i])->minY = 0;
+	    GRAPH(timeSpentinSystemGraph[i])->lineColor = Color::random();
 	}
 }
 
