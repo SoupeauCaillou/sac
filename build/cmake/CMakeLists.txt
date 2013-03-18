@@ -8,7 +8,7 @@ include_directories(${PROJECT_SOURCE_DIR}/sac/libs/tinyxml2/)
 file(
 	GLOB_RECURSE
 	source_files
-	../../base/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
+	../../app/* ../../base/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
 )
 
 file(

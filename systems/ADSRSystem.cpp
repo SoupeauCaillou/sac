@@ -15,7 +15,7 @@ INSTANCE_IMPL(ADSRSystem);
 
 ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
     ADSRComponent a;
-    LOGE("TODO %s", __FUNCTION__);
+    LOGW("TODO %s", __FUNCTION__);
     // componentSerializer.add("arg", new Property<ADSRComponent>(0));
 }
 

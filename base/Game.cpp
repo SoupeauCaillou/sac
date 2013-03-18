@@ -88,6 +88,11 @@ Game::~Game() {
 #endif
 }
 
+void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {
+    gameThreadContext = pGameThreadContext;
+    renderThreadContext = pRenderThreadContext;
+}
+
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".desc");
 	std::stringstream sfont;

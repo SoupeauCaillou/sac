@@ -104,6 +104,8 @@
     <Compile Include="util\LevelEditor.cpp" />
     <Compile Include="systems\CameraDepSystem.cpp" />
     <Compile Include="systems\CameraTargetSystem.cpp" />
+    <Compile Include="app\MouseNativeTouchState.cpp" />
+    <Compile Include="app\AppSetup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -185,6 +187,9 @@
     <None Include="api\linux\CommunicationAPILinuxImpl.h" />
     <None Include="systems\CameraDepSystem.h" />
     <None Include="systems\CameraTargetSystem.h" />
+    <None Include="app\MouseNativeTouchState.h" />
+    <None Include="base\GameContext.h" />
+    <None Include="app\AppSetup.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
@@ -192,5 +197,6 @@
     <Folder Include="steering\" />
     <Folder Include="tools\lobby\" />
     <Folder Include="build\cmake\" />
+    <Folder Include="app\" />
   </ItemGroup>
 </Project>
