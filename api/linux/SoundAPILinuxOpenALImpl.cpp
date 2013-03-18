@@ -32,8 +32,16 @@ struct OpenALOpaqueSoundPtr : public OpaqueSoundPtr {
 #endif
 };
 
+SoundAPILinuxOpenALImpl::~SoundAPILinuxOpenALImpl() {
+    #ifndef EMSCRIPTEN
+    AL_OPERATION(alDeleteSources(16, soundSources));
+    delete[] soundSources;
+    #endif
+}
+
 void SoundAPILinuxOpenALImpl::init() {
 	#ifndef EMSCRIPTEN
+    soundSources = new ALuint[16];
     // open al init is done earlier by MusicAPI
     AL_OPERATION(alGenSources(16, soundSources));
 	#else
