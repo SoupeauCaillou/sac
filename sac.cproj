@@ -110,6 +110,14 @@
     <Compile Include="systems\opengl\OpenglHelper.cpp" />
     <Compile Include="systems\opengl\OpenGLTextureCreator.cpp" />
     <Compile Include="systems\opengl\TextureLibrary.cpp" />
+    <Compile Include="systems\DebuggingSystem.cpp" />
+    <Compile Include="systems\GraphSystem.cpp" />
+    <Compile Include="util\DataFileParser.cpp" />
+    <Compile Include="util\MurmurHash.cpp" />
+    <Compile Include="tests\util\TestDataFileParser.cpp" />
+    <Compile Include="tests\systems\TestAnimationDescriptor.cpp" />
+    <Compile Include="systems\CameraSystem.cpp" />
+    <Compile Include="systems\CollisionSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -206,6 +214,12 @@
     <None Include="systems\opengl\OpenglHelper.h" />
     <None Include="systems\opengl\OpenGLTextureCreator.h" />
     <None Include="systems\opengl\TextureLibrary.h" />
+    <None Include="systems\DebuggingSystem.h" />
+    <None Include="systems\GraphSystem.h" />
+    <None Include="util\DataFileParser.h" />
+    <None Include="util\MurmurHash.h" />
+    <None Include="systems\CameraSystem.h" />
+    <None Include="systems\CollisionSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
