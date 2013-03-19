@@ -103,21 +103,13 @@
     <Compile Include="util\LevelEditor.cpp" />
     <Compile Include="app\MouseNativeTouchState.cpp" />
     <Compile Include="app\AppSetup.cpp" />
-    <Compile Include="systems\CameraSystem.cpp" />
     <Compile Include="base\NamedAssetLibrary.cpp" />
+    <Compile Include="systems\opengl\AnimDescriptor.cpp" />
     <Compile Include="systems\opengl\AtlasLibrary.cpp" />
+    <Compile Include="systems\opengl\EffectLibrary.cpp" />
     <Compile Include="systems\opengl\OpenglHelper.cpp" />
-    <Compile Include="util\MurmurHash.cpp" />
-    <Compile Include="systems\CollisionSystem.cpp" />
     <Compile Include="systems\opengl\OpenGLTextureCreator.cpp" />
     <Compile Include="systems\opengl\TextureLibrary.cpp" />
-    <Compile Include="systems\GraphSystem.cpp" />
-    <Compile Include="systems\opengl\EffectLibrary.cpp" />
-    <Compile Include="systems\opengl\AnimDescriptor.cpp" />
-    <Compile Include="tests\systems\TestAnimationDescriptor.cpp" />
-    <Compile Include="util\DataFileParser.cpp" />
-    <Compile Include="tests\util\TestDataFileParser.cpp" />
-    <Compile Include="systems\DebuggingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base\EntityManager.h" />
@@ -199,26 +191,21 @@
     <None Include="app\MouseNativeTouchState.h" />
     <None Include="base\GameContext.h" />
     <None Include="app\AppSetup.h" />
-    <None Include="base\Entity.h" />
-    <None Include="systems\CameraSystem.h" />
     <None Include="base\NamedAssetLibrary.h" />
-    <None Include="systems\opengl\AtlasLibrary.h" />
-    <None Include="systems\opengl\OpenglHelper.h" />
-    <None Include="util\MurmurHash.h" />
-    <None Include="systems\CollisionSystem.h" />
-    <None Include="systems\opengl\OpenGLTextureCreator.h" />
-    <None Include="systems\opengl\TextureLibrary.h" />
-    <None Include="systems\GraphSystem.h" />
-    <None Include="systems\opengl\EffectLibrary.h" />
-    <None Include="systems\opengl\shaders\default_fs.h" />
-    <None Include="systems\opengl\shaders\default_vbo_vs.h" />
-    <None Include="systems\opengl\shaders\default_vs.h" />
+    <None Include="base\Assert.h" />
+    <None Include="base\Entity.h" />
     <None Include="systems\opengl\shaders\default.fs" />
     <None Include="systems\opengl\shaders\default.vs" />
+    <None Include="systems\opengl\shaders\default_fs.h" />
     <None Include="systems\opengl\shaders\default_vbo.vs" />
+    <None Include="systems\opengl\shaders\default_vbo_vs.h" />
+    <None Include="systems\opengl\shaders\default_vs.h" />
     <None Include="systems\opengl\AnimDescriptor.h" />
-    <None Include="util\DataFileParser.h" />
-    <None Include="systems\DebuggingSystem.h" />
+    <None Include="systems\opengl\AtlasLibrary.h" />
+    <None Include="systems\opengl\EffectLibrary.h" />
+    <None Include="systems\opengl\OpenglHelper.h" />
+    <None Include="systems\opengl\OpenGLTextureCreator.h" />
+    <None Include="systems\opengl\TextureLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\android\" />
@@ -227,7 +214,5 @@
     <Folder Include="tools\lobby\" />
     <Folder Include="build\cmake\" />
     <Folder Include="app\" />
-    <Folder Include="systems\opengl\" />
-    <Folder Include="systems\opengl\shaders\" />
   </ItemGroup>
 </Project>

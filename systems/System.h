@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include <climits>
+#include <cassert>
 
 #include "base/Entity.h"
 #include <glog/logging.h>
@@ -36,7 +37,13 @@
             static type##System* GetInstancePointer() { return _instance; } \
             static type##System& GetInstance() { return (*_instance); } \
             static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
-            static void DestroyInstance() { if (_instance) delete _instance; LOG(INFO) << #type "System instance destroyed, was: " <<  _instance; _instance = NULL; } \
+            static void DestroyInstance() { \
+                if (_instance) {\
+                    delete _instance;\
+                }\
+                LOG(INFO) << #type << "System instance destroyed was: " <<  _instance;\
+                _instance = NULL;\
+            } \
             void DoUpdate(float dt); \
             void updateEntityComponent(float dt, Entity e, type##Component* t); \
         \
@@ -61,7 +68,7 @@
 			static void DestroyInstance() {\
 			    if (_instance)\
 				    delete _instance;\
-			    LOG(INFO) << #type "System instance destroyed, was:", _instance;\
+			    LOG(INFO) << #type "System instance destroyed, was:" << _instance;\
 			    _instance = NULL;\
 			} \
 			void DoUpdate(float dt); \
@@ -69,6 +76,7 @@
 		private: \
 			type##System();	\
 			static type##System* _instance;
+#endif
 
 #if USE_VECTOR_STORAGE
     #define FOR_EACH_ENTITY(ent) \

@@ -1,15 +1,16 @@
 #pragma once
 
-#include "../base/Log.h"
+#include <glog/logging.h>
+
 class SuccessAPI {
 
    public:
       virtual void successCompleted(const char* description, unsigned long successId) {
-	 LOGI("Success completed '%s': %lu", description, successId);
+	 LOG(INFO) << "Success completed '" << description << "': " << successId;
       }
 
       virtual void openLeaderboard(int mode, int diff) {
-	 LOGI("Openleaderboard mode=%d, diff=%d", mode, diff);
+        LOG(INFO) << "Openleaderboard mode=" << mode << ", diff=" << diff;
       }
 
       virtual void openDashboard() {}

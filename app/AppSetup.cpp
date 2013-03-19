@@ -35,8 +35,9 @@
 #include <sstream>
 #include <assert.h>
 #include <vector>
-#include <pthread.h>
 #include <signal.h>
+#include <thread>
+#include <mutex>
 
 #ifndef EMSCRIPTEN
 #include <locale.h>
@@ -67,6 +68,8 @@
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/SuccessAPI.h"
 #include "util/Recorder.h"
+#include <glog/logging.h>
+#include <gflags/gflags.h>
 
 #include "MouseNativeTouchState.h"
 
@@ -79,6 +82,7 @@ Entity globalFTW = 0;
 
 #ifndef EMSCRIPTEN
 Recorder *record;
+std::mutex m;
 
 void GLFWCALL myCharCallback( int c, int action ) {
     if (globalFTW == 0) {
@@ -160,9 +164,11 @@ static void updateAndRenderLoop() {
    glfwTerminate();
 }
 
-static void* callback_thread(void *){
+static void* callback_thread(){
+    m.lock();
     updateAndRenderLoop();
-    pthread_exit (0);
+    m.unlock();
+    return NULL;
 }
 
 #else
@@ -174,10 +180,13 @@ static void updateAndRender() {
 
 #endif
 
-extern bool __log_enabled;
-
 /** Engine entry point */
 int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
+    google::InitGoogleLogging(argv[0]);
+    FLAGS_logtostderr = true;
+    FLAGS_colorlogtostderr = true;
+    google::ParseCommandLineFlags(&argc, &argv, true);
+
     Vector2 reso16_9(394, 700);
     Vector2 reso16_10(900, 625);
     Vector2* reso = &reso16_10;
@@ -188,7 +197,6 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     /////////////////////////////////////////////////////
     // Init Window and Rendering
 #ifdef EMSCRIPTEN
-    __log_enabled = true;
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
@@ -202,10 +210,8 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
         return 1;
     glfwSetWindowTitle(title.c_str());
     glewInit();
-    __log_enabled = false;
     bool restore = false;
     for (int i=1; i<argc; i++) {
-        __log_enabled |= (!strcmp(argv[i], "--verbose") || !strcmp(argv[i], "-v"));
         restore |= !strcmp(argv[i], "-restore");
     }
 #endif
@@ -281,20 +287,20 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 
 #ifndef EMSCRIPTEN
     setlocale( LC_ALL, "" );
-    glfwSetCharCallback(myCharCallback);
-    glfwSetKeyCallback(myKeyCallback);
+    // breaks editor -> glfwSetCharCallback(myCharCallback);
+    // breaks editor -> glfwSetKeyCallback(myKeyCallback);
 #endif
 
 #ifndef EMSCRIPTEN
     record = new Recorder(reso->X, reso->Y);
-    pthread_t th1;
-    pthread_create (&th1, NULL, callback_thread, NULL);
-    while (pthread_kill(th1, 0) == 0)
-    {
+
+    std::thread th1(callback_thread);    
+    do {
         game->render();
         glfwSwapBuffers();
         record->record();
-    }
+    } while (!m.try_lock());
+    th1.join();
 #else
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #endif
