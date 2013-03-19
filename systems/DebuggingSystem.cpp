@@ -2,126 +2,170 @@
 #include "CameraSystem.h"
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
-#include "GraphSystem.h" 
+#include "GraphSystem.h"
+#include "TextRenderingSystem.h"
 
 INSTANCE_IMPL(DebuggingSystem);
 
 DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging") {
-	activeCamera = 0;
-	
-	fpsGraph = theEntityManager.CreateEntity("fpsGraph");
-	ADD_COMPONENT(fpsGraph, Transformation);
-	TRANSFORM(fpsGraph)->size = Vector2(10);
-    TRANSFORM(fpsGraph)->position = Vector2(-10, 0);
-//    TRANSFORM(fpsGraph)->z = 1;
-	ADD_COMPONENT(fpsGraph, Rendering);
-	RENDERING(fpsGraph)->hide = false;
-    RENDERING(fpsGraph)->texture = theRenderingSystem.loadTextureFile("fpsGraph");
-    ADD_COMPONENT(fpsGraph, Graph);
-    GRAPH(fpsGraph)->textureName = "fpsGraph";
-    GRAPH(fpsGraph)->maxY = 70;
-    GRAPH(fpsGraph)->minY = 10;
-	
-	entityGraph = theEntityManager.CreateEntity("entityGraph");
-	ADD_COMPONENT(entityGraph, Transformation);
-	TRANSFORM(entityGraph)->size = Vector2(10);
-    TRANSFORM(entityGraph)->position = Vector2(10, 0);
-    // TRANSFORM(entityGraph)->z = 1;
-	ADD_COMPONENT(entityGraph, Rendering);
-	RENDERING(entityGraph)->hide = false;
-    RENDERING(entityGraph)->texture = theRenderingSystem.loadTextureFile("entityGraph");
-	ADD_COMPONENT(entityGraph, Graph);
-	GRAPH(entityGraph)->textureName = "entityGraph";
-    GRAPH(entityGraph)->maxY = 0;
-    GRAPH(entityGraph)->minY = 70;
-    GRAPH(entityGraph)->setFixedScaleMinMaxY = true;
-    
-	
-	for (int i=0; i<17; ++i) {
-		timeSpentinSystemGraph[i] = theEntityManager.CreateEntity("timeSpentinSystemGraph");
-		ADD_COMPONENT(timeSpentinSystemGraph[i], Transformation);
-		TRANSFORM(timeSpentinSystemGraph[i])->size = Vector2(10);
-	    TRANSFORM(timeSpentinSystemGraph[i])->position = Vector2::Zero;
-//	    TRANSFORM(timeSpentinSystemGraph[i])->z = 1;
-		ADD_COMPONENT(timeSpentinSystemGraph[i], Rendering);
-		RENDERING(timeSpentinSystemGraph[i])->hide = i == 0 ? false : true;
-	    RENDERING(timeSpentinSystemGraph[i])->texture = theRenderingSystem.loadTextureFile("timeSpentinSystemGraph");
-		ADD_COMPONENT(timeSpentinSystemGraph[i], Graph);
-		GRAPH(timeSpentinSystemGraph[i])->textureName = "timeSpentinSystemGraph";
-	    GRAPH(timeSpentinSystemGraph[i])->maxY = 0.020f;
-	    GRAPH(timeSpentinSystemGraph[i])->minY = 0;
-	    GRAPH(timeSpentinSystemGraph[i])->lineColor = Color::random();
-	}
+    activeCamera = 0;
+}
+
+bool DebuggingSystem::addDebugEntity(std::string debugName, Color lineColor=Color(1,1,1),
+                                    float maxY=0, float minY=0, bool newGraph=true,
+                                    std::string parentGraphName="") {
+
+    if (newGraph) {
+        Entity de = theEntityManager.CreateEntity(debugName);
+        ADD_COMPONENT(de, Transformation);
+        TRANSFORM(de)->size = Vector2(10);
+        TRANSFORM(de)->position = Vector2(0, 0);
+        TRANSFORM(de)->parent = activeCamera;
+        ADD_COMPONENT(de, Rendering);
+        RENDERING(de)->hide = false;
+        RENDERING(de)->texture = theRenderingSystem.loadTextureFile(debugName);
+        ADD_COMPONENT(de, Graph);
+        GRAPH(de)->textureName = debugName;
+        GRAPH(de)->lineColor = lineColor;
+        GRAPH(de)->maxY = maxY;
+        GRAPH(de)->minY = minY;
+        debugEntities[debugName] = de;
+
+    } else {
+        Entity parent = debugEntities[parentGraphName];
+        if (parent) {
+            Entity de = theEntityManager.CreateEntity(debugName);
+            ADD_COMPONENT(de, Graph);
+            GRAPH(de)->textureName = GRAPH(parent)->textureName;
+            GRAPH(de)->lineColor = lineColor;
+            debugEntities[debugName] = de;
+            GRAPH(de)->maxY = maxY;
+            GRAPH(de)->minY = minY;
+        }
+        else
+            return false;
+    }
+    return true;
+}
+bool DebuggingSystem::addDebugEntity(std::string debugName, Entity debugEntity) {
+    if (theGraphSystem.Get(debugEntity, false) &&
+        theTransformationSystem.Get(debugEntity, false)) {
+        if (debugEntities.count(debugName) == 0) {
+            debugEntities[debugName] = debugEntity;
+            return true;
+        }
+    }
+    return false;
+}
+
+void DebuggingSystem::deleteDebugEntity(std::string debugName) {
+    if (debugEntities.count(debugName)) {
+        theEntityManager.DeleteEntity(debugEntities[debugName]);
+        debugEntities.erase(debugName);
+    }
 }
 
 void DebuggingSystem::DoUpdate(float dt) {
-	
-	if (!activeCamera) {
-		std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
-		if (!cameras.empty()) {
-			for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
-				if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
-					activeCamera = *it;
-					break;
-				}
-			}
-		}
-		
-		if (activeCamera) {
-			TRANSFORM(fpsGraph)->parent = activeCamera;
-			TRANSFORM(entityGraph)->parent = activeCamera;
-			for (int i=0; i<17; ++i) {
-				TRANSFORM(timeSpentinSystemGraph[i])->parent = activeCamera;
-			}
-		}
-	}
 
-	while(GRAPH(fpsGraph)->pointsList.size() > 150) GRAPH(fpsGraph)->pointsList.pop_front();
-	
-	while(GRAPH(entityGraph)->pointsList.size() > 150) GRAPH(entityGraph)->pointsList.pop_front();
-	
-	for (int i=0; i<17; ++i) {
-		while(GRAPH(timeSpentinSystemGraph[i])->pointsList.size() > 60) GRAPH(timeSpentinSystemGraph[i])->pointsList.pop_front();
-	}
-	
-	static float reloadFrequency = 0;
-	reloadFrequency += dt;
-	if (reloadFrequency > 0.5f) {
-		reloadFrequency = 0;
-		GRAPH(fpsGraph)->reloadTexture = true;
-		GRAPH(entityGraph)->reloadTexture = true;
-		GRAPH(timeSpentinSystemGraph[0])->reloadTexture= true;
-	}
-	
+    if (!activeCamera) {
+        std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+        if (!cameras.empty()) {
+            for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
+                if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
+                    activeCamera = *it;
+                    break;
+                }
+            }
+        }
+    }
+
+    while (debugEntities.size() * 2 < captionGraph.size()) {
+        theEntityManager.DeleteEntity(captionGraph.back());
+        captionGraph.pop_back();
+    }
+
+    for (uint i = captionGraph.size(); i < debugEntities.size(); ++i) {
+        Entity c = theEntityManager.CreateEntity("caption");
+        ADD_COMPONENT(c, Transformation);
+        if (i==0) {
+            TRANSFORM(c)->parent = activeCamera;
+        } else {
+            TRANSFORM(c)->parent = captionGraph[i-1];
+        }
+        TRANSFORM(c)->size = Vector2(10, 1);
+        TRANSFORM(c)->position = Vector2(0, -1);
+
+        ADD_COMPONENT(c, TextRendering);
+        TEXT_RENDERING(c)->fontName = "typo";
+        TEXT_RENDERING(c)->hide = true;
+        TEXT_RENDERING(c)->charHeight = 1;
+        captionGraph.push_back(c);
+    }
+
+    if (activeCamera) {
+        TRANSFORM(captionGraph.front())->parent = activeCamera;
+        TRANSFORM(captionGraph.front())->position.X = (-1 * TRANSFORM(activeCamera)->size.X/2) + TRANSFORM(captionGraph.front())-> size.X / 2;
+        TRANSFORM(captionGraph.front())->position.Y = (TRANSFORM(activeCamera)->size.Y/2) - TRANSFORM(captionGraph.front())-> size.Y / 2;
+    }
+
+    static float reloadFrequency = 0.6;
+    reloadFrequency += dt;
+
+    std::vector<Entity>::iterator it = captionGraph.begin(), pit = it;
+    for (auto debugEntity : debugEntities) {
+        if (activeCamera) {
+            if (TransformationComponent* tc = theTransformationSystem.Get(debugEntity.second, false))
+                tc->parent = activeCamera;
+        }
+
+        while (GRAPH(debugEntity.second)->pointsList.size() > 60) GRAPH(debugEntity.second)->pointsList.pop_front();
+
+        if (reloadFrequency > 0.5f) {
+            GRAPH(debugEntity.second)->reloadTexture= true;
+
+            std::stringstream a;
+            std::pair<float, float> p = GRAPH(debugEntity.second)->pointsList.back();
+            a << debugEntity.first << " X=" << p.first << " Y=" << p.second;
+
+            TRANSFORM(*it)->size.X = a.str().size()*0.5;
+            TRANSFORM(*it)->z = 0;
+            if (it == captionGraph.begin() ){
+                TRANSFORM(*it)->z = -0.1;
+                TRANSFORM(*it)->parent = activeCamera;
+            }
+            TEXT_RENDERING(*it)->hide = false;
+            TEXT_RENDERING(*it)->text = a.str();
+            TEXT_RENDERING(*it)->color = GRAPH(debugEntity.second)->lineColor;
+
+            pit = it;
+            ++it;
+        }
+    }
+
+    if (reloadFrequency > 0.5f) {
+        reloadFrequency = 0;
+        while (it != captionGraph.end()) {
+            //~ TEXT_RENDERING(*it)->hide = true;
+            ++it;
+        }
+    }
 }
 
-
-void DebuggingSystem::addValue(DEBUGGINGENTITY entity, std::pair<float, float> value) {
-	if (entity == fpsGraphEntity)
-		GRAPH(fpsGraph)->pointsList.push_back(value);
-			
-	else if (entity == entityGraphEntity) 
-			GRAPH(entityGraph)->pointsList.push_back(value);
-	else
-			GRAPH(timeSpentinSystemGraph[entity - 2])->pointsList.push_back(value);
+void DebuggingSystem::addValue(std::string debugEntity, std::pair<float, float> value) {
+    if (debugEntities.count(debugEntity)) {
+        GRAPH(debugEntities[debugEntity])->pointsList.push_back(value);
+    }
 }
 
-void DebuggingSystem::clearDebuggingEntity(DEBUGGINGENTITY entity) {
-	switch(entity) {
-		case fpsGraphEntity:
-			GRAPH(fpsGraph)->pointsList.clear();
-			break;
-		case entityGraphEntity:
-			GRAPH(entityGraph)->pointsList.clear();
-			break;
-		default:
-			GRAPH(timeSpentinSystemGraph[entity - 2])->pointsList.clear();
-	}
+void DebuggingSystem::clearDebuggingEntity(std::string debugEntity) {
+    if (debugEntities.count(debugEntity)) {
+        GRAPH(debugEntities[debugEntity])->pointsList.clear();
+    }
 }
 
 #ifdef INGAME_EDITORS
 void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    DebuggingComponent* tc = Get(entity, false);
-    if (!tc) return;
+    DebuggingComponent* dc = Get(entity, false);
+    if (!dc) return;
 }
 #endif

@@ -10,38 +10,19 @@ struct DebuggingComponent {
 
 UPDATABLE_SYSTEM(Debugging)
 
-	public:
-		enum DEBUGGINGENTITY {
-			fpsGraphEntity=0,
-			entityGraphEntity,
-			TransformationSystemEntity,
-			RenderingSystemEntity,
-			SoundSystemEntity,
-    		MusicSystemEntity,
-			ADSRSystemEntity,
-			ButtonSystemEntity,
-			TextRenderingSystemEntity,
-			ContainerSystemEntity,
-			PhysicsSystemEntity,
-    		ParticuleSystemEntity,
-    		ScrollingSystemEntity,
-    		MorphingSystemEntity,
-    		AutonomousAgentSystemEntity,
-    		AnimationSystemEntity,
-    		AutoDestroySystemEntity,
-    		CameraSystemEntity,
-    		GraphSystemEntity
-		};
-		
-		void addValue(DEBUGGINGENTITY entity, std::pair<float, float> value);
-		void clearDebuggingEntity(DEBUGGINGENTITY entity);
+    public:
+        bool addDebugEntity(std::string debugName, Color lineColor,
+                            float maxY, float minY, bool newGraph,
+                            std::string parentGraphName);
+        bool addDebugEntity(std::string debugName, Entity debugEntity);
+        void deleteDebugEntity(std::string debugName);
+        void addValue(std::string debugEntity, std::pair<float, float> value);
+        void clearDebuggingEntity(std::string debugEntity);
 
-	private:
-		Entity fpsGraph;
-		Entity entityGraph;
-		Entity timeSpentinSystemGraph[17];
-		
-		Entity activeCamera;
+    private:
+        std::map<std::string, Entity> debugEntities;
 
+        std::vector<Entity> captionGraph;
+
+        Entity activeCamera;
 };
-
