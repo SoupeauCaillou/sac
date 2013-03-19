@@ -1,14 +1,18 @@
 #include "AnimationSystem.h"
+#include "TransformationSystem.h"
+#include "opengl/AnimDescriptor.h"
 
-#include "base/Interval.h"
-
-struct AnimationSystem::Anim {
-    std::vector<TextureRef> textures;
-    float playbackSpeed;
-    Interval<int> loopCount;
-    std::string nextAnim;
-    Interval<float> nextAnimWait;
-};
+static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {
+    RENDERING(e)->texture = frame.texture;
+    LOG_IF(WARNING, animComp->subPart.size() != frame.transforms.size()) << "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size();
+    for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
+        TransformationComponent* tc = TRANSFORM(animComp->subPart[i]);
+        const AnimDescriptor::AnimFrame::Transform& trans = frame.transforms[i];
+        tc->position = trans.position;
+        tc->size = trans.size;
+        tc->rotation = trans.rotation;
+    }
+}
 
 INSTANCE_IMPL(AnimationSystem);
 
@@ -30,11 +34,12 @@ void AnimationSystem::DoUpdate(float dt) {
         AnimIt jt = animations.find(bc->name);
         if (jt == animations.end())
             continue;
-        Anim* anim = jt->second;
+        AnimDescriptor* anim = jt->second;
 
         if (bc->previousName != bc->name) {
-            bc->textureIndex = 0;
-            RENDERING(a)->texture = anim->textures[bc->textureIndex];
+            bc->frameIndex = 0;
+            applyFrameToEntity(a, bc, anim->frames[bc->frameIndex]);
+            // RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
             bc->accum = 0;
             bc->previousName = bc->name;
             bc->loopCount = anim->loopCount.random();
@@ -50,10 +55,10 @@ void AnimationSystem::DoUpdate(float dt) {
             }
 
             while(bc->accum >= 1) {
-                bool lastImage = (bc->textureIndex == (int)anim->textures.size() - 1);
+                bool lastImage = (bc->frameIndex == (int)anim->frames.size() - 1);
                 if (lastImage) {
                     if (bc->loopCount != 0) {
-                        bc->textureIndex = 0;
+                        bc->frameIndex = 0;
                         bc->loopCount--;
                     } else if (!anim->nextAnim.empty()) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
@@ -62,34 +67,42 @@ void AnimationSystem::DoUpdate(float dt) {
                         break;
                     }
                 } else {
-                    bc->textureIndex++;
+                    bc->frameIndex++;
                 }
-                RENDERING(a)->texture = anim->textures[bc->textureIndex];
+                applyFrameToEntity(a, bc, anim->frames[bc->frameIndex]);
+                // RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
                 bc->accum -= 1;
             }
         }
     }
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextAnim, Interval<float> nextAnimWait) {
-    if (animations.find(name) == animations.end()) {
-        Anim* a = new Anim();
-        a->textures = textures;
-        a->playbackSpeed = playbackSpeed;
-        a->loopCount = loopCount;
-        a->nextAnim = nextAnim;
-        a->nextAnimWait = nextAnimWait;
-        animations[name] = a;
+void AnimationSystem::loadAnim(const std::string& name, const std::string& filename, std::string* variables, int varcount) {
+    FileBuffer file = assetAPI->loadAsset("anim/" + filename + ".anim");
+    if (file.size) {
+        AnimDescriptor* desc = new AnimDescriptor;
+        if (desc->load(file, variables, varcount)) {
+            animations.insert(std::make_pair(name, desc));
+        } else {
+            LOG(ERROR) << "Invalid animation file: " << filename << ".anim";
+            delete desc;
+        }
     } else {
-        LOGW("Animation '%s' already defined", name.c_str());
+        LOG(ERROR) << "Empty animation file: " << filename << ".anim";
     }
+    delete[] file.data;
 }
 
-void AnimationSystem::registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& next, Interval<float> nextAnimWait) {
-    assert (animations.find(name) == animations.end());
-    std::vector<TextureRef> textures;
-    for (int i=0; i<count; i++) {
-        textures.push_back(theRenderingSystem.loadTextureFile(textureNames[i]));
-    }
-    registerAnim(name, textures, playbackSpeed, loopCount, next, nextAnimWait);
+#ifdef INGAME_EDITORS
+void AnimationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    AnimationComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "name", TW_TYPE_STDSTRING, &tc->name, "group=Animation");
+    TwAddVarRO(bar, "previousName", TW_TYPE_STDSTRING, &tc->previousName, "group=Animation");
+    TwAddVarRO(bar, "accum", TW_TYPE_FLOAT, &tc->accum, "group=Animation");
+    TwAddVarRW(bar, "playbackSpeed", TW_TYPE_FLOAT, &tc->playbackSpeed, "group=Animation");
+    TwAddVarRW(bar, "loopCount", TW_TYPE_INT32, &tc->loopCount, "group=Animation");
+    TwAddVarRO(bar, "textureIndex", TW_TYPE_INT32, &tc->frameIndex, "group=Animation");
+    TwAddVarRO(bar, "waitAccum", TW_TYPE_FLOAT, &tc->waitAccum, "group=Animation");
 }
+#endif

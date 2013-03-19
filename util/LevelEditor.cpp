@@ -7,7 +7,10 @@
 #include "../base/PlacementHelper.h"
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
+#include "../systems/CameraSystem.h"
 #include <GL/glfw.h>
+#include <AntTweakBar.h>
+#include <pthread.h>
 
 namespace EditorMode {
     enum Enum {
@@ -16,11 +19,31 @@ namespace EditorMode {
     };
 }
 
+static pthread_mutex_t twMutex;
+static void _lock() {
+    pthread_mutex_lock(&twMutex);
+}
+
+static void _unlock() {
+    pthread_mutex_unlock(&twMutex);
+}
+
+void LevelEditor::lock() {
+    _lock();
+}
+
+void LevelEditor::unlock() {
+    _unlock();
+}
+
 struct LevelEditor::LevelEditorDatas {
     EditorMode::Enum mode;
 
     Entity over;
     Entity selected, gallerySelected;
+    Entity selectionDisplay, overDisplay;
+    Color originalColor;
+    float selectionColorChangeSpeed;
 
     Vector2 lastMouseOverPosition;
     Vector2 selectedOriginalPos;
@@ -37,19 +60,88 @@ struct LevelEditor::LevelEditorDatas {
 
     void updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff);
     void updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff);
+
+    void select(Entity e);
+    void deselect(Entity e);
 };
 
-static void select(Entity e) {
-    RENDERING(e)->effectRef = theRenderingSystem.loadEffectFile("selected.fs");
-}
-static void deselect(Entity e) {
-    RENDERING(e)->effectRef = DefaultEffectRef;
+static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
+    TwBar* bar = TwNewBar(barName.c_str());
+    std::vector<std::string> systems = ComponentSystem::registeredSystemNames();
+    for (unsigned i=0; i<systems.size(); i++) {
+        ComponentSystem* system = ComponentSystem::Named(systems[i]);
+        system->addEntityPropertiesToBar(e, bar);
+        std::stringstream fold;
+        fold << TwGetBarName(bar) << '/' << systems[i] << " opened=false";
+        TwDefine(fold.str().c_str());
+    }
+    return bar;
 }
 
+static void showTweakBarForEntity(Entity e) {
+    std::stringstream barName;
+    barName << theEntityManager.entityName(e);
+    TwBar* bar = TwGetBarByName(barName.str().c_str());
+    if (bar == 0) {
+        bar = createTweakBarForEntity(e, barName.str());
+        barName << " alpha=190 refresh=0,016";
+        TwDefine (barName.str().c_str());
+    } else {
+        barName << " visible=true iconified=false";
+        TwDefine(barName.str().c_str());
+    }
+    TwDefine(" GLOBAL iconpos=bottomright");
+}
+
+static void buttonCallback(void* e) {
+    _lock();
+    showTweakBarForEntity((Entity)(e));
+    _unlock();
+}
+
+void LevelEditor::LevelEditorDatas::select(Entity e) {
+    _lock();
+    showTweakBarForEntity(e);
+    _unlock();
+    TRANSFORM(selectionDisplay)->parent = e;
+    TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + Vector2(0.1);
+    RENDERING(selectionDisplay)->hide = false;
+    originalColor = RENDERING(e)->color;
+    // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
+}
+void LevelEditor::LevelEditorDatas::deselect(Entity e) {
+    RENDERING(selectionDisplay)->hide = true;
+}
+
+TwBar* entityListBar;
 LevelEditor::LevelEditor() {
+    pthread_mutex_init(&twMutex, 0);
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
+    datas->selectionColorChangeSpeed = -0.5;
+    datas->selectionDisplay = theEntityManager.CreateEntity("debug_selection");
+    ADD_COMPONENT(datas->selectionDisplay, Rendering);
+    ADD_COMPONENT(datas->selectionDisplay, Transformation);
+    TRANSFORM(datas->selectionDisplay)->z = -0.001;
+    RENDERING(datas->selectionDisplay)->color = Color(1, 0, 0, 0.7);
+
+    datas->overDisplay = theEntityManager.CreateEntity("debug_over");
+    ADD_COMPONENT(datas->overDisplay, Rendering);
+    ADD_COMPONENT(datas->overDisplay, Transformation);
+    TRANSFORM(datas->overDisplay)->z = -0.001;
+    RENDERING(datas->overDisplay)->color = Color(0, 0, 1, 0.7);
+
+    TwInit(TW_OPENGL, NULL);
+
+    glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
+    glfwSetMousePosCallback((GLFWmouseposfun)TwEventMousePosGLFW);
+    glfwSetMouseWheelCallback((GLFWmousewheelfun)TwEventMouseWheelGLFW);
+    glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
+    glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
+
+    entityListBar = TwNewBar("EntityList");
+    TwDefine(" EntityList iconified=true ");
 }
 
 LevelEditor::~LevelEditor() {
@@ -57,17 +149,40 @@ LevelEditor::~LevelEditor() {
 }
 
 void LevelEditor::tick(float dt) {
-    Vector2 position;
-    int x, y;
-    glfwGetMousePos(&x, &y);
-    Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
-    for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
-        const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
-        if (IntersectionUtil::pointRectangle(windowPos, cam.screenPosition, cam.screenSize) && cam.enable) {
-            position = cam.worldPosition + windowPos * cam.worldSize;
+    // update entity list every sec
+    static float accum = 1;
+    accum += dt;
+    if (accum > 1) {
+        lock();
+        std::vector<Entity> entities = theEntityManager.allEntities();
+        TwRemoveAllVars(entityListBar);
+        for (unsigned i=0; i<entities.size(); i++) {
+            if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay) continue;
+            TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), &buttonCallback, (void*)entities[i], "");
+        }
+        accum = 0;
+        unlock();
+    }
+    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    Entity camera = 0;
+    for (unsigned i=0; i<cameras.size(); i++) {
+        if (CAMERA(cameras[i])->fb == DefaultFrameBufferRef) {
+            camera = cameras[i];
             break;
         }
     }
+    if (!camera) {
+        LOG(ERROR) << "No active camera";
+        return;
+    }
+
+    int x, y;
+    glfwGetMousePos(&x, &y);
+    Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
+
+    const Vector2 position = TRANSFORM(camera)->worldPosition + Vector2::Rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
+    LOG_EVERY_N(INFO, 1000) << "Mouse position: " << position;
+
     static int prevWheel = 0;
     int wheel = glfwGetMouseWheel();
     int wheelDiff = wheel - prevWheel;
@@ -77,6 +192,18 @@ void LevelEditor::tick(float dt) {
         glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
         datas->lastMouseOverPosition = position;
     }
+    
+    Color& selectedColor = RENDERING(datas->selectionDisplay)->color;
+    selectedColor.a += datas->selectionColorChangeSpeed * dt;
+    if (selectedColor.a < 0.5) {
+        selectedColor.a = 0.5;
+        datas->selectionColorChangeSpeed *= -1;
+    } else if (selectedColor.a > 1) {
+        selectedColor.a = 1;
+        datas->selectionColorChangeSpeed *= -1;
+    }
+    RENDERING(datas->overDisplay)->color.a = selectedColor.a;
+
 
     switch (datas->mode) {
         case EditorMode::Selection:
@@ -105,6 +232,7 @@ void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {
 }
 
 void LevelEditor::LevelEditorDatas::buildGallery() {
+#if 0
     int textureCount = theRenderingSystem.assetTextures.size();
     float width = theRenderingSystem.cameras[activeCameraIndex].worldSize.X;
     const int elementPerRow = 7;
@@ -144,6 +272,7 @@ void LevelEditor::LevelEditorDatas::buildGallery() {
         galleryItems.push_back(e);
     }
     gallerySelected = galleryItems.front();
+#endif
 }
 
 void LevelEditor::LevelEditorDatas::destroyGallery() {
@@ -155,40 +284,52 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
 }
 
 void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+#if 1
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
             if (selected)
                 selectedOriginalPos = TRANSFORM(selected)->position;
-            if (over)
-                RENDERING(over)->effectRef = DefaultEffectRef;
-
+            over = 0;
+            
             std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
-                float nearest = 10000;
-                for (unsigned i=0; i<entities.size(); i++) {
-                    if (entities[i] == selected)
-                        continue;
-                    if (RENDERING(entities[i])->hide)
-                        continue;
-                    if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
-                        float d = Vector2::DistanceSquared(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
-                        if (d < nearest) {
-                            over = entities[i];
-                            nearest = d;
-                        }
+            float nearest = 10000;
+            for (unsigned i=0; i<entities.size(); i++) {
+                if (entities[i] == overDisplay || entities[i] == selectionDisplay)
+                    continue;
+                if (entities[i] == selected)
+                    continue;
+                if (RENDERING(entities[i])->hide)
+                    continue;
+                if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
+                    float d = Vector2::DistanceSquared(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
+                    if (d < nearest) {
+                        over = entities[i];
+                        nearest = d;
                     }
                 }
-                if (over)
-                    RENDERING(over)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
+            }
+
+            if (over) {
+                TRANSFORM(overDisplay)->parent = over;
+                TRANSFORM(overDisplay)->size = TRANSFORM(over)->size + Vector2(0.1);
+                RENDERING(overDisplay)->hide = false;
+            } else {
+                RENDERING(overDisplay)->hide = true;
+            }
         } else {
             if (over) {
                 if (selected)
                     deselect(selected);
                 selected = over;
+                LOG(INFO) << "Selected entity: '" << theEntityManager.entityName(selected) << "'";
                 select(selected);
                 over = 0;
+                RENDERING(overDisplay)->hide = true;
             }
         }
-    } else {
+    } 
+#if 0
+    else {
         if (selected) {
             TRANSFORM(selected)->position = selectedOriginalPos + mouseWorldPos - lastMouseOverPosition;
         }
@@ -211,7 +352,8 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
             }
         }
     }
-
+#endif
+#if 0
     // camera movement
     {
         RenderingSystem::Camera& camera = theRenderingSystem.cameras[activeCameraIndex];
@@ -262,9 +404,12 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
         } else
             changeMode(EditorMode::Gallery);
     }
+#endif
+#endif
 }
 
 void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+#if 0
     if (glfwGetKey(GLFW_KEY_SPACE)) {
         spaceWasPressed = true;
     } else if (spaceWasPressed) {
@@ -294,5 +439,6 @@ void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& m
         }
         changeMode(EditorMode::Selection);
     }
+#endif
 }
 #endif

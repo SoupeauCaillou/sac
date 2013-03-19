@@ -1,5 +1,6 @@
 #include "MusicAPILinuxOpenALImpl.h"
 
+#include <glog/logging.h>
 #ifndef EMSCRIPTEN
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -9,7 +10,6 @@
 
 #include <cassert>
 #include <vector>
-#include "../../base/Log.h"
 
 #ifndef EMSCRIPTEN
 static const char* errToString(ALenum err);
@@ -34,10 +34,10 @@ struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
 
 void MusicAPILinuxOpenALImpl::init() {
 #ifndef EMSCRIPTEN
-    ALCdevice* device = alcOpenDevice(NULL);
-    ALCcontext* context = alcCreateContext(device, NULL);
+    ALCdevice* device = alcOpenDevice(0);
+    ALCcontext* context = alcCreateContext(device, 0);
     if (!(device && context && alcMakeContextCurrent(context)))
-        LOGW("probleme initialisation du son");
+        LOG(WARNING) << "probleme initialisation du son";
 #endif
 }
 
@@ -166,7 +166,7 @@ static void check_AL_errors(const char* context) {
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOGW("OpenAL error during '%s' -> %s", context, errToString(error));
+        LOG(WARNING) << "OpenAL error during '" << context << "' -> " << errToString(error);
         maxIterations--;
         err = true;
     }

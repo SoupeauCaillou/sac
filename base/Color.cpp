@@ -2,8 +2,8 @@
 
 #include "MathUtil.h"
 #include <cstring>
+#include <glog/logging.h>
 #include <map>
-#include "Log.h"
 
 static std::map<std::string, Color> name2Color;
 
@@ -12,10 +12,8 @@ Color Color::random() {
 }
 
 void Color::nameColor(const Color& c, const std::string& name) {
-    LOGI("Add color '%s'", name.c_str());
-	if (!name2Color.insert(std::make_pair(name, c)).second) {
-		LOGW("Warning, color with name '%s' already existed. Replaced anyway", name.c_str());
-	}
+    VLOG(1) << "Add color " << name << " = " << c;
+	name2Color.insert(std::make_pair(name, c));
 }
 
 Color::Color(float _r, float _g, float _b, float _a):
@@ -36,6 +34,14 @@ Color Color::operator*(float s) const {
 }
 Color Color::operator+(const Color& c) const {
 	return Color(r+c.r, g+c.g, b+c.b, a+c.a);
+}
+
+const Color& Color::operator+=(const Color& c) {
+    r += c.r;
+    g += c.g;
+    b += c.b;
+    a += c.a;
+    return *this;
 }
 
 bool Color::operator!=(const Color& c) const {

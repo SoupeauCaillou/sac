@@ -64,3 +64,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
         comp->mouseOver = false;
     }
 }
+
+#ifdef INGAME_EDITORS
+void ButtonSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

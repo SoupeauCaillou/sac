@@ -1,6 +1,7 @@
 #include "TextRenderingSystem.h"
 #include <ctype.h>
 #include <sstream>
+#include <iomanip>
 
 #include "base/Vector2.h"
 #include "base/EntityManager.h"
@@ -9,7 +10,7 @@
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
 
-static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed );
+#include "util/MurmurHash.h"
 
 struct CacheKey {
     Color color;
@@ -45,84 +46,31 @@ const float TextRenderingComponent::LEFT = 0.0f;
 const float TextRenderingComponent::CENTER = 0.5f;
 const float TextRenderingComponent::RIGHT = 1.0f;
 
-const char InlineImageDelimiter = 0x97;
+const char InlineImageDelimiter[] = {(char)0xC3, (char)0x97};
 
+// Utility functions
+static Entity createRenderingEntity();
+static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h);
+static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t to, float charHeight, const TextRenderingSystem::FontDesc& fontDesc);
+static float computeStringWidth(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc);
+static float computeStartX(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc);
+
+// System implementation
 INSTANCE_IMPL(TextRenderingSystem);
 
 TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
     /* nothing saved */
 }
 
-
-static Entity createRenderingEntity() {
-	Entity e = theEntityManager.CreateEntity();
-	ADD_COMPONENT(e, Transformation);
-	ADD_COMPONENT(e, Rendering);
-	return e;
-}
-
-static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h) {
-    int idx0 = s.find(',');
-    int idx1 = s.find(',', idx0 + 1);
-    if (image)
-        *image = s.substr(0, idx0);
-    if (w)
-        *w = atof(s.substr(idx0 + 1, idx1 - idx0).c_str());
-    if (h)
-        *h = atof(s.substr(idx1 + 1, s.length() - idx1).c_str());
-}
-
-static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t to, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
-	// assume monospace ...
-	float width = 0;
-	if (trc->flags & TextRenderingComponent::IsANumberBit) {
-		float spaceW = charH2Wratio['a'] * charHeight * 0.75;
-		width += ((int) (trc->text.length() - 1) / 3) * spaceW;
-	}
-	for (unsigned int i=from; i<to; i++) {
-		char letter = trc->text[i];
-		if (letter == (char)0xC3 || letter == (char)0xC2) {
-            letter = trc->text[i+1];
-            if (letter == InlineImageDelimiter) {
-                // looks for next delimiter
-                unsigned int end = trc->text.find(InlineImageDelimiter, i+2);
-                float w = 0;
-                parseInlineImageString(trc->text.substr(i+2, end - 1 - (i+2) + 1), 0, &w, 0);
-                width += w * charHeight;
-                i = end;
-            }
-        } else if (letter == '\n') {
-            continue;
-        } else {
-			width += charH2Wratio[trc->text[i]] * charHeight;
-		}
-	}
-	return width;
-}
-
-static float computeStringWidth(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
-	return computePartialStringWidth(trc, 0, trc->text.length(), charHeight, charH2Wratio);
-}
-
-static float computeStartX(TextRenderingComponent* trc, float charHeight, std::map<unsigned char, float>& charH2Wratio) {
-    float result = -computeStringWidth(trc, charHeight, charH2Wratio) * trc->positioning;
-
-    return result;
-}
-
-float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingComponent* trc) {
-	std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
-	return computeStringWidth(trc, trc->charHeight, charH2Wratio);
-}
-
 void TextRenderingSystem::DoUpdate(float dt) {
     CacheKey key;
-	/* render */
+    unsigned letterCount = 0;
+
     FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
         // compute cache entry
-        if (trc->blink.onDuration == 0) {
+        if (0 && trc->blink.onDuration == 0) {
             unsigned keySize = key.populate(trc);
-            unsigned hash = MurmurHash2(&key, keySize, 0x12345678);
+            unsigned hash = MurmurHash::compute(&key, keySize, 0x12345678);
             std::map<Entity, unsigned int>::iterator c = cache.find(entity);
             if (c != cache.end()) {
                 if (hash == (*c).second)
@@ -133,26 +81,23 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
 		// early quit if hidden
 		if (trc->hide) {
-			for (unsigned i = 0; i < trc->drawing.size(); i++) {
-				RENDERING(trc->drawing[i])->hide = true;
-				renderingEntitiesPool.push_back(trc->drawing[i]);
-			}
-			trc->drawing.clear();
 			continue;
 		}
 
-		TransformationComponent* trans = TRANSFORM(entity);
-		bool caret = false;
-		// caret blink
+        // append a caret if needed
+		bool caretInserted = false;
 		if (trc->caret.speed > 0) {
 			trc->caret.dt += dt;
 			if (trc->caret.dt > trc->caret.speed) {
 				trc->caret.dt = 0;
 				trc->caret.show = !trc->caret.show;
 			}
-			caret = true;
-			trc->text.push_back('_');
+            if (trc->caret.show) {
+			    caretInserted = true;
+			    trc->text.push_back('_');
+            }
 		}
+        // text blinking
         if (trc->blink.onDuration > 0) {
             if (trc->blink.accum >= 0) {
                 trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, trc->blink.onDuration);
@@ -169,71 +114,62 @@ void TextRenderingSystem::DoUpdate(float dt) {
             }
         }
 
+        // Lookup font description
+        std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
+        if (fontIt == fontRegistry.end()) {
+            LOG(ERROR) << "TextRendering component uses undefined font: '" << trc->fontName << "'";
+            continue;
+        }
+
+        // Cache various attributes
+        const FontDesc& fontDesc = fontIt->second;
+        const TransformationComponent* trans = TRANSFORM(entity);
 		const unsigned int length = trc->text.length();
-
-		std::map<unsigned char, float>& charH2Wratio = fontRegistry[trc->fontName];
-
+		
+        // Determine font size (character height)
 		float charHeight = trc->charHeight;
 		if (trc->flags & TextRenderingComponent::AdjustHeightToFillWidthBit) {
-			float targetWidth = trans->size.X;
-			charHeight = targetWidth / computeStringWidth(trc, 1, charH2Wratio);
+			const float targetWidth = trans->size.X;
+			charHeight = targetWidth / computeStringWidth(trc, 1, fontDesc);
+            // Limit to maxCharHeight if defined
 			if (trc->maxCharHeight > 0 ) {
 				charHeight = MathUtil::Min(trc->maxCharHeight, charHeight);
 			}
 		}
 
-		float x = (trc->flags & TextRenderingComponent::MultiLineBit) ?
-			(trans->size.X * -0.5) : computeStartX(trc, charHeight, charH2Wratio);
-
-		float y = 0;
-		const float startX = x;
+        // Variables
+		const float startX = (trc->flags & TextRenderingComponent::MultiLineBit) ?
+			(trans->size.X * -0.5) : computeStartX(trc, charHeight, fontDesc);
+		float x = startX, y = 0;
 		bool newWord = true;
-        unsigned count = 0;
+        uint16_t unicode = 0; // limited to short
 
+        // Setup rendering for each individual letter
 		for(unsigned int i=0; i<length; i++) {
-			// add sub-entity if needed
-			if (count >= trc->drawing.size()) {
-				if (renderingEntitiesPool.size() > 0) {
-					trc->drawing.push_back(renderingEntitiesPool.back());
-					renderingEntitiesPool.pop_back();
-				} else {
-					trc->drawing.push_back(createRenderingEntity());
-				}
-			}
-
-			RenderingComponent* rc = RENDERING(trc->drawing[count]);
-			TransformationComponent* tc = TRANSFORM(trc->drawing[count]);
-			tc->parent = entity;
-            tc->z = 0.001; // put text in front
-            tc->worldPosition = trans->worldPosition;
-			rc->hide = trc->hide;
-            rc->cameraBitMask = trc->cameraBitMask;
-
-			if (rc->hide)
-				continue;
-
+            // If it's a multiline text, we must compute words/lines boundaries
 			if (trc->flags & TextRenderingComponent::MultiLineBit) {
 				size_t wordEnd = trc->text.find_first_of(" ,:.", i);
 				size_t lineEnd = trc->text.find_first_of("\n", i);
 				bool newLine = false;
 				if (wordEnd == i) {
+                    // next letter will be the start of a new word
 					newWord = true;
 				} else if (lineEnd == i) {
+                    // next letter will be the start of a new line
 					newLine = true;
 				} else if (newWord) {
 					if (wordEnd == std::string::npos) {
 						wordEnd = trc->text.length();
 					}
-					// compute length of next word. If it doesn't fit on current line
-					// => go to next line
-
-					float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, charH2Wratio);
+					// compute length of next word
+					const float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, fontDesc);
+                    // If it doesn't fit on current line -> start new line
 					if (x + w >= trans->size.X * 0.5) {
 						newLine = true;
 					}
 					newWord = false;
 				}
-
+                // Begin new line if requested
 				if (newLine) {
 					y -= 1.2 * charHeight;
 					x = startX;
@@ -241,139 +177,209 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					  continue;
 					}
 				}
-
-
 			}
+
 			std::stringstream a;
-			char letter = trc->text[i];
-			bool inlineImage = false;
+			unsigned char letter = (unsigned char)trc->text[i];
             int skip = -1;
-			// Unicode control caracter, skipping
-			if (letter == (char)0xC3 || letter == (char)0xC2) {
-				rc->hide = true;
-				continue;
-			} else {
-				int l = (int) ((letter < 0) ? (unsigned char)letter : letter);
-				if (letter == InlineImageDelimiter) {
-                    std::string texture;
-					inlineImage = true;
-                    int next = trc->text.find(InlineImageDelimiter, i+1);
-                    parseInlineImageString(
-                        trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.X, &tc->size.Y);
-                    a << texture;
-                    tc->size.X *= charHeight;
-                    tc->size.Y *= charHeight;
-                    skip = next;
-				} else {
-					a << l << "_" << trc->fontName;
-                    tc->size = Vector2(charHeight * charH2Wratio[trc->text[i]], charHeight);
-				}
-			}
+            
+            if (letter >= 0xC2) {
+                LOG_IF(WARNING, unicode != 0) << "3+ bytes support for UTF8 not complete";
+                unicode = (letter - 0xC2) * 0x40;
+                continue;
+            } else {
+                unicode += letter;
+            }
 
-			if (trc->text[i] == ' ' || (i==length-1 && trc->caret.speed > 0 && !trc->caret.show)) {
-				rc->hide = true;
-			} else {
-				rc->texture = theRenderingSystem.loadTextureFile(a.str());
-				if (!inlineImage) rc->color = trc->color;
-				else rc->color = Color();
-			}
-            count++;
+            // Add rendering entity if needed
+            if (letterCount >= renderingEntitiesPool.size()) {
+                renderingEntitiesPool.push_back(createRenderingEntity());
+            }
+            const Entity e = renderingEntitiesPool[letterCount];
+            RenderingComponent* rc = RENDERING(e);
+            TransformationComponent* tc = TRANSFORM(e);
+            tc->parent = entity;
+            tc->z = 0.001; // put text in front
+            tc->worldPosition = trans->worldPosition;
+            rc->hide = trc->hide;
+            rc->cameraBitMask = trc->cameraBitMask;
+
+            // At this point, we have the proper unicodeId to display, 
+            // except if it's an image delimiter
+            bool inlineImage = false;
+            if (unicode == 0x00D7) {
+                size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
+                VLOG(3) << "Inline image '" << trc->text.substr(i, next - i + 1) << "'";
+                LOG_IF(ERROR, next == std::string::npos) << "Malformed string, cannot find inline image delimiter: '" << trc->text << "'";
+                std::string texture;
+                parseInlineImageString(
+                    trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.X, &tc->size.Y);
+                rc->texture = theRenderingSystem.loadTextureFile(texture);
+                rc->color = Color();
+                tc->size.X *= charHeight;
+                tc->size.Y *= charHeight;
+                inlineImage = true;
+                // skip inline image letters
+                skip = next + 1;
+            } else {
+                if (unicode > fontDesc.highestUnicode) {
+                    LOG(WARNING) << "Missing unicode char: " << unicode << "(highest one: " << fontDesc.highestUnicode << ')';
+                    unicode = 0;
+                }
+                const CharInfo& info = fontDesc.entries[unicode];
+                tc->size = Vector2(charHeight * info.h2wRatio, charHeight);
+                // if letter is space, hide it
+                if (unicode == 0x20) {
+                    rc->hide = true;
+                } else {
+                    rc->texture = info.texture;
+                    rc->color = trc->color;
+                }
+            }
+            // Advance position
+            letterCount++;
 			x += tc->size.X * 0.5;
-			tc->position = Vector2(x, y + (inlineImage ? tc->size.Y * 0.25 : 0));
+			tc->position.X = x;
+            tc->position.Y = y + (inlineImage ? tc->size.Y * 0.25 : 0);
 			x += tc->size.X * 0.5;
+            unicode = 0;
+
+            // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
-				x += charH2Wratio['a'] * charHeight * 0.75;
+				x += fontDesc.entries['a'].h2wRatio * charHeight * 0.75;
 			}
 
+            // Fastforward to skip some chars (e.g: inline image description)
             if (skip >= 0) {
                 i = skip;
             }
 		}
-		for(unsigned int i = count; i < trc->drawing.size(); i++) {
-			RENDERING(trc->drawing[i])->hide = true;
-			renderingEntitiesPool.push_back(trc->drawing[i]);
-		}
-		trc->drawing.resize(count);
 
-		if (caret) {
+        // if we appended a caret, remove it
+		if (caretInserted) {
 			trc->text.resize(trc->text.length() - 1);
 		}
 	}
+    if (renderingEntitiesPool.size() > letterCount*2) {
+        for (unsigned i=letterCount*2; i<renderingEntitiesPool.size(); i++) {
+            theEntityManager.DeleteEntity(renderingEntitiesPool[i]);
+        }
+        renderingEntitiesPool.resize(letterCount*2);
+    }
+    for (unsigned i=letterCount; i<renderingEntitiesPool.size(); i++) {
+        const Entity e = renderingEntitiesPool[i];
+        TRANSFORM(e)->parent = 0;
+        RENDERING(e)->hide =true;
+    }
 }
 
+void TextRenderingSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
+    uint32_t highestUnicode = 0;
+    std::for_each(charH2Wratio.begin(), charH2Wratio.end(),
+        [&highestUnicode] (std::pair<uint32_t, float> a) { if (a.first > highestUnicode) highestUnicode = a.first; });
 
-
-Entity TextRenderingSystem::CreateEntity()
-{
-	Entity eTime = theEntityManager.CreateEntity();
-	ADD_COMPONENT(eTime, Transformation);
-	ADD_COMPONENT(eTime, TextRendering);
-	TEXT_RENDERING(eTime)->charHeight = 0.5;
-	TEXT_RENDERING(eTime)->fontName = "typo";
-	return eTime;
+    std::string invalidChar = "00_" + fontName;
+    TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);
+    float invalidRatio = charH2Wratio.find(0)->second;
+    FontDesc font;
+    font.highestUnicode = highestUnicode;
+    font.entries = new CharInfo[highestUnicode + 1];
+    // init
+    for (unsigned i=0; i<=highestUnicode; i++) {
+        font.entries[i].texture = invalidCharTexture;
+        font.entries[i].h2wRatio = invalidRatio;
+    }
+    
+    for (std::map<uint32_t, float>::const_iterator it=charH2Wratio.begin(); it!=charH2Wratio.end(); ++it) {
+        CharInfo& info = font.entries[it->first];
+        info.h2wRatio = it->second;
+        std::stringstream ss;
+        ss.fill('0');
+        ss << std::hex << std::setw(2) << it->first << '_' << fontName;
+        info.texture = theRenderingSystem.loadTextureFile(ss.str());
+        if (info.texture == InvalidTextureRef) {
+            LOG(WARNING) << "Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'";
+        }
+    }
+    font.entries[' '].h2wRatio = font.entries['r'].h2wRatio;
+    fontRegistry[fontName] = font;
 }
 
-void TextRenderingSystem::DeleteEntity(Entity e) {
-	TextRenderingComponent* tc = TEXT_RENDERING(e);
-	if (!tc)
-		return;
-	for (unsigned int i=0; i<tc->drawing.size(); i++) {
-        TRANSFORM(tc->drawing[i])->parent = 0;
-		renderingEntitiesPool.push_back(tc->drawing[i]);
-		RENDERING(tc->drawing[i])->hide = true;
-	}
-	tc->drawing.clear();
-	theEntityManager.DeleteEntity(e);
+float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingComponent* trc) const {
+    // Lookup font description
+    std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
+    if (fontIt == fontRegistry.end()) {
+        LOG(ERROR) << "TextRendering component uses undefined font: '" << trc->fontName << "'";
+        return 0;
+    }
+    return computeStringWidth(trc, trc->charHeight, fontIt->second);
 }
 
-// MurmurHash2, by Austin Appleby
-static unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed )
-{
- // 'm' and 'r' are mixing constants generated offline.
- // They're not really 'magic', they just happen to work well.
+#ifdef INGAME_EDITORS
+void TextRenderingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
 
- const unsigned int m = 0x5bd1e995;
- const int r = 24;
+}
+#endif
 
- // Initialize the hash to a 'random' value
+static Entity createRenderingEntity() {
+    Entity e = theEntityManager.CreateEntity();
+    ADD_COMPONENT(e, Transformation);
+    ADD_COMPONENT(e, Rendering);
+    return e;
+}
 
- unsigned int h = seed ^ len;
+static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h) {
+    int idx0 = s.find(',');
+    int idx1 = s.find(',', idx0 + 1);
+    if (image)
+        *image = s.substr(0, idx0);
+    if (w)
+        *w = atof(s.substr(idx0 + 1, idx1 - idx0).c_str());
+    if (h)
+        *h = atof(s.substr(idx1 + 1, s.length() - idx1).c_str());
+}
 
- // Mix 4 bytes at a time into the hash
+static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t toInc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
+    float width = 0;
+    // If it's a number, pre-add grouping spacing
+    if (trc->flags & TextRenderingComponent::IsANumberBit) {
+        float spaceW = fontDesc.entries['a'].h2wRatio * charHeight * 0.75;
+        width += ((int) (from - toInc) / 3) * spaceW;
+    }
+    uint16_t unicode = 0;
+    for (unsigned int i=from; i<toInc; i++) {
+        unsigned char letter = (unsigned char)trc->text[i];
+        if (letter >= 0xC2) {
+            LOG_IF(WARNING, unicode != 0) << "3+ bytes support for UTF8 not complete";
+            unicode = (letter - 0xC2) * 0x40;
+            continue;
+        }
+        unicode += letter;
+        if (unicode == 0x00D7) {
+            size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
+            LOG_IF(ERROR, next == std::string::npos) << "Malformed string, cannot find inline image delimiter: '" << trc->text << "'";
+            float w = 0;
+            parseInlineImageString(
+                trc->text.substr(i+1, next - 1 - (i+1) + 1), 0, &w, 0);
+            width += w * charHeight;
+            i = next + 1;
+        } else if (unicode == '\n') {
+            
+        } else {
+            width += fontDesc.entries[unicode].h2wRatio * charHeight;
+        }
+        unicode = 0;
+    }
+    return width;
+}
 
- const unsigned char * data = (const unsigned char *)key;
+static float computeStringWidth(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
+    float width = computePartialStringWidth(trc, 0, trc->text.length(), charHeight, fontDesc);
+    VLOG(2) << "String width: '" << trc->text << "' = " << width;
+    return width;
+}
 
- while(len >= 4)
- {
-     unsigned int k = *(unsigned int *)data;
-
-     k *= m;
-     k ^= k >> r;
-     k *= m;
-
-     h *= m;
-     h ^= k;
-
-     data += 4;
-     len -= 4;
- }
-
- // Handle the last few bytes of the input array
-
- switch(len)
- {
- case 3: h ^= data[2] << 16;
- case 2: h ^= data[1] << 8;
- case 1: h ^= data[0];
-         h *= m;
- };
-
- // Do a few final mixes of the hash to ensure the last few
- // bytes are well-incorporated.
-
- h ^= h >> 13;
- h *= m;
- h ^= h >> 15;
-
- return h;
+static float computeStartX(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
+    const float result = -computeStringWidth(trc, charHeight, fontDesc) * trc->positioning;
+    return result;
 }

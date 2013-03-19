@@ -6,40 +6,62 @@
 #include <stdint.h>
 #include <iostream>
 #include <cstring>
-#include "base/Assert.h"
-#include "base/Log.h"
+#include <climits>
+
+#include "base/Entity.h"
+#include <glog/logging.h>
+
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
+#ifdef DEBUG
+#include "base/EntityManager.h"
+#endif
+#ifdef INGAME_EDITORS
+#include "libs/AntTweakBar/include/AntTweakBar.h"
+#endif
 
 // #define USE_VECTOR_STORAGE 1
-#include <climits>
 
-#include <base/EntityDef.h>
-
-#define COMPONENT(x) struct x##Component
 #define PERSISTENT_PROP
 #define RUNTIME_PROP
 
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
+#ifdef INGAME_EDITORS
 #define UPDATABLE_SYSTEM(type) \
-	class type##System : public ComponentSystemImpl<type##Component> {	\
-		public:	\
+    class type##System : public ComponentSystemImpl<type##Component> {  \
+        public: \
+            static type##System* GetInstancePointer() { return _instance; } \
+            static type##System& GetInstance() { return (*_instance); } \
+            static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
+            static void DestroyInstance() { if (_instance) delete _instance; LOG(INFO) << #type "System instance destroyed, was: " <<  _instance; _instance = NULL; } \
+            void DoUpdate(float dt); \
+            void updateEntityComponent(float dt, Entity e, type##Component* t); \
+        \
+            type##System(); \
+            void addEntityPropertiesToBar(Entity , TwBar* ); \
+        private:    \
+            static type##System* _instance;
+
+#else
+#define UPDATABLE_SYSTEM(type) \
+    class type##System : public ComponentSystemImpl<type##Component> {  \
+        public: \
             static type##System* GetInstancePointer() { return _instance; } \
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { \
 			    if (_instance != NULL) { \
-				LOGW("Creating another instance of type##System");\
+				    LOG(WARNING) << "Creating another instance of type##System";\
 			    }\
 			    _instance = new type##System();\
-			    LOGI(#type "System new instance created: %p", _instance);\
+			    LOG(INFO) << #type "System new instance created: " <<  _instance;\
 			} \
 			static void DestroyInstance() {\
 			    if (_instance)\
-				delete _instance;\
-			    LOGI(#type "System instance destroyed, was: %p", _instance);\
+				    delete _instance;\
+			    LOG(INFO) << #type "System instance destroyed, was:", _instance;\
 			    _instance = NULL;\
 			} \
 			void DoUpdate(float dt); \
@@ -118,13 +140,17 @@ class ComponentSystem {
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
-				LOGE("System with name: '%s' does not exist", n.c_str());
+                LOG(ERROR) << "System with name: '" << n << "' does not exist";
 				return 0;
 			}
 			return (*it).second;
 		}
 
 		static std::vector<std::string> registeredSystemNames();
+
+#ifdef INGAME_EDITORS
+        virtual void addEntityPropertiesToBar(Entity , TwBar* ) {}
+#endif
 
 	protected:
 		virtual void DoUpdate(float dt) = 0;
@@ -197,7 +223,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
                     if (failIfNotfound) {
-                        LOGE("Entity %lu has no component of type '%s'", entity, getName().c_str());
+                        LOG(ERROR) << "Entity '" << entity << "' has no component of type " << getName();
                         assert (false);
                     }
                     return 0;
@@ -209,7 +235,12 @@ class ComponentSystemImpl: public ComponentSystem {
                     #ifndef ANDROID
                     // crash here
                     if (failIfNotfound) {
-                        ASSERT(false, "Entity " << entity << " has no component of type: " << getName().c_str());
+                        #ifdef DEBUG
+                        LOG(FATAL) << "Entity '" << theEntityManager.entityName(entity)
+                            << "' (" << entity << ") has no component of type '" << getName();
+                        #else
+                        LOG(FATAL) << "Entity '" << entity << "' has no component of type '" << getName();
+                        #endif
                     }
                     #endif
     				return 0;

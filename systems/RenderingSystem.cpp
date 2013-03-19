@@ -1,10 +1,13 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
 #include "base/EntityManager.h"
+#include "TransformationSystem.h"
+#include "CameraSystem.h"
 #include <cmath>
 #include <sstream>
 #include "base/MathUtil.h"
-#include "base/Log.h"
+#include "util/IntersectionUtil.h"
+#include "opengl/OpenGLTextureCreator.h"
 #if defined(ANDROID) || defined(EMSCRIPTEN)
 #else
 #include <sys/inotify.h>
@@ -15,22 +18,20 @@
 #ifdef DEBUG
 #include "base/Assert.h"
 #endif
-
-RenderingSystem::InternalTexture RenderingSystem::InternalTexture::Invalid;
+#ifdef INGAME_EDITORS
+#include <AntTweakBar.h>
+#endif
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), initDone(false) {
-	nextValidRef = nextEffectRef = 1;
-	currentWriteQueue = 0;
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
+    nextValidFBRef = 1;
+    currentWriteQueue = 0;
     frameQueueWritable = true;
     newFrameReady = false;
 #ifndef EMSCRIPTEN
-    pthread_mutex_init(&mutexes[L_RENDER], 0);
-    pthread_mutex_init(&mutexes[L_QUEUE], 0);
-    pthread_mutex_init(&mutexes[L_TEXTURE], 0);
-	pthread_cond_init(&cond[0], 0);
-    pthread_cond_init(&cond[1], 0);
+    mutexes = new std::mutex[3];
+    cond = new std::condition_variable[2];
 #endif
 
     RenderingComponent tc;
@@ -46,17 +47,17 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;
+
+    renderQueue = new RenderQueue[2];
 }
 
 RenderingSystem::~RenderingSystem() {
 #ifndef EMSCRIPTEN
-    pthread_mutex_destroy(&mutexes[L_RENDER]);
-    pthread_mutex_destroy(&mutexes[L_QUEUE]);
-    pthread_mutex_destroy(&mutexes[L_TEXTURE]);
-    pthread_cond_destroy(&cond[0]);
-    pthread_cond_destroy(&cond[1]);
+    delete[] mutexes;
+    delete[] cond;
 #endif
     initDone = false;
+    delete[] renderQueue;
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
@@ -65,72 +66,23 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenW = sW;
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
-
-    if (cameras.empty()) {
-        LOGI("Create default camera");
-        // create default camera
-        cameras.push_back(Camera(Vector2::Zero, Vector2(screenW, screenH), Vector2::Zero, Vector2(1, 1)));
-    }
-}
-
-RenderingSystem::Shader RenderingSystem::buildShader(const std::string& vsName, const std::string& fsName) {
-	Shader out;
-	LOGI("building shader ...");
-	out.program = glCreateProgram();
-	check_GL_errors("glCreateProgram");
-
-	LOGI("Compiling shaders: %s/%s\n", vsName.c_str(), fsName.c_str());
-	GLuint vs = compileShader(vsName, GL_VERTEX_SHADER);
-	GLuint fs = compileShader(fsName, GL_FRAGMENT_SHADER);
-
-	GL_OPERATION(glAttachShader(out.program, vs))
-	GL_OPERATION(glAttachShader(out.program, fs))
-	LOGI("Binding GLSL attribs\n");
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_VERTEX, "aPosition"))
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_UV, "aTexCoord"))
-	GL_OPERATION(glBindAttribLocation(out.program, ATTRIB_POS_ROT, "aPosRot"))
-
-	LOGI("Linking GLSL program\n");
-	GL_OPERATION(glLinkProgram(out.program))
-
-	GLint logLength;
-	glGetProgramiv(out.program, GL_INFO_LOG_LENGTH, &logLength);
-	if (logLength > 1) {
-		char *log = new char[logLength];
-		glGetProgramInfoLog(out.program, logLength, &logLength, log);
-		LOGE("GL shader program error: '%s'", log);
-		delete[] log;
-	}
-
-	out.uniformMatrix = glGetUniformLocation(out.program, "uMvp");
-	out.uniformColorSampler = glGetUniformLocation(out.program, "tex0");
-	out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
-	out.uniformColor= glGetUniformLocation(out.program, "vColor");
-#ifdef USE_VBO
-	out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
-	out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
-	out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
-#endif
-
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-
-	return out;
+    #ifdef INGAME_EDITORS
+    TwWindowSize(width, height);
+    #endif
 }
 
 void RenderingSystem::init() {
-	const GLubyte* extensions = glGetString(GL_EXTENSIONS);
-	pvrSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+    LOG_IF(FATAL, !assetAPI) << "AssetAPI must be set before init is called";
+    OpenGLTextureCreator::detectSupportedTextureFormat();
+    textureLibrary.init(assetAPI);
+    effectLibrary.init(assetAPI);
 
-	#ifdef USE_VBO
-	defaultShader = buildShader("default_vbo.vs", "default.fs");
-	defaultShaderNoAlpha = buildShader("default_vbo.vs", "default_no_alpha.fs");
-    defaultShaderEmpty = buildShader("default_vbo.vs", "empty.fs");
-	#else
-	defaultShader = buildShader("default.vs", "default.fs");
-	defaultShaderNoAlpha = buildShader("default.vs", "default_no_alpha.fs");
-    defaultShaderEmpty = buildShader("default.vs", "empty.fs");
-	#endif
+	defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
+	defaultShaderNoAlpha = effectLibrary.load("default_no_alpha.fs");
+    defaultShaderEmpty = effectLibrary.load("empty.fs");
+
+    effectLibrary.update();
+
 	GL_OPERATION(glClearColor(148.0/255, 148.0/255, 148.0/255, 1.0)) // temp setting for RR
 
 	// create 1px white texture
@@ -144,10 +96,6 @@ void RenderingSystem::init() {
 	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
-
-    /*GL_OPERATION(glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST))
-    GL_OPERATION(glEnable(GL_CULL_FACE))
-    GL_OPERATION(glShadeModel(GL_SMOOTH))*/
 
 	// GL_OPERATION(glEnable(GL_BLEND))
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
@@ -236,9 +184,11 @@ static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos,
     r.uv[1] = size;
 }
 
-static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& c) {
-    if (c.rotation == 0) {
-        assert (c.halfSize.X != 0);
+static bool cull(const TransformationComponent* camera, RenderingSystem::RenderCommand& c) {
+    if (c.rotation == 0 && c.halfSize.X > 0) {
+        const float camLeft = camera->worldPosition.X - camera->size.X * .5f;
+        const float camRight = camera->worldPosition.X + camera->size.X * .5f;
+
         const float invWidth = 1.0f / (2 * c.halfSize.X);
         // left culling !
         {
@@ -279,34 +229,39 @@ static bool cull(float camLeft, float camRight, RenderingSystem::RenderCommand& 
 void RenderingSystem::DoUpdate(float) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
-    if (outQueue.count != 0) {
-        LOGW("Non empty queue : %d (queue=%d)", outQueue.count, currentWriteQueue);
-    }
 
-    // outQueue.commands.clear();
+    LOG_IF(WARNING, outQueue.count != 0) << "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')';
+
+    // retrieve all cameras
+    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    // remove non active ones
+    std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
+    // sort along z
+    std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
+
     outQueue.count = 0;
-    for (int camIdx = 0; camIdx<cameras.size(); camIdx++) {//cameras.size()-1; camIdx >= 0; camIdx--) {
-        const Camera& camera = cameras[camIdx];
-        if (!camera.enable)
-            continue;
+    for (unsigned idx = 0; idx<cameras.size(); idx++) {
+        const Entity camera = cameras[idx];
+        const CameraComponent* camComp = CAMERA(camera);
+        const TransformationComponent* camTrans = TRANSFORM(camera);
 
     	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
-        const float camLeft = (camera.worldPosition.X - camera.worldSize.X * 0.5);
-        const float camRight = (camera.worldPosition.X + camera.worldSize.X * 0.5);
+
     	/* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
-            bool ccc = rc->cameraBitMask & (0x1 << camIdx);
-    		if (rc->hide || rc->color.a <= 0 || !ccc) {
+            bool ccc = rc->cameraBitMask & (0x1 << camComp->id);
+    		if (rc->hide || rc->color.a <= 0 || !ccc ) {
     			continue;
     		}
 
     		const TransformationComponent* tc = TRANSFORM(a);
-            if (!isVisible(tc, camIdx)) {
+            if (!IntersectionUtil::rectangleRectangle(camTrans, tc)) {
                 continue;
             }
-		if (!tc->worldZ) LOGW("Entity %ld: RENDERING()->z = 0, entity won't be rendable", a);
-	       ASSERT(tc->worldZ >= 0 && tc->worldZ <= 1, "Entity " << a << ": rendering->z=" << tc->worldZ << " outside allowed interval [0, 1]");
-			ASSERT(tc->size != Vector2::Zero, "Null size for " << a);
+
+            #ifdef DEBUG
+            LOG_IF(WARNING, tc->worldZ <= 0 || tc->worldZ > 1) << "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn";
+            #endif
 
     		RenderCommand c;
     		c.z = tc->worldZ;
@@ -319,6 +274,7 @@ void RenderingSystem::DoUpdate(float) {
     		c.uv[0] = Vector2::Zero;
     		c.uv[1] = Vector2(1, 1);
             c.mirrorH = rc->mirrorH;
+            c.fbo = rc->fbo;
             if (rc->zPrePass) {
                 c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
@@ -327,67 +283,72 @@ void RenderingSystem::DoUpdate(float) {
                 c.flags = (DisableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
             }
 
-            if (c.texture != InvalidTextureRef) {
-                const TextureInfo& info = textures[c.texture];
-                int atlasIdx = info.atlasIndex;
-                if (atlasIdx >= 0 && atlas[atlasIdx].glref == InternalTexture::Invalid) {
-                    if (delayedAtlasIndexLoad.insert(atlasIdx).second) {
-                        LOGW("Requested effective load of atlas '%s'", atlas[atlasIdx].name.c_str());
+            if (c.texture != InvalidTextureRef && !c.fbo) {
+                const TextureInfo* info = textureLibrary.get(c.texture, false);
+                if (info) {
+                    int atlasIdx = info->atlasIndex;
+                    // If atlas texture is not loaded yet, load it
+                    if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
+                        LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
+                        atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
                     }
+
+                    // Only display the required area of the texture
+                    modifyQ(c, info->reduxStart, info->reduxSize);
+            
+                   #ifndef USE_VBO
+                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                        c.color.a >= 1 &&
+                        info->opaqueSize != Vector2::Zero &&
+                        !rc->zPrePass) {
+                        // add a smaller full-opaque block at the center
+                        RenderCommand cCenter(c);
+                        cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+                        modifyR(cCenter, info->opaqueStart, info->opaqueSize);
+
+                        if (cull(camTrans, cCenter))
+                            opaqueCommands.push_back(cCenter);
+
+                        const float leftBorder = info->opaqueStart.X, rightBorder = info->opaqueStart.X + info->opaqueSize.X;
+                        const float bottomBorder = info->opaqueStart.Y + info->opaqueSize.Y;
+                        if (leftBorder > 0) {
+                            RenderCommand cLeft(c);
+                            modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                            if (cull(camTrans, cLeft))
+                                semiOpaqueCommands.push_back(cLeft);
+                        }
+
+                        if (rightBorder < 1) {
+                            RenderCommand cRight(c);
+                            modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                            if (cull(camTrans, cRight))
+                                semiOpaqueCommands.push_back(cRight);
+                        }
+
+                        RenderCommand cTop(c);
+                        modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info->opaqueStart.Y));
+                        if (cull(camTrans, cTop))
+                            semiOpaqueCommands.push_back(cTop);
+
+                        RenderCommand cBottom(c);
+                        modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
+                        if (cull(camTrans, cBottom))
+                            semiOpaqueCommands.push_back(cBottom);
+                        continue;
+                    }
+                    #endif
                 }
-                modifyQ(c, info.reduxStart, info.reduxSize);
-                #ifndef USEE_VBO
-
-                if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
-                    c.color.a >= 1 &&
-                    info.opaqueSize != Vector2::Zero &&
-                    !rc->zPrePass) {
-                    // add a smaller full-opaque block at the center
-                    RenderCommand cCenter(c);
-                    cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
-                    modifyR(cCenter, info.opaqueStart, info.opaqueSize);
-
-                    if (cull(camLeft, camRight, cCenter))
-                        opaqueCommands.push_back(cCenter);
-
-                    const float leftBorder = info.opaqueStart.X, rightBorder = info.opaqueStart.X + info.opaqueSize.X;
-                    const float bottomBorder = info.opaqueStart.Y + info.opaqueSize.Y;
-                    if (leftBorder > 0) {
-                        RenderCommand cLeft(c);
-                        modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
-                        if (cull(camLeft, camRight, cLeft))
-                            semiOpaqueCommands.push_back(cLeft);
-                    }
-
-                    if (rightBorder < 1) {
-                        RenderCommand cRight(c);
-                        modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
-                        if (cull(camLeft, camRight, cRight))
-                            semiOpaqueCommands.push_back(cRight);
-                    }
-
-                    RenderCommand cTop(c);
-                    modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info.opaqueStart.Y));
-                    if (cull(camLeft, camRight, cTop))
-                        semiOpaqueCommands.push_back(cTop);
-
-                    RenderCommand cBottom(c);
-                    modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
-                    if (cull(camLeft, camRight, cBottom))
-                        semiOpaqueCommands.push_back(cBottom);
-                    continue;
-                }
-                #endif
-             }
+            }
 
              #ifndef USE_VBO
              if (!rc->fastCulling) {
-                if (!cull(camLeft, camRight, c)) {
+                if (!cull(camTrans, c)) {
                     continue;
                 }
              }
              #endif
-             switch (rc->opaqueType) {
+
+            switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
     	         	semiOpaqueCommands.push_back(c);
     	         	break;
@@ -395,11 +356,10 @@ void RenderingSystem::DoUpdate(float) {
     	         	opaqueCommands.push_back(c);
     	         	break;
                  default:
-                    LOGW("Entity will not be drawn");
+                    LOG(WARNING) << "Entity will not be drawn";
                     break;
-             }
+            }
         }
-
 
         outQueue.commands.resize(
             outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1);
@@ -408,12 +368,7 @@ void RenderingSystem::DoUpdate(float) {
 
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
-        dummy.halfSize = camera.worldPosition;
-        dummy.uv[0] = camera.worldSize;
-        dummy.uv[1] = camera.screenPosition;
-        dummy.position = camera.screenSize;
-        dummy.effectRef = camera.mirrorY;
-        dummy.rotateUV = cccc;
+        packCameraAttributes(camTrans, camComp, dummy);
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
         std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);//&outQueue.commands[outQueue.count]);
@@ -433,29 +388,31 @@ void RenderingSystem::DoUpdate(float) {
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
     cccc++;
-	//LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
+    //LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
     //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
 
 #ifndef EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
-    pthread_mutex_lock(&mutexes[L_RENDER]);
+    mutexes[L_RENDER].lock();
     // Lock for notifying queue change
-    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    mutexes[L_QUEUE].lock();
 #endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
 #ifndef EMSCRIPTEN
-    pthread_cond_signal(&cond[C_FRAME_READY]);
-    pthread_mutex_unlock(&mutexes[L_QUEUE]);
-    pthread_mutex_unlock(&mutexes[L_RENDER]);
+    cond[C_FRAME_READY].notify_all();
+    mutexes[L_QUEUE].unlock();
+    mutexes[L_RENDER].unlock();
 #endif
 }
 
 bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
-	return isVisible(TRANSFORM(e), cameraIndex);
+    return isVisible(TRANSFORM(e), cameraIndex);
 }
 
 bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) const {
+    return true;
+    #if 0
     if (cameraIndex < 0) {
         for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
             if (isVisible(tc, camIdx)) {
@@ -474,68 +431,40 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 	if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
 	if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
 	return true;
+    #endif
 }
 
 int RenderingSystem::saveInternalState(uint8_t** out) {
 	int size = 0;
-    size += sizeof(int) + cameras.size() * sizeof(Camera);
-	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
-		size += (*it).first.length() + 1;
-		size += sizeof(TextureRef);
-		size += sizeof(TextureInfo);
-	}
+    LOG(WARNING) << "TODO";
+    #if 0
+    for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+        size += (*it).first.length() + 1;
+        size += sizeof(TextureRef);
+        size += sizeof(TextureInfo);
+    }
 
 	*out = new uint8_t[size];
 	uint8_t* ptr = *out;
-    int camCount = cameras.size();
-    LOGI("Will save %d cameras", camCount);
-    ptr = (uint8_t*) mempcpy(ptr, &camCount, sizeof(int));
-    for (int i=0; i<camCount; i++) {
-        const Camera& cam = cameras[i];
-        ptr = (uint8_t*) mempcpy(ptr, &cam, sizeof(Camera));
-        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d",
-            i,
-            cam.worldPosition.X, cam.worldPosition.Y,
-            cam.worldSize.X, cam.worldSize.Y,
-            cam.screenPosition.X, cam.screenPosition.Y,
-            cam.screenSize.X, cam.screenSize.Y,
-            cam.enable, cam.mirrorY
-            );
-    }
+
 	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
 		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
 		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
 		ptr = (uint8_t*) mempcpy(ptr, &(textures[it->second]), sizeof(TextureInfo));
 	}
+    #endif
 	return size;
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
+    LOG(WARNING) << "TODO";
+    #if 0
 	assetTextures.clear();
 	textures.clear();
 	nextValidRef = 1;
 	nextEffectRef = 1;
 	int idx = 0;
-    int camCount = 0;
-    LOGI("Clearing cameras");
-    cameras.clear();
-    memcpy(&camCount, &in[idx], sizeof(int));
-    LOGI("Will restore %d cameras", camCount);
-    idx += sizeof(int);
-    for (int i=0; i<camCount; i++) {
-        Camera cam;
-        memcpy(&cam, &in[idx], sizeof(Camera));
-        idx += sizeof(Camera);
-        cameras.push_back(cam);
-        LOGI("\t - cam #%d : {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} {%.3f,%.3f} %d %d",
-            i,
-            cam.worldPosition.X, cam.worldPosition.Y,
-            cam.worldSize.X, cam.worldSize.Y,
-            cam.screenPosition.X, cam.screenPosition.Y,
-            cam.screenSize.X, cam.screenSize.Y,
-            cam.enable, cam.mirrorY
-            );
-    }
+
 	while (idx < size) {
 		char name[128];
 		int i=0;
@@ -561,55 +490,113 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 		++it) {
 		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
 	}
-}
-
-EffectRef RenderingSystem::loadEffectFile(const std::string& assetName) {
-	EffectRef result = DefaultEffectRef;
-	std::string name(assetName);
-
-	if (nameToEffectRefs.find(name) != nameToEffectRefs.end()) {
-		result = nameToEffectRefs[name];
-		return result;
-	} else {
-		result = nextEffectRef++;
-		nameToEffectRefs[name] = result;
-	}
-
-	#ifdef USE_VBO
-	ref2Effects[result] = buildShader("default_vbo.vs", assetName);
-	#else
-	ref2Effects[result] = buildShader("default.vs", assetName);
-	#endif
-
-	return result;
-}
-
-void RenderingSystem::reloadEffects() {
-	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
-		it != nameToEffectRefs.end();
-		++it) {
-		#ifdef USE_VBO
-		ref2Effects[it->second] = buildShader("default_vbo.vs", it->first);
-		#else
-		ref2Effects[it->second] = buildShader("default.vs", it->first);
-		#endif
-	}
+    #endif
 }
 
 void RenderingSystem::setFrameQueueWritable(bool b) {
     if (frameQueueWritable == b || !initDone)
         return;
-    LOGI("Writable: %d", b);
+    LOG(INFO) << "Writable: " << b;
 #ifndef EMSCRIPTEN
-    pthread_mutex_lock(&mutexes[L_QUEUE]);
+    mutexes[L_QUEUE].lock();
 #endif
     frameQueueWritable = b;
 #ifndef EMSCRIPTEN
-    pthread_cond_signal(&cond[C_FRAME_READY]);
-    pthread_mutex_unlock(&mutexes[L_QUEUE]);
+    cond[C_FRAME_READY].notify_all();
+    mutexes[L_QUEUE].unlock();
 
-    pthread_mutex_lock(&mutexes[L_RENDER]);
-    pthread_cond_signal(&cond[C_RENDER_DONE]);
-    pthread_mutex_unlock(&mutexes[L_RENDER]);
+    mutexes[L_RENDER].lock();
+    cond[C_RENDER_DONE].notify_all();
+    mutexes[L_RENDER].unlock();
 #endif
 }
+
+FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int width, int height) {
+    Framebuffer fb;
+    fb.width = width;
+    fb.height = height;
+
+    // create a texture object
+    glGenTextures(1, &fb.texture);
+    glBindTexture(GL_TEXTURE_2D, fb.texture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // create a renderbuffer object to store depth info
+    glGenRenderbuffers(1, &fb.rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb.rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // create a framebuffer object
+    glGenFramebuffers(1, &fb.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
+
+    // attach the texture to FBO color attachment point
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
+    // attach the renderbuffer to depth attachment point
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb.rbo);
+
+    // check FBO status
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if(status != GL_FRAMEBUFFER_COMPLETE)
+        LOG(FATAL) << "FBO not complete: " << status;
+
+    // switch back to window-system-provided framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    FramebufferRef result = nextValidFBRef++;
+    nameToFramebuffer[name] = result;
+    ref2Framebuffers[result] = fb;
+    return result;
+}
+
+FramebufferRef RenderingSystem::getFramebuffer(const std::string& fbName) const {
+    std::map<std::string, FramebufferRef>::const_iterator it = nameToFramebuffer.find(fbName);
+    if (it == nameToFramebuffer.end())
+        LOG(FATAL) << "Framebuffer '" << fbName << "' does not exist";
+    return it->second;
+}
+
+void packCameraAttributes(
+    const TransformationComponent* cameraTrans,
+    const CameraComponent* cameraComp,
+    RenderingSystem::RenderCommand& out) {
+    out.uv[0] = cameraTrans->worldPosition;
+    out.uv[1] = cameraTrans->size;
+    out.z = cameraTrans->worldRotation;
+
+    out.rotateUV = cameraComp->fb;
+    out.color = cameraComp->clearColor;
+}
+
+void unpackCameraAttributes(
+    const RenderingSystem::RenderCommand& in,
+    TransformationComponent* camera,
+    CameraComponent* ccc) {
+    camera->worldPosition = in.uv[0];
+    camera->size = in.uv[1];
+    camera->worldRotation = in.z;
+
+    ccc->fb = in.rotateUV;
+    ccc->clearColor = in.color;
+}
+
+#ifdef INGAME_EDITORS
+void RenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    RenderingComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "color", TW_TYPE_COLOR4F, &tc->color, "group=Rendering");
+    TwAddVarRW(bar, "hide", TW_TYPE_BOOLCPP, &tc->hide, "group=Rendering");
+    TwEnumVal opa[] = { {RenderingComponent::NON_OPAQUE, "NonOpaque"}, {RenderingComponent::FULL_OPAQUE, "Opaque"} };
+    TwType op = TwDefineEnum("OpaqueType", opa, 2);
+    TwAddVarRW(bar, "opaque", op, &tc->opaqueType, "group=Rendering");
+    TwAddVarRW(bar, "effect", TW_TYPE_INT32, &tc->effectRef, "group=Rendering");
+    TwAddVarRW(bar, "texture", TW_TYPE_INT32, &tc->texture, "group=Rendering");
+}
+#endif

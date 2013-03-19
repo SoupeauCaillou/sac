@@ -1,18 +1,19 @@
 #pragma once
 
 #include "../CommunicationAPI.h"
+#include <glog/logging.h>
 
 class CommunicationAPILinuxImpl : public CommunicationAPI {
 	public:
-		bool swarmInstalled() { LOGI("please enable swarm !"); return false; }
-		void swarmRegistering() { LOGI("swarm registered"); }
+		bool swarmInstalled() { VLOG(1) << "please enable swarm !"; return false; }
+		void swarmRegistering() { VLOG(1) << "swarm registered"; }
 
 		void giftizMissionDone() { }
 		int  giftizGetButtonState() { return ((int)TimeUtil::getTime()) % 4; }
 		void giftizButtonClicked() { }
 
-		void shareFacebook() { LOGI("facebook share"); }
-		void shareTwitter() { LOGI("twitter share"); }
+		void shareFacebook() { VLOG(1) << "facebook share"; }
+		void shareTwitter() { VLOG(1) << "twitter share"; }
 
 		bool mustShowRateDialog() { return true; }
 		void rateItNow() {  }

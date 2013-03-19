@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <fstream>
 #include <pthread.h>
-#include "Log.h"
+#include <glog/logging.h>
 static Json::Value* root;
 static pthread_mutex_t mutex;
 static bool started;
@@ -53,7 +53,7 @@ void startProfiler() {
 	pthread_mutex_lock(&mutex);
 	if (started)
 		return;
-	LOGI("Start profiler");
+	LOG(INFO) << "Start profiler";
 	root->clear();
 	started = true;
 	pthread_mutex_unlock(&mutex);
@@ -63,7 +63,7 @@ void stopProfiler(const std::string& filename) {
 	pthread_mutex_lock(&mutex);
 	if (!started)
 		return;
-	LOGI("Stop profiler, saving to: %s", filename.c_str());
+    LOG(INFO) << "Stop profiler, saving to: " << filename;
 	std::ofstream out(filename.c_str());
 	out << *root;
 	started = false;

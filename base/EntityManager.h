@@ -1,11 +1,17 @@
 #pragma once
 
-#include "systems/System.h"
+#include "Entity.h"
 #define theEntityManager (*EntityManager::Instance())
 
 #include <map>
 #include <list>
+#include <vector>
+#ifdef DEBUG
+#include <string>
+#endif
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
+
+class ComponentSystem;
 
 namespace EntityType {
     enum Enum {
@@ -23,8 +29,13 @@ class EntityManager {
 		static void DestroyInstance();
 
 	public:
-		Entity CreateEntity(EntityType::Enum type = EntityType::Volatile);
-		void DeleteEntity(Entity e);
+		Entity CreateEntity(const std::string&
+        #ifdef DEBUG
+            name = "noname"
+        #endif
+            , EntityType::Enum type = EntityType::Volatile);
+
+    	void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system);
 		void deleteAllEntities();
 		std::vector<Entity> allEntities();
@@ -32,9 +43,18 @@ class EntityManager {
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
+        #ifdef DEBUG
+        const std::string& entityName(Entity e) const;
+        #endif
+        
+        int getNumberofEntity() {return entityComponents.size();}
+        
 	private:
 		unsigned long nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
+        #ifdef DEBUG
+        std::map<std::string, Entity> name2entity;
+        #endif
 };
 
 #if defined(ANDROID) ||defined(EMSCRIPTEN)

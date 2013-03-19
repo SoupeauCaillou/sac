@@ -1,98 +1,65 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
+#include "CameraSystem.h"
+#include "TransformationSystem.h"
 #include "base/EntityManager.h"
 #include <cmath>
 #include <cassert>
 #include <sstream>
-#include <pthread.h>
-
-void RenderingSystem::check_GL_errors(const char* context) {
-	 int maxIterations=10;
-    GLenum error;
-    while (((error = glGetError()) != GL_NO_ERROR) && maxIterations > 0)
-    {
-        switch(error)
-        {
-            case GL_INVALID_ENUM:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_ENUM\n", maxIterations, context); break;
-            case GL_INVALID_VALUE:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_VALUE\n", maxIterations, context); break;
-            case GL_INVALID_OPERATION:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_OPERATION\n", maxIterations, context); break;
-            case GL_OUT_OF_MEMORY:
-            	LOGE("[%2d]GL error: '%s' -> GL_OUT_OF_MEMORY\n", maxIterations, context); break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-            	LOGE("[%2d]GL error: '%s' -> GL_INVALID_FRAMEBUFFER_OPERATION\n", maxIterations, context); break;
-            default:
-            	LOGE("[%2d]GL error: '%s' -> %x\n", maxIterations, context, error);
-        }
-		  maxIterations--;
-    }
-}
-
-GLuint RenderingSystem::compileShader(const std::string& assetName, GLuint type) {
-    LOGI("Compiling '%s' shader...", assetName.c_str());
-	FileBuffer fb = assetAPI->loadAsset(assetName);
-	GLuint shader = glCreateShader(type);
-	GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, &fb.size))
-	GL_OPERATION(glCompileShader(shader))
-
-	delete[] fb.data;
-  	GLint logLength;
-   GL_OPERATION(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength))
-    if (logLength > 1)
-    {
-        char *log = new char[logLength];
-        GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
-        LOGE("GL shader error: %s\n", log);
- 		delete[] log;
-    }
-
-   if (!glIsShader(shader)) {
-   	LOGW("Weird; %d is not a shader", shader);
-   }
-	return shader;
-}
+#ifdef INGAME_EDITORS
+#include <AntTweakBar.h>
+#include "util/LevelEditor.h"
+#endif
 
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
 
 bool firstCall;
+
+RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo) {
+    if (useFbo) {
+        RenderingSystem::Framebuffer b = ref2Framebuffers[fbo];
+        return std::make_pair(b.texture, b.texture);
+    } else {
+        return std::make_pair(tex.color, tex.alpha);
+    }
+} 
+
 #ifdef USE_VBO
 #define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
-static int drawBatchES2(const RenderingSystem::InternalTexture& glref, bool rotateUV, int batchSize) {
+static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, bool rotateUV, int batchSize) {
 #else
 #define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, vert, uv, indices, batchSize)
-static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
+static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
 #endif
     if (batchSize > 0)
     {
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
-    	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.color))
+    	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
 
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
     	if (firstCall) {
     		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
     	} else {
             GL_OPERATION(glActiveTexture(GL_TEXTURE1))
-    		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.alpha))
+    		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
     	}
 
     #ifdef USE_VBO
     	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
 
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
 
     	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
     #else
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_VERTEX))
-    	GL_OPERATION(glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
-    	GL_OPERATION(glEnableVertexAttribArray(ATTRIB_UV))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
+    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
 
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
 #endif
@@ -101,11 +68,10 @@ static int drawBatchES2(const RenderingSystem::InternalTexture& glref, const GLf
 }
 
 #ifdef USE_VBO
-static inline void computeUV(RenderingSystem::RenderCommand& rc, const RenderingSystem::TextureInfo& info, GLint unif) {
+static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info, GLint unif) {
 #else
-static inline void computeUV(RenderingSystem::RenderCommand& rc, const RenderingSystem::TextureInfo& info) {
+static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
 #endif
-     rc.glref = info.glref;
      Vector2 offset(rc.uv[0]);
      Vector2 scale(rc.uv[1]);
      const Vector2 uvS (info.uv[1] - info.uv[0]);
@@ -146,10 +112,10 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     float hH = 0.5 * screenH;
     GLfloat mat[16];
     RenderingSystem::loadOrthographicMatrix(
-        -hW - rc.position.X + camera.worldPosition.X,
-        hW - rc.position.X + camera.worldPosition.X,
-        -hH - rc.position.Y + camera.worldPosition.Y,
-        hH - rc.position.Y + camera.worldPosition.Y,
+        -hW - rc.position.X, // + camera.worldPosition.X,
+        hW - rc.position.X, // + camera.worldPosition.X,
+        -hH - rc.position.Y, // + camera.worldPosition.Y,
+        hH - rc.position.Y, // + camera.worldPosition.Y,
         0, 1, mat);
     GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
     float scaleZ[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y, rc.z };
@@ -185,18 +151,22 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const Camera& camera, bool colorEnabled) {
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled) {
 	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled);
 	GL_OPERATION(glUseProgram(shader.program))
-	GLfloat mat[16];
+	GLfloat mat[16], camera[3];
 
 #ifndef USE_VBO
-    const float left = (-camera.worldSize.X * 0.5 + camera.worldPosition.X);
-    const float right = (camera.worldSize.X * 0.5 + camera.worldPosition.X);
-    const float bottom = (-camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
-    const float top = (camera.worldSize.Y * 0.5 + camera.worldPosition.Y);
-	loadOrthographicMatrix(left, right, camera.mirrorY ? top : bottom, camera.mirrorY ? bottom : top, 0, 1, mat);
+    const float left = (-cameraTransf.size.X * 0.5);
+    const float right = (cameraTransf.size.X * 0.5);
+    const float bottom = (-cameraTransf.size.Y * 0.5);
+    const float top = (cameraTransf.size.Y * 0.5);
+	loadOrthographicMatrix(left, right, bottom /*camera.mirrorY ? top : bottom*/, top /*camera.mirrorY ? bottom : top*/, 0, 1, mat);
 	GL_OPERATION(glUniform1fv(shader.uniformMatrix, 6, mat))
+    camera[0] = cameraTransf.worldPosition.X;
+    camera[1] = cameraTransf.worldPosition.Y;
+    camera[2] = cameraTransf.worldRotation;
+    GL_OPERATION(glUniform3fv(shader.uniformCamera, 1, camera))
 #endif
 
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
@@ -214,16 +184,21 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
 	static unsigned short indices[MAX_BATCH_SIZE * 6];
-    Camera camera;
+    struct {
+        TransformationComponent worldPos;
+        CameraComponent cameraAttr;
+    } camera;
 	int batchSize = 0;
     GL_OPERATION(glDepthMask(true))
-    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+    
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid;
+    FramebufferRef fboRef = DefaultFrameBufferRef;
 	Color currentColor(1,1,1,1);
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
     int currentFlags = 0;
+    bool useFbo = false;
 
 	EffectRef currentEffect = InvalidTextureRef;
     const unsigned count = commands.count;
@@ -232,7 +207,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // HANDLE BEGIN/END FRAME MARKERS
         if (rc.texture == BeginFrameMarker) {
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 
             #ifdef ENABLE_PROFILING
             std::stringstream framename;
@@ -241,22 +216,25 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #endif
 
             firstCall = true;
-            camera.worldPosition = rc.halfSize;
-            camera.worldSize = rc.uv[0];
-            camera.screenPosition = rc.uv[1];
-            camera.screenSize = rc.position;
-            camera.mirrorY = rc.effectRef;
+            unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
 
-			GL_OPERATION(glViewport(
-		        (camera.screenPosition.X - camera.screenSize.X * 0.5 + 0.5) * windowW,
-		        (camera.screenPosition.Y - camera.screenSize.Y * 0.5 + 0.5) * windowH,
-		        windowW * camera.screenSize.X, windowH * camera.screenSize.Y))
+            FramebufferRef fboRef = camera.cameraAttr.fb;
+            if (fboRef == DefaultFrameBufferRef) {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                GL_OPERATION(glViewport(0, 0, windowW, windowH))
+            } else {
+                const Framebuffer& fb = ref2Framebuffers[fboRef];
+                glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
+                GL_OPERATION(glViewport(0, 0, fb.width, fb.height))
+            }
 
             // setup initial GL state
-            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
+            GL_OPERATION(glClearColor(camera.cameraAttr.clearColor.r, camera.cameraAttr.clearColor.g, camera.cameraAttr.clearColor.b, camera.cameraAttr.clearColor.a))
+            GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
             currentFlags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
             continue;
         } else if (rc.texture == EndFrameMarker) {
@@ -266,7 +244,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
             // flush batch before changing state
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
             if (rc.flags & EnableZWriteBit) {
                 GL_OPERATION(glDepthMask(true))
             } else if (rc.flags & DisableZWriteBit) {
@@ -275,7 +253,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 firstCall = false;
                 GL_OPERATION(glEnable(GL_BLEND))
                 if (currentEffect == DefaultEffectRef) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
                 }
             } else if (rc.flags & DisableBlendingBit) {
                  GL_OPERATION(glDisable(GL_BLEND))
@@ -283,14 +261,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 GL_OPERATION(glColorMask(true, true, true, true))
                 if (!(currentFlags & EnableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
                     }
                 }
             } else if (rc.flags & DisableColorWriteBit) {
                 GL_OPERATION(glColorMask(false, false, false, false))
                 if (!(currentFlags & DisableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera, false);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos, false);
                     }
                 }
             }
@@ -299,18 +277,31 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // EFFECT HAS CHANGED ?
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
-			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera, currentFlags & EnableColorWriteBit);
+			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera.worldPos, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING
 		if (rc.texture != InvalidTextureRef) {
-            const TextureInfo& info = textures[rc.texture];
-            #ifdef USE_VBO
-            computeUV(rc, info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
-            #else
-            computeUV(rc, info);
-            #endif
+            if (!rc.fbo) {
+                const TextureInfo* info = textureLibrary.get(rc.texture, false);
+                LOG_IF(FATAL, info == 0) << "Invalid texture " << rc.texture << " : can not be found";
+                if (info->atlasIndex >= 0) {
+                    LOG_IF(FATAL, (unsigned)info->atlasIndex >= atlas.size()) << "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size();
+                    rc.glref = textureLibrary.get(atlas[info->atlasIndex].ref, false)->glref;
+                } else {
+                    rc.glref = info->glref;
+                }
+                #ifdef USE_VBO
+                computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
+                #else
+                computeUV(rc, *info);
+                #endif
+            } else {
+                rc.uv[0] = Vector2(0, 1);
+                rc.uv[1] = Vector2(1, 0);
+                rc.rotateUV = 0;
+            }
 		} else {
 			rc.glref = InternalTexture::Invalid;
 			rc.glref.color = whiteTexture;
@@ -327,10 +318,17 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // TEXTURE OR COLOR HAS CHANGED ?
-		if (boundTexture != rc.glref || currentColor != rc.color) {
+		if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
             // flush before changing texture/color
-			batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
-			boundTexture = rc.glref;
+			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+            if (rc.fbo) {
+                fboRef = rc.framebuffer;
+                boundTexture = InternalTexture::Invalid;
+            } else {
+                fboRef = DefaultFrameBufferRef;
+                boundTexture = rc.glref;
+            }
+			useFbo = rc.fbo;
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
 	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformColor, 1, currentColor.rgba))
@@ -346,10 +344,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
-            batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, rc.rotateUV);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, rc.rotateUV);
 		}
 	}
-    batchSize = DRAW(boundTexture, vertices, uvs, indices, batchSize, false);
+    batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 }
 #include <errno.h>
 
@@ -357,10 +355,10 @@ void RenderingSystem::waitDrawingComplete() {
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
-    pthread_mutex_lock(&mutexes[L_RENDER]);
+    std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
     while (renderQueue[readQueue].count > 0 && frameQueueWritable)
-        pthread_cond_wait(&cond[C_RENDER_DONE], &mutexes[L_RENDER]);
-    pthread_mutex_unlock(&mutexes[L_RENDER]);
+        cond[C_RENDER_DONE].wait(lock);
+    lock.unlock();
     PROFILE("Renderer", "wait-drawing-donE", EndEvent);
 #endif
 }
@@ -371,25 +369,27 @@ void RenderingSystem::render() {
 #endif
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
-    pthread_mutex_lock(&mutexes[L_QUEUE]);
+
+    std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);
+    // processDelayedTextureJobs();
     while (!newFrameReady && frameQueueWritable) {
-        pthread_cond_wait(&cond[C_FRAME_READY], &mutexes[L_QUEUE]);
+        cond[C_FRAME_READY].wait(lock);
     }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
     //float frameready = TimeUtil::getTime();
 #endif
     if (!frameQueueWritable) {
-        LOGI("Rendering disabled");
+        LOG(INFO) << "Rendering disabled";
         #ifndef EMSCRIPTEN
-        pthread_mutex_unlock(&mutexes[L_QUEUE]);
+        lock.unlock();
         #endif
         return;
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
 #ifndef EMSCRIPTEN
-    pthread_mutex_unlock(&mutexes[L_QUEUE]);
+    lock.unlock();
     PROFILE("Renderer", "wait-frame", EndEvent);
 #endif
     PROFILE("Renderer", "load-textures", BeginEvent);
@@ -399,10 +399,9 @@ void RenderingSystem::render() {
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
 #ifndef EMSCRIPTEN
-	if (pthread_mutex_trylock(&mutexes[L_RENDER]) != 0) {
-		LOGW("HMM Busy render lock");
-		pthread_mutex_lock(&mutexes[L_RENDER]);
-	}
+    if (!mutexes[L_RENDER].try_lock()) {
+        VLOG(1) << "HMM Busy render lock";
+    }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
     float ppp = TimeUtil::getTime();
@@ -417,17 +416,22 @@ void RenderingSystem::render() {
 #endif
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
-        LOGW("Arg, nothing to render - probably a bug (queue=%d)", readQueue);
+        LOG(WARNING) << "Arg, nothing to render - probably a bug (queue=" << readQueue << ')';
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
 #ifndef EMSCRIPTEN
-    pthread_cond_signal(&cond[C_RENDER_DONE]);
-    pthread_mutex_unlock(&mutexes[L_RENDER]);
+    cond[C_RENDER_DONE].notify_all();
+    mutexes[L_RENDER].unlock();
 #endif
 	PROFILE("Renderer", "render", EndEvent);
+    #ifdef INGAME_EDITORS
+    LevelEditor::lock();
+    TwDraw();
+    LevelEditor::unlock();
+    #endif
 }
 
 static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
@@ -484,10 +488,9 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
 #endif
 }
 
-const RenderingSystem::Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
+const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
 	if (ref == DefaultEffectRef) {
-		return colorEnabled ? (firstCall ? defaultShaderNoAlpha : defaultShader) : defaultShaderEmpty;
-	} else {
-		return ref2Effects[ref];
+		ref = (colorEnabled ? (firstCall ? defaultShaderNoAlpha : defaultShader) : defaultShaderEmpty);
 	}
+	return *effectLibrary.get(ref, false);
 }

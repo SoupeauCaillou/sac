@@ -1,4 +1,5 @@
 #include "TransformationSystem.h"
+#include <set>
 
 INSTANCE_IMPL(TransformationSystem);
 
@@ -11,27 +12,40 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
     componentSerializer.add(new Property<float>(OFFSET(z, tc), 0.001));
 }
 
+
+struct CompareParentChain {
+    bool operator() (TransformationComponent* t1, TransformationComponent* t2) const {
+        if (t1->parent == t2->parent) {
+            return (t1 < t2);
+        } else if (t1->parent && t2->parent) {
+            return operator()(TRANSFORM(t1->parent), TRANSFORM(t2->parent));
+        } else if (t1->parent) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+};
+
 void TransformationSystem::DoUpdate(float) {
-	//update orphans first
+    std::set<TransformationComponent*, CompareParentChain> cp;
+
+    // sort all, root node first
     FOR_EACH_COMPONENT(Transformation, bc)
-		if (!bc->parent) {
-			bc->worldPosition = bc->position;
-			bc->worldRotation = bc->rotation;
-            bc->worldZ = bc->z;
-		}
-	}
-	//copy parent property to its sons
-    FOR_EACH_COMPONENT(Transformation, bc)
-		Entity parent = bc->parent;
-		if (parent) {
-			while (TRANSFORM(parent)->parent) {
-				parent = TRANSFORM(parent)->parent;
-			}
-			const TransformationComponent* pbc = TRANSFORM(bc->parent);
-			bc->worldPosition = pbc->worldPosition + Vector2::Rotate(bc->position, pbc->worldRotation);
-			bc->worldRotation = pbc->worldRotation + bc->rotation;
-            bc->worldZ = pbc->worldZ + bc->z;
-		}
+        cp.insert(bc);
+    }
+
+    for (auto trans: cp) {
+        if (!trans->parent) {
+            trans->worldPosition = trans->position;
+            trans->worldRotation = trans->rotation;
+            trans->worldZ = trans->z;
+        } else {
+            const TransformationComponent* pbc = TRANSFORM(trans->parent);
+            trans->worldPosition = pbc->worldPosition + Vector2::Rotate(trans->position, pbc->worldRotation);
+            trans->worldRotation = pbc->worldRotation + trans->rotation;
+            trans->worldZ = pbc->worldZ + trans->z;
+        }
     }
 }
 
@@ -73,3 +87,23 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const Vector
 			break;
 	}
 }
+
+#ifdef INGAME_EDITORS
+void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    TransformationComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "size.X", TW_TYPE_FLOAT, &tc->size.X, "group=Transformation precision=3 step=0,01");
+    TwAddVarRW(bar, "size.Y", TW_TYPE_FLOAT, &tc->size.Y, "group=Transformation precision=3 step=0,01"); 
+    TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.X, "group=local precision=3 step=0,01");
+    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.Y, "group=local precision=3 step=0,01"); 
+    TwAddVarRW(bar, "rotation", TW_TYPE_FLOAT, &tc->rotation, "group=local step=0,01 precision=3");
+    TwAddVarRW(bar, "Z", TW_TYPE_FLOAT, &tc->z, "group=local precision=3 step=0,01");
+    TwAddVarRO(bar, "_position.X", TW_TYPE_FLOAT, &tc->worldPosition.X, "group=world precision=3");
+    TwAddVarRO(bar, "_position.Y", TW_TYPE_FLOAT, &tc->worldPosition.Y, "group=world precision=3"); 
+    TwAddVarRO(bar, "_rotation", TW_TYPE_FLOAT, &tc->worldRotation, "group=world step=0,05 precision=3");
+    TwAddVarRO(bar, "_Z", TW_TYPE_FLOAT, &tc->worldZ, "group=world precision=3");
+    std::stringstream groups;
+    groups << TwGetBarName(bar) << '/' << "local group=Transformation\t\n" << TwGetBarName(bar) << '/' << "world group=Transformation";
+    TwDefine(groups.str().c_str());
+}
+#endif

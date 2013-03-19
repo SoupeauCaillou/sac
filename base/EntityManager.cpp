@@ -1,5 +1,6 @@
 #include "EntityManager.h"
 #include "MathUtil.h"
+#include "systems/System.h"
 #include <cstring>
 
 #if defined(ANDROID) || defined(EMSCRIPTEN)
@@ -16,7 +17,7 @@ EntityManager* EntityManager::instance = 0;
 EntityManager::EntityManager() : nextEntity(1) {
 	EntityTypeMask = 1;
 	EntityTypeMask <<= (sizeof(Entity) * 8 - 1);
-	LOGI("EntityTypeMask: %lx (sizeof Entity: %lu, %lu)", EntityTypeMask, sizeof(Entity), sizeof(Entity) * 8 - 1);
+	VLOG(1) << "EntityTypeMask: " << EntityTypeMask << " (sizeof Entity: " << sizeof(Entity) << ", " <<  (sizeof(Entity) * 8 - 1);
 }
 
 EntityManager* EntityManager::Instance() {
@@ -24,8 +25,7 @@ EntityManager* EntityManager::Instance() {
 }
 
 void EntityManager::CreateInstance() {
-	if (instance)
-		LOGW("Recreating EntityManager");
+	CHECK (instance == 0) << "Recreating EntityManager";
 	instance = new EntityManager;
 }
 
@@ -34,7 +34,11 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(EntityType::Enum type) {
+Entity EntityManager::CreateEntity(const std::string&
+        #ifdef DEBUG
+            name
+        #endif
+        , EntityType::Enum type) {
 	Entity e = nextEntity++;
 
 	switch (type) {
@@ -46,8 +50,33 @@ Entity EntityManager::CreateEntity(EntityType::Enum type) {
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
+    #ifdef DEBUG
+    if (name2entity.find(name) == name2entity.end()) {
+        name2entity.insert(std::make_pair(name, e));
+    } else {
+        std::stringstream namesuffix;
+        namesuffix << name;
+        do {
+            namesuffix << MathUtil::RandomInt(10);
+        } while (name2entity.find(namesuffix.str()) != name2entity.end());
+        name2entity.insert(std::make_pair(namesuffix.str(), e));
+    }
+    #endif
 	return e;
 }
+
+#ifdef DEBUG
+const std::string& EntityManager::entityName(Entity e) const {
+    for (std::map<std::string, Entity>::const_iterator it=name2entity.begin();
+        it!=name2entity.end(); ++it) {
+        if (e == it->second)
+            return it->first;
+    }
+    LOG(WARNING) << "Unknown entity: " << e;
+    static std::string u("unknown");
+    return u;
+}
+#endif
 
 void EntityManager::DeleteEntity(Entity e) {
 	std::list<ComponentSystem*>& l = entityComponents[e];
@@ -56,6 +85,9 @@ void EntityManager::DeleteEntity(Entity e) {
 		(*it)->Delete(e);
 	}
 	entityComponents.erase(e);
+    #ifdef DEBUG
+    name2entity.erase(entityName(e));
+    #endif
 }
 
 void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
@@ -144,7 +176,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		memcpy(&e, &in[index], sizeof(e)); index += sizeof(e);
 
 		if (!(e & EntityTypeMask)) {
-			LOGW("EntityManager deserializing a non-persistent entity");
+			LOG(WARNING) << "EntityManager deserializing a non-persistent entity";
 		}
 
 		int cCount = 0;
@@ -160,7 +192,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			}
 			ComponentSystem* system = ComponentSystem::Named(tmp);
 			if (system == 0) {
-				LOGE("Failed to properly restore state: index=%d/%d i=%d/%d entity=%lu", index, length, i, cCount, e & ~EntityTypeMask );
+				LOG(ERROR) << "Failed to properly restore state: index=" << index << '/' << length << " i=" << i << "/" << cCount << ", entity=" << (e & ~EntityTypeMask);
 			}
 			int size = 0;
 			memcpy(&size, &in[index], sizeof(int)); index += sizeof(int);
@@ -172,7 +204,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			l.push_back(system);
 		}
 		entityComponents[e] = l;
-        LOGI(" - restored entite '%lu' with %lu components", e & ~EntityTypeMask, l.size());
+        VLOG(1) << " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components";
 		nextEntity = MathUtil::Max(nextEntity, e + 1);
 	}
 }

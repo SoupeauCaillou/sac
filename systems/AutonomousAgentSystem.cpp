@@ -47,3 +47,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 		PHYSICS(e)->forces.push_back(std::make_pair(Force(force * MathUtil::Min(norm, agent->maxForce), Vector2::Zero), dt));
 	}
 }
+
+#ifdef INGAME_EDITORS
+void AutonomousAgentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif
+

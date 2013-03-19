@@ -4,16 +4,18 @@
 
 struct AutoDestroyComponent {
     AutoDestroyComponent() {
-        params.lifetime.value = params.lifetime.accum = 0;
-        params.lifetime.map2AlphaRendering = params.lifetime.map2AlphaTextRendering = false;
+        memset(&params, 0, sizeof(params));
         hasTextRendering = false;
     }
     enum {
-        OUT_OF_SCREEN,
+        OUT_OF_AREA,
         LIFETIME
     } type;
 
     union {
+        struct {
+            float x,y,w,h;
+        } area;
         struct {
             float value, accum;
             bool map2AlphaRendering, map2AlphaTextRendering;

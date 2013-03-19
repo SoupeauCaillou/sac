@@ -83,7 +83,12 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		// rc->color = debugColors[se.imageIndex[i]];
 		se.hasBeenVisible[i] = false;
 		rc->opaqueType = sc->opaqueType;
-		rc->opaqueSeparation = sc->opaqueSeparation;
 	}
 	elements[e] = se;
 }
+
+#ifdef INGAME_EDITORS
+void ScrollingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+
+}
+#endif

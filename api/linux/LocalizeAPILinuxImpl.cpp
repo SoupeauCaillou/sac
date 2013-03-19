@@ -26,7 +26,7 @@
 
 #include <tinyxml2.h>
 
-#include "../../base/Log.h"
+#include <glog/logging.h>
 
 int LocalizeAPILinuxImpl::init(const std::string & lang) {
 #ifdef DATADIR
@@ -39,7 +39,7 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
         filename += lang.c_str();
     }
     filename += "/strings.xml";
-    LOGI("%s -> %s", lang.c_str(), filename.c_str());
+    LOG(INFO) << lang << " -> " << filename;
 #else
     std::string filename = "assets/strings.xml";
 #endif
@@ -50,7 +50,7 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
     tinyxml2::XMLDocument doc;
 
     if (doc.LoadFile(filename.c_str())) {
-        LOGW("can't open xml file %s\n", filename.c_str());
+        LOG(WARNING) << "can't open xml file " << filename;
         return -1;
     }
 
@@ -72,8 +72,9 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
             s = s.substr(1, s.length() - 2);
         }
         _idToMessage[pElem->Attribute("name")] = s;
+        VLOG(1) << "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'";
     }
-    LOGW("Localize strings count: %d", (int)_idToMessage.size());
+    LOG(INFO) << "Localize strings count: " << _idToMessage.size();
 
     return 0;
 }

@@ -1,5 +1,4 @@
 #include "AssetAPILinuxImpl.h"
-#include "base/Log.h"
 #include <cstring>
 
 void AssetAPILinuxImpl::init() {

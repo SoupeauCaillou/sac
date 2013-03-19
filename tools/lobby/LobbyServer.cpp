@@ -27,7 +27,7 @@ int main() {
 
     ENetAddress address;
     address.host = ENET_HOST_ANY;
-    address.port = 54321;
+    address.port = 50000;
 
     ENetHost *server = enet_host_create (&address /* the address to bind the server host to */,
                                  32      /* allow up to 32 clients and/or outgoing connections */,

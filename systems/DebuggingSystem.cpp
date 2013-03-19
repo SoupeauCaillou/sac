@@ -1,144 +1,128 @@
 #include "DebuggingSystem.h"
-#include "base/EntityManager.h"
-#include "base/Log.h"
-#include "base/Assert.h"
-#include "base/PlacementHelper.h"
-#include "systems/RenderingSystem.h"
-#include "systems/TransformationSystem.h"
-#include "systems/AutonomousAgentSystem.h"
+#include "CameraSystem.h"
+#include "TransformationSystem.h"
+#include "RenderingSystem.h"
+#include "GraphSystem.h" 
 
 INSTANCE_IMPL(DebuggingSystem);
 
-
 DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging") {
-	DebuggingComponent dc;
-	activate = true;
-}
-
-static Entity init() {
-		Entity e = theEntityManager.CreateEntity();
-
-      ADD_COMPONENT(e, Transformation);
-      ADD_COMPONENT(e, Rendering);
-
-		LOGI("DEBUG SYSTEM: %ld created", e);
-      return e;
-}
-
-void DebuggingSystem::switchActivate(bool value) {
-	activate = !value;
-	switchActivate();
-}
-
-void DebuggingSystem::switchActivate() {
-	for (unsigned index = 0; index < entities.size(); ++index) {
-		//check its z is not null (z = 0 <-> unused entities)
-		if (activate || (!activate && TRANSFORM(entities[index])->z))
-			RENDERING(entities[index])->hide = activate;
-	}
-	//doing it after because hide = !show..
-	activate = !activate;
-
-	//- LOGI("activate switched to %d", activate);
-}
-
-static int setSegmentEntity(Entity e, Entity from, Entity to, const Color & c) {
-	Vector2 fromV = TRANSFORM(from)->worldPosition;
-	Vector2 toV = TRANSFORM(to)->worldPosition;
-
-
-	RENDERING(e)->color = c;
-	RENDERING(e)->color.a = 0.5;
-	TRANSFORM(e)->parent = 0;
-	RENDERING(e)->hide = false;
-	TRANSFORM(e)->position = (toV + fromV) / 2.;
-
-	Vector2 between = toV - fromV;
-
-	if (!between.LengthSquared()) {
-		/*
-		Hack, it's because update is the 'wrong order':
-		rendering -> debug -> transformation, so transformation hasn't calculed the
-		world position yet (mainly for the first frame), and so it returns
-		Vector2::Zero; currently we'll assume these entities haven't any
-		parent, so worldPosition == position.
-		@todo : Must be fixed.
-		*/
-		ASSERT(!TRANSFORM(to)->parent, "This hack don't work with parented entities");
-
-		between = - TRANSFORM(from)->position + TRANSFORM(to)->position;
-		assert(between.LengthSquared());
-	}
-
-	TRANSFORM(e)->size = Vector2(0.05, between.Length());
-	TRANSFORM(e)->rotation = MathUtil::AngleFromVector(between) + MathUtil::PiOver2;
-
-	return 1;
-}
-void DebuggingSystem::addEntities() {
-	//if we have less entities than required..
-	for (int i = 0; i < 4; ++i) {
-		entities.push_back(init());
+	activeCamera = 0;
+	
+	fpsGraph = theEntityManager.CreateEntity("fpsGraph");
+	ADD_COMPONENT(fpsGraph, Transformation);
+	TRANSFORM(fpsGraph)->size = Vector2(10);
+    TRANSFORM(fpsGraph)->position = Vector2(-10, 0);
+//    TRANSFORM(fpsGraph)->z = 1;
+	ADD_COMPONENT(fpsGraph, Rendering);
+	RENDERING(fpsGraph)->hide = false;
+    RENDERING(fpsGraph)->texture = theRenderingSystem.loadTextureFile("fpsGraph");
+    ADD_COMPONENT(fpsGraph, Graph);
+    GRAPH(fpsGraph)->textureName = "fpsGraph";
+    GRAPH(fpsGraph)->maxY = 70;
+    GRAPH(fpsGraph)->minY = 10;
+	
+	entityGraph = theEntityManager.CreateEntity("entityGraph");
+	ADD_COMPONENT(entityGraph, Transformation);
+	TRANSFORM(entityGraph)->size = Vector2(10);
+    TRANSFORM(entityGraph)->position = Vector2(10, 0);
+    // TRANSFORM(entityGraph)->z = 1;
+	ADD_COMPONENT(entityGraph, Rendering);
+	RENDERING(entityGraph)->hide = false;
+    RENDERING(entityGraph)->texture = theRenderingSystem.loadTextureFile("entityGraph");
+	ADD_COMPONENT(entityGraph, Graph);
+	GRAPH(entityGraph)->textureName = "entityGraph";
+    GRAPH(entityGraph)->maxY = 0;
+    GRAPH(entityGraph)->minY = 70;
+    GRAPH(entityGraph)->setFixedScaleMinMaxY = true;
+    
+	
+	for (int i=0; i<17; ++i) {
+		timeSpentinSystemGraph[i] = theEntityManager.CreateEntity("timeSpentinSystemGraph");
+		ADD_COMPONENT(timeSpentinSystemGraph[i], Transformation);
+		TRANSFORM(timeSpentinSystemGraph[i])->size = Vector2(10);
+	    TRANSFORM(timeSpentinSystemGraph[i])->position = Vector2::Zero;
+//	    TRANSFORM(timeSpentinSystemGraph[i])->z = 1;
+		ADD_COMPONENT(timeSpentinSystemGraph[i], Rendering);
+		RENDERING(timeSpentinSystemGraph[i])->hide = i == 0 ? false : true;
+	    RENDERING(timeSpentinSystemGraph[i])->texture = theRenderingSystem.loadTextureFile("timeSpentinSystemGraph");
+		ADD_COMPONENT(timeSpentinSystemGraph[i], Graph);
+		GRAPH(timeSpentinSystemGraph[i])->textureName = "timeSpentinSystemGraph";
+	    GRAPH(timeSpentinSystemGraph[i])->maxY = 0.020f;
+	    GRAPH(timeSpentinSystemGraph[i])->minY = 0;
+	    GRAPH(timeSpentinSystemGraph[i])->lineColor = Color::random();
 	}
 }
-void DebuggingSystem::DoUpdate(float) {
-	if (!activate) return;
 
-	unsigned index;
-
-	index = 0;
-	FOR_EACH_ENTITY_COMPONENT(Debugging, entity, dc)
-		if (entities.size() - index < 4) {
-			addEntities();
-		}
-		if (dc->showLinked) {
-			if (TRANSFORM(entity)->parent) {
-				//- LOGI("parent debug");
-				int count = setSegmentEntity(entities[index], entity, TRANSFORM(entity)->parent, Color(0,1,0));
-				for (int i = 0; i < count; ++i) TRANSFORM(entities[index + i])->z = 0.01;
-				index+=count;
-			}
-			if (AUTONOMOUS(entity)->fleeTarget) {
-				//- LOGI("flee debug");
-				int count = setSegmentEntity(entities[index], entity, AUTONOMOUS(entity)->fleeTarget, Color(0, 1, 1));
-				for (int i = 0; i < count; ++i) TRANSFORM(entities[index + i])->z = 0.03;
-				index+=count;
-			}
-
-			if (AUTONOMOUS(entity)->arriveTarget) {
-				//- LOGI("arrive debug");
-				int count = setSegmentEntity(entities[index], entity, AUTONOMOUS(entity)->arriveTarget, Color(0, 0, 1));
-				for (int i = 0; i < count; ++i) TRANSFORM(entities[index + i])->z = 0.02;
-				index+=count;
+void DebuggingSystem::DoUpdate(float dt) {
+	
+	if (!activeCamera) {
+		std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+		if (!cameras.empty()) {
+			for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
+				if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
+					activeCamera = *it;
+					break;
+				}
 			}
 		}
-
-		if (dc->showHighligh) {
-	      RENDERING(entities[index])->color = Color(1,0,0,.5);
-			TRANSFORM(entities[index])->parent = entity;
-
-			TRANSFORM(entities[index])->size = TRANSFORM(entity)->size * 3;
-	      TRANSFORM(entities[index])->z = 1. - TRANSFORM(entity)->z;
-
-			TRANSFORM(entities[index])->position = Vector2::Zero;
-			TRANSFORM(entities[index])->rotation = 0.;
-
-			RENDERING(entities[index])->hide = false;
-
-			++index;
+		
+		if (activeCamera) {
+			TRANSFORM(fpsGraph)->parent = activeCamera;
+			TRANSFORM(entityGraph)->parent = activeCamera;
+			for (int i=0; i<17; ++i) {
+				TRANSFORM(timeSpentinSystemGraph[i])->parent = activeCamera;
+			}
 		}
 	}
 
-	while (index < entities.size()) {
-		Entity e = entities[index];
+	while(GRAPH(fpsGraph)->pointsList.size() > 150) GRAPH(fpsGraph)->pointsList.pop_front();
+	
+	while(GRAPH(entityGraph)->pointsList.size() > 150) GRAPH(entityGraph)->pointsList.pop_front();
+	
+	for (int i=0; i<17; ++i) {
+		while(GRAPH(timeSpentinSystemGraph[i])->pointsList.size() > 60) GRAPH(timeSpentinSystemGraph[i])->pointsList.pop_front();
+	}
+	
+	static float reloadFrequency = 0;
+	reloadFrequency += dt;
+	if (reloadFrequency > 0.5f) {
+		reloadFrequency = 0;
+		GRAPH(fpsGraph)->reloadTexture = true;
+		GRAPH(entityGraph)->reloadTexture = true;
+		GRAPH(timeSpentinSystemGraph[0])->reloadTexture= true;
+	}
+	
+}
 
-		TRANSFORM(e)->parent = 0;
-		TRANSFORM(e)->position = Vector2::Zero;
-		TRANSFORM(e)->size = Vector2::One;
-		TRANSFORM(e)->z = 0;
 
-		RENDERING(e)->hide = true;
+void DebuggingSystem::addValue(DEBUGGINGENTITY entity, std::pair<float, float> value) {
+	if (entity == fpsGraphEntity)
+		GRAPH(fpsGraph)->pointsList.push_back(value);
+			
+	else if (entity == entityGraphEntity) 
+			GRAPH(entityGraph)->pointsList.push_back(value);
+	else
+			GRAPH(timeSpentinSystemGraph[entity - 2])->pointsList.push_back(value);
+}
 
-		++index;
+void DebuggingSystem::clearDebuggingEntity(DEBUGGINGENTITY entity) {
+	switch(entity) {
+		case fpsGraphEntity:
+			GRAPH(fpsGraph)->pointsList.clear();
+			break;
+		case entityGraphEntity:
+			GRAPH(entityGraph)->pointsList.clear();
+			break;
+		default:
+			GRAPH(timeSpentinSystemGraph[entity - 2])->pointsList.clear();
 	}
 }
+
+#ifdef INGAME_EDITORS
+void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    DebuggingComponent* tc = Get(entity, false);
+    if (!tc) return;
+}
+#endif
+

@@ -3,15 +3,17 @@
 #include "System.h"
 #include "RenderingSystem.h"
 
+class AnimDescriptor;
 
 struct AnimationComponent {
-    AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), textureIndex(0) {
+    AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), frameIndex(0) {
         waitAccum = 0;
     }
     std::string name, previousName;
     float accum, playbackSpeed;
-    int loopCount, textureIndex;
+    int loopCount, frameIndex;
     float waitAccum;
+    std::vector<Entity> subPart;
 };
 
 #define theAnimationSystem AnimationSystem::GetInstance()
@@ -21,12 +23,11 @@ UPDATABLE_SYSTEM(Animation)
 
 public:
     ~AnimationSystem();
-    void registerAnim(const std::string& name, std::string* textureNames, int count, float playbackSpeed, Interval<int> loopCount, const std::string& nextanim="", Interval<float> nextAnimWait = Interval<float>(0,0));
-    void registerAnim(const std::string& name, std::vector<TextureRef> textures, float playbackSpeed, Interval<int> loopCount, const std::string& nextanim="", Interval<float> nextAnimWait = Interval<float>(0,0));
 
+    void loadAnim(const std::string& name, const std::string& file, std::string* variables = 0, int varcount = 0);
+
+    AssetAPI* assetAPI;
 private:
-    struct Anim;
-
-    std::map<std::string, Anim*> animations;
-    typedef std::map<std::string, Anim*>::iterator AnimIt;
+    std::map<std::string, AnimDescriptor*> animations;
+    typedef std::map<std::string, AnimDescriptor*>::iterator AnimIt;
 };

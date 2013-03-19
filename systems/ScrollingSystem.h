@@ -12,7 +12,6 @@ struct ScrollingComponent {
     // transitive rendering properties
     bool hide;
     RenderingComponent::Opacity opaqueType;
-    float opaqueSeparation;
 };
 
 #define theScrollingSystem ScrollingSystem::GetInstance()

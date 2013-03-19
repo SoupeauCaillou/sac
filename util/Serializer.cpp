@@ -119,6 +119,8 @@ int Serializer::serializeObject(uint8_t** out, void* object, void* refObject) {
             assert (s >= 0);
         }
     }
+    if (s == 0)
+        return 0;
     *out = new uint8_t[s];
     return serializeObject(*out, object, refObject);
 }

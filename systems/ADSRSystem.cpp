@@ -15,7 +15,6 @@ INSTANCE_IMPL(ADSRSystem);
 
 ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
     ADSRComponent a;
-    LOGW("TODO %s", __FUNCTION__);
     // componentSerializer.add("arg", new Property<ADSRComponent>(0));
 }
 
@@ -43,9 +42,6 @@ void ADSRSystem::DoUpdate(float dt) {
 
 			// phase D
 			} else if (adsr->activationTime < (adsr->attackTiming + adsr->decayTiming)) {
-				if (adsr->decayTiming && adsr->attackValue < adsr->sustainValue) {
-					LOGW("Entity '%lu' -> ADSR decay timing %.2f used with attack value %.2f < sustain value %.2f", entity, adsr->decayTiming, adsr->attackValue, adsr->sustainValue);
-				}
 				if (adsr->decayMode == Linear) {
 				adsr->value = MathUtil::Lerp(
 					adsr->attackValue,
@@ -76,3 +72,27 @@ void ADSRSystem::DoUpdate(float dt) {
 		}
 	}
 }
+
+#ifdef INGAME_EDITORS
+void ADSRSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+    ADSRComponent* tc = Get(entity, false);
+    if (!tc) return;
+    TwAddVarRW(bar, "active", TW_TYPE_BOOLCPP, &tc->active, "group=ADSR");
+    TwAddVarRO(bar, "value", TW_TYPE_FLOAT, &tc->value, "group=ADSR");
+    TwAddVarRO(bar, "activationTime", TW_TYPE_FLOAT, &tc->activationTime, "group=ADSR");
+    TwAddVarRW(bar, "activationTime", TW_TYPE_FLOAT, &tc->activationTime, "group=ADSR");
+    
+    TwAddVarRW(bar, "idleValue", TW_TYPE_FLOAT, &tc->idleValue, "group=ADSR"); 
+    TwAddVarRW(bar, "attackValue", TW_TYPE_FLOAT, &tc->attackValue, "group=ADSR"); 
+    TwAddVarRW(bar, "attackTiming", TW_TYPE_FLOAT, &tc->attackTiming, "group=ADSR"); 
+    TwAddVarRW(bar, "sustainValue", TW_TYPE_FLOAT, &tc->sustainValue, "group=ADSR"); 
+    TwAddVarRW(bar, "decayTiming", TW_TYPE_FLOAT, &tc->decayTiming, "group=ADSR"); 
+    TwAddVarRW(bar, "releaseTiming", TW_TYPE_FLOAT, &tc->releaseTiming, "group=ADSR");
+
+    TwEnumVal adsrModes[] = { {Linear, "Linear"}, {Quadratic, "Quadratic"} };
+    TwType adsrType = TwDefineEnum("ADSRMode", adsrModes, 2);
+    TwAddVarRW(bar, "attackMode", adsrType, &tc->attackMode, "group=ADSR");
+    TwAddVarRW(bar, "decayMode", adsrType, &tc->decayMode, "group=ADSR");
+    TwAddVarRW(bar, "releaseMode", adsrType, &tc->releaseMode, "group=ADSR");
+}
+#endif

@@ -11,7 +11,16 @@
 
 
 struct ParticuleComponent {
-	ParticuleComponent() : emissionRate(0), duration(-1), texture(InvalidTextureRef), spawnLeftOver(0) {}
+	ParticuleComponent() : emissionRate(0), duration(-1), texture(InvalidTextureRef), spawnLeftOver(0) {
+        lifetime.t1 = lifetime.t2 = 0;
+        initialSize.t1 = initialSize.t2 = 
+        finalSize.t1 = finalSize.t2 = 
+        forceDirection.t1 = forceDirection.t2 = 
+        forceAmplitude.t1 = forceAmplitude.t2 = 
+        moment.t1 = moment.t2 = spawnLeftOver =
+        mass = 0.0f;
+        gravity = Vector2(0, -10);
+    }
     float emissionRate, duration;
     TextureRef texture;
     Interval<float> lifetime;
@@ -22,6 +31,7 @@ struct ParticuleComponent {
     Interval<float> forceDirection;
     Interval<float> forceAmplitude;
     Interval<float> moment;
+    Vector2 gravity;
     float spawnLeftOver;
     float mass;
 };
