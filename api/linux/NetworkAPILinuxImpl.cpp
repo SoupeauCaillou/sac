@@ -154,9 +154,9 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint1
                                   2      /* allow up to 2 channels to be used, 0 and 1 */,
                                   0      /* assume any amount of incoming bandwidth */,
                                   0      /* assume any amount of outgoing bandwidth */);
-    float begin = TimeUtil::getTime();
+    float begin = TimeUtil::GetTime();
     ENetEvent event;
-    while ((TimeUtil::getTime()-begin) < 5) {
+    while ((TimeUtil::GetTime()-begin) < 5) {
         int ret = enet_host_service(datas->match.host, &event, 250);
         if (ret < 0)
             return false;
@@ -202,9 +202,9 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint1
 
 
 
-    float begin = TimeUtil::getTime();
+    float begin = TimeUtil::GetTime();
     ENetEvent event;
-    while ((TimeUtil::getTime() - begin)< 15) {
+    while ((TimeUtil::GetTime() - begin)< 15) {
         int ret = enet_host_service(datas->match.host, &event, 1000);
         if (ret < 0)
             return false;

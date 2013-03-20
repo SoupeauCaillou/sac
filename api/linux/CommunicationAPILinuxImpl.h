@@ -9,7 +9,7 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
 		void swarmRegistering() { VLOG(1) << "swarm registered"; }
 
 		void giftizMissionDone() { }
-		int  giftizGetButtonState() { return ((int)TimeUtil::getTime()) % 4; }
+		int  giftizGetButtonState() { return ((int)TimeUtil::GetTime()) % 4; }
 		void giftizButtonClicked() { }
 
 		void shareFacebook() { VLOG(1) << "facebook share"; }

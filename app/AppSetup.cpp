@@ -190,7 +190,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     Vector2 reso16_9(394, 700);
     Vector2 reso16_10(900, 625);
     Vector2* reso = &reso16_10;
-    TimeUtil::init();
+    TimeUtil::Init();
     
     game = gameImpl;
 

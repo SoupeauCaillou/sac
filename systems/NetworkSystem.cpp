@@ -72,7 +72,7 @@ void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
         return;
     if (!networkAPI->isConnectedToAnotherPlayer()) {
-        counterTime = TimeUtil::getTime();
+        counterTime = TimeUtil::GetTime();
         bytesSent = bytesReceived = bytesSentLastSec = bytesReceivedLastSec = 0;
         return;
     }
@@ -176,13 +176,13 @@ void NetworkSystem::DoUpdate(float dt) {
         }
     }
 
-    float diff = TimeUtil::getTime() - counterTime;
+    float diff = TimeUtil::GetTime() - counterTime;
     if (diff >= 1.0) {
         bytesSent += bytesSentLastSec;
         bytesReceived += bytesReceivedLastSec;
         ulRate = bytesSentLastSec / diff;
         dlRate = bytesReceivedLastSec / diff;
-        counterTime = TimeUtil::getTime();
+        counterTime = TimeUtil::GetTime();
         LOG(INFO) << "Network statititics: DL=" << bytesReceivedLastSec/1024.<< " kB/s UL=" << bytesSentLastSec/1024. << " kB/s";
         bytesSentLastSec = bytesReceivedLastSec = 0;
     }

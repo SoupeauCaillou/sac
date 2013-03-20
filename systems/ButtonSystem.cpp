@@ -41,7 +41,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 				comp->mouseOver = over;
 			} else {
 				if (!comp->touchStartOutside) {
-					float t =TimeUtil::getTime();
+					float t =TimeUtil::GetTime();
 					// at least 200 ms between 2 clicks
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;

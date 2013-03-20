@@ -12,24 +12,25 @@ file(
 		~/Library/Frameworks
 		/Library/Frameworks
 		/opt
+        /usr
 )
 	
 find_path(VORBIS_INCLUDE_DIR vorbis/vorbisfile.h
   HINTS
     ENV VORBISDIR
   PATH_SUFFIXES
-    include/GL include
+    include
   PATHS 
     ${MIGHT_LOCATION}
 )
 
 find_library(VORBIS_LIBRARY 
   NAMES
-    libvorbis
+    vorbis
   HINTS
     ENV VORBISDIR
   PATH_SUFFIXES
-    lib64 lib libs64 libs libs/Win32 libs/Win64
+    lib64 lib libs64 libs libs/Win32 libs/Win64 so a
   PATHS 
     ${MIGHT_LOCATION}
 )

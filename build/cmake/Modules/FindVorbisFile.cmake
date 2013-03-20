@@ -25,7 +25,7 @@ find_path(VORBISFILE_INCLUDE_DIR vorbis/vorbisfile.h
 
 find_library(VORBISFILE_LIBRARY 
 	NAMES
-		libvorbisfile 
+		vorbisfile 
 	HINTS
 		ENV VORBISFILEDIR
 	PATH_SUFFIXES

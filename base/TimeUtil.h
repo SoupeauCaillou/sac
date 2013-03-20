@@ -2,15 +2,16 @@
 
 #ifdef LINUX
 	#include <time.h>
-#else
+#elif defined(WINDOWS)
 	#include <Windows.h>
 #endif
 
 class TimeUtil
 {
 	public :
-		static void init(); // plantage de la graine
-		static float getTime();
+		static void Init(); // plantage de la graine
+		static float GetTime();
+        static void Wait(float waitInSeconds);
 
 	private:
         #ifdef EMSCRIPTEN

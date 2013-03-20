@@ -365,7 +365,7 @@ void RenderingSystem::waitDrawingComplete() {
 
 void RenderingSystem::render() {
 #ifdef ENABLE_LOG
-    float enter = TimeUtil::getTime();
+    float enter = TimeUtil::GetTime();
 #endif
 #ifndef EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
@@ -377,7 +377,7 @@ void RenderingSystem::render() {
     }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
-    //float frameready = TimeUtil::getTime();
+    //float frameready = TimeUtil::GetTime();
 #endif
     if (!frameQueueWritable) {
         LOG(INFO) << "Rendering disabled";
@@ -395,7 +395,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
-    //float aftertexture= TimeUtil::getTime();
+    //float aftertexture= TimeUtil::GetTime();
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
 #ifndef EMSCRIPTEN
@@ -404,7 +404,7 @@ void RenderingSystem::render() {
     }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
-    float ppp = TimeUtil::getTime();
+    float ppp = TimeUtil::GetTime();
     float diff =  ppp - enter;
     if (diff > 0.001) {
         //- LOGI("Diff : %.1f ms / %.1f ms -> %.1f ms -> %.1f ms",

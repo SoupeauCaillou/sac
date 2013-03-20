@@ -65,7 +65,7 @@ Game::Game() {
 #endif
 
     fpsStats.reset(0);
-    lastUpdateTime = TimeUtil::getTime();
+    lastUpdateTime = TimeUtil::GetTime();
 #ifdef INGAME_EDITORS
     levelEditor = new LevelEditor();
 #endif
@@ -188,170 +188,91 @@ void Game::step() {
 
     theRenderingSystem.waitDrawingComplete();
 
-    float t = TimeUtil::getTime();
-    float delta = t - lastUpdateTime;
+    float timeBeforeThisStep = TimeUtil::GetTime();
+    float delta = timeBeforeThisStep - lastUpdateTime;
 
-    if (true) {
-        #if 0
-        if (delta < DDD) {
-            t += (DDD - delta);
-            delta = DDD;
-        }
-        #endif
-
-        theTouchInputManager.Update(delta);
-        #ifdef ENABLE_PROFILING
-        std::stringstream framename;
-        framename << "update-" << (int)(delta * 1000000);
-        PROFILE("Game", framename.str(), InstantEvent);
-        #endif
-        // delta = 1.0 / 60;
-        // update game state
-        #ifdef INGAME_EDITORS
-        static float speedFactor = 1.0f;
-        if (glfwGetKey(GLFW_KEY_F1))
-            gameType = GameType::Default;
-        else if (glfwGetKey(GLFW_KEY_F2))
-            gameType = GameType::LevelEditor;
-        switch (gameType) {
-            case GameType::LevelEditor:
-                levelEditor->tick(delta);
-                delta = 0;
-                break;
-            default:
-                if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
-                    speedFactor += 1 * delta;
-                } else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
-                    speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
-                } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
-                    speedFactor = 1;
-                }
-                delta *= speedFactor;
-                tick(delta);
-        }
-        #else
-        tick(delta);
-        #endif
-
-        #ifdef INGAME_EDITORS
-        if (delta > 0) {
-        #endif
-        #ifdef SAC_NETWORK
-        theNetworkSystem.Update(delta);
-        #endif
-		
-		++countD;
-		
-		theDebuggingSystem.addValue(DebuggingSystem::fpsGraphEntity, std::make_pair(countD, 1/delta));
-		theDebuggingSystem.addValue(DebuggingSystem::entityGraphEntity, std::make_pair(countD, theEntityManager.getNumberofEntity()));
-		
-		float t1 = TimeUtil::getTime();
-        theCameraSystem.Update(delta);
-        float t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::CameraSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theADSRSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ADSRSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theAnimationSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::AnimationSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theButtonSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ButtonSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theAutonomousAgentSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::AutonomousAgentSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theMorphingSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::MorphingSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        thePhysicsSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::PhysicsSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theScrollingSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ScrollingSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theSoundSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::SoundSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theMusicSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::MusicSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theTextRenderingSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::TextRenderingSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theTransformationSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::TransformationSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theParticuleSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ParticuleSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theContainerSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ContainerSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theAutoDestroySystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::AutoDestroySystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theGraphSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::GraphSystemEntity, std::make_pair(countD, t2-t1));
-        
-        theDebuggingSystem.Update(delta);
-        
-        #ifdef INGAME_EDITORS
-        } else {
-            theTransformationSystem.Update(delta);
-        }
-        #endif
-        // produce 1 new frame
-        theRenderingSystem.Update(0);
-
-        lastUpdateTime = t;
-        delta = TimeUtil::getTime() - t;
-        #ifndef EMSCRIPTEN
-        while (delta < 0.016) {
-            struct timespec ts;
-            ts.tv_sec = 0;
-            ts.tv_nsec = (0.016 - delta) * 1000000000LL;
-            nanosleep(&ts, 0);
-            delta = TimeUtil::getTime() - t;
-        }
-        #endif
-    } else {
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = (0.008 - delta) * 1000000000LL;
-        nanosleep(&ts, 0);
+    theTouchInputManager.Update(delta);
+    #ifdef ENABLE_PROFILING
+    std::stringstream framename;
+    framename << "update-" << (int)(delta * 1000000);
+    PROFILE("Game", framename.str(), InstantEvent);
+    #endif
+    // update game state
+    #ifdef INGAME_EDITORS
+    static float speedFactor = 1.0f;
+    if (glfwGetKey(GLFW_KEY_F1))
+        gameType = GameType::Default;
+    else if (glfwGetKey(GLFW_KEY_F2))
+        gameType = GameType::LevelEditor;
+    switch (gameType) {
+        case GameType::LevelEditor:
+            levelEditor->tick(delta);
+            delta = 0;
+            break;
+        default:
+            if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
+                speedFactor += 1 * delta;
+            } else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
+                speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
+            } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
+                speedFactor = 1;
+            }
+            delta *= speedFactor;
+            tick(delta);
     }
+    #else
+    tick(delta);
+    #endif
+
+    #ifdef INGAME_EDITORS
+    if (delta > 0) {
+    #endif
+    #ifdef SAC_NETWORK
+    theNetworkSystem.Update(delta);
+    #endif
+	
+	++countD;
+
+#if 0
+    // Update FPS graph data
+	theDebuggingSystem.addValue(DebuggingSystem::fpsGraphEntity, std::make_pair(countD, 1/delta));
+    // Update entity count data
+	theDebuggingSystem.addValue(DebuggingSystem::entityGraphEntity, std::make_pair(countD, theEntityManager.getNumberofEntity()));
+
+#endif
+
+    theCameraSystem.Update(delta);
+    theADSRSystem.Update(delta);
+    theAnimationSystem.Update(delta);
+    theButtonSystem.Update(delta);
+    theAutonomousAgentSystem.Update(delta);
+    theMorphingSystem.Update(delta);
+    thePhysicsSystem.Update(delta);
+    theScrollingSystem.Update(delta);
+    theSoundSystem.Update(delta);
+    theMusicSystem.Update(delta);
+    theTextRenderingSystem.Update(delta);
+    theTransformationSystem.Update(delta);
+    theParticuleSystem.Update(delta);
+    theContainerSystem.Update(delta);
+    theAutoDestroySystem.Update(delta);
+    theGraphSystem.Update(delta);
+    theDebuggingSystem.Update(delta);
+
+    #ifdef INGAME_EDITORS
+    } else {
+        theTransformationSystem.Update(delta);
+    }
+    #endif
+    // produce 1 new frame
+    theRenderingSystem.Update(0);
+
+    float updateDuration = TimeUtil::GetTime() - timeBeforeThisStep;
+    if (updateDuration < 0.016) {
+        TimeUtil::Wait(updateDuration - 0.016);
+    }
+    lastUpdateTime = timeBeforeThisStep;
+
     PROFILE("Game", "step", EndEvent);
 }
 
@@ -361,7 +282,7 @@ void Game::render() {
 
     {
         static float prevT = 0;
-        float t = TimeUtil::getTime();
+        float t = TimeUtil::GetTime();
         float dt = t - prevT;
         prevT = t;
 
@@ -386,6 +307,6 @@ void Game::render() {
 }
 
 void Game::resetTime() {
-    fpsStats.reset(TimeUtil::getTime());
-    lastUpdateTime = TimeUtil::getTime();
+    fpsStats.reset(TimeUtil::GetTime());
+    lastUpdateTime = TimeUtil::GetTime();
 }
