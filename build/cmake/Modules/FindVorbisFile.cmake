@@ -4,28 +4,34 @@
 #  VORBISFILE_LIBRARIES - libraries to link against VORBISFILE
 #  VORBISFILE_FOUND - true if VORBISFILE has been found and can be used
 
+
+file(
+	GLOB
+	MIGHT_LOCATION
+		"$ENV{PROGRAMFILES}/../Program\ Files/Vorbis"
+		~/Library/Frameworks
+		/Library/Frameworks
+		/opt
+)
+	
 find_path(VORBISFILE_INCLUDE_DIR vorbis/vorbisfile.h
-  HINTS
-    ENV VORBISFILEDIR
-  PATH_SUFFIXES include
-  PATHS 
-  "$ENV{PROGRAMFILES}/../Program\ Files/Vorbis"
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /opt
-  /usr/include/
+	HINTS
+		ENV VORBISFILEDIR
+	PATH_SUFFIXES
+		include/GL include
+	PATHS 
+		${MIGHT_LOCATION}
 )
 
 find_library(VORBISFILE_LIBRARY 
-	NAMES vorbisfile
-  HINTS
-    ENV VORBISFILEDIR
-  PATH_SUFFIXES lib64 lib libs64 libs libs/Win32 libs/Win64 lib-msvc110
-  PATHS
-  "$ENV{PROGRAMFILES}/../Program\ Files/VPX"
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /usr/lib/
+	NAMES
+		libvorbisfile 
+	HINTS
+		ENV VORBISFILEDIR
+	PATH_SUFFIXES
+		lib64 lib libs64 libs libs/Win32 libs/Win64
+	PATHS 
+		${MIGHT_LOCATION}
 )
 
 include(FindPackageHandleStandardArgs)
