@@ -256,9 +256,8 @@ void Game::step() {
     theParticuleSystem.Update(delta);
     theContainerSystem.Update(delta);
     theAutoDestroySystem.Update(delta);
-    theGraphSystem.Update(delta);
     theDebuggingSystem.Update(delta);
-
+    theGraphSystem.Update(delta);
     #ifdef INGAME_EDITORS
     } else {
         theTransformationSystem.Update(delta);

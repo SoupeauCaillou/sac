@@ -10,19 +10,8 @@ struct DebuggingComponent {
 
 UPDATABLE_SYSTEM(Debugging)
 
-    public:
-        bool addDebugEntity(std::string debugName, Color lineColor,
-                            float maxY, float minY, bool newGraph,
-                            std::string parentGraphName);
-        bool addDebugEntity(std::string debugName, Entity debugEntity);
-        void deleteDebugEntity(std::string debugName);
-        void addValue(std::string debugEntity, std::pair<float, float> value);
-        void clearDebuggingEntity(std::string debugEntity);
-
     private:
         std::map<std::string, Entity> debugEntities;
 
-        std::vector<Entity> captionGraph;
-
-        Entity activeCamera;
+        Entity fps, entityCount, systems;
 };

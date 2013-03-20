@@ -143,7 +143,17 @@ class ComponentSystem {
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
 
-		void Update(float dt) { PROFILE("SystemUpdate", name, BeginEvent); DoUpdate(dt); PROFILE("SystemUpdate", name, EndEvent); }
+		void Update(float dt) {
+            PROFILE("SystemUpdate", name, BeginEvent);
+            #ifdef DEBUG
+            float before = TimeUtil::GetTime();
+            #endif
+            DoUpdate(dt);
+            #ifdef DEBUG
+            updateDuration = TimeUtil::GetTime() - before;
+            #endif
+            PROFILE("SystemUpdate", name, EndEvent);
+        }
 
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
@@ -165,6 +175,10 @@ class ComponentSystem {
 		static std::map<std::string, ComponentSystem*> registry;
 	private:
 		std::string name;
+    public:
+        #ifdef DEBUG
+        float updateDuration;
+        #endif
 };
 
 template <typename T>

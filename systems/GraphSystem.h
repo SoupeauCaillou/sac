@@ -12,7 +12,7 @@
 struct GraphComponent {
 
     GraphComponent():lineWidth(0), maxY(0), maxX(0), minY(0), minX(0), 
-    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false), reloadTexture(false),
+    setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false), reloadTexture(true),
     lineColor(Color(1, 1, 1)) {}
 
     std::list<std::pair<float, float> > pointsList;

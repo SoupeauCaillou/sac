@@ -36,10 +36,15 @@ GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>("Graph") {
     
 }
 
+static void clear(ImageDesc& desc) {
+    memset(desc.datas, 0x40, desc.width * desc.height * desc.channels);
+}
+
 void GraphSystem::DoUpdate(float dt) {
 	for (std::map<TextureRef, ImageDesc>::iterator it=textureRef2Image.begin(); it != textureRef2Image.end(); ++it) {
-		memset(it->second.datas, 0x40, it->second.width * it->second.height * it->second.channels);
+		clear(it->second);
 	}
+
     FOR_EACH_COMPONENT(Graph, gc)
         TextureRef texture = theRenderingSystem.textureLibrary.load(gc->textureName);
 
@@ -54,7 +59,7 @@ void GraphSystem::DoUpdate(float dt) {
             desc.mipmap = 0;
             desc.type = ImageDesc::RAW;
             desc.datas = new char[desc.width * desc.height * desc.channels];
-
+            clear(desc);
             drawTexture(desc, gc);
 
             theRenderingSystem.textureLibrary.registerDataSource(texture, desc);

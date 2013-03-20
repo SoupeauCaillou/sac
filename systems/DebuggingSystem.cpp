@@ -5,84 +5,146 @@
 #include "GraphSystem.h"
 #include "TextRenderingSystem.h"
 
+static const char* FpsTextureName = "__debug_fps_texture";
+static const char* EntitiesTextureName = "__debug_entities_texture";
+static const char* SystemsTextureName = "__debug_systems_texture";
+
+static unsigned long frameCount = 0;
+static float timeUntilGraphUpdate = 0;
 INSTANCE_IMPL(DebuggingSystem);
 
 DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging") {
-    activeCamera = 0;
+    fps = entityCount = systems = 0;
+    frameCount = 0;
 }
 
-bool DebuggingSystem::addDebugEntity(std::string debugName, Color lineColor=Color(1,1,1),
-                                    float maxY=0, float minY=0, bool newGraph=true,
-                                    std::string parentGraphName="") {
+static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& systems) {
+    const Vector2& cameraSize = TRANSFORM(camera)->size;
 
-    if (newGraph) {
-        Entity de = theEntityManager.CreateEntity(debugName);
-        ADD_COMPONENT(de, Transformation);
-        TRANSFORM(de)->size = Vector2(10);
-        TRANSFORM(de)->position = Vector2(0, 0);
-        TRANSFORM(de)->parent = activeCamera;
-        ADD_COMPONENT(de, Rendering);
-        RENDERING(de)->hide = false;
-        RENDERING(de)->texture = theRenderingSystem.loadTextureFile(debugName);
-        ADD_COMPONENT(de, Graph);
-        GRAPH(de)->textureName = debugName;
-        GRAPH(de)->lineColor = lineColor;
-        GRAPH(de)->maxY = maxY;
-        GRAPH(de)->minY = minY;
-        debugEntities[debugName] = de;
+    fps = theEntityManager.CreateEntity("__debug_fps");
+    ADD_COMPONENT(fps, Transformation);
+    TRANSFORM(fps)->parent = camera;
+    TRANSFORM(fps)->size = cameraSize * Vector2(0.3, 0.2);
+    TRANSFORM(fps)->position = cameraSize * Vector2(-0.5, 0.5) + TRANSFORM(fps)->size * Vector2(0.5, -0.5);
+    TRANSFORM(fps)->z = 0;
+    ADD_COMPONENT(fps, Rendering);
+    RENDERING(fps)->texture = theRenderingSystem.loadTextureFile(FpsTextureName);
+    RENDERING(fps)->hide = false;
+    ADD_COMPONENT(fps, Graph);
+    GRAPH(fps)->textureName = FpsTextureName;
+    GRAPH(fps)->minY = 0;
+    GRAPH(fps)->maxY = 65;
 
-    } else {
-        Entity parent = debugEntities[parentGraphName];
-        if (parent) {
-            Entity de = theEntityManager.CreateEntity(debugName);
-            ADD_COMPONENT(de, Graph);
-            GRAPH(de)->textureName = GRAPH(parent)->textureName;
-            GRAPH(de)->lineColor = lineColor;
-            debugEntities[debugName] = de;
-            GRAPH(de)->maxY = maxY;
-            GRAPH(de)->minY = minY;
-        }
-        else
-            return false;
-    }
-    return true;
-}
-bool DebuggingSystem::addDebugEntity(std::string debugName, Entity debugEntity) {
-    if (theGraphSystem.Get(debugEntity, false) &&
-        theTransformationSystem.Get(debugEntity, false)) {
-        if (debugEntities.count(debugName) == 0) {
-            debugEntities[debugName] = debugEntity;
-            return true;
-        }
-    }
-    return false;
+    entityCount = theEntityManager.CreateEntity("__debug_entityCount");
+    ADD_COMPONENT(entityCount, Transformation);
+    TRANSFORM(entityCount)->parent = camera;
+    TRANSFORM(entityCount)->size = cameraSize * Vector2(0.3, 0.2);
+    TRANSFORM(entityCount)->position = cameraSize * Vector2(0, 0.5) + TRANSFORM(fps)->size * Vector2(0, -0.5);
+    TRANSFORM(entityCount)->z = 0;
+    ADD_COMPONENT(entityCount, Rendering);
+    RENDERING(entityCount)->texture = theRenderingSystem.loadTextureFile(EntitiesTextureName);
+    RENDERING(entityCount)->hide = false;
+    ADD_COMPONENT(entityCount, Graph);
+    GRAPH(entityCount)->textureName = EntitiesTextureName;
+
+    systems = theEntityManager.CreateEntity("__debug_systems");
+    ADD_COMPONENT(systems, Transformation);
+    TRANSFORM(systems)->parent = camera;
+    TRANSFORM(systems)->size = cameraSize * Vector2(0.3, 0.2);
+    TRANSFORM(systems)->position = cameraSize * Vector2(0.5, 0.5) + TRANSFORM(fps)->size * Vector2(-0.5, -0.5);
+    TRANSFORM(systems)->z = 0;
+    ADD_COMPONENT(systems, Rendering);
+    RENDERING(systems)->texture = theRenderingSystem.loadTextureFile(SystemsTextureName);
+    RENDERING(systems)->hide = false;
 }
 
-void DebuggingSystem::deleteDebugEntity(std::string debugName) {
-    if (debugEntities.count(debugName)) {
-        theEntityManager.DeleteEntity(debugEntities[debugName]);
-        debugEntities.erase(debugName);
-    }
+static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index) {
+    Color color = Color::random();
+    color.a = 1;
+    Entity e = theEntityManager.CreateEntity(std::string("__debug_") + name);
+    ADD_COMPONENT(e, Transformation);
+    TRANSFORM(e)->parent = parent;
+    TRANSFORM(e)->z = -0.002;
+    TRANSFORM(e)->size = TRANSFORM(parent)->size;
+    TRANSFORM(e)->position = TRANSFORM(parent)->size * (-0.5) - Vector2(0, (index + 1) * 1);
+
+    ADD_COMPONENT(e, TextRendering);
+    TEXT_RENDERING(e)->color = color;
+    TEXT_RENDERING(e)->positioning = TextRenderingComponent::LEFT;
+    TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
+    TEXT_RENDERING(e)->maxCharHeight = 0.5;
+    TEXT_RENDERING(e)->text = name;
+
+    ADD_COMPONENT(e, Graph);
+    GRAPH(e)->textureName = SystemsTextureName;
+    GRAPH(e)->minY = 0;
+    GRAPH(e)->maxY = 0.020;
+    GRAPH(e)->lineColor = color;
+
+    return e;
 }
 
 void DebuggingSystem::DoUpdate(float dt) {
+    frameCount++;
+    timeUntilGraphUpdate -= dt;
 
-    if (!activeCamera) {
-        std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
-        if (!cameras.empty()) {
-            for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
-                if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
-                    activeCamera = *it;
-                    break;
-                }
-            }
+    Entity activeCamera = 0;
+    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    if (cameras.empty()) {
+        return;
+    }
+    
+    for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
+        if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
+            activeCamera = *it;
+            break;
         }
     }
+    
+    if (!fps) {
+        init(activeCamera, fps, entityCount, systems); 
+        LOG(INFO) << "Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems;
+    }
+
+    bool reloadTextures = (timeUntilGraphUpdate < 0);
+
+    // Fill FPS graph
+    GRAPH(fps)->pointsList.push_back(std::make_pair(frameCount, 1.0/dt));
+    if (frameCount > 120) GRAPH(fps)->pointsList.pop_front();
+    GRAPH(fps)->reloadTexture = reloadTextures;
+
+    // Fill Entity count graph
+    GRAPH(entityCount)->pointsList.push_back(std::make_pair(frameCount, theEntityManager.getNumberofEntity()));
+    if (frameCount > 120) GRAPH(entityCount)->pointsList.pop_front();
+    GRAPH(entityCount)->reloadTexture = reloadTextures;
+
+
+    const std::vector<std::string> systemNames = ComponentSystem::registeredSystemNames();
+    for (unsigned i=0; i<systemNames.size(); i++) {
+        const ComponentSystem* system = ComponentSystem::Named(systemNames[i]);
+
+        auto it = debugEntities.find(systemNames[i]);
+        if (it == debugEntities.end()) {
+            it = debugEntities.insert(std::make_pair(systemNames[i], createSystemGraphEntity(systemNames[i], systems, debugEntities.size()))).first;
+        }
+        Entity e = it->second;
+        GRAPH(e)->pointsList.push_back(std::make_pair(frameCount, system->updateDuration));
+        if (frameCount > 120) GRAPH(e)->pointsList.pop_front();
+        GRAPH(e)->reloadTexture = reloadTextures;
+    }
+
+
+    timeUntilGraphUpdate += reloadTextures * .5;
+        
+#if 0
+        
 
     while (debugEntities.size() * 2 < captionGraph.size()) {
         theEntityManager.DeleteEntity(captionGraph.back());
         captionGraph.pop_back();
     }
+    
+    
 
     for (uint i = captionGraph.size(); i < debugEntities.size(); ++i) {
         Entity c = theEntityManager.CreateEntity("caption");
@@ -151,18 +213,7 @@ void DebuggingSystem::DoUpdate(float dt) {
             ++it;
         }
     }
-}
-
-void DebuggingSystem::addValue(std::string debugEntity, std::pair<float, float> value) {
-    if (debugEntities.count(debugEntity)) {
-        GRAPH(debugEntities[debugEntity])->pointsList.push_back(value);
-    }
-}
-
-void DebuggingSystem::clearDebuggingEntity(std::string debugEntity) {
-    if (debugEntities.count(debugEntity)) {
-        GRAPH(debugEntities[debugEntity])->pointsList.clear();
-    }
+#endif
 }
 
 #ifdef INGAME_EDITORS
