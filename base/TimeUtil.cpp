@@ -1,21 +1,22 @@
 #include "TimeUtil.h"
-#include "Log.h"
+#include <time.h>
+#include <glog/logging.h>
 
 #ifdef EMSCRIPTEN
 	struct timeval TimeUtil::startup_time;
 #elif defined(LINUX)
 	struct timespec TimeUtil::startup_time;
-#elif defined(WINDOWS)
+#else
 	__int64 TimeUtil::startup_time;
 	float TimeUtil::frequency;
 #endif
 
-void TimeUtil::Init() {
+void TimeUtil::init() {
 #ifdef EMSCRIPTEN
     gettimeofday(&startup_time, 0);
 #elif defined(LINUX)
 	clock_gettime(CLOCK_MONOTONIC, &startup_time);    
-#elif defined(WINDOWS)
+#else
 	QueryPerformanceCounter((LARGE_INTEGER*)&startup_time);
 	__int64 invertfrequency;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&invertfrequency);
@@ -29,7 +30,7 @@ static inline float timeconverter(const struct timespec & tv) {
 #elif defined(EMSCRIPTEN)
 static inline float timeconverter(const struct timeval & tv) {
     return (tv.tv_sec + tv.tv_usec / 1000000.0f);
-#elif defined(WINDOWS)
+#else
 static inline float timeconverter(__int64 tv) {
 	return (tv);
 #endif
@@ -49,37 +50,22 @@ static inline void sub(struct timespec& tA, const struct timespec& tB)
 }
 #endif
 
-float TimeUtil::GetTime() {
+float TimeUtil::getTime() {
     #ifdef LINUX
 		struct timespec tv;
 		if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
-			LOGE("clock_gettime failure");
+        LOG(FATAL) << "clock_gettime failure";
 		}
 		sub(tv, startup_time);
     #elif defined(EMSCRIPTEN)
 		struct timeval tv;
 		gettimeofday(&tv, 0);
 		timersub(&tv, &startup_time, &tv);
-	#elif defined(WINDOWS)
+	#else
 		__int64 tv;
 		QueryPerformanceCounter((LARGE_INTEGER*)&tv);
 		tv = (tv - startup_time) * frequency;
     #endif
 	return timeconverter(tv);
     
-}
-
-void TimeUtil::ShouldWaitBeforeNextStep(float timeBeforeOneStep) {
-	#ifdef LINUX
-		float delta = getTime() - timeBeforeOneStep;
-		while (delta < 0.016) {
-			struct timespec ts;
-			ts.tv_sec = 0;
-			ts.tv_nsec = (0.016 - delta) * 1000000000LL;
-			nanosleep(&ts, 0);
-			delta = TimeUtil::getTime() - t;
-		}
-	#elif defined(WINDOWS)
-		LOGE("TODO: TimeUtil::ShouldWaitBeforeNextStep method not implemented for Windows");
-	#endif
 }
