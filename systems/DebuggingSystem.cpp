@@ -102,7 +102,7 @@ void DebuggingSystem::DoUpdate(float dt) {
         captionGraph.push_back(c);
     }
 
-    if (activeCamera) {
+    if (activeCamera && captionGraph.size()) {
         TRANSFORM(captionGraph.front())->parent = activeCamera;
         TRANSFORM(captionGraph.front())->position.X = (-1 * TRANSFORM(activeCamera)->size.X/2) + TRANSFORM(captionGraph.front())-> size.X / 2;
         TRANSFORM(captionGraph.front())->position.Y = (TRANSFORM(activeCamera)->size.Y/2) - TRANSFORM(captionGraph.front())-> size.Y / 2;
@@ -123,29 +123,31 @@ void DebuggingSystem::DoUpdate(float dt) {
         if (reloadFrequency > 0.5f) {
             GRAPH(debugEntity.second)->reloadTexture= true;
 
-            std::stringstream a;
-            std::pair<float, float> p = GRAPH(debugEntity.second)->pointsList.back();
-            a << debugEntity.first << " X=" << p.first << " Y=" << p.second;
+            if (captionGraph.size() > 0) {
+                std::stringstream a;
+                std::pair<float, float> p = GRAPH(debugEntity.second)->pointsList.back();
+                a << debugEntity.first << " X=" << p.first << " Y=" << p.second;
 
-            TRANSFORM(*it)->size.X = a.str().size()*0.5;
-            TRANSFORM(*it)->z = 0;
-            if (it == captionGraph.begin() ){
-                TRANSFORM(*it)->z = -0.1;
-                TRANSFORM(*it)->parent = activeCamera;
+                TRANSFORM(*it)->size.X = a.str().size()*0.5;
+                TRANSFORM(*it)->z = 0;
+                if (it == captionGraph.begin() ){
+                    TRANSFORM(*it)->z = -0.1;
+                    TRANSFORM(*it)->parent = activeCamera;
+                }
+                TEXT_RENDERING(*it)->hide = false;
+                TEXT_RENDERING(*it)->text = a.str();
+                TEXT_RENDERING(*it)->color = GRAPH(debugEntity.second)->lineColor;
+
+                pit = it;
+                ++it;
             }
-            TEXT_RENDERING(*it)->hide = false;
-            TEXT_RENDERING(*it)->text = a.str();
-            TEXT_RENDERING(*it)->color = GRAPH(debugEntity.second)->lineColor;
-
-            pit = it;
-            ++it;
         }
     }
 
     if (reloadFrequency > 0.5f) {
         reloadFrequency = 0;
         while (it != captionGraph.end()) {
-            //~ TEXT_RENDERING(*it)->hide = true;
+            TEXT_RENDERING(*it)->hide = true;
             ++it;
         }
     }
@@ -169,4 +171,3 @@ void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     if (!dc) return;
 }
 #endif
-
