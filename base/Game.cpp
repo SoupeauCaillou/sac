@@ -17,14 +17,12 @@
 #include "systems/AnimationSystem.h"
 #include "systems/NetworkSystem.h"
 #include "systems/AutoDestroySystem.h"
-#include "systems/CameraSystem.h"
-#include "systems/GraphSystem.h"
-#include "systems/DebuggingSystem.h"
+#include "systems/CameraDepSystem.h"
+#include "systems/CameraTargetSystem.h"
 #include "api/AssetAPI.h"
 #include "base/PlacementHelper.h"
 #include "base/TouchInputManager.h"
 #include "base/Profiler.h"
-#include "util/DataFileParser.h"
 #include <sstream>
 
 #ifdef INGAME_EDITORS
@@ -56,19 +54,14 @@ Game::Game() {
     AutonomousAgentSystem::CreateInstance();
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
-    CameraSystem::CreateInstance();
-    GraphSystem::CreateInstance();
-    DebuggingSystem::CreateInstance();
-
+    CameraDepSystem::CreateInstance();
+    CameraTargetSystem::CreateInstance();
 #ifdef SAC_NETWORK
     NetworkSystem::CreateInstance();
 #endif
 
     fpsStats.reset(0);
-    lastUpdateTime = TimeUtil::getTime();
-#ifdef INGAME_EDITORS
-    levelEditor = new LevelEditor();
-#endif
+    lastUpdateTime = TimeUtil::GetTime();
 }
 
 Game::~Game() {
@@ -88,49 +81,31 @@ Game::~Game() {
     AutonomousAgentSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
-    CameraSystem::DestroyInstance();
-    GraphSystem::DestroyInstance();
-	DebuggingSystem::DestroyInstance();
-	
+    CameraDepSystem::DestroyInstance();
+    CameraTargetSystem::DestroyInstance();
 #ifdef SAC_NETWORK
     NetworkSystem::DestroyInstance();
 #endif
 }
 
-void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {
-    gameThreadContext = pGameThreadContext;
-    renderThreadContext = pRenderThreadContext;
-}
-
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".desc");
-    DataFileParser dfp;
-    if (!dfp.load(file)) {
-        LOG(ERROR) << "Invalid font description file: " << name;
-        return;
-    }
-    
-    unsigned defCount = dfp.sectionSize(DataFileParser::GlobalSection);
-    LOG_IF(WARNING, defCount == 0) << "Font definition '" << name << "' has no entry";
-    std::map<uint32_t, float> h2wratio;
-    std::string charUnicode;
-    for (unsigned i=0; i<defCount; i++) {
-        int w_h[2];
-        if (!dfp.get(DataFileParser::GlobalSection, i, charUnicode, w_h, 2)) {
-            LOG(ERROR) << "Unable to parse entry #" << i << " of " << name;
-        }
-        std::stringstream ss;
-        ss << std::hex << charUnicode;
-        uint32_t cId;
-        ss >> cId;
-        h2wratio[cId] = (float)w_h[0] / w_h[1];
-        VLOG(2) << "Font entry: " << cId << ": " << h2wratio[cId];
-    }
+	std::stringstream sfont;
+	sfont << std::string((char*)file.data, file.size);
+	std::string line;
+	std::map<unsigned char, float> h2wratio;
+	while (getline(sfont, line)) {
+		if (line[0] == '#')
+			continue;
+		int c, w, h;
+		sscanf(line.c_str(), "%d,%d,%d", &c, &w, &h);
+		h2wratio[c] = (float)w / h;
+	}
+
 	delete[] file.data;
-	// h2wratio[' '] = h2wratio['r'];
-	// h2wratio[0x97] = 1;
+	h2wratio[' '] = h2wratio['r'];
+	h2wratio[0x97] = 1;
 	theTextRenderingSystem.registerFont(name, h2wratio);
-    LOG(INFO) << "Loaded font: " << name << ". Found: " << h2wratio.size() << " entries";
 }
 
 void Game::sacInit(int windowW, int windowH) {
@@ -155,6 +130,11 @@ void Game::sacInit(int windowW, int windowH) {
 
 	theRenderingSystem.init();
     theRenderingSystem.setFrameQueueWritable(true);
+
+    #ifdef INGAME_EDITORS
+    theRenderingSystem.loadEffectFile("selected.fs");
+    theRenderingSystem.loadEffectFile("over.fs");
+    #endif
 }
 
 void Game::backPressed() {
@@ -182,175 +162,75 @@ int Game::saveState(uint8_t**) {
 }
 
 const float DDD = 1.0/60.f;
-float countD = 0;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
 
     theRenderingSystem.waitDrawingComplete();
 
-    float t = TimeUtil::getTime();
-    float delta = t - lastUpdateTime;
+    float timeBeforeThisStep = TimeUtil::GetTime();
+    float delta = timeBeforeThisStep - lastUpdateTime;
 
     if (true) {
-        #if 0
-        if (delta < DDD) {
-            t += (DDD - delta);
-            delta = DDD;
-        }
-        #endif
-
         theTouchInputManager.Update(delta);
         #ifdef ENABLE_PROFILING
-        std::stringstream framename;
-        framename << "update-" << (int)(delta * 1000000);
-        PROFILE("Game", framename.str(), InstantEvent);
+			std::stringstream framename;
+			framename << "update-" << (int)(delta * 1000000);
+			PROFILE("Game", framename.str(), InstantEvent);
         #endif
         // delta = 1.0 / 60;
         // update game state
         #ifdef INGAME_EDITORS
-        static float speedFactor = 1.0f;
-        if (glfwGetKey(GLFW_KEY_F1))
-            gameType = GameType::Default;
-        else if (glfwGetKey(GLFW_KEY_F2))
-            gameType = GameType::LevelEditor;
-        switch (gameType) {
-            case GameType::LevelEditor:
-                levelEditor->tick(delta);
-                delta = 0;
-                break;
-            default:
-                if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
-                    speedFactor += 1 * delta;
-                } else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
-                    speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
-                } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
-                    speedFactor = 1;
-                }
-                delta *= speedFactor;
-                tick(delta);
-        }
+			static float speedFactor = 1.0f;
+			if (glfwGetKey(GLFW_KEY_F1))
+				gameType = GameType::Default;
+			else if (glfwGetKey(GLFW_KEY_F2))
+				gameType = GameType::LevelEditor;
+			switch (gameType) {
+				case GameType::LevelEditor:
+					levelEditor.tick(delta);
+					delta = 0;
+					break;
+				default:
+					if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
+						speedFactor += 1 * delta;
+					} else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
+						speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
+					} else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
+						speedFactor = 1;
+					}
+					delta *= speedFactor;
+					tick(delta);
+			}
         #else
-        tick(delta);
+			tick(delta);
         #endif
 
-        #ifdef INGAME_EDITORS
-        if (delta > 0) {
-        #endif
         #ifdef SAC_NETWORK
-        theNetworkSystem.Update(delta);
+			theNetworkSystem.Update(delta);
         #endif
-		
-		++countD;
-		
-		theDebuggingSystem.addValue(DebuggingSystem::fpsGraphEntity, std::make_pair(countD, 1/delta));
-		theDebuggingSystem.addValue(DebuggingSystem::entityGraphEntity, std::make_pair(countD, theEntityManager.getNumberofEntity()));
-		
-		float t1 = TimeUtil::getTime();
-        theCameraSystem.Update(delta);
-        float t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::CameraSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
+        theCameraTargetSystem.Update(delta);
+        theCameraDepSystem.Update(delta);
         theADSRSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ADSRSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
         theAnimationSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::AnimationSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
         theButtonSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ButtonSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theAutonomousAgentSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::AutonomousAgentSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theMorphingSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::MorphingSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        thePhysicsSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::PhysicsSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theScrollingSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ScrollingSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theSoundSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::SoundSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theMusicSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::MusicSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theTextRenderingSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::TextRenderingSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theTransformationSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::TransformationSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
         theParticuleSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ParticuleSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
+        theAutonomousAgentSystem.Update(delta);
+        theMorphingSystem.Update(delta);
+        thePhysicsSystem.Update(delta);
+        theScrollingSystem.Update(delta);
+        theTextRenderingSystem.Update(delta);
+        theSoundSystem.Update(delta);
+        theMusicSystem.Update(delta);
+        theTransformationSystem.Update(delta);
         theContainerSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::ContainerSystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
         theAutoDestroySystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::AutoDestroySystemEntity, std::make_pair(countD, t2-t1));
-        
-        t1 = TimeUtil::getTime();
-        theGraphSystem.Update(delta);
-        t2 = TimeUtil::getTime();
-        theDebuggingSystem.addValue(DebuggingSystem::GraphSystemEntity, std::make_pair(countD, t2-t1));
-        
-        theDebuggingSystem.Update(delta);
-        
-        #ifdef INGAME_EDITORS
-        } else {
-            theTransformationSystem.Update(delta);
-        }
-        #endif
         // produce 1 new frame
         theRenderingSystem.Update(0);
 
-        lastUpdateTime = t;
-        delta = TimeUtil::getTime() - t;
-        #ifndef EMSCRIPTEN
-        while (delta < 0.016) {
-            struct timespec ts;
-            ts.tv_sec = 0;
-            ts.tv_nsec = (0.016 - delta) * 1000000000LL;
-            nanosleep(&ts, 0);
-            delta = TimeUtil::getTime() - t;
-        }
-        #endif
-    } else {
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = (0.008 - delta) * 1000000000LL;
-        nanosleep(&ts, 0);
+		
+
+        lastUpdateTime = timeBeforeThisStep;
+		TimeUtil::ShouldWaitBeforeNextStep(timeBeforeThisStep);
     }
     PROFILE("Game", "step", EndEvent);
 }
@@ -361,31 +241,26 @@ void Game::render() {
 
     {
         static float prevT = 0;
-        float t = TimeUtil::getTime();
+        float t = TimeUtil::GetTime();
         float dt = t - prevT;
         prevT = t;
 
-        if (dt > fpsStats.maxDt) {
+        fpsStats.frameCount++;
+        if (dt > fpsStats.maxDt)
             fpsStats.maxDt = dt;
-        }
         if (dt < fpsStats.minDt) {
             fpsStats.minDt = dt;
         }
-        LOG_EVERY_N(INFO, 1000) << "FPS avg/min/max : " <<
-            (1000 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt), 
-        fpsStats.reset(t);
-    }
-
-    if (0) {
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = (0.016) * 1000000000LL;
-        nanosleep(&ts, 0);
+        if (fpsStats.frameCount == 1000) {
+            LOGW("FPS avg/min/max : %.2f / %.2f / %.2f",
+                fpsStats.frameCount / (t - fpsStats.since), 1.0 / fpsStats.maxDt, 1.0 / fpsStats.minDt);
+            fpsStats.reset(t);
+        }
     }
     PROFILE("Game", "render-game", EndEvent);
 }
 
 void Game::resetTime() {
-    fpsStats.reset(TimeUtil::getTime());
-    lastUpdateTime = TimeUtil::getTime();
+    fpsStats.reset(TimeUtil::GetTime());
+    lastUpdateTime = TimeUtil::GetTime();
 }
