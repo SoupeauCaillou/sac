@@ -11,16 +11,19 @@
 #define assert(x) x
 #endif
 
-#ifndef EMSCRIPTEN
-#ifdef ANDROID
-#include "tremor/ivorbisfile.h"
+#ifdef EMSCRIPTEN
+	#include <SDL/SDL_mixer.h>
+	#include <sstream>
 #else
-#include <vorbis/vorbisfile.h>
+	#ifdef ANDROID
+		#include "tremor/ivorbisfile.h"
+	#else
+		#include <vorbis/vorbisfile.h>
+	#endif
 #endif
-#include <linux/sched.h>
-#else
-#include <SDL/SDL_mixer.h>
-#include <sstream>
+
+#ifdef LINUX
+	#include <linux/sched.h>
 #endif
 
 #include "base/MathUtil.h"
