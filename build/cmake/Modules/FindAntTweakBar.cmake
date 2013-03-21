@@ -14,7 +14,7 @@ set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64)
 set(HEADER_NAMES AntTweakBar.h)
 
 #libraries' name (.lib)
-set(LIBRARY_POSSIBLE_NAMES GLEW AntTweakBar)
+set(LIBRARY_POSSIBLE_NAMES AntTweakBar)
 
 ######################### GENERIC PART #################################
 ################### It shouldn't be modified ###########################
