@@ -2,7 +2,7 @@
 set(NAME "GLEW")
 
 #names of the 'physic' lib directory
-set(DIR_POSSIBLE_NAMES glew GLEW)
+set(DIR_POSSIBLE_NAMES glew32s glew)
 
 #headers' directory name
 set(HEADER_DIR include include/GL)

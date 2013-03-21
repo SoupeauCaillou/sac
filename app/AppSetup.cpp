@@ -89,8 +89,11 @@ Game* game;
 NameInputAPILinuxImpl* nameInput;
 Entity globalFTW = 0;
 
-#ifndef EMSCRIPTEN
+#if defined(LINUX) && !defined(EMSCRIPTEN)
 Recorder *record;
+#endif
+
+#if !defined(EMSCRIPTEN)
 std::mutex m;
 
 void GLFWCALL myCharCallback( int c, int action ) {
@@ -155,6 +158,7 @@ static void updateAndRenderLoop() {
       }
       //pause ?
 
+      #if defined(LINUX) && !defined(EMSCRIPTEN)
       // recording
       if (glfwGetKey( GLFW_KEY_F10)){
      record->stop();
@@ -162,6 +166,7 @@ static void updateAndRenderLoop() {
       if (glfwGetKey( GLFW_KEY_F9)){
      record->start();
       }
+#endif
       //user entered his name?
       if (glfwGetKey( GLFW_KEY_ENTER )) {
      if (!TEXT_RENDERING(nameInput->nameEdit)->hide) {
@@ -305,13 +310,13 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 #endif
 
 #ifndef EMSCRIPTEN
-    record = new Recorder((int)reso->X, (int)reso->Y);
+    // record = new Recorder((int)reso->X, (int)reso->Y);
 
     std::thread th1(callback_thread);    
     do {
         game->render();
         glfwSwapBuffers();
-        record->record();
+        // record->record();
     } while (!m.try_lock());
     th1.join();
 #else
@@ -320,7 +325,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 
 #ifndef EMSCRIPTEN
     delete game;
-    delete record;
+ //   delete record;
 #endif
     return 0;
 }

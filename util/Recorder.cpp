@@ -1,4 +1,4 @@
-#ifndef EMSCRIPTEN
+#if defined(LINUX) && !defined(EMSCRIPTEN)
 #include "Recorder.h"
 #include <iostream>
 #include <sstream>
