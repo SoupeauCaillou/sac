@@ -6,8 +6,28 @@
 #include <time.h>
 #include <stdint.h>
 #include <fstream>
-#include <pthread.h>
 #include <glog/logging.h>
+
+#ifdef WINDOWS
+void initProfiler() {
+	LOG(WARNING) << "todo";
+}
+void startProfiler() {
+	LOG(WARNING) << "todo";
+}
+
+void stopProfiler(const std::string& filename) {
+	LOG(WARNING) << "todo";
+}
+
+void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph) {
+	LOG(WARNING) << "todo";
+}
+
+#else
+
+
+#include <pthread.h>
 static Json::Value* root;
 static pthread_mutex_t mutex;
 static bool started;
@@ -69,4 +89,5 @@ void stopProfiler(const std::string& filename) {
 	started = false;
 	pthread_mutex_unlock(&mutex);
 }
+#endif
 #endif
