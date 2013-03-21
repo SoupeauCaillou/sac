@@ -86,7 +86,13 @@ else()
       target_link_libraries (sac ${ZLIB_LIBRARY})
 	endif ()
 
-    target_link_libraries(sac AntTweakBar)
+	find_package (AntTweakBar)
+	if (ANTTWEAKBAR_FOUND)
+	  include_directories(${ANTTWEAKBAR_INCLUDE_DIR})
+      target_link_libraries (sac ${ANTTWEAKBAR_LIBRARY})
+	endif ()
+
+    target_link_libraries(sac)
 
 
 

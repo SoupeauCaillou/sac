@@ -10,7 +10,7 @@
 #include "../systems/CameraSystem.h"
 #include <GL/glfw.h>
 #include <AntTweakBar.h>
-#include <pthread.h>
+#include <mutex>
 
 namespace EditorMode {
     enum Enum {
@@ -19,13 +19,13 @@ namespace EditorMode {
     };
 }
 
-static pthread_mutex_t twMutex;
+std::mutex twMutex;
 static void _lock() {
-    pthread_mutex_lock(&twMutex);
+	twMutex.lock();
 }
 
 static void _unlock() {
-    pthread_mutex_unlock(&twMutex);
+    twMutex.unlock();
 }
 
 void LevelEditor::lock() {
@@ -115,7 +115,6 @@ void LevelEditor::LevelEditorDatas::deselect(Entity e) {
 
 TwBar* entityListBar;
 LevelEditor::LevelEditor() {
-    pthread_mutex_init(&twMutex, 0);
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
@@ -158,7 +157,7 @@ void LevelEditor::tick(float dt) {
         TwRemoveAllVars(entityListBar);
         for (unsigned i=0; i<entities.size(); i++) {
             if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay) continue;
-            TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), &buttonCallback, (void*)entities[i], "");
+            TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], "");
         }
         accum = 0;
         unlock();

@@ -41,7 +41,7 @@ struct NetworkMessageHeader {
         } CREATE;
         struct {
 
-        } DELETE;
+        } _DELETE;
         struct {
 
         } UPDATE;

@@ -9,7 +9,6 @@
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
 #if defined(DEBUG)
-#include <sys/inotify.h>
 #include <GL/glew.h>
 #include <stdint.h>
 #endif

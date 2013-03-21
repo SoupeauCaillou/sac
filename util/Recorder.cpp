@@ -204,6 +204,9 @@ bool Recorder::initSound (){
 }
 
 void Recorder::start(){
+#ifdef WINDOWS
+    
+#else
     if (outfile == NULL && recording == false){
         std::cout << "Recording start" << std::endl;
 
@@ -227,6 +230,7 @@ void Recorder::start(){
             std::cout << "thread creating error" << std::endl;
         }
     }
+#endif
 }
 
 void Recorder::stop(){

@@ -5,7 +5,6 @@
 #include <base/Log.h>
 #else
 #include <glog/logging.h>
-#endif
 #include "../../base/TimeUtil.h"
 #include <cstring>
 #include <arpa/inet.h>
@@ -350,4 +349,5 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
     } else
         LOG(INFO) << "allo : " << addr << " failed";
 }
+#endif
 #endif
