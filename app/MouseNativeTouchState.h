@@ -19,7 +19,7 @@
 
 #include "base/TouchInputManager.h"
 
-class Vector2;
+struct Vector2;
 
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {

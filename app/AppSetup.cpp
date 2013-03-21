@@ -40,8 +40,12 @@
 #include <mutex>
 
 #ifndef EMSCRIPTEN
-#include <locale.h>
-#include <libintl.h>
+	#ifdef WINDOWS
+
+	#else
+		#include <locale.h>
+		#include <libintl.h>
+	#endif
 #endif
 
 #include "base/Vector2.h"
@@ -68,8 +72,13 @@
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/SuccessAPI.h"
 #include "util/Recorder.h"
-#include <glog/logging.h>
-#include <gflags/gflags.h>
+#ifdef WINDOWS
+	#include <base/Log.h>
+#else
+	#include <glog/logging.h>
+	#include <gflags/gflags.h>
+#endif
+
 
 #include "MouseNativeTouchState.h"
 
@@ -138,7 +147,7 @@ static void updateAndRenderLoop() {
 
       running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
 
-      bool focus = glfwGetWindowParam(GLFW_ACTIVE);
+      bool focus = (glfwGetWindowParam(GLFW_ACTIVE) != 0);
       if (focus) {
      theMusicSystem.toggleMute(theSoundSystem.mute);
       } else {
@@ -182,10 +191,14 @@ static void updateAndRender() {
 
 /** Engine entry point */
 int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
+#ifdef WINDOWS
+	LOG(WARNING) << "TODO";
+#else
+	google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = true;
     FLAGS_colorlogtostderr = true;
     google::ParseCommandLineFlags(&argc, &argv, true);
+#endif
 
     Vector2 reso16_9(394, 700);
     Vector2 reso16_10(900, 625);
@@ -206,7 +219,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     if (!glfwInit())
         return 1;
     glfwOpenWindowHint( GLFW_WINDOW_NO_RESIZE, GL_TRUE );
-    if( !glfwOpenWindow( reso->X,reso->Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
+    if( !(int)glfwOpenWindow((int)reso->X, (int)reso->Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
         return 1;
     glfwSetWindowTitle(title.c_str());
     glewInit();
@@ -282,7 +295,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     /////////////////////////////////////////////////////
     // Init game
     game->setGameContexts(&ctx, &ctx);
-    game->sacInit(reso->X,reso->Y);
+    game->sacInit((int)reso->X, (int)reso->Y);
     game->init(state, size);
 
 #ifndef EMSCRIPTEN
@@ -292,7 +305,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 #endif
 
 #ifndef EMSCRIPTEN
-    record = new Recorder(reso->X, reso->Y);
+    record = new Recorder((int)reso->X, (int)reso->Y);
 
     std::thread th1(callback_thread);    
     do {

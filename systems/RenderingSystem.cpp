@@ -8,11 +8,10 @@
 #include "base/MathUtil.h"
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-#else
+#if defined(DEBUG)
 #include <sys/inotify.h>
 #include <GL/glew.h>
-#include <unistd.h>
+#include <stdint.h>
 #endif
 
 #ifdef DEBUG
@@ -101,11 +100,9 @@ void RenderingSystem::init() {
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GREATER))
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-	GL_OPERATION(glClearDepthf(0.0))
- #else
+#if defined(DEBUG)
     GL_OPERATION(glClearDepth(0.0))
- #endif
+#endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
 

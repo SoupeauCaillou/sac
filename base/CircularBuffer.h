@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <sys/types.h>
+#include <cstdint>
 
 class CircularBuffer {
 	public:

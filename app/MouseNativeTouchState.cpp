@@ -100,8 +100,8 @@ bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
     #else
     int x,y;
     glfwGetMousePos(&x, &y);
-    windowCoords->X = x;
-    windowCoords->Y = y;
+    windowCoords->X = (float)x;
+    windowCoords->Y = (float)y;
     return glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
     #endif
 }

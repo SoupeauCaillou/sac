@@ -35,7 +35,7 @@ Game::Game() {
 #ifdef INGAME_EDITORS
     gameType = GameType::Default;
 #endif
-    targetDT = 1.0 / 60.0;
+    targetDT = 1.0f / 60.0f;
 
 	/* create EntityManager */
 	EntityManager::CreateInstance();
@@ -294,13 +294,6 @@ void Game::render() {
         LOG_EVERY_N(INFO, 1000) << "FPS avg/min/max : " <<
             (1000 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt), 
         fpsStats.reset(t);
-    }
-
-    if (0) {
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = (0.016) * 1000000000LL;
-        nanosleep(&ts, 0);
     }
     PROFILE("Game", "render-game", EndEvent);
 }

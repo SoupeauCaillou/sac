@@ -29,7 +29,7 @@
 typedef int FramebufferRef;
 #define DefaultFrameBufferRef -1
 
-class TransformationComponent;
+struct TransformationComponent;
 
 struct RenderingComponent {
 	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(0x1) {

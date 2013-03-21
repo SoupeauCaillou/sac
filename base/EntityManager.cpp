@@ -3,7 +3,7 @@
 #include "systems/System.h"
 #include <cstring>
 
-#if defined(ANDROID) || defined(EMSCRIPTEN)
+#if defined(ANDROID) || defined(EMSCRIPTEN) || defined(WINDOWS)
 void* mempcpy(void* dst, const void* src, size_t size) {
 	memcpy(dst, src, size);
 	return (uint8_t*)dst + size;
@@ -25,7 +25,11 @@ EntityManager* EntityManager::Instance() {
 }
 
 void EntityManager::CreateInstance() {
-	CHECK (instance == 0) << "Recreating EntityManager";
+	#ifdef WINDOWS
+		LOG(WARNING) << "TODO";
+	#else
+		CHECK (instance == 0) << "Recreating EntityManager";
+	#endif
 	instance = new EntityManager;
 }
 
@@ -205,7 +209,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		}
 		entityComponents[e] = l;
         VLOG(1) << " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components";
-		nextEntity = MathUtil::Max(nextEntity, e + 1);
+		nextEntity = MathUtil::Max(nextEntity, (unsigned long)(e + 1));
 	}
 }
 

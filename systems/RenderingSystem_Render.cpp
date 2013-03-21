@@ -453,14 +453,14 @@ static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSi
 	out[rotateUV ? 1 : 3] = Vector2(crX + srY + position.X, -srX + crY + position.Y);
 }
 
-void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat)
+void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near_, float far_, float* mat)
 {
     float r_l = right - left;
     float t_b = top - bottom;
-    float f_n = far - near;
+    float f_n = far_ - near_;
     float tx = - (right + left) / r_l;
     float ty = - (top + bottom) / t_b;
-    float tz = - (far + near) / f_n;
+    float tz = - (far_ + near_) / f_n;
 
 #ifndef USE_VBO
     mat[0] = 2.0f / r_l;

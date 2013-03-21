@@ -41,10 +41,15 @@ class DataFileParser {
         DataFileParserData* data;
 };
 
+#define MAX_ELEMENTS 10
+
 template <class T>
 bool DataFileParser::parse(const std::string& value, T* out, const int count) {
-    size_t endIndexes[count];
-    if (!determineSubStringIndexes(value, count, endIndexes))
+	LOG_IF(FATAL, count > MAX_ELEMENTS)  << count << " elements not supported";
+		
+	size_t endIndexes[MAX_ELEMENTS];
+    
+	if (!determineSubStringIndexes(value, count, endIndexes))
         return false;
 
     size_t startIndex = 0;

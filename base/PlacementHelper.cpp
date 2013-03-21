@@ -39,17 +39,17 @@ float PlacementHelper::GimpHeightToScreen(int height) {
 
 float PlacementHelper::GimpYToScreen(int y) {
 	if (HEIGHT_IS_REF) {
-    	return - ScreenHeight * (y - GimpHeight * 0.5) / GimpHeight;
+    	return - ScreenHeight * (y - GimpHeight * 0.5f) / GimpHeight;
     } else {
-    	return - HEIGHT_RATIO_TO_SCREEN_HEIGHT((y - GimpHeight * 0.5) / GimpHeight);
+    	return - HEIGHT_RATIO_TO_SCREEN_HEIGHT((y - GimpHeight * 0.5f) / GimpHeight);
     }
 }
 
 float PlacementHelper::GimpXToScreen(int x) {
 	if (HEIGHT_IS_REF) {
-    	return WIDTH_RATIO_TO_SCREEN_WIDTH((x - GimpWidth * 0.5) / GimpWidth);
+    	return WIDTH_RATIO_TO_SCREEN_WIDTH((x - GimpWidth * 0.5f) / GimpWidth);
     } else {
-    	return (ScreenWidth * (x - GimpWidth * 0.5)) / GimpWidth;
+    	return (ScreenWidth * (x - GimpWidth * 0.5f)) / GimpWidth;
     }
 }
 

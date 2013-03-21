@@ -6,8 +6,8 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
-#include <sys/select.h>
-#include <unistd.h>
+
+#include <stdint.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>

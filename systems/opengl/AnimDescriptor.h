@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-class FileBuffer;
+struct FileBuffer;
 
 class AnimDescriptor {
     public:
