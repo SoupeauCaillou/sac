@@ -8,7 +8,7 @@ void AssetAPILinuxImpl::init() {
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
     fb.data = 0;
-#ifdef DATADIR
+#ifdef SAC_ASSETS_DIR
 	std::string full = SAC_ASSETS_DIR + asset;
 #else
     std::string full = "assets/" + asset;
