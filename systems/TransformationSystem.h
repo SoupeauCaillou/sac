@@ -1,14 +1,14 @@
 #pragma once
 
-#include "base/Vector2.h"
+#include <glm/glm.hpp>
 
 #include "System.h"
 
 
 struct TransformationComponent {
-	TransformationComponent(): position(Vector2::Zero), size(1.0f, 1.0f), rotation(0), z(0), parent(0) { }
+	TransformationComponent(): position(glm::vec2(0.0f, 0.0f)), size(1.0f, 1.0f), rotation(0), z(0), parent(0) { }
 
-	Vector2 position, worldPosition, size;
+	glm::vec2 position, worldPosition, size;
 	float rotation, worldRotation;//radians
 	float z, worldZ;
 
@@ -26,7 +26,7 @@ public:
 		W , C, E ,
 		SW, S, SE
 	};
-	static void setPosition(TransformationComponent* tc, const Vector2& p, PositionReference ref=C);
+	static void setPosition(TransformationComponent* tc, const glm::vec2& p, PositionReference ref=C);
 
 	#ifdef DEBUG
 	void preDeletionCheck(Entity e) {

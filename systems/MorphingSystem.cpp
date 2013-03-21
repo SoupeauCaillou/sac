@@ -1,6 +1,6 @@
 #include "MorphingSystem.h"
 
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 
 INSTANCE_IMPL(MorphingSystem);
 
@@ -19,10 +19,10 @@ void MorphingSystem::DoUpdate(float dt) {
 		}
 		if (m->active) {
 			m->activationTime += dt;
-			m->value = MathUtil::Min(1.0f, m->activationTime/m->timing);
+			m->value = glm::min(1.0f, m->activationTime/m->timing);
             for (unsigned int i=0; i<m->elements.size(); i++) {
                 if (!m->elements[i]->ended) {
-					m->elements[i]->lerp(MathUtil::Min(1.0f, m->value * m->elements[i]->coeff));
+					m->elements[i]->lerp(glm::min(1.0f, m->value * m->elements[i]->coeff));
 					if (m->value == 1) {
 						m->elements[i]->ended = true;
 					}

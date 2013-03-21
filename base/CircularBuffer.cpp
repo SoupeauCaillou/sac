@@ -1,7 +1,7 @@
 #include "CircularBuffer.h"
-#include "base/MathUtil.h"
 #include <cassert>
 #include <cstring>
+#include <glm/glm.hpp>
 
 CircularBuffer::CircularBuffer(unsigned int pBufferSize) : bufferSize(pBufferSize) {
 	buffer = new int8_t[bufferSize];
@@ -32,7 +32,7 @@ unsigned int CircularBuffer::read(int8_t* out, unsigned int size) {
 		return 0;
 
 	do {
-		unsigned int amount = MathUtil::Min(size - count, bufferSize - readPos);
+		unsigned int amount = glm::min(size - count, bufferSize - readPos);
 		memcpy(&out[count], &buffer[readPos], amount);
 		count += amount;
 		readPos += amount;
@@ -58,7 +58,7 @@ unsigned int CircularBuffer::write(int8_t* in, unsigned int size) {
 		return 0;
 
 	do {
-		unsigned int amount = MathUtil::Min(size - count, bufferSize - writePos);
+		unsigned int amount = glm::min(size - count, bufferSize - writePos);
 		memcpy(&buffer[writePos], &in[count], amount);
 		count += amount;
 		writePos  += amount;

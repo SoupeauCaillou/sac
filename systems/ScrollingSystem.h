@@ -6,9 +6,9 @@
 struct ScrollingComponent {
 	ScrollingComponent() : opaqueType(RenderingComponent::NON_OPAQUE) {}
     std::vector<std::string> images;
-    Vector2 direction;
+    glm::vec2 direction;
     float speed;
-    Vector2 displaySize;
+    glm::vec2 displaySize;
     // transitive rendering properties
     bool hide;
     RenderingComponent::Opacity opaqueType;
@@ -29,4 +29,3 @@ std::map<Entity, ScrollingElement> elements;
 typedef std::map<Entity, ScrollingElement>::iterator EltIt;
 
 };
-

@@ -14,13 +14,13 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
 
 void ButtonSystem::DoUpdate(float) {
     bool touch = theTouchInputManager.isTouched(0);
-	const Vector2& pos = theTouchInputManager.getTouchLastPosition(0);
+	const glm::vec2& pos = theTouchInputManager.getTouchLastPosition(0);
     FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)
 		UpdateButton(entity, bt, touch, pos);
 	}
 }
 
-void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const Vector2& touchPos) {
+void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
 	if (!comp->enabled) {
 		comp->mouseOver = comp->clicked = comp->touchStartOutside = false;
 		return;
@@ -31,8 +31,8 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
     if (!touching)
         comp->touchStartOutside = false;
 
-	const Vector2& pos = TRANSFORM(entity)->worldPosition;
-	const Vector2& size = TRANSFORM(entity)->size;
+	const glm::vec2& pos = TRANSFORM(entity)->worldPosition;
+	const glm::vec2& size = TRANSFORM(entity)->size;
 
 	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
 	if (comp->enabled && !comp->touchStartOutside) {

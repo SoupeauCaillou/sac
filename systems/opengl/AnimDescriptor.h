@@ -15,7 +15,7 @@ class AnimDescriptor {
         struct AnimFrame {
             TextureRef texture;
             struct Transform {
-                Vector2 position, size;
+                glm::vec2 position, size;
                 float rotation;
             };
             std::vector<Transform> transforms;

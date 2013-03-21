@@ -3,7 +3,10 @@
 #include "PhysicsSystem.h"
 #include "base/EntityManager.h"
 
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtc/random.hpp>
+
 
 
 #define MAX_PARTICULE_COUNT 4096
@@ -50,7 +53,7 @@ void ParticuleSystem::DoUpdate(float dt) {
             #endif
             int count = pc->emissionRate * (dt + pc->spawnLeftOver);
             pc->spawnLeftOver += dt - count / pc->emissionRate;
-            count = MathUtil::Min(count, MAX_PARTICULE_COUNT - (int)particules.size());
+            count = glm::min(count, MAX_PARTICULE_COUNT - (int)particules.size());
             particules.resize(particules.size() + count);
             std::list<InternalParticule>::reverse_iterator intP = particules.rbegin();
             for (int i=0; i<count; i++) {
@@ -65,8 +68,8 @@ void ParticuleSystem::DoUpdate(float dt) {
                 #endif
                 ADD_COMPONENT(e, Transformation);
                 TransformationComponent* tc = TRANSFORM(e);
-                tc->position = tc->worldPosition = ptc->worldPosition + Vector2::Rotate(Vector2(MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.X, MathUtil::RandomFloatInRange(-0.5, 0.5) * ptc->size.Y), ptc->worldRotation);
-                tc->size.X = tc->size.Y = pc->initialSize.random();
+                tc->position = tc->worldPosition = ptc->worldPosition + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->worldRotation);
+                tc->size.x = tc->size.y = pc->initialSize.random();
                 tc->z = tc->worldZ = ptc->worldZ;
 
                 ADD_COMPONENT(e, Rendering);
@@ -83,11 +86,11 @@ void ParticuleSystem::DoUpdate(float dt) {
                     ppc->gravity = pc->gravity;
                     ppc->mass = pc->mass;
                     float angle = ptc->worldRotation + pc->forceDirection.random();
-                    ppc->forces.push_back(std::make_pair(Force(Vector2::VectorFromAngle(angle) * pc->forceAmplitude.random(), tc->size * MathUtil::RandomFloat()), 0.016));
+                    ppc->forces.push_back(std::make_pair(Force(glm::vec2(glm::cos(angle), glm::sin(angle)) * pc->forceAmplitude.random(), tc->size * glm::linearRand(0.0f, 1.0f)), 0.016));
                     PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }
                 internal.color = Interval<Color> (rc->color, pc->finalColor.random());
-                internal.size = Interval<float> (tc->size.X, pc->finalSize.random());
+                internal.size = Interval<float> (tc->size.x, pc->finalSize.random());
             }
         }
     }
@@ -106,7 +109,7 @@ void ParticuleSystem::DoUpdate(float dt) {
             it = next;
         } else {
             RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
-            TRANSFORM(internal.e)->size = Vector2(internal.size.lerp(internal.time / internal.lifetime));
+            TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
             ++it;
         }
     }
@@ -133,8 +136,8 @@ void ParticuleSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TwAddVarRW(bar, "max force amplitude", TW_TYPE_FLOAT, &tc->forceAmplitude.t2, "group=ParticulePhysics step=0,1 min=0");
     TwAddVarRW(bar, "min moment", TW_TYPE_FLOAT, &tc->moment.t1, "group=ParticulePhysics step=0,01 min=0");
     TwAddVarRW(bar, "max moment", TW_TYPE_FLOAT, &tc->moment.t2, "group=ParticulePhysics step=0,01 min=0");
-    TwAddVarRW(bar, "gravity.X", TW_TYPE_FLOAT, &tc->gravity.X, "group=ParticulePhysics step=0,01");
-    TwAddVarRW(bar, "gravity.Y", TW_TYPE_FLOAT, &tc->gravity.Y, "group=ParticulePhysics step=0,01");
+    TwAddVarRW(bar, "gravity.X", TW_TYPE_FLOAT, &tc->gravity.x, "group=ParticulePhysics step=0,01");
+    TwAddVarRW(bar, "gravity.Y", TW_TYPE_FLOAT, &tc->gravity.y, "group=ParticulePhysics step=0,01");
     TwAddVarRW(bar, "mass", TW_TYPE_FLOAT, &tc->mass, "group=ParticulePhysics step=0,01 min=0");
 
     std::stringstream groups;

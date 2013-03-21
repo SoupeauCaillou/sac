@@ -1,6 +1,7 @@
 #include "ContainerSystem.h"
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 #include "TransformationSystem.h"
+#include <limits>
 
 INSTANCE_IMPL(ContainerSystem);
 
@@ -9,12 +10,12 @@ ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("Co
 }
 
 static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, TransformationComponent* tc) {
-	if (tc->size == Vector2::Zero)
+	if (tc->size == glm::vec2(0.0f))
 		return;
-	minX = MathUtil::Min(minX, tc->worldPosition.X - tc->size.X * 0.5f);
-	minY = MathUtil::Min(minY, tc->worldPosition.Y - tc->size.Y * 0.5f);
-	maxX = MathUtil::Max(maxX, tc->worldPosition.X + tc->size.X * 0.5f);
-	maxY = MathUtil::Max(maxY, tc->worldPosition.Y + tc->size.Y * 0.5f);
+	minX = glm::min(minX, tc->worldPosition.x - tc->size.x * 0.5f);
+	minY = glm::min(minY, tc->worldPosition.y - tc->size.y * 0.5f);
+	maxX = glm::max(maxX, tc->worldPosition.x + tc->size.x * 0.5f);
+	maxY = glm::max(maxY, tc->worldPosition.y + tc->size.y * 0.5f);
 }
 
 void ContainerSystem::DoUpdate(float) {
@@ -37,8 +38,9 @@ void ContainerSystem::DoUpdate(float) {
 		if (!bc->enable || bc->entities.empty())
 			continue;
 
-		float minX = MathUtil::MaxFloat, minY = MathUtil::MaxFloat;
-		float maxX = MathUtil::MinFloat, maxY = MathUtil::MinFloat;
+        //~ TODO
+		float minX = std::numeric_limits<float>().max(), minY = std::numeric_limits<float>().max();
+		float maxX = std::numeric_limits<float>().min(), maxY = std::numeric_limits<float>().min();
 		for(std::vector<Entity>::iterator jt=bc->entities.begin(); jt!=bc->entities.end(); ++jt) {
 			TransformationComponent* tc = TRANSFORM(*jt);
 			updateMinMax(minX, minY, maxX, maxY, tc);
@@ -55,8 +57,8 @@ void ContainerSystem::DoUpdate(float) {
 		}
 
 		TransformationComponent* tc = TRANSFORM(a);
-		tc->position = Vector2((minX + maxX) * 0.5, (minY + maxY) * 0.5);
-		tc->size = Vector2(maxX - minX, maxY - minY);
+		tc->position = glm::vec2((minX + maxX) * 0.5, (minY + maxY) * 0.5);
+		tc->size = glm::vec2(maxX - minX, maxY - minY);
 	}
 }
 

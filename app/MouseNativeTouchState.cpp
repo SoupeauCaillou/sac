@@ -26,10 +26,10 @@
 #include <GL/glfw.h>
 #endif
 
-bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
+bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
     #ifdef EMSCRIPTEN
      static bool down = false;
-     static Vector2 position;
+     static glm::vec2 position;
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         switch(event.type) {
@@ -37,8 +37,8 @@ bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
             SDL_MouseMotionEvent *m = (SDL_MouseMotionEvent*)&event;
             int x,y;
             SDL_GetMouseState(&x, &y);
-            position.X = x;
-            position.Y = y;
+            position.x = x;
+            position.y = y;
             break;
           }
           case SDL_MOUSEBUTTONDOWN: {
@@ -48,7 +48,7 @@ bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
                 // windowCoords->X = m->x;
                 // windowCoords->Y = m->y;
                 down = true;
-                LOGI("Mouse down (%f %f)", windowCoords->X, windowCoords->Y);
+                LOGI("Mouse down (%f %f)", windowCoords->x, windowCoords->y);
             }
             break;
           }
@@ -100,8 +100,8 @@ bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
     #else
     int x,y;
     glfwGetMousePos(&x, &y);
-    windowCoords->X = x;
-    windowCoords->Y = y;
+    windowCoords->x = x;
+    windowCoords->y = y;
     return glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
     #endif
 }

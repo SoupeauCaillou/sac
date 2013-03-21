@@ -19,7 +19,7 @@ struct ParticuleComponent {
         forceAmplitude.t1 = forceAmplitude.t2 = 
         moment.t1 = moment.t2 = spawnLeftOver =
         mass = 0.0f;
-        gravity = Vector2(0, -10);
+        gravity = glm::vec2(0, -10);
     }
     float emissionRate, duration;
     TextureRef texture;
@@ -31,7 +31,7 @@ struct ParticuleComponent {
     Interval<float> forceDirection;
     Interval<float> forceAmplitude;
     Interval<float> moment;
-    Vector2 gravity;
+    glm::vec2 gravity;
     float spawnLeftOver;
     float mass;
 };
@@ -51,4 +51,3 @@ private:
     std::list<InternalParticule> particules;
     int minUsedIdx, maxUsedIdx;
 };
-

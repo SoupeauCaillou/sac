@@ -1,6 +1,6 @@
 #include "Color.h"
 
-#include "MathUtil.h"
+#include <glm/gtc/random.hpp>
 #include <cstring>
 #include <glog/logging.h>
 #include <map>
@@ -8,7 +8,7 @@
 static std::map<std::string, Color> name2Color;
 
 Color Color::random() {
-	return (Color( MathUtil::RandomFloat(), MathUtil::RandomFloat(), MathUtil::RandomFloat()));
+	return (Color(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f)));
 }
 
 void Color::nameColor(const Color& c, const std::string& name) {

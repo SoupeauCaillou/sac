@@ -53,10 +53,10 @@ float PlacementHelper::GimpXToScreen(int x) {
     }
 }
 
-Vector2 PlacementHelper::GimpSizeToScreen(const Vector2& v) {
- 	return Vector2(GimpWidthToScreen(v.X), GimpHeightToScreen(v.Y));
+glm::vec2 PlacementHelper::GimpSizeToScreen(const glm::vec2& v) {
+ 	return glm::vec2(GimpWidthToScreen(v.x), GimpHeightToScreen(v.y));
 }
 
-Vector2 PlacementHelper::GimpPositionToScreen(const Vector2& v) {
-    return Vector2(GimpXToScreen(v.X), GimpYToScreen(v.Y));
+glm::vec2 PlacementHelper::GimpPositionToScreen(const glm::vec2& v) {
+    return glm::vec2(GimpXToScreen(v.x), GimpYToScreen(v.y));
 }

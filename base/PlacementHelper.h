@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vector2.h"
+#include <glm/glm.hpp>
 
 struct PlacementHelper {
     static float ScreenWidth, ScreenHeight;
@@ -9,9 +9,9 @@ struct PlacementHelper {
 
     static float GimpWidthToScreen(int width);
     static float GimpHeightToScreen(int height);
-    static Vector2 GimpSizeToScreen(const Vector2& v);
+    static glm::vec2 GimpSizeToScreen(const glm::vec2& v);
 
     static float GimpYToScreen(int y);
     static float GimpXToScreen(int x);
-    static Vector2 GimpPositionToScreen(const Vector2& v);
+    static glm::vec2 GimpPositionToScreen(const glm::vec2& v);
 };

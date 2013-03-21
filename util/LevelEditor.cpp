@@ -10,7 +10,7 @@
 #include "../systems/CameraSystem.h"
 #include <GL/glfw.h>
 #include <AntTweakBar.h>
-#include <pthread.h>
+#include <glm/gtx/rotate_vector.hpp>
 
 namespace EditorMode {
     enum Enum {
@@ -45,8 +45,8 @@ struct LevelEditor::LevelEditorDatas {
     Color originalColor;
     float selectionColorChangeSpeed;
 
-    Vector2 lastMouseOverPosition;
-    Vector2 selectedOriginalPos;
+    glm::vec2 lastMouseOverPosition;
+    glm::vec2 selectedOriginalPos;
 
     unsigned activeCameraIndex;
     bool spaceWasPressed;
@@ -58,8 +58,8 @@ struct LevelEditor::LevelEditorDatas {
     void buildGallery();
     void destroyGallery();
 
-    void updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff);
-    void updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff);
+    void updateModeSelection(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
+    void updateModeGallery(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
 
     void select(Entity e);
     void deselect(Entity e);
@@ -104,7 +104,7 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
     showTweakBarForEntity(e);
     _unlock();
     TRANSFORM(selectionDisplay)->parent = e;
-    TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + Vector2(0.1);
+    TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + glm::vec2(0.1f);
     RENDERING(selectionDisplay)->hide = false;
     originalColor = RENDERING(e)->color;
     // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
@@ -178,10 +178,10 @@ void LevelEditor::tick(float dt) {
 
     int x, y;
     glfwGetMousePos(&x, &y);
-    Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
+    glm::vec2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5f, 0.5f - y / (float)PlacementHelper::WindowHeight);
 
-    const Vector2 position = TRANSFORM(camera)->worldPosition + Vector2::Rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
-    LOG_EVERY_N(INFO, 1000) << "Mouse position: " << position;
+    const glm::vec2 position = TRANSFORM(camera)->worldPosition + glm::rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
+    //~ LOG_EVERY_N(INFO, 1000) << "Mouse position: " << position;
 
     static int prevWheel = 0;
     int wheel = glfwGetMouseWheel();
@@ -238,7 +238,7 @@ void LevelEditor::LevelEditorDatas::buildGallery() {
     const int elementPerRow = 7;
     float spacing = 0;
     float texSize = width / (elementPerRow + (elementPerRow -1) * spacing);
-    Vector2 gallerySize = Vector2(width, (textureCount / elementPerRow) * (1 * texSize));;
+    glm::vec2 gallerySize = Vector2(width, (textureCount / elementPerRow) * (1.0f * texSize));;
 
     gallery = theEntityManager.CreateEntity();
     ADD_COMPONENT(gallery, Transformation);
@@ -258,12 +258,12 @@ void LevelEditor::LevelEditorDatas::buildGallery() {
         ADD_COMPONENT(e, Transformation);
         TRANSFORM(e)->z = 0.001;
         TRANSFORM(e)->parent = gallery;
-        const Vector2& te = theRenderingSystem.getTextureSize(it->first);
+        const glm::vec2& te = theRenderingSystem.getTextureSize(it->first);
         if (te.X >= te.Y)
-            TRANSFORM(e)->size = Vector2(texSize, texSize * te.Y / te.X);
+            TRANSFORM(e)->size = glm::vec2(texSize, texSize * te.Y / te.X);
         else
-            TRANSFORM(e)->size = Vector2(texSize * te.X / te.Y, texSize);
-        TRANSFORM(e)->position = Vector2(column * texSize * 1, row * texSize * 1) - gallerySize * 0.5 + Vector2(texSize * 0.5);
+            TRANSFORM(e)->size = glm::vec2(texSize * te.X / te.Y, texSize);
+        TRANSFORM(e)->position = glm::vec2(column * texSize * 1.0f, row * texSize * 1.0f) - gallerySize * 0.5f + Vector2(texSize * 0.5f);
         ADD_COMPONENT(e, Rendering);
         RENDERING(e)->hide = false;
         RENDERING(e)->texture = it->second;
@@ -283,7 +283,7 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
     theEntityManager.DeleteEntity(gallery);
 }
 
-void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const glm::vec2& mouseWorldPos, int wheelDiff) {
 #if 1
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
@@ -301,7 +301,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
                 if (RENDERING(entities[i])->hide)
                     continue;
                 if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
-                    float d = Vector2::DistanceSquared(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
+                    float d = glm::pow(glm::distance(mouseWorldPos, TRANSFORM(entities[i])->worldPosition), 2.0f);
                     if (d < nearest) {
                         over = entities[i];
                         nearest = d;
@@ -311,7 +311,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
 
             if (over) {
                 TRANSFORM(overDisplay)->parent = over;
-                TRANSFORM(overDisplay)->size = TRANSFORM(over)->size + Vector2(0.1);
+                TRANSFORM(overDisplay)->size = TRANSFORM(over)->size + glm::vec2(0.1f);
                 RENDERING(overDisplay)->hide = false;
             } else {
                 RENDERING(overDisplay)->hide = true;
@@ -408,7 +408,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
 #endif
 }
 
-void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const glm::vec2& mouseWorldPos, int wheelDiff) {
 #if 0
     if (glfwGetKey(GLFW_KEY_SPACE)) {
         spaceWasPressed = true;
@@ -418,8 +418,8 @@ void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& m
     }
 
     if (wheelDiff) {
-        float speed = wheelDiff * theRenderingSystem.cameras[activeCameraIndex].worldSize.Y * ( glfwGetKey( GLFW_KEY_LSHIFT ) ? 2 : 0.8);
-        TRANSFORM(gallery)->position.Y -= speed * dt;
+        float speed = wheelDiff * theRenderingSystem.cameras[activeCameraIndex].worldSize.y * ( glfwGetKey( GLFW_KEY_LSHIFT ) ? 2 : 0.8);
+        TRANSFORM(gallery)->position.y -= speed * dt;
     }
 
     for (unsigned i=0; i<galleryItems.size(); i++) {

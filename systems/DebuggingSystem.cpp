@@ -18,8 +18,8 @@ bool DebuggingSystem::addDebugEntity(std::string debugName, Color lineColor=Colo
     if (newGraph) {
         Entity de = theEntityManager.CreateEntity(debugName);
         ADD_COMPONENT(de, Transformation);
-        TRANSFORM(de)->size = Vector2(10);
-        TRANSFORM(de)->position = Vector2(0, 0);
+        TRANSFORM(de)->size = glm::vec2(10.0f);
+        TRANSFORM(de)->position = glm::vec2(0.0f);
         TRANSFORM(de)->parent = activeCamera;
         ADD_COMPONENT(de, Rendering);
         RENDERING(de)->hide = false;
@@ -92,8 +92,8 @@ void DebuggingSystem::DoUpdate(float dt) {
         } else {
             TRANSFORM(c)->parent = captionGraph[i-1];
         }
-        TRANSFORM(c)->size = Vector2(10, 1);
-        TRANSFORM(c)->position = Vector2(0, -1);
+        TRANSFORM(c)->size = glm::vec2(10.0f, 1.0f);
+        TRANSFORM(c)->position = glm::vec2(0.0f, -1.0f);
 
         ADD_COMPONENT(c, TextRendering);
         TEXT_RENDERING(c)->fontName = "typo";
@@ -104,8 +104,8 @@ void DebuggingSystem::DoUpdate(float dt) {
 
     if (activeCamera && captionGraph.size()) {
         TRANSFORM(captionGraph.front())->parent = activeCamera;
-        TRANSFORM(captionGraph.front())->position.X = (-1 * TRANSFORM(activeCamera)->size.X/2) + TRANSFORM(captionGraph.front())-> size.X / 2;
-        TRANSFORM(captionGraph.front())->position.Y = (TRANSFORM(activeCamera)->size.Y/2) - TRANSFORM(captionGraph.front())-> size.Y / 2;
+        TRANSFORM(captionGraph.front())->position.x = (-1 * TRANSFORM(activeCamera)->size.x/2) + TRANSFORM(captionGraph.front())-> size.x / 2;
+        TRANSFORM(captionGraph.front())->position.y = (TRANSFORM(activeCamera)->size.y/2) - TRANSFORM(captionGraph.front())-> size.y / 2;
     }
 
     static float reloadFrequency = 0.6;
@@ -128,7 +128,7 @@ void DebuggingSystem::DoUpdate(float dt) {
                 std::pair<float, float> p = GRAPH(debugEntity.second)->pointsList.back();
                 a << debugEntity.first << " X=" << p.first << " Y=" << p.second;
 
-                TRANSFORM(*it)->size.X = a.str().size()*0.5;
+                TRANSFORM(*it)->size.x = a.str().size()*0.5;
                 TRANSFORM(*it)->z = 0;
                 if (it == captionGraph.begin() ){
                     TRANSFORM(*it)->z = -0.1;

@@ -2,6 +2,7 @@
 #include "../api/NetworkAPI.h"
 #include "../base/EntityManager.h"
 #include <queue>
+#include <glm/gtc/random.hpp>
 
 struct StatusCache {
     std::map<std::string, uint8_t*> components;
@@ -61,7 +62,7 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"
     /* nothing saved (?!) */
     nextGuid = 0;
     hsDone = false;
-    myNonce = MathUtil::RandomInt(65000);
+    myNonce = glm::linearRand(0.0f, 65000.0f);
 
     NetworkComponentPriv nc;
     componentSerializer.add(new MapProperty<std::string, float>(OFFSET(systemUpdatePeriod, nc)));

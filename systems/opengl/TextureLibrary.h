@@ -19,7 +19,7 @@
 #pragma once
 
 #include "base/NamedAssetLibrary.h"
-#include "base/Vector2.h"
+#include <glm/glm.hpp>
 #include "OpenglHelper.h"
 #include "util/ImageLoader.h"
 
@@ -48,18 +48,18 @@ struct TextureInfo {
     // which atlas
     short atlasIndex;
     // uv coords in atlas
-    Vector2 uv[2];
+    glm::vec2 uv[2];
     // texture original size
-    Vector2 originalSize;
+    glm::vec2 originalSize;
     // texture redux offset/size
-    Vector2 reduxStart, reduxSize;
+    glm::vec2 reduxStart, reduxSize;
     // coordinates of opaque region in alpha-enabled texture (optional)
-    Vector2 opaqueStart, opaqueSize;
+    glm::vec2 opaqueStart, opaqueSize;
     TextureInfo (const InternalTexture& glref = InternalTexture::Invalid,
-        const Vector2& posInAtlas = Vector2::Zero, const Vector2& sizeInAtlas = Vector2::Zero, bool rot = false,
-        const Vector2& atlasSize = Vector2::Zero,
-        const Vector2& offsetInOriginal = Vector2::Zero, const Vector2& originalSize=Vector2::Zero,
-        const Vector2& opaqueStart = Vector2::Zero, const Vector2& opaqueSize=Vector2::Zero,
+        const glm::vec2& posInAtlas = glm::vec2(0), const glm::vec2& sizeInAtlas = glm::vec2(0.0f), bool rot = false,
+        const glm::vec2& atlasSize = glm::vec2(0),
+        const glm::vec2& offsetInOriginal = glm::vec2(0), const glm::vec2& originalSize=glm::vec2(0.0f),
+        const glm::vec2& opaqueStart = glm::vec2(0), const glm::vec2& opaqueSize=glm::vec2(0.0f),
         int atlasIdx = -1);
 };
 

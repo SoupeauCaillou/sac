@@ -23,7 +23,7 @@
 #include <sstream>
 #endif
 
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -179,7 +179,7 @@ void MusicSystem::DoUpdate(float dt) {
 	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
 		        const float step = dt / m->fadeIn;
 		        m->currentVolume += step;
-		        m->currentVolume = MathUtil::Min(m->currentVolume, m->volume);
+		        m->currentVolume = glm::min(m->currentVolume, m->volume);
 		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
 	        } else {
 	        	m->fadeIn = 0;
@@ -666,7 +666,7 @@ static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) 
     DataSource* src = static_cast<DataSource*> (datasource);
     size_t r = 0;
     for (unsigned int i=0; i<nmemb && src->cursor < src->size; i++) {
-        size_t a = MathUtil::Min(src->size - src->cursor + 1, (int)size);
+        size_t a = glm::min(src->size - src->cursor + 1, (int)size);
         memcpy(&((char*)ptr)[i * size], &src->datas[src->cursor], a);
         src->cursor += a;
         r += a;

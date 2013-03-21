@@ -11,17 +11,18 @@ inline bool Property<Color>::different(void* object, void* refObject) const {
 }
 
 template <>
-inline bool Property<Vector2>::different(void* object, void* refObject) const {
-    Vector2* a = (Vector2*) ((uint8_t*)object + offset);
-    Vector2* b = (Vector2*) ((uint8_t*)refObject + offset);
-    return (*a - *b).LengthSquared() > epsilon.LengthSquared();
+inline bool Property<glm::vec2>::different(void* object, void* refObject) const {
+    glm::vec2* a = (glm::vec2*) ((uint8_t*)object + offset);
+    glm::vec2* b = (glm::vec2*) ((uint8_t*)refObject + offset);
+    //~ return (*a - *b).LengthSquared() > epsilon.LengthSquared();
+    return glm::length(*a - *b) > glm::length(epsilon);
 }
 
 template <typename T>
 inline bool Property<T>::different(void* object, void* refObject) const {
     T* a = (T*) ((uint8_t*)object + offset);
     T* b = (T*) ((uint8_t*)refObject + offset);
-    return (MathUtil::Abs(*a - *b) > epsilon);
+    return (glm::abs(*a - *b) > epsilon);
 }
 
 template <typename T>
@@ -212,5 +213,3 @@ inline int MapProperty<std::string, float>::deserialize(uint8_t* in, void* objec
     }
     return idx;
 }
-
-

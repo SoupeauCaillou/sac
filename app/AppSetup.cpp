@@ -44,10 +44,9 @@
 #include <libintl.h>
 #endif
 
-#include "base/Vector2.h"
+#include <glm/glm.hpp>
 #include "base/TouchInputManager.h"
 #include "base/TimeUtil.h"
-#include "base/MathUtil.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
 #include "systems/RenderingSystem.h"
@@ -187,9 +186,9 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     FLAGS_colorlogtostderr = true;
     google::ParseCommandLineFlags(&argc, &argv, true);
 
-    Vector2 reso16_9(394, 700);
-    Vector2 reso16_10(900, 625);
-    Vector2* reso = &reso16_10;
+    glm::vec2 reso16_9(394, 700);
+    glm::vec2 reso16_10(900, 625);
+    glm::vec2* reso = &reso16_10;
     TimeUtil::Init();
     
     game = gameImpl;
@@ -206,7 +205,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     if (!glfwInit())
         return 1;
     glfwOpenWindowHint( GLFW_WINDOW_NO_RESIZE, GL_TRUE );
-    if( !glfwOpenWindow( reso->X,reso->Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
+    if( !glfwOpenWindow( reso->x,reso->y, 8,8,8,8,8,8, GLFW_WINDOW ) )
         return 1;
     glfwSetWindowTitle(title.c_str());
     glewInit();
@@ -282,7 +281,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     /////////////////////////////////////////////////////
     // Init game
     game->setGameContexts(&ctx, &ctx);
-    game->sacInit(reso->X,reso->Y);
+    game->sacInit(reso->x,reso->y);
     game->init(state, size);
 
 #ifndef EMSCRIPTEN
@@ -292,7 +291,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 #endif
 
 #ifndef EMSCRIPTEN
-    record = new Recorder(reso->X, reso->Y);
+    record = new Recorder(reso->x, reso->y);
 
     std::thread th1(callback_thread);    
     do {
