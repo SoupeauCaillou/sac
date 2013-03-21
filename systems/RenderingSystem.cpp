@@ -375,11 +375,17 @@ void RenderingSystem::DoUpdate(float) {
     }
 
     outQueue.commands.reserve(outQueue.count + 1);
+    // assert(outQueue.commands.size() == (outQueue.count + 1));
+
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;
     dummy.rotateUV = cccc;
-    outQueue.commands[outQueue.count++] = dummy;
+    if (outQueue.commands.size() <= outQueue.count)
+        outQueue.commands.push_back(dummy);
+    else
+        outQueue.commands[outQueue.count] = dummy;
     outQueue.count++;
+    // outQueue.count++;
     std::stringstream framename;
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
