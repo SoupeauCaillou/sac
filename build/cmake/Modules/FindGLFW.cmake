@@ -1,55 +1,64 @@
-# - Find GLFW libraries by Gautier :-).
-# This module defines the following variables:
-#  GLFW_INCLUDE_DIRS - include directories for GLFW
-#  GLFW_LIBRARIES - libraries to link against GLFW
-#  GLFW_FOUND - true if GLFW has been found and can be used
+#name in uppercase
+set(NAME "GLFW")
 
-#=============================================================================
-# Copyright 2012 Benjamin Eikel
-#
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
+#names of the 'physic' lib directory
+set(DIR_POSSIBLE_NAMES glfw GLFW)
 
-file(
-  GLOB
-  MIGHT_LOCATION
-    "$ENV{PROGRAMFILES}/../Program\ Files/glfw"
-    ~/Library/Frameworks
-    /Library/Frameworks
-    /opt
-    /usr/include/
+#headers' directory name
+set(HEADER_DIR include include/GL)
+
+#libraries' directory name
+set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64 lib-msvc110)
+
+#headers' name (.h)
+set(HEADER_NAMES GL/glfw.h)
+
+#libraries' name (.lib)
+set(LIBRARY_POSSIBLE_NAMES GLFW GLFWDLL glfw)
+
+######################### GENERIC PART #################################
+################### It shouldn't be modified ###########################
+set(GENERALDIR_POSSIBLE_NAMES 
+		"$ENV{PROGRAMFILES}/../Program\ Files"
+		~/Library/Frameworks
+		/Library/Frameworks
+		/opt
+		
+		#this below is 'sac' related
+		"${CMAKE_SOURCE_DIR}/../sac_windows_deps"
+		$ENV{SAC_LIBS_DIR})
+
+#search the directory real name if exist
+foreach(commondir ${GENERALDIR_POSSIBLE_NAMES})
+	foreach(dirname ${DIR_POSSIBLE_NAMES})
+		if (EXISTS "${commondir}/${dirname}")
+			set(MIGHT_LOCATION "${commondir}/${dirname}")
+		endif()
+	endforeach()
+endforeach()
+
+find_path(${NAME}_INCLUDE_DIR ${HEADER_NAMES}
+	HINTS
+		$ENV{${NAME}DIR}
+	PATH_SUFFIXES
+		${HEADER_DIR}
+	PATHS 
+		${MIGHT_LOCATION}
 )
-	
-find_path(GLFW_INCLUDE_DIR GL/glfw.h 
-  HINTS
-    ENV GLFWDIR
-  PATH_SUFFIXES
-    include/GL include
-  PATHS 
-    ${MIGHT_LOCATION}
-)
 
-
-find_library(GLFW_LIBRARY 
-  NAMES
-    GLFW GLFWDLL glfw
-  HINTS
-    ENV GLFWDIR
-  PATH_SUFFIXES
-    lib64 lib libs64 libs libs/Win32 libs/Win64 lib-msvc110
-  PATHS
-    ${MIGHT_LOCATION}
+find_library(${NAME}_LIBRARY 
+	NAMES
+		${LIBRARY_POSSIBLE_NAMES}
+	HINTS
+		$ENV{${NAME}DIR}
+	PATH_SUFFIXES
+		${LIBRARY_DIR}
+	PATHS 
+		${MIGHT_LOCATION}
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(GLFW
-                                  REQUIRED_VARS GLFW_INCLUDE_DIR GLFW_LIBRARY)
+find_package_handle_standard_args(${NAME}
+      REQUIRED_VARS ${NAME}_INCLUDE_DIR ${NAME}_LIBRARY)
 
-mark_as_advanced(GLFW_LIBRARY GLFW_INCLUDE_DIR)
+mark_as_advanced(${NAME}_LIBRARY ${NAME}_INCLUDE_DIR)

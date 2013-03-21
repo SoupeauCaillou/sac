@@ -1,54 +1,65 @@
-# - Find the OpenGL Extension Wrangler Library (GLEW)
-# This module defines the following variables:
-#  GLEW_INCLUDE_DIRS - include directories for GLEW
-#  GLEW_LIBRARIES - libraries to link against GLEW
-#  GLEW_FOUND - true if GLEW has been found and can be used
+#name in uppercase
+set(NAME "VPX")
 
-#=============================================================================
-# Copyright 2012 Benjamin Eikel
-#
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
+#names of the 'physic' lib directory
+set(DIR_POSSIBLE_NAMES vpx VPX)
 
-file(
-	GLOB
-	MIGHT_LOCATION
-    "$ENV{PROGRAMFILES}/../Program\ Files/VPX"
-    ~/Library/Frameworks
-    /Library/Frameworks
-    /opt
-    /usr/include/
-)
-	
-find_path(VPX_INCLUDE_DIR vpx/vp8.h 
+#headers' directory name
+set(HEADER_DIR include)
+
+#libraries' directory name
+set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64 lib/x64)
+
+#headers' name (.h)
+set(HEADER_NAMES vpx/vp8.h)
+
+#libraries' name (.lib)
+set(LIBRARY_POSSIBLE_NAMES vpx vpxdll vpxmt)
+
+######################### GENERIC PART #################################
+################### It shouldn't be modified ###########################
+set(GENERALDIR_POSSIBLE_NAMES 
+		"$ENV{PROGRAMFILES}/../Program\ Files"
+		~/Library/Frameworks
+		/Library/Frameworks
+		/opt
+		
+		#this below is 'sac' related
+		"${CMAKE_SOURCE_DIR}/../sac_windows_deps"
+		$ENV{SAC_LIBS_DIR})
+
+#search the directory real name if exist
+foreach(commondir ${GENERALDIR_POSSIBLE_NAMES})
+	foreach(dirname ${DIR_POSSIBLE_NAMES})
+		
+		if (EXISTS "${commondir}/${dirname}")
+			set(MIGHT_LOCATION "${commondir}/${dirname}")
+		endif()
+	endforeach()
+endforeach()
+
+find_path(${NAME}_INCLUDE_DIR ${HEADER_NAMES}
 	HINTS
-		ENV VPXDIR
+		$ENV{${NAME}DIR}
 	PATH_SUFFIXES
-		include
+		${HEADER_DIR}
 	PATHS 
 		${MIGHT_LOCATION}
 )
 
-find_library(VPX_LIBRARY 
+find_library(${NAME}_LIBRARY 
 	NAMES
-		vpx vpxdll vpxmt
+		${LIBRARY_POSSIBLE_NAMES}
 	HINTS
-		ENV VPXDIR
+		$ENV{${NAME}DIR}
 	PATH_SUFFIXES
-		lib64 lib libs64 libs libs/Win32 libs/Win64 lib/x64
+		${LIBRARY_DIR}
 	PATHS 
 		${MIGHT_LOCATION}
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(VPX
-                                  REQUIRED_VARS VPX_INCLUDE_DIR VPX_LIBRARY)
+find_package_handle_standard_args(${NAME}
+      REQUIRED_VARS ${NAME}_INCLUDE_DIR ${NAME}_LIBRARY)
 
-mark_as_advanced(VPX_LIBRARY VPX_INCLUDE_DIR)
+mark_as_advanced(${NAME}_LIBRARY ${NAME}_INCLUDE_DIR)

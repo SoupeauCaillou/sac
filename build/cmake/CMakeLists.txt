@@ -2,18 +2,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/
 
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glog-gflags)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/include)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/tinyxml2/)
 link_directories (${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/lib)
+#include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glog-gflags)
 
 file(
 	GLOB_RECURSE
 	source_files
 	../../app/* ../../base/* ../../systems/* ../../api/linux/* ../../util/*
 	../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
-	../../libs/glog-gflags/*.cc
+	#../../libs/glog-gflags/*.cc
 )
 
 file(
