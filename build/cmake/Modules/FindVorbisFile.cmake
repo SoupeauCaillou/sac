@@ -18,7 +18,7 @@ find_path(VORBISFILE_INCLUDE_DIR vorbis/vorbisfile.h
 	HINTS
 		ENV VORBISFILEDIR
 	PATH_SUFFIXES
-		include/GL include
+		include
 	PATHS 
 		${MIGHT_LOCATION}
 )

@@ -11,13 +11,16 @@ link_directories (${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/lib)
 file(
 	GLOB_RECURSE
 	source_files
-	../../app/* ../../base/* ../../systems/* ../../api/linux/* ../../util/* ../../steering/* ../../libs/glog-gflags/*.cc ../../libs/tinyxml2/tinyxml2.cpp
+	../../app/* ../../base/* ../../systems/* ../../api/linux/* ../../util/*
+	../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
+	../../libs/glog-gflags/*.cc
 )
 
 file(
 	GLOB_RECURSE
 	opt_source_files
-	../../libs/libpng/jni/*.c ../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp ../../libs/enet/*.c
+	../../libs/libpng/jni/*.c ../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp
+	 ../../libs/enet/*.c
 )	
 
 #how to build sac
@@ -79,7 +82,7 @@ else()
 
 	find_package (ZLIB)
 	if (ZLIB_FOUND)
-	  include_directories(${ZLIB_INCLUDE_DIRS})
+	  include_directories(${ZLIB_INCLUDE_DIR})
       target_link_libraries (sac ${ZLIB_LIBRARY})
 	endif ()
 
