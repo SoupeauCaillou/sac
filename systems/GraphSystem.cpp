@@ -5,6 +5,13 @@
 #include "systems/RenderingSystem.h"
 #include "systems/TextRenderingSystem.h"
 
+#include <algorithm>
+#include <cstdint>
+
+#ifndef uint
+	#define uint unsigned long
+#endif
+
 #define SIZE 256
 
 static void putPixel(ImageDesc &textureDesc, int pos_x, int pos_y, Color color) {
@@ -76,20 +83,20 @@ void GraphSystem::DoUpdate(float dt) {
 void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
     float minScaleX = gc->pointsList.begin()->first, minScaleY = gc->pointsList.begin()->second, maxScaleX = gc->pointsList.begin()->first, maxScaleY = gc->pointsList.begin()->second;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
-        minScaleX = std::min(minScaleX, it->first);
-        maxScaleX = std::max(maxScaleX, it->first);
+        minScaleX = min(minScaleX, it->first);
+        maxScaleX = max(maxScaleX, it->first);
         
-        minScaleY = std::min(minScaleY, it->second);
-        maxScaleY = std::max(maxScaleY, it->second);
+        minScaleY = min(minScaleY, it->second);
+        maxScaleY = max(maxScaleY, it->second);
     }
     
     if (gc->setFixedScaleMinMaxX){
-        gc->maxX = std::max(maxScaleX, gc->maxX);
-        gc->minX = std::min(minScaleX, gc->minX);
+        gc->maxX = max(maxScaleX, gc->maxX);
+        gc->minX = min(minScaleX, gc->minX);
     }
     if (gc->setFixedScaleMinMaxY){
-        gc->maxY = std::max(maxScaleY, gc->maxY);
-        gc->minY = std::min(minScaleY, gc->minY);
+        gc->maxY = max(maxScaleY, gc->maxY);
+        gc->minY = min(minScaleY, gc->minY);
     }
     
     if (gc->maxX != gc->minX) {
