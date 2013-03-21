@@ -18,19 +18,26 @@
 */
 #include "LocalizeAPILinuxImpl.h"
 #ifndef EMSCRIPTEN
-#include <libintl.h>
-#include <locale.h>
+	#ifdef WINDOWS
+	//TODO
+	#else
+	#include <libintl.h>
+	#include <locale.h>
+	#endif
 #endif
 
 #include <iostream> // à virer
 
 #include <tinyxml2.h>
 
+#ifdef WINDOWS
+#include <base/Log.h>
+#else
 #include <glog/logging.h>
-
+#endif
 int LocalizeAPILinuxImpl::init(const std::string & lang) {
 #ifdef DATADIR
-    std::string filename = DATADIR;
+    std::string filename = SAC_ASSETS_DIR;
     filename += "../res/values";
 
     if (strcmp(lang.c_str(),"en")) {

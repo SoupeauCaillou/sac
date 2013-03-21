@@ -5,13 +5,17 @@
 #else
 #include "vorbis/vorbisfile.h"
 #endif
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <al.h>
+#include <alc.h>
 #endif
 #include <sstream>
 #include <vector>
 #include <cassert>
+#ifdef WINDOWS
+#include <base/Log.h>
+#else
 #include <glog/logging.h>
+#endif
 
 #ifndef EMSCRIPTEN
 static const char* errToString(ALenum err);
@@ -54,8 +58,8 @@ void SoundAPILinuxOpenALImpl::init() {
 
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     std::stringstream a;
-#ifdef DATADIR
-	a << DATADIR;
+#ifdef SAC_ASSETS_DIR
+	a << SAC_ASSETS_DIR;
 #else
 	a << "./assets/";
 #endif
@@ -69,11 +73,17 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
         LOG(WARNING) << "Cannot open " << nm;
         return 0;
     }
-    OggVorbis_File vf;
+#ifdef WINDOWS
+	LOG(WARN) << "TODO: can't use ov_open on windows";
+	return 0;
+	
+	OggVorbis_File vf;
+#else
     if (ov_open(fd, &vf, 0, 0)) {
         LOG(WARNING) << "Failed loading: "<< nm;
         return 0;
     }
+#endif
     int bitstream;
     int sizeInBytes = ov_pcm_total(&vf, -1) * 2;
     int8_t* data = new int8_t[sizeInBytes];
