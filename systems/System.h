@@ -10,7 +10,11 @@
 #include <cassert>
 
 #include "base/Entity.h"
-#include <glog/logging.h>
+#ifdef WINDOWS
+	#include <base/log.h>
+#else
+	#include <glog/logging.h>
+#endif
 
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"

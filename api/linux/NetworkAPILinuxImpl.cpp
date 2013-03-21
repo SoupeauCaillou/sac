@@ -1,7 +1,11 @@
 #ifndef EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
+#ifdef WINDOWS
+#include <base/Log.h>
+#else
 #include <glog/logging.h>
+#endif
 #include "../../base/TimeUtil.h"
 #include <cstring>
 #include <arpa/inet.h>

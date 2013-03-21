@@ -18,7 +18,11 @@
 */
 #pragma once
 
-#include <glog/logging.h>
+#ifdef WINDOWS
+	#include <base/Log.h>
+#else
+	#include <glog/logging.h>
+#endif
 #include <map>
 #include <string>
 #include <set>

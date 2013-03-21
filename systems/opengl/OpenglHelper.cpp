@@ -17,7 +17,11 @@
     along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "OpenglHelper.h"
+#ifdef WINDOWS
+#include <base/Log.h>
+#else
 #include <glog/logging.h>
+#endif
 
 void check_GL_errors(const char* context) {
      int maxIterations=10;

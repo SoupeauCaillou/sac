@@ -1,5 +1,9 @@
 #include "TouchInputManager.h"
-#include <glog/logging.h>
+#ifdef WINDOWS
+	#include <base/Log.h>
+#else
+	#include <glog/logging.h>
+#endif
 #include "../systems/RenderingSystem.h"
 #include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"

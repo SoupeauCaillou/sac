@@ -3,7 +3,11 @@
 #include "api/AssetAPI.h"
 #include <string>
 #include <sstream>
-#include <glog/logging.h>
+#ifdef WINDOWS
+	#include <base/Log.h>
+#else
+	#include <glog/logging.h>
+#endif
 
 class DataFileParser {
     public:

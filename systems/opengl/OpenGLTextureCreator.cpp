@@ -1,6 +1,10 @@
 #include "OpenGLTextureCreator.h"
 #include "api/AssetAPI.h"
+#ifdef WINDOWS
+#include <base/Log.h>
+#else
 #include <glog/logging.h>
+#endif
 
 #include "OpenglHelper.h"
 

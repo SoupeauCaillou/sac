@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef WINDOWS
+#include <base/Log.h>
+#else
 #include <glog/logging.h>
+#endif
 
 class MurmurHash {
     public:
