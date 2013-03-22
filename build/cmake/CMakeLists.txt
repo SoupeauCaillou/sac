@@ -2,25 +2,21 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/
 
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/include)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/tinyxml2/)
-link_directories (${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/lib)
-#include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glog-gflags)
 
 file(
 	GLOB_RECURSE
 	source_files
 	../../app/* ../../base/* ../../systems/* ../../api/linux/* ../../util/*
-	../../steering/* ../../libs/tinyxml2/tinyxml2.cpp
-	#../../libs/glog-gflags/*.cc
+	../../steering/*
 )
 
 file(
 	GLOB_RECURSE
 	opt_source_files
-	../../libs/libpng/jni/*.c ../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp
-	 ../../libs/enet/*.c
+	../../libs/libpng/jni/*.c #libpng
+	../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
+	 ../../libs/enet/*.c #lib enet
 )	
 
 #how to build sac
@@ -33,12 +29,10 @@ else()
 	add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DHAS_GETHOSTBYADDR_R=1 -DHAS_GETHOSTBYNAME_R=1 -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1 -DHAS_SOCKLEN_T=1 )
 
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
-	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqrat/include)
-	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/squirrel/include)
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 	
 	#the necessary libs
-	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis Zlib AntTweakBar Gflags Glog)
+	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis Zlib AntTweakBar Gflags Glog ogg tinyxml2)
 	
 	#you shouldn't touch that
 	foreach(lib ${LIBS_NEEDED})
@@ -50,6 +44,7 @@ else()
 		  target_link_libraries (sac ${${LIB}_LIBRARY})
 		endif ()
 	endforeach()
+	target_link_libraries (sac opengl32)
 	
 	#particular libs
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -69,16 +64,16 @@ else()
 			../../tools/texture_packer/*.cpp	../../tools/texture_packer/*.h
 		)
 		add_executable(texture_packer ${texture_packer_source_files})
-		target_link_libraries(texture_packer sac z)
-	
+		target_link_libraries(texture_packer sac)
+
 	#lobby server
-		file(
-			GLOB_RECURSE
-			lobby_server_source_files
-			../../tools/lobby/*.cpp	../../tools/lobby/*.h
-		)
-		add_executable(lobby_server ${lobby_server_source_files})
-		target_link_libraries(lobby_server sac z)
+		#~ file(
+			#~ GLOB_RECURSE
+			#~ lobby_server_source_files
+			#~ ../../tools/lobby/*.cpp	../../tools/lobby/*.h
+		#~ )
+		#~ add_executable(lobby_server ${lobby_server_source_files})
+		#~ target_link_libraries(lobby_server sac z)
 
 	#unit tests, if installed
 		# find_package (UnitTest++)
@@ -90,11 +85,23 @@ else()
 					# ../../tests/*
 			# )
 			# add_executable(sac_tests ${test_source_files})
-			
-			# sac_tests dependences
-			# target_link_libraries(sac_tests sac GLEW glfw openal sqlite3 vorbisfile vorbis z UnitTest++)
-			
-			# launch sac_tests after each build
+			# 
+			# #the necessary libs
+			# set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 AntTweakBar VorbisFile Vorbis Zlib UnitTest++ ogg tinyxml2)
+			# 
+			# #you shouldn't touch that
+			# foreach(lib ${LIBS_NEEDED})
+				# string(TOUPPER ${lib} LIB) #in uppercase
+				# 
+				# find_package (${lib})
+				# if (${LIB}_FOUND)
+				  # target_link_libraries (sac_tests ${${LIB}_LIBRARY})
+				# endif ()
+			# endforeach()
+			# 
+			# #launch sac_tests after each build
 			# add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
 		# endif ()
 endif()
+
+
