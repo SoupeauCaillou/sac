@@ -1,6 +1,10 @@
 #ifndef EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
+
+#ifdef WINDOWS and defined(ERROR)
+#undef ERROR
+#endif
 #include <glog/logging.h>
 
 #ifdef WINDOWS

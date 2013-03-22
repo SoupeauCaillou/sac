@@ -12,6 +12,11 @@
 
 #include "util/MurmurHash.h"
 
+#ifdef WINDOWS and defined(ERROR)
+	#undef ERROR
+#endif
+#include <glog/logging.h>
+
 struct CacheKey {
     Color color;
     float charHeight;

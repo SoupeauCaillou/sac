@@ -1,5 +1,9 @@
 #include "TimeUtil.h"
 #include <time.h>
+
+#ifdef WINDOWS and defined(ERROR)
+#undef ERROR
+#endif
 #include <glog/logging.h>
 
 #ifdef EMSCRIPTEN
