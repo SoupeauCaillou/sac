@@ -2,8 +2,8 @@
 
 #include <glog/logging.h>
 #ifndef EMSCRIPTEN
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <al.h>
+#include <alc.h>
 #else
 #include <SDL/SDL_mixer.h>
 #endif
