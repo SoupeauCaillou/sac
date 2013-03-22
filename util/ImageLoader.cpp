@@ -1,9 +1,5 @@
 #include "ImageLoader.h"
-#ifdef WINDOWS
-#include <base/Log.h>
-#else
 #include <glog/logging.h>
-#endif
 
 #ifdef __EMSCRIPTEN
 #include <SDL/SDL.h>
@@ -14,10 +10,7 @@
 #endif
 #include <assert.h>
 #include <stdlib.h>
-
-#ifdef LINUX
-	#include <endian.h>
-#endif
+#include <endian.h>
 
 #ifndef __EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);

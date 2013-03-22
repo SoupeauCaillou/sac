@@ -1,12 +1,7 @@
 #pragma once
 
 #include "../CommunicationAPI.h"
-#ifdef WINDOWS
-	#include <base/Log.h>
-#else
-	#include <glog/logging.h>
-#endif
-
+#include <glog/logging.h>
 
 class CommunicationAPILinuxImpl : public CommunicationAPI {
 	public:

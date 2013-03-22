@@ -11,11 +11,6 @@
 #define VERTEX_SHADER_SIZE ___assets_default_vs_len
 #endif
 
-#ifdef WINDOWS
-#include "base/Log.h"
-#else
-#include <glog/logging.h>
-#endif
 
 static GLuint compileShader(const std::string& assetName, GLuint type, const FileBuffer& fb) {
     VLOG(1) << "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader...";

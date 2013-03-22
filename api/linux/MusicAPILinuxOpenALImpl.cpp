@@ -1,13 +1,9 @@
 #include "MusicAPILinuxOpenALImpl.h"
 
-#ifdef WINDOWS
-#include <base/Log.h>
-#else
 #include <glog/logging.h>
-#endif
 #ifndef EMSCRIPTEN
-#include <al.h>
-#include <alc.h>
+#include <AL/al.h>
+#include <AL/alc.h>
 #else
 #include <SDL/SDL_mixer.h>
 #endif

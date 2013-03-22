@@ -6,12 +6,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <fstream>
-
-#ifdef WINDOWS
-	#include <base/Log.h>
-#else
-	#include <glog/logging.h>
-#endif
+#include <glog/logging.h>
 
 #ifdef WINDOWS
 void initProfiler() {

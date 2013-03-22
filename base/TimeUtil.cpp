@@ -1,8 +1,6 @@
 #include "TimeUtil.h"
 #include <time.h>
-
 #include <glog/logging.h>
-
 
 #ifdef EMSCRIPTEN
 	struct timeval TimeUtil::startup_time;

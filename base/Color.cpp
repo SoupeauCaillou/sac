@@ -2,11 +2,7 @@
 
 #include "MathUtil.h"
 #include <cstring>
-#ifdef WINDOWS
-	#include <base/Log.h>
-#else
-	#include <glog/logging.h>
-#endif
+#include <glog/logging.h>
 #include <map>
 
 static std::map<std::string, Color> name2Color;
