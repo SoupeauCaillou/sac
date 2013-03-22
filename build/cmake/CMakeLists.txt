@@ -37,70 +37,28 @@ else()
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/squirrel/include)
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 	
-
-	find_package (GLEW)
-	if (GLEW_FOUND)
-		  include_directories(${GLEW_INCLUDE_DIR})
-      target_link_libraries (sac ${GLEW_LIBRARY})
-	  if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	  target_link_libraries (sac opengl32)
-	  endif()
-	endif ()
-
-	find_package (GLFW)
-	if (GLFW_FOUND)
-	  include_directories(${GLFW_INCLUDE_DIR})
-      target_link_libraries (sac ${GLFW_LIBRARY})
-	endif ()
-
-	find_package (OpenAL)
-	if (OPENAL_FOUND)
-		include_directories(${OPENAL_INCLUDE_DIR})
-        target_link_libraries (sac ${OPENAL_LIBRARY})
-	endif ()
-
-	find_package (Sqlite3)
-	if (SQLITE3_FOUND)
-	  include_directories(${SQLITE3_INCLUDE_DIR})
-	  target_link_libraries (sac ${SQLITE3_LIBRARY})
-	endif ()
-
-	find_package (VorbisFile)
-	if (VORBISFILE_FOUND)
-	  include_directories(${VORBISFILE_INCLUDE_DIR})
-	  target_link_libraries (sac ${VORBISFILE_LIBRARY})
-	  if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	  target_link_libraries (sac libogg_static)
-	  endif()
-    endif ()
-
-	find_package (Vorbis)
-	if (VORBIS_FOUND)
-	  include_directories(${VORBIS_INCLUDE_DIR})
-	  target_link_libraries (sac ${VORBIS_LIBRARY})
-	endif ()
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	find_package (VPX)
-	if (VPX_FOUND)
-	  include_directories(${VPX_INCLUDE_DIR})
-	  target_link_libraries (sac ${VPX_LIBRARY})
-	endif ()
-endif()
-	find_package (ZLIB)
-	if (ZLIB_FOUND)
-	  include_directories(${ZLIB_INCLUDE_DIR})
-      target_link_libraries (sac ${ZLIB_LIBRARY})
-	endif ()
-
-	find_package (AntTweakBar)
-	if (ANTTWEAKBAR_FOUND)
-	  include_directories(${ANTTWEAKBAR_INCLUDE_DIR})
-      target_link_libraries (sac ${ANTTWEAKBAR_LIBRARY})
-	endif ()
-
-    target_link_libraries(sac)
-
+	#the necessary libs
+	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis Zlib AntTweakBar Gflags Glog)
+	
+	#you shouldn't touch that
+	foreach(lib ${LIBS_NEEDED})
+		string(TOUPPER ${lib} LIB) #in uppercase
+		
+		find_package (${lib})
+		if (${LIB}_FOUND)
+		  include_directories(${${LIB}_INCLUDE_DIR})
+		  target_link_libraries (sac ${${LIB}_LIBRARY})
+		endif ()
+	endforeach()
+	
+	#particular libs
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		find_package (VPX)
+		if (VPX_FOUND)
+		  include_directories(${VPX_INCLUDE_DIR})
+		  target_link_libraries (sac ${VPX_LIBRARY})
+		endif ()
+	endif()
 
 
 
