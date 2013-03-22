@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable:4201) //disable warning about nameless unions
 
 #include <string>
 #include <iostream>
