@@ -10,7 +10,10 @@
 #endif
 #include <assert.h>
 #include <stdlib.h>
+
+#ifdef LINUX
 #include <endian.h>
+#endif
 
 #ifndef __EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
