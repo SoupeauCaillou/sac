@@ -23,7 +23,7 @@
 #include "base/EntityManager.h"
 #endif
 #ifdef INGAME_EDITORS
-#include "libs/AntTweakBar/include/AntTweakBar.h"
+#include "AntTweakBar.h"
 #endif
 
 // #define USE_VECTOR_STORAGE 1
