@@ -15,6 +15,8 @@
 	You should have received a copy of the GNU General Public License
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define GLOG_NO_ABBREVIATED_SEVERITIES
+
 #include "base/Game.h"
 #include "base/GameContext.h"
 
@@ -75,7 +77,6 @@
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-
 
 #include "MouseNativeTouchState.h"
 
@@ -326,3 +327,4 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 #endif
     return 0;
 }
+
