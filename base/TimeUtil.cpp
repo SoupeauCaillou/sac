@@ -1,10 +1,7 @@
 #include "TimeUtil.h"
 #include <time.h>
-#ifdef WINDOWS
-	#include <base/Log.h>
-#else
-	#include <glog/logging.h>
-#endif
+
+#include <glog/logging.h>
 
 
 #ifdef EMSCRIPTEN

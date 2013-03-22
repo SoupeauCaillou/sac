@@ -72,12 +72,9 @@
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/SuccessAPI.h"
 #include "util/Recorder.h"
-#ifdef WINDOWS
-	#include <base/Log.h>
-#else
-	#include <glog/logging.h>
-	#include <gflags/gflags.h>
-#endif
+
+#include <glog/logging.h>
+#include <gflags/gflags.h>
 
 
 #include "MouseNativeTouchState.h"

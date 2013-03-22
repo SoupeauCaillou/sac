@@ -1,8 +1,9 @@
 #ifndef EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
+#include <glog/logging.h>
+
 #ifdef WINDOWS
-#include <base/Log.h>
 NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
 void NetworkAPILinuxImpl::runLobbyThread() {}
 bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort) { return false; }
@@ -11,8 +12,9 @@ bool NetworkAPILinuxImpl::amIGameMaster() { return false; }
 void NetworkAPILinuxImpl::connectToLobby(const std::string& nick, const char* addr) { }
 bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() { return false; }
 NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();}
+
 #else
-#include <glog/logging.h>
+
 #include "../../base/TimeUtil.h"
 #include <cstring>
 #include <arpa/inet.h>
@@ -359,3 +361,4 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
 }
 #endif
 #endif
+

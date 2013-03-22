@@ -74,7 +74,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
         return 0;
     }
 #ifdef WINDOWS
-	LOG(WARN) << "TODO: can't use ov_open on windows";
+	LOG(WARNING) << "TODO: can't use ov_open on windows";
 	return 0;
 	
 	OggVorbis_File vf;
