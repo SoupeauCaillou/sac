@@ -1,6 +1,7 @@
 #ifndef EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
+#include <thread>
 
 #ifdef WINDOWS and defined(ERROR)
 #undef ERROR
@@ -31,7 +32,7 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
 
     struct {
         std::string nickName;
-        pthread_t thread;
+        std::thread thread;
         std::string server;
         ENetHost * client;
         ENetPeer *peer;
@@ -272,7 +273,7 @@ void NetworkAPILinuxImpl::connectToLobby(const std::string& nick, const char* ad
     datas->lobby.nickName = nick;
     datas->lobby.nickName.resize(64);
 
-    pthread_create(&datas->lobby.thread, 0, startLobbyThread, this);
+    datas->lobby.thread = std::thread(startLobbyThread, this);
 }
 
 bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() {
@@ -365,4 +366,3 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
 }
 #endif
 #endif
-

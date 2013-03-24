@@ -37,9 +37,7 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), asset
 MusicSystem::~MusicSystem() {
     #ifndef EMSCRIPTEN
     runDecompLoop = false;
-    //~ pthread_cond_signal(&cond);
     cond.notify_all();
-    //~ pthread_join(oggDecompressionThread, 0);
     oggDecompressionThread.join();
     LOG(INFO) << "MusicSystem uninitinalized";
     #endif
@@ -74,13 +72,7 @@ void MusicSystem::init() {
     nextValidRef = 1;
 
 #ifndef EMSCRIPTEN
-    //~ pthread_mutex_init(&mutex, 0);
-    //~ pthread_cond_init(&cond, 0);
-
-    //~ pthread_create(&oggDecompressionThread, 0, _startOggThread, this);
     oggDecompressionThread = std::thread(_startOggThread, this);
-    // pthread_setschedprio(oggDecompressionThread, sched_get_priority_min(
-    // sched_setscheduler(oggDecompressionThread, SCHED_RR, 0);
 #endif
 }
 

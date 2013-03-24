@@ -76,14 +76,13 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 #ifdef WINDOWS
 	LOG(WARNING) << "TODO: can't use ov_open on windows";
 	return 0;
-	
-	OggVorbis_File vf;
-#else
+#endif
+    OggVorbis_File vf;
     if (ov_open(fd, &vf, 0, 0)) {
         LOG(WARNING) << "Failed loading: "<< nm;
         return 0;
     }
-#endif
+
     int bitstream;
     int sizeInBytes = ov_pcm_total(&vf, -1) * 2;
     int8_t* data = new int8_t[sizeInBytes];

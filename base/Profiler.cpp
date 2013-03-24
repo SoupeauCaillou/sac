@@ -27,13 +27,13 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 #else
 
 
-#include <pthread.h>
+#include <thread>
+#include <mutex>
 static Json::Value* root;
-static pthread_mutex_t mutex;
+static std::mutex mutex;
 static bool started;
 
 void initProfiler() {
-	pthread_mutex_init(&mutex, 0);
 	root = new Json::Value;
 	started = false;
 }
@@ -59,35 +59,37 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	sample["cat"] = category;
 	sample["name"] = name;
 	sample["pid"] = 1;
-	sample["tid"] = (unsigned)pthread_self();
+    std::stringstream a;
+    a << std::this_tread::get_id();
+	sample["tid"] = a.str();
 	sample["ts"] = (unsigned long long int)t1.tv_sec * 1000000 + (unsigned long long int)t1.tv_nsec / 1000;
 	sample["ph"] = phaseEnum2String(ph);
 	sample["args"] = Json::Value(Json::arrayValue);
 	
-	pthread_mutex_lock(&mutex);
+	mutex.lock();
 	(*root)["traceEvents"].append(sample);
-	pthread_mutex_unlock(&mutex);
+	mutex.unlock();
 }
 
 void startProfiler() {
-	pthread_mutex_lock(&mutex);
+	mutex.lock();
 	if (started)
 		return;
 	LOG(INFO) << "Start profiler";
 	root->clear();
 	started = true;
-	pthread_mutex_unlock(&mutex);
+	mutex.unlock();
 }
 
 void stopProfiler(const std::string& filename) {
-	pthread_mutex_lock(&mutex);
+	mutex.lock();
 	if (!started)
 		return;
     LOG(INFO) << "Stop profiler, saving to: " << filename;
 	std::ofstream out(filename.c_str());
 	out << *root;
 	started = false;
-	pthread_mutex_unlock(&mutex);
+	mutex.unlock();
 }
 #endif
 #endif
