@@ -18,14 +18,14 @@ set(LIBRARY_POSSIBLE_NAMES vorbis)
 
 ######################### GENERIC PART #################################
 ################### It shouldn't be modified ###########################
-set(GENERALDIR_POSSIBLE_NAMES 
+set(GENERALDIR_POSSIBLE_NAMES
 		"$ENV{PROGRAMFILES}/../Program\ Files"
 		~/Library/Frameworks
 		/Library/Frameworks
 		/opt
-		
+
 		#this below is 'sac' related
-		"${CMAKE_SOURCE_DIR}/../sac_windows_deps"
+		"${CMAKE_SOURCE_DIR}/../sac_libs_dep"
 		$ENV{SAC_LIBS_DIR})
 
 #search the directory real name if exist
@@ -42,18 +42,18 @@ find_path(${NAME}_INCLUDE_DIR ${HEADER_NAMES}
 		$ENV{${NAME}DIR}
 	PATH_SUFFIXES
 		${HEADER_DIR}
-	PATHS 
+	PATHS
 		${MIGHT_LOCATION}
 )
 
-find_library(${NAME}_LIBRARY 
+find_library(${NAME}_LIBRARY
 	NAMES
 		${LIBRARY_POSSIBLE_NAMES}
 	HINTS
 		$ENV{${NAME}DIR}
 	PATH_SUFFIXES
 		${LIBRARY_DIR}
-	PATHS 
+	PATHS
 		${MIGHT_LOCATION}
 )
 
