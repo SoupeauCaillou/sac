@@ -17,7 +17,7 @@ file(
 	../../libs/libpng/jni/*.c #libpng
 	../../libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
 	 ../../libs/enet/*.c #lib enet
-)	
+)
 
 #how to build sac
 if (EMSCRIPTEN_BUILD)
@@ -30,14 +30,15 @@ else()
 
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
-	
+
 	#the necessary libs
-	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis Zlib AntTweakBar Gflags Glog ogg tinyxml2)
-	
+	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB
+	AntTweakBar Gflags Glog Ogg Tinyxml2)
+
 	#you shouldn't touch that
 	foreach(lib ${LIBS_NEEDED})
 		string(TOUPPER ${lib} LIB) #in uppercase
-		
+
 		find_package (${lib})
 		if (${LIB}_FOUND)
 		  include_directories(${${LIB}_INCLUDE_DIR})
@@ -45,7 +46,7 @@ else()
 		endif ()
 	endforeach()
 	target_link_libraries (sac opengl32)
-	
+
 	#particular libs
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		find_package (VPX)
@@ -85,20 +86,20 @@ else()
 					# ../../tests/*
 			# )
 			# add_executable(sac_tests ${test_source_files})
-			# 
+			#
 			# #the necessary libs
 			# set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 AntTweakBar VorbisFile Vorbis Zlib UnitTest++ ogg tinyxml2)
-			# 
+			#
 			# #you shouldn't touch that
 			# foreach(lib ${LIBS_NEEDED})
 				# string(TOUPPER ${lib} LIB) #in uppercase
-				# 
+				#
 				# find_package (${lib})
 				# if (${LIB}_FOUND)
 				  # target_link_libraries (sac_tests ${${LIB}_LIBRARY})
 				# endif ()
 			# endforeach()
-			# 
+			#
 			# #launch sac_tests after each build
 			# add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
 		# endif ()

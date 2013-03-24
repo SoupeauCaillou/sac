@@ -5,7 +5,7 @@ set(NAME "GLOG")
 set(DIR_POSSIBLE_NAMES GLOG glog Glog)
 
 #headers' directory name
-set(HEADER_DIR include/windows)
+set(HEADER_DIR include include/windows)
 
 #libraries' directory name
 set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64)

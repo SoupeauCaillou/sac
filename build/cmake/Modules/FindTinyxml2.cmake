@@ -14,7 +14,7 @@ set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64)
 set(HEADER_NAMES tinyxml2.h)
 
 #libraries' name (.lib)
-set(LIBRARY_POSSIBLE_NAMES tinyxml)
+set(LIBRARY_POSSIBLE_NAMES tinyxml2)
 
 ######################### GENERIC PART #################################
 ################### It shouldn't be modified ###########################
