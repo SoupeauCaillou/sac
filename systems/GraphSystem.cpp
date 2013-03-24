@@ -30,9 +30,6 @@ static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth
     for (int i=-lineWidth / 2; i < lineWidth / 2; ++i) {
         for (int j=-lineWidth / 2; j < lineWidth / 2; ++j) {
 			putPixel(textureDesc, pos_x + i, pos_y + j, color);
-			//~ if ( pos_x+i > -1 &&  pos_x+i < textureDesc.width && pos_y+j > -1 &&  pos_y+j < textureDesc.height) {
-				//~ textureDesc.datas[textureDesc.channels * (pos_x+i + (textureDesc.height-1 -(pos_y+j))*textureDesc.width) + 3] = ((i==j || i==-j) && (i == -lineWidth / 2 || i == lineWidth / 2 - 1)) ? 0x80 : 0xFF;
-			//~ }
 		}
     }    
 }
@@ -83,20 +80,20 @@ void GraphSystem::DoUpdate(float dt) {
 void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
     float minScaleX = gc->pointsList.begin()->first, minScaleY = gc->pointsList.begin()->second, maxScaleX = gc->pointsList.begin()->first, maxScaleY = gc->pointsList.begin()->second;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
-        minScaleX = min(minScaleX, it->first);
-        maxScaleX = max(maxScaleX, it->first);
+        minScaleX = std::min(minScaleX, it->first);
+        maxScaleX = std::max(maxScaleX, it->first);
         
-        minScaleY = min(minScaleY, it->second);
-        maxScaleY = max(maxScaleY, it->second);
+        minScaleY = std::min(minScaleY, it->second);
+        maxScaleY = std::max(maxScaleY, it->second);
     }
     
     if (gc->setFixedScaleMinMaxX){
-        gc->maxX = max(maxScaleX, gc->maxX);
-        gc->minX = min(minScaleX, gc->minX);
+        gc->maxX = std::max(maxScaleX, gc->maxX);
+        gc->minX = std::min(minScaleX, gc->minX);
     }
     if (gc->setFixedScaleMinMaxY){
-        gc->maxY = max(maxScaleY, gc->maxY);
-        gc->minY = min(minScaleY, gc->minY);
+        gc->maxY = std::max(maxScaleY, gc->maxY);
+        gc->minY = std::min(minScaleY, gc->minY);
     }
     
     if (gc->maxX != gc->minX) {
@@ -301,4 +298,3 @@ void GraphSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TwAddVarRW(bar, "lineColor", TW_TYPE_COLOR4F, &tc->lineColor, "group=Graph");
 }
 #endif
-
