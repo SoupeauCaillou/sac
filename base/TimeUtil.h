@@ -14,7 +14,7 @@ class TimeUtil
         static void Wait(float waitInSeconds);
 
 	private:
-        #ifdef EMSCRIPTEN
+        #if defined(EMSCRIPTEN) || defined(DARWIN)
 		static struct timeval startup_time;
         #elif defined(LINUX)
         static struct timespec startup_time;
