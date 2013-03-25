@@ -207,10 +207,12 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 #else
     if (!glfwInit())
         return 1;
+
     glfwOpenWindowHint( GLFW_WINDOW_NO_RESIZE, GL_TRUE );
     if( !(int)glfwOpenWindow((int)reso->X, (int)reso->Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
         return 1;
     glfwSetWindowTitle(title.c_str());
+    glfwSwapInterval(1);
     glewInit();
     bool restore = false;
     for (int i=1; i<argc; i++) {
