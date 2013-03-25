@@ -3,7 +3,7 @@
 #include "systems/System.h"
 #include <cstring>
 
-#if defined(ANDROID) || defined(EMSCRIPTEN) || defined(WINDOWS)
+#if defined(ANDROID) || defined(EMSCRIPTEN) || defined(WINDOWS) || defined(DARWIN)
 void* mempcpy(void* dst, const void* src, size_t size) {
 	memcpy(dst, src, size);
 	return (uint8_t*)dst + size;
