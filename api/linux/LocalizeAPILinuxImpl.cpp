@@ -28,7 +28,7 @@
 
 #include <iostream> // à virer
 
-#ifdef DARWIN
+#if defined(DARWIN) || defined(WINDOWS)
 
 
 int LocalizeAPILinuxImpl::init(const std::string & lang) {

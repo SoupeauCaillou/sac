@@ -4,7 +4,7 @@
 
 LogVerbosity::Enum logLevel = LogVerbosity::INFO;
 
-static const std::string enumNames[] ={
+static const char* enumNames[] ={
 	"FATAL",
 	"ERROR",
 	"WARN ",
@@ -21,7 +21,7 @@ static const char* keepOnlyFilename(const char* fullPath) {
 	return result;
 }
 
-static const std::string& enum2Name(LogVerbosity::Enum t) {
+static const char* enum2Name(LogVerbosity::Enum t) {
 	return enumNames[(int)t];
 }
 

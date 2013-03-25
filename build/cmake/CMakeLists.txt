@@ -32,10 +32,10 @@ else()
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 
 	#the necessary libs
-	if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg)
-	else ()
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg Tinyxml2)
+	else ()
+		set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg )
 	endif ()
 
 	#you shouldn't touch that

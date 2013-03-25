@@ -221,6 +221,7 @@ void Game::step() {
             tick(delta);
     }
     #else
+    LOGI("Delta: " << delta);
     tick(delta);
     #endif
 
@@ -268,7 +269,7 @@ void Game::step() {
 
     float updateDuration = TimeUtil::GetTime() - timeBeforeThisStep;
     if (updateDuration < 0.016) {
-        TimeUtil::Wait(updateDuration - 0.016);
+        TimeUtil::Wait(0.016 - updateDuration);
     }
     lastUpdateTime = timeBeforeThisStep;
 

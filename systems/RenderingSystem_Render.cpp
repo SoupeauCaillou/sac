@@ -401,6 +401,7 @@ void RenderingSystem::render() {
 #ifndef EMSCRIPTEN
     if (!mutexes[L_RENDER].try_lock()) {
         LOGV(1, "HMM Busy render lock")
+        mutexes[L_RENDER].lock();
     }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)

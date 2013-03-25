@@ -1,5 +1,6 @@
 #pragma once
 
+#undef ERROR
 #include <ostream>
 namespace LogVerbosity {
 	enum Enum {

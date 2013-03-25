@@ -1,6 +1,11 @@
 #include "TimeUtil.h"
 #include <time.h>
+#ifdef DARWIN
 #include <sys/time.h>
+#elif defined(WINDOWS)
+#include "Mmsystem.h"
+#undef ERROR
+#endif
 
 #if defined(WINDOWS) && defined(ERROR)
 #undef ERROR
@@ -22,6 +27,7 @@ void TimeUtil::Init() {
 #elif defined(LINUX)
 	clock_gettime(CLOCK_MONOTONIC, &startup_time);    
 #elif defined(WINDOWS)
+    timeBeginPeriod(1);
 	QueryPerformanceCounter((LARGE_INTEGER*)&startup_time);
 	__int64 invertfrequency;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&invertfrequency);
@@ -36,7 +42,7 @@ static inline float timeconverter(const struct timespec & tv) {
 static inline float timeconverter(const struct timeval & tv) {
     return (tv.tv_sec + tv.tv_usec / 1000000.0f);
 #else
-static inline float timeconverter(__int64 tv) {
+static inline float timeconverter(float tv) {
 	return (tv);
 #endif
 }
@@ -67,25 +73,29 @@ float TimeUtil::GetTime() {
 		gettimeofday(&tv, 0);
 		timersub(&tv, &startup_time, &tv);
 	#elif defined(WINDOWS)
-		__int64 tv;
-		QueryPerformanceCounter((LARGE_INTEGER*)&tv);
-		tv = (tv - startup_time) * frequency;
+		__int64 intv;
+		QueryPerformanceCounter((LARGE_INTEGER*)&intv);
+        intv -= startup_time;
+		float tv = intv * frequency;
     #endif
 	return timeconverter(tv);
 }
 
 void TimeUtil::Wait(float waitInSeconds) {
-   #if defined(LINUX) || defined(DARWIN)
+       LOGW_IF(waitInSeconds >= 1, "TODO, handle sleep request >= 1 s");
        float before = GetTime();
-       float delta = before - GetTime();
+       float delta = 0;
        while (delta < waitInSeconds) {
+#if defined(LINUX) || defined(DARWIN)
            struct timespec ts;
            ts.tv_sec = 0;
-           ts.tv_nsec = (0.016 - delta) * 1000000000LL;
+           ts.tv_nsec = (waitInSeconds - delta) * 1000000000LL;
            nanosleep(&ts, 0);
-           delta = before - GetTime();
+#else
+           // Of course using Sleep is bad, but hey...
+           LOGI("Sleep : " << (waitInSeconds - delta) * 1000)
+           Sleep((waitInSeconds - delta) * 1000);
+#endif
+           delta = GetTime() - before;
        }
-   #elif defined(WINDOWS)
-       LOGE("TODO: TimeUtil::ShouldWaitBeforeNextStep method not implemented for Windows")
-   #endif
 }
