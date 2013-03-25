@@ -296,10 +296,10 @@ void Game::render() {
         count++;
         if (count == 1000) {
             LOGI("FPS avg/min/max : " <<
-                (1000 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt))
+                (1000.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt))
             count = 0;
+            fpsStats.reset(t);
         }
-        fpsStats.reset(t);
     }
     PROFILE("Game", "render-game", EndEvent);
 }
