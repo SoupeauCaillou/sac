@@ -53,19 +53,19 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	if (!started)
 		return;
 	timespec t1;
-	clock_gettime(CLOCK_REALTIME, &t1);	
-	
+	clock_gettime(CLOCK_REALTIME, &t1);
+
 	Json::Value sample;
 	sample["cat"] = category;
 	sample["name"] = name;
 	sample["pid"] = 1;
     std::stringstream a;
-    a << std::this_tread::get_id();
+    a << std::this_thread::get_id();
 	sample["tid"] = a.str();
 	sample["ts"] = (unsigned long long int)t1.tv_sec * 1000000 + (unsigned long long int)t1.tv_nsec / 1000;
 	sample["ph"] = phaseEnum2String(ph);
 	sample["args"] = Json::Value(Json::arrayValue);
-	
+
 	mutex.lock();
 	(*root)["traceEvents"].append(sample);
 	mutex.unlock();
