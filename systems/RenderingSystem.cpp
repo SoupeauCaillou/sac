@@ -70,7 +70,7 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 }
 
 void RenderingSystem::init() {
-    LOG_IF(FATAL, !assetAPI) << "AssetAPI must be set before init is called";
+    LOGF_IF(!assetAPI, "AssetAPI must be set before init is called")
     OpenGLTextureCreator::detectSupportedTextureFormat();
     textureLibrary.init(assetAPI);
     effectLibrary.init(assetAPI);
@@ -226,7 +226,7 @@ void RenderingSystem::DoUpdate(float) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
-    LOG_IF(WARNING, outQueue.count != 0) << "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')';
+    LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')')
 
     // retrieve all cameras
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
@@ -256,7 +256,7 @@ void RenderingSystem::DoUpdate(float) {
             }
 
             #ifdef DEBUG
-            LOG_IF(WARNING, tc->worldZ <= 0 || tc->worldZ > 1) << "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn";
+            LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
             #endif
 
     		RenderCommand c;
@@ -285,7 +285,7 @@ void RenderingSystem::DoUpdate(float) {
                     int atlasIdx = info->atlasIndex;
                     // If atlas texture is not loaded yet, load it
                     if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
-                        LOG(INFO) << "Requested effective load of atlas '" << atlas[atlasIdx].name << "'";
+                        LOGI("Requested effective load of atlas '" << atlas[atlasIdx].name << "'")
                         atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
                     }
 
@@ -352,7 +352,7 @@ void RenderingSystem::DoUpdate(float) {
     	         	opaqueCommands.push_back(c);
     	         	break;
                  default:
-                    LOG(WARNING) << "Entity will not be drawn";
+                    LOGW("Entity will not be drawn")
                     break;
             }
         }
@@ -438,7 +438,7 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
 
 int RenderingSystem::saveInternalState(uint8_t** out) {
 	int size = 0;
-    LOG(WARNING) << "TODO";
+    LOGW("TODO")
     #if 0
     for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
         size += (*it).first.length() + 1;
@@ -459,7 +459,7 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
-    LOG(WARNING) << "TODO";
+    LOGW("TODO")
     #if 0
 	assetTextures.clear();
 	textures.clear();
@@ -498,7 +498,7 @@ void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
 void RenderingSystem::setFrameQueueWritable(bool b) {
     if (frameQueueWritable == b || !initDone)
         return;
-    LOG(INFO) << "Writable: " << b;
+    LOGI("Writable: " << b)
 #ifndef EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
@@ -547,7 +547,7 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     // check FBO status
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
-        LOG(FATAL) << "FBO not complete: " << status;
+        LOGF("FBO not complete: " << status)
 
     // switch back to window-system-provided framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -561,7 +561,7 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
 FramebufferRef RenderingSystem::getFramebuffer(const std::string& fbName) const {
     std::map<std::string, FramebufferRef>::const_iterator it = nameToFramebuffer.find(fbName);
     if (it == nameToFramebuffer.end())
-        LOG(FATAL) << "Framebuffer '" << fbName << "' does not exist";
+        LOGF("Framebuffer '" << fbName << "' does not exist")
     return it->second;
 }
 

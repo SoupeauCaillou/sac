@@ -1,10 +1,10 @@
 #include "TimeUtil.h"
 #include <time.h>
 
-#ifdef WINDOWS and defined(ERROR)
+#if defined(WINDOWS) && defined(ERROR)
 #undef ERROR
 #endif
-#include <glog/logging.h>
+#include "Log.h"
 
 #ifdef EMSCRIPTEN
 	struct timeval TimeUtil::startup_time;
@@ -58,7 +58,7 @@ float TimeUtil::GetTime() {
     #ifdef LINUX
 		struct timespec tv;
 		if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
-        LOG(FATAL) << "clock_gettime failure";
+        LOGF("clock_gettime failure")
 		}
 		sub(tv, startup_time);
     #elif defined(EMSCRIPTEN)
@@ -85,6 +85,6 @@ void TimeUtil::Wait(float waitInSeconds) {
            delta = before - GetTime();
        }
    #elif defined(WINDOWS)
-       LOG(ERROR) << "TODO: TimeUtil::ShouldWaitBeforeNextStep method not implemented for Windows";
+       LOGE("TODO: TimeUtil::ShouldWaitBeforeNextStep method not implemented for Windows")
    #endif
 }

@@ -285,9 +285,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.texture != InvalidTextureRef) {
             if (!rc.fbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
-                LOG_IF(FATAL, info == 0) << "Invalid texture " << rc.texture << " : can not be found";
+                LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found")
                 if (info->atlasIndex >= 0) {
-                    LOG_IF(FATAL, (unsigned)info->atlasIndex >= atlas.size()) << "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size();
+                    LOGF_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size())
                     rc.glref = textureLibrary.get(atlas[info->atlasIndex].ref, false)->glref;
                 } else {
                     rc.glref = info->glref;
@@ -380,7 +380,7 @@ void RenderingSystem::render() {
     //float frameready = TimeUtil::GetTime();
 #endif
     if (!frameQueueWritable) {
-        LOG(INFO) << "Rendering disabled";
+        LOGI("Rendering disabled")
         #ifndef EMSCRIPTEN
         lock.unlock();
         #endif
@@ -400,7 +400,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", EndEvent);
 #ifndef EMSCRIPTEN
     if (!mutexes[L_RENDER].try_lock()) {
-        VLOG(1) << "HMM Busy render lock";
+        LOGV(1, "HMM Busy render lock")
     }
 #endif
 #if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
@@ -416,7 +416,7 @@ void RenderingSystem::render() {
 #endif
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
-        LOG(WARNING) << "Arg, nothing to render - probably a bug (queue=" << readQueue << ')';
+        LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')')
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);

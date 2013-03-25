@@ -18,12 +18,12 @@ void AutoDestroySystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(AutoDestroy, a, adc)
         switch (adc->type) {
             case AutoDestroyComponent::OUT_OF_AREA: {
-                LOG_IF(WARNING, adc->params.area.w <= 0 || adc->params.area.h <= 0) << "Invalid area size: " << adc->params.area.w << "x" << adc->params.area.h;
+                LOGW_IF(adc->params.area.w <= 0 || adc->params.area.h <= 0, "Invalid area size: " << adc->params.area.w << "x" << adc->params.area.h)
                 const TransformationComponent* tc = TRANSFORM(a);
                 if (!IntersectionUtil::rectangleRectangle(tc->worldPosition, tc->size, tc->worldRotation,
                     Vector2(adc->params.area.x, adc->params.area.y), Vector2(adc->params.area.w, adc->params.area.h), 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
-                    VLOG(1) << "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed";
+                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed")
                 }
                 break;
             }
@@ -31,7 +31,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 adc->params.lifetime.accum += dt;
                 if (adc->params.lifetime.accum >= adc->params.lifetime.value) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
-                    VLOG(1) << "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed";
+                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed")
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.accum / adc->params.lifetime.value;

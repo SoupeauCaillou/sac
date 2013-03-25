@@ -3,7 +3,7 @@
 #include "api/AssetAPI.h"
 #include <string>
 #include <sstream>
-#include <glog/logging.h>
+#include "base/Log.h"
 
 class DataFileParser {
     public:
@@ -45,7 +45,7 @@ class DataFileParser {
 
 template <class T>
 bool DataFileParser::parse(const std::string& value, T* out, const int count) {
-	LOG_IF(FATAL, count > MAX_ELEMENTS)  << count << " elements not supported";
+	LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported")
 		
 	size_t endIndexes[MAX_ELEMENTS];
     

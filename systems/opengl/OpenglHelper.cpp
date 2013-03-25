@@ -17,7 +17,7 @@
     along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "OpenglHelper.h"
-#include <glog/logging.h>
+#include "base/Log.h"
 
 void check_GL_errors(const char* context) {
      int maxIterations=10;
@@ -27,17 +27,17 @@ void check_GL_errors(const char* context) {
         switch(error)
         {
             case GL_INVALID_ENUM:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_ENUM"; break;
+                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_ENUM") break;
             case GL_INVALID_VALUE:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_VALUE"; break;
+                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_VALUE") break;
             case GL_INVALID_OPERATION:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_OPERATION"; break;
+                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_OPERATION") break;
             case GL_OUT_OF_MEMORY:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_OUT_OF_MEMORY"; break;
+                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_OUT_OF_MEMORY") break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_FRAMEBUFFER_OPERATION") break;
             default:
-                LOG(ERROR) << '[' << maxIterations << "]GL error: '" << context << "' -> " << error; break;
+                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> " << error) break;
         }
           maxIterations--;
     }

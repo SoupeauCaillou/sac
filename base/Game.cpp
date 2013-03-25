@@ -106,31 +106,31 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".desc");
     DataFileParser dfp;
     if (!dfp.load(file)) {
-        LOG(ERROR) << "Invalid font description file: " << name;
+        LOGE("Invalid font description file: " << name)
         return;
     }
     
     unsigned defCount = dfp.sectionSize(DataFileParser::GlobalSection);
-    LOG_IF(WARNING, defCount == 0) << "Font definition '" << name << "' has no entry";
+    LOGW_IF(defCount == 0, "Font definition '" << name << "' has no entry")
     std::map<uint32_t, float> h2wratio;
     std::string charUnicode;
     for (unsigned i=0; i<defCount; i++) {
         int w_h[2];
         if (!dfp.get(DataFileParser::GlobalSection, i, charUnicode, w_h, 2)) {
-            LOG(ERROR) << "Unable to parse entry #" << i << " of " << name;
+            LOGE("Unable to parse entry #" << i << " of " << name)
         }
         std::stringstream ss;
         ss << std::hex << charUnicode;
         uint32_t cId;
         ss >> cId;
         h2wratio[cId] = (float)w_h[0] / w_h[1];
-        VLOG(2) << "Font entry: " << cId << ": " << h2wratio[cId];
+        LOGV(2, "Font entry: " << cId << ": " << h2wratio[cId])
     }
 	delete[] file.data;
 	// h2wratio[' '] = h2wratio['r'];
 	// h2wratio[0x97] = 1;
 	theTextRenderingSystem.registerFont(name, h2wratio);
-    LOG(INFO) << "Loaded font: " << name << ". Found: " << h2wratio.size() << " entries";
+    LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries")
 }
 
 void Game::sacInit(int windowW, int windowH) {
@@ -280,6 +280,7 @@ void Game::render() {
     theRenderingSystem.render();
 
     {
+        static int count = 0;
         static float prevT = 0;
         float t = TimeUtil::GetTime();
         float dt = t - prevT;
@@ -291,8 +292,12 @@ void Game::render() {
         if (dt < fpsStats.minDt) {
             fpsStats.minDt = dt;
         }
-        LOG_EVERY_N(INFO, 1000) << "FPS avg/min/max : " <<
-            (1000 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt), 
+        count++;
+        if (count == 1000) {
+            LOGI("FPS avg/min/max : " <<
+                (1000 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt))
+            count = 0;
+        }
         fpsStats.reset(t);
     }
     PROFILE("Game", "render-game", EndEvent);

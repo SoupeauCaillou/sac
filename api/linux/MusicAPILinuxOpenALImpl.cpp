@@ -1,6 +1,6 @@
 #include "MusicAPILinuxOpenALImpl.h"
+#include "base/Log.h"
 
-#include <glog/logging.h>
 #ifndef EMSCRIPTEN
 #include <al.h>
 #include <alc.h>
@@ -37,7 +37,7 @@ void MusicAPILinuxOpenALImpl::init() {
     ALCdevice* device = alcOpenDevice(0);
     ALCcontext* context = alcCreateContext(device, 0);
     if (!(device && context && alcMakeContextCurrent(context)))
-        LOG(WARNING) << "probleme initialisation du son";
+        LOGW("probleme initialisation du son")
 #endif
 }
 
@@ -166,7 +166,7 @@ static void check_AL_errors(const char* context) {
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOG(WARNING) << "OpenAL error during '" << context << "' -> " << errToString(error);
+        LOGW("OpenAL error during '" << context << "' -> " << errToString(error))
         maxIterations--;
         err = true;
     }

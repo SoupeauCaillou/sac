@@ -1,5 +1,7 @@
 #pragma once
+#ifdef WINDOWS
 #pragma warning(disable:4201) //disable warning about nameless unions
+#endif
 
 #include <string>
 #include <iostream>

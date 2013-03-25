@@ -10,7 +10,6 @@
 #include <cassert>
 
 #include "base/Entity.h"
-#include <glog/logging.h>
 
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
@@ -36,12 +35,18 @@
         public: \
             static type##System* GetInstancePointer() { return _instance; } \
             static type##System& GetInstance() { return (*_instance); } \
-            static void CreateInstance() { if (_instance != NULL) { LOG(WARNING) << "Creating another instance of type##System"; } _instance = new type##System(); LOG(INFO) << #type "System new instance created: "<<  _instance;} \
+            static void CreateInstance() {\
+                if (_instance != NULL) {\
+                    LOGW("Creating another instance of type##System")\
+                }\
+                _instance = new type##System();\
+                LOGI(#type "System new instance created: "<<  _instance)\
+            }\
             static void DestroyInstance() { \
                 if (_instance) {\
                     delete _instance;\
                 }\
-                LOG(INFO) << #type << "System instance destroyed was: " <<  _instance;\
+                LOGI(#type << "System instance destroyed was: " <<  _instance)\
                 _instance = NULL;\
             } \
             void DoUpdate(float dt); \
@@ -60,15 +65,15 @@
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { \
 			    if (_instance != NULL) { \
-				    LOG(WARNING) << "Creating another instance of type##System";\
+				    LOGW("Creating another instance of type##System")\
 			    }\
 			    _instance = new type##System();\
-			    LOG(INFO) << #type "System new instance created: " <<  _instance;\
+			    LOGI(#type "System new instance created: " <<  _instance)\
 			} \
 			static void DestroyInstance() {\
 			    if (_instance)\
 				    delete _instance;\
-			    LOG(INFO) << #type "System instance destroyed, was:" << _instance;\
+			    LOGI(#type "System instance destroyed, was:" << _instance)\
 			    _instance = NULL;\
 			} \
 			void DoUpdate(float dt); \
@@ -158,7 +163,7 @@ class ComponentSystem {
 		static ComponentSystem* Named(const std::string& n) {
 			std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
 			if (it == registry.end()) {
-                LOG(ERROR) << "System with name: '" << n << "' does not exist";
+                LOGE("System with name: '" << n << "' does not exist");
 				return 0;
 			}
 			return (*it).second;
@@ -245,7 +250,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
                     if (failIfNotfound) {
-                        LOG(ERROR) << "Entity '" << entity << "' has no component of type " << getName();
+                        LOGE("Entity '" << entity << "' has no component of type " << getName())
                         assert (false);
                     }
                     return 0;
@@ -258,10 +263,10 @@ class ComponentSystemImpl: public ComponentSystem {
                     // crash here
                     if (failIfNotfound) {
                         #ifdef DEBUG
-                        LOG(FATAL) << "Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << entity << ") has no component of type '" << getName();
+                        LOGF("Entity '" << theEntityManager.entityName(entity)
+                            << "' (" << entity << ") has no component of type '" << getName())
                         #else
-                        LOG(FATAL) << "Entity '" << entity << "' has no component of type '" << getName();
+                        LOGF("Entity '" << entity << "' has no component of type '" << getName())
                         #endif
                     }
                     #endif

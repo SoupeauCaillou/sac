@@ -53,7 +53,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
-		LOG(FATAL) << "Unable to load atlas description file '" << atlasDesc << "'";
+		LOGF("Unable to load atlas description file '" << atlasDesc << "'")
 		return;
 	}
 
@@ -74,7 +74,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	// read texture size
 	sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
-	VLOG(1) << "atlas '" << atlasName << "' -> index: " << atlasIndex;
+	LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex)
 	int count = 0;
 
 	do {
@@ -83,7 +83,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		if (s.empty())
 			break;
 		count++;
-		VLOG(2) << "atlas - line: " << s;
+		LOGV(2, "atlas - line: " << s)
 		std::string assetName;
         Vector2 originalSize, reduxOffset, posInAtlas, sizeInAtlas, opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
 		bool rot;
@@ -94,7 +94,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 	} while (!s.empty());
 
 	delete[] file.data;
-	VLOG(1) << "Atlas '" << atlasName << "' loaded " << count << " images";
+	LOGV(1, "Atlas '" << atlasName << "' loaded " << count << " images")
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
@@ -141,13 +141,13 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 		const TextureInfo* info = textureLibrary.get(ref, true);
         if (info) {
     		if (info->atlasIndex >= 0 && !allowUnloadAtlas) {
-                LOG(ERROR) << "Cannot delete texture '" << ref << "' (is an atlas)";
+                LOGE("Cannot delete texture '" << ref << "' (is an atlas)")
     	    } else {
                 textureLibrary.unload(ref);
             }
         }
 	} else {
-		LOG(ERROR) << "Tried to delete an InvalidTextureRef";
+		LOGE("Tried to delete an InvalidTextureRef")
 	}
 }
 

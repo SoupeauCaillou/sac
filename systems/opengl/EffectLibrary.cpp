@@ -13,7 +13,7 @@
 
 
 static GLuint compileShader(const std::string& assetName, GLuint type, const FileBuffer& fb) {
-    VLOG(1) << "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader...";
+    LOGV(1, "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader...")
 
     GLuint shader = glCreateShader(type);
     GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, &fb.size))
@@ -24,19 +24,19 @@ static GLuint compileShader(const std::string& assetName, GLuint type, const Fil
     if (logLength > 1) {
         char *log = new char[logLength];
         GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
-        LOG(FATAL) << "GL shader error: " << log;
+        LOGF("GL shader error: " << log)
         delete[] log;
     }
 
    if (!glIsShader(shader)) {
-        LOG(ERROR) << "Weird; " << shader << "d is not a shader";
+        LOGE("Weird; " << shader << "d is not a shader")
    }
     return shader;
 }
 
 static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuffer& fragmentFb) {
     Shader out;
-    VLOG(1) << "building shader ...";
+    LOGV(1, "building shader ...")
     out.program = glCreateProgram();
     check_GL_errors("glCreateProgram");
 
@@ -49,12 +49,12 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
 
     GL_OPERATION(glAttachShader(out.program, vs))
     GL_OPERATION(glAttachShader(out.program, fs))
-    VLOG(2) << "Binding GLSL attribs";
+    LOGV(2, "Binding GLSL attribs")
     GL_OPERATION(glBindAttribLocation(out.program, EffectLibrary::ATTRIB_VERTEX, "aPosition"))
     GL_OPERATION(glBindAttribLocation(out.program, EffectLibrary::ATTRIB_UV, "aTexCoord"))
     GL_OPERATION(glBindAttribLocation(out.program, EffectLibrary::ATTRIB_POS_ROT, "aPosRot"))
 
-    VLOG(2) << "Linking GLSL program";
+    LOGV(2, "Linking GLSL program")
     GL_OPERATION(glLinkProgram(out.program))
 
     GLint logLength;
@@ -62,7 +62,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
     if (logLength > 1) {
         char *log = new char[logLength];
         glGetProgramInfoLog(out.program, logLength, &logLength, log);
-        LOG(FATAL) << "GL shader program error: '" << log << "'";
+        LOGF("GL shader program error: '" << log << "'")
         
         delete[] log;
     }
@@ -85,7 +85,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
 }
 
 static Shader buildShaderFromAsset(AssetAPI* assetAPI, const std::string& vsName, const std::string& fsName) {
-    VLOG(1) << "Compiling shaders: " << vsName << '/' << fsName;
+    LOGV(1, "Compiling shaders: " << vsName << '/' << fsName)
     FileBuffer fragmentFb = assetAPI->loadAsset(fsName);
     Shader shader = buildShaderFromFileBuffer(vsName, fragmentFb);
     delete[] fragmentFb.data;
@@ -101,15 +101,15 @@ void EffectLibrary::init(AssetAPI* pAssetAPI) {
 }
 
 bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const EffectRef& ref) {
-    LOG_IF(FATAL, assetAPI == 0) << "Unitialized assetAPI member";
+    LOGF_IF(assetAPI == 0, "Unitialized assetAPI member")
 
     std::map<EffectRef, FileBuffer>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
-        VLOG(1) << "loadShader: '" << assetName << "' from file";
+        LOGV(1, "loadShader: '" << assetName << "' from file")
         out = buildShaderFromAsset(assetAPI, "default.vs", assetName);
     } else {
         const FileBuffer& fb = it->second;
-        VLOG(1) << "loadShader: '" << assetName << "' from InMemoryShader (" << fb.size << ')';
+        LOGV(1, "loadShader: '" << assetName << "' from InMemoryShader (" << fb.size << ')')
         out = buildShaderFromFileBuffer("default.vs", fb);
     }
 
@@ -117,7 +117,7 @@ bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const Effe
 }
 
 void EffectLibrary::doUnload(const std::string& name, const Shader& in) {
-    LOG(WARNING) << "TODO";
+    LOGW("TODO")
 }
 
 void EffectLibrary::doReload(const std::string& name, const EffectRef& ref) {

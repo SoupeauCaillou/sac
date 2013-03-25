@@ -18,5 +18,6 @@
 */
 #pragma once
 
+#include "Log.h"
 #include <cstdint>
 typedef uint64_t Entity;

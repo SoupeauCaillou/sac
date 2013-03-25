@@ -6,22 +6,23 @@
 #include <time.h>
 #include <stdint.h>
 #include <fstream>
-#include <glog/logging.h>
+#include "Log.h"
+#include <sstream>
 
 #ifdef WINDOWS
 void initProfiler() {
-	LOG(WARNING) << "todo";
+	LOGW("todo")
 }
 void startProfiler() {
-	LOG(WARNING) << "todo";
+	LOGW("todo")
 }
 
 void stopProfiler(const std::string& filename) {
-	LOG(WARNING) << "todo";
+	LOGW("todo")
 }
 
 void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph) {
-	LOG(WARNING) << "todo";
+	LOGW("todo")
 }
 
 #else
@@ -75,7 +76,7 @@ void startProfiler() {
 	mutex.lock();
 	if (started)
 		return;
-	LOG(INFO) << "Start profiler";
+	LOGI("Start profiler")
 	root->clear();
 	started = true;
 	mutex.unlock();
@@ -85,7 +86,7 @@ void stopProfiler(const std::string& filename) {
 	mutex.lock();
 	if (!started)
 		return;
-    LOG(INFO) << "Stop profiler, saving to: " << filename;
+    LOGI("Stop profiler, saving to: " << filename)
 	std::ofstream out(filename.c_str());
 	out << *root;
 	started = false;

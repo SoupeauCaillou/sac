@@ -103,7 +103,7 @@ void DebuggingSystem::DoUpdate(float dt) {
     
     if (!fps) {
         init(activeCamera, fps, entityCount, systems); 
-        LOG(INFO) << "Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems;
+        LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems)
     }
 
     bool reloadTextures = (timeUntilGraphUpdate < 0);

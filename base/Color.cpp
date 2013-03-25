@@ -2,7 +2,7 @@
 
 #include "MathUtil.h"
 #include <cstring>
-#include <glog/logging.h>
+#include "Log.h"
 #include <map>
 
 static std::map<std::string, Color> name2Color;
@@ -12,7 +12,7 @@ Color Color::random() {
 }
 
 void Color::nameColor(const Color& c, const std::string& name) {
-    VLOG(1) << "Add color " << name << " = " << c;
+    LOGV(1, "Add color " << name << " = " << c)
 	name2Color.insert(std::make_pair(name, c));
 }
 

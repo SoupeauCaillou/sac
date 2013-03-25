@@ -171,7 +171,7 @@ void LevelEditor::tick(float dt) {
         }
     }
     if (!camera) {
-        LOG(ERROR) << "No active camera";
+        LOGE("No active camera")
         return;
     }
 
@@ -180,7 +180,6 @@ void LevelEditor::tick(float dt) {
     Vector2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5, 0.5 - y / (float)PlacementHelper::WindowHeight);
 
     const Vector2 position = TRANSFORM(camera)->worldPosition + Vector2::Rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
-    LOG_EVERY_N(INFO, 1000) << "Mouse position: " << position;
 
     static int prevWheel = 0;
     int wheel = glfwGetMouseWheel();
@@ -320,7 +319,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
                 if (selected)
                     deselect(selected);
                 selected = over;
-                LOG(INFO) << "Selected entity: '" << theEntityManager.entityName(selected) << "'";
+                LOGI("Selected entity: '" << theEntityManager.entityName(selected) << "'")
                 select(selected);
                 over = 0;
                 RENDERING(overDisplay)->hide = true;

@@ -4,7 +4,7 @@
 
 static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {
     RENDERING(e)->texture = frame.texture;
-    LOG_IF(WARNING, animComp->subPart.size() != frame.transforms.size()) << "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size();
+    LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size())
     for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
         TransformationComponent* tc = TRANSFORM(animComp->subPart[i]);
         const AnimDescriptor::AnimFrame::Transform& trans = frame.transforms[i];
@@ -84,11 +84,11 @@ void AnimationSystem::loadAnim(const std::string& name, const std::string& filen
         if (desc->load(file, variables, varcount)) {
             animations.insert(std::make_pair(name, desc));
         } else {
-            LOG(ERROR) << "Invalid animation file: " << filename << ".anim";
+            LOGE("Invalid animation file: " << filename << ".anim")
             delete desc;
         }
     } else {
-        LOG(ERROR) << "Empty animation file: " << filename << ".anim";
+        LOGE("Empty animation file: " << filename << ".anim")
     }
     delete[] file.data;
 }

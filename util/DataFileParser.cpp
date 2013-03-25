@@ -23,7 +23,7 @@ struct DataFileParser::DataFileParserData {
         } else {
             std::map<std::string, Section*>::const_iterator it = sections.find(name);
             if (it == sections.end()) {
-                LOG(ERROR) << "Cannot find section '" << name << "'";
+                LOGE("Cannot find section '" << name << "'")
                 return false;
             }
             *sectPtr = it->second;
@@ -62,7 +62,7 @@ bool DataFileParser::load(const FileBuffer& fb) {
             std::string section = s.substr(1, s.find(']') - 1);
             currentSection = new Section;
             if (!data->sections.insert(std::make_pair(section, currentSection)).second) {
-                LOG(WARNING) << "Duplicate section found: '" << section << "'. This is not supported";
+                LOGW("Duplicate section found: '" << section << "'. This is not supported")
             }
         } else {
             std::string key = s.substr(0, s.find('='));
@@ -83,7 +83,7 @@ void DataFileParser::unload() {
 const std::string& DataFileParser::keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const {
     static const std::string empty = "";
     if (!data) {
-        LOG(ERROR) << "No data loaded before requesting key value : " << section << '/' << var;
+        LOGE("No data loaded before requesting key value : " << section << '/' << var)
         return empty;
     }
     const Section* sectPtr = 0;
@@ -92,7 +92,7 @@ const std::string& DataFileParser::keyValue(const std::string& section, const st
     }
     std::map<std::string, std::string>::const_iterator jt = sectPtr->find(var);
     if (jt == sectPtr->end()) {
-        LOG_IF(ERROR, warnIfNotFound) << "Cannot find var '" << var << "' in section '" << section << "'";
+        LOGE_IF(warnIfNotFound, "Cannot find var '" << var << "' in section '" << section << "'")
         return empty;
     }
     return jt->second;
@@ -101,7 +101,7 @@ const std::string& DataFileParser::keyValue(const std::string& section, const st
 const std::string& DataFileParser::indexValue(const std::string& section, unsigned index, std::string& varName) const {
     static const std::string empty = "";
     if (!data) {
-        LOG(ERROR) << "No data loaded before requesting section " << section << " index " << index;
+        LOGE("No data loaded before requesting section " << section << " index " << index)
         return empty;
     }
     const Section* sectPtr = 0;
@@ -109,7 +109,7 @@ const std::string& DataFileParser::indexValue(const std::string& section, unsign
         return empty;
     }
     if (sectPtr->size() <= index) {
-        LOG(ERROR) << "Requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements";
+        LOGE("Requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements")
         return empty;
     }
     Section::const_iterator jt = sectPtr->begin();
@@ -120,14 +120,14 @@ const std::string& DataFileParser::indexValue(const std::string& section, unsign
 
 unsigned DataFileParser::sectionSize(const std::string& section) const {
     if (!data) {
-        LOG(ERROR) << "No data loaded before requesting section size : " << section;
+        LOGE("No data loaded before requesting section size : " << section)
         return 0;
     }
     if (section == GlobalSection)
         return data->global.size();
     std::map<std::string, Section*>::const_iterator it = data->sections.find(section);
     if (it == data->sections.end()) {
-        LOG(ERROR) << "Cannot find section '" << section << "'";
+        LOGE("Cannot find section '" << section << "'")
         return 0;
     }
     return it->second->size();
@@ -140,21 +140,21 @@ bool DataFileParser::determineSubStringIndexes(const std::string& str, int count
     for (int i=0; i<count-1; i++) {
         index = str.find(',', index);
         if (index == std::string::npos) {
-            LOG(ERROR) << "Entry '" << str << "' does not contain '" << count << "' values";
+            LOGE("Entry '" << str << "' does not contain '" << count << "' values")
             return false;
         } else {
             outIndexes[i] = index - 1;
-            VLOG(2) << i << " = " << outIndexes[i];
+            LOGV(2, i << " = " << outIndexes[i])
             index += 2;
         }
     }
-    VLOG(2) << (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')';
+    LOGV(2, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')')
     return true;
 }
 
 void DataFileParser::defineVariable(const std::string& name, const std::string& value) {
     if (!data) {
-        LOG(ERROR) << "No data loaded before setting variable";
+        LOGE("No data loaded before setting variable")
     } else {
         std::stringstream v;
         v << '$' << name;

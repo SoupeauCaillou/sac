@@ -18,13 +18,13 @@
 */
 #pragma once
 
-#include <glog/logging.h>
 #include <map>
 #include <string>
 #include <set>
 
 #include <mutex>
 #include <condition_variable>
+#include "Log.h"
 
 #if !defined(ANDROID)
 #define USE_COND_SIGNALING 1
@@ -54,7 +54,7 @@ class NamedAssetLibrary {
             if (it == nameToRef.end()) {
                 delayed.loads.insert(name);
                 result = nextValidRef++;
-                VLOG(1) << "Put asset '" << name << "' on delayed load queue. Ref value: " << result;
+                LOGV(1, std::cout << "Put asset '" << name << "' on delayed load queue. Ref value: " << result)
                 nameToRef.insert(std::make_pair(name, result));
             } else {
                 result = it->second;
@@ -86,30 +86,30 @@ class NamedAssetLibrary {
         }
 
         void reloadAll() {
-            LOG(WARNING) << "TODO";
+            LOGW("TODO")
         }
 
         void update() {
-            VLOG_IF(1, !delayed.loads.empty()) << "Process delayed loads";
+            LOGV_IF(1, !delayed.loads.empty(), "Process delayed loads")
             for (std::set<std::string>::iterator it=delayed.loads.begin();
                 it!=delayed.loads.end();
                 ++it) {
                 mutex.lock();
                 T asset;
                 TRef ref = nameToRef[*it];
-                VLOG(2) << "\tLoad '" << *it << "' -> " << ref;
+                LOGV(2, "\tLoad '" << *it << "' -> " << ref)
                 doLoad(*it, asset, ref);
                 ref2asset.insert(std::make_pair(ref, asset));
                 mutex.unlock();
             }
 
-            VLOG_IF(1, !delayed.unloads.empty()) << "Process delayed unloads";
+            LOGV_IF(1, !delayed.unloads.empty(), "Process delayed unloads")
             for (std::set<std::string>::iterator it=delayed.unloads.begin();
                 it!=delayed.unloads.end();
                 ++it) {
                 mutex.lock();
                 const std::string& name = *it;
-                VLOG(2) << "\tUnload '" << name << "'";
+                LOGV(2, "\tUnload '" << name << "'")
                 TRef ref = nameToRef[name];
                 doUnload(name, ref2asset[ref]);
                 ref2asset.erase(ref);
@@ -117,13 +117,13 @@ class NamedAssetLibrary {
                 mutex.unlock();
             }
 
-            VLOG_IF(1, !delayed.unloads.empty()) << "Process delayed reloads";
+            LOGV_IF(1, !delayed.unloads.empty(), "Process delayed reloads")
             for (std::set<std::string>::iterator it=delayed.reloads.begin();
                 it!=delayed.reloads.end();
                 ++it) {
                 mutex.lock();
                 const std::string& name = *it;
-                VLOG(2) << "Reload '" << name << "'";
+                LOGV(2, "Reload '" << name << "'")
                 TRef ref = nameToRef[name];
                 doReload(name, ref);
                 mutex.unlock();
@@ -155,20 +155,20 @@ class NamedAssetLibrary {
                 }
             }
 
-            LOG_IF(FATAL, it == ref2asset.end()) << "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size();
+            LOGF_IF(it == ref2asset.end(), "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size())
             lock.unlock();
             return &(it->second);
         }
 
         const T& get(const std::string& name) {
             typename std::map<std::string, TRef>::const_iterator it = nameToRef.find(name);
-            LOG_IF(FATAL, it == nameToRef.end()) << "Unkown asset requested: " << name << ". Asset count: " << nameToRef.size();
+            LOGF_IF(it == nameToRef.end(), "Unkown asset requested: " << name << ". Asset count: " << nameToRef.size())
             return *get(it->second, true);
         }
 
         void registerDataSource(TRef r, SourceDataType type) {
             if (dataSource.find(r) != dataSource.end())
-                LOG(WARNING) << "Asset " << r << " already have one data source registered";
+                LOGW("Asset " << r << " already have one data source registered")
             dataSource.insert(std::make_pair(r, type));
         }
         

@@ -1,6 +1,7 @@
 #include "OpenGLTextureCreator.h"
 #include "api/AssetAPI.h"
-#include <glog/logging.h>
+#include "base/Log.h"
+#include <cstring>
 
 #include "OpenglHelper.h"
 
@@ -22,22 +23,22 @@ static GLenum channelCountToGLFormat(int channelCount) {
     switch (channelCount) {
         case 1:
             format = GL_ALPHA;
-            VLOG(2) << channelCount << " -> GL_ALPHA";
+            LOGV(2,  channelCount << " -> GL_ALPHA")
             break;
         case 2:
             format = GL_LUMINANCE_ALPHA;
-            VLOG(2) << channelCount << " -> GL_LUMINANCE_ALPHA";
+            LOGV(2, channelCount << " -> GL_LUMINANCE_ALPHA")
             break;
         case 3:
             format = GL_RGB;
-            VLOG(2) << channelCount << " -> GL_RGB";
+            LOGV(2, channelCount << " -> GL_RGB")
             break;
         case 4:
             format = GL_RGBA;
-            VLOG(2) << channelCount << " -> GL_RGBA";
+            LOGV(2, channelCount << " -> GL_RGBA")
             break;
         default:
-            LOG(FATAL) << "Invalid channel count: " << channelCount;
+            LOGF("Invalid channel count: " << channelCount)
     }
     return format;
 }
@@ -87,7 +88,7 @@ InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std
     int imgChannelCount = 0;
     result.color = loadSplittedFromFile(assetAPI, name, COLOR, outSize, imgChannelCount);
     if (result.color && imgChannelCount == 4) {
-        VLOG(1) << name << " texture has 4 channels. Use it for alpha as well";
+        LOGV(1, name << " texture has 4 channels. Use it for alpha as well")
         result.alpha = loadSplittedFromFile(assetAPI, name, ALPHA_MASK, outSize, imgChannelCount);
     } else {
         result.alpha = loadSplittedFromFile(assetAPI, name + "_alpha", ALPHA_MASK, outSize, imgChannelCount);
@@ -102,21 +103,21 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     // First, try PVR compression, then PKM (ETC1)
     if (type == COLOR) {
         if (pvrFormatSupported) {
-            VLOG(2) << "Using PVR version";
+            LOGV(2, "Using PVR version")
             file = assetAPI->loadAsset(name + ".pvr");
         } else if (pkmFormatSupported) {
-            VLOG(2) << "Using PKM version";
+            LOGV(2, "Using PKM version")
             file = assetAPI->loadAsset(name + ".pkm");
         } else {
-            VLOG(1) << "PVM nor ETC1 supported, falling back on PNG format";
+            LOGV(1, "PVM nor ETC1 supported, falling back on PNG format")
         }
     }
 
     if (!file.data) {
-        VLOG(2) << "Using PNG version";
+        LOGV(2, "Using PNG version")
         file = assetAPI->loadAsset(name + ".png");
         if (!file.data) {
-            LOG(ERROR) << "Image not found '" << name << ".png'";
+            LOGE("Image not found '" << name << ".png'")
             return false;
         }
         png = true;
@@ -126,7 +127,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     ImageDesc image = parseImageContent(name, file, png);
     delete[] file.data;
     if (!image.datas) {
-        LOG(ERROR) << "Could not read image, aborting";
+        LOGE("Could not read image, aborting")
         return false;
     }
     imgChannelCount = image.channels;
@@ -147,7 +148,7 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
         case OpenGLTextureCreator::COLOR_ALPHA:
             return GL_RGBA;
         default:
-            LOG(FATAL) << "Unhandled typeToFormat value: " << type;
+            LOGF("Unhandled typeToFormat value: " << type)
      }
 }
 
@@ -167,7 +168,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
     GLenum format = channelCountToGLFormat(image.channels);
 
     if (image.type == ImageDesc::RAW) {
-        VLOG(2) << "Using PNG texture version " << image.width << 'x' << image.height;
+        LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height)
         #ifdef EMSCRIPTEN
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
         #else
@@ -177,7 +178,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
     } else {
        #ifdef ANDROID
         char* ptr = image.datas;
-        VLOG(2) << "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)";
+        LOGV(2, "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)")
         for (int level=0; level<=image.mipmap; level++) {
             int width = MathUtil::Max(1, image.width >> level);
             int height = MathUtil::Max(1, image.height >> level);
@@ -186,19 +187,19 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
                 imgSize =( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
-            VLOG(3) << "\t- mipmap " << level << " : " << width << 'x' << height;
+            LOGV(3, "\t- mipmap " << level << " : " << width << 'x' << height)
             GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
             ptr += imgSize;
         }
         #else
-        LOG(FATAL) << "ETC compression not supported";
+        LOGF("ETC compression not supported")
         return;
         #endif
     }
 
 #if !defined(ANDROID) && !defined(EMSCRIPTEN)
     if (image.mipmap == 0 && enableMipMapping) {
-        VLOG(1) << "Generating mipmaps";
+        LOGV(1, "Generating mipmaps")
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 #endif
@@ -237,10 +238,10 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
     std::string aa = a.str();
     SDL_Surface* s = IMG_Load(aa.c_str());
     if (s == 0) {
-        LOG(WARNING) << "Failed to load '" << a.str() << "'";
+        LOGW("Failed to load '" << a.str() << "'")
         return whiteTexture;
     }
-    VLOG(1) << ("Image format: " << s->w << 'x' << s->h << ' ' << s->format->BitsPerPixel);
+    LOGV(1, ("Image format: " << s->w << 'x' << s->h << ' ' << s->format->BitsPerPixel))
     image.channels = s->format->BitsPerPixel / 8;
 
     image.width = s->w;

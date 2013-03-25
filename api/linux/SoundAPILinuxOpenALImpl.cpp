@@ -11,11 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <cassert>
-#ifdef WINDOWS
-#include <base/Log.h>
-#else
-#include <glog/logging.h>
-#endif
+#include "base/Log.h"
 
 #ifndef EMSCRIPTEN
 static const char* errToString(ALenum err);
@@ -70,16 +66,16 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     const char* nm = s.c_str();
     FILE* fd = fopen(nm, "rb");
     if (!fd) {
-        LOG(WARNING) << "Cannot open " << nm;
+        LOGW("Cannot open " << nm)
         return 0;
     }
 #ifdef WINDOWS
-	LOG(WARNING) << "TODO: can't use ov_open on windows";
+	LOGW("TODO: can't use ov_open on windows")
 	return 0;
 #endif
     OggVorbis_File vf;
     if (ov_open(fd, &vf, 0, 0)) {
-        LOG(WARNING) << "Failed loading: "<< nm;
+        LOGW("Failed loading: "<< nm)
         return 0;
     }
 
@@ -97,7 +93,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
             break;
         readCount += n;
     } while (true);
-    LOG_IF(WARNING, readCount != sizeInBytes) << "Weird byte count read: " << readCount << '/' << sizeInBytes;
+    LOGW_IF(readCount != sizeInBytes, "Weird byte count read: " << readCount << '/' << sizeInBytes)
     assert(readCount == sizeInBytes);
 
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
@@ -111,7 +107,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 	OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
 	out->sample = Mix_LoadWAV(a.str().c_str());
 	if (out->sample == 0) {
-		LOG(WARNING) << "Cannot load " << a.str();
+		LOGW("Cannot load " << a.str())
 	}
 	return out;
 #endif
@@ -144,7 +140,7 @@ static void check_AL_errors(const char* context) {
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOG(WARNING) << "OpenAL error during '" << context << "' -> " << errToString(error);
+        LOGW("OpenAL error during '" << context << "' -> " << errToString(error))
         maxIterations--;
         err = true;
     }

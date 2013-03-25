@@ -32,8 +32,7 @@ else()
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 
 	#the necessary libs
-	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB
-	AntTweakBar Gflags Glog Ogg Tinyxml2)
+	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg Tinyxml2)
 
 	#you shouldn't touch that
 	foreach(lib ${LIBS_NEEDED})

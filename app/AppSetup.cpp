@@ -15,8 +15,6 @@
 	You should have received a copy of the GNU General Public License
 	along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-
 #include "base/Game.h"
 #include "base/GameContext.h"
 
@@ -74,9 +72,6 @@
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/SuccessAPI.h"
 #include "util/Recorder.h"
-
-#include <glog/logging.h>
-#include <gflags/gflags.h>
 
 #include "MouseNativeTouchState.h"
 
@@ -194,15 +189,6 @@ static void updateAndRender() {
 
 /** Engine entry point */
 int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
-#ifdef WINDOWS
-	LOG(WARNING) << "TODO";
-#else
-	google::InitGoogleLogging(argv[0]);
-    FLAGS_logtostderr = true;
-    FLAGS_colorlogtostderr = true;
-    google::ParseCommandLineFlags(&argc, &argv, true);
-#endif
-
     Vector2 reso16_9(394, 700);
     Vector2 reso16_10(900, 625);
     Vector2* reso = &reso16_10;

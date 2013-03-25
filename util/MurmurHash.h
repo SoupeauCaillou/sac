@@ -1,12 +1,13 @@
 #pragma once
 
-#include <glog/logging.h>
+#include "base/Log.h"
+#include <cstring>
 
 class MurmurHash {
     public:
         #ifdef DEBUG
         static inline unsigned staticHash(const char *s, unsigned value) {
-            LOG_IF(FATAL, compute(s, strlen(s), 0) != value) << "Invalid precalculated hash value. Expected: " << compute(s, strlen(s), 0)  << ". Actual: " << value;
+            LOGF_IF(compute(s, strlen(s), 0) != value, "Invalid precalculated hash value. Expected: " << compute(s, strlen(s), 0)  << ". Actual: " << value)
             return value;
         }
         #else
