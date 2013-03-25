@@ -44,7 +44,8 @@ source ../coolStuff.sh
 ######### 4 : Execute query. #########
 	count=$(pwd | tr -c -d / | wc -c)
 	count=$(expr $count - 1)
-	gameName=$(pwd | cut -d/ -f$count)
+
+	gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 	if [ ! -z $(echo $1 | grep r) ]; then
 		reset
@@ -71,6 +72,7 @@ source ../coolStuff.sh
 		(echo r; cat) | gdb ./linux/$gameName
 	#launch required
 	elif [ ! -z $(echo $1 | grep R) ]; then
+		executable=./platforms/default/$gameName
 		#verbose required
 		if [ ! -z $(echo $1 | grep -e v -e c) ]; then
 			#colored logs
@@ -78,20 +80,20 @@ source ../coolStuff.sh
 				info "Launch with colored log."
 
 				if [ $# = 2 ]; then
-					./linux/$gameName -v | $rootPath/sac/tools/build/linux-coloredLogs.sh $2
+					$executable -v | $rootPath/sac/tools/build/linux-coloredLogs.sh $2
 				else
 					info "No arg for color script ?\nUsage: $0 $1 args-for-it" $red
 					info "Using 'all' tag there"
 					sleep 3
-					./linux/$gameName -v | $rootPath/sac/tools/build/linux-coloredLogs.sh 'all'
+					$executable -v | $rootPath/sac/tools/build/linux-coloredLogs.sh 'all'
 				fi
 			else
 				info "Launch with log."
-				./linux/$gameName -v
+				$executable -v
 			fi
 		else
 			info "Launch game."
-			./linux/$gameName
+			$executable
 		fi
 	fi
 
