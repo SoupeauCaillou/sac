@@ -9,7 +9,7 @@
 #include "Log.h"
 #include <sstream>
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(DARWIN)
 void initProfiler() {
 	LOGW("todo")
 }
