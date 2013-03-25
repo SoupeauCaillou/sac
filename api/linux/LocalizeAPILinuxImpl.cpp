@@ -18,7 +18,7 @@
 */
 #include "LocalizeAPILinuxImpl.h"
 #ifndef EMSCRIPTEN
-	#ifdef WINDOWS
+	#if defined(WINDOWS) || defined(DARWIN)
 	//TODO
 	#else
 	#include <libintl.h>
@@ -28,7 +28,15 @@
 
 #include <iostream> // à virer
 
-#include <tinyxml2.h>
+#ifdef DARWIN
+
+
+int LocalizeAPILinuxImpl::init(const std::string & lang) {
+	return 0;
+}
+
+
+#else
 
 #include "base/Log.h"
 int LocalizeAPILinuxImpl::init(const std::string & lang) {
@@ -81,7 +89,7 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
 
     return 0;
 }
-
+#endif
 void LocalizeAPILinuxImpl::changeLanguage(const std::string& s) {
     init(s);
 }
