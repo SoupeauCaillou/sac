@@ -45,7 +45,6 @@ else()
 		  target_link_libraries (sac ${${LIB}_LIBRARY})
 		endif ()
 	endforeach()
-	target_link_libraries (sac opengl32)
 
 	#particular libs
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -54,6 +53,8 @@ else()
 		  include_directories(${VPX_INCLUDE_DIR})
 		  target_link_libraries (sac ${VPX_LIBRARY})
 		endif ()
+	elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		target_link_libraries (sac opengl32)
 	endif()
 
 
