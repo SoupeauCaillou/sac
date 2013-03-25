@@ -37,7 +37,8 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
 
 
 #else
-
+#include <cstring>
+#include <tinyxml2.h>
 #include "base/Log.h"
 int LocalizeAPILinuxImpl::init(const std::string & lang) {
 #ifdef SAC_ASSETS_DIR
