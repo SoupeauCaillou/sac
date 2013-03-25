@@ -40,7 +40,7 @@
 #include <mutex>
 
 #ifndef EMSCRIPTEN
-	#ifdef WINDOWS
+	#if defined(WINDOWS) || defined(DARWIN)
 
 	#else
 		#include <locale.h>

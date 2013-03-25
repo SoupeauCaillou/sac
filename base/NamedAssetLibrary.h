@@ -54,7 +54,7 @@ class NamedAssetLibrary {
             if (it == nameToRef.end()) {
                 delayed.loads.insert(name);
                 result = nextValidRef++;
-                LOGV(1, std::cout << "Put asset '" << name << "' on delayed load queue. Ref value: " << result)
+                LOGV(1, "Put asset '" << name << "' on delayed load queue. Ref value: " << result)
                 nameToRef.insert(std::make_pair(name, result));
             } else {
                 result = it->second;
