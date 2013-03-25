@@ -20,6 +20,6 @@ class TimeUtil
         static struct timespec startup_time;
 		#else
 		static __int64 startup_time;
-		static float frequency;
+		static double frequency;
         #endif
 };

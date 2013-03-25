@@ -18,7 +18,7 @@
 	struct timespec TimeUtil::startup_time;
 #elif defined(WINDOWS)
 	__int64 TimeUtil::startup_time;
-	float TimeUtil::frequency;
+	double TimeUtil::frequency;
 #endif
 
 void TimeUtil::Init() {
@@ -31,7 +31,7 @@ void TimeUtil::Init() {
 	QueryPerformanceCounter((LARGE_INTEGER*)&startup_time);
 	__int64 invertfrequency;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&invertfrequency);
-	frequency = 1.0f / invertfrequency;
+	frequency = 1.0 / invertfrequency;
 #endif
 }
 
@@ -93,7 +93,6 @@ void TimeUtil::Wait(float waitInSeconds) {
            nanosleep(&ts, 0);
 #else
            // Of course using Sleep is bad, but hey...
-           LOGI("Sleep : " << (waitInSeconds - delta) * 1000)
            Sleep((waitInSeconds - delta) * 1000);
 #endif
            delta = GetTime() - before;

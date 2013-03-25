@@ -11,6 +11,8 @@ struct Force {
 };
 
 struct PhysicsComponent {
+    PhysicsComponent() : linearVelocity(Vector2::Zero), angularVelocity(0.0f), mass(0.0f), gravity(Vector2::Zero) {}
+
     Vector2 linearVelocity;
     float angularVelocity;
     float mass;
