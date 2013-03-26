@@ -1,6 +1,5 @@
 #pragma once
 
-#include "base/MathUtil.h"
 #include "../steering/SteeringBehavior.h"
 
 #include "System.h"
@@ -35,4 +34,3 @@ public:
 	static bool isArrived(Entity e);
 
 };
-

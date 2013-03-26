@@ -153,7 +153,7 @@ void Game::sacInit(int windowW, int windowH) {
     PlacementHelper::GimpHeight = 1280.0f;
 
 	theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
-	theTouchInputManager.init(Vector2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), Vector2(windowW, windowH));
+	theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));
 
 	theRenderingSystem.init();
     theRenderingSystem.setFrameQueueWritable(true);
@@ -215,7 +215,7 @@ void Game::step() {
             if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
                 speedFactor += 1 * delta;
             } else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
-                speedFactor = MathUtil::Max(speedFactor - 1 * delta, 0.0f);
+                speedFactor = glm::max(speedFactor - 1 * delta, 0.0f);
             } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
                 speedFactor = 1;
             }

@@ -3,20 +3,20 @@
 #include "System.h"
 
 struct Force {
-    Vector2 vector;
-    Vector2 point;
+    glm::vec2 vector;
+    glm::vec2 point;
 
-    Force(const Vector2& v, const Vector2& p) : vector(v), point(p) {}
+    Force(const glm::vec2& v, const glm::vec2& p) : vector(v), point(p) {}
     Force() {}
 };
 
 struct PhysicsComponent {
-    PhysicsComponent() : linearVelocity(Vector2::Zero), angularVelocity(0.0f), mass(0.0f), gravity(Vector2::Zero) {}
+    PhysicsComponent() : linearVelocity(0.0f, 0.0f), angularVelocity(0.0f), mass(0.0f), gravity(0.0f, 0.0f) {}
 
-    Vector2 linearVelocity;
+    glm::vec2 linearVelocity;
     float angularVelocity;
     float mass;
-    Vector2 gravity;
+    glm::vec2 gravity;
     std::vector<std::pair<Force, float> > forces;
     float momentOfInertia;
 };
@@ -28,4 +28,3 @@ UPDATABLE_SYSTEM(Physics)
 public:
 	static void addMoment(PhysicsComponent* pc, float m);
 };
-

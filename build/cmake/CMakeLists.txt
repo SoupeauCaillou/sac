@@ -3,7 +3,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
-
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
 file(
 	GLOB_RECURSE
 	source_files

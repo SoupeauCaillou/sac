@@ -20,13 +20,13 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 }
 
 static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCount, Entity& entityCountLabel, Entity& systems) {
-    const Vector2& cameraSize = TRANSFORM(camera)->size;
+    const glm::vec2& cameraSize = TRANSFORM(camera)->size;
 
     fps = theEntityManager.CreateEntity("__debug_fps");
     ADD_COMPONENT(fps, Transformation);
     TRANSFORM(fps)->parent = camera;
-    TRANSFORM(fps)->size = cameraSize * Vector2(0.3, 0.2);
-    TRANSFORM(fps)->position = cameraSize * Vector2(-0.5, 0.5) + TRANSFORM(fps)->size * Vector2(0.5, -0.5);
+    TRANSFORM(fps)->size = cameraSize * glm::vec2(0.3f, 0.2f);
+    TRANSFORM(fps)->position = cameraSize * glm::vec2(-0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.5f, -0.5f);
     TRANSFORM(fps)->z = 0;
     ADD_COMPONENT(fps, Rendering);
     RENDERING(fps)->texture = theRenderingSystem.loadTextureFile(FpsTextureName);
@@ -51,8 +51,8 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     entityCount = theEntityManager.CreateEntity("__debug_entityCount");
     ADD_COMPONENT(entityCount, Transformation);
     TRANSFORM(entityCount)->parent = camera;
-    TRANSFORM(entityCount)->size = cameraSize * Vector2(0.3, 0.2);
-    TRANSFORM(entityCount)->position = cameraSize * Vector2(0, 0.5) + TRANSFORM(fps)->size * Vector2(0, -0.5);
+    TRANSFORM(entityCount)->size = cameraSize * glm::vec2(0.3f, 0.2f);
+    TRANSFORM(entityCount)->position = cameraSize * glm::vec2(0.0f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.0f, -0.5f);
     TRANSFORM(entityCount)->z = 0;
     ADD_COMPONENT(entityCount, Rendering);
     RENDERING(entityCount)->texture = theRenderingSystem.loadTextureFile(EntitiesTextureName);
@@ -75,8 +75,8 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     systems = theEntityManager.CreateEntity("__debug_systems");
     ADD_COMPONENT(systems, Transformation);
     TRANSFORM(systems)->parent = camera;
-    TRANSFORM(systems)->size = cameraSize * Vector2(0.3, 0.2);
-    TRANSFORM(systems)->position = cameraSize * Vector2(0.5, 0.5) + TRANSFORM(fps)->size * Vector2(-0.5, -0.5);
+    TRANSFORM(systems)->size = cameraSize * glm::vec2(0.3f, 0.2f);
+    TRANSFORM(systems)->position = cameraSize * glm::vec2(0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(-0.5f, -0.5f);
     TRANSFORM(systems)->z = 0;
     ADD_COMPONENT(systems, Rendering);
     RENDERING(systems)->texture = theRenderingSystem.loadTextureFile(SystemsTextureName);
@@ -91,7 +91,7 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     TRANSFORM(e)->parent = parent;
     TRANSFORM(e)->z = -0.002;
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
-    TRANSFORM(e)->position = TRANSFORM(parent)->size * (-0.5) - Vector2(0, (index + 1) * 0.6);
+    TRANSFORM(e)->position = TRANSFORM(parent)->size * (-0.5f) - glm::vec2(0.0f, (index + 1) * 0.6f);
 
     ADD_COMPONENT(e, TextRendering);
     TEXT_RENDERING(e)->color = color;
@@ -148,8 +148,8 @@ void DebuggingSystem::DoUpdate(float dt) {
         init(activeCamera, fps, fpsLabel, entityCount, entityCountLabel, systems);
         LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems)
     }
-    const Vector2 firstLabelOffset(TRANSFORM(activeCamera)->size * Vector2(0.3, 0.2) * (-0.5) - Vector2(0, (0.6) * 0.6));
-    const Vector2 labelsSpacing(0, -0.6);
+    const glm::vec2 firstLabelOffset(TRANSFORM(activeCamera)->size * glm::vec2(0.3, 0.2) * (-0.5f) - glm::vec2(0, (0.6) * 0.6f));
+    const glm::vec2 labelsSpacing(0, -0.6);
 
     bool reloadTextures = (timeUntilGraphUpdate < 0);
 
@@ -200,7 +200,7 @@ void DebuggingSystem::DoUpdate(float dt) {
             } else {
                 TEXT_RENDERING(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms");
                 TEXT_RENDERING(e)->show = true;
-                TRANSFORM(e)->position = firstLabelOffset + labelsSpacing * i;
+                TRANSFORM(e)->position = firstLabelOffset + labelsSpacing * (float)i;
             }
         }
     }
@@ -226,8 +226,8 @@ void DebuggingSystem::DoUpdate(float dt) {
         } else {
             TRANSFORM(c)->parent = captionGraph[i-1];
         }
-        TRANSFORM(c)->size = Vector2(10, 1);
-        TRANSFORM(c)->position = Vector2(0, -1);
+        TRANSFORM(c)->size = glm::vec2(10, 1);
+        TRANSFORM(c)->position = glm::vec2(0, -1);
 
         ADD_COMPONENT(c, TextRendering);
         TEXT_RENDERING(c)->fontName = "typo";

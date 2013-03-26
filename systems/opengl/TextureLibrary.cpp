@@ -4,49 +4,49 @@
 InternalTexture InternalTexture::Invalid;
 
 TextureInfo::TextureInfo (const InternalTexture& ref,
-        const Vector2& posInAtlas, const Vector2& sizeInAtlas, bool rot,
-        const Vector2& atlasSize,
-        const Vector2& offsetInOriginal, const Vector2& pOriginalSize,
-        const Vector2& _opaqueStart, const Vector2& _opaqueSize,
+        const glm::vec2& posInAtlas, const glm::vec2& sizeInAtlas, bool rot,
+        const glm::vec2& atlasSize,
+        const glm::vec2& offsetInOriginal, const glm::vec2& pOriginalSize,
+        const glm::vec2& _opaqueStart, const glm::vec2& _opaqueSize,
         int atlasIdx) {
     glref = ref;
 
-    if (pOriginalSize == Vector2::Zero) {
-        uv[0].X = uv[0].Y = 0;
-        uv[1].X = uv[1].Y = 1;
+    if (pOriginalSize == glm::vec2(0.0f)) {
+        uv[0].x = uv[0].y = 0;
+        uv[1].x = uv[1].y = 1;
         rotateUV = 0;
     } else if (atlasIdx >= 0) {
-        float blX = posInAtlas.X / atlasSize.X;
-        float trX = (posInAtlas.X + sizeInAtlas.X) / atlasSize.X;
-        float blY = 1 - (posInAtlas.Y + sizeInAtlas.Y) / atlasSize.Y;
-        float trY = 1 - posInAtlas.Y / atlasSize.Y;
+        float blX = posInAtlas.x / atlasSize.x;
+        float trX = (posInAtlas.x + sizeInAtlas.x) / atlasSize.x;
+        float blY = 1 - (posInAtlas.y + sizeInAtlas.y) / atlasSize.y;
+        float trY = 1 - posInAtlas.y / atlasSize.y;
 
-        uv[0].X = blX;
-        uv[1].X = trX;
-        uv[0].Y = blY;
-        uv[1].Y = trY;
+        uv[0].x = blX;
+        uv[1].x = trX;
+        uv[0].y = blY;
+        uv[1].y = trY;
         rotateUV = rot;
     } else {
-        uv[0].X = posInAtlas.X / atlasSize.X;
-        uv[0].Y = posInAtlas.Y / atlasSize.Y;
-        uv[1].X = (posInAtlas.X + sizeInAtlas.X) / atlasSize.X;
-        uv[1].Y = (posInAtlas.Y + sizeInAtlas.Y) / atlasSize.Y;
+        uv[0].x = posInAtlas.x / atlasSize.x;
+        uv[0].y = posInAtlas.y / atlasSize.y;
+        uv[1].x = (posInAtlas.x + sizeInAtlas.x) / atlasSize.x;
+        uv[1].y = (posInAtlas.y + sizeInAtlas.y) / atlasSize.y;
         rotateUV = 0;
     }
     atlasIndex = atlasIdx;
 
     originalSize = pOriginalSize;
 
-    Vector2 _sizeInAtlas(sizeInAtlas);
+    glm::vec2 _sizeInAtlas(sizeInAtlas);
     if (rot) {
-        std::swap(_sizeInAtlas.X, _sizeInAtlas.Y);
+        std::swap(_sizeInAtlas.x, _sizeInAtlas.y);
     }
-    if (_sizeInAtlas.Y > 0) {
-        opaqueSize = Vector2(_opaqueSize.X / _sizeInAtlas.X, _opaqueSize.Y / _sizeInAtlas.Y);
-        opaqueStart = Vector2(_opaqueStart.X / _sizeInAtlas.X, 1 - (opaqueSize.Y + _opaqueStart.Y / _sizeInAtlas.Y));
+    if (_sizeInAtlas.y > 0) {
+        opaqueSize = glm::vec2(_opaqueSize.x / _sizeInAtlas.x, _opaqueSize.y / _sizeInAtlas.y);
+        opaqueStart = glm::vec2(_opaqueStart.x / _sizeInAtlas.x, 1 - (opaqueSize.y + _opaqueStart.y / _sizeInAtlas.y));
 
-        reduxSize = Vector2(_sizeInAtlas.X / originalSize.X, _sizeInAtlas.Y / originalSize.Y);
-        reduxStart = Vector2(offsetInOriginal.X / originalSize.X, 1 - (reduxSize.Y + offsetInOriginal.Y / originalSize.Y));
+        reduxSize = glm::vec2(_sizeInAtlas.x / originalSize.x, _sizeInAtlas.y / originalSize.y);
+        reduxStart = glm::vec2(offsetInOriginal.x / originalSize.x, 1 - (reduxSize.y + offsetInOriginal.y / originalSize.y));
     }
 }
 
@@ -63,16 +63,16 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
         out.glref.color =
             out.glref.alpha =
                 OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.originalSize);
-        out.reduxSize = Vector2(1,1);
-        out.opaqueSize = Vector2::Zero;
+        out.reduxSize = glm::vec2(1.0f,1.0f);
+        out.opaqueSize = glm::vec2(0.0f);
     }
 
     out.rotateUV = false;
     out.atlasIndex = -1;
-    out.uv[0] = Vector2::Zero;
-    out.uv[1] = Vector2(1, 1);
-    out.reduxSize = Vector2(1,1);
-    out.reduxStart = out.opaqueStart = out.opaqueSize = Vector2::Zero;
+    out.uv[0] = glm::vec2(0.0f);
+    out.uv[1] = glm::vec2(1.0f);
+    out.reduxSize = glm::vec2(1.0f);
+    out.reduxStart = out.opaqueStart = out.opaqueSize = glm::vec2(0.0f);
     return true;
 }
 

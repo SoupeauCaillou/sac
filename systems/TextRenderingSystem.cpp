@@ -3,9 +3,8 @@
 #include <sstream>
 #include <iomanip>
 
-#include "base/Vector2.h"
+#include <glm/glm.hpp>
 #include "base/EntityManager.h"
-#include "base/MathUtil.h"
 
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
@@ -101,14 +100,14 @@ void TextRenderingSystem::DoUpdate(float dt) {
         // text blinking
         if (trc->blink.onDuration > 0) {
             if (trc->blink.accum >= 0) {
-                trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, trc->blink.onDuration);
+                trc->blink.accum = glm::min(trc->blink.accum + dt, trc->blink.onDuration);
                 trc->color.a = 1.0f;
                 if (trc->blink.accum == trc->blink.onDuration) {
                     trc->blink.accum = -trc->blink.offDuration;
                 }
             } else {
                 trc->blink.accum += dt;
-                trc->blink.accum = MathUtil::Min(trc->blink.accum + dt, 0.0f);
+                trc->blink.accum = glm::min(trc->blink.accum + dt, 0.0f);
                 trc->color.a = 0;
                 if (trc->blink.accum >= 0)
                     trc->blink.accum = 0;
@@ -130,17 +129,17 @@ void TextRenderingSystem::DoUpdate(float dt) {
         // Determine font size (character height)
 		float charHeight = trc->charHeight;
 		if (trc->flags & TextRenderingComponent::AdjustHeightToFillWidthBit) {
-			const float targetWidth = trans->size.X;
+			const float targetWidth = trans->size.x;
 			charHeight = targetWidth / computeStringWidth(trc, 1, fontDesc);
             // Limit to maxCharHeight if defined
 			if (trc->maxCharHeight > 0 ) {
-				charHeight = MathUtil::Min(trc->maxCharHeight, charHeight);
+				charHeight = glm::min(trc->maxCharHeight, charHeight);
 			}
 		}
 
         // Variables
 		const float startX = (trc->flags & TextRenderingComponent::MultiLineBit) ?
-			(trans->size.X * -0.5) : computeStartX(trc, charHeight, fontDesc);
+			(trans->size.x * -0.5) : computeStartX(trc, charHeight, fontDesc);
 		float x = startX, y = 0;
 		bool newWord = true;
         uint16_t unicode = 0; // limited to short
@@ -165,7 +164,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 					// compute length of next word
 					const float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, fontDesc);
                     // If it doesn't fit on current line -> start new line
-					if (x + w >= trans->size.X * 0.5) {
+					if (x + w >= trans->size.x * 0.5) {
 						newLine = true;
 					}
 					newWord = false;
@@ -214,11 +213,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'")
                 std::string texture;
                 parseInlineImageString(
-                    trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.X, &tc->size.Y);
+                    trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.x, &tc->size.y);
                 rc->texture = theRenderingSystem.loadTextureFile(texture);
                 rc->color = Color();
-                tc->size.X *= charHeight;
-                tc->size.Y *= charHeight;
+                tc->size.x *= charHeight;
+                tc->size.y *= charHeight;
                 inlineImage = true;
                 // skip inline image letters
                 skip = next + 1;
@@ -228,7 +227,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
                     unicode = 0;
                 }
                 const CharInfo& info = fontDesc.entries[unicode];
-                tc->size = Vector2(charHeight * info.h2wRatio, charHeight);
+                tc->size = glm::vec2(charHeight * info.h2wRatio, charHeight);
                 // if letter is space, hide it
                 if (unicode == 0x20) {
                     rc->show = false;
@@ -239,10 +238,10 @@ void TextRenderingSystem::DoUpdate(float dt) {
             }
             // Advance position
             letterCount++;
-			x += tc->size.X * 0.5;
-			tc->position.X = x;
-            tc->position.Y = y + (inlineImage ? tc->size.Y * 0.25 : 0);
-			x += tc->size.X * 0.5;
+			x += tc->size.x * 0.5;
+			tc->position.x = x;
+            tc->position.y = y + (inlineImage ? tc->size.x * 0.25 : 0);
+			x += tc->size.x * 0.5;
             unicode = 0;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)

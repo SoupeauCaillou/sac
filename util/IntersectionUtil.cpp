@@ -1,23 +1,24 @@
 #include "IntersectionUtil.h"
-#include "../base/MathUtil.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include "../systems/TransformationSystem.h"
 #include <cmath>
 
-bool IntersectionUtil::pointRectangle(const Vector2& point, const Vector2& rectPos, const Vector2& rectSize) {
-	return (MathUtil::Abs(rectPos.X - point.X) < rectSize.X * 0.5 &&
-		MathUtil::Abs(rectPos.Y - point.Y) < rectSize.Y * 0.5);
+bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize) {
+	return (glm::abs(rectPos.x - point.x) < rectSize.x * 0.5 &&
+		glm::abs(rectPos.y - point.y) < rectSize.y * 0.5);
 }
 
 // from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-bool IntersectionUtil::lineLine(const Vector2& pA, const Vector2& pB, const Vector2& qA, const Vector2& qB, Vector2* intersectionPoint) {
-	float denom = ((qB.Y - qA.Y)*(pB.X - pA.X)) -
-                      ((qB.X - qA.X)*(pB.Y - pA.Y));
+bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint) {
+	float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
+                      ((qB.x - qA.x)*(pB.y - pA.y));
 
-    float nume_a = ((qB.X - qA.X)*(pA.Y - qA.Y)) -
-                   ((qB.Y - qA.Y)*(pA.X - qA.X));
+    float nume_a = ((qB.x - qA.x)*(pA.y - qA.y)) -
+                   ((qB.y - qA.y)*(pA.x - qA.x));
 
-    float nume_b = ((pB.X - pA.X)*(pA.Y - qA.Y)) -
-                   ((pB.Y - pA.Y)*(pA.X - qA.X));
+    float nume_b = ((pB.x - pA.x)*(pA.y - qA.y)) -
+                   ((pB.y - pA.y)*(pA.x - qA.x));
 
     if(denom == 0.0f)
     {
@@ -35,8 +36,8 @@ bool IntersectionUtil::lineLine(const Vector2& pA, const Vector2& pB, const Vect
     {
     	if (intersectionPoint) {
             // Get the intersection point.
-            intersectionPoint->X = pA.X + ua*(pB.X - pA.X);
-            intersectionPoint->Y = pA.Y + ua*(pB.Y - pA.Y);
+            intersectionPoint->x = pA.x + ua*(pB.x - pA.x);
+            intersectionPoint->y = pA.y + ua*(pB.y - pA.y);
         }
 
         return true;
@@ -45,10 +46,11 @@ bool IntersectionUtil::lineLine(const Vector2& pA, const Vector2& pB, const Vect
     return false;
 }
 
-bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2& rectASize, float rectARot,
-            const Vector2& rectBPos, const Vector2& rectBSize, float rectBRot) {
+bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
+            const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot) {
     // quick out
-    if (Vector2::DistanceSquared(rectAPos, rectBPos) > pow(MathUtil::Max(rectASize.X, rectASize.Y) + MathUtil::Max(rectBSize.X, rectBSize.Y), 2)) {
+    //~ if (Vector2::DistanceSquared(rectAPos, rectBPos) > pow(MathUtil::Max(rectASize.X, rectASize.Y) + MathUtil::Max(rectBSize.X, rectBSize.Y), 2)) {
+    if (glm::distance(rectAPos, rectBPos) > glm::max(rectASize.x, rectASize.y) + glm::max(rectBSize.x, rectBSize.y)) {
         return false;
     }
 
@@ -60,34 +62,34 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
         -0.5, -0.5
     };
 
-    Vector2 aPoints[4];
-    Vector2 bPoints[4];
+    glm::vec2 aPoints[4];
+    glm::vec2 bPoints[4];
 
     for (int i=0; i<4; i++) {
-        aPoints[i] = rectAPos + Vector2::Rotate(Vector2(rectASize.X * coeff[2*i], rectASize.Y * coeff[2*i+1]), rectARot);
-        bPoints[i] = rectBPos + Vector2::Rotate(Vector2(rectBSize.X * coeff[2*i], rectBSize.Y * coeff[2*i+1]), rectBRot);
+        aPoints[i] = rectAPos + glm::rotate(glm::vec2(rectASize.x * coeff[2*i], rectASize.y * coeff[2*i+1]), rectARot);
+        bPoints[i] = rectBPos + glm::rotate(glm::vec2(rectBSize.x * coeff[2*i], rectBSize.y * coeff[2*i+1]), rectBRot);
     }
 
     // check A edges againts B points
     for (int i=0; i<4; i++) {
-        Vector2 edge(aPoints[(i+1)%4] - aPoints[i]);
-        float tmp = edge.X;
-        edge.X = -edge.Y;
-        edge.Y = tmp;
+        glm::vec2 edge(aPoints[(i+1)%4] - aPoints[i]);
+        float tmp = edge.x;
+        edge.x = -edge.y;
+        edge.y = tmp;
 
         bool success = true;
-        int j, side = SIGN(Vector2::Dot(edge, bPoints[0] - aPoints[i]));
+        int j, side = glm::sign(glm::dot(edge, bPoints[0] - aPoints[i]));
         for (j=1; success && j<4; j++) {
-            int d = SIGN(Vector2::Dot(edge, bPoints[j] - aPoints[i]));
+            int d = glm::sign(glm::dot(edge, bPoints[j] - aPoints[i]));
             success = (d == side);
         }
         // all points from B are on the same side
         // if at least one point of A is on the other side we're good
         if (success && j == 4) {
-            int d1 = SIGN(Vector2::Dot(edge, aPoints[(i+2) % 4] - aPoints[i]));
+            int d1 = glm::sign(glm::dot(edge, aPoints[(i+2) % 4] - aPoints[i]));
             if (d1 != side)
                 return false;
-            int d2 = SIGN(Vector2::Dot(edge, aPoints[(i+3) % 4] - aPoints[i]));
+            int d2 = glm::sign(glm::dot(edge, aPoints[(i+3) % 4] - aPoints[i]));
             if (d2 != side)
                 return false;
         }
@@ -95,24 +97,24 @@ bool IntersectionUtil::rectangleRectangle(const Vector2& rectAPos, const Vector2
 
     // check B edges againts A points
     for (int i=0; i<4; i++) {
-        Vector2 edge(bPoints[(i+1)%4] - bPoints[i]);
-        float tmp = edge.X;
-        edge.X = -edge.Y;
-        edge.Y =tmp;
+        glm::vec2 edge(bPoints[(i+1)%4] - bPoints[i]);
+        float tmp = edge.x;
+        edge.x = -edge.y;
+        edge.y =tmp;
 
         bool success = true;
-        int j, side = SIGN(Vector2::Dot(edge, aPoints[0] - bPoints[i]));
+        int j, side = glm::sign(glm::dot(edge, aPoints[0] - bPoints[i]));
         for (j=1; success && j<4; j++) {
-            int d = SIGN(Vector2::Dot(edge, aPoints[j] - bPoints[i]));
+            int d = glm::sign(glm::dot(edge, aPoints[j] - bPoints[i]));
             success = (d == side);
         }
         // all points from A are on the same side
         // if at least one point of B is on the other side we're good
         if (success && j == 4) {
-            int d1 = SIGN(Vector2::Dot(edge, bPoints[(i+2) % 4] - bPoints[i]));
+            int d1 = glm::sign(glm::dot(edge, bPoints[(i+2) % 4] - bPoints[i]));
             if (d1 != side)
                 return false;
-            int d2 = SIGN(Vector2::Dot(edge, bPoints[(i+3) % 4] - bPoints[i]));
+            int d2 = glm::sign(glm::dot(edge, bPoints[(i+3) % 4] - bPoints[i]));
             if (d2 != side)
                 return false;
         }

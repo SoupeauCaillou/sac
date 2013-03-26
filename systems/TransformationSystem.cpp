@@ -1,13 +1,14 @@
 #include "TransformationSystem.h"
 #include <set>
+#include <glm/gtx/rotate_vector.hpp>
 
 INSTANCE_IMPL(TransformationSystem);
 
 TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") {
     TransformationComponent tc;
     componentSerializer.add(new EntityProperty(OFFSET(parent, tc)));
-    componentSerializer.add(new Property<Vector2>(OFFSET(position, tc), Vector2(0.001, 0)));
-    componentSerializer.add(new Property<Vector2>(OFFSET(size, tc), Vector2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>(OFFSET(position, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>(OFFSET(size, tc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<float>(OFFSET(rotation, tc), 0.001));
     componentSerializer.add(new Property<float>(OFFSET(z, tc), 0.001));
 }
@@ -42,30 +43,30 @@ void TransformationSystem::DoUpdate(float) {
             trans->worldZ = trans->z;
         } else {
             const TransformationComponent* pbc = TRANSFORM(trans->parent);
-            trans->worldPosition = pbc->worldPosition + Vector2::Rotate(trans->position, pbc->worldRotation);
+            trans->worldPosition = pbc->worldPosition + glm::rotate(trans->position, pbc->worldRotation);
             trans->worldRotation = pbc->worldRotation + trans->rotation;
             trans->worldZ = pbc->worldZ + trans->z;
         }
     }
 }
 
-void TransformationSystem::setPosition(TransformationComponent* tc, const Vector2& p, PositionReference ref) {
+void TransformationSystem::setPosition(TransformationComponent* tc, const glm::vec2& p, PositionReference ref) {
 	// x
 	switch (ref) {
 		case NW:
 		case W:
 		case SW:
-			tc->position.X = p.X + tc->size.X * 0.5;
+			tc->position.x = p.x + tc->size.x * 0.5;
 			break;
 		case N:
 		case C:
 		case S:
-			tc->position.X = p.X;
+			tc->position.x = p.x;
 			break;
 		case NE:
 		case E:
 		case SE:
-			tc->position.X = p.X - tc->size.X * 0.5;
+			tc->position.x = p.x - tc->size.x * 0.5;
 			break;
 	}
 	// y
@@ -73,17 +74,17 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const Vector
 		case NW:
 		case N:
 		case NE:
-			tc->position.Y = p.Y - tc->size.Y * 0.5;
+			tc->position.y = p.y - tc->size.y * 0.5;
 			break;
 		case W:
 		case C:
 		case E:
-			tc->position.Y = p.Y;
+			tc->position.y = p.y;
 			break;
 		case SW:
 		case S:
 		case SE:
-			tc->position.Y = p.Y + tc->size.Y * 0.5;
+			tc->position.y = p.y + tc->size.y * 0.5;
 			break;
 	}
 }
@@ -92,14 +93,14 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const Vector
 void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TransformationComponent* tc = Get(entity, false);
     if (!tc) return;
-    TwAddVarRW(bar, "size.X", TW_TYPE_FLOAT, &tc->size.X, "group=Transformation precision=3 step=0,01");
-    TwAddVarRW(bar, "size.Y", TW_TYPE_FLOAT, &tc->size.Y, "group=Transformation precision=3 step=0,01"); 
-    TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.X, "group=local precision=3 step=0,01");
-    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.Y, "group=local precision=3 step=0,01"); 
+    TwAddVarRW(bar, "size.X", TW_TYPE_FLOAT, &tc->size.x, "group=Transformation precision=3 step=0,01");
+    TwAddVarRW(bar, "size.Y", TW_TYPE_FLOAT, &tc->size.y, "group=Transformation precision=3 step=0,01"); 
+    TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.x, "group=local precision=3 step=0,01");
+    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.y, "group=local precision=3 step=0,01"); 
     TwAddVarRW(bar, "rotation", TW_TYPE_FLOAT, &tc->rotation, "group=local step=0,01 precision=3");
     TwAddVarRW(bar, "Z", TW_TYPE_FLOAT, &tc->z, "group=local precision=3 step=0,01");
-    TwAddVarRO(bar, "_position.X", TW_TYPE_FLOAT, &tc->worldPosition.X, "group=world precision=3");
-    TwAddVarRO(bar, "_position.Y", TW_TYPE_FLOAT, &tc->worldPosition.Y, "group=world precision=3"); 
+    TwAddVarRO(bar, "_position.X", TW_TYPE_FLOAT, &tc->worldPosition.x, "group=world precision=3");
+    TwAddVarRO(bar, "_position.Y", TW_TYPE_FLOAT, &tc->worldPosition.y, "group=world precision=3"); 
     TwAddVarRO(bar, "_rotation", TW_TYPE_FLOAT, &tc->worldRotation, "group=world step=0,05 precision=3");
     TwAddVarRO(bar, "_Z", TW_TYPE_FLOAT, &tc->worldZ, "group=world precision=3");
     std::stringstream groups;

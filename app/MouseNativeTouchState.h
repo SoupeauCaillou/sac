@@ -18,13 +18,12 @@
 #pragma once
 
 #include "base/TouchInputManager.h"
-
-struct Vector2;
+#include <glm/glm.hpp>
 
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {
     public:
-        bool isTouching(int, Vector2* windowCoords) const;
+        bool isTouching(int, glm::vec2* windowCoords) const;
 
         int maxTouchingCount() {
             return 1;

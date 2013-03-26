@@ -18,7 +18,7 @@
 */
 #pragma once
 
-#include "base/Vector2.h"
+#include <glm/glm.hpp>
 #include "util/ImageLoader.h"
 #include "TextureLibrary.h"
 class AssetAPI;
@@ -37,15 +37,15 @@ class OpenGLTextureCreator {
 
         static void detectSupportedTextureFormat();
 
-        static InternalTexture loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize);
+        static InternalTexture loadFromFile(AssetAPI* assetAPI, const std::string& name, glm::vec2& outSize);
 
-        static GLuint loadFromImageDesc(const ImageDesc& imageDesc, const std::string& name, Type type, Vector2& outSize);
+        static GLuint loadFromImageDesc(const ImageDesc& imageDesc, const std::string& name, Type type, glm::vec2& outSize);
 
         static void updateFromImageDesc(const ImageDesc& imagedesc, GLuint texture, Type type);
 
-        static GLuint create(const Vector2& size, int channels, void* imageData = 0);
+        static GLuint create(const glm::vec2& size, int channels, void* imageData = 0);
 
     private:
         static ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng);
-        static GLuint loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, Vector2& outSize, int& imgChannelCount);
+        static GLuint loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, glm::vec2& outSize, int& imgChannelCount);
 };

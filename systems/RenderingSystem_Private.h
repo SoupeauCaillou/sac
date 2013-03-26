@@ -32,10 +32,10 @@ struct RenderingSystem::RenderCommand {
         InternalTexture glref;
     };
     unsigned int rotateUV;
-    Vector2 uv[2];
-    Vector2 halfSize;
+    glm::vec2 uv[2];
+    glm::vec2 halfSize;
     Color color;
-    Vector2 position;
+    glm::vec2 position;
     float rotation;
     int flags;
     bool mirrorH, fbo;
@@ -52,4 +52,3 @@ void unpackCameraAttributes(
     const RenderingSystem::RenderCommand& in,
     TransformationComponent* cameraTrans,
     CameraComponent* cameraComp);
-

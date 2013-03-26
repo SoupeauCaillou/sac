@@ -4,7 +4,7 @@
 #include <string>
 #include <list>
 #include <cstring>
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 
 struct FileBuffer {
     FileBuffer() : data(0), size(0) {}
@@ -31,7 +31,7 @@ struct FileBufferWithCursor : FileBuffer {
         FileBufferWithCursor* src = static_cast<FileBufferWithCursor*> (datasource);
         size_t r = 0;
         for (unsigned int i=0; i<nmemb && src->cursor < src->size; i++) {
-            size_t a = MathUtil::Min(src->size - src->cursor + 1, (long int)size);
+            size_t a = glm::min(src->size - src->cursor + 1, (long int)size);
             memcpy(&((char*)ptr)[i * size], &src->data[src->cursor], a);
             src->cursor += a;
             r += a;

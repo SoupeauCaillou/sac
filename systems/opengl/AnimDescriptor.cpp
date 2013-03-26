@@ -69,7 +69,7 @@ bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varc
                     transformS << "entity_transform_" << subEntityIndex;
                     
                     AnimFrame::Transform tr;
-                    if (dfp.get(section, transformS.str(), &tr.position.X, 5, false)) {
+                    if (dfp.get(section, transformS.str(), &tr.position.x, 5, false)) {
                         frame.transforms.push_back(tr);
                         subEntityIndex++;   
                     } else {

@@ -1,5 +1,5 @@
 #include "EntityManager.h"
-#include "MathUtil.h"
+#include <glm/glm.hpp>
 #include "systems/System.h"
 #include <cstring>
 
@@ -57,7 +57,7 @@ Entity EntityManager::CreateEntity(const std::string&
         std::stringstream namesuffix;
         namesuffix << name;
         do {
-            namesuffix << MathUtil::RandomInt(10);
+            namesuffix << glm::floor(glm::linearRand(0.0f, 10.0f));
         } while (name2entity.find(namesuffix.str()) != name2entity.end());
         name2entity.insert(std::make_pair(namesuffix.str(), e));
     }
@@ -205,7 +205,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		}
 		entityComponents[e] = l;
         LOGV(1, " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components")
-		nextEntity = MathUtil::Max(nextEntity, (unsigned long)(e + 1));
+		nextEntity = glm::max(nextEntity, e + 1);
 	}
 }
 

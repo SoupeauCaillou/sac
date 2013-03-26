@@ -5,7 +5,8 @@
 #include "CameraSystem.h"
 #include <cmath>
 #include <sstream>
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
 #if defined(SAC_DEBUG)
@@ -148,7 +149,7 @@ static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const Rend
 
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
     #define EPSILON 0.0001
-	if (MathUtil::Abs(r1.z - r2.z) <= EPSILON) {
+	if (glm::abs(r1.z - r2.z) <= EPSILON) {
 		if (r1.effectRef == r2.effectRef) {
 			if (r1.texture == r2.texture) {
                 if (r1.flags != r2.flags)
@@ -166,55 +167,55 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
     }
 }
 
-static inline void modifyQ(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
-    const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
-    r.position = r.position  + Vector2((r.mirrorH ? -1 : 1), 1) * Vector2::Rotate(- r.halfSize + offset, r.rotation);
+static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
+    const glm::vec2 offset =  offsetPos * r.halfSize * 2.0f + size * r.halfSize * 2.0f * 0.5f;
+    r.position = r.position  + glm::vec2((r.mirrorH ? -1.0f : 1.0f), 1.0f) * glm::rotate(- r.halfSize + offset, r.rotation);
     r.halfSize = size * r.halfSize;
 }
 
-static void modifyR(RenderingSystem::RenderCommand& r, const Vector2& offsetPos, const Vector2& size) {
-    const Vector2 offset =  offsetPos * r.halfSize * 2 + size * r.halfSize * 2 * 0.5;
-    r.position = r.position  + Vector2((r.mirrorH ? -1 : 1), 1) * Vector2::Rotate(- r.halfSize + offset, r.rotation);
+static void modifyR(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
+    const glm::vec2 offset =  offsetPos * r.halfSize * 2.0f + size * r.halfSize * 2.0f * 0.5f;
+    r.position = r.position  + glm::vec2((r.mirrorH ? -1.0f : 1.0f), 1.0f) * glm::rotate(- r.halfSize + offset, r.rotation);
     r.halfSize = size * r.halfSize;
     r.uv[0] = offsetPos;
     r.uv[1] = size;
 }
 
 static bool cull(const TransformationComponent* camera, RenderingSystem::RenderCommand& c) {
-    if (c.rotation == 0 && c.halfSize.X > 0) {
-        const float camLeft = camera->worldPosition.X - camera->size.X * .5f;
-        const float camRight = camera->worldPosition.X + camera->size.X * .5f;
+    if (c.rotation == 0 && c.halfSize.x > 0) {
+        const float camLeft = camera->worldPosition.x - camera->size.x * .5f;
+        const float camRight = camera->worldPosition.x + camera->size.x * .5f;
 
-        const float invWidth = 1.0f / (2 * c.halfSize.X);
+        const float invWidth = 1.0f / (2 * c.halfSize.x);
         // left culling !
         {
-            float cullLeftX = camLeft - (c.position.X - c.halfSize.X);
+            float cullLeftX = camLeft - (c.position.x - c.halfSize.x);
             if (cullLeftX > 0) {
-                if (cullLeftX >= 2 * c.halfSize.X)
+                if (cullLeftX >= 2 * c.halfSize.x)
                     return false;
                 const float prop = cullLeftX * invWidth; // € [0, 1]
                 if (!c.mirrorH) {
-                    c.uv[0].X += prop * c.uv[1].X;
+                    c.uv[0].x += prop * c.uv[1].x;
                 }
-                c.uv[1].X *= (1 - prop);
-                c.halfSize.X *= (1 - prop);
-                c.position.X += 0.5 * cullLeftX;
+                c.uv[1].x *= (1 - prop);
+                c.halfSize.x *= (1 - prop);
+                c.position.x += 0.5 * cullLeftX;
                 return true;
             }
         }
         // right culling !
         {
-            float cullRightX = (c.position.X + c.halfSize.X) - camRight;
+            float cullRightX = (c.position.x + c.halfSize.x) - camRight;
             if (cullRightX > 0) {
-                if (cullRightX >= 2 * c.halfSize.X)
+                if (cullRightX >= 2 * c.halfSize.x)
                     return false;
                 const float prop = cullRightX * invWidth; // € [0, 1]
                 if (c.mirrorH) {
-                    c.uv[0].X += prop * c.uv[1].X;
+                    c.uv[0].x += prop * c.uv[1].x;
                 }
-                c.uv[1].X *= (1 - prop);
-                c.halfSize.X *= (1 - prop);
-                c.position.X -= 0.5 * cullRightX;
+                c.uv[1].x *= (1 - prop);
+                c.halfSize.x *= (1 - prop);
+                c.position.x -= 0.5 * cullRightX;
                 return true;
             }
         }
@@ -267,8 +268,8 @@ void RenderingSystem::DoUpdate(float) {
     		c.color = rc->color;
     		c.position = tc->worldPosition;
     		c.rotation = tc->worldRotation;
-    		c.uv[0] = Vector2::Zero;
-    		c.uv[1] = Vector2(1, 1);
+    		c.uv[0] = glm::vec2(0.0f);
+    		c.uv[1] = glm::vec2(1.0f);
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
             if (rc->zPrePass) {
@@ -295,7 +296,7 @@ void RenderingSystem::DoUpdate(float) {
                    #ifndef SAC_USE_VBO
                     if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                         c.color.a >= 1 &&
-                        info->opaqueSize != Vector2::Zero &&
+                        info->opaqueSize != glm::vec2(0.0f) &&
                         !rc->zPrePass) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
@@ -305,29 +306,29 @@ void RenderingSystem::DoUpdate(float) {
                         if (cull(camTrans, cCenter))
                             opaqueCommands.push_back(cCenter);
 
-                        const float leftBorder = info->opaqueStart.X, rightBorder = info->opaqueStart.X + info->opaqueSize.X;
-                        const float bottomBorder = info->opaqueStart.Y + info->opaqueSize.Y;
+                        const float leftBorder = info->opaqueStart.x, rightBorder = info->opaqueStart.x + info->opaqueSize.x;
+                        const float bottomBorder = info->opaqueStart.y + info->opaqueSize.y;
                         if (leftBorder > 0) {
                             RenderCommand cLeft(c);
-                            modifyR(cLeft, Vector2::Zero, Vector2(leftBorder, 1));
+                            modifyR(cLeft, glm::vec2(0.0f), glm::vec2(leftBorder, 1.0f));
                             if (cull(camTrans, cLeft))
                                 semiOpaqueCommands.push_back(cLeft);
                         }
 
                         if (rightBorder < 1) {
                             RenderCommand cRight(c);
-                            modifyR(cRight, Vector2(rightBorder, 0), Vector2(1 - rightBorder, 1));
+                            modifyR(cRight, glm::vec2(rightBorder, 0.0f), glm::vec2(1 - rightBorder, 1.0f));
                             if (cull(camTrans, cRight))
                                 semiOpaqueCommands.push_back(cRight);
                         }
 
                         RenderCommand cTop(c);
-                        modifyR(cTop, Vector2(leftBorder, 0), Vector2(rightBorder - leftBorder, info->opaqueStart.Y));
+                        modifyR(cTop, glm::vec2(leftBorder, 0.0f), glm::vec2(rightBorder - leftBorder, info->opaqueStart.y));
                         if (cull(camTrans, cTop))
                             semiOpaqueCommands.push_back(cTop);
 
                         RenderCommand cBottom(c);
-                        modifyR(cBottom, Vector2(leftBorder, bottomBorder), Vector2(rightBorder - leftBorder, 1 - bottomBorder));
+                        modifyR(cBottom, glm::vec2(leftBorder, bottomBorder), glm::vec2(rightBorder - leftBorder, 1 - bottomBorder));
                         if (cull(camTrans, cBottom))
                             semiOpaqueCommands.push_back(cBottom);
                         continue;

@@ -3,7 +3,7 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 #include "base/Interval.h"
 
 class IProperty {

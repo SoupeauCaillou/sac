@@ -1,6 +1,7 @@
 #pragma once
 
-#include "MathUtil.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 
 template <typename T>
 class Interval {
@@ -10,7 +11,7 @@ class Interval {
         Interval(T _t) : t1(_t), t2(_t) {}
 
         T random() const {
-            float w = MathUtil::RandomFloat();
+            float w = glm::linearRand(0.0f, 1.0f);
             return lerp(w);
         }
 

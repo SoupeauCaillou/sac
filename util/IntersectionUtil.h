@@ -1,16 +1,16 @@
 #pragma once
 
-#include "../base/Vector2.h"
+#include <glm/glm.hpp>
 struct TransformationComponent;
 
 class IntersectionUtil {
 	public:
-		static bool pointRectangle(const Vector2& point, const Vector2& rectPos, const Vector2& rectSize);
+		static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize);
 
-		static bool lineLine(const Vector2& pA, const Vector2& pB, const Vector2& qA, const Vector2& qB, Vector2* intersectionPoint);
+		static bool lineLine(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint);
 
-        static bool rectangleRectangle(const Vector2& rectAPos, const Vector2& rectASize, float rectARot,
-            const Vector2& rectBPos, const Vector2& rectBSize, float rectBRot);
+        static bool rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
+            const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot);
 
         static bool rectangleRectangle(const TransformationComponent* tc1, const TransformationComponent* tc2);
 };

@@ -26,7 +26,7 @@
 	#include <linux/sched.h>
 #endif
 
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 
 INSTANCE_IMPL(MusicSystem);
 
@@ -175,7 +175,7 @@ void MusicSystem::DoUpdate(float dt) {
 	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
 		        const float step = dt / m->fadeIn;
 		        m->currentVolume += step;
-		        m->currentVolume = MathUtil::Min(m->currentVolume, m->volume);
+		        m->currentVolume = glm::min(m->currentVolume, m->volume);
 		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
 	        } else {
 	        	m->fadeIn = 0;

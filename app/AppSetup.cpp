@@ -48,10 +48,9 @@
 	#endif
 #endif
 
-#include "base/Vector2.h"
+#include <glm/glm.hpp>
 #include "base/TouchInputManager.h"
 #include "base/TimeUtil.h"
-#include "base/MathUtil.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
 #include "systems/RenderingSystem.h"
@@ -187,10 +186,10 @@ static void updateAndRender() {
 
 #endif
 
-Vector2 resolution;
+glm::vec2 resolution;
 int initGame(const std::string& title) {
-    Vector2 reso16_9(394, 700);
-    Vector2 reso16_10(900, 625);
+    glm::ivec2 reso16_9(394, 700);
+    glm::ivec2 reso16_10(900, 625);
     resolution = reso16_10;
 
     /////////////////////////////////////////////////////
@@ -205,7 +204,7 @@ int initGame(const std::string& title) {
     if (!glfwInit())
         return 1;
     glfwOpenWindowHint( GLFW_WINDOW_NO_RESIZE, GL_TRUE );
-    if( !(int)glfwOpenWindow((int)resolution.X, (int)resolution.Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
+    if( !(int)glfwOpenWindow(resolution.x, resolution.y, 8,8,8,8,8,8, GLFW_WINDOW ) )
         return 1;
     glfwSetWindowTitle(title.c_str());
     glfwSwapInterval(1);
@@ -290,7 +289,7 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     /////////////////////////////////////////////////////
     // Init game
     game->setGameContexts(&ctx, &ctx);
-    game->sacInit((int)resolution.X, (int)resolution.Y);
+    game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
 #ifndef SAC_EMSCRIPTEN
@@ -299,8 +298,9 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     // breaks editor -> glfwSetKeyCallback(myKeyCallback);
 #endif
 
+
 #ifndef SAC_EMSCRIPTEN
-    // record = new Recorder((int)reso->X, (int)reso->Y);
+    // record = new Recorder(resolution.x, resolution.y);
 
     std::thread th1(callback_thread);
     do {

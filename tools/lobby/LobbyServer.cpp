@@ -1,10 +1,11 @@
 #include <enet/enet.h>
 #include <string>
-#include "base/MathUtil.h"
+#include <iostream>
 #include <map>
 #include <cstring>
 #include <list>
 #include <vector>
+#include <glm/gtc/random.hpp>
 
 #define NICKNAME_PKT 1
 #define PORT_PKT 2
@@ -96,7 +97,7 @@ int main() {
         // if we have 2 players with a name : connect them
         if (peerWaiting.size() >= 2) {
             std::cout << "Matchmaking in progress !" << std::endl;
-            int portA = MathUtil::RandomIntInRange(55000, 56000);
+            int portA = glm::linearRand(55000.0f, 56000.0f);
             // *** int portB = MathUtil::RandomIntInRange(55000, 56000);
             MatchMaking match;
 

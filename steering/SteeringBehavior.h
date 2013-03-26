@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/Vector2.h"
+#include <glm/glm.hpp>
 #include "../base/EntityManager.h"
 
 class SteeringBehavior {
@@ -9,16 +9,16 @@ class SteeringBehavior {
 			float radius;
 			float distance;
 			float jitter;
-			Vector2 target, debugTarget;
+			glm::vec2 target, debugTarget;
 		};
 	public:
-		static Vector2 seek(Entity e, const Vector2& targetPos, float maxSpeed);
+		static glm::vec2 seek(Entity e, const glm::vec2& targetPos, float maxSpeed);
 
-		static Vector2 flee(Entity e, const Vector2& targetPos, float maxSpeed);
+		static glm::vec2 flee(Entity e, const glm::vec2& targetPos, float maxSpeed);
 
-		static Vector2 arrive(Entity e, const Vector2& targetPos, float maxSpeed, float deceleration);
+		static glm::vec2 arrive(Entity e, const glm::vec2& targetPos, float maxSpeed, float deceleration);
 
-        static Vector2 arrive(const Vector2& pos, const Vector2& linearVel,const Vector2& targetPos, float maxSpeed, float deceleration);
+        static glm::vec2 arrive(const glm::vec2& pos, const glm::vec2& linearVel,const glm::vec2& targetPos, float maxSpeed, float deceleration);
 
-		static Vector2 wander(Entity e, WanderParams& params, float maxSpeed);
+		static glm::vec2 wander(Entity e, WanderParams& params, float maxSpeed);
 };

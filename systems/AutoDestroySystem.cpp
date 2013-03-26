@@ -21,7 +21,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 LOGW_IF(adc->params.area.w <= 0 || adc->params.area.h <= 0, "Invalid area size: " << adc->params.area.w << "x" << adc->params.area.h)
                 const TransformationComponent* tc = TRANSFORM(a);
                 if (!IntersectionUtil::rectangleRectangle(tc->worldPosition, tc->size, tc->worldRotation,
-                    Vector2(adc->params.area.x, adc->params.area.y), Vector2(adc->params.area.w, adc->params.area.h), 0)) {
+                    glm::vec2(adc->params.area.x, adc->params.area.y), glm::vec2(adc->params.area.w, adc->params.area.h), 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
                     LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed")
                 }

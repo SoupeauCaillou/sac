@@ -61,7 +61,7 @@ static GLuint createAndInitTexture(bool enableMipmapping) {
     return result;
 }
 
-GLuint OpenGLTextureCreator::create(const Vector2& size, int channels, void* imageData) {
+GLuint OpenGLTextureCreator::create(const glm::vec2& size, int channels, void* imageData) {
     GLenum format = channelCountToGLFormat(channels);
 
     GLuint result = createAndInitTexture(false);
@@ -73,16 +73,16 @@ GLuint OpenGLTextureCreator::create(const Vector2& size, int channels, void* ima
     GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 
     // Allocate texture space
-    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, size.X, size.Y, 0, format, GL_UNSIGNED_BYTE, NULL))
+    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, NULL))
 
     // upload data, if any
     if (imageData)
-        GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.X, size.Y, format, GL_UNSIGNED_BYTE, imageData))
+        GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.x, size.y, format, GL_UNSIGNED_BYTE, imageData))
 
     return result;
 }
 
-InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string& name, Vector2& outSize) {
+InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std::string& name, glm::vec2& outSize) {
     InternalTexture result;
     result.color = result.alpha = 0;
     int imgChannelCount = 0;
@@ -95,7 +95,7 @@ InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std
     }
     return result;
 }
-GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, Vector2& outSize, int& imgChannelCount) {
+GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, glm::vec2& outSize, int& imgChannelCount) {
     // Read file content
     FileBuffer file;
     bool png = false;
@@ -184,7 +184,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
             int width = MathUtil::Max(1, image.width >> level);
             int height = MathUtil::Max(1, image.height >> level);
             unsigned imgSize = 0;
-            if (pvrSupported) 
+            if (pvrSupported)
                 imgSize =( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
@@ -206,7 +206,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 #endif
 }
 
-GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& /*name*/, Type type, Vector2& outSize) {
+GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& /*name*/, Type type, glm::vec2& outSize) {
     const bool enableMipMapping =
 #ifdef SAC_ANDROID
     ((type == COLOR) && image.mipmap > 0);
@@ -218,11 +218,11 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
 
     // Create GL texture object
     GLuint result = createAndInitTexture(enableMipMapping);
-    
+
     updateFromImageDesc(image, result, type);
 
-    outSize.X = image.width;
-    outSize.Y = image.height;
+    outSize.x = image.width;
+    outSize.y = image.height;
 
     return result;
 }
@@ -259,5 +259,5 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
     }
     SDL_FreeSurface(s);
     png = true;
-#endif  
+#endif
 }

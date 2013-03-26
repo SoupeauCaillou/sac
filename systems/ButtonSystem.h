@@ -21,6 +21,5 @@ UPDATABLE_SYSTEM(Button)
 public:
     VibrateAPI* vibrateAPI;
 private:
-	void UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const Vector2& touchPos);
+	void UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos);
 };
-

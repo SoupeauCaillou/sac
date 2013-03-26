@@ -16,7 +16,7 @@
 #include <fcntl.h>
 #include <fstream>
 
-static void parse(const std::string& line, std::string& assetName, Vector2& originalSize, Vector2& reduxOffset, Vector2& posInAtlas, Vector2& sizeInAtlas, bool& rotate, Vector2& opaqueStart, Vector2& opaqueEnd) {
+static void parse(const std::string& line, std::string& assetName, glm::vec2& originalSize, glm::vec2& reduxOffset, glm::vec2& posInAtlas, glm::vec2& sizeInAtlas, bool& rotate, glm::vec2& opaqueStart, glm::vec2& opaqueEnd) {
 	std::string substrings[14];
 	int from = 0, to = 0, count = 0;
 	for (count=0; count<14; count++) {
@@ -30,20 +30,20 @@ static void parse(const std::string& line, std::string& assetName, Vector2& orig
 	}
     // image,original width, original height, redux offset x, redux offset y, pox x in atlas, pos y in atlas, width, height, rotate[, opaque box min x, min y, max x, max y]
 	assetName = substrings[0];
-	originalSize.X = atoi(substrings[1].c_str());
-	originalSize.Y = atoi(substrings[2].c_str());
-	reduxOffset.X = atoi(substrings[3].c_str());
-	reduxOffset.Y = atoi(substrings[4].c_str());
-    posInAtlas.X = atoi(substrings[5].c_str());
-    posInAtlas.Y = atoi(substrings[6].c_str());
-    sizeInAtlas.X = atoi(substrings[7].c_str());
-    sizeInAtlas.Y = atoi(substrings[8].c_str());
+	originalSize.x = atoi(substrings[1].c_str());
+	originalSize.y = atoi(substrings[2].c_str());
+	reduxOffset.x = atoi(substrings[3].c_str());
+	reduxOffset.y = atoi(substrings[4].c_str());
+    posInAtlas.x = atoi(substrings[5].c_str());
+    posInAtlas.y = atoi(substrings[6].c_str());
+    sizeInAtlas.x = atoi(substrings[7].c_str());
+    sizeInAtlas.y = atoi(substrings[8].c_str());
 	rotate = atoi(substrings[9].c_str());
     if (count == 14) {
-        opaqueStart.X = atoi(substrings[10].c_str());
-        opaqueStart.Y = atoi(substrings[11].c_str());
-        opaqueEnd.X = atoi(substrings[12].c_str());
-        opaqueEnd.Y = atoi(substrings[13].c_str());
+        opaqueStart.x = atoi(substrings[10].c_str());
+        opaqueStart.y = atoi(substrings[11].c_str());
+        opaqueEnd.x = atoi(substrings[12].c_str());
+        opaqueEnd.y = atoi(substrings[13].c_str());
     }
 }
 
@@ -57,7 +57,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		return;
 	}
 
-	Vector2 atlasSize, pow2Size;
+	glm::vec2 atlasSize, pow2Size;
 	Atlas a;
 	a.name = atlasImage;
 	if (forceImmediateTextureLoading) {
@@ -73,7 +73,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 	f >> s;
 
 	// read texture size
-	sscanf(s.c_str(), "%f,%f", &atlasSize.X, &atlasSize.Y);
+	sscanf(s.c_str(), "%f,%f", &atlasSize.x, &atlasSize.y);
 	LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex)
 	int count = 0;
 
@@ -85,7 +85,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		count++;
 		LOGV(2, "atlas - line: " << s)
 		std::string assetName;
-        Vector2 originalSize, reduxOffset, posInAtlas, sizeInAtlas, opaqueStart(Vector2::Zero), opaqueEnd(Vector2::Zero);
+        glm::vec2 originalSize, reduxOffset, posInAtlas, sizeInAtlas, opaqueStart(glm::vec2(0.0f)), opaqueEnd(glm::vec2(0.0f));
 		bool rot;
 		parse(s, assetName, originalSize, reduxOffset, posInAtlas, sizeInAtlas, rot, opaqueStart, opaqueEnd);
 
@@ -131,7 +131,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
     return result;
 }
 
-const Vector2& RenderingSystem::getTextureSize(const std::string& textureName) {
+const glm::vec2& RenderingSystem::getTextureSize(const std::string& textureName) {
     const TextureInfo& info = textureLibrary.get(textureName);
     return info.originalSize;
 }
@@ -150,4 +150,3 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 		LOGE("Tried to delete an InvalidTextureRef")
 	}
 }
-

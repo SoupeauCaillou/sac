@@ -11,7 +11,7 @@
 #include "util/LevelEditor.h"
 #endif
 
-static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out);
+static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out);
 
 bool firstCall;
 
@@ -72,24 +72,24 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
 #else
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
 #endif
-     Vector2 offset(rc.uv[0]);
-     Vector2 scale(rc.uv[1]);
-     const Vector2 uvS (info.uv[1] - info.uv[0]);
+     glm::vec2 offset(rc.uv[0]);
+     glm::vec2 scale(rc.uv[1]);
+     const glm::vec2 uvS (info.uv[1] - info.uv[0]);
 
      if (info.rotateUV) {
-         std::swap(offset.X, offset.Y);
-         std::swap(scale.X, scale.Y);
-         offset.Y = 1 - (scale.Y + offset.Y);
+         std::swap(offset.x, offset.y);
+         std::swap(scale.x, scale.y);
+         offset.y = 1 - (scale.y + offset.y);
      }
      {
-         rc.uv[0] = info.uv[0] + Vector2(offset.X * uvS.X, offset.Y * uvS.Y);
-         rc.uv[1] = rc.uv[0] + Vector2(scale.X * uvS.X, scale.Y * uvS.Y);
+         rc.uv[0] = info.uv[0] + glm::vec2(offset.x * uvS.x, offset.y * uvS.y);
+         rc.uv[1] = rc.uv[0] + glm::vec2(scale.x * uvS.x, scale.y * uvS.y);
      }
     if (rc.mirrorH) {
         if (info.rotateUV)
-            std::swap(rc.uv[0].Y, rc.uv[1].Y);
+            std::swap(rc.uv[0].y, rc.uv[1].y);
         else
-            std::swap(rc.uv[0].X, rc.uv[1].X);
+            std::swap(rc.uv[0].x, rc.uv[1].x);
     }
     rc.rotateUV = info.rotateUV;
      #ifdef SAC_USE_VBO
@@ -123,24 +123,24 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
     #else
     // fill batch
-    Vector2 onScreenVertices[4];
+    glm::vec2 onScreenVertices[4];
     computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
 
     const int baseIdx = 4 * batchSize;
     for (int i=0; i<4; i++) {
-        vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].X;
-        vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].Y;
+        vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].x;
+        vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].y;
         vertices[(baseIdx + i) * 3 + 2] = -rc.z;
     }
 
-    uvs[baseIdx * 2 + 0] = rc.uv[0].X;
-    uvs[baseIdx * 2 + 1] = 1-rc.uv[0].Y;
-    uvs[baseIdx * 2 + 2] = rc.uv[1].X;
-    uvs[baseIdx * 2 + 3] = 1-rc.uv[0].Y;
-    uvs[baseIdx * 2 + 4] = rc.uv[0].X;
-    uvs[baseIdx * 2 + 5] = 1-rc.uv[1].Y;
-    uvs[baseIdx * 2 + 6] = rc.uv[1].X;
-    uvs[baseIdx * 2 + 7] = 1-rc.uv[1].Y;
+    uvs[baseIdx * 2 + 0] = rc.uv[0].x;
+    uvs[baseIdx * 2 + 1] = 1-rc.uv[0].y;
+    uvs[baseIdx * 2 + 2] = rc.uv[1].x;
+    uvs[baseIdx * 2 + 3] = 1-rc.uv[0].y;
+    uvs[baseIdx * 2 + 4] = rc.uv[0].x;
+    uvs[baseIdx * 2 + 5] = 1-rc.uv[1].y;
+    uvs[baseIdx * 2 + 6] = rc.uv[1].x;
+    uvs[baseIdx * 2 + 7] = 1-rc.uv[1].y;
 
     indices[batchSize * 6 + 0] = baseIdx + 0;
     indices[batchSize * 6 + 1] = baseIdx + 1;
@@ -157,14 +157,14 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	GLfloat mat[16], camera[3];
 
 #ifndef SAC_USE_VBO
-    const float left = (-cameraTransf.size.X * 0.5);
-    const float right = (cameraTransf.size.X * 0.5);
-    const float bottom = (-cameraTransf.size.Y * 0.5);
-    const float top = (cameraTransf.size.Y * 0.5);
+    const float left = (-cameraTransf.size.x * 0.5);
+    const float right = (cameraTransf.size.x * 0.5);
+    const float bottom = (-cameraTransf.size.y * 0.5);
+    const float top = (cameraTransf.size.y * 0.5);
 	loadOrthographicMatrix(left, right, bottom /*camera.mirrorY ? top : bottom*/, top /*camera.mirrorY ? bottom : top*/, 0, 1, mat);
 	GL_OPERATION(glUniform1fv(shader.uniformMatrix, 6, mat))
-    camera[0] = cameraTransf.worldPosition.X;
-    camera[1] = cameraTransf.worldPosition.Y;
+    camera[0] = cameraTransf.worldPosition.x;
+    camera[1] = cameraTransf.worldPosition.y;
     camera[2] = cameraTransf.worldRotation;
     GL_OPERATION(glUniform3fv(shader.uniformCamera, 1, camera))
 #endif
@@ -292,22 +292,22 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 } else {
                     rc.glref = info->glref;
                 }
-                #ifdef SAC_USE_VBO
+                #ifdef USE_VBO
                 computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
                 #else
                 computeUV(rc, *info);
                 #endif
             } else {
-                rc.uv[0] = Vector2(0, 1);
-                rc.uv[1] = Vector2(1, 0);
+                rc.uv[0] = glm::vec2(0, 1);
+                rc.uv[1] = glm::vec2(1, 0);
                 rc.rotateUV = 0;
             }
 		} else {
 			rc.glref = InternalTexture::Invalid;
 			rc.glref.color = whiteTexture;
 			rc.glref.alpha = whiteTexture;
-			rc.uv[0] = Vector2::Zero;
-			rc.uv[1] = Vector2(1,1);
+			rc.uv[0] = glm::vec2(0.0f, 0.0f);
+			rc.uv[1] = glm::vec2(1.0f, 1.0f);
 			rc.rotateUV = 0;
 			#ifdef SAC_USE_VBO
 			float uvso[4];
@@ -435,23 +435,23 @@ void RenderingSystem::render() {
     #endif
 }
 
-static void computeVerticesScreenPos(const Vector2& position, const Vector2& hSize, float rotation, int rotateUV, Vector2* out) {
+static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out) {
 	const float cr = cos(rotation);
 	const float sr = -sin(rotation);
 
-	const float crX = cr * hSize.X;
-	const float crY = cr * hSize.Y;
-	const float srX = sr * hSize.X;
-	const float srY = sr * hSize.Y;
+	const float crX = cr * hSize.x;
+	const float crY = cr * hSize.y;
+	const float srX = sr * hSize.x;
+	const float srY = sr * hSize.y;
 
 	// -x -y
-	out[rotateUV ? 2 : 0] = Vector2(-crX - srY + position.X,  -(-srX) - crY + position.Y);
+	out[rotateUV ? 2 : 0] = glm::vec2(-crX - srY + position.x,  -(-srX) - crY + position.y);
 	// +x -y
-	out[rotateUV ? 0 : 1] = Vector2(crX - srY + position.X, -srX - crY + position.Y);
+	out[rotateUV ? 0 : 1] = glm::vec2(crX - srY + position.x, -srX - crY + position.y);
 	// -x +y
-	out[rotateUV ? 3 : 2] = Vector2(-crX + srY + position.X, -(-srX) + crY + position.Y);
+	out[rotateUV ? 3 : 2] = glm::vec2(-crX + srY + position.x, -(-srX) + crY + position.y);
 	// +x +y
-	out[rotateUV ? 1 : 3] = Vector2(crX + srY + position.X, -srX + crY + position.Y);
+	out[rotateUV ? 1 : 3] = glm::vec2(crX + srY + position.x, -srX + crY + position.y);
 }
 
 void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near_, float far_, float* mat)
