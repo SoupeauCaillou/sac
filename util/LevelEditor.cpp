@@ -11,6 +11,7 @@
 #include <GL/glfw.h>
 #include <AntTweakBar.h>
 #include <mutex>
+#include <set>
 
 namespace EditorMode {
     enum Enum {
@@ -53,6 +54,7 @@ struct LevelEditor::LevelEditorDatas {
 
     Entity gallery;
     std::vector<Entity> galleryItems;
+    std::set<std::string> logControlFiles;
 
     void changeMode(EditorMode::Enum newMode);
     void buildGallery();
@@ -118,7 +120,7 @@ void LevelEditor::LevelEditorDatas::deselect(Entity e) {
 >>>>>>> 8ad4f8f... change hide by show
 }
 
-TwBar* entityListBar;
+TwBar* entityListBar, *logBar;
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
@@ -144,12 +146,40 @@ LevelEditor::LevelEditor() {
     glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
     glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
 
+    logBar = TwNewBar("Log_Control");
     entityListBar = TwNewBar("EntityList");
     TwDefine(" EntityList iconified=true ");
+    TwDefine(" Log_Control iconified=true ");
+    // add default choice for log control
+    TwEnumVal modes[] = {
+        {LogVerbosity::FATAL, "Fatal"},
+        {LogVerbosity::ERROR, "Error"},
+        {LogVerbosity::WARNING, "Warning"},
+        {LogVerbosity::INFO, "Info"},
+        {(int)LogVerbosity::INFO + 1, "Verbose1"},
+        {(int)LogVerbosity::INFO + 2, "Verbose2"},
+        {(int)LogVerbosity::INFO + 3, "Verbose3"}
+    };
+    TwType type = TwDefineEnum("Verbosity", modes, 7);
+    TwAddVarRW(logBar, "Verbosity", type, &logLevel, "");
+    TwAddSeparator(logBar, "File control", "");
 }
 
 LevelEditor::~LevelEditor() {
     delete datas;
+}
+
+static void TW_CALL LogControlSetCallback(const void *value, void *clientData) {
+    const bool* l = static_cast<const bool*>(value);
+    const char* s = static_cast<const char*>(clientData);
+    LOGI("Change verbosity for '" << s << "' -> '" << *l << "'")
+    verboseFilenameFilters[s] = *l;
+}
+
+static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
+    bool* l = static_cast<bool*>(value);
+    const char* s = static_cast<const char*>(clientData);
+    *l = verboseFilenameFilters[s];
 }
 
 void LevelEditor::tick(float dt) {
@@ -165,6 +195,14 @@ void LevelEditor::tick(float dt) {
             TwAddButton(entityListBar, theEntityManager.entityName(entities[i]).c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], "");
         }
         accum = 0;
+
+        // update log buttons too
+        for (auto it = verboseFilenameFilters.begin(); it!=verboseFilenameFilters.end(); ++it) {
+            if (datas->logControlFiles.find(it->first) == datas->logControlFiles.end()) {
+                TwAddVarCB(logBar, it->first.c_str(), TW_TYPE_BOOLCPP, LogControlSetCallback, LogControlGetCallback, strdup(it->first.c_str()), "");
+                datas->logControlFiles.insert(it->first);
+            }
+        }
         unlock();
     }
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
@@ -195,7 +233,7 @@ void LevelEditor::tick(float dt) {
         glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
         datas->lastMouseOverPosition = position;
     }
-    
+
     Color& selectedColor = RENDERING(datas->selectionDisplay)->color;
     selectedColor.a += datas->selectionColorChangeSpeed * dt;
     if (selectedColor.a < 0.5) {
@@ -287,13 +325,13 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
 }
 
 void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vector2& mouseWorldPos, int /*wheelDiff*/) {
-#if 1
+#if 0
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
             if (selected)
                 selectedOriginalPos = TRANSFORM(selected)->position;
             over = 0;
-            
+
             std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
             float nearest = 10000;
             for (unsigned i=0; i<entities.size(); i++) {
@@ -330,7 +368,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vect
                 RENDERING(overDisplay)->show = false;
             }
         }
-    } 
+    }
 #if 0
     else {
         if (selected) {
