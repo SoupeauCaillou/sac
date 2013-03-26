@@ -75,7 +75,7 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
     TEXT_RENDERING(e)->maxCharHeight = 0.6;
     TEXT_RENDERING(e)->text = name;
-    TEXT_RENDERING(e)->hide = false;
+    TEXT_RENDERING(e)->show = false;
 
     ADD_COMPONENT(e, Graph);
     GRAPH(e)->textureName = SystemsTextureName;
@@ -145,12 +145,12 @@ void DebuggingSystem::DoUpdate(float dt) {
         // only display system which takes >= .1 ms to update
         if (reloadTextures) {
             if (system->updateDuration < 0.0001) {
-                TEXT_RENDERING(e)->hide = true;
+                TEXT_RENDERING(e)->show = false;
             } else {
                 std::stringstream ss;
                 ss << systemNames[i] <<": " << std::fixed << std::setprecision(1) << 1000 * system->updateDuration << " ms";
                 TEXT_RENDERING(e)->text = ss.str();
-                TEXT_RENDERING(e)->hide = false;
+                TEXT_RENDERING(e)->show = true;
                 TRANSFORM(e)->position = TRANSFORM(systems)->size * (-0.5) - Vector2(0, (i + 0.5) * 0.5);
             }
         }

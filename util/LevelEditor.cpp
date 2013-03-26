@@ -111,13 +111,9 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
     originalColor = RENDERING(e)->color;
     // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
 }
-<<<<<<< HEAD
-void LevelEditor::LevelEditorDatas::deselect(Entity) {
-    RENDERING(selectionDisplay)->hide = true;
-=======
+
 void LevelEditor::LevelEditorDatas::deselect(Entity e) {
     RENDERING(selectionDisplay)->show = false;
->>>>>>> 8ad4f8f... change hide by show
 }
 
 TwBar* entityListBar, *logBar;
