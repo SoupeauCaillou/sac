@@ -38,7 +38,7 @@ Game::Game() {
     targetDT = 1.0f / 60.0f;
 
     TimeUtil::Init();
-    
+
 	/* create EntityManager */
 	EntityManager::CreateInstance();
 
@@ -93,7 +93,7 @@ Game::~Game() {
     CameraSystem::DestroyInstance();
     GraphSystem::DestroyInstance();
 	DebuggingSystem::DestroyInstance();
-	
+
 #ifdef SAC_NETWORK
     NetworkSystem::DestroyInstance();
 #endif
@@ -111,7 +111,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
         LOGE("Invalid font description file: " << name)
         return;
     }
-    
+
     unsigned defCount = dfp.sectionSize(DataFileParser::GlobalSection);
     LOGW_IF(defCount == 0, "Font definition '" << name << "' has no entry")
     std::map<uint32_t, float> h2wratio;
@@ -233,7 +233,7 @@ void Game::step() {
     #ifdef SAC_NETWORK
     theNetworkSystem.Update(delta);
     #endif
-	
+
 	++countD;
 
 #if 0
