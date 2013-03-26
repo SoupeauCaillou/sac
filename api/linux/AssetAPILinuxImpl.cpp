@@ -58,11 +58,13 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
         while (file != NULL) {
             if (file->d_type == DT_REG) {
                 std::string s = file->d_name;
-                if (s.find(extension))
-                    content.push_back(s);
+                size_t pos;
+                 if ((pos = s.find(extension)) != std::string::npos)
+                    content.push_back(s.substr(0, pos));
             }
             file = readdir(dir);
         }
+        closedir(dir);
     #endif
     return content;
 }
