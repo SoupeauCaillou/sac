@@ -320,7 +320,7 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
 }
 
 #ifdef INGAME_EDITORS
-void TextRenderingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void TextRenderingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

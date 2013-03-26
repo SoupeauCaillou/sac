@@ -24,7 +24,7 @@ CameraSystem::CameraSystem() : ComponentSystemImpl<CameraComponent>("Camera") {
 
 }
 
-void CameraSystem::DoUpdate(float dt) {
+void CameraSystem::DoUpdate(float) {
     // no need
 }
 

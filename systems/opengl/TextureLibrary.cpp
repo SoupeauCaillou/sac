@@ -76,7 +76,7 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
     return true;
 }
 
-void TextureLibrary::doUnload(const std::string& name, const TextureInfo& in) {
+void TextureLibrary::doUnload(const std::string& /*name*/, const TextureInfo& /*in*/) {
     LOGW("TODO")
 }
 

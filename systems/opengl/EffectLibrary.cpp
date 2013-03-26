@@ -12,7 +12,7 @@
 #endif
 
 
-static GLuint compileShader(const std::string& assetName, GLuint type, const FileBuffer& fb) {
+static GLuint compileShader(const std::string&, GLuint type, const FileBuffer& fb) {
     LOGV(1, "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader...")
 
     GLuint shader = glCreateShader(type);
@@ -116,11 +116,11 @@ bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const Effe
     return true;
 }
 
-void EffectLibrary::doUnload(const std::string& name, const Shader& in) {
+void EffectLibrary::doUnload(const std::string&, const Shader&) {
     LOGW("TODO")
 }
 
 void EffectLibrary::doReload(const std::string& name, const EffectRef& ref) {
-    Shader& info = ref2asset[ref];
+    //Shader& info = ref2asset[ref];
     doLoad(name, ref2asset[ref], ref);
 }

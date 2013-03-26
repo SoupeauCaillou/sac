@@ -150,6 +150,7 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
         default:
             LOGF("Unhandled typeToFormat value: " << type)
      }
+     return GL_INVALID_VALUE;
 }
 
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type type) {
@@ -205,7 +206,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 #endif
 }
 
-GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& name, Type type, Vector2& outSize) {
+GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& /*name*/, Type type, Vector2& outSize) {
     const bool enableMipMapping =
 #ifdef ANDROID
     ((type == COLOR) && image.mipmap > 0);

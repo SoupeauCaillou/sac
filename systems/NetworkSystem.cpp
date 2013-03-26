@@ -350,7 +350,7 @@ static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
 }
 
 #ifdef INGAME_EDITORS
-void NetworkSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void NetworkSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

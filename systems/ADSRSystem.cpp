@@ -19,7 +19,7 @@ ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
 }
 
 void ADSRSystem::DoUpdate(float dt) {
-    FOR_EACH_ENTITY_COMPONENT(ADSR, entity, adsr)
+    FOR_EACH_COMPONENT(ADSR, adsr)
 		if (!adsr->active && adsr->activationTime <= 0) {
 			adsr->value = adsr->idleValue;
 			adsr->activationTime = 0;

@@ -68,7 +68,7 @@ void SoundSystem::DoUpdate(float) {
 }
 
 #ifdef INGAME_EDITORS
-void SoundSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void SoundSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

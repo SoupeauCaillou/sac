@@ -44,7 +44,7 @@ static void clear(ImageDesc& desc) {
     memset(desc.datas, 0x40, desc.width * desc.height * desc.channels);
 }
 
-void GraphSystem::DoUpdate(float dt) {
+void GraphSystem::DoUpdate(float) {
 	for (std::map<TextureRef, ImageDesc>::iterator it=textureRef2Image.begin(); it != textureRef2Image.end(); ++it) {
 		clear(it->second);
 	}

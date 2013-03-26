@@ -24,7 +24,7 @@ void TaskAISystem::DoUpdate(float dt) {
 }
 
 #ifdef INGAME_EDITORS
-void TaskAISystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void TaskAISystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

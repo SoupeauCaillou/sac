@@ -88,7 +88,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 }
 
 #ifdef INGAME_EDITORS
-void ScrollingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void ScrollingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

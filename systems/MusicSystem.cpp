@@ -698,7 +698,7 @@ static int close_func(void *datasource) {
 #endif
 
 #ifdef INGAME_EDITORS
-void MusicSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void MusicSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

@@ -42,7 +42,7 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Co
 
 }
 
-void CollisionSystem::DoUpdate(float dt) {
+void CollisionSystem::DoUpdate(float) {
 #if 0
     struct CollisionInfo {
     
@@ -65,7 +65,7 @@ void CollisionSystem::DoUpdate(float dt) {
 
 
 #ifdef INGAME_EDITORS
-void CollisionSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+void CollisionSystem::addEntityPropertiesToBar(Entity entity, TwBar*) {
     CollisionComponent* tc = Get(entity, false);
     if (!tc) return;
 }

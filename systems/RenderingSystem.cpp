@@ -412,7 +412,7 @@ bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
     return isVisible(TRANSFORM(e), cameraIndex);
 }
 
-bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraIndex) const {
+bool RenderingSystem::isVisible(const TransformationComponent* /*tc*/, int /*cameraIndex*/) const {
     return true;
     #if 0
     if (cameraIndex < 0) {
@@ -436,7 +436,7 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc, int cameraInd
     #endif
 }
 
-int RenderingSystem::saveInternalState(uint8_t** out) {
+int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
 	int size = 0;
     LOGW("TODO")
     #if 0
@@ -458,7 +458,7 @@ int RenderingSystem::saveInternalState(uint8_t** out) {
 	return size;
 }
 
-void RenderingSystem::restoreInternalState(const uint8_t* in, int size) {
+void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) {
     LOGW("TODO")
     #if 0
 	assetTextures.clear();

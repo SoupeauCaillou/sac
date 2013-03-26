@@ -46,7 +46,7 @@ void MorphingSystem::clear(MorphingComponent* mc) {
 }
 
 #ifdef INGAME_EDITORS
-void MorphingSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void MorphingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif

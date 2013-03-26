@@ -109,7 +109,7 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
     originalColor = RENDERING(e)->color;
     // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
 }
-void LevelEditor::LevelEditorDatas::deselect(Entity e) {
+void LevelEditor::LevelEditorDatas::deselect(Entity) {
     RENDERING(selectionDisplay)->hide = true;
 }
 
@@ -281,7 +281,7 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
     theEntityManager.DeleteEntity(gallery);
 }
 
-void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
+void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vector2& mouseWorldPos, int /*wheelDiff*/) {
 #if 1
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
@@ -406,8 +406,11 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float dt, const Vector2&
 #endif
 }
 
+#if 1
+void LevelEditor::LevelEditorDatas::updateModeGallery(float, const Vector2&, int) {
+#else
 void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const Vector2& mouseWorldPos, int wheelDiff) {
-#if 0
+
     if (glfwGetKey(GLFW_KEY_SPACE)) {
         spaceWasPressed = true;
     } else if (spaceWasPressed) {

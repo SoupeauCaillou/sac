@@ -49,7 +49,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 }
 
 #ifdef INGAME_EDITORS
-void AutonomousAgentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+void AutonomousAgentSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
 #endif
