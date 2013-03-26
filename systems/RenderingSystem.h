@@ -23,7 +23,7 @@
 #include "System.h"
 
 #ifdef SAC_EMSCRIPTEN
-#define SAC_SAC_USE_VBO
+#define SAC_USE_VBO
 #endif
 
 typedef int FramebufferRef;
@@ -112,7 +112,7 @@ std::map<FramebufferRef, Framebuffer> ref2Framebuffers;
 bool newFrameReady, frameQueueWritable;
 int currentWriteQueue;
 RenderQueue* renderQueue;
-#ifdef SAC_SAC_USE_VBO
+#ifdef SAC_USE_VBO
 public:
 GLuint squareBuffers[3];
 private:
@@ -122,7 +122,7 @@ private:
 std::mutex *mutexes;
 std::condition_variable *cond;
 #endif
-#ifdef SAC_SAC_USE_VBO
+#ifdef SAC_USE_VBO
 public:
 #endif
 

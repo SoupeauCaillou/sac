@@ -8,12 +8,12 @@
 #include "base/MathUtil.h"
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
-#if defined(SAC_SAC_DEBUG)
+#if defined(SAC_DEBUG)
 #include <GL/glew.h>
 #include <stdint.h>
 #endif
 
-#ifdef SAC_SAC_DEBUG
+#ifdef SAC_DEBUG
 #include "base/Assert.h"
 #endif
 #ifdef SAC_INGAME_EDITORS
@@ -99,13 +99,13 @@ void RenderingSystem::init() {
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GREATER))
-#if defined(SAC_SAC_DEBUG)
+#if defined(SAC_DEBUG)
     GL_OPERATION(glClearDepth(0.0))
 #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
 
-#ifdef SAC_SAC_USE_VBO
+#ifdef SAC_USE_VBO
 	glGenBuffers(3, squareBuffers);
 GLfloat sqArray[] = {
 -0.5, -0.5, 0,0,0,
@@ -255,7 +255,7 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-            #ifdef SAC_SAC_DEBUG
+            #ifdef SAC_DEBUG
             LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
             #endif
 
@@ -292,7 +292,7 @@ void RenderingSystem::DoUpdate(float) {
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
             
-                   #ifndef SAC_SAC_USE_VBO
+                   #ifndef SAC_USE_VBO
                     if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                         c.color.a >= 1 &&
                         info->opaqueSize != Vector2::Zero &&
@@ -336,7 +336,7 @@ void RenderingSystem::DoUpdate(float) {
                 }
             }
 
-             #ifndef SAC_SAC_USE_VBO
+             #ifndef SAC_USE_VBO
              if (!rc->fastCulling) {
                 if (!cull(camTrans, c)) {
                     continue;

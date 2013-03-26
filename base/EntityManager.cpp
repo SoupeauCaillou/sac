@@ -35,7 +35,7 @@ void EntityManager::DestroyInstance() {
 }
 
 Entity EntityManager::CreateEntity(const std::string&
-        #ifdef SAC_SAC_DEBUG
+        #ifdef SAC_DEBUG
             name
         #endif
         , EntityType::Enum type) {
@@ -50,7 +50,7 @@ Entity EntityManager::CreateEntity(const std::string&
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
-    #ifdef SAC_SAC_DEBUG
+    #ifdef SAC_DEBUG
     if (name2entity.find(name) == name2entity.end()) {
         name2entity.insert(std::make_pair(name, e));
     } else {
@@ -65,7 +65,7 @@ Entity EntityManager::CreateEntity(const std::string&
 	return e;
 }
 
-#ifdef SAC_SAC_DEBUG
+#ifdef SAC_DEBUG
 const std::string& EntityManager::entityName(Entity e) const {
     for (std::map<std::string, Entity>::const_iterator it=name2entity.begin();
         it!=name2entity.end(); ++it) {
@@ -85,7 +85,7 @@ void EntityManager::DeleteEntity(Entity e) {
 		(*it)->Delete(e);
 	}
 	entityComponents.erase(e);
-    #ifdef SAC_SAC_DEBUG
+    #ifdef SAC_DEBUG
     name2entity.erase(entityName(e));
     #endif
 }

@@ -14,7 +14,7 @@
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
-#ifdef SAC_SAC_DEBUG
+#ifdef SAC_DEBUG
 #include "base/EntityManager.h"
 #endif
 #ifdef SAC_INGAME_EDITORS
@@ -150,11 +150,11 @@ class ComponentSystem {
 
 		void Update(float dt) {
             PROFILE("SystemUpdate", name, BeginEvent);
-            #ifdef SAC_SAC_DEBUG
+            #ifdef SAC_DEBUG
             float before = TimeUtil::GetTime();
             #endif
             DoUpdate(dt);
-            #ifdef SAC_SAC_DEBUG
+            #ifdef SAC_DEBUG
             updateDuration = TimeUtil::GetTime() - before;
             #endif
             PROFILE("SystemUpdate", name, EndEvent);
@@ -181,7 +181,7 @@ class ComponentSystem {
 	private:
 		std::string name;
     public:
-        #ifdef SAC_SAC_DEBUG
+        #ifdef SAC_DEBUG
         float updateDuration;
         #endif
 };
@@ -216,12 +216,12 @@ class ComponentSystemImpl: public ComponentSystem {
             #endif
 		}
 
-		#ifdef SAC_SAC_DEBUG
+		#ifdef SAC_DEBUG
 		virtual void preDeletionCheck(Entity) { };
 		#endif
 
 		void Delete(Entity entity) {
-		#ifdef SAC_SAC_DEBUG
+		#ifdef SAC_DEBUG
 		    preDeletionCheck(entity);
 		#endif
             #if SAC_USE_VECTOR_STORAGE
@@ -262,7 +262,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     #ifndef SAC_ANDROID
                     // crash here
                     if (failIfNotfound) {
-                        #ifdef SAC_SAC_DEBUG
+                        #ifdef SAC_DEBUG
                         LOGF("Entity '" << theEntityManager.entityName(entity)
                             << "' (" << entity << ") has no component of type '" << getName())
                         #else
@@ -337,7 +337,7 @@ class ComponentSystemImpl: public ComponentSystem {
         std::map<Entity, unsigned> entityToIndice;
         unsigned _freelist;
 #else
-#ifdef SAC_SAC_DEBUG
+#ifdef SAC_DEBUG
 	public:
 #endif
 		std::map<Entity, T*> components;

@@ -1,7 +1,7 @@
 #include "EffectLibrary.h"
 
 #include "shaders/default_fs.h"
-#ifdef SAC_SAC_USE_VBO
+#ifdef SAC_USE_VBO
 #include "shaders/default_vbo_vs.h"
 #define VERTEX_SHADER_ARRAY ___assets_default_vbo_vs
 #define VERTEX_SHADER_SIZE ___assets_default_vbo_vs_len
@@ -72,7 +72,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
     out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
     out.uniformColor= glGetUniformLocation(out.program, "vColor");
     out.uniformCamera = glGetUniformLocation(out.program, "uCamera");
-#ifdef SAC_SAC_USE_VBO
+#ifdef SAC_USE_VBO
     out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
     out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
     out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
