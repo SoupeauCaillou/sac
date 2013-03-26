@@ -78,8 +78,8 @@
 #define DT 1/60.
 #define MAGICKEYTIME 0.15
 
-Game* game;
-NameInputAPILinuxImpl* nameInput;
+Game* game = 0;
+NameInputAPILinuxImpl* nameInput = 0;
 Entity globalFTW = 0;
 
 #if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
@@ -161,8 +161,8 @@ static void updateAndRenderLoop() {
       }
       #endif
       //user entered his name?
-      if (glfwGetKey( GLFW_KEY_ENTER )) {
-     if (TEXT_RENDERING(nameInput->nameEdit)->show) {
+      if (nameInput && glfwGetKey( GLFW_KEY_ENTER )) {
+     if (!TEXT_RENDERING(nameInput->nameEdit)->show) {
         nameInput->textIsReady = true;
      }
       }
@@ -187,13 +187,11 @@ static void updateAndRender() {
 
 #endif
 
-/** Engine entry point */
-int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
+Vector2 resolution;
+int initGame(const std::string& title) {
     Vector2 reso16_9(394, 700);
     Vector2 reso16_10(900, 625);
-    Vector2* reso = &reso16_10;
-    
-    game = gameImpl;
+    resolution = reso16_10;
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
@@ -202,32 +200,38 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
         return 1;
     }
 
-    SDL_Surface *ecran = SDL_SetVideoMode(reso->X, reso->Y, 16, SDL_OPENGL ); /* Double Buffering */
+    SDL_Surface *ecran = SDL_SetVideoMode(resolution.X, resolution.Y, 16, SDL_OPENGL ); /* Double Buffering */
 #else
     if (!glfwInit())
         return 1;
-
     glfwOpenWindowHint( GLFW_WINDOW_NO_RESIZE, GL_TRUE );
-    if( !(int)glfwOpenWindow((int)reso->X, (int)reso->Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
+    if( !(int)glfwOpenWindow((int)resolution.X, (int)resolution.Y, 8,8,8,8,8,8, GLFW_WINDOW ) )
         return 1;
     glfwSetWindowTitle(title.c_str());
     glfwSwapInterval(1);
     glewInit();
-    bool restore = false;
-    for (int i=1; i<argc; i++) {
-        restore |= !strcmp(argv[i], "-restore");
-    }
 #endif
+    return 0;
+}
+
+/** Engine entry point */
+int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
+    game = gameImpl;
 
     /////////////////////////////////////////////////////
     // Handle --restore cmd line switch
     uint8_t* state = 0;
     int size = 0;
     #ifndef SAC_EMSCRIPTEN
+    bool restore = false;
+    for (int i=1; i<argc; i++) {
+        restore |= !strcmp(argv[i], "-restore");
+    }
+
     if (restore) {
         // TODO: portability
         std::stringstream restoreFile;
-        restoreFile << "/tmp/" << title << ".bin";
+        restoreFile << "/tmp/" << "todo" << ".bin";
         FILE* file = fopen(restoreFile.str().c_str(), "r+b");
         if (file) {
             fseek(file, 0, SEEK_END);
@@ -240,7 +244,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
         }
     }
     #endif
-    
+
     /////////////////////////////////////////////////////
     // Game context initialisation
     GameContext ctx;
@@ -280,12 +284,12 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
         theMusicSystem.assetAPI = ctx.assetAPI;
         theMusicSystem.init();
     }
-    
+
 
     /////////////////////////////////////////////////////
     // Init game
     game->setGameContexts(&ctx, &ctx);
-    game->sacInit((int)reso->X, (int)reso->Y);
+    game->sacInit((int)resolution.X, (int)resolution.Y);
     game->init(state, size);
 
 #ifndef SAC_EMSCRIPTEN
@@ -297,7 +301,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 #ifndef SAC_EMSCRIPTEN
     // record = new Recorder((int)reso->X, (int)reso->Y);
 
-    std::thread th1(callback_thread);    
+    std::thread th1(callback_thread);
     do {
         game->render();
         glfwSwapBuffers();
