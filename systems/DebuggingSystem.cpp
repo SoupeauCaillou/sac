@@ -19,7 +19,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
     frameCount = 0;
 }
 
-static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& systems) {
+static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCount, Entity& entityCountLabel, Entity& systems) {
     const Vector2& cameraSize = TRANSFORM(camera)->size;
 
     fps = theEntityManager.CreateEntity("__debug_fps");
@@ -36,6 +36,18 @@ static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& system
     GRAPH(fps)->minY = 0;
     GRAPH(fps)->maxY = 65;
 
+    fpsLabel = theEntityManager.CreateEntity("__debug_label_fps");
+    ADD_COMPONENT(fpsLabel, Transformation);
+    TRANSFORM(fpsLabel)->parent = fps;
+    TRANSFORM(fpsLabel)->z = -0.002;
+    TRANSFORM(fpsLabel)->size = TRANSFORM(fps)->size;
+
+    ADD_COMPONENT(fpsLabel, TextRendering);
+    TEXT_RENDERING(fpsLabel)->positioning = TextRenderingComponent::LEFT;
+    // TEXT_RENDERING(fpsLabel)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
+    TEXT_RENDERING(fpsLabel)->maxCharHeight = 0.4;
+    TEXT_RENDERING(fpsLabel)->show = true;
+
     entityCount = theEntityManager.CreateEntity("__debug_entityCount");
     ADD_COMPONENT(entityCount, Transformation);
     TRANSFORM(entityCount)->parent = camera;
@@ -47,6 +59,18 @@ static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& system
     RENDERING(entityCount)->show = true;
     ADD_COMPONENT(entityCount, Graph);
     GRAPH(entityCount)->textureName = EntitiesTextureName;
+
+    entityCountLabel = theEntityManager.CreateEntity("__debug_label_entityCount");
+    ADD_COMPONENT(entityCountLabel, Transformation);
+    TRANSFORM(entityCountLabel)->parent = entityCount;
+    TRANSFORM(entityCountLabel)->z = -0.002;
+    TRANSFORM(entityCountLabel)->size = TRANSFORM(entityCount)->size;
+
+    ADD_COMPONENT(entityCountLabel, TextRendering);
+    TEXT_RENDERING(entityCountLabel)->positioning = TextRenderingComponent::LEFT;
+    // TEXT_RENDERING(entityCountLabel)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
+    TEXT_RENDERING(entityCountLabel)->maxCharHeight = 0.4;
+    TEXT_RENDERING(entityCountLabel)->show = true;
 
     systems = theEntityManager.CreateEntity("__debug_systems");
     ADD_COMPONENT(systems, Transformation);
@@ -72,8 +96,8 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     ADD_COMPONENT(e, TextRendering);
     TEXT_RENDERING(e)->color = color;
     TEXT_RENDERING(e)->positioning = TextRenderingComponent::LEFT;
-    TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
-    TEXT_RENDERING(e)->maxCharHeight = 0.6;
+    // TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
+    TEXT_RENDERING(e)->maxCharHeight = 0.4;
     TEXT_RENDERING(e)->text = name;
     TEXT_RENDERING(e)->show = false;
 
@@ -86,7 +110,24 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     return e;
 }
 
+template <class T, class U>
+std::string createLabel(const std::string& title, const std::list<std::pair<T, U> > pointsList, float scale, const std::string& unit) {
+    U minDt, maxDt, avg = 0;
+    minDt = maxDt = pointsList.front().second;
+    std::for_each(pointsList.begin(), pointsList.end(), [&minDt, &maxDt, &avg] (std::pair<T, U> pt) -> void {
+        const U t = pt.second;
+        if (t < minDt) minDt = t;
+        if (t > maxDt) maxDt = t;
+        avg += t;
+    });
+    avg /= pointsList.size();
+    std::stringstream ss;
+    ss << title <<": " << std::fixed << std::setprecision(1) << scale * avg << ' ' << scale * minDt << ' ' << scale * maxDt << ' ' << unit;
+    return ss.str();
+}
+
 void DebuggingSystem::DoUpdate(float dt) {
+
     frameCount++;
     timeUntilGraphUpdate -= dt;
 
@@ -104,9 +145,11 @@ void DebuggingSystem::DoUpdate(float dt) {
     }
 
     if (!fps) {
-        init(activeCamera, fps, entityCount, systems);
+        init(activeCamera, fps, fpsLabel, entityCount, entityCountLabel, systems);
         LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems)
     }
+    const Vector2 firstLabelOffset(TRANSFORM(activeCamera)->size * Vector2(0.3, 0.2) * (-0.5) - Vector2(0, (0.6) * 0.6));
+    const Vector2 labelsSpacing(0, -0.6);
 
     bool reloadTextures = (timeUntilGraphUpdate < 0);
 
@@ -119,6 +162,13 @@ void DebuggingSystem::DoUpdate(float dt) {
     GRAPH(entityCount)->pointsList.push_back(std::make_pair(frameCount, theEntityManager.getNumberofEntity()));
     if (frameCount > 120) GRAPH(entityCount)->pointsList.pop_front();
     GRAPH(entityCount)->reloadTexture = reloadTextures;
+
+    if (reloadTextures) {
+        TEXT_RENDERING(fpsLabel)->text = createLabel("FPS", GRAPH(fps)->pointsList, 1, "fps");
+        TRANSFORM(fpsLabel)->position = firstLabelOffset;
+        TEXT_RENDERING(entityCountLabel)->text = createLabel("Total", GRAPH(entityCount)->pointsList, 1, "entities");
+        TRANSFORM(entityCountLabel)->position = firstLabelOffset;
+    }
 
 
     std::vector<std::string> systemNames = ComponentSystem::registeredSystemNames();
@@ -138,20 +188,19 @@ void DebuggingSystem::DoUpdate(float dt) {
             it = debugEntities.insert(std::make_pair(systemNames[i], createSystemGraphEntity(systemNames[i], systems, debugEntities.size()))).first;
         }
         Entity e = it->second;
-        GRAPH(e)->pointsList.push_back(std::make_pair(frameCount, system->updateDuration));
-        if (frameCount > 120) GRAPH(e)->pointsList.pop_front();
-        GRAPH(e)->reloadTexture = reloadTextures;
+        GraphComponent* graphC = GRAPH(e);
+        graphC->pointsList.push_back(std::make_pair(frameCount, system->updateDuration));
+        if (frameCount > 120) graphC->pointsList.pop_front();
+        graphC->reloadTexture = reloadTextures;
 
         // only display system which takes >= .1 ms to update
         if (reloadTextures) {
             if (system->updateDuration < 0.0001) {
                 TEXT_RENDERING(e)->show = false;
             } else {
-                std::stringstream ss;
-                ss << systemNames[i] <<": " << std::fixed << std::setprecision(1) << 1000 * system->updateDuration << " ms";
-                TEXT_RENDERING(e)->text = ss.str();
+                TEXT_RENDERING(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms");
                 TEXT_RENDERING(e)->show = true;
-                TRANSFORM(e)->position = TRANSFORM(systems)->size * (-0.5) - Vector2(0, (i + 0.5) * 0.5);
+                TRANSFORM(e)->position = firstLabelOffset + labelsSpacing * i;
             }
         }
     }

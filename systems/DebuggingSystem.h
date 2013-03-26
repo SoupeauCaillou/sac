@@ -14,4 +14,5 @@ UPDATABLE_SYSTEM(Debugging)
         std::map<std::string, Entity> debugEntities;
 
         Entity fps, entityCount, systems;
+        Entity fpsLabel, entityCountLabel;
 };
