@@ -31,13 +31,13 @@ static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth
         for (int j=-lineWidth / 2; j < lineWidth / 2; ++j) {
 			putPixel(textureDesc, pos_x + i, pos_y + j, color);
 		}
-    }    
+    }
 }
 
 INSTANCE_IMPL(GraphSystem);
 
 GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>("Graph") {
-    
+
 }
 
 static void clear(ImageDesc& desc) {
@@ -54,7 +54,7 @@ void GraphSystem::DoUpdate(float) {
 
         std::map<TextureRef, ImageDesc>::iterator jt;
         if ( (jt = textureRef2Image.find(texture)) != textureRef2Image.end()) {
-            drawTexture(jt->second, gc);
+            if (gc->reloadTexture) drawTexture(jt->second, gc);
         }
         else {
             ImageDesc desc;
@@ -82,11 +82,11 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
         minScaleX = std::min(minScaleX, it->first);
         maxScaleX = std::max(maxScaleX, it->first);
-        
+
         minScaleY = std::min(minScaleY, it->second);
         maxScaleY = std::max(maxScaleY, it->second);
     }
-    
+
     if (gc->setFixedScaleMinMaxX){
         gc->maxX = std::max(maxScaleX, gc->maxX);
         gc->minX = std::min(minScaleX, gc->minX);
@@ -95,7 +95,7 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
         gc->maxY = std::max(maxScaleY, gc->maxY);
         gc->minY = std::min(minScaleY, gc->minY);
     }
-    
+
     if (gc->maxX != gc->minX) {
         minScaleX = gc->minX;
         maxScaleX = gc->maxX;
@@ -107,22 +107,22 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
 
     minScaleY *= (minScaleY<0 ? 1.1f : 0.9f);
     maxScaleY *= (maxScaleY<0 ? 0.9f : 1.1f);
-    
+
 	if (gc->maxX != gc->minX) {
 		int value_xmin = (gc->minX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
 		int value_xmax = (gc->maxX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
-		
+
 		drawLine(textureDesc, std::make_pair(value_xmax, 0), std::make_pair(value_xmax, 255), gc->lineWidth*textureDesc.width, gc->lineColor);
 		drawLine(textureDesc, std::make_pair(value_xmin, 0), std::make_pair(value_xmin, 255), gc->lineWidth*textureDesc.width, gc->lineColor);
 	}
 	if (gc->maxY != gc->minY) {
 		int value_ymin = (gc->minY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
 		int value_ymax = (gc->maxY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
-		
+
 		drawLine(textureDesc, std::make_pair(0, value_ymax), std::make_pair(255, value_ymax), gc->lineWidth*textureDesc.width, gc->lineColor);
 		drawLine(textureDesc, std::make_pair(0, value_ymin), std::make_pair(255, value_ymin), gc->lineWidth*textureDesc.width, gc->lineColor);
 	}
-    
+
     int previousValue_x = -1, previousValue_y = -1;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
         int value_x = (it->first - minScaleX) * (textureDesc.width - 1) / (maxScaleX - minScaleX);
@@ -148,7 +148,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dy = dy * 2;
                         for (int i=firstPoint.first; i != secondPoint.first; ++i) {
                         	putPoint(textureDesc, i, firstPoint.second, lineWidth, color);
-                            
+
                             if ( (e -= dy) < 0) {
                                 firstPoint.second += 1;
                                 e += dx;
@@ -236,7 +236,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         int e = dx;
                         dx = e * 2;
                         dy = dy * 2;
-                        for (int i=firstPoint.first; i != secondPoint.first; --i) {                                       
+                        for (int i=firstPoint.first; i != secondPoint.first; --i) {
                             putPoint(textureDesc, i, firstPoint.second, lineWidth, color);
 
                             if ( (e-=dy) >= 0) {
