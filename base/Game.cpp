@@ -37,6 +37,8 @@ Game::Game() {
 #endif
     targetDT = 1.0f / 60.0f;
 
+    TimeUtil::Init();
+    
 	/* create EntityManager */
 	EntityManager::CreateInstance();
 

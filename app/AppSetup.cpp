@@ -159,7 +159,7 @@ static void updateAndRenderLoop() {
       if (glfwGetKey( GLFW_KEY_F9)){
      record->start();
       }
-#endif
+      #endif
       //user entered his name?
       if (glfwGetKey( GLFW_KEY_ENTER )) {
      if (!TEXT_RENDERING(nameInput->nameEdit)->hide) {
@@ -192,7 +192,6 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     Vector2 reso16_9(394, 700);
     Vector2 reso16_10(900, 625);
     Vector2* reso = &reso16_10;
-    TimeUtil::Init();
     
     game = gameImpl;
 
