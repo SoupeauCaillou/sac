@@ -48,7 +48,7 @@ static void parse(const std::string& line, std::string& assetName, Vector2& orig
 }
 
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
-	std::string atlasDesc = atlasName + ".desc";
+	std::string atlasDesc = atlasName + ".atlas";
 	std::string atlasImage = atlasName;
 
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
@@ -117,7 +117,7 @@ void RenderingSystem::reloadTextures() {
 
 void RenderingSystem::processDelayedTextureJobs() {
 	PROFILE("Texture", "processDelayedTextureJobs", BeginEvent);
-    
+
     textureLibrary.update();
 
 	PROFILE("Texture", "processDelayedTextureJobs", EndEvent);

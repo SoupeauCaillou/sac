@@ -8,7 +8,7 @@ fi
 
 output=/tmp/${1}.png
 #output_alpha=/tmp/${1}_alpha.png
-desc=/tmp/${1}.desc
+desc=/tmp/${1}.atlas
 tmp_image=/tmp/tmp___.png
 
 rm ${desc}
