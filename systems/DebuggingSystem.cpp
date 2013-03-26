@@ -4,6 +4,7 @@
 #include "RenderingSystem.h"
 #include "GraphSystem.h"
 #include "TextRenderingSystem.h"
+#include <iomanip>
 
 static const char* FpsTextureName = "__debug_fps_texture";
 static const char* EntitiesTextureName = "__debug_entities_texture";
@@ -66,14 +67,15 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     TRANSFORM(e)->parent = parent;
     TRANSFORM(e)->z = -0.002;
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
-    TRANSFORM(e)->position = TRANSFORM(parent)->size * (-0.5) - Vector2(0, (index + 1) * 1);
+    TRANSFORM(e)->position = TRANSFORM(parent)->size * (-0.5) - Vector2(0, (index + 1) * 0.6);
 
     ADD_COMPONENT(e, TextRendering);
     TEXT_RENDERING(e)->color = color;
     TEXT_RENDERING(e)->positioning = TextRenderingComponent::LEFT;
     TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
-    TEXT_RENDERING(e)->maxCharHeight = 0.5;
+    TEXT_RENDERING(e)->maxCharHeight = 0.6;
     TEXT_RENDERING(e)->text = name;
+    TEXT_RENDERING(e)->hide = false;
 
     ADD_COMPONENT(e, Graph);
     GRAPH(e)->textureName = SystemsTextureName;
@@ -93,16 +95,16 @@ void DebuggingSystem::DoUpdate(float dt) {
     if (cameras.empty()) {
         return;
     }
-    
+
     for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
         if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
             activeCamera = *it;
             break;
         }
     }
-    
+
     if (!fps) {
-        init(activeCamera, fps, entityCount, systems); 
+        init(activeCamera, fps, entityCount, systems);
         LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems)
     }
 
@@ -119,7 +121,15 @@ void DebuggingSystem::DoUpdate(float dt) {
     GRAPH(entityCount)->reloadTexture = reloadTextures;
 
 
-    const std::vector<std::string> systemNames = ComponentSystem::registeredSystemNames();
+    std::vector<std::string> systemNames = ComponentSystem::registeredSystemNames();
+    // sort from highest time consumer to lowest
+    std::sort(systemNames.begin(), systemNames.end(),
+        [this](const std::string& s1, const std::string& s2) -> bool {
+            const ComponentSystem* system1 = ComponentSystem::Named(s1);
+            const ComponentSystem* system2 = ComponentSystem::Named(s2);
+            return system1->updateDuration > system2->updateDuration;
+        }
+    );
     for (unsigned i=0; i<systemNames.size(); i++) {
         const ComponentSystem* system = ComponentSystem::Named(systemNames[i]);
 
@@ -131,20 +141,33 @@ void DebuggingSystem::DoUpdate(float dt) {
         GRAPH(e)->pointsList.push_back(std::make_pair(frameCount, system->updateDuration));
         if (frameCount > 120) GRAPH(e)->pointsList.pop_front();
         GRAPH(e)->reloadTexture = reloadTextures;
+
+        // only display system which takes >= .1 ms to update
+        if (reloadTextures) {
+            if (system->updateDuration < 0.0001) {
+                TEXT_RENDERING(e)->hide = true;
+            } else {
+                std::stringstream ss;
+                ss << systemNames[i] <<": " << std::fixed << std::setprecision(1) << 1000 * system->updateDuration << " ms";
+                TEXT_RENDERING(e)->text = ss.str();
+                TEXT_RENDERING(e)->hide = false;
+                TRANSFORM(e)->position = TRANSFORM(systems)->size * (-0.5) - Vector2(0, (i + 0.5) * 0.5);
+            }
+        }
     }
 
 
     timeUntilGraphUpdate += reloadTextures * .5;
-        
+
 #if 0
-        
+
 
     while (debugEntities.size() * 2 < captionGraph.size()) {
         theEntityManager.DeleteEntity(captionGraph.back());
         captionGraph.pop_back();
     }
-    
-    
+
+
 
     for (uint i = captionGraph.size(); i < debugEntities.size(); ++i) {
         Entity c = theEntityManager.CreateEntity("caption");
