@@ -1,6 +1,12 @@
 #include "AssetAPILinuxImpl.h"
 #include <cstring>
 
+#ifdef SAC_WINDOWS
+
+#else
+    #include <dirent.h>
+#endif
+
 void AssetAPILinuxImpl::init() {
 
 }
@@ -33,4 +39,30 @@ count += fread(&fb.data[count], 1, fb.size - count, file);
     fclose(file);
     fb.data[fb.size] = 0;
     return fb;
+}
+
+std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extension, const std::string& subfolder) {
+    #ifdef SAC_ASSETS_DIR
+        std::string directory = SAC_ASSETS_DIR + subfolder;
+    #else
+        std::string directory = "assets/" + subfolder;
+    #endif
+
+    std::list<std::string> content;
+    #ifdef SAC_WINDOWS
+    #else
+        DIR* dir = opendir(directory.c_str());
+        if (dir == NULL)
+            return content;
+        dirent* file = readdir(dir);
+        while (file != NULL) {
+            if (file->d_type == DT_REG) {
+                std::string s = file->d_name;
+                if (s.find(extension))
+                    content.push_back(s);
+            }
+            file = readdir(dir);
+        }
+    #endif
+    return content;
 }
