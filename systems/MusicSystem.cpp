@@ -38,7 +38,8 @@ MusicSystem::~MusicSystem() {
     #ifndef SAC_EMSCRIPTEN
     runDecompLoop = false;
     cond.notify_all();
-    oggDecompressionThread.join();
+    if (oggDecompressionThread.joinable())
+        oggDecompressionThread.join();
     LOGI("MusicSystem uninitinalized")
     #endif
     #ifndef SAC_EMSCRIPTEN
