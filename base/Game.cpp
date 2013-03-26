@@ -105,7 +105,7 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
 }
 
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
-	FileBuffer file = asset->loadAsset(name + ".desc");
+	FileBuffer file = asset->loadAsset(name + ".font");
     DataFileParser dfp;
     if (!dfp.load(file)) {
         LOGE("Invalid font description file: " << name)
