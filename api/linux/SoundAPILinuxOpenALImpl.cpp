@@ -12,6 +12,7 @@
 #include <vector>
 #include <cassert>
 #include "base/Log.h"
+#include "api/AssetAPI.h"
 
 #ifndef SAC_EMSCRIPTEN
 static const char* errToString(ALenum err);
@@ -39,7 +40,8 @@ SoundAPILinuxOpenALImpl::~SoundAPILinuxOpenALImpl() {
     #endif
 }
 
-void SoundAPILinuxOpenALImpl::init() {
+void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI) {
+    assetAPI = pAssetAPI;
 	#ifndef SAC_EMSCRIPTEN
     soundSources = new ALuint[16];
     // open al init is done earlier by MusicAPI
@@ -53,29 +55,21 @@ void SoundAPILinuxOpenALImpl::init() {
 }
 
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
-    std::stringstream a;
-#ifdef SAC_ASSETS_DIR
-	a << SAC_ASSETS_DIR;
-#else
-	a << "./assets/";
-#endif
-    a << asset;
-
 #ifndef SAC_EMSCRIPTEN
-    std::string s = a.str();
-    const char* nm = s.c_str();
-    FILE* fd = fopen(nm, "rb");
-    if (!fd) {
-        LOGW("Cannot open " << nm)
+    FileBufferWithCursor fbc(assetAPI->loadAsset(asset));
+    if (fbc.size == 0) {
+        LOGW("Cannot read sound file: '" << asset << "'")
         return 0;
     }
-#ifdef SAC_WINDOWS
-	LOGW("TODO: can't use ov_open on windows")
-	return 0;
-#endif
+    ov_callbacks cb;
+    cb.read_func = &FileBufferWithCursor::read_func;
+    cb.seek_func = &FileBufferWithCursor::seek_func;
+    cb.close_func = &FileBufferWithCursor::close_func;
+    cb.tell_func = &FileBufferWithCursor::tell_func;
     OggVorbis_File vf;
-    if (ov_open(fd, &vf, 0, 0)) {
-        LOGW("Failed loading: "<< nm)
+    if (ov_open_callbacks(&fbc, &vf, 0, 0, cb)) {
+        LOGW("Failed loading sound file: '" << asset << "'")
+        delete[] fbc.data;
         return 0;
     }
 
@@ -94,7 +88,6 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
         readCount += n;
     } while (true);
     LOGW_IF(readCount != sizeInBytes, "Weird byte count read: " << readCount << '/' << sizeInBytes)
-    assert(readCount == sizeInBytes);
 
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
     AL_OPERATION(alGenBuffers(1, &out->buffer))
@@ -103,13 +96,20 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     delete[] data;
 
     ov_clear(&vf);
+    delete[] fbc.data;
 #else
+    std::stringstream a;
+#ifdef SAC_ASSETS_DIR
+    a << SAC_ASSETS_DIR;
+#else
+    a << "./assets/";
+#endif
+    a << asset;
 	OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
 	out->sample = Mix_LoadWAV(a.str().c_str());
 	if (out->sample == 0) {
 		LOGW("Cannot load " << a.str())
 	}
-	return out;
 #endif
     return out;
 }

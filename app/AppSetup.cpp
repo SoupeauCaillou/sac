@@ -277,6 +277,7 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     theRenderingSystem.assetAPI = ctx.assetAPI;
     if (contextOptions & CONTEXT_WANT_SOUND_API) {
         theSoundSystem.soundAPI = ctx.soundAPI;
+        static_cast<SoundAPILinuxOpenALImpl*>(ctx.soundAPI)->init(ctx.assetAPI);
         theSoundSystem.init();
     }
     if (contextOptions & CONTEXT_WANT_MUSIC_API) {

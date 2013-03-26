@@ -541,19 +541,6 @@ void MusicSystem::toggleMute(bool enable) {
 #endif
 }
 
-#ifndef SAC_EMSCRIPTEN
-static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource);
-static int seek_func(void* datasource, ogg_int64_t offset, int whence);
-static long int tell_func(void* datasource);
-static int close_func(void *datasource);
-#endif
-
-struct DataSource {
-    uint8_t* datas;
-    int size;
-    int cursor;
-};
-
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     LOGI("loadMusicFile " << assetName)
     if (!assetAPI)
@@ -577,20 +564,17 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     #endif
 
 #ifndef SAC_EMSCRIPTEN
-    DataSource* dataSource = new DataSource();
-    dataSource->datas = b.data;
-    dataSource->size = b.size;
-    dataSource->cursor = 0;
+    FileBufferWithCursor* fbc = new FileBufferWithCursor(b);
 
     ov_callbacks cb;
-    cb.read_func = &read_func;
-    cb.seek_func = &seek_func;
-    cb.close_func = &close_func;
-    cb.tell_func = &tell_func;
+    cb.read_func = &FileBufferWithCursor::read_func;
+    cb.seek_func = &FileBufferWithCursor::seek_func;
+    cb.close_func = &FileBufferWithCursor::close_func;
+    cb.tell_func = &FileBufferWithCursor::tell_func;
 
     OggVorbis_File* f = new OggVorbis_File();
     PROFILE("Music", "ov_open_callbacks", BeginEvent);
-    ov_open_callbacks(dataSource, f, 0, 0, cb);
+    ov_open_callbacks(fbc, f, 0, 0, cb);
     PROFILE("Music", "ov_open_callbacks", EndEvent);
 
     MusicInfo info;
@@ -654,47 +638,6 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
         memset(&data[read], 0, chunkSize - read);
     }
     return chunkSize;
-}
-#endif
-
-#ifndef SAC_EMSCRIPTEN
-static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
-    DataSource* src = static_cast<DataSource*> (datasource);
-    size_t r = 0;
-    for (unsigned int i=0; i<nmemb && src->cursor < src->size; i++) {
-        size_t a = MathUtil::Min(src->size - src->cursor + 1, (int)size);
-        memcpy(&((char*)ptr)[i * size], &src->datas[src->cursor], a);
-        src->cursor += a;
-        r += a;
-    }
-    return r;
-}
-
-static int seek_func(void* datasource, ogg_int64_t offset, int whence) {
-    DataSource* src = static_cast<DataSource*> (datasource);
-    switch (whence) {
-        case SEEK_SET:
-            src->cursor = offset;
-            break;
-        case SEEK_CUR:
-            src->cursor += offset;
-            break;
-        case SEEK_END:
-            src->cursor = src->size - offset;
-            break;
-    }
-    return 0;
-}
-
-static long int tell_func(void* datasource) {
-    DataSource* src = static_cast<DataSource*> (datasource);
-    return src->cursor;
-}
-
-static int close_func(void *datasource) {
-    DataSource* src = static_cast<DataSource*> (datasource);
-    delete src;
-    return 0;
 }
 #endif
 

@@ -6,17 +6,19 @@
 #else
 #include <SDL/SDL_mixer.h>
 #endif
+class AssetAPI;
 
 
 class SoundAPILinuxOpenALImpl : public SoundAPI {
     public:
         ~SoundAPILinuxOpenALImpl();
-        void init();
+        void init(AssetAPI* assetAPI);
 
         OpaqueSoundPtr* loadSound(const std::string& asset);
         bool play(OpaqueSoundPtr* p, float volume);
 
     private:
+        AssetAPI* assetAPI;
     #ifndef SAC_EMSCRIPTEN
         unsigned int* soundSources;
     #endif
