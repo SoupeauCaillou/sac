@@ -64,15 +64,15 @@ source ../coolStuff.sh
 			error_and_quit "Error in make"
 		fi
 	fi
-
+	
+	executable=./platforms/default/$gameName
 	#debug required
 	if [ ! -z $(echo $1 | grep d) ]; then
 		#does not work with cgdb yet :(
 		info "A bug? Gdb on the way!"
-		(echo r; cat) | gdb ./linux/$gameName
+		(echo r; cat) | gdb $executable
 	#launch required
-	elif [ ! -z $(echo $1 | grep R) ]; then
-		executable=./platforms/default/$gameName
+	elif [ ! -z $(echo $1 | grep R) ]; then	
 		#verbose required
 		if [ ! -z $(echo $1 | grep -e v -e c) ]; then
 			#colored logs
