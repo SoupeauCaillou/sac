@@ -1,6 +1,6 @@
 #include "SoundAPILinuxOpenALImpl.h"
-#ifndef EMSCRIPTEN
-#ifdef ANDROID
+#ifndef SAC_EMSCRIPTEN
+#ifdef SAC_ANDROID
 #include "tremor/ivorbisfile.h"
 #else
 #include "vorbis/vorbisfile.h"
@@ -13,7 +13,7 @@
 #include <cassert>
 #include "base/Log.h"
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static const char* errToString(ALenum err);
 static void check_AL_errors(const char* context);
 #define AL_OPERATION(x)  \
@@ -25,7 +25,7 @@ static void check_AL_errors(const char* context);
 #endif
 
 struct OpenALOpaqueSoundPtr : public OpaqueSoundPtr {
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     ALuint buffer;
 #else
 	Mix_Chunk* sample;
@@ -33,14 +33,14 @@ struct OpenALOpaqueSoundPtr : public OpaqueSoundPtr {
 };
 
 SoundAPILinuxOpenALImpl::~SoundAPILinuxOpenALImpl() {
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
     AL_OPERATION(alDeleteSources(16, soundSources));
     delete[] soundSources;
     #endif
 }
 
 void SoundAPILinuxOpenALImpl::init() {
-	#ifndef EMSCRIPTEN
+	#ifndef SAC_EMSCRIPTEN
     soundSources = new ALuint[16];
     // open al init is done earlier by MusicAPI
     AL_OPERATION(alGenSources(16, soundSources));
@@ -61,7 +61,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 #endif
     a << asset;
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     std::string s = a.str();
     const char* nm = s.c_str();
     FILE* fd = fopen(nm, "rb");
@@ -69,7 +69,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
         LOGW("Cannot open " << nm)
         return 0;
     }
-#ifdef WINDOWS
+#ifdef SAC_WINDOWS
 	LOGW("TODO: can't use ov_open on windows")
 	return 0;
 #endif
@@ -84,7 +84,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     int8_t* data = new int8_t[sizeInBytes];
     int readCount = 0;
     do {
-	    #ifdef ANDROID
+	    #ifdef SAC_ANDROID
         int n = ov_read(&vf, (char*)&data[readCount], sizeInBytes, &bitstream);
         #else
         int n = ov_read(&vf, (char*)&data[readCount], sizeInBytes, 0, 2, 1, &bitstream);
@@ -116,7 +116,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 
 bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
     OpenALOpaqueSoundPtr* ptr = static_cast<OpenALOpaqueSoundPtr*>(p);
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     for (int i=0; i<16; i++) {
         int state;
         AL_OPERATION(alGetSourcei(soundSources[i], AL_SOURCE_STATE, &state))
@@ -134,7 +134,7 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
     return false;
 }
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static void check_AL_errors(const char* context) {
     int maxIterations=10;
     ALenum error;

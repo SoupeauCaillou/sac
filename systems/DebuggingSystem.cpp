@@ -216,7 +216,7 @@ void DebuggingSystem::DoUpdate(float dt) {
 #endif
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
     DebuggingComponent* dc = Get(entity, false);
     if (!dc) return;

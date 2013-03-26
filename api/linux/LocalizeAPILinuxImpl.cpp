@@ -17,8 +17,8 @@
     along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "LocalizeAPILinuxImpl.h"
-#ifndef EMSCRIPTEN
-	#if defined(WINDOWS) || defined(DARWIN)
+#ifndef SAC_EMSCRIPTEN
+	#if defined(SAC_WINDOWS) || defined(SAC_DARWIN)
 	//TODO
 	#else
 	#include <libintl.h>
@@ -28,7 +28,7 @@
 
 #include <iostream> // à virer
 
-#if defined(DARWIN) || defined(WINDOWS)
+#if defined(SAC_DARWIN) || defined(SAC_WINDOWS)
 
 
 int LocalizeAPILinuxImpl::init(const std::string & lang) {

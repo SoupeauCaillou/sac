@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../SoundAPI.h"
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 
 #else
 #include <SDL/SDL_mixer.h>
@@ -17,7 +17,7 @@ class SoundAPILinuxOpenALImpl : public SoundAPI {
         bool play(OpaqueSoundPtr* p, float volume);
 
     private:
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
         unsigned int* soundSources;
     #endif
 };

@@ -54,7 +54,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
     }
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void AutoDestroySystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     AutoDestroyComponent* tc = Get(entity, false);
     if (!tc) return;

@@ -17,7 +17,7 @@
 */
 #include "MouseNativeTouchState.h"
 
-#ifdef EMSCRIPTEN
+#ifdef SAC_EMSCRIPTEN
 #include <SDL/SDL.h>
 #include <emscripten/emscripten.h>
 #else
@@ -27,7 +27,7 @@
 #endif
 
 bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
-    #ifdef EMSCRIPTEN
+    #ifdef SAC_EMSCRIPTEN
      static bool down = false;
      static Vector2 position;
       SDL_Event event;

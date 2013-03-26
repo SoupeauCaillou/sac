@@ -26,17 +26,15 @@ else()
 	#build external libs
 	add_library(sac ${source_files} ${opt_source_files})
 
-	add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1 -DHAS_SOCKLEN_T=1 )
+	add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1
+    -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1
+    -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1 -DHAS_SOCKLEN_T=1 )
 
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
 	include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 
 	#the necessary libs
-	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg Tinyxml2)
-	else ()
-		set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg )
-	endif ()
+	set(LIBS_NEEDED GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar Ogg Tinyxml2)
 
 	#you shouldn't touch that
 	foreach(lib ${LIBS_NEEDED})
@@ -63,13 +61,13 @@ else()
 
 
 	#texture packer
-		file(
-			GLOB_RECURSE
-			texture_packer_source_files
-			../../tools/texture_packer/*.cpp	../../tools/texture_packer/*.h
-		)
-		add_executable(texture_packer ${texture_packer_source_files})
-		target_link_libraries(texture_packer sac)
+	file(
+		GLOB_RECURSE
+		texture_packer_source_files
+		../../tools/texture_packer/*.cpp	../../tools/texture_packer/*.h
+	)
+	add_executable(texture_packer ${texture_packer_source_files})
+	target_link_libraries(texture_packer sac)
 
 	#lobby server
 		#~ file(

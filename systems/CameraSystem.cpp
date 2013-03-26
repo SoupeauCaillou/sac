@@ -36,7 +36,7 @@ bool CameraSystem::sort(Entity e, Entity f) {
     return CAMERA(e)->order < CAMERA(f)->order;
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void CameraSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     CameraComponent* tc = Get(entity, false);
     if (!tc) return;

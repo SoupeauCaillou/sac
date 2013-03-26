@@ -18,7 +18,7 @@
 #include "base/Game.h"
 #include "base/GameContext.h"
 
-#ifdef EMSCRIPTEN
+#ifdef SAC_EMSCRIPTEN
 #include <SDL/SDL.h>
 #include <emscripten/emscripten.h>
 #else
@@ -39,8 +39,8 @@
 #include <thread>
 #include <mutex>
 
-#ifndef EMSCRIPTEN
-	#if defined(WINDOWS) || defined(DARWIN)
+#ifndef SAC_EMSCRIPTEN
+	#if defined(SAC_WINDOWS) || defined(SAC_DARWIN)
 
 	#else
 		#include <locale.h>
@@ -82,11 +82,11 @@ Game* game;
 NameInputAPILinuxImpl* nameInput;
 Entity globalFTW = 0;
 
-#if defined(LINUX) && !defined(EMSCRIPTEN)
+#if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
 Recorder *record;
 #endif
 
-#if !defined(EMSCRIPTEN)
+#if !defined(SAC_EMSCRIPTEN)
 std::mutex m;
 
 void GLFWCALL myCharCallback( int c, int action ) {
@@ -151,7 +151,7 @@ static void updateAndRenderLoop() {
       }
       //pause ?
 
-      #if defined(LINUX) && !defined(EMSCRIPTEN)
+      #if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
       // recording
       if (glfwGetKey( GLFW_KEY_F10)){
      record->stop();
@@ -197,7 +197,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
-#ifdef EMSCRIPTEN
+#ifdef SAC_EMSCRIPTEN
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
@@ -223,7 +223,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     // Handle --restore cmd line switch
     uint8_t* state = 0;
     int size = 0;
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
     if (restore) {
         // TODO: portability
         std::stringstream restoreFile;
@@ -288,13 +288,13 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     game->sacInit((int)reso->X, (int)reso->Y);
     game->init(state, size);
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     setlocale( LC_ALL, "" );
     // breaks editor -> glfwSetCharCallback(myCharCallback);
     // breaks editor -> glfwSetKeyCallback(myKeyCallback);
 #endif
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     // record = new Recorder((int)reso->X, (int)reso->Y);
 
     std::thread th1(callback_thread);    
@@ -308,7 +308,7 @@ int launchGame(const std::string& title, Game* gameImpl, unsigned contextOptions
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #endif
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     delete game;
  //   delete record;
 #endif

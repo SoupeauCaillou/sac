@@ -349,7 +349,7 @@ static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
     SEND(pkt);
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void NetworkSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

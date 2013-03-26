@@ -60,7 +60,7 @@ void ContainerSystem::DoUpdate(float) {
 	}
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void ContainerSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

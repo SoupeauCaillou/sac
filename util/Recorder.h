@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(LINUX) && !defined(EMSCRIPTEN)
+#if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
 #include <GL/glew.h>
 #include <GL/glfw.h>
 #include <cstdlib>

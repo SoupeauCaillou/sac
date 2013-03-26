@@ -27,12 +27,12 @@
 #include "util/DataFileParser.h"
 #include <sstream>
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 #include <GL/glfw.h>
 #endif
 
 Game::Game() {
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
     gameType = GameType::Default;
 #endif
     targetDT = 1.0f / 60.0f;
@@ -68,7 +68,7 @@ Game::Game() {
 
     fpsStats.reset(0);
     lastUpdateTime = TimeUtil::GetTime();
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
     levelEditor = new LevelEditor();
 #endif
 }
@@ -136,7 +136,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 }
 
 void Game::sacInit(int windowW, int windowH) {
-#ifdef ENABLE_PROFILING
+#ifdef SAC_ENABLE_PROFILING
 	initProfiler();
 #endif
 
@@ -160,13 +160,13 @@ void Game::sacInit(int windowW, int windowH) {
 }
 
 void Game::backPressed() {
-	#ifdef ENABLE_PROFILING
+	#ifdef SAC_ENABLE_PROFILING
 	static int profStarted = 0;
 	if ((profStarted % 2) == 0) {
 		startProfiler();
 	} else {
 		std::stringstream a;
-		#ifdef ANDROID
+		#ifdef SAC_ANDROID
 		a << "/sdcard/";
 		#else
 		a << "/tmp/";
@@ -194,13 +194,13 @@ void Game::step() {
     float delta = timeBeforeThisStep - lastUpdateTime;
 
     theTouchInputManager.Update(delta);
-    #ifdef ENABLE_PROFILING
+    #ifdef SAC_ENABLE_PROFILING
     std::stringstream framename;
     framename << "update-" << (int)(delta * 1000000);
     PROFILE("Game", framename.str(), InstantEvent);
     #endif
     // update game state
-    #ifdef INGAME_EDITORS
+    #ifdef SAC_INGAME_EDITORS
     static float speedFactor = 1.0f;
     if (glfwGetKey(GLFW_KEY_F1))
         gameType = GameType::Default;
@@ -227,7 +227,7 @@ void Game::step() {
     tick(delta);
     #endif
 
-    #ifdef INGAME_EDITORS
+    #ifdef SAC_INGAME_EDITORS
     if (delta > 0) {
     #endif
     #ifdef SAC_NETWORK
@@ -261,7 +261,7 @@ void Game::step() {
     theAutoDestroySystem.Update(delta);
     theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
-    #ifdef INGAME_EDITORS
+    #ifdef SAC_INGAME_EDITORS
     } else {
         theTransformationSystem.Update(delta);
     }

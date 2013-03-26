@@ -564,7 +564,7 @@ youpi:
 
   void validate(void)
   {
-    #ifdef _DEBUG
+    #ifdef _SAC_DEBUG
     Node *f = mFreeList;
     while ( f )
     {

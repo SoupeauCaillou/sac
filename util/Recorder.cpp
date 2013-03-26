@@ -1,4 +1,4 @@
-#if defined(LINUX) && !defined(EMSCRIPTEN)
+#if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
 #include "Recorder.h"
 #include <iostream>
 #include <sstream>
@@ -204,7 +204,7 @@ bool Recorder::initSound (){
 }
 
 void Recorder::start(){
-#ifdef WINDOWS
+#ifdef SAC_WINDOWS
     
 #else
     if (outfile == NULL && recording == false){

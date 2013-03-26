@@ -1,32 +1,29 @@
 #include "TimeUtil.h"
 #include <time.h>
-#ifdef DARWIN
+#ifdef SAC_DARWIN
 #include <sys/time.h>
-#elif defined(WINDOWS)
+#elif defined(SAC_WINDOWS)
 #include "Mmsystem.h"
 #undef ERROR
 #endif
 
-#if defined(WINDOWS) && defined(ERROR)
-#undef ERROR
-#endif
 #include "Log.h"
 
-#if defined(EMSCRIPTEN) || defined(DARWIN)
+#if defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 	struct timeval TimeUtil::startup_time;
-#elif defined(LINUX)
+#elif defined(SAC_LINUX)
 	struct timespec TimeUtil::startup_time;
-#elif defined(WINDOWS)
+#elif defined(SAC_WINDOWS)
 	__int64 TimeUtil::startup_time;
 	double TimeUtil::frequency;
 #endif
 
 void TimeUtil::Init() {
-#if defined(EMSCRIPTEN) || defined(DARWIN)
+#if defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
     gettimeofday(&startup_time, 0);
-#elif defined(LINUX)
-	clock_gettime(CLOCK_MONOTONIC, &startup_time);    
-#elif defined(WINDOWS)
+#elif defined(SAC_LINUX)
+	clock_gettime(CLOCK_MONOTONIC, &startup_time);
+#elif defined(SAC_WINDOWS)
     timeBeginPeriod(1);
 	QueryPerformanceCounter((LARGE_INTEGER*)&startup_time);
 	__int64 invertfrequency;
@@ -35,10 +32,10 @@ void TimeUtil::Init() {
 #endif
 }
 
-#if defined(LINUX)
+#if defined(SAC_LINUX)
 static inline float timeconverter(const struct timespec & tv) {
 	return tv.tv_sec + (float)(tv.tv_nsec) / 1000000000.0f;
-#elif defined(EMSCRIPTEN) || defined(DARWIN)
+#elif defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 static inline float timeconverter(const struct timeval & tv) {
     return (tv.tv_sec + tv.tv_usec / 1000000.0f);
 #else
@@ -48,7 +45,7 @@ static inline float timeconverter(float tv) {
 }
 
 
-#if defined(LINUX)
+#if defined(SAC_LINUX)
 static inline void sub(struct timespec& tA, const struct timespec& tB)
 {
     if ((tA.tv_nsec - tB.tv_nsec) < 0) {
@@ -62,17 +59,17 @@ static inline void sub(struct timespec& tA, const struct timespec& tB)
 #endif
 
 float TimeUtil::GetTime() {
-    #if defined(LINUX)
+    #if defined(SAC_LINUX)
 		struct timespec tv;
 		if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
         LOGF("clock_gettime failure")
 		}
 		sub(tv, startup_time);
-    #elif defined(EMSCRIPTEN) || defined(DARWIN)
+    #elif defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 		struct timeval tv;
 		gettimeofday(&tv, 0);
 		timersub(&tv, &startup_time, &tv);
-	#elif defined(WINDOWS)
+	#elif defined(SAC_WINDOWS)
 		__int64 intv;
 		QueryPerformanceCounter((LARGE_INTEGER*)&intv);
         intv -= startup_time;
@@ -86,7 +83,7 @@ void TimeUtil::Wait(float waitInSeconds) {
        float before = GetTime();
        float delta = 0;
        while (delta < waitInSeconds) {
-#if defined(LINUX) || defined(DARWIN)
+#if defined(SAC_LINUX) || defined(SAC_DARWIN)
            struct timespec ts;
            ts.tv_sec = 0;
            ts.tv_nsec = (waitInSeconds - delta) * 1000000000LL;

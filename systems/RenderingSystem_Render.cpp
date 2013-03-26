@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 #include <AntTweakBar.h>
 #include "util/LevelEditor.h"
 #endif
@@ -22,9 +22,9 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
     } else {
         return std::make_pair(tex.color, tex.alpha);
     }
-} 
+}
 
-#ifdef USE_VBO
+#ifdef SAC_SAC_USE_VBO
 #define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
 static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, bool rotateUV, int batchSize) {
 #else
@@ -45,7 +45,7 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
     	}
 
-    #ifdef USE_VBO
+    #ifdef SAC_SAC_USE_VBO
     	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
 
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
@@ -67,7 +67,7 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     return 0;
 }
 
-#ifdef USE_VBO
+#ifdef SAC_SAC_USE_VBO
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info, GLint unif) {
 #else
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
@@ -92,7 +92,7 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
             std::swap(rc.uv[0].X, rc.uv[1].X);
     }
     rc.rotateUV = info.rotateUV;
-     #ifdef USE_VBO
+     #ifdef SAC_SAC_USE_VBO
      float uvso[4];
      uvso[0] = rc.uv[1].X - rc.uv[0].X;
      uvso[1] = rc.uv[1].Y - rc.uv[0].Y;
@@ -102,12 +102,12 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
      #endif
 }
 
-#ifdef USE_VBO
+#ifdef SAC_SAC_USE_VBO
 static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const RenderingSystem::Camera& camera, const RenderingSystem::Shader& shader) {
 #else
 static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
 #endif
-    #ifdef USE_VBO
+    #ifdef SAC_SAC_USE_VBO
     float hW = 0.5 * screenW;
     float hH = 0.5 * screenH;
     GLfloat mat[16];
@@ -156,7 +156,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16], camera[3];
 
-#ifndef USE_VBO
+#ifndef SAC_SAC_USE_VBO
     const float left = (-cameraTransf.size.X * 0.5);
     const float right = (cameraTransf.size.X * 0.5);
     const float bottom = (-cameraTransf.size.Y * 0.5);
@@ -176,7 +176,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
-#ifdef USE_VBO
+#ifdef SAC_SAC_USE_VBO
 #define MAX_BATCH_SIZE 1
 #else
 #define MAX_BATCH_SIZE 128
@@ -190,7 +190,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     } camera;
 	int batchSize = 0;
     GL_OPERATION(glDepthMask(true))
-    
+
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	InternalTexture boundTexture = InternalTexture::Invalid;
     FramebufferRef fboRef = DefaultFrameBufferRef;
@@ -209,7 +209,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.texture == BeginFrameMarker) {
             batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 
-            #ifdef ENABLE_PROFILING
+            #ifdef SAC_ENABLE_PROFILING
             std::stringstream framename;
             framename << "render-frame-" << (unsigned int)rc.rotateUV;
             PROFILE("Render", framename.str(), InstantEvent);
@@ -292,7 +292,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 } else {
                     rc.glref = info->glref;
                 }
-                #ifdef USE_VBO
+                #ifdef SAC_SAC_USE_VBO
                 computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
                 #else
                 computeUV(rc, *info);
@@ -309,7 +309,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			rc.uv[0] = Vector2::Zero;
 			rc.uv[1] = Vector2(1,1);
 			rc.rotateUV = 0;
-			#ifdef USE_VBO
+			#ifdef SAC_SAC_USE_VBO
 			float uvso[4];
 			uvso[0] = uvso[1] = 1;
 			uvso[2] = uvso[3] = 0;
@@ -336,7 +336,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // ADD TO BATCH
-        #ifdef USE_VBO
+        #ifdef SAC_SAC_USE_VBO
 		addRenderCommandToBatch(screenW, screenH, rc, camera, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
         #else
         addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
@@ -352,7 +352,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #include <errno.h>
 
 void RenderingSystem::waitDrawingComplete() {
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
@@ -364,10 +364,10 @@ void RenderingSystem::waitDrawingComplete() {
 }
 
 void RenderingSystem::render() {
-#ifdef ENABLE_LOG
+#ifdef SAC_ENABLE_LOG
     float enter = TimeUtil::GetTime();
 #endif
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
 
     std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);
@@ -376,35 +376,35 @@ void RenderingSystem::render() {
         cond[C_FRAME_READY].wait(lock);
     }
 #endif
-#if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
+#if defined(SAC_ENABLE_LOG) && !defined(SAC_EMSCRIPTEN)
     //float frameready = TimeUtil::GetTime();
 #endif
     if (!frameQueueWritable) {
         LOGI("Rendering disabled")
-        #ifndef EMSCRIPTEN
+        #ifndef SAC_EMSCRIPTEN
         lock.unlock();
         #endif
         return;
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     lock.unlock();
     PROFILE("Renderer", "wait-frame", EndEvent);
 #endif
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
-#if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
+#if defined(SAC_ENABLE_LOG) && !defined(SAC_EMSCRIPTEN)
     //float aftertexture= TimeUtil::GetTime();
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     if (!mutexes[L_RENDER].try_lock()) {
         LOGV(1, "HMM Busy render lock")
         mutexes[L_RENDER].lock();
     }
 #endif
-#if defined(ENABLE_LOG) && !defined(EMSCRIPTEN)
+#if defined(SAC_ENABLE_LOG) && !defined(SAC_EMSCRIPTEN)
     float ppp = TimeUtil::GetTime();
     float diff =  ppp - enter;
     if (diff > 0.001) {
@@ -423,12 +423,12 @@ void RenderingSystem::render() {
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     cond[C_RENDER_DONE].notify_all();
     mutexes[L_RENDER].unlock();
 #endif
 	PROFILE("Renderer", "render", EndEvent);
-    #ifdef INGAME_EDITORS
+    #ifdef SAC_INGAME_EDITORS
     LevelEditor::lock();
     TwDraw();
     LevelEditor::unlock();
@@ -463,7 +463,7 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     float ty = - (top + bottom) / t_b;
     float tz = - (far_ + near_) / f_n;
 
-#ifndef USE_VBO
+#ifndef SAC_SAC_USE_VBO
     mat[0] = 2.0f / r_l;
     mat[1] = 2.0f / t_b;
     mat[2] = -2.0f / f_n;

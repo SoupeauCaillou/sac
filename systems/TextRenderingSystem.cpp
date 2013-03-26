@@ -12,10 +12,6 @@
 
 #include "util/MurmurHash.h"
 
-#if defined(WINDOWS) && defined(ERROR)
-	#undef ERROR
-#endif
-
 struct CacheKey {
     Color color;
     float charHeight;
@@ -129,7 +125,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
         const FontDesc& fontDesc = fontIt->second;
         const TransformationComponent* trans = TRANSFORM(entity);
 		const unsigned int length = trc->text.length();
-		
+
         // Determine font size (character height)
 		float charHeight = trc->charHeight;
 		if (trc->flags & TextRenderingComponent::AdjustHeightToFillWidthBit) {
@@ -186,7 +182,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			std::stringstream a;
 			unsigned char letter = (unsigned char)trc->text[i];
             int skip = -1;
-            
+
             if (letter >= 0xC2) {
                 LOGW_IF(unicode != 0, "3+ bytes support for UTF8 not complete")
                 unicode = (letter - 0xC2) * 0x40;
@@ -208,7 +204,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
             rc->hide = trc->hide;
             rc->cameraBitMask = trc->cameraBitMask;
 
-            // At this point, we have the proper unicodeId to display, 
+            // At this point, we have the proper unicodeId to display,
             // except if it's an image delimiter
             bool inlineImage = false;
             if (unicode == 0x00D7) {
@@ -293,7 +289,7 @@ void TextRenderingSystem::registerFont(const std::string& fontName, const std::m
         font.entries[i].texture = invalidCharTexture;
         font.entries[i].h2wRatio = invalidRatio;
     }
-    
+
     for (std::map<uint32_t, float>::const_iterator it=charH2Wratio.begin(); it!=charH2Wratio.end(); ++it) {
         CharInfo& info = font.entries[it->first];
         info.h2wRatio = it->second;
@@ -319,7 +315,7 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
     return computeStringWidth(trc, trc->charHeight, fontIt->second);
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void TextRenderingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }
@@ -368,7 +364,7 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
             width += w * charHeight;
             i = next + 1;
         } else if (unicode == '\n') {
-            
+
         } else {
             width += fontDesc.entries[unicode].h2wRatio * charHeight;
         }

@@ -23,7 +23,7 @@
 #include "TextureLibrary.h"
 class AssetAPI;
 
-#if defined(ANDROID) || defined(EMSCRIPTEN)
+#if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN)
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #else

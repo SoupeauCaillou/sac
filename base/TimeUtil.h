@@ -1,8 +1,8 @@
 #pragma once
 
-#ifdef LINUX
+#ifdef SAC_LINUX
 	#include <time.h>
-#elif defined(WINDOWS)
+#elif defined(SAC_WINDOWS)
 	#include <Windows.h>
 #endif
 
@@ -14,9 +14,9 @@ class TimeUtil
         static void Wait(float waitInSeconds);
 
 	private:
-        #if defined(EMSCRIPTEN) || defined(DARWIN)
+        #if defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 		static struct timeval startup_time;
-        #elif defined(LINUX)
+        #elif defined(SAC_LINUX)
         static struct timespec startup_time;
 		#else
 		static __int64 startup_time;

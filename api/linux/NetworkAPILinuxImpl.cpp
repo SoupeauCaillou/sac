@@ -1,14 +1,10 @@
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
 #include <enet/enet.h>
 #include <thread>
 #include "base/Log.h"
 
-#if defined(WINDOWS) && defined(ERROR)
-#undef ERROR
-#endif
-
-#ifdef WINDOWS
+#ifdef SAC_WINDOWS
 NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
 void NetworkAPILinuxImpl::runLobbyThread() {}
 bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort) { return false; }

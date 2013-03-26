@@ -28,7 +28,7 @@ public:
 	};
 	static void setPosition(TransformationComponent* tc, const Vector2& p, PositionReference ref=C);
 
-	#ifdef DEBUG
+	#ifdef SAC_SAC_DEBUG
 	void preDeletionCheck(Entity e) {
 		FOR_EACH_COMPONENT(Transformation, bc)
 			if (bc->parent == e) {

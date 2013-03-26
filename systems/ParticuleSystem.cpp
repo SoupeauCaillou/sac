@@ -44,7 +44,7 @@ void ParticuleSystem::DoUpdate(float dt) {
 
         // emit particules
         if (pc->emissionRate > 0) {
-            #ifdef DEBUG
+            #ifdef SAC_SAC_DEBUG
             std::stringstream name;
             name << "particule_" << theEntityManager.entityName(a);
             #endif
@@ -58,7 +58,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.time = 0;
                 internal.lifetime = pc->lifetime.random();
 
-                #ifdef DEBUG
+                #ifdef SAC_SAC_DEBUG
                 Entity e = internal.e = theEntityManager.CreateEntity(name.str());
                 #else
                 Entity e = internal.e = theEntityManager.CreateEntity();
@@ -112,7 +112,7 @@ void ParticuleSystem::DoUpdate(float dt) {
     }
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void ParticuleSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     ParticuleComponent* tc = Get(entity, false);
     if (!tc) return;

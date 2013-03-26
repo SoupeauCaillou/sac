@@ -88,7 +88,7 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const Vector
 	}
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TransformationComponent* tc = Get(entity, false);
     if (!tc) return;

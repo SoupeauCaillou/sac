@@ -16,7 +16,7 @@ extern LogVerbosity::Enum logLevel;
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
-#ifdef ANDROID
+#ifdef SAC_ANDROID
 #error TODO
 #else
 #include <iostream>

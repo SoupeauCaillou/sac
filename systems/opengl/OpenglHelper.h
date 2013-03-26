@@ -18,14 +18,14 @@
 */
 #pragma once
 
-#if defined(ANDROID) || defined(EMSCRIPTEN)
+#if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN)
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #else
 #include <GL/glew.h>
 #endif
 
-#if !defined(ANDROID) && !defined(EMSCRIPTEN)
+#if !defined(SAC_ANDROID) && !defined(SAC_EMSCRIPTEN)
 #define CHECK_GL_ERROR
 #endif
 

@@ -1,7 +1,7 @@
 #include "ImageLoader.h"
 #include "base/Log.h"
 
-#ifdef __EMSCRIPTEN
+#ifdef __SAC_EMSCRIPTEN
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_rwops.h>
@@ -11,11 +11,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#ifdef LINUX
+#ifdef SAC_LINUX
 #include <endian.h>
 #endif
 
-#ifndef __EMSCRIPTEN
+#ifndef __SAC_EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
 #endif
 
@@ -28,7 +28,7 @@ ImageDesc ImageLoader::loadPng(const std::string& context, const FileBuffer& fil
 	result.datas = 0;
 	result.type = ImageDesc::RAW;
 
-#ifndef __EMSCRIPTEN
+#ifndef __SAC_EMSCRIPTEN
 	uint8_t PNG_header[8];
 	memcpy(PNG_header, file.data, 8);
 	if (png_sig_cmp(PNG_header, 0, 8) != 0) {
@@ -159,7 +159,7 @@ ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& fi
     return loadPvr(context, file);
 }
 
-#ifndef __EMSCRIPTEN
+#ifndef __SAC_EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead) {
    if(png_get_io_ptr(png_ptr) == NULL)
       return;   // add custom error handling here

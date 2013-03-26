@@ -1,5 +1,5 @@
 #pragma once
-#ifdef WINDOWS
+#ifdef SAC_WINDOWS
 #pragma warning(disable:4201) //disable warning about nameless unions
 #endif
 

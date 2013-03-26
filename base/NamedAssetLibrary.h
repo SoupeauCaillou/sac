@@ -26,7 +26,7 @@
 #include <condition_variable>
 #include "Log.h"
 
-#if !defined(ANDROID)
+#if !defined(SAC_ANDROID)
 #define USE_COND_SIGNALING 1
 #else
 #undef USE_COND_SIGNALING

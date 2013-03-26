@@ -1,4 +1,4 @@
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"

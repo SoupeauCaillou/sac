@@ -1,5 +1,5 @@
 #include "MusicSystem.h"
-#ifdef MUSIC_VISU
+#ifdef SAC_MUSIC_VISU
 #include "TextRenderingSystem.h"
 #include "RenderingSystem.h"
 #include "base/PlacementHelper.h"
@@ -7,22 +7,22 @@
 #endif
 #include "base/CircularBuffer.h"
 
-#ifdef ANDROID
+#ifdef SAC_ANDROID
 #define assert(x) x
 #endif
 
-#ifdef EMSCRIPTEN
+#ifdef SAC_EMSCRIPTEN
 	#include <SDL/SDL_mixer.h>
 	#include <sstream>
 #else
-	#ifdef ANDROID
+	#ifdef SAC_ANDROID
 		#include "tremor/ivorbisfile.h"
 	#else
 		#include <vorbis/vorbisfile.h>
 	#endif
 #endif
 
-#ifdef LINUX
+#ifdef SAC_LINUX
 	#include <linux/sched.h>
 #endif
 
@@ -35,13 +35,13 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), asset
 }
 
 MusicSystem::~MusicSystem() {
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
     runDecompLoop = false;
     cond.notify_all();
     oggDecompressionThread.join();
     LOGI("MusicSystem uninitinalized")
     #endif
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
     for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
         delete it->second.buffer;
         ov_clear(it->second.ovf);
@@ -52,7 +52,7 @@ MusicSystem::~MusicSystem() {
     #endif
     }
     musics.clear();
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
     for (std::map<std::string, FileBuffer>::iterator it=name2buffer.begin(); it!=name2buffer.end(); ++it) {
         delete[] it->second.data;
     }
@@ -60,7 +60,7 @@ MusicSystem::~MusicSystem() {
     #endif
 }
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static void* _startOggThread(void* arg) {
     static_cast<MusicSystem*>(arg)->oggDecompRunLoop();
     return 0;
@@ -71,13 +71,13 @@ void MusicSystem::init() {
     muted = false;
     nextValidRef = 1;
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     oggDecompressionThread = std::thread(_startOggThread, this);
 #endif
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     if (ref == InvalidMusicRef)
         return;
     mutex.lock();
@@ -107,7 +107,7 @@ void MusicSystem::stopMusic(MusicComponent* m) {
             musicAPI->deletePlayer(m->opaque[i]);
             m->opaque[i] = 0;
             m->positionI = 0;
-            #ifdef MUSIC_VISU
+            #ifdef SAC_MUSIC_VISU
             m->positionF = 0;
             #endif
         }
@@ -185,13 +185,13 @@ void MusicSystem::DoUpdate(float dt) {
 	        	}
             }
             // need to queue more data ?
-            #ifndef EMSCRIPTEN
+            #ifndef SAC_EMSCRIPTEN
             feed(m->opaque[0], m->music, 0, dt);
             #endif
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
             assert (m->music != InvalidMusicRef);
-            #ifndef EMSCRIPTEN
+            #ifndef SAC_EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
 	        #else
@@ -212,7 +212,7 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->master) {
                     loop = m->master->looped;
                 } else {
-	                #ifndef EMSCRIPTEN
+	                #ifndef SAC_EMSCRIPTEN
                     loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
                     #else
                     loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
@@ -220,7 +220,7 @@ void MusicSystem::DoUpdate(float dt) {
                 }
 
                 if (loop) {
-                    #ifndef EMSCRIPTEN
+                    #ifndef SAC_EMSCRIPTEN
                     LOGV(1, "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']')
                     #endif
                     m->looped = true;
@@ -235,7 +235,7 @@ void MusicSystem::DoUpdate(float dt) {
                     if (m->master) {
                         m->opaque[0] = startOpaque(m, m->music, m->master, 0);
                     } else {
-                        #ifndef EMSCRIPTEN
+                        #ifndef SAC_EMSCRIPTEN
                         int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
                         #else
                         int offset = 0;
@@ -256,7 +256,7 @@ void MusicSystem::DoUpdate(float dt) {
             if (m->currentVolume != m->volume) {
                 musicAPI->setVolume(m->opaque[1], m->volume);
             }
-            #ifndef EMSCRIPTEN
+            #ifndef SAC_EMSCRIPTEN
             feed(m->opaque[1], m->previousEnding, 0, dt);
             if ((m->previousEnding != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->previousEnding].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
             #else
@@ -291,14 +291,14 @@ void MusicSystem::DoUpdate(float dt) {
         }
 
 
-        #ifdef MUSIC_VISU
+        #ifdef SAC_MUSIC_VISU
         if (m->music != InvalidMusicRef) {
             m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
         #endif
     }
 
-    #ifdef MUSIC_VISU
+    #ifdef SAC_MUSIC_VISU
     int idx = 0;
     FOR_EACH_ENTITY_COMPONENT(Music, a, rc)
         if (visualisationEntities.find(a) == visualisationEntities.end()) {
@@ -387,7 +387,7 @@ void MusicSystem::DoUpdate(float dt) {
     #endif
 }
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 void MusicSystem::oggDecompRunLoop() {
     runDecompLoop = true;
 
@@ -449,7 +449,7 @@ void MusicSystem::oggDecompRunLoop() {
 }
 #endif
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
@@ -490,7 +490,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
     assert (r != InvalidMusicRef);
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     MusicInfo& info = musics[r];
     if (info.sampleRate <=0) {
         LOGW("Invalid sample rate: " << info.sampleRate)
@@ -526,7 +526,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 }
 
 void MusicSystem::toggleMute(bool enable) {
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     if (enable && !muted) {
         muted = true;
         FOR_EACH_COMPONENT(Music, m)
@@ -540,7 +540,7 @@ void MusicSystem::toggleMute(bool enable) {
 #endif
 }
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource);
 static int seek_func(void* datasource, ogg_int64_t offset, int whence);
 static long int tell_func(void* datasource);
@@ -558,7 +558,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     if (!assetAPI)
         return InvalidMusicRef;
     PROFILE("Music", "loadMusicFile", BeginEvent);
-    #ifndef EMSCRIPTEN
+    #ifndef SAC_EMSCRIPTEN
     FileBuffer b;
     if (name2buffer.find(assetName) == name2buffer.end()) {
         PROFILE("Music", "loadAsset", BeginEvent);
@@ -575,7 +575,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     }
     #endif
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     DataSource* dataSource = new DataSource();
     dataSource->datas = b.data;
     dataSource->size = b.size;
@@ -605,7 +605,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     LOGV(1, "(music) File: " << assetName << " / rate: " << info.sampleRate << " duration: " << info.totalTime << " nbSample: " << info.nbSamples << " -> " << nextValidRef)
     PROFILE("Music", "mutex-section", BeginEvent);
     mutex.lock();
-    #ifdef MUSIC_VISU
+    #ifdef SAC_MUSIC_VISU
     int start = assetName.find("audio/") + 6;
     int end = assetName.find(".ogg");
     info.name = assetName.substr(start, end - start);
@@ -626,12 +626,12 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     return nextValidRef++;
 }
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize) {
     int bitstream;
     int read = 0;
     while (read < chunkSize) {
-        #ifdef ANDROID
+        #ifdef SAC_ANDROID
         int n = ov_read(file, (char*) &data[read], chunkSize - read, &bitstream);
         #else
         int n = ov_read(file, (char*) &data[read], chunkSize - read, 0, 2, 1, &bitstream);
@@ -656,7 +656,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
 }
 #endif
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
     DataSource* src = static_cast<DataSource*> (datasource);
     size_t r = 0;
@@ -697,7 +697,7 @@ static int close_func(void *datasource) {
 }
 #endif
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void MusicSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

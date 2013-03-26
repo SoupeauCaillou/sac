@@ -8,15 +8,15 @@
 #include "base/MathUtil.h"
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
-#if defined(DEBUG)
+#if defined(SAC_SAC_DEBUG)
 #include <GL/glew.h>
 #include <stdint.h>
 #endif
 
-#ifdef DEBUG
+#ifdef SAC_SAC_DEBUG
 #include "base/Assert.h"
 #endif
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 #include <AntTweakBar.h>
 #endif
 
@@ -27,7 +27,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     currentWriteQueue = 0;
     frameQueueWritable = true;
     newFrameReady = false;
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     mutexes = new std::mutex[3];
     cond = new std::condition_variable[2];
 #endif
@@ -50,7 +50,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 }
 
 RenderingSystem::~RenderingSystem() {
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     delete[] mutexes;
     delete[] cond;
 #endif
@@ -64,7 +64,7 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenW = sW;
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
-    #ifdef INGAME_EDITORS
+    #ifdef SAC_INGAME_EDITORS
     TwWindowSize(width, height);
     #endif
 }
@@ -99,13 +99,13 @@ void RenderingSystem::init() {
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GREATER))
-#if defined(DEBUG)
+#if defined(SAC_SAC_DEBUG)
     GL_OPERATION(glClearDepth(0.0))
 #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
 
-#ifdef USE_VBO
+#ifdef SAC_SAC_USE_VBO
 	glGenBuffers(3, squareBuffers);
 GLfloat sqArray[] = {
 -0.5, -0.5, 0,0,0,
@@ -255,7 +255,7 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-            #ifdef DEBUG
+            #ifdef SAC_SAC_DEBUG
             LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
             #endif
 
@@ -292,7 +292,7 @@ void RenderingSystem::DoUpdate(float) {
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
             
-                   #ifndef USE_VBO
+                   #ifndef SAC_SAC_USE_VBO
                     if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                         c.color.a >= 1 &&
                         info->opaqueSize != Vector2::Zero &&
@@ -336,7 +336,7 @@ void RenderingSystem::DoUpdate(float) {
                 }
             }
 
-             #ifndef USE_VBO
+             #ifndef SAC_SAC_USE_VBO
              if (!rc->fastCulling) {
                 if (!cull(camTrans, c)) {
                     continue;
@@ -393,7 +393,7 @@ void RenderingSystem::DoUpdate(float) {
     //LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
     //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
     mutexes[L_RENDER].lock();
     // Lock for notifying queue change
@@ -401,7 +401,7 @@ void RenderingSystem::DoUpdate(float) {
 #endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();
     mutexes[L_QUEUE].unlock();
     mutexes[L_RENDER].unlock();
@@ -499,11 +499,11 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
     if (frameQueueWritable == b || !initDone)
         return;
     LOGI("Writable: " << b)
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
     frameQueueWritable = b;
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();
     mutexes[L_QUEUE].unlock();
 
@@ -589,7 +589,7 @@ void unpackCameraAttributes(
     ccc->clearColor = in.color;
 }
 
-#ifdef INGAME_EDITORS
+#ifdef SAC_INGAME_EDITORS
 void RenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     RenderingComponent* tc = Get(entity, false);
     if (!tc) return;

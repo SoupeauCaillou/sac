@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(ANDROID) || defined(EMSCRIPTEN)
+#if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN)
 #include <GLES2/gl2.h>
 #else
 #include <GL/glew.h>

@@ -13,7 +13,7 @@ static bool pkmFormatSupported = false;
 void OpenGLTextureCreator::detectSupportedTextureFormat() {
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
     pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
-    #ifdef ANDROID
+    #ifdef SAC_ANDROID
     pkmFormatSupported = true;
     #endif
 }
@@ -155,9 +155,9 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
 
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type type) {
     const bool enableMipMapping =
-#ifdef ANDROID
+#ifdef SAC_ANDROID
     ((type == COLOR) && image.mipmap > 0);
-#elif defined(EMSCRIPTEN)
+#elif defined(SAC_EMSCRIPTEN)
     false;
 #else
     (type == COLOR) || (type == COLOR_ALPHA);
@@ -170,14 +170,14 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 
     if (image.type == ImageDesc::RAW) {
         LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height)
-        #ifdef EMSCRIPTEN
+        #ifdef SAC_EMSCRIPTEN
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
         #else
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, typeToFormat(type), image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
         #endif
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
-       #ifdef ANDROID
+       #ifdef SAC_ANDROID
         char* ptr = image.datas;
         LOGV(2, "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)")
         for (int level=0; level<=image.mipmap; level++) {
@@ -198,7 +198,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         #endif
     }
 
-#if !defined(ANDROID) && !defined(EMSCRIPTEN)
+#if !defined(SAC_ANDROID) && !defined(SAC_EMSCRIPTEN)
     if (image.mipmap == 0 && enableMipMapping) {
         LOGV(1, "Generating mipmaps")
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -208,9 +208,9 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 
 GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& /*name*/, Type type, Vector2& outSize) {
     const bool enableMipMapping =
-#ifdef ANDROID
+#ifdef SAC_ANDROID
     ((type == COLOR) && image.mipmap > 0);
-#elif defined(EMSCRIPTEN)
+#elif defined(SAC_EMSCRIPTEN)
     false;
 #else
     (type == COLOR) || (type == COLOR_ALPHA);
@@ -228,7 +228,7 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
 }
 
 ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) {
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
     // load image
     return isPng ? ImageLoader::loadPng(basename, file) : pvrFormatSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);
 #else

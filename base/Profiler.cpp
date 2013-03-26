@@ -1,6 +1,6 @@
 #include "Profiler.h"
 
-#ifdef ENABLE_PROFILING
+#ifdef SAC_ENABLE_PROFILING
 #include "libs/jsoncpp-src-0.6.0-rc2/include/json/json.h"
 #include <sys/types.h>
 #include <time.h>
@@ -9,7 +9,7 @@
 #include "Log.h"
 #include <sstream>
 
-#if defined(WINDOWS) || defined(DARWIN)
+#if defined(SAC_WINDOWS) || defined(SAC_DARWIN)
 void initProfiler() {
 	LOGW("todo")
 }

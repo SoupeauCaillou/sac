@@ -29,7 +29,7 @@ typedef int EffectRef;
 struct Shader {
     GLuint program;
     GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor, uniformCamera;
-    #ifdef USE_VBO
+    #ifdef SAC_SAC_USE_VBO
     GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
     #endif
 };

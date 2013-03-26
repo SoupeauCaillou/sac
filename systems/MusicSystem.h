@@ -13,11 +13,11 @@ typedef int MusicRef;
 #define InvalidMusicRef -1
 class CircularBuffer;
 
-#ifdef EMSCRIPTEN
+#ifdef SAC_EMSCRIPTEN
 #include <SDL/SDL_mixer.h>
 #endif
 
-// #define MUSIC_VISU
+// #define SAC_MUSIC_VISU
 
 namespace MusicControl {
     enum Enum {
@@ -39,7 +39,7 @@ struct MusicComponent {
     MusicComponent* master;
     float loopAt; // sec
     int positionI; // in [0,1]
-    #ifdef MUSIC_VISU
+    #ifdef SAC_MUSIC_VISU
     float positionF;
     #endif
     float fadeOut, fadeIn; // sec
@@ -71,7 +71,7 @@ private:
 /* textures cache */
 MusicRef nextValidRef;
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 struct MusicInfo {
     MusicInfo() : ovf(0) {}
     OggVorbis_File* ovf;
@@ -84,7 +84,7 @@ struct MusicInfo {
     CircularBuffer* buffer;
     float leftOver;
     bool toRemove;
-    #ifdef MUSIC_VISU
+    #ifdef SAC_MUSIC_VISU
     std::string name;
     #endif
 };
@@ -94,7 +94,7 @@ std::map<MusicRef, Mix_Chunk*> musics;
 #endif
 
 bool muted;
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 std::thread oggDecompressionThread;
 std::mutex mutex;
 std::condition_variable cond;
@@ -102,11 +102,11 @@ std::condition_variable cond;
 std::map<std::string, FileBuffer> name2buffer;
 #endif
 
-#ifdef MUSIC_VISU
+#ifdef SAC_MUSIC_VISU
 std::map<Entity, std::pair<Entity, Entity> > visualisationEntities;
 #endif
 
-#ifndef EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);
 bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount, float dt);
 #endif
