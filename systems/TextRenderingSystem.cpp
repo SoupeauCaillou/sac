@@ -16,7 +16,7 @@ struct CacheKey {
     Color color;
     float charHeight;
     float positioning;
-    bool hide;
+    bool show;
     int flags;
     struct {
         bool show;
@@ -30,7 +30,8 @@ struct CacheKey {
         color = tc->color;
         charHeight = tc->charHeight;
         positioning = tc->positioning;
-        hide = tc->hide;
+        // TODO
+        show = tc->show;
         flags = tc->flags;
         memcpy(&caret, &tc->caret, sizeof(caret));
         cameraBitMask = tc->cameraBitMask;
@@ -80,7 +81,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
         }
 
 		// early quit if hidden
-		if (trc->hide) {
+		if (!trc->show) {
 			continue;
 		}
 
@@ -201,7 +202,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
             tc->parent = entity;
             tc->z = 0.001; // put text in front
             tc->worldPosition = trans->worldPosition;
-            rc->hide = trc->hide;
+            rc->show = trc->show;
             rc->cameraBitMask = trc->cameraBitMask;
 
             // At this point, we have the proper unicodeId to display,
@@ -230,7 +231,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 tc->size = Vector2(charHeight * info.h2wRatio, charHeight);
                 // if letter is space, hide it
                 if (unicode == 0x20) {
-                    rc->hide = true;
+                    rc->show = false;
                 } else {
                     rc->texture = info.texture;
                     rc->color = trc->color;
@@ -269,7 +270,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
     for (unsigned i=letterCount; i<renderingEntitiesPool.size(); i++) {
         const Entity e = renderingEntitiesPool[i];
         TRANSFORM(e)->parent = 0;
-        RENDERING(e)->hide =true;
+        RENDERING(e)->show = false;
     }
 }
 

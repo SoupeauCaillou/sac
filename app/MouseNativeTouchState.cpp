@@ -64,11 +64,11 @@ bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
             if (globalFTW == 0)
                 break;
 
-            if (!TEXT_RENDERING(globalFTW)->hide) {
+            if (TEXT_RENDERING(globalFTW)->show) {
                 char c;
                 switch (event.key.keysym.sym) {
                     case SDLK_BACKSPACE:
-                        if (!TEXT_RENDERING(nameInput->nameEdit)->hide) {
+                        if (TEXT_RENDERING(nameInput->nameEdit)->show) {
                             std::string& text = TEXT_RENDERING(nameInput->nameEdit)->text;
                             if (text.length() > 0) {
                                 text.resize(text.length() - 1);
@@ -76,7 +76,7 @@ bool MouseNativeTouchState::isTouching(int, Vector2* windowCoords) const {
                         }
                         break;
                     case SDLK_RETURN:
-                        if (!TEXT_RENDERING(nameInput->nameEdit)->hide) {
+                        if (TEXT_RENDERING(nameInput->nameEdit)->show) {
                             nameInput->textIsReady = true;
                         }
                         break;

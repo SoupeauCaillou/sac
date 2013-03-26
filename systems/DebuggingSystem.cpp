@@ -29,7 +29,7 @@ static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& system
     TRANSFORM(fps)->z = 0;
     ADD_COMPONENT(fps, Rendering);
     RENDERING(fps)->texture = theRenderingSystem.loadTextureFile(FpsTextureName);
-    RENDERING(fps)->hide = false;
+    RENDERING(fps)->show = true;
     ADD_COMPONENT(fps, Graph);
     GRAPH(fps)->textureName = FpsTextureName;
     GRAPH(fps)->minY = 0;
@@ -43,7 +43,7 @@ static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& system
     TRANSFORM(entityCount)->z = 0;
     ADD_COMPONENT(entityCount, Rendering);
     RENDERING(entityCount)->texture = theRenderingSystem.loadTextureFile(EntitiesTextureName);
-    RENDERING(entityCount)->hide = false;
+    RENDERING(entityCount)->show = true;
     ADD_COMPONENT(entityCount, Graph);
     GRAPH(entityCount)->textureName = EntitiesTextureName;
 
@@ -55,7 +55,7 @@ static void init(Entity camera, Entity& fps, Entity& entityCount, Entity& system
     TRANSFORM(systems)->z = 0;
     ADD_COMPONENT(systems, Rendering);
     RENDERING(systems)->texture = theRenderingSystem.loadTextureFile(SystemsTextureName);
-    RENDERING(systems)->hide = false;
+    RENDERING(systems)->show = true;
 }
 
 static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index) {
@@ -159,7 +159,7 @@ void DebuggingSystem::DoUpdate(float dt) {
 
         ADD_COMPONENT(c, TextRendering);
         TEXT_RENDERING(c)->fontName = "typo";
-        TEXT_RENDERING(c)->hide = true;
+        TEXT_RENDERING(c)->show = false;
         TEXT_RENDERING(c)->charHeight = 1;
         captionGraph.push_back(c);
     }
@@ -196,7 +196,7 @@ void DebuggingSystem::DoUpdate(float dt) {
                     TRANSFORM(*it)->z = -0.1;
                     TRANSFORM(*it)->parent = activeCamera;
                 }
-                TEXT_RENDERING(*it)->hide = false;
+                TEXT_RENDERING(*it)->show = true;
                 TEXT_RENDERING(*it)->text = a.str();
                 TEXT_RENDERING(*it)->color = GRAPH(debugEntity.second)->lineColor;
 
@@ -209,7 +209,7 @@ void DebuggingSystem::DoUpdate(float dt) {
     if (reloadFrequency > 0.5f) {
         reloadFrequency = 0;
         while (it != captionGraph.end()) {
-            TEXT_RENDERING(*it)->hide = true;
+            TEXT_RENDERING(*it)->show = false;
             ++it;
         }
     }

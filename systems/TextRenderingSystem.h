@@ -21,7 +21,7 @@ struct TextRenderingComponent {
 	const static int MultiLineBit = 1 << 2;
 
 	TextRenderingComponent() : text(""), fontName("typo"),
-	positioning(CENTER), hide(true), flags(0), cameraBitMask(~0U) {
+	positioning(CENTER), show(false), flags(0), cameraBitMask(~0U) {
 		caret.show = false;
 		caret.speed = caret.dt = 0;
 		blink.offDuration =
@@ -42,7 +42,7 @@ struct TextRenderingComponent {
 
 	std::string fontName;
 	float positioning;
-	bool hide;
+	bool show;
 	int flags;
 	struct {
 		bool show;

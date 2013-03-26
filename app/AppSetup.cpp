@@ -93,7 +93,7 @@ void GLFWCALL myCharCallback( int c, int action ) {
     if (globalFTW == 0) {
 
     } else {
-        if (!TEXT_RENDERING(globalFTW)->hide) {
+        if (TEXT_RENDERING(globalFTW)->show) {
             if (action == GLFW_PRESS && (isalnum(c) || c == ' ')) {
                 if (TEXT_RENDERING(globalFTW)->text.length() > 10)
                     return;
@@ -108,7 +108,7 @@ void GLFWCALL myKeyCallback( int key, int action ) {
     if (action != GLFW_RELEASE)
         return;
     if (key == GLFW_KEY_BACKSPACE) {
-        if (!TEXT_RENDERING(nameInput->nameEdit)->hide) {
+        if (TEXT_RENDERING(nameInput->nameEdit)->show) {
             std::string& text = TEXT_RENDERING(nameInput->nameEdit)->text;
             if (text.length() > 0) {
                 text.resize(text.length() - 1);
@@ -162,7 +162,7 @@ static void updateAndRenderLoop() {
       #endif
       //user entered his name?
       if (glfwGetKey( GLFW_KEY_ENTER )) {
-     if (!TEXT_RENDERING(nameInput->nameEdit)->hide) {
+     if (TEXT_RENDERING(nameInput->nameEdit)->show) {
         nameInput->textIsReady = true;
      }
       }

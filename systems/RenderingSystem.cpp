@@ -36,7 +36,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new Property<TextureRef>(OFFSET(texture, tc)));
     componentSerializer.add(new Property<EffectRef>(OFFSET(effectRef, tc)));
     componentSerializer.add(new Property<Color>(OFFSET(color, tc)));
-    componentSerializer.add(new Property<bool>(OFFSET(hide, tc)));
+    componentSerializer.add(new Property<bool>(OFFSET(show, tc)));
     componentSerializer.add(new Property<bool>(OFFSET(mirrorH, tc)));
     componentSerializer.add(new Property<bool>(OFFSET(zPrePass, tc)));
     componentSerializer.add(new Property<bool>(OFFSET(fastCulling, tc)));
@@ -246,7 +246,7 @@ void RenderingSystem::DoUpdate(float) {
     	/* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
             bool ccc = rc->cameraBitMask & (0x1 << camComp->id);
-    		if (rc->hide || rc->color.a <= 0 || !ccc ) {
+    		if (!rc->show || rc->color.a <= 0 || !ccc ) {
     			continue;
     		}
 
@@ -594,7 +594,7 @@ void RenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     RenderingComponent* tc = Get(entity, false);
     if (!tc) return;
     TwAddVarRW(bar, "color", TW_TYPE_COLOR4F, &tc->color, "group=Rendering");
-    TwAddVarRW(bar, "hide", TW_TYPE_BOOLCPP, &tc->hide, "group=Rendering");
+    TwAddVarRW(bar, "show", TW_TYPE_BOOLCPP, &tc->show, "group=Rendering");
     TwEnumVal opa[] = { {RenderingComponent::NON_OPAQUE, "NonOpaque"}, {RenderingComponent::FULL_OPAQUE, "Opaque"} };
     TwType op = TwDefineEnum("OpaqueType", opa, 2);
     TwAddVarRW(bar, "opaque", op, &tc->opaqueType, "group=Rendering");

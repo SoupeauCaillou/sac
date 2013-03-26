@@ -307,7 +307,7 @@ void MusicSystem::DoUpdate(float dt) {
             Entity e = theEntityManager.CreateEntity();
             ADD_COMPONENT(e, Rendering);
             RENDERING(e)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
-            RENDERING(e)->hide = false;
+            RENDERING(e)->show = false;
             ADD_COMPONENT(e, Transformation);
             TRANSFORM(e)->size = Vector2(0.5, 1);
             TRANSFORM(e)->z = 0.75;
@@ -315,12 +315,12 @@ void MusicSystem::DoUpdate(float dt) {
             TEXT_RENDERING(e)->charHeight = 0.4;
             TEXT_RENDERING(e)->color = Color(0,0,0);
             TEXT_RENDERING(e)->text = "A";
-            TEXT_RENDERING(e)->hide = false;
+            TEXT_RENDERING(e)->show = false;
 
             Entity f = theEntityManager.CreateEntity();
             ADD_COMPONENT(f, Rendering);
             RENDERING(f)->color = Color((size % 2), (size % 2), (size % 2), 0.6);
-            RENDERING(f)->hide = false;
+            RENDERING(f)->show = false;
             ADD_COMPONENT(f, Transformation);
             TRANSFORM(f)->size = Vector2(0.5, 1);
             TRANSFORM(f)->z = 0.75;
@@ -346,9 +346,9 @@ void MusicSystem::DoUpdate(float dt) {
             Vector2(
                 PlacementHelper::GimpXToScreen(0) + idx * VisuWidth * 2 + TRANSFORM(e)->size.X * 0.5, PlacementHelper::GimpYToScreen(0)),
             TransformationSystem::NW);
-            RENDERING(f)->hide = rc->opaque[1] ? false : true;
+            RENDERING(f)->show = rc->opaque[1] ? false : true;
          } else {
-            RENDERING(f)->hide = true;
+            RENDERING(f)->show = true;
          }
 
          if (rc->music != InvalidMusicRef) {
@@ -357,18 +357,18 @@ void MusicSystem::DoUpdate(float dt) {
             } else {
                 TEXT_RENDERING(e)->text = musics[rc->music].name;
             }
-            TEXT_RENDERING(e)->hide = false;
+            TEXT_RENDERING(e)->show = false;
          } else if (rc->loopNext != InvalidMusicRef) {
             TEXT_RENDERING(e)->text = "}" + musics[rc->loopNext].name;
-            TEXT_RENDERING(e)->hide = false;
+            TEXT_RENDERING(e)->show = false;
          } else {
-            TEXT_RENDERING(e)->hide = true;
+            TEXT_RENDERING(e)->show = true;
          }
          if (rc->previousEnding != InvalidMusicRef) {
             TEXT_RENDERING(f)->text = musics[rc->previousEnding].name;
-            TEXT_RENDERING(f)->hide = false;
+            TEXT_RENDERING(f)->show = false;
          } else {
-            TEXT_RENDERING(f)->hide = true;
+            TEXT_RENDERING(f)->show = true;
          }
 
         if (rc->control == MusicControl::Stop) {

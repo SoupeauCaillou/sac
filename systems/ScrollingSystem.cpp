@@ -28,10 +28,10 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        }
 	        continue;
         }
-        if (sc->hide) {
+        if (!sc->show) {
 	        ScrollingElement& se = iter->second;
 	        for (int i=0; i<2; i++) {
-	        	RENDERING(se.e[i])->hide = true;
+	        	RENDERING(se.e[i])->show = false;
 	        }
 	        continue;
         }
@@ -39,8 +39,8 @@ void ScrollingSystem::DoUpdate(float dt) {
         assert (sc->speed >= 0);
 	    ScrollingElement& se = iter->second;
 	    for (int i=0; i<2; i++) {
-		    if (RENDERING(se.e[i])->hide)
-		    	RENDERING(se.e[i])->hide = false;
+		    if (!RENDERING(se.e[i])->show)
+		    	RENDERING(se.e[i])->show = true;
 
 	        TransformationComponent* tc = TRANSFORM(se.e[i]);
 	        TransformationComponent* ptc = TRANSFORM(a);

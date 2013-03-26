@@ -48,7 +48,7 @@ void AnimationSystem::DoUpdate(float dt) {
                 bc->waitAccum -= dt;
                 if (bc->waitAccum <= 0) {
                     bc->waitAccum = 0;
-                    RENDERING(a)->hide = false;
+                    RENDERING(a)->show = true;
                 }
             } else {
                 bc->accum += dt * anim->playbackSpeed * bc->playbackSpeed;
@@ -62,7 +62,7 @@ void AnimationSystem::DoUpdate(float dt) {
                         bc->loopCount--;
                     } else if (!anim->nextAnim.empty()) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
-                            RENDERING(a)->hide = true;
+                            RENDERING(a)->show = false;
                         bc->name = anim->nextAnim;
                         break;
                     }

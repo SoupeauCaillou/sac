@@ -10,7 +10,7 @@ struct ScrollingComponent {
     float speed;
     Vector2 displaySize;
     // transitive rendering properties
-    bool hide;
+    bool show;
     RenderingComponent::Opacity opaqueType;
 };
 

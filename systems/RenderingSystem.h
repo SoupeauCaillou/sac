@@ -32,7 +32,7 @@ typedef int FramebufferRef;
 struct TransformationComponent;
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), hide(true), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(0x1) {
+	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), show(false), mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(0x1) {
         fbo = false;
     }
 
@@ -42,7 +42,7 @@ struct RenderingComponent {
     };
 	EffectRef effectRef;
 	Color color;
-	bool hide, mirrorH, zPrePass, fastCulling, fbo;
+	bool show, mirrorH, zPrePass, fastCulling, fbo;
 	enum Opacity {
 		NON_OPAQUE = 0,
 		FULL_OPAQUE

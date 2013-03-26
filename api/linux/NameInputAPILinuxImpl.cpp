@@ -5,8 +5,8 @@
 #include "systems/ButtonSystem.h"
 
 void NameInputAPILinuxImpl::show() {
-    TEXT_RENDERING(title)->hide = TEXT_RENDERING(nameEdit)->hide = false;
-    RENDERING(background)->hide = false;
+    TEXT_RENDERING(title)->show = TEXT_RENDERING(nameEdit)->show = true;
+    RENDERING(background)->show = true;
     // BUTTON(button)->enabled = true;
     textIsReady = false;
 }
@@ -21,8 +21,8 @@ bool NameInputAPILinuxImpl::done(std::string& name) {
 }
 
 void NameInputAPILinuxImpl::hide() {
-    TEXT_RENDERING(title)->hide = TEXT_RENDERING(nameEdit)->hide = true;
-    RENDERING(background)->hide = true;
+    TEXT_RENDERING(title)->show = TEXT_RENDERING(nameEdit)->show = false;
+    RENDERING(background)->show = false;
     // BUTTON(button)->enabled = false;
 }
 

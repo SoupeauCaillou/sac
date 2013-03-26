@@ -105,12 +105,17 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
     _unlock();
     TRANSFORM(selectionDisplay)->parent = e;
     TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + Vector2(0.1);
-    RENDERING(selectionDisplay)->hide = false;
+    RENDERING(selectionDisplay)->show = true;
     originalColor = RENDERING(e)->color;
     // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
 }
+<<<<<<< HEAD
 void LevelEditor::LevelEditorDatas::deselect(Entity) {
     RENDERING(selectionDisplay)->hide = true;
+=======
+void LevelEditor::LevelEditorDatas::deselect(Entity e) {
+    RENDERING(selectionDisplay)->show = false;
+>>>>>>> 8ad4f8f... change hide by show
 }
 
 TwBar* entityListBar;
@@ -244,7 +249,7 @@ void LevelEditor::LevelEditorDatas::buildGallery() {
     TRANSFORM(gallery)->z = 0.99;
     TRANSFORM(gallery)->size = gallerySize;
     ADD_COMPONENT(gallery, Rendering);
-    RENDERING(gallery)->hide = false;
+    RENDERING(gallery)->show = true;
     RENDERING(gallery)->color = Color(0, 0, 0, 0.8);
 
     int count = 0;
@@ -263,7 +268,7 @@ void LevelEditor::LevelEditorDatas::buildGallery() {
             TRANSFORM(e)->size = Vector2(texSize * te.X / te.Y, texSize);
         TRANSFORM(e)->position = Vector2(column * texSize * 1, row * texSize * 1) - gallerySize * 0.5 + Vector2(texSize * 0.5);
         ADD_COMPONENT(e, Rendering);
-        RENDERING(e)->hide = false;
+        RENDERING(e)->show = true;
         RENDERING(e)->texture = it->second;
         RENDERING(e)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
         // RENDERING(e)->opaqueType = RenderingComponent::FULL_OPAQUE;
@@ -296,7 +301,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vect
                     continue;
                 if (entities[i] == selected)
                     continue;
-                if (RENDERING(entities[i])->hide)
+                if (!RENDERING(entities[i])->show)
                     continue;
                 if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
                     float d = Vector2::DistanceSquared(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
@@ -310,9 +315,9 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vect
             if (over) {
                 TRANSFORM(overDisplay)->parent = over;
                 TRANSFORM(overDisplay)->size = TRANSFORM(over)->size + Vector2(0.1);
-                RENDERING(overDisplay)->hide = false;
+                RENDERING(overDisplay)->show = true;
             } else {
-                RENDERING(overDisplay)->hide = true;
+                RENDERING(overDisplay)->show = false;
             }
         } else {
             if (over) {
@@ -322,7 +327,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vect
                 LOGI("Selected entity: '" << theEntityManager.entityName(selected) << "'")
                 select(selected);
                 over = 0;
-                RENDERING(overDisplay)->hide = true;
+                RENDERING(overDisplay)->show = false;
             }
         }
     } 
@@ -397,7 +402,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const Vect
             TRANSFORM(e)->position = theRenderingSystem.cameras[activeCameraIndex].worldPosition;
             TRANSFORM(e)->z = 0.95;
             ADD_COMPONENT(e, Rendering);
-            RENDERING(e)->hide = false;
+            RENDERING(e)->show = true;
             selected = e;
         } else
             changeMode(EditorMode::Gallery);
