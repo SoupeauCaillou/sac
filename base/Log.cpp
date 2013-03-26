@@ -3,6 +3,16 @@
 #include <iomanip>
 
 LogVerbosity::Enum logLevel = LogVerbosity::INFO;
+std::map<std::string, bool> verboseFilenameFilters;
+
+class NullStream : public std::ostream {
+public:
+    template<class T>
+    std::ostream& operator<<(const T& r) {
+        return *this;
+    }
+};
+NullStream slashDevslashNull;
 
 static const char* enumNames[] ={
 	"FATAL",
@@ -31,6 +41,10 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
 }
 
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line) {
-	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << keepOnlyFilename(file) << ':' << line << " : ";
+    const char* trimmed = keepOnlyFilename(file);
+    if (!verboseFilenameFilters[trimmed]) {
+        return slashDevslashNull;
+    }
+	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";
 	return stream;
 }
