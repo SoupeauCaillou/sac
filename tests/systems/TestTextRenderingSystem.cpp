@@ -1,6 +1,6 @@
 #include <UnitTest++.h>
 
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
 #include "systems/TextRenderingSystem.h"
 #include <map>
 

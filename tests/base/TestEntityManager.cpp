@@ -1,6 +1,8 @@
 #include <UnitTest++.h>
-#include "base/EntityManager.h"
-#include "base/MathUtil.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
+
+#include <base/EntityManager.h>
 #include "systems/TransformationSystem.h"
 #include "systems/ADSRSystem.h"
 
@@ -25,11 +27,11 @@ TEST(Serialization)
 	TransformationSystem::CreateInstance();
 	theEntityManager.deleteAllEntities();
 
-	unsigned eCount = MathUtil::RandomInt(20) + 1;
-	for (unsigned i = 0; i < eCount; i++) {
+	unsigned eCount = glm::linearRand(1, 20);
+	for (unsigned i = 0; i < eCount; ++i) {
 		Entity e = theEntityManager.CreateEntity("d", EntityType::Persistent);
 		ADD_COMPONENT(e, Transformation);
-		TRANSFORM(e)->position = Vector2(i, i);
+		TRANSFORM(e)->position = glm::vec2(i, i);
 	}
 	CHECK_EQUAL(eCount, theEntityManager.allEntities().size());
 
@@ -47,7 +49,8 @@ TEST(Serialization)
 	for (unsigned i = 0; i < entities.size(); i++) {
 		TransformationComponent* tc = TRANSFORM(entities[i]);
 		CHECK(tc != 0);
-		CHECK_EQUAL(Vector2(i, i), tc->position);
+		CHECK_EQUAL(glm::vec2(i, i).x, tc->position.x);
+        CHECK_EQUAL(glm::vec2(i, i).y, tc->position.y);
 	}
 
 	delete[] dump;

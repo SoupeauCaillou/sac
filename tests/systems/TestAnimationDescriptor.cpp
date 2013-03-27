@@ -72,10 +72,10 @@ TEST(LoadFramesTransforms)
     CHECK_EQUAL(2, desc.frames.size());
     CHECK_EQUAL(1, desc.frames[0].transforms.size());
     CHECK_EQUAL(2, desc.frames[1].transforms.size());
-    CHECK_CLOSE(120, desc.frames[0].transforms[0].position.X, 0.001);
-    CHECK_CLOSE(30, desc.frames[0].transforms[0].position.Y, 0.001);
-    CHECK_CLOSE(50, desc.frames[0].transforms[0].size.X, 0.001);
-    CHECK_CLOSE(50, desc.frames[0].transforms[0].size.Y, 0.001);
+    CHECK_CLOSE(120, desc.frames[0].transforms[0].position.x, 0.001);
+    CHECK_CLOSE(30, desc.frames[0].transforms[0].position.y, 0.001);
+    CHECK_CLOSE(50, desc.frames[0].transforms[0].size.x, 0.001);
+    CHECK_CLOSE(50, desc.frames[0].transforms[0].size.y, 0.001);
     CHECK_CLOSE(-0.1, desc.frames[0].transforms[0].rotation, 0.001);
     RenderingSystem::DestroyInstance();
 }

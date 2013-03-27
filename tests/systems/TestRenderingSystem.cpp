@@ -1,12 +1,14 @@
 #include <UnitTest++.h>
 
-#include "base/MathUtil.h"
+#include <base/Log.h>
+
+#include <glm/glm.hpp>
 #include "systems/RenderingSystem.h"
 #include <algorithm>
 
 TEST(save_restore_internalState)
 {
-LOG(WARNING) << "RESTORE TEST ?";
+LOGW("RESTORE TEST ?");
 #if 0
 	RenderingSystem::CreateInstance();
 	std::map<std::string, TextureRef> initial;

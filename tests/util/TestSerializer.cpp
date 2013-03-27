@@ -178,11 +178,11 @@ TEST (TestInterval)
 
 TEST (TestVector2)
 {
-    uint8_t buf[sizeof(Vector2)];
-    Vector2 i(1.5, -7.6), j;
-    Property<Vector2> vp(0, Vector2(0.001, 0));
+    uint8_t buf[sizeof(glm::vec2)];
+    glm::vec2 i(1.5, -7.6), j;
+    Property<glm::vec2> vp(0, glm::vec2(0.001, 0));
     vp.serialize(buf, &i);
     vp.deserialize(buf, &j);
-    CHECK_CLOSE(i.X, j.X, 0.001);
-    CHECK_CLOSE(i.Y, j.Y, 0.001);
+    CHECK_CLOSE(i.x, j.x, 0.001);
+    CHECK_CLOSE(i.y, j.y, 0.001);
 }

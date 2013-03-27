@@ -24,6 +24,7 @@ function (check_and_link_libs target)
         if (${LIB}_FOUND)
           include_directories(${${LIB}_INCLUDE_DIR})
           target_link_libraries (${target} ${${LIB}_LIBRARY})
+          message("linked ${LIB} to ${target}")
         endif ()
     endforeach()
 endfunction()
@@ -166,6 +167,7 @@ endif()
 
 #unit tests, if installed
 find_package (UnitTest++)
+message("youplapla ${UNITTEST_INCLUDE_DIR}")
 if (UNITTEST_FOUND)
     include_directories(${UNITTEST_INCLUDE_DIR})
 

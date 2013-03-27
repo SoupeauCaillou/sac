@@ -1,5 +1,6 @@
 #include <UnitTest++.h>
 #include "systems/MorphingSystem.h"
+#include <glm/glm.hpp>
 
 TEST(SimpleMorphing)
 {
@@ -35,10 +36,10 @@ TEST(DoubleMorphing)
     MorphingComponent* m = MORPHING(e);
 
     float floatOutput;
-    Vector2 vectorOut;
+    glm::vec2 vectorOut;
 
     TypedMorphElement<float>* floatMorph = new TypedMorphElement<float>(&floatOutput, 3, 6.7);
-    TypedMorphElement<Vector2>* vecMorph = new TypedMorphElement<Vector2>(&vectorOut, Vector2::Zero, Vector2(5, -1));
+    TypedMorphElement<glm::vec2>* vecMorph = new TypedMorphElement<glm::vec2>(&vectorOut, glm::vec2(0., 0.), glm::vec2(5, -1));
 
 
     m->elements.push_back(floatMorph);
@@ -50,7 +51,9 @@ TEST(DoubleMorphing)
     theMorphingSystem.Update(0);
     theMorphingSystem.Update(1);
     CHECK_CLOSE(6.7, floatOutput, 0.0001);
-    CHECK_EQUAL(Vector2(5, -1), vectorOut);
+    CHECK_EQUAL(glm::vec2(5, -1).x, vectorOut.x);
+    CHECK_EQUAL(glm::vec2(5, -1).y, vectorOut.y);
+
     //CHECK_EQUAL(0, m->elements.size());
 
     MorphingSystem::DestroyInstance();
