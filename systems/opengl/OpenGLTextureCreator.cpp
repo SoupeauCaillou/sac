@@ -118,7 +118,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
         file = assetAPI->loadAsset(name + ".png");
         if (!file.data) {
             LOGE("Image not found '" << name << ".png'")
-            return false;
+            return 0;
         }
         png = true;
     }
@@ -128,7 +128,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     delete[] file.data;
     if (!image.datas) {
         LOGE("Could not read image, aborting")
-        return false;
+        return 0;
     }
     imgChannelCount = image.channels;
 
