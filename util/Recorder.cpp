@@ -207,7 +207,7 @@ void Recorder::start(){
 #ifdef SAC_WINDOWS
     
 #else
-    if (outfile == NULL && recording == false){
+    if (outfile == NULL && !recording && !th1.joinable()){
         std::cout << "Recording start" << std::endl;
 
         //new file : time
@@ -226,7 +226,7 @@ void Recorder::start(){
 
         // on lance le thread pour l'encodage
         th1 = std::thread(videoEncoder_Callback, (void*) this);
-        if ( th1.get_id() == std::thread::id() ) {
+        if (!th1.joinable()) {
             std::cout << "thread creating error" << std::endl;
         }
     }
@@ -241,8 +241,6 @@ void Recorder::stop(){
         buf.push(NULL);
         mutex_buf.unlock();
         recording = false;
-
-        th1.join();
     }
 }
 
