@@ -180,8 +180,6 @@ if (UNITTEST_FOUND)
 
     target_link_libraries("sac_tests" sac)
 
-
-    ENABLE_TESTING()
-    add_test(SacUnitTests sac_tests)
-
+    #launch sac_tests after each build
+    add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
 endif ()

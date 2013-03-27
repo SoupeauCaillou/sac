@@ -27,7 +27,7 @@ TEST(Serialization)
 	TransformationSystem::CreateInstance();
 	theEntityManager.deleteAllEntities();
 
-	unsigned eCount = glm::linearRand(1, 20);
+	unsigned eCount = (unsigned) glm::linearRand(1.f, 20.f);
 	for (unsigned i = 0; i < eCount; ++i) {
 		Entity e = theEntityManager.CreateEntity("d", EntityType::Persistent);
 		ADD_COMPONENT(e, Transformation);
