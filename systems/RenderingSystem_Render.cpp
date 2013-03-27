@@ -302,6 +302,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 rc.uv[1] = glm::vec2(1, 0);
                 rc.rotateUV = 0;
             }
+            if (rc.glref.color == 0)
+                rc.glref.color = whiteTexture;
 		} else {
 			rc.glref = InternalTexture::Invalid;
 			rc.glref.color = whiteTexture;
