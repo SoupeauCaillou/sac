@@ -1,8 +1,7 @@
 ADD_DEFINITIONS(-DSAC_DEBUG=1 -DSAC_ENABLE_LOG=1 -DSAC_INGAME_EDITORS=1
     -DSAC_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets/")
 
-add_subdirectory(platforms/android)
-
+set(MOBILE_BUILD 1)
 
 
 

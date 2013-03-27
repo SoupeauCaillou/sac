@@ -62,14 +62,12 @@ else()
         file(
             GLOB_RECURSE platform_source_files
             ${PROJECT_SOURCE_DIR}/sac/api/linux/*
-            ${PROJECT_SOURCE_DIR}/platforms/default/*
             ${PROJECT_SOURCE_DIR}/sources/api/linux/*
         )
     elseif (MOBILE_BUILD)
         file(
             GLOB_RECURSE platform_source_files
             ${PROJECT_SOURCE_DIR}/sac/api/android/*
-            ${PROJECT_SOURCE_DIR}/platforms/android/*
             ${PROJECT_SOURCE_DIR}/sources/api/android/*
         )
     else()
@@ -99,6 +97,18 @@ else()
        set(EXTRA_LIBS ${COCOA_LIBRARY} ${OPENGL_LIBRARY} ${IOKIT_LIBRARY} c)
        target_link_libraries(sac ${EXTRA_LIBS})
     endif ()
+
+
+
+
+
+    file(
+        GLOB_RECURSE source_platforms_files
+        ${PROJECT_SOURCE_DIR}/platforms/default/*
+    )
+    add_executable(${PROJECT_NAME} ${source_platforms_files})
+    target_link_libraries(${PROJECT_NAME} sac)
+
 endif()
 #######################################################################
 #############################Post build actions########################
@@ -154,23 +164,18 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(texture_packer sac)
 endif()
 
-if (DESKTOP_BUILD)
-    #unit tests, if installed
-    find_package (UnitTest++)
-    if (UNITTEST_FOUND)
-        include_directories(${UNITTEST_INCLUDE_DIR})
-        file(
-                GLOB_RECURSE test_source_files
-                ${PROJECT_SOURCE_DIR}/sac/tests/*
-        )
+#unit tests, if installed
+find_package (UnitTest++)
+if (UNITTEST_FOUND)
+    include_directories(${UNITTEST_INCLUDE_DIR})
+    file(
+            GLOB_RECURSE test_source_files
+            ${PROJECT_SOURCE_DIR}/sac/tests/*.cpp
+            ${PROJECT_SOURCE_DIR}/tests/*.cpp
+    )
 
-        add_executable(sac_tests ${test_source_files})
+    add_test(sac_tests ${test_source_files})
 
-        #the necessary libs
-        check_and_link_libs("sac_tets" GLEW GLFW OpenAL Sqlite3 AntTweakBar
-        VorbisFile Vorbis Zlib UnitTest++ ogg tinyxml2)
-
-        #launch sac_tests after each build
-        add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
-    endif ()
-endif()
+    #the necessary libs
+    check_and_link_libs("sac_tests" UnitTest++)
+endif ()

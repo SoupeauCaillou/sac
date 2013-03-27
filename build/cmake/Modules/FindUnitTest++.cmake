@@ -5,7 +5,7 @@ set(NAME "UNITTEST")
 set(DIR_POSSIBLE_NAMES UNITTEST unittest Unittest UnitTest unittest++)
 
 #headers' directory name
-set(HEADER_DIR include)
+set(HEADER_DIR include include/unittest++)
 
 #libraries' directory name
 set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64)
