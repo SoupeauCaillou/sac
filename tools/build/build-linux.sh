@@ -65,7 +65,7 @@ source ../coolStuff.sh
 		fi
 	fi
 	
-	executable=./platforms/default/$gameName
+	executable=./$gameName
 	#debug required
 	if [ ! -z $(echo $1 | grep d) ]; then
 		#does not work with cgdb yet :(

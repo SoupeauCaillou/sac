@@ -168,14 +168,19 @@ endif()
 find_package (UnitTest++)
 if (UNITTEST_FOUND)
     include_directories(${UNITTEST_INCLUDE_DIR})
+
     file(
             GLOB_RECURSE test_source_files
             ${PROJECT_SOURCE_DIR}/sac/tests/*.cpp
             ${PROJECT_SOURCE_DIR}/tests/*.cpp
     )
-
-    add_test(sac_tests ${test_source_files})
+    add_executable(sac_tests ${test_source_files})
 
     #the necessary libs
     check_and_link_libs("sac_tests" UnitTest++)
+    target_link_libraries("sac_tests" sac)
+
+    ENABLE_TESTING()
+    add_test(SacUnitTests sac_tests)
+
 endif ()
