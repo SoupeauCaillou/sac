@@ -24,7 +24,6 @@ function (check_and_link_libs target)
         if (${LIB}_FOUND)
           include_directories(${${LIB}_INCLUDE_DIR})
           target_link_libraries (${target} ${${LIB}_LIBRARY})
-          message("linked ${LIB} to ${target}")
         endif ()
     endforeach()
 endfunction()
@@ -167,10 +166,7 @@ endif()
 
 #unit tests, if installed
 find_package (UnitTest++)
-message("youplapla ${UNITTEST_INCLUDE_DIR}")
 if (UNITTEST_FOUND)
-    include_directories(${UNITTEST_INCLUDE_DIR})
-
     file(
             GLOB_RECURSE test_source_files
             ${PROJECT_SOURCE_DIR}/sac/tests/*.cpp
@@ -179,8 +175,11 @@ if (UNITTEST_FOUND)
     add_executable(sac_tests ${test_source_files})
 
     #the necessary libs
-    check_and_link_libs("sac_tests" UnitTest++)
+    include_directories(${UNITTEST_INCLUDE_DIR})
+    target_link_libraries ("sac_tests" ${UNITTEST_LIBRARY})
+
     target_link_libraries("sac_tests" sac)
+
 
     ENABLE_TESTING()
     add_test(SacUnitTests sac_tests)
