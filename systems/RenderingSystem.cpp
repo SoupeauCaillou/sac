@@ -292,9 +292,9 @@ void RenderingSystem::DoUpdate(float) {
 
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
-            
+
                    #ifndef SAC_USE_VBO
-                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                    if (0 && rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                         c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
                         !rc->zPrePass) {
