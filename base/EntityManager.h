@@ -29,8 +29,6 @@ class EntityManager {
 		static void DestroyInstance();
 
 	public:
-        Entity CreateEntity() { return CreateEntity(""); }
-
 		Entity CreateEntity(const std::string&
         #ifdef SAC_DEBUG
             name = "noname"
