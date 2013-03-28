@@ -284,7 +284,11 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
         theMusicSystem.assetAPI = ctx.assetAPI;
         theMusicSystem.init();
     }
-
+    if (contextOptions & CONTEXT_WANT_LOCALIZE_API) {
+        char* lang = strdup(getenv("LANG"));
+        lang[2] = '\0';
+        static_cast<LocalizeAPILinuxImpl*>(ctx.localizeAPI)->init(ctx.assetAPI, lang);
+    }
 
     /////////////////////////////////////////////////////
     // Init game

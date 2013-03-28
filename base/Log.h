@@ -45,12 +45,14 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define LOGV_IF(verbosity, cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::INFO + verbosity) { vlogToStream(std::cout, verbosity, __FILE__, __LINE__) << x << std::endl; } }
 
 #define LOG_EVERY_N(log, n, x) {\
-static int __log_count = 0;\
-if (!__log_count) {\
- __log_count = n;\
- log(x);\
-  } else {\
-   --__log_count;\
+    static int __log_count = 0;\
+    if (!__log_count) {\
+        __log_count = n;\
+        log(x);\
+    } else {\
+        --__log_count;\
     }\
 }
+
+
 #endif

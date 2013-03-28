@@ -26,7 +26,6 @@
 	#endif
 #endif
 
-#include <iostream> // à virer
 
 #if defined(SAC_DARWIN) || defined(SAC_WINDOWS)
 
@@ -35,36 +34,30 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
 	return 0;
 }
 
-
 #else
-#include <cstring>
+
 #include <tinyxml2.h>
 #include "base/Log.h"
-int LocalizeAPILinuxImpl::init(const std::string & lang) {
-#ifdef SAC_ASSETS_DIR
-    std::string filename = SAC_ASSETS_DIR;
-    filename += "../res/values";
+#include "api/AssetAPI.h"
 
-    if (strcmp(lang.c_str(),"en")) {
-    //- if (lang != "en") {
+int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
+
+    std::string filename = "values";
+
+    if (lang != "en") {
         filename += "-";
         filename += lang.c_str();
     }
     filename += "/strings.xml";
-    LOGI(lang << " -> " << filename)
-#else
-    std::string filename = "assets/strings.xml";
-#endif
+    LOGE("Found language:" << lang << " -> " << filename)
 
     //first, clean the map
     _idToMessage.clear();
 
-    tinyxml2::XMLDocument doc;
+    FileBuffer fb = assetAPI->loadAsset(filename);
 
-    if (doc.LoadFile(filename.c_str())) {
-        LOGW("can't open xml file " << filename)
-        return -1;
-    }
+    tinyxml2::XMLDocument doc;
+    doc.Parse((const char*)fb.data);
 
     tinyxml2::XMLHandle hDoc(&doc);
     tinyxml2::XMLElement * pElem;
@@ -91,10 +84,13 @@ int LocalizeAPILinuxImpl::init(const std::string & lang) {
     return 0;
 }
 #endif
-void LocalizeAPILinuxImpl::changeLanguage(const std::string& s) {
-    init(s);
-}
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string&) {
+    #ifdef SAC_DEBUG
+    if (_idToMessage.find(s) != _idToMessage.end()) {
+        LOG_EVERY_N(LOGE, 100, "'" << s << "' is not a valid localize ID");
+    }
+    #endif
+
     return _idToMessage[s];
 }
