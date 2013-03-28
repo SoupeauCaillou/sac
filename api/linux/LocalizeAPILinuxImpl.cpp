@@ -86,11 +86,13 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
 #endif
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string&) {
-    #ifdef SAC_DEBUG
     if (_idToMessage[s].empty()) {
-        LOG_EVERY_N(LOGE, 100, "'" << s << "' is not a valid localizable ID");
+        #ifdef SAC_DEBUG
+            LOG_EVERY_N(LOGE, 100, "'" << s << "' is not a valid localizable ID");
+        #endif
+
+        return "INVALID-" + s + "-ID";
     }
-    #endif
 
     return _idToMessage[s];
 }
