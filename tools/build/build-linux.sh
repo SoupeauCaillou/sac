@@ -58,7 +58,7 @@ source ../coolStuff.sh
 
 	if [ ! -z $(echo $1 | grep -e n -e R -e d) ]; then
 		info "Compiling.."
-		if (!(cmake $rootPath)); then
+		if (!(cmake $rootPath -DTARGET=linux)); then
 			error_and_quit "Error in cmake. Maybe should run with C option?"
 		elif (!(make -j4)); then
 			error_and_quit "Error in make"
