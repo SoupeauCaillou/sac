@@ -16,10 +16,10 @@ TEST (TestValueSplitting)
     DataFileParser dfp;
     std::string str = "a, b,   c, d";
     CHECK(dfp.determineSubStringIndexes(str, 4, index));
-    CHECK_EQUAL(0, index[0]);
-    CHECK_EQUAL(3, index[1]);
-    CHECK_EQUAL(8, index[2]);
-    CHECK_EQUAL(11, index[3]);
+    CHECK_EQUAL((unsigned)0, index[0]);
+    CHECK_EQUAL((unsigned)3, index[1]);
+    CHECK_EQUAL((unsigned)8, index[2]);
+    CHECK_EQUAL((unsigned)11, index[3]);
 }
 
 TEST (TestGlobalSection)
@@ -27,7 +27,7 @@ TEST (TestGlobalSection)
     DataFileParser dfp;
     const char* str= "plop=a, b,   c, d";
     CHECK(dfp.load(FB(str)));
-    CHECK_EQUAL(1, dfp.sectionSize(DataFileParser::GlobalSection));
+    CHECK_EQUAL((unsigned)1, dfp.sectionSize(DataFileParser::GlobalSection));
     std::string res[] = {"a", "b", "c", "d"};
     std::string out[4];
     CHECK(dfp.get(DataFileParser::GlobalSection, "plop", out, 4));
@@ -42,7 +42,7 @@ TEST (TestGetByIndex)
     const char* str= "plop=4\n" \
         "entry2=23";
     CHECK(dfp.load(FB(str)));
-    CHECK_EQUAL(2, dfp.sectionSize(DataFileParser::GlobalSection));
+    CHECK_EQUAL((unsigned)2, dfp.sectionSize(DataFileParser::GlobalSection));
     std::string name[2];
     int value[2];
     for (int i=0; i<2; i++)
