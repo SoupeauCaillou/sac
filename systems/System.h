@@ -138,7 +138,12 @@
 
 class ComponentSystem {
 	public:
-		ComponentSystem(const std::string& n) : name(n), updateDuration(0) { bool inserted = registry.insert(std::make_pair(name, this)).second; assert(inserted); }
+		ComponentSystem(const std::string& n) : name(n)
+        #ifdef SAC_DEBUG
+            , updateDuration(0)
+        #endif
+         { bool inserted = registry.insert(std::make_pair(name, this)).second; assert(inserted); }
+
         virtual ~ComponentSystem() { registry.erase(name); }
 
 		virtual const std::string& getName() const { return name; }

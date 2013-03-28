@@ -10,8 +10,8 @@
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
 #if defined(SAC_DEBUG)
-#include <GL/glew.h>
-#include <stdint.h>
+    #include <GL/glew.h>
+    #include <stdint.h>
 #endif
 
 #ifdef SAC_DEBUG

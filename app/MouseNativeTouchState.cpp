@@ -26,6 +26,8 @@
 #include <GL/glfw.h>
 #endif
 
+#include <base/Log.h>
+
 bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
     #ifdef SAC_EMSCRIPTEN
      static bool down = false;
@@ -33,7 +35,9 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         switch(event.type) {
-          case SDL_MOUSEMOTION: {
+
+        //mouse motion
+        case SDL_MOUSEMOTION: {
             SDL_MouseMotionEvent *m = (SDL_MouseMotionEvent*)&event;
             int x,y;
             SDL_GetMouseState(&x, &y);
@@ -41,6 +45,7 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
             position.y = y;
             break;
           }
+          //mouse button clicked
           case SDL_MOUSEBUTTONDOWN: {
             // SDL_GetMouseState(&x, &y);
             SDL_MouseButtonEvent *m = (SDL_MouseButtonEvent*)&event;
@@ -52,6 +57,7 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
             }
             break;
           }
+          //mouse button released
           case SDL_MOUSEBUTTONUP: {
             SDL_MouseButtonEvent *m = (SDL_MouseButtonEvent*)&event;
             if (m->button == SDL_BUTTON_LEFT) {
@@ -60,7 +66,9 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
             }
             break;
           }
+          //key pressed
           case SDL_KEYDOWN: {
+            /*
             if (globalFTW == 0)
                 break;
 
@@ -90,7 +98,7 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
                     // filter out all unsupported keystrokes
                     TEXT_RENDERING(globalFTW)->text.push_back((char)c);
                 }
-            }
+            }*/
             break;
           }
         }

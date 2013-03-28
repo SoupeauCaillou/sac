@@ -6,6 +6,8 @@
 #include "TextRenderingSystem.h"
 #include <iomanip>
 
+#include <base/EntityManager.h>
+
 static const char* FpsTextureName = "__debug_fps_texture";
 static const char* EntitiesTextureName = "__debug_entities_texture";
 static const char* SystemsTextureName = "__debug_systems_texture";
@@ -19,6 +21,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
     frameCount = 0;
 }
 
+#ifdef SAC_DEBUG
 static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCount, Entity& entityCountLabel, Entity& systems) {
     const glm::vec2& cameraSize = TRANSFORM(camera)->size;
 
@@ -292,5 +295,9 @@ void DebuggingSystem::DoUpdate(float dt) {
 void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
     DebuggingComponent* dc = Get(entity, false);
     if (!dc) return;
+}
+#endif
+#else
+void DebuggingSystem::DoUpdate(float dt) {
 }
 #endif

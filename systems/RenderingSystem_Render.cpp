@@ -94,10 +94,10 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
     rc.rotateUV = info.rotateUV;
      #ifdef SAC_USE_VBO
      float uvso[4];
-     uvso[0] = rc.uv[1].X - rc.uv[0].X;
-     uvso[1] = rc.uv[1].Y - rc.uv[0].Y;
-     uvso[2] = rc.uv[0].X;
-     uvso[3] = rc.uv[0].Y;
+     uvso[0] = rc.uv[1].x - rc.uv[0].x;
+     uvso[1] = rc.uv[1].y - rc.uv[0].y;
+     uvso[2] = rc.uv[0].x;
+     uvso[3] = rc.uv[0].y;
      GL_OPERATION(glUniform4fv(unif, 1, uvso))
      #endif
 }
@@ -112,13 +112,13 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     float hH = 0.5 * screenH;
     GLfloat mat[16];
     RenderingSystem::loadOrthographicMatrix(
-        -hW - rc.position.X, // + camera.worldPosition.X,
-        hW - rc.position.X, // + camera.worldPosition.X,
-        -hH - rc.position.Y, // + camera.worldPosition.Y,
-        hH - rc.position.Y, // + camera.worldPosition.Y,
+        -hW - rc.position.x, // + camera.worldPosition.x,
+        hW - rc.position.x, // + camera.worldPosition.x,
+        -hH - rc.position.y, // + camera.worldPosition.y,
+        hH - rc.position.y, // + camera.worldPosition.y,
         0, 1, mat);
     GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
-    float scaleZ[] = { 2 * rc.halfSize.X, 2 * rc.halfSize.Y, rc.z };
+    float scaleZ[] = { 2 * rc.halfSize.x, 2 * rc.halfSize.y, rc.z };
     GL_OPERATION(glUniform3fv(shader.uniformScaleZ, 1, scaleZ))
     GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
     #else

@@ -199,7 +199,7 @@ int initGame(const std::string& title) {
         return 1;
     }
 
-    SDL_Surface *ecran = SDL_SetVideoMode(resolution.X, resolution.Y, 16, SDL_OPENGL ); /* Double Buffering */
+    SDL_Surface *ecran = SDL_SetVideoMode(resolution.x, resolution.y, 16, SDL_OPENGL ); /* Double Buffering */
 #else
     if (!glfwInit())
         return 1;

@@ -29,6 +29,8 @@ class EntityManager {
 		static void DestroyInstance();
 
 	public:
+        Entity CreateEntity() { CreateEntity(""); }
+
 		Entity CreateEntity(const std::string&
         #ifdef SAC_DEBUG
             name = "noname"
@@ -46,11 +48,11 @@ class EntityManager {
         #ifdef SAC_DEBUG
         const std::string& entityName(Entity e) const;
         #endif
-        
+
         int getNumberofEntity() {return entityComponents.size();}
-        
+
 	private:
-		unsigned long nextEntity;
+		Entity nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
         #ifdef SAC_DEBUG
         std::map<std::string, Entity> name2entity;

@@ -1,25 +1,26 @@
 #include "MusicSystem.h"
-#ifdef SAC_MUSIC_VISU
-#include "TextRenderingSystem.h"
-#include "RenderingSystem.h"
-#include "base/PlacementHelper.h"
-#include "base/EntityManager.h"
-#endif
+
 #include "base/CircularBuffer.h"
+#include <base/Log.h>
+
+#ifdef SAC_MUSIC_VISU
+    #include "TextRenderingSystem.h"
+    #include "RenderingSystem.h"
+    #include "base/PlacementHelper.h"
+    #include "base/EntityManager.h"
+#endif
 
 #ifdef SAC_ANDROID
-#define assert(x) x
+    #define assert(x) x
 #endif
 
 #ifdef SAC_EMSCRIPTEN
 	#include <SDL/SDL_mixer.h>
 	#include <sstream>
+#elif defined(SAC_ANDROID)
+	#include "tremor/ivorbisfile.h"
 #else
-	#ifdef SAC_ANDROID
-		#include "tremor/ivorbisfile.h"
-	#else
-		#include <vorbis/vorbisfile.h>
-	#endif
+	#include <vorbis/vorbisfile.h>
 #endif
 
 #ifdef SAC_LINUX
@@ -605,7 +606,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     std::stringstream a;
     a << "assets/" << assetName;
     musics[nextValidRef] = Mix_LoadWAV(a.str().c_str());
-    LOGV(1, "Load music file " << a.str() << " -> " <<< musics[nextValidRef])
+    LOGV(1, "Load music file " << a.str() << " -> " << musics[nextValidRef])
 #endif
     PROFILE("Music", "loadMusicFile", EndEvent);
     return nextValidRef++;

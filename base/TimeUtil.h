@@ -1,9 +1,11 @@
 #pragma once
 
-#ifdef SAC_LINUX
+#if defined(SAC_LINUX)
 	#include <time.h>
 #elif defined(SAC_WINDOWS)
 	#include <Windows.h>
+#elif defined(SAC_DARWIN) || defined(SAC_EMSCRIPTEN)
+    #include <sys/time.h>
 #endif
 
 class TimeUtil

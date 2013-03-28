@@ -22,10 +22,6 @@
 
 #include "System.h"
 
-#ifdef SAC_EMSCRIPTEN
-#define SAC_USE_VBO
-#endif
-
 typedef int FramebufferRef;
 #define DefaultFrameBufferRef -1
 

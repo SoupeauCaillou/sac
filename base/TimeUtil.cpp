@@ -1,8 +1,7 @@
 #include "TimeUtil.h"
 #include <time.h>
-#ifdef SAC_DARWIN
-#include <sys/time.h>
-#elif defined(SAC_WINDOWS)
+
+#if defined(SAC_WINDOWS)
 #include "Mmsystem.h"
 #undef ERROR
 #endif
@@ -83,7 +82,7 @@ void TimeUtil::Wait(float waitInSeconds) {
        float before = GetTime();
        float delta = 0;
        while (delta < waitInSeconds) {
-#if defined(SAC_LINUX) || defined(SAC_DARWIN)
+#if defined(SAC_LINUX) || defined(SAC_DARWIN) || defined(SAC_EMSCRIPTEN)
            struct timespec ts;
            ts.tv_sec = 0;
            ts.tv_nsec = (waitInSeconds - delta) * 1000000000LL;
