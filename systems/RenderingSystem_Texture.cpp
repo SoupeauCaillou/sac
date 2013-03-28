@@ -3,6 +3,7 @@
 #include "opengl/OpenGLTextureCreator.h"
 
 #include "base/EntityManager.h"
+#include "util/DataFileParser.h"
 #include <cmath>
 #include <cassert>
 #include <sstream>
@@ -16,6 +17,7 @@
 #include <fcntl.h>
 #include <fstream>
 
+#if 0
 static void parse(const std::string& line, std::string& assetName, glm::vec2& originalSize, glm::vec2& reduxOffset, glm::vec2& posInAtlas, glm::vec2& sizeInAtlas, bool& rotate, glm::vec2& opaqueStart, glm::vec2& opaqueEnd) {
 	std::string substrings[14];
 	int from = 0, to = 0, count = 0;
@@ -46,20 +48,25 @@ static void parse(const std::string& line, std::string& assetName, glm::vec2& or
         opaqueEnd.y = atoi(substrings[13].c_str());
     }
 }
-
+#endif
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
-	std::string atlasDesc = atlasName + ".atlas";
-	std::string atlasImage = atlasName;
+	const std::string atlasDesc = atlasName + ".atlas";
 
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
 		LOGF("Unable to load atlas description file '" << atlasDesc << "'")
 		return;
 	}
+    DataFileParser dfp;
+    if (!dfp.load(file)) {
+        LOGE("Unable to parse '" << atlasDesc << "'")
+        delete[] file.data;
+        return;
+    }
 
-	glm::vec2 atlasSize, pow2Size;
+
 	Atlas a;
-	a.name = atlasImage;
+	a.name = atlasName;
 	if (forceImmediateTextureLoading) {
         a.ref = textureLibrary.load(atlasName);
 	} else {
@@ -67,34 +74,67 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 	}
 	atlas.push_back(a);
 	int atlasIndex = atlas.size() - 1;
+    int count = 0;
 
-	std::stringstream f(std::string((const char*)file.data, file.size), std::ios_base::in);
-	std::string s;
-	f >> s;
-
-	// read texture size
-	sscanf(s.c_str(), "%f,%f", &atlasSize.x, &atlasSize.y);
+    glm::vec2 atlasSize;
+    if (!dfp.get("", "atlas_size", &atlasSize.x, 2)) {
+        LOGE("Missing 'atlas_size' attribute in '" << atlasDesc << "'");
+        goto cleanup;
+    }
 	LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex)
-	int count = 0;
-
 	do {
-		s.clear();
-		f >> s;
-		if (s.empty())
-			break;
-		count++;
-		LOGV(2, "atlas - line: " << s)
+        std::stringstream sectionB;
+        sectionB << "image" << count;
+        const std::string section(sectionB.str());
+
+        if (!dfp.hasSection(section))
+            break;
+
 		std::string assetName;
-        glm::vec2 originalSize, reduxOffset, posInAtlas, sizeInAtlas, opaqueStart(glm::vec2(0.0f)), opaqueEnd(glm::vec2(0.0f));
-		bool rot;
-		parse(s, assetName, originalSize, reduxOffset, posInAtlas, sizeInAtlas, rot, opaqueStart, opaqueEnd);
-
-        const TextureInfo info(InternalTexture::Invalid, posInAtlas, sizeInAtlas, rot, atlasSize, reduxOffset, originalSize, opaqueStart, opaqueEnd - opaqueStart, atlasIndex);
+        if (!dfp.get(section, "name", &assetName, 1)) {
+            LOGE("Missing 'name' in section '" << section << "'")
+            goto cleanup;
+        }
+        glm::vec2 originalSize;
+        if (!dfp.get(section, "original_size", &originalSize.x, 2)) {
+            LOGE("Missing 'original_size' in section '" << section << "'")
+            goto cleanup;
+        }
+        glm::vec2 posInAtlas;
+        if (!dfp.get(section, "position_in_atlas", &posInAtlas.x, 2)) {
+            LOGE("Missing 'position_in_atlas' in section '" << section << "'")
+            goto cleanup;
+        }
+        glm::vec2 sizeInAtlas;
+        if (!dfp.get(section, "size_in_atlas", &sizeInAtlas.x, 2)) {
+            LOGE("Missing 'size_in_atlas' in section '" << section << "'")
+            goto cleanup;
+        }
+        glm::vec2 reduxOffset;
+        if (!dfp.get(section, "crop_offset", &reduxOffset.x, 2)) {
+            LOGE("Missing 'crop_offset' in section '" << section << "'")
+            goto cleanup;
+        }
+        int rotate;
+        if (!dfp.get(section, "rotated", &rotate, 1)) {
+            LOGE("Missing 'rotated' in section '" << section << "'")
+            goto cleanup;
+        }
+        glm::vec4 opaqueRect;
+        if (!dfp.get(section, "opaque_rect", &opaqueRect.x, 4)) {
+            LOGV(1, "No 'opaque_rect' in section '" << section << "' for image " << assetName)
+            opaqueRect = glm::vec4(0.0f);
+        }
+        glm::vec2 start(opaqueRect.swizzle(glm::X, glm::Y));
+        glm::vec2 end(opaqueRect.swizzle(glm::Z, glm::W));
+        const TextureInfo info(InternalTexture::Invalid, posInAtlas, sizeInAtlas, rotate, atlasSize, reduxOffset, originalSize, start, end - start, atlasIndex);
         textureLibrary.add(assetName, info);
-	} while (!s.empty());
+        count++;
+	} while (true);
 
-	delete[] file.data;
 	LOGV(1, "Atlas '" << atlasName << "' loaded " << count << " images")
+cleanup:
+    delete[] file.data;
 }
 
 void RenderingSystem::invalidateAtlasTextures() {

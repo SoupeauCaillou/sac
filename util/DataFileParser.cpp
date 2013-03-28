@@ -70,7 +70,7 @@ bool DataFileParser::load(const FileBuffer& fb) {
             currentSection->insert(std::make_pair(key, value));
         }
     }
-        
+
     return true;
 }
 
@@ -116,6 +116,16 @@ const std::string& DataFileParser::indexValue(const std::string& section, unsign
     for (unsigned i=0; i<index; i++) jt++;
     varName = jt->first;
     return jt->second;
+}
+
+bool DataFileParser::hasSection(const std::string& section) const {
+    if (!data) {
+        LOGE("No data loaded before requesting section size : " << section)
+        return false;
+    }
+    if (section == GlobalSection)
+        return true;
+    return data->sections.find(section) != data->sections.end();
 }
 
 unsigned DataFileParser::sectionSize(const std::string& section) const {

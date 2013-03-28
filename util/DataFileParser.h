@@ -17,13 +17,14 @@ class DataFileParser {
 
         template <class T>
         bool get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true);
-        
+
         template <class T>
         bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1);
 
         unsigned sectionSize(const std::string& section) const;
+        bool hasSection(const std::string& section) const;
 
-        void defineVariable(const std::string& name, const std::string& value);        
+        void defineVariable(const std::string& name, const std::string& value);
 
     private:
         const std::string& keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const;
@@ -46,9 +47,9 @@ class DataFileParser {
 template <class T>
 bool DataFileParser::parse(const std::string& value, T* out, const int count) {
 	LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported")
-		
+
 	size_t endIndexes[MAX_ELEMENTS];
-    
+
 	if (!determineSubStringIndexes(value, count, endIndexes))
         return false;
 

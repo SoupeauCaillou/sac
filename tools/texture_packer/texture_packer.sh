@@ -32,7 +32,7 @@ while read data; do
 		h=`echo $data | cut -d, -f2`
 
 		convert -size ${w}x${h} xc:transparent ${output}
-		echo "\tatlas_size=$w,$h" > ${desc}
+		echo "atlas_size=$w,$h" > ${desc}
 	else
         #read input from pipe
         #image is an absolute path
