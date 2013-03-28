@@ -18,9 +18,9 @@ class TimeUtil
 	private:
         #if defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 		static struct timeval startup_time;
-        #elif defined(SAC_LINUX)
+        #elif defined(SAC_LINUX) || defined(SAC_ANDROID)
         static struct timespec startup_time;
-		#else
+		#elif defined (SAC_WINDOWS)
 		static __int64 startup_time;
 		static double frequency;
         #endif

@@ -19,7 +19,17 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
 #ifdef SAC_ANDROID
-#error TODO
+#define LOGF(x) {}
+#define LOGE(x) {}
+#define LOGW(x) {}
+#define LOGI(x) {}
+#define LOGV(verbosity, x) {}
+
+#define LOGF_IF(cond, x) {}
+#define LOGE_IF(cond, x) {}
+#define LOGW_IF(cond, x) {}
+#define LOGI_IF(cond, x) {}
+#define LOGV_IF(verbosity, cond, x) { }
 #else
 #include <iostream>
 #define LOGF(x) { logToStream(std::cout, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; }

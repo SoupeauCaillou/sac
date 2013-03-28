@@ -29,7 +29,7 @@ class EntityManager {
 		static void DestroyInstance();
 
 	public:
-        Entity CreateEntity() { CreateEntity(""); }
+        Entity CreateEntity() { return CreateEntity(""); }
 
 		Entity CreateEntity(const std::string&
         #ifdef SAC_DEBUG
@@ -58,9 +58,5 @@ class EntityManager {
         std::map<std::string, Entity> name2entity;
         #endif
 };
-
-#if defined(SAC_ANDROID) ||defined(SAC_EMSCRIPTEN)
-void* mempcpy(void* dst, const void* src, size_t size);
-#endif
 
 void deleteEntityFunctor(Entity e);

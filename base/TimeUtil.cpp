@@ -10,7 +10,7 @@
 
 #if defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 	struct timeval TimeUtil::startup_time;
-#elif defined(SAC_LINUX)
+#elif defined(SAC_LINUX) || defined(SAC_ANDROID)
 	struct timespec TimeUtil::startup_time;
 #elif defined(SAC_WINDOWS)
 	__int64 TimeUtil::startup_time;
@@ -20,7 +20,7 @@
 void TimeUtil::Init() {
 #if defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
     gettimeofday(&startup_time, 0);
-#elif defined(SAC_LINUX)
+#elif defined(SAC_LINUX) || defined(SAC_ANDROID)
 	clock_gettime(CLOCK_MONOTONIC, &startup_time);
 #elif defined(SAC_WINDOWS)
     timeBeginPeriod(1);
@@ -31,20 +31,23 @@ void TimeUtil::Init() {
 #endif
 }
 
-#if defined(SAC_LINUX)
+#if defined(SAC_LINUX) || defined(SAC_ANDROID)
 static inline float timeconverter(const struct timespec & tv) {
 	return tv.tv_sec + (float)(tv.tv_nsec) / 1000000000.0f;
+}
 #elif defined(SAC_EMSCRIPTEN) || defined(SAC_DARWIN)
 static inline float timeconverter(const struct timeval & tv) {
     return (tv.tv_sec + tv.tv_usec / 1000000.0f);
-#else
+}
+#elif defined(SAC_WINDOWS)
 static inline float timeconverter(float tv) {
 	return (tv);
-#endif
 }
+#endif
 
 
-#if defined(SAC_LINUX)
+
+#if defined(SAC_LINUX) || defined(SAC_ANDROID)
 static inline void sub(struct timespec& tA, const struct timespec& tB)
 {
     if ((tA.tv_nsec - tB.tv_nsec) < 0) {
@@ -58,7 +61,7 @@ static inline void sub(struct timespec& tA, const struct timespec& tB)
 #endif
 
 float TimeUtil::GetTime() {
-    #if defined(SAC_LINUX)
+    #if defined(SAC_LINUX) || defined(SAC_ANDROID)
 		struct timespec tv;
 		if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
         LOGF("clock_gettime failure")
@@ -82,12 +85,12 @@ void TimeUtil::Wait(float waitInSeconds) {
        float before = GetTime();
        float delta = 0;
        while (delta < waitInSeconds) {
-#if defined(SAC_LINUX) || defined(SAC_DARWIN) || defined(SAC_EMSCRIPTEN)
+#if defined(SAC_LINUX) || defined(SAC_ANDROID) || defined(SAC_DARWIN) || defined(SAC_EMSCRIPTEN)
            struct timespec ts;
            ts.tv_sec = 0;
            ts.tv_nsec = (waitInSeconds - delta) * 1000000000LL;
            nanosleep(&ts, 0);
-#else
+#elif defined(SAC_WINDOWS)
            // Of course using Sleep is bad, but hey...
            Sleep((waitInSeconds - delta) * 1000);
 #endif

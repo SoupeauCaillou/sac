@@ -4,7 +4,11 @@
 #include <cstring>
 
 #if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN) || defined(SAC_WINDOWS) || defined(SAC_DARWIN)
-void* mempcpy(void* dst, const void* src, size_t size) {
+void* mempcpy(void* dst, const void* src, size_t size)
+#if defined(SAC_ANDROID)
+throw()
+#endif
+{
 	memcpy(dst, src, size);
 	return (uint8_t*)dst + size;
 }
