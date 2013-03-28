@@ -1,5 +1,6 @@
 #include "AssetAPILinuxImpl.h"
 #include <cstring>
+#include <base/Log.h>
 
 #ifdef SAC_WINDOWS
 
@@ -24,8 +25,10 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
         // try in pc specific folder
         full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
         file = fopen(full.c_str(), "rb");
-        if (!file)
+        if (!file) {
+            LOGE("Error opening file '" << full << "'");
             return fb;
+        }
     }
     fseek(file, 0, SEEK_END);
     fb.size = ftell(file);
