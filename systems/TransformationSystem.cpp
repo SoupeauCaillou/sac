@@ -94,13 +94,13 @@ void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TransformationComponent* tc = Get(entity, false);
     if (!tc) return;
     TwAddVarRW(bar, "size.X", TW_TYPE_FLOAT, &tc->size.x, "group=Transformation precision=3 step=0,01");
-    TwAddVarRW(bar, "size.Y", TW_TYPE_FLOAT, &tc->size.y, "group=Transformation precision=3 step=0,01"); 
+    TwAddVarRW(bar, "size.Y", TW_TYPE_FLOAT, &tc->size.y, "group=Transformation precision=3 step=0,01");
     TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.x, "group=local precision=3 step=0,01");
-    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.y, "group=local precision=3 step=0,01"); 
+    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.y, "group=local precision=3 step=0,01");
     TwAddVarRW(bar, "rotation", TW_TYPE_FLOAT, &tc->rotation, "group=local step=0,01 precision=3");
     TwAddVarRW(bar, "Z", TW_TYPE_FLOAT, &tc->z, "group=local precision=3 step=0,01");
     TwAddVarRO(bar, "_position.X", TW_TYPE_FLOAT, &tc->worldPosition.x, "group=world precision=3");
-    TwAddVarRO(bar, "_position.Y", TW_TYPE_FLOAT, &tc->worldPosition.y, "group=world precision=3"); 
+    TwAddVarRO(bar, "_position.Y", TW_TYPE_FLOAT, &tc->worldPosition.y, "group=world precision=3");
     TwAddVarRO(bar, "_rotation", TW_TYPE_FLOAT, &tc->worldRotation, "group=world step=0,05 precision=3");
     TwAddVarRO(bar, "_Z", TW_TYPE_FLOAT, &tc->worldZ, "group=world precision=3");
     std::stringstream groups;
