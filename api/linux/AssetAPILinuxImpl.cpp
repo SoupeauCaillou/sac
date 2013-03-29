@@ -1,4 +1,4 @@
-#include "AssetAPILinuxImpl.h"
+    #include "AssetAPILinuxImpl.h"
 #include <cstring>
 #include <base/Log.h>
 
@@ -53,19 +53,33 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
 
     std::list<std::string> content;
     #ifdef SAC_WINDOWS
+        // TODO
     #else
+        // TODO : Use scandir ?
         DIR* dir = opendir(directory.c_str());
         if (dir == NULL)
             return content;
-        dirent* file = readdir(dir);
-        while (file != NULL) {
-            if (file->d_type == DT_REG) {
+        dirent* file;
+        while ( (file = readdir(dir)) != NULL) {
+            // Check if file is a directory
+            if (file->d_type == DT_DIR) {
+                // Check if file is not current dir (.) or its parent (..)
+                if (std::strcmp (file->d_name, "..") != 0 &&
+                    std::strcmp (file->d_name, ".") != 0) {
+                    std::list<std::string> tmp;
+                    tmp = listContent(extension, subfolder + '/' + file->d_name);
+                    for (auto i: tmp) {
+                        content.push_back(std::string(file->d_name) + '/' + i);
+                    }
+                }
+            } else if (file->d_type == DT_REG) {
                 std::string s = file->d_name;
                 size_t pos;
-                 if ((pos = s.find(extension)) != std::string::npos)
+                // We're looking for file with good extension
+                 if ((pos = s.find(extension)) != std::string::npos) {
                     content.push_back(s.substr(0, pos));
+                }     
             }
-            file = readdir(dir);
         }
         closedir(dir);
     #endif
