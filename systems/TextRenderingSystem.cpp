@@ -322,7 +322,7 @@ void TextRenderingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 #endif
 
 static Entity createRenderingEntity() {
-    Entity e = theEntityManager.CreateEntity();
+    Entity e = theEntityManager.CreateEntity("text_letter");
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
     return e;

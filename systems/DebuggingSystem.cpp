@@ -30,7 +30,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TRANSFORM(fps)->parent = camera;
     TRANSFORM(fps)->size = cameraSize * glm::vec2(0.3f, 0.2f);
     TRANSFORM(fps)->position = cameraSize * glm::vec2(-0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.5f, -0.5f);
-    TRANSFORM(fps)->z = 0;
+    TRANSFORM(fps)->z = 1 - TRANSFORM(camera)->z;
     ADD_COMPONENT(fps, Rendering);
     RENDERING(fps)->texture = theRenderingSystem.loadTextureFile(FpsTextureName);
     RENDERING(fps)->show = true;
@@ -56,7 +56,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TRANSFORM(entityCount)->parent = camera;
     TRANSFORM(entityCount)->size = cameraSize * glm::vec2(0.3f, 0.2f);
     TRANSFORM(entityCount)->position = cameraSize * glm::vec2(0.0f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.0f, -0.5f);
-    TRANSFORM(entityCount)->z = 0;
+    TRANSFORM(entityCount)->z = 1 - TRANSFORM(camera)->z;
     ADD_COMPONENT(entityCount, Rendering);
     RENDERING(entityCount)->texture = theRenderingSystem.loadTextureFile(EntitiesTextureName);
     RENDERING(entityCount)->show = true;
@@ -80,7 +80,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TRANSFORM(systems)->parent = camera;
     TRANSFORM(systems)->size = cameraSize * glm::vec2(0.3f, 0.2f);
     TRANSFORM(systems)->position = cameraSize * glm::vec2(0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(-0.5f, -0.5f);
-    TRANSFORM(systems)->z = 0;
+    TRANSFORM(systems)->z = 1 - TRANSFORM(camera)->z;
     ADD_COMPONENT(systems, Rendering);
     RENDERING(systems)->texture = theRenderingSystem.loadTextureFile(SystemsTextureName);
     RENDERING(systems)->show = true;
