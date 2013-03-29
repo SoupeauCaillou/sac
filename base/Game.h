@@ -21,7 +21,7 @@ class Game {
 		Game();
 
 		virtual ~Game();
-        
+
         void setGameContexts(GameContext* gameThreadContext, GameContext* renderThreadContext);
 
 		virtual void sacInit(int windowW, int windowH);
@@ -52,6 +52,7 @@ class Game {
 
 	protected:
 		void loadFont(AssetAPI* asset, const std::string& name);
+    public:
         GameContext* gameThreadContext, *renderThreadContext;
     private:
         virtual void tick(float dt) = 0;
