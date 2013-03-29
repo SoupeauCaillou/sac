@@ -92,36 +92,36 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 		std::string assetName;
         if (!dfp.get(section, "name", &assetName, 1)) {
-            LOGE("Missing 'name' in section '" << section << "'")
+            LOGE(atlasDesc << ": missing 'name' in section '" << section << "'")
             goto cleanup;
         }
         glm::vec2 originalSize;
         if (!dfp.get(section, "original_size", &originalSize.x, 2)) {
-            LOGE("Missing 'original_size' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'original_size' in section '" << section << "'")
             goto cleanup;
         }
         glm::vec2 posInAtlas;
         if (!dfp.get(section, "position_in_atlas", &posInAtlas.x, 2)) {
-            LOGE("Missing 'position_in_atlas' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'position_in_atlas' in section '" << section << "'")
             goto cleanup;
         }
         glm::vec2 sizeInAtlas;
         if (!dfp.get(section, "size_in_atlas", &sizeInAtlas.x, 2)) {
-            LOGE("Missing 'size_in_atlas' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'size_in_atlas' in section '" << section << "'")
             goto cleanup;
         }
         glm::vec2 reduxOffset;
         if (!dfp.get(section, "crop_offset", &reduxOffset.x, 2)) {
-            LOGE("Missing 'crop_offset' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'crop_offset' in section '" << section << "'")
             goto cleanup;
         }
         int rotate;
         if (!dfp.get(section, "rotated", &rotate, 1)) {
-            LOGE("Missing 'rotated' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'rotated' in section '" << section << "'")
             goto cleanup;
         }
         glm::vec4 opaqueRect;
-        if (!dfp.get(section, "opaque_rect", &opaqueRect.x, 4)) {
+        if (!dfp.get(section, "opaque_rect", &opaqueRect.x, 4, false)) {
             LOGV(1, "No 'opaque_rect' in section '" << section << "' for image " << assetName)
             opaqueRect = glm::vec4(0.0f);
         }
