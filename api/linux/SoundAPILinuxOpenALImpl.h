@@ -12,7 +12,7 @@ class AssetAPI;
 class SoundAPILinuxOpenALImpl : public SoundAPI {
     public:
         ~SoundAPILinuxOpenALImpl();
-        void init(AssetAPI* assetAPI);
+        void init(AssetAPI* assetAPI, bool openALAlreadyInit);
 
         OpaqueSoundPtr* loadSound(const std::string& asset);
         bool play(OpaqueSoundPtr* p, float volume);

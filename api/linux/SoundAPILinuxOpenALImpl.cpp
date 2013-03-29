@@ -40,9 +40,15 @@ SoundAPILinuxOpenALImpl::~SoundAPILinuxOpenALImpl() {
     #endif
 }
 
-void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI) {
+void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI, bool openALAlreadyInit) {
     assetAPI = pAssetAPI;
 	#ifndef SAC_EMSCRIPTEN
+    if (!openALAlreadyInit) {
+        ALCdevice* device = alcOpenDevice(0);
+        ALCcontext* context = alcCreateContext(device, 0);
+        if (!(device && context && alcMakeContextCurrent(context)))
+            LOGW("probleme initialisation du son")
+    }
     soundSources = new ALuint[16];
     // open al init is done earlier by MusicAPI
     AL_OPERATION(alGenSources(16, soundSources));

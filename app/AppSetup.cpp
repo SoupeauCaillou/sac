@@ -274,15 +274,16 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     // Init systems
     theTouchInputManager.setNativeTouchStatePtr(new MouseNativeTouchState());
     theRenderingSystem.assetAPI = ctx.assetAPI;
-    if (contextOptions & CONTEXT_WANT_SOUND_API) {
-        theSoundSystem.soundAPI = ctx.soundAPI;
-        static_cast<SoundAPILinuxOpenALImpl*>(ctx.soundAPI)->init(ctx.assetAPI);
-        theSoundSystem.init();
-    }
     if (contextOptions & CONTEXT_WANT_MUSIC_API) {
         theMusicSystem.musicAPI = ctx.musicAPI;
         theMusicSystem.assetAPI = ctx.assetAPI;
+        static_cast<MusicAPILinuxOpenALImpl*>(ctx.musicAPI)->init();
         theMusicSystem.init();
+    }
+    if (contextOptions & CONTEXT_WANT_SOUND_API) {
+        theSoundSystem.soundAPI = ctx.soundAPI;
+        static_cast<SoundAPILinuxOpenALImpl*>(ctx.soundAPI)->init(ctx.assetAPI, contextOptions & CONTEXT_WANT_MUSIC_API);
+        theSoundSystem.init();
     }
     if (contextOptions & CONTEXT_WANT_LOCALIZE_API) {
         char* lang = strdup(getenv("LANG"));
