@@ -42,7 +42,7 @@ bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varc
         // wait before next
     if (dfp.get(meta, "wait_before_next_anim", &nextAnimWait.t1, 2, false)) {
         LOGV(1, "animation -> nextAnimWait = [" << nextAnimWait.t1 << ", " << nextAnimWait.t2 << ']')
-    } else if (dfp.get(meta, "loop", &nextAnimWait.t1, 1, false)) {
+    } else if (dfp.get(meta, "wait_before_next_anim", &nextAnimWait.t1, 1, false)) {
         nextAnimWait.t2 = nextAnimWait.t1;
         LOGV(1, "animation -> nextAnimWait = " << nextAnimWait.t1)
     } else {
@@ -52,7 +52,7 @@ bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varc
     int frameCount = 0;
     if (dfp.get(meta, "num_frames", &frameCount, 1)) {
         LOGV(1, "animation -> frameCount = " << frameCount)
-        
+
         for (int i=0; i<frameCount; i++) {
             std::stringstream sect;
             sect << "frame" << i;
@@ -62,18 +62,18 @@ bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varc
                 LOGV(1, "\t" << section << ':' << texture)
                 AnimFrame frame;
                 frame.texture = theRenderingSystem.loadTextureFile(texture);
-                
+
                 int subEntityIndex = 0;
                 do {
                     std::stringstream transformS;
                     transformS << "entity_transform_" << subEntityIndex;
-                    
+
                     AnimFrame::Transform tr;
                     if (dfp.get(section, transformS.str(), &tr.position.x, 5, false)) {
                         frame.transforms.push_back(tr);
-                        subEntityIndex++;   
+                        subEntityIndex++;
                     } else {
-                        break;  
+                        break;
                     }
                 } while (true);
                 frames.push_back(frame);
