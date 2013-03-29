@@ -20,12 +20,14 @@ class AssetAPI {
 
 
 struct FileBufferWithCursor : FileBuffer {
-    FileBufferWithCursor(const FileBuffer& fb) : cursor(0) {
+    FileBufferWithCursor(const FileBuffer& fb, bool pDeleteThisOnClose = false) : cursor(0) {
         data = fb.data;
         size = fb.size;
+        deleteThisOnClose = pDeleteThisOnClose;
     }
-    FileBufferWithCursor() : FileBuffer(), cursor(0) {}
+    FileBufferWithCursor() : FileBuffer(), cursor(0), deleteThisOnClose(false) {}
     long int cursor;
+    bool deleteThisOnClose;
 
     static size_t read_func(void* ptr, size_t size, size_t nmemb, void* datasource) {
         FileBufferWithCursor* src = static_cast<FileBufferWithCursor*> (datasource);
@@ -62,7 +64,7 @@ struct FileBufferWithCursor : FileBuffer {
 
     static int close_func(void *datasource) {
         FileBufferWithCursor* src = static_cast<FileBufferWithCursor*> (datasource);
-        delete src;
+        if (src->deleteThisOnClose) delete src;
         return 0;
     }
 };
