@@ -1,18 +1,7 @@
+#######################################################################
+########Library path finding related tools############################
+#######################################################################
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/Modules")
-
-include_directories(${PROJECT_SOURCE_DIR}/sources)
-include_directories(${PROJECT_SOURCE_DIR}/sac)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
-file(
-    GLOB_RECURSE source_files
-    ${PROJECT_SOURCE_DIR}/sac/app/*
-    ${PROJECT_SOURCE_DIR}/sac/base/*
-    ${PROJECT_SOURCE_DIR}/sac/systems/*
-    ${PROJECT_SOURCE_DIR}/sac/util/*
-    ${PROJECT_SOURCE_DIR}/sac/steering/*
-    ${PROJECT_SOURCE_DIR}/sources/*
-)
 
 #ensure that a lib is installed and link it to "target" executable
 function (check_and_link_libs target)
@@ -31,17 +20,31 @@ function (check_and_link_libs target)
 endfunction()
 
 
-#how to build sac
-if (EMSCRIPTEN_BUILD)
+#######################################################################
+######################How to build SAC#################################
+#######################################################################
+include_directories(${PROJECT_SOURCE_DIR}/sources)
+include_directories(${PROJECT_SOURCE_DIR}/sac)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
+file(
+    GLOB_RECURSE source_files
+    ${PROJECT_SOURCE_DIR}/sac/app/*
+    ${PROJECT_SOURCE_DIR}/sac/base/*
+    ${PROJECT_SOURCE_DIR}/sac/systems/*
+    ${PROJECT_SOURCE_DIR}/sac/util/*
+    ${PROJECT_SOURCE_DIR}/sac/steering/*
+    ${PROJECT_SOURCE_DIR}/sources/*
+)
+
+if (WEB_BUILD)
+    set(EXECUTABLE_NAME ${PROJECT_NAME}.bc)
+
     add_library(sac ${source_files})
-
-    add_executable(${PROJECT_NAME}.bc ${source_files})
-
-    target_link_libraries(${PROJECT_NAME}.bc sac)
-
-    check_and_link_libs(${PROJECT_NAME}.bc GLEW glfw openal sqlite3 vorbisfile vorbis
-    z png)
+    check_and_link_libs("sac" SDL)
 else()
+    set(EXECUTABLE_NAME ${PROJECT_NAME})
+
     file(
         GLOB_RECURSE opt_source_files
         ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
@@ -73,98 +76,58 @@ else()
             ${PROJECT_SOURCE_DIR}/sources/api/android/*
         )
     else()
-        message("which platform?")
+        message(SEND_ERROR "which platform?")
     endif()
 
     add_library(sac ${source_files} ${opt_source_files} ${platform_source_files})
+    #the necessary libs for not emscripten
+    check_and_link_libs("sac" GLEW GLFW )
+endif()
 
-    #the necessary libs
-    check_and_link_libs("sac" GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB AntTweakBar
-    Ogg Tinyxml2)
+#######################################################################
+######################Libraries for all targets########################
+#######################################################################
+check_and_link_libs("sac" OpenAL Sqlite3 VorbisFile Vorbis ZLIB
+AntTweakBar Ogg Tinyxml2)
 
-    #particular libs
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        check_and_link_libs("sac" VPX)
-    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        target_link_libraries (sac opengl32 Winmm)
-    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-       #set(GUI_TYPE MACOSX_BUNDLE)
-       include_directories ( /Developer/Headers/FlatCarbon )
-       find_library(COCOA_LIBRARY Cocoa)
-       find_library(OPENGL_LIBRARY OpenGL )
-       find_library(IOKIT_LIBRARY IOKit )
-       mark_as_advanced (COCOA_LIBRARY
-                         OPENGL_LIBRARY
-                         IOKIT_LIBRARY)
-       set(EXTRA_LIBS ${COCOA_LIBRARY} ${OPENGL_LIBRARY} ${IOKIT_LIBRARY} c)
-       target_link_libraries(sac ${EXTRA_LIBS})
-    endif ()
+#######################################################################
+#######################Import OS-dependent libs########################
+#######################################################################
+import_specific_libs()
 
-
-
-
-
+#######################################################################
+#######################Build the game executable#######################
+#######################################################################
+if (DESKTOP_BUILD)
     file(
         GLOB_RECURSE source_platforms_files
         ${PROJECT_SOURCE_DIR}/platforms/default/*
     )
-    add_executable(${PROJECT_NAME} ${source_platforms_files})
-    target_link_libraries(${PROJECT_NAME} sac)
-
+elseif (MOBILE_BUILD)
+    file(
+        GLOB_RECURSE platform_source_files
+        ${PROJECT_SOURCE_DIR}/sac/api/android/*
+        ${PROJECT_SOURCE_DIR}/sources/api/android/*
+    )
+elseif (WEB_BUILD)
+    #for emscripten, all the files are in sac
+    set(source_platforms_files "")
+else()
+    message(SEND_ERROR "which platform?")
 endif()
+
+add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
+target_link_libraries(${EXECUTABLE_NAME} sac)
+
 #######################################################################
 #############################Post build actions########################
 #######################################################################
-if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    #copy the libs .dll near the .exe
-    set(SAC_DLL_POSSIBLE_DIRS $ENV{SAC_DLLS_DIR} "${PROJECT_SOURCE_DIR}/../sac_dlls_dep")
-    foreach (SAC_DLLS_DIR ${SAC_DLL_POSSIBLE_DIRS})
-        if (EXISTS ${SAC_DLLS_DIR})
-            set(BIN_DIR "${PROJECT_BINARY_DIR}/platforms/default/")
-            foreach (BUILD_TYPE "Debug" "Release")
-                add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_directory "${SAC_DLLS_DIR}"
-                    "${BIN_DIR}/${BUILD_TYPE}"
-                )
-            endforeach()
-        endif()
-    endforeach()
-elseif (EMSCRIPTEN_BUILD)
-    add_custom_command(
-        TARGET ${PROJECT_NAME}.bc POST_BUILD
-        COMMAND EMCC_DEBUG=1 emcc -s WARN_ON_UNDEFINED_SYMBOLS=1 -O2 --llvm-lto 1
-        ${CMAKE_BINARY_DIR}/linux/${PROJECT_NAME}.bc -o /tmp/${PROJECT_NAME}.html
-         --preload-file assets
-
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMENT "Building emscripten HTML"
-    )
-endif()
+postbuild_specific_actions()
 
 #######################################################################
 #############################others executables########################
 #######################################################################
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    #lobby server
-    file(
-        GLOB_RECURSE lobby_server_source_files
-        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.cpp
-        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.h
-    )
-    add_executable(lobby_server ${lobby_server_source_files})
-    target_link_libraries(lobby_server sac z) #WARNING!
-
-
-    #texture packer
-    file(
-        GLOB_RECURSE texture_packer_source_files
-        ${PROJECT_SOURCE_DIR}/sac/tools/texture_packer/*.cpp
-        ${PROJECT_SOURCE_DIR}/sac/tools/texture_packer/*.h
-    )
-    add_executable(texture_packer ${texture_packer_source_files})
-    target_link_libraries(texture_packer sac)
-endif()
+others_specific_executables()
 
 #unit tests, if installed
 find_package (UnitTest++)
