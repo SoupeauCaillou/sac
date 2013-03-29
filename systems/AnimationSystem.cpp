@@ -3,6 +3,7 @@
 #include "opengl/AnimDescriptor.h"
 
 static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {
+    LOGV(1, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");
     RENDERING(e)->texture = frame.texture;
     LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size())
     for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
@@ -39,7 +40,6 @@ void AnimationSystem::DoUpdate(float dt) {
         if (bc->previousName != bc->name) {
             bc->frameIndex = 0;
             applyFrameToEntity(a, bc, anim->frames[bc->frameIndex]);
-            // RENDERING(a)->texture = anim->frames[bc->frameIndex].texture;
             bc->accum = 0;
             bc->previousName = bc->name;
             bc->loopCount = anim->loopCount.random();
@@ -77,7 +77,7 @@ void AnimationSystem::DoUpdate(float dt) {
     }
 }
 
-void AnimationSystem::loadAnim(const std::string& name, const std::string& filename, std::string* variables, int varcount) {
+void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& filename, std::string* variables, int varcount) {
     FileBuffer file = assetAPI->loadAsset("anim/" + filename + ".anim");
     if (file.size) {
         AnimDescriptor* desc = new AnimDescriptor;
