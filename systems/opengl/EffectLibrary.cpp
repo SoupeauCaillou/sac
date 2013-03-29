@@ -3,12 +3,12 @@
 #include "shaders/default_fs.h"
 #ifdef SAC_USE_VBO
 #include "shaders/default_vbo_vs.h"
-#define VERTEX_SHADER_ARRAY ___assets_default_vbo_vs
-#define VERTEX_SHADER_SIZE ___assets_default_vbo_vs_len
+#define VERTEX_SHADER_ARRAY default_vbo_vs
+#define VERTEX_SHADER_SIZE default_vbo_vs_len
 #else
 #include "shaders/default_vs.h"
-#define VERTEX_SHADER_ARRAY ___assets_default_vs
-#define VERTEX_SHADER_SIZE ___assets_default_vs_len
+#define VERTEX_SHADER_ARRAY default_vs
+#define VERTEX_SHADER_SIZE default_vs_len
 #endif
 
 
@@ -63,7 +63,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
         char *log = new char[logLength];
         glGetProgramInfoLog(out.program, logLength, &logLength, log);
         LOGF("GL shader program error: '" << log << "'")
-        
+
         delete[] log;
     }
 
@@ -95,8 +95,8 @@ static Shader buildShaderFromAsset(AssetAPI* assetAPI, const std::string& vsName
 void EffectLibrary::init(AssetAPI* pAssetAPI) {
     NamedAssetLibrary<Shader, EffectRef, FileBuffer>::init(pAssetAPI);
     FileBuffer fb;
-    fb.data = ___assets_default_fs;
-    fb.size = ___assets_default_fs_len;
+    fb.data = default_fs;
+    fb.size = default_fs_len;
     registerDataSource(load(DEFAULT_FRAGMENT), fb);
 }
 

@@ -19,6 +19,23 @@ function (check_and_link_libs target)
     endforeach()
 endfunction()
 
+#######################################################################
+##########Build headers files for .vs and .fs files####################
+#######################################################################
+execute_process(COMMAND ls
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
+    OUTPUT_VARIABLE FILES)
+#set it into a list
+string(REPLACE "\n" ";" FILES_LIST ${FILES})
+foreach (FILE ${FILES_LIST})
+    if (NOT ${FILE} MATCHES "(.*).h")
+        #output format: foo.vs -> foo_vs.h
+        STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
+
+        execute_process(COMMAND xxd -i ${FILE} ${Output}.h
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders)
+    endif()
+endforeach()
 
 #######################################################################
 ######################How to build SAC#################################
