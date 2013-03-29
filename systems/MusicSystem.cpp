@@ -565,7 +565,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     #endif
 
 #ifndef SAC_EMSCRIPTEN
-    FileBufferWithCursor* fbc = new FileBufferWithCursor(b);
+    FileBufferWithCursor* fbc = new FileBufferWithCursor(b, true);
 
     ov_callbacks cb;
     cb.read_func = &FileBufferWithCursor::read_func;
