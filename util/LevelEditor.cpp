@@ -113,7 +113,7 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
     // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
 }
 
-void LevelEditor::LevelEditorDatas::deselect(Entity e) {
+void LevelEditor::LevelEditorDatas::deselect(Entity) {
     RENDERING(selectionDisplay)->show = false;
 }
 
@@ -321,7 +321,7 @@ void LevelEditor::LevelEditorDatas::destroyGallery() {
     theEntityManager.DeleteEntity(gallery);
 }
 
-void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm::vec2& mouseWorldPos, int /*wheelDiff*/) {
+void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm::vec2& /*mouseWorldPos*/, int /*wheelDiff*/) {
 #if 0
     if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
