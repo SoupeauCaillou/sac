@@ -1,8 +1,11 @@
 #include "TouchInputManager.h"
 #include "Log.h"
 #include "../systems/RenderingSystem.h"
+#include "../systems/TransformationSystem.h"
+#include "../systems/CameraSystem.h"
 #include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"
+#include <glm/gtx/rotate_vector.hpp>
 
 TouchInputManager* TouchInputManager::instance = 0;
 
@@ -17,34 +20,41 @@ void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
 	windowSize = pWindowSize;
 }
 
-static glm::vec2 absoluteToCameraPos(const glm::vec2& pos) {
-    /*for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
-        const RenderingSystem::Camera& cam = theRenderingSystem.cameras[i];
-        if (IntersectionUtil::pointRectangle(pos, cam.screenPosition, cam.screenSize) && cam.enable) {
-            return cam.worldPosition + pos * cam.worldSize;
-        }
-    }*/
-    // LOG(WARNING) << "Click outside cameras";
-    return pos;
-}
-
 void TouchInputManager::Update(float) {
-	glm::vec2 windowPos;
+    Entity camera = 0;
+    const std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    for (auto c: cameras) {
+        if (CAMERA(c)->fb == DefaultFrameBufferRef) {
+            camera = c;
+            break;
+        }
+    }
+    if (!camera) {
+        LOGW("No camera defined -> no input handling");
+        return;
+    }
+    TransformationComponent* tc = TRANSFORM(camera);
 
-    for (int i=0; i<2; i++) {
+    const glm::vec2 windowSize(theRenderingSystem.screenW, theRenderingSystem.screenH);
+    glm::vec2 coords;
+    const unsigned pointers = ptr->maxTouchingCount();
+
+    for (unsigned i=0; i<pointers; i++) {
     	wasTouching[i] = touching[i];
-    	touching[i] = ptr->isTouching(i, &windowPos);
+    	touching[i] = ptr->isTouching(i, &coords);
     	if (touching[i]) {
-    		lastTouchedScreenPosition[i] = windowToWorld(windowPos, worldSize, windowSize);
-            windowPos.x = windowPos.x / (float)PlacementHelper::WindowWidth - 0.5;
-            windowPos.y = 0.5 - windowPos.y / (float)PlacementHelper::WindowHeight;
-            lastTouchedPosition[i] = absoluteToCameraPos(windowPos);
+            // convert window coordinates -> world coords
+            lastTouchedPosition[i] = windowToWorld(coords, tc);
     	}
     }
 }
 
-glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const glm::vec2& worldSize, const glm::vec2& windowSize) const {
-	float x = (windowCoords.x / windowSize.x) * worldSize.x - worldSize.x * 0.5f;
-	float y = ((windowSize.y - windowCoords.y) / windowSize.y) * worldSize.y - worldSize.y * 0.5f;
-	return glm::vec2(x, y);
+glm::vec2
+TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
+    glm::vec2 camLocal;
+	camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
+        - cameraTrans->size.x * 0.5f;
+	camLocal.y = ((theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH) * cameraTrans->size.y
+        - cameraTrans->size.y * 0.5f;
+	return cameraTrans->worldPosition + glm::rotate(camLocal, cameraTrans->worldRotation);
 }

@@ -8,6 +8,8 @@ class NativeTouchState {
 		virtual bool isTouching(int index, glm::vec2* windowCoords) const = 0;
 };
 
+class TransformationComponent;
+
 #define theTouchInputManager (*TouchInputManager::Instance())
 
 class TouchInputManager {
@@ -21,19 +23,19 @@ class TouchInputManager {
 		bool wasTouched(int idx = 0) const { return wasTouching[idx]; }
 
 		bool isTouched(int idx = 0) const { return touching[idx]; }
-		const glm::vec2& getTouchLastScreenPosition(int idx = 0) const { return lastTouchedScreenPosition[idx]; }
+
         const glm::vec2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
 
 		void Update(float dt);
 
 		void setNativeTouchStatePtr(NativeTouchState* p) { ptr = p; }
 
-		glm::vec2 windowToWorld(const glm::vec2& windowCoords, const glm::vec2& worldSize, const glm::vec2& windowSize) const;
+		glm::vec2 windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const;
 	private:
 		NativeTouchState* ptr;
 
 		bool wasTouching[2], touching[2];
-		glm::vec2 lastTouchedPosition[2], lastTouchedScreenPosition[2];
+		glm::vec2 lastTouchedPosition[2];
 
 		glm::vec2 worldSize, windowSize;
 };
