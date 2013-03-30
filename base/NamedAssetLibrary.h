@@ -26,11 +26,20 @@
 #include <condition_variable>
 #include "Log.h"
 
-#if !defined(SAC_ANDROID)
-#define USE_COND_SIGNALING 1
-#else
+#if defined(SAC_ANDROID)
 #undef USE_COND_SIGNALING
+#else
+#define USE_COND_SIGNALING 1
 #endif
+
+#if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#include <sys/inotify.h>
+#include <list>
+#include <fstream>
+#include <unistd.h>
+#endif
+
+
 class AssetAPI;
 
 template <typename T, typename TRef, typename SourceDataType>
@@ -56,6 +65,9 @@ class NamedAssetLibrary {
                 result = nextValidRef++;
                 LOGV(1, "Put asset '" << name << "' on delayed load queue. Ref value: " << result)
                 nameToRef.insert(std::make_pair(name, result));
+                #if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+                registerNewAsset(name);
+                #endif
             } else {
                 result = it->second;
             }
@@ -71,7 +83,7 @@ class NamedAssetLibrary {
         void reload(const std::string& name) {
             mutex.lock();
             delayed.reloads.insert(name);
-            mutex.unlock();        
+            mutex.unlock();
         }
 
         void unload(const TRef& ref) {
@@ -171,7 +183,7 @@ class NamedAssetLibrary {
                 LOGW("Asset " << r << " already have one data source registered")
             dataSource.insert(std::make_pair(r, type));
         }
-        
+
 
     protected:
         void setNextValidRef(TRef r) {
@@ -199,4 +211,70 @@ class NamedAssetLibrary {
             std::set<std::string> unloads;
             std::set<std::string> reloads;
         } delayed;
+
+    #if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+    public:
+        void updateInotify() {
+            for (auto it : filenames) {
+                fd_set fds;
+                FD_ZERO(&fds);
+                FD_SET(it.inotifyFd, &fds);
+                struct timeval tv;
+                tv = (struct timeval){0};
+                if (select(it.inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
+                    char buffer[8192];
+                    struct inotify_event *event;
+
+                    if (read(it.inotifyFd, buffer, sizeof(buffer)) > 0) {
+                        event = (struct inotify_event *) buffer;
+                        //it has changed! reload it
+                        if (event->wd == it.wd) {
+                            LOGI(it._filename << " has been changed! Reloading.");
+                            it.wd = inotify_add_watch(it.inotifyFd, it._filename.c_str(), IN_MODIFY);
+                            load(it._assetname);
+                        }
+
+                    }
+                }
+            }
+        }
+        void registerNewAsset(const std::string & name) {
+            #ifdef SAC_ASSETS_DIR
+                std::string full = SAC_ASSETS_DIR + name;
+            #else
+                std::string full = "assets/" + name;
+            #endif
+            std::ifstream ifile(full);
+            if (!ifile) {
+                const std::string assetsDirectory = "assets/";
+                full.replace(full.find(assetsDirectory), assetsDirectory.length(), "assetspc/");
+                ifile.open(full, std::ifstream::in);
+                if (!ifile) {
+                    LOGW("File " << full << " does not exist! Can't monitore it.");
+                    return;
+                }
+            }
+            filenames.push_front(InotifyDatas(full, name));
+        }
+    private:
+        //for inotify
+        struct InotifyDatas {
+            int wd;
+            int inotifyFd;
+            std::string _assetname;
+            std::string _filename;
+
+            InotifyDatas(const std::string & file, const std::string & asset)
+             : _filename(file), _assetname(asset) {
+                LOGI("New asset to monitor: " << _assetname << " from file "
+                    << _filename);
+                inotifyFd = inotify_init();
+                wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_MODIFY);
+            }
+        };
+
+        std::list<InotifyDatas> filenames;
+
+
+    #endif
 };

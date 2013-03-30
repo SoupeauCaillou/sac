@@ -223,7 +223,18 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
     return true;
 }
 
+#if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+void RenderingSystem::updateInotify() {
+    effectLibrary.updateInotify();
+    textureLibrary.updateInotify();
+}
+#endif
+
 void RenderingSystem::DoUpdate(float) {
+    #if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+    updateInotify();
+    #endif
+
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
 

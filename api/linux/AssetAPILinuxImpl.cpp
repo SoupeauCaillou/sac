@@ -11,7 +11,7 @@
 void AssetAPILinuxImpl::init() {
 
 }
-#include <iostream>
+
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
     fb.data = 0;
@@ -36,8 +36,8 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     fb.data = new uint8_t[fb.size + 1];
     int count = 0;
     do {
-count += fread(&fb.data[count], 1, fb.size - count, file);
-} while (count < fb.size);
+        count += fread(&fb.data[count], 1, fb.size - count, file);
+    } while (count < fb.size);
 
     fclose(file);
     fb.data[fb.size] = 0;
@@ -78,7 +78,7 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
                 // We're looking for file with good extension
                  if ((pos = s.find(extension)) != std::string::npos) {
                     content.push_back(s.substr(0, pos));
-                }     
+                }
             }
         }
         closedir(dir);

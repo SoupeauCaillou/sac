@@ -136,6 +136,10 @@ private:
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 
+#if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+void updateInotify();
+#endif
+
 public:
 static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 
