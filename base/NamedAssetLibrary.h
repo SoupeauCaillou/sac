@@ -219,8 +219,7 @@ class NamedAssetLibrary {
                 fd_set fds;
                 FD_ZERO(&fds);
                 FD_SET(it.inotifyFd, &fds);
-                struct timeval tv;
-                tv = (struct timeval){0};
+                struct timeval tv = (struct timeval){0,0};
                 if (select(it.inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
                     char buffer[8192];
                     struct inotify_event *event;
@@ -261,8 +260,8 @@ class NamedAssetLibrary {
         struct InotifyDatas {
             int wd;
             int inotifyFd;
-            std::string _assetname;
             std::string _filename;
+            std::string _assetname;
 
             InotifyDatas(const std::string & file, const std::string & asset)
              : _filename(file), _assetname(asset) {

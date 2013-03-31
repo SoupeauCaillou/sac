@@ -50,7 +50,7 @@ TEST(LoadFramesTexture)
         "texture=plop\n";
     AnimDescriptor desc;
     CHECK(desc.load(FB(content)));
-    CHECK_EQUAL(3, desc.frames.size());
+    CHECK_EQUAL((unsigned)3, desc.frames.size());
     CHECK_EQUAL(desc.frames[0].texture, desc.frames[2].texture);
     RenderingSystem::DestroyInstance();
 }
