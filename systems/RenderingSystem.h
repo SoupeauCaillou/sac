@@ -151,4 +151,16 @@ void removeExcessiveFrames(int& readQueue, int& writeQueue);
 void setFrameQueueWritable(bool b);
 typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
 ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
+
+#ifdef SAC_INGAME_EDITORS
+public:
+    struct Stats {
+        unsigned count;
+        unsigned area;
+
+        void reset() {
+            count = area = 0;
+        }
+    } renderingStats[3];
 };
+#endif

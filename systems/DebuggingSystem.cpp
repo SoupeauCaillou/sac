@@ -14,6 +14,9 @@ static const char* SystemsTextureName = "__debug_systems_texture";
 
 static unsigned long frameCount = 0;
 static float timeUntilGraphUpdate = 0;
+
+static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index, const std::string& s, float maxY = 0);
+
 INSTANCE_IMPL(DebuggingSystem);
 
 DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging") {
@@ -86,7 +89,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     RENDERING(systems)->show = true;
 }
 
-static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index) {
+static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index, const std::string& textureName, float maxY) {
     Color color = Color::random();
     color.a = 1;
     Entity e = theEntityManager.CreateEntity(std::string("__debug_") + name);
@@ -102,12 +105,12 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     // TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
     TEXT_RENDERING(e)->maxCharHeight = 0.4;
     TEXT_RENDERING(e)->text = name;
-    TEXT_RENDERING(e)->show = false;
+    TEXT_RENDERING(e)->show = true;
 
     ADD_COMPONENT(e, Graph);
-    GRAPH(e)->textureName = SystemsTextureName;
+    GRAPH(e)->textureName = textureName;
     GRAPH(e)->minY = 0;
-    GRAPH(e)->maxY = 0.020;
+    GRAPH(e)->maxY = maxY;
     GRAPH(e)->lineColor = color;
 
     return e;
@@ -149,6 +152,12 @@ void DebuggingSystem::DoUpdate(float dt) {
 
     if (!fps) {
         init(activeCamera, fps, fpsLabel, entityCount, entityCountLabel, systems);
+        renderStatsEntities.push_back(createSystemGraphEntity("opaque_object", fps, 1, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("nonopaque_object", fps, 2, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("zprepass_object", fps, 3, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("opaque_area", fps, 4, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("nonopaque_area", fps, 5, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("zprepass_area", fps, 6, FpsTextureName));
         LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems)
     }
     const glm::vec2 firstLabelOffset(TRANSFORM(activeCamera)->size * glm::vec2(0.3, 0.2) * (-0.5f) - glm::vec2(0, (0.6) * 0.6f));
@@ -166,8 +175,24 @@ void DebuggingSystem::DoUpdate(float dt) {
     if (frameCount > 120) GRAPH(entityCount)->pointsList.pop_front();
     GRAPH(entityCount)->reloadTexture = reloadTextures;
 
+    for (int i=0; i<3; i++) {
+        GRAPH(renderStatsEntities[i])->pointsList.push_back(std::make_pair(frameCount, theRenderingSystem.renderingStats[i].count));
+        if (frameCount > 120) GRAPH(renderStatsEntities[i])->pointsList.pop_front();
+        GRAPH(renderStatsEntities[i])->reloadTexture = reloadTextures;
+
+        GRAPH(renderStatsEntities[3 + i])->pointsList.push_back(std::make_pair(frameCount, theRenderingSystem.renderingStats[i].area));
+        if (frameCount > 120) GRAPH(renderStatsEntities[3 + i])->pointsList.pop_front();
+        GRAPH(renderStatsEntities[3 + i])->reloadTexture = reloadTextures;
+    }
+
     if (reloadTextures) {
         TEXT_RENDERING(fpsLabel)->text = createLabel("FPS", GRAPH(fps)->pointsList, 1, "fps");
+        TEXT_RENDERING(renderStatsEntities[0])->text = createLabel("Opaque", GRAPH(renderStatsEntities[0])->pointsList, 1, " drawn");
+        TEXT_RENDERING(renderStatsEntities[1])->text = createLabel("NonOpaque", GRAPH(renderStatsEntities[1])->pointsList, 1, " drawn");
+        TEXT_RENDERING(renderStatsEntities[2])->text = createLabel("Zprepass", GRAPH(renderStatsEntities[2])->pointsList, 1, " drawn");
+        TEXT_RENDERING(renderStatsEntities[3])->text = createLabel("OpSurf", GRAPH(renderStatsEntities[3])->pointsList, 1, " pct");
+        TEXT_RENDERING(renderStatsEntities[4])->text = createLabel("NonOpSurf", GRAPH(renderStatsEntities[4])->pointsList, 1, " pct");
+        TEXT_RENDERING(renderStatsEntities[5])->text = createLabel("ZppSurf", GRAPH(renderStatsEntities[5])->pointsList, 1, " pct");
         TRANSFORM(fpsLabel)->position = firstLabelOffset;
         TEXT_RENDERING(entityCountLabel)->text = createLabel("Total", GRAPH(entityCount)->pointsList, 1, "entities");
         TRANSFORM(entityCountLabel)->position = firstLabelOffset;
@@ -188,7 +213,7 @@ void DebuggingSystem::DoUpdate(float dt) {
 
         auto it = debugEntities.find(systemNames[i]);
         if (it == debugEntities.end()) {
-            it = debugEntities.insert(std::make_pair(systemNames[i], createSystemGraphEntity(systemNames[i], systems, debugEntities.size()))).first;
+            it = debugEntities.insert(std::make_pair(systemNames[i], createSystemGraphEntity(systemNames[i], systems, debugEntities.size(), SystemsTextureName, 0.020))).first;
         }
         Entity e = it->second;
         GraphComponent* graphC = GRAPH(e);

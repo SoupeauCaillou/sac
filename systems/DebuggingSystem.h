@@ -1,6 +1,7 @@
 #pragma once
 
 #include "System.h"
+#include <vector>
 
 struct DebuggingComponent {
 };
@@ -12,6 +13,7 @@ UPDATABLE_SYSTEM(Debugging)
 
     private:
         std::map<std::string, Entity> debugEntities;
+        std::vector<Entity> renderStatsEntities;
 
         Entity fps, entityCount, systems;
         Entity fpsLabel, entityCountLabel;

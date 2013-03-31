@@ -305,7 +305,7 @@ void RenderingSystem::DoUpdate(float) {
                     modifyQ(c, info->reduxStart, info->reduxSize);
 
                    #ifndef SAC_USE_VBO
-                    if (0 && rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                         c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
                         !rc->zPrePass) {
@@ -385,6 +385,28 @@ void RenderingSystem::DoUpdate(float) {
         std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), outQueue.commands.begin() + outQueue.count); //&outQueue.commands[outQueue.count]);
         outQueue.count += semiOpaqueCommands.size();
     }
+
+#ifdef SAC_INGAME_EDITORS
+    float invSize = 400.0 / (theRenderingSystem.screenW * theRenderingSystem.screenH);
+    for (int i=0; i<3; i++)
+        renderingStats[i].reset();
+    std::for_each(outQueue.commands.begin(), outQueue.commands.end(),
+        [&renderingStats, invSize] (const RenderCommand& a) -> void {
+            if (a.flags & EnableZWriteBit) {
+                if (a.flags & DisableColorWriteBit) {
+                    renderingStats[2].count++;
+                    renderingStats[2].area += a.halfSize.x * a.halfSize.y * invSize;
+                } else {
+                    renderingStats[0].count++;
+                    renderingStats[0].area += a.halfSize.x * a.halfSize.y * invSize;
+                }
+            } else {
+                renderingStats[1].count++;
+                renderingStats[1].area += a.halfSize.x * a.halfSize.y * invSize;
+            }
+        }
+    );
+#endif
 
     outQueue.commands.reserve(outQueue.count + 1);
     // assert(outQueue.commands.size() == (outQueue.count + 1));
