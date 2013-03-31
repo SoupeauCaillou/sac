@@ -122,7 +122,7 @@ if (DESKTOP_BUILD)
     )
 elseif (MOBILE_BUILD)
     file(
-        GLOB_RECURSE platform_source_files
+        GLOB_RECURSE source_platforms_files
         ${PROJECT_SOURCE_DIR}/sac/api/android/*
         ${PROJECT_SOURCE_DIR}/sources/api/android/*
     )
