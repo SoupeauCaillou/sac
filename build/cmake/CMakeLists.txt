@@ -44,6 +44,9 @@ include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
+
+add_definitions(-DGLM_FORCE_RADIANS)
+
 file(
     GLOB_RECURSE source_files
     ${PROJECT_SOURCE_DIR}/sac/base/*
@@ -56,7 +59,7 @@ file(
 if (WEB_BUILD)
     set(EXECUTABLE_NAME ${PROJECT_NAME}.bc)
 
-    add_library(sac ${source_files})
+    add_library(sac ${LIB_TYPE} ${source_files})
     check_and_link_libs("sac" SDL)
 else()
     set(EXECUTABLE_NAME ${PROJECT_NAME})
@@ -68,11 +71,12 @@ else()
         ${PROJECT_SOURCE_DIR}/sac/libs/enet/*.c #lib enet
     )
 
+    # following defs replace enet's config.h
     add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1
     -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1
     -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1
     -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1
-    -DHAS_SOCKLEN_T=1 -DGLM_FORCE_RADIANS)
+    -DHAS_SOCKLEN_T=1)
 
     include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
     include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
@@ -96,7 +100,7 @@ else()
         message(SEND_ERROR "which platform?")
     endif()
 
-    add_library(sac ${source_files} ${opt_source_files} ${platform_source_files})
+    add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files})
     #the necessary libs for not emscripten
     if (DESKTOP_BUILD)
         check_and_link_libs("sac" GLEW GLFW )
@@ -124,21 +128,45 @@ if (DESKTOP_BUILD)
         GLOB_RECURSE source_platforms_files
         ${PROJECT_SOURCE_DIR}/platforms/default/*
     )
+    add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
+    target_link_libraries(${EXECUTABLE_NAME} sac)
 elseif (MOBILE_BUILD)
+    ENABLE_LANGUAGE(ASM)
+    # build ogg lib
+    set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
+    set (ogg_sources ${ogg_base}/bitwiseARM.s
+        ${ogg_base}/bitwise.c
+        ${ogg_base}/codebook.c
+        ${ogg_base}/dpenARM.s
+        ${ogg_base}/dsp.c
+        ${ogg_base}/floor0.c
+        ${ogg_base}/floor1ARM.s
+        ${ogg_base}/floor1.c
+        ${ogg_base}/floor1LARM.s
+        ${ogg_base}/floor_lookup.c
+        ${ogg_base}/framing.c
+        ${ogg_base}/info.c
+        ${ogg_base}/mapping0.c
+        ${ogg_base}/mdctARM.s
+        ${ogg_base}/mdct.c
+        ${ogg_base}/mdctLARM.s
+        ${ogg_base}/misc.c
+        ${ogg_base}/res012.c
+        ${ogg_base}/vorbisfile.c)
+    add_library("ogg" STATIC ${ogg_sources})
+    set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
+        "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
+
     file(
         GLOB_RECURSE source_platforms_files
-        ${PROJECT_SOURCE_DIR}/sac/api/android/*
-        ${PROJECT_SOURCE_DIR}/sources/api/android/*
     )
+    target_link_libraries("sac" GLESv2 z ogg)
 elseif (WEB_BUILD)
     #for emscripten, all the files are in sac
     set(source_platforms_files "")
 else()
     message(SEND_ERROR "which platform?")
 endif()
-
-add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
-target_link_libraries(${EXECUTABLE_NAME} sac)
 
 #######################################################################
 #############################Post build actions########################

@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -W -g -O0")
 
 set(MOBILE_BUILD 1)
 
+SET (SAC_LIB_TYPE SHARED)
+
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/)
 
 function (others_specific_executables)

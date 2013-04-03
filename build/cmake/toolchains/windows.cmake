@@ -6,6 +6,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /MP /D NOMINMAX /D NOGDI /D WIN32_LE
 
 set(DESKTOP_BUILD 1)
 
+SET (SAC_LIB_TYPE STATIC)
+
 function (others_specific_executables)
 endfunction()
 
