@@ -81,6 +81,7 @@
 		private: \
 			type##System();	\
 			static type##System* _instance;
+
 #endif
 
 #if SAC_USE_VECTOR_STORAGE
@@ -264,7 +265,6 @@ class ComponentSystemImpl: public ComponentSystem {
                 #else
     			ComponentIt it = components.find(entity);
     			if (it == components.end()) {
-                    #ifndef SAC_ANDROID
                     // crash here
                     if (failIfNotfound) {
                         #ifdef SAC_DEBUG
@@ -274,7 +274,6 @@ class ComponentSystemImpl: public ComponentSystem {
                         LOGF("Entity '" << entity << "' has no component of type '" << getName())
                         #endif
                     }
-                    #endif
     				return 0;
     			}
                 previousComp = (*it).second;

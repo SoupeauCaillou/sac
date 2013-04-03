@@ -27,7 +27,8 @@
 #include "Log.h"
 
 #if defined(SAC_ANDROID)
-#undef USE_COND_SIGNALING
+// #undef USE_COND_SIGNALING
+#define USE_COND_SIGNALING 1
 #else
 #define USE_COND_SIGNALING 1
 #endif

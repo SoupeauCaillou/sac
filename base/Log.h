@@ -29,7 +29,7 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define LOGE_IF(cond, x) {}
 #define LOGW_IF(cond, x) {}
 #define LOGI_IF(cond, x) {}
-#define LOGV_IF(verbosity, cond, x) { }
+#define LOGV_IF(verbosity, cond, x) {}
 #else
 #include <iostream>
 #define LOGF(x) { logToStream(std::cout, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; }

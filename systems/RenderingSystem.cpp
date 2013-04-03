@@ -10,7 +10,7 @@
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
 #if defined(SAC_DEBUG)
-    #include <GL/glew.h>
+    // #include <GL/glew.h>
     #include <stdint.h>
 #endif
 
@@ -100,8 +100,10 @@ void RenderingSystem::init() {
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GREATER))
-#if defined(SAC_DEBUG)
+#if defined(SAC_DESKTOP)
     GL_OPERATION(glClearDepth(0.0))
+#else
+    GL_OPERATION(glClearDepthf(0.0))
 #endif
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
@@ -401,12 +403,12 @@ void RenderingSystem::DoUpdate(float) {
         outQueue.count += semiOpaqueCommands.size();
     }
 
-#ifdef SAC_INGAME_EDITORS
+#ifdef SAC_DEBUG
     float invSize = 400.0 / (theRenderingSystem.screenW * theRenderingSystem.screenH);
     for (int i=0; i<3; i++)
         renderingStats[i].reset();
     std::for_each(outQueue.commands.begin(), outQueue.commands.end(),
-        [&renderingStats, invSize] (const RenderCommand& a) -> void {
+        [this, invSize] (const RenderCommand& a) -> void {
             if (a.flags & EnableZWriteBit) {
                 if (a.flags & DisableColorWriteBit) {
                     renderingStats[2].count++;
@@ -574,8 +576,10 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    #if SAC_DESKTOP
     glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    #endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // create a renderbuffer object to store depth info

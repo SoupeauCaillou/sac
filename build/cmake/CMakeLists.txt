@@ -46,7 +46,6 @@ include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
 file(
     GLOB_RECURSE source_files
-    ${PROJECT_SOURCE_DIR}/sac/app/*
     ${PROJECT_SOURCE_DIR}/sac/base/*
     ${PROJECT_SOURCE_DIR}/sac/systems/*
     ${PROJECT_SOURCE_DIR}/sac/util/*
@@ -83,6 +82,7 @@ else()
     if (DESKTOP_BUILD)
         file(
             GLOB_RECURSE platform_source_files
+            ${PROJECT_SOURCE_DIR}/sac/app/*
             ${PROJECT_SOURCE_DIR}/sac/api/linux/*
             ${PROJECT_SOURCE_DIR}/sources/api/linux/*
         )
@@ -98,14 +98,18 @@ else()
 
     add_library(sac ${source_files} ${opt_source_files} ${platform_source_files})
     #the necessary libs for not emscripten
-    check_and_link_libs("sac" GLEW GLFW )
+    if (DESKTOP_BUILD)
+        check_and_link_libs("sac" GLEW GLFW )
+    endif()
 endif()
 
 #######################################################################
 ######################Libraries for all targets########################
 #######################################################################
-check_and_link_libs("sac" OpenAL Sqlite3 VorbisFile Vorbis ZLIB
-AntTweakBar Ogg Tinyxml2)
+if (DESKTOP_BUILD)
+    check_and_link_libs("sac" OpenAL Sqlite3 VorbisFile Vorbis ZLIB
+        AntTweakBar Ogg Tinyxml2)
+endif()
 
 #######################################################################
 #######################Import OS-dependent libs########################
@@ -146,22 +150,24 @@ postbuild_specific_actions()
 #######################################################################
 others_specific_executables()
 
-#unit tests, if installed
-find_package (UnitTest++)
-if (UNITTEST_FOUND)
-    file(
-            GLOB_RECURSE test_source_files
-            ${PROJECT_SOURCE_DIR}/sac/tests/*.cpp
-            ${PROJECT_SOURCE_DIR}/tests/*.cpp
-    )
-    add_executable(sac_tests ${test_source_files})
+if (DESKTOP_BUILD)
+    #unit tests, if installed
+    find_package (UnitTest++)
+    if (UNITTEST_FOUND)
+        file(
+                GLOB_RECURSE test_source_files
+                ${PROJECT_SOURCE_DIR}/sac/tests/*.cpp
+                ${PROJECT_SOURCE_DIR}/tests/*.cpp
+        )
+        add_executable(sac_tests ${test_source_files})
 
-    #the necessary libs
-    include_directories(${UNITTEST_INCLUDE_DIR})
-    target_link_libraries ("sac_tests" ${UNITTEST_LIBRARY})
+        #the necessary libs
+        include_directories(${UNITTEST_INCLUDE_DIR})
+        target_link_libraries ("sac_tests" ${UNITTEST_LIBRARY})
 
-    target_link_libraries("sac_tests" sac)
+        target_link_libraries("sac_tests" sac)
 
-    #launch sac_tests after each build
-    add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
-endif ()
+        #launch sac_tests after each build
+        add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
+    endif ()
+endif()

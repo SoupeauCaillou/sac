@@ -5,7 +5,7 @@
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
     jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
     if (!mId) {
-        LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
+        LOGF("JNI Error : could not find method '" << name << "'/'" << signature << "'")
     }
     return mId;
 }
@@ -54,7 +54,7 @@ bool NameInputAPIAndroidImpl::done(std::string& name) {
     jstring n = (jstring) env->CallStaticObjectMethod(datas->javaNameApi, datas->done);
     if (n) {
         const char *mfile = env->GetStringUTFChars(n, 0);
-        LOGW("name choosen: %s", mfile);
+        LOGI("name choosen: '" << mFile << "'")
         name = mfile;
         env->ReleaseStringUTFChars(n, mfile);
         return true;

@@ -2,6 +2,9 @@
 #include "api/AssetAPI.h"
 #include "base/Log.h"
 #include <cstring>
+#ifdef SAC_ANDROID
+#include <GLES2/gl2ext.h>
+#endif
 
 #include "OpenglHelper.h"
 
@@ -178,14 +181,16 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
        #ifdef SAC_ANDROID
+        LOGW("Fix PVR detection")
+        bool pvrSupported = false;
         char* ptr = image.datas;
         LOGV(2, "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)")
         for (int level=0; level<=image.mipmap; level++) {
-            int width = MathUtil::Max(1, image.width >> level);
-            int height = MathUtil::Max(1, image.height >> level);
+            int width = std::max(1, image.width >> level);
+            int height = std::max(1, image.height >> level);
             unsigned imgSize = 0;
             if (pvrSupported)
-                imgSize =( MathUtil::Max(width, 8) * MathUtil::Max(height, 8) * 4 + 7) / 8;
+                imgSize =( std::max(width, 8) * std::max(height, 8) * 4 + 7) / 8;
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
             LOGV(3, "\t- mipmap " << level << " : " << width << 'x' << height)

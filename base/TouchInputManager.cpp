@@ -1,3 +1,4 @@
+#include <glm/gtx/rotate_vector.hpp>
 #include "TouchInputManager.h"
 #include "Log.h"
 #include "../systems/RenderingSystem.h"
@@ -5,7 +6,7 @@
 #include "../systems/CameraSystem.h"
 #include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"
-#include <glm/gtx/rotate_vector.hpp>
+
 
 TouchInputManager* TouchInputManager::instance = 0;
 
@@ -49,8 +50,7 @@ void TouchInputManager::Update(float) {
     }
 }
 
-glm::vec2
-TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
+glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
     glm::vec2 camLocal;
 	camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
         - cameraTrans->size.x * 0.5f;

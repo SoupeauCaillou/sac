@@ -1,6 +1,5 @@
 #include "MusicAPIAndroidImpl.h"
 #include "../../base/Log.h"
-#include "../../base/MathUtil.h"
 #include "../../systems/MusicSystem.h"
 #include <map>
 
@@ -43,7 +42,7 @@ MusicAPIAndroidImpl::~MusicAPIAndroidImpl() {
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
     jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
     if (!mId) {
-        LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
+        LOGF("JNI Error : could not find method '" << name << "'/'" << signature << "'")
     }
     return mId;
 }

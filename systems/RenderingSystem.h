@@ -152,7 +152,7 @@ void setFrameQueueWritable(bool b);
 typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
 ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
-#ifdef SAC_INGAME_EDITORS
+#ifdef SAC_DEBUG
 public:
     struct Stats {
         unsigned count;
@@ -162,5 +162,5 @@ public:
             count = area = 0;
         }
     } renderingStats[3];
-};
 #endif
+};

@@ -14,7 +14,7 @@ struct SoundAPIAndroidImpl::SoundAPIAndroidImplData {
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
     jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
     if (!mId) {
-        LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
+        LOGF("JNI Error : could not find method '" << name << "'/'" << signature << "'")
     }
     return mId;
 }
@@ -48,7 +48,7 @@ void SoundAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetMgr) {
 }
 
 OpaqueSoundPtr* SoundAPIAndroidImpl::loadSound(const std::string& asset) {
-    LOGI("loadSound: '%s'", asset.c_str());
+    LOGI("loadSound: '" << asset "'")
     jstring jasset = env->NewStringUTF(asset.c_str());
     AndroidSoundOpaquePtr* out = new AndroidSoundOpaquePtr();
     out->soundID = env->CallStaticIntMethod(datas->javaSoundApi, datas->jloadSound, assetManager, jasset);
