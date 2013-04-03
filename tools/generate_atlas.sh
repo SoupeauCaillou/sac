@@ -52,7 +52,7 @@ do
     hh=`echo $used_rect | cut -d, -f2`
     xx=`echo $used_rect | cut -d, -f3`
     yy=`echo $used_rect | cut -d, -f4`
-    convert -crop ${ww}x${hh}+${xx}+${yy} ${file} PNG32:$TEMP_FOLDER/`basename ${file}`
+    convert -crop ${ww}x${hh}+${xx}+${yy} +repage ${file} PNG32:$TEMP_FOLDER/`basename ${file}`
 done
 echo "${green}Done${reset}"
 

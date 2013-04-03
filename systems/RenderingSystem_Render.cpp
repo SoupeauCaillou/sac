@@ -72,19 +72,31 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
 #else
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
 #endif
-     glm::vec2 offset(rc.uv[0]);
-     glm::vec2 scale(rc.uv[1]);
-     const glm::vec2 uvS (info.uv[1] - info.uv[0]);
+    // Those 2 are used by RenderingSystem to display part of the texture, with different flags.
+    // For instance: display a partial-but-opaque-version before the original alpha-blended one.
+    // So, their default value are: offset=0,0 and size=1,1
+    glm::vec2 uvModifierOffset(rc.uv[0]);
+    glm::vec2 uvModifierSize(rc.uv[1]);
+    const glm::vec2 uvSize (info.uv[1] - info.uv[0]);
 
-     if (info.rotateUV) {
-         std::swap(offset.x, offset.y);
-         std::swap(scale.x, scale.y);
-         offset.y = 1 - (scale.y + offset.y);
-     }
-     {
-         rc.uv[0] = info.uv[0] + glm::vec2(offset.x * uvS.x, offset.y * uvS.y);
-         rc.uv[1] = rc.uv[0] + glm::vec2(scale.x * uvS.x, scale.y * uvS.y);
-     }
+     // If image is rotated in atlas, we need to adjust UVs
+    if (info.rotateUV) {
+        // #1: swap x/y start coordinates (ie: top-left point of the image)
+        std::swap(uvModifierOffset.x, uvModifierOffset.y);
+        // #2: swap x/y end coords (ie: bottom-right corner of the image)
+        std::swap(uvModifierSize.x, uvModifierSize.y);
+        // #3:
+        uvModifierOffset.y = 1 - (uvModifierSize.y + uvModifierOffset.y);
+        //uvModifierOffset.x = 1 - (uvModifierSize.x + uvModifierOffset.x);
+
+    }
+
+    // Compute UV to send to GPU
+    {
+        rc.uv[0] = info.uv[0] + glm::vec2(uvModifierOffset.x * uvSize.x, uvModifierOffset.y * uvSize.y);
+        rc.uv[1] = rc.uv[0] + glm::vec2(uvModifierSize.x * uvSize.x, uvModifierSize.y * uvSize.y);
+    }
+    // Miror UV when doing horizontal miroring
     if (rc.mirrorH) {
         if (info.rotateUV)
             std::swap(rc.uv[0].y, rc.uv[1].y);
@@ -92,14 +104,15 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
             std::swap(rc.uv[0].x, rc.uv[1].x);
     }
     rc.rotateUV = info.rotateUV;
-     #ifdef SAC_USE_VBO
-     float uvso[4];
-     uvso[0] = rc.uv[1].x - rc.uv[0].x;
-     uvso[1] = rc.uv[1].y - rc.uv[0].y;
-     uvso[2] = rc.uv[0].x;
-     uvso[3] = rc.uv[0].y;
-     GL_OPERATION(glUniform4fv(unif, 1, uvso))
-     #endif
+
+    #ifdef SAC_USE_VBO
+    float uvso[4];
+    uvso[0] = rc.uv[1].x - rc.uv[0].x;
+    uvso[1] = rc.uv[1].y - rc.uv[0].y;
+    uvso[2] = rc.uv[0].x;
+    uvso[3] = rc.uv[0].y;
+    GL_OPERATION(glUniform4fv(unif, 1, uvso))
+    #endif
 }
 
 #ifdef SAC_USE_VBO

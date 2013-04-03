@@ -126,8 +126,8 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
             opaqueRect = glm::vec4(0.0f);
         }
         glm::vec2 start(opaqueRect.swizzle(glm::X, glm::Y));
-        glm::vec2 end(opaqueRect.swizzle(glm::Z, glm::W));
-        const TextureInfo info(InternalTexture::Invalid, posInAtlas, sizeInAtlas, rotate, atlasSize, reduxOffset, originalSize, start, end - start, atlasIndex);
+        glm::vec2 size(opaqueRect.swizzle(glm::Z, glm::W));
+        const TextureInfo info(InternalTexture::Invalid, posInAtlas, sizeInAtlas, rotate, atlasSize, reduxOffset, originalSize, start, size, atlasIndex);
         textureLibrary.add(assetName, info);
         count++;
 	} while (true);

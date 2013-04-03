@@ -173,9 +173,11 @@ static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& o
     r.halfSize = size * r.halfSize;
 }
 
+// offsetPos and size are in [0, 1] interval -> must be multiplied by object size hen used
 static void modifyR(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
-    const glm::vec2 offset =  offsetPos * r.halfSize * 2.0f + size * r.halfSize * 2.0f * 0.5f;
-    r.position = r.position  + glm::vec2((r.mirrorH ? -1.0f : 1.0f), 1.0f) * glm::rotate(- r.halfSize + offset, r.rotation);
+    const glm::vec2 fullSize(r.halfSize * 2.0f);
+    const glm::vec2 newCenterFromBL = (offsetPos + size * 0.5f) * fullSize;
+    r.position = r.position + glm::vec2((r.mirrorH ? -1.0f : 1.0f), 1.0f) * glm::rotate(newCenterFromBL - r.halfSize, r.rotation);
     r.halfSize = size * r.halfSize;
     r.uv[0] = offsetPos;
     r.uv[1] = size;
@@ -253,6 +255,7 @@ void RenderingSystem::DoUpdate(float) {
         const CameraComponent* camComp = CAMERA(camera);
         const TransformationComponent* camTrans = TRANSFORM(camera);
 
+        const float cameraInvSize = 1.0f / (camTrans->size.x * camTrans->size.y);
     	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
     	/* render */
@@ -305,18 +308,29 @@ void RenderingSystem::DoUpdate(float) {
                     modifyQ(c, info->reduxStart, info->reduxSize);
 
                    #ifndef SAC_USE_VBO
+                    // Check if we can enable opaque-first optimisation. Conditions are:
+                    // 1. blending-enabled sprite
+                    // 2. alpha == 1
+                    // 3. non empty opaque area
+                    // 4. sprite is not a z prepass one
+                    // 5. sprite cover at least 1.25% of the camera source area
                     if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
                         c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
-                        !rc->zPrePass) {
+                        !rc->zPrePass &&
+                        (c.halfSize.x * c.halfSize.y * cameraInvSize) > 0.01) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
                         cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+                        cCenter.color.b = cCenter.color.g = 0;
+                        // Note: no need to take rotate info->rotate into account.
+                        // (opaqueStart/Size attributes do not depend on this)
                         modifyR(cCenter, info->opaqueStart, info->opaqueSize);
 
                         if (cull(camTrans, cCenter))
                             opaqueCommands.push_back(cCenter);
-
+                        semiOpaqueCommands.push_back(c);
+#if 0
                         const float leftBorder = info->opaqueStart.x, rightBorder = info->opaqueStart.x + info->opaqueSize.x;
                         const float bottomBorder = info->opaqueStart.y + info->opaqueSize.y;
                         if (leftBorder > 0) {
@@ -342,6 +356,7 @@ void RenderingSystem::DoUpdate(float) {
                         modifyR(cBottom, glm::vec2(leftBorder, bottomBorder), glm::vec2(rightBorder - leftBorder, 1 - bottomBorder));
                         if (cull(camTrans, cBottom))
                             semiOpaqueCommands.push_back(cBottom);
+#endif
                         continue;
                     }
                     #endif

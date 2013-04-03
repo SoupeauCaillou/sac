@@ -16,15 +16,16 @@ TextureInfo::TextureInfo (const InternalTexture& ref,
         uv[1].x = uv[1].y = 1;
         rotateUV = 0;
     } else if (atlasIdx >= 0) {
-        float blX = posInAtlas.x / atlasSize.x;
-        float trX = (posInAtlas.x + sizeInAtlas.x) / atlasSize.x;
-        float blY = 1 - (posInAtlas.y + sizeInAtlas.y) / atlasSize.y;
-        float trY = 1 - posInAtlas.y / atlasSize.y;
+        // position is specified in pixels, from top left corner
+        float lX = posInAtlas.x / atlasSize.x;
+        float rX = (posInAtlas.x + sizeInAtlas.x) / atlasSize.x;
+        float tY = 1 - (posInAtlas.y + sizeInAtlas.y) / atlasSize.y;
+        float bY = 1 - posInAtlas.y / atlasSize.y;
 
-        uv[0].x = blX;
-        uv[1].x = trX;
-        uv[0].y = blY;
-        uv[1].y = trY;
+        uv[0].x = lX;
+        uv[1].x = rX;
+        uv[0].y = tY;
+        uv[1].y = bY;
         rotateUV = rot;
     } else {
         uv[0].x = posInAtlas.x / atlasSize.x;
@@ -43,7 +44,11 @@ TextureInfo::TextureInfo (const InternalTexture& ref,
     }
     if (_sizeInAtlas.y > 0) {
         opaqueSize = glm::vec2(_opaqueSize.x / _sizeInAtlas.x, _opaqueSize.y / _sizeInAtlas.y);
-        opaqueStart = glm::vec2(_opaqueStart.x / _sizeInAtlas.x, 1 - (opaqueSize.y + _opaqueStart.y / _sizeInAtlas.y));
+        if (0) {//if (0 && rot) {
+            opaqueStart = glm::vec2(_opaqueStart.x / _sizeInAtlas.x, _opaqueStart.y / _sizeInAtlas.y);
+        } else {
+            opaqueStart = glm::vec2(_opaqueStart.x / _sizeInAtlas.x, 1 - (opaqueSize.y + _opaqueStart.y / _sizeInAtlas.y));
+        }
 
         reduxSize = glm::vec2(_sizeInAtlas.x / originalSize.x, _sizeInAtlas.y / originalSize.y);
         reduxStart = glm::vec2(offsetInOriginal.x / originalSize.x, 1 - (reduxSize.y + offsetInOriginal.y / originalSize.y));
@@ -89,7 +94,7 @@ void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
         const ImageDesc& imageDesc = it->second;
         LOGV(1, "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')')
         OpenGLTextureCreator::updateFromImageDesc(imageDesc, info.glref.color, OpenGLTextureCreator::COLOR_ALPHA);
-    }   
+    }
 }
 
 void TextureLibrary::add(const std::string& name, const TextureInfo& info) {
