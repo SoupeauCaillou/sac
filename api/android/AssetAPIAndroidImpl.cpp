@@ -63,3 +63,8 @@ FileBuffer AssetAPIAndroidImpl::loadAsset(const std::string& asset) {
     fb.data = loadAssetFromJava(env, assetManager, asset, &fb.size, datas->javaAssetApi, datas->assetToByteArray);
     return fb;
 }
+
+std::list<std::string> AssetAPIAndroidImpl::listContent(const std::string&, const std::string&) {
+    LOGW("TODO");
+    return std::list<std::string>();
+}

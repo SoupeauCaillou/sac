@@ -23,7 +23,7 @@ public class AdAPI {
 
 			int adProviderSelection = -1;
 
-			boolean revmobReady = _revmobFullscreen.isAdLoaded();
+			boolean revmobReady = false;//_revmobFullscreen.isAdLoaded();
 			boolean cbReady = _cb.hasCachedInterstitial();
 
 			if (revmobReady && cbReady) {

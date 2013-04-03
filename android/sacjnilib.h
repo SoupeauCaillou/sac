@@ -34,7 +34,7 @@ struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 	jobject assetManager;
 
 	virtual void init(JNIEnv* pEnv, jobject assetMgr) {
-		LOGW("%p", pEnv);
+		LOGW("JNIEnv: " << pEnv)
 		assetManager = pEnv->NewGlobalRef(assetMgr);
 
 		nameInput.init(pEnv);
@@ -74,7 +74,7 @@ struct RenderThreadJNIEnvCtx : JNIEnvDependantContext {
 	jobject assetManager;
 
 	void init(JNIEnv* pEnv, jobject assetMgr) {
-		LOGW("%p", pEnv);
+		LOGW("JNIEnv: " << pEnv)
 		assetManager = pEnv->NewGlobalRef(assetMgr);
 	    asset.init(pEnv, assetManager);
 		JNIEnvDependantContext::init(pEnv, assetMgr);
@@ -95,7 +95,7 @@ class GameHolder {
 	public:
 	static GameHolder* build();
     ~GameHolder();
-	
+
 	Game* game;
 	int width, height;
 
@@ -110,14 +110,14 @@ class GameHolder {
     std::map<int, __input> input;
 	struct timeval startup_time;
 	float dtAccumuled, time;
- 
+
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     bool renderingStarted, drawQueueChanged;
     float renderingDt;
 
 	bool initDone;
-	
+
 	private:
 	GameHolder() {}
 };

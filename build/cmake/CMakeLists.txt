@@ -95,6 +95,8 @@ else()
             GLOB_RECURSE platform_source_files
             ${PROJECT_SOURCE_DIR}/sac/api/android/*
             ${PROJECT_SOURCE_DIR}/sources/api/android/*
+            ${PROJECT_SOURCE_DIR}/sac/android/*
+            ${PROJECT_SOURCE_DIR}/platforms/android/*cpp
         )
     else()
         message(SEND_ERROR "which platform?")
@@ -157,9 +159,6 @@ elseif (MOBILE_BUILD)
     set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
         "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
 
-    file(
-        GLOB_RECURSE source_platforms_files
-    )
     target_link_libraries("sac" GLESv2 z ogg)
 elseif (WEB_BUILD)
     #for emscripten, all the files are in sac
