@@ -54,7 +54,7 @@ bool NameInputAPIAndroidImpl::done(std::string& name) {
     jstring n = (jstring) env->CallStaticObjectMethod(datas->javaNameApi, datas->done);
     if (n) {
         const char *mfile = env->GetStringUTFChars(n, 0);
-        LOGI("name choosen: '" << mFile << "'")
+        LOGI("name choosen: '" << mfile << "'")
         name = mfile;
         env->ReleaseStringUTFChars(n, mfile);
         return true;

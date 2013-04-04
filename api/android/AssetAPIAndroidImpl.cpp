@@ -53,12 +53,13 @@ static uint8_t* loadAssetFromJava(JNIEnv *env, jobject assetManager, const std::
 		res[*length] = '\0';
 		return (uint8_t*)res;
 	} else {
-		LOGW("failed to load '" << assetName "'")
+		LOGW("failed to load '" << assetName << "'")
 		return 0;
 	}
 }
 
 FileBuffer AssetAPIAndroidImpl::loadAsset(const std::string& asset) {
+    LOGI("loadAssetFromJava: " << asset)
     FileBuffer fb;
     fb.data = loadAssetFromJava(env, assetManager, asset, &fb.size, datas->javaAssetApi, datas->assetToByteArray);
     return fb;
