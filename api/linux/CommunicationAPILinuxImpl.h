@@ -17,7 +17,7 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
 
         inline std::list<Achievement::Struct> getAllAchievements() {
             std::list<Achievement::Struct> list;
-            LOGV(1, "TODO");
+            LOGW("TODO");
             //storageAPI->blablabla
             return list;
         }
@@ -25,7 +25,10 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
         inline std::list<Score::Struct> getScores(unsigned leaderboardID,
             Score::Visibility visibility, unsigned startRank, unsigned count) {
             std::list<Score::Struct> list;
-            LOGV(1, "TODO");
+            list.push_front(Score::Struct("Player3", "10", startRank+2, Score::FRIEND));
+            list.push_front(Score::Struct("Player2", "433", startRank+1, Score::ME));
+            list.push_front(Score::Struct("Player1", "1000", startRank, Score::ALL));
+            LOGW("TODO");
             //storageAPI->blablabla
             return list;
         }

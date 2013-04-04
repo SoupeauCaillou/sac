@@ -24,6 +24,23 @@ namespace Score {
         std::string _score;
         unsigned _rank;
         Visibility _visibility;
+
+        Struct(const std::string& name, const std::string& score, unsigned rank, Visibility visibility)
+            : _name(name), _score(score), _rank(rank), _visibility(visibility) {
+        }
+
+        friend std::ostream & operator<<(std::ostream & o, const Struct & s) {
+            o << s._rank << ". (";
+
+            if (s._visibility == Visibility::ALL)
+                o << "ALL";
+            else if (s._visibility == Visibility::FRIEND)
+                o << "FRIEND";
+            else
+                o << "ME";
+
+            return o << ") '" << s._name << "' did " << s._score;
+        }
     };
 }
 
@@ -39,6 +56,7 @@ class CommunicationAPI {
         //retrieve $count scores from a leaderboard, starting at rank $startRank
         virtual std::list<Score::Struct> getScores(unsigned leaderboardID,
             Score::Visibility visibility, unsigned startRank, unsigned count) = 0;
+        //submit a score on a specific leaderboard
         virtual void submitScore(unsigned leaderboardID, Score::Struct score) = 0;
 
 		//confirm to giftiz the mission is done
