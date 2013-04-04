@@ -223,7 +223,6 @@ void Game::step() {
             tick(delta);
     }
     #else
-    LOGI("Delta: " << delta);
     tick(delta);
     #endif
 

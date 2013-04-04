@@ -22,6 +22,8 @@ class Game {
 
 		virtual ~Game();
 
+        virtual bool wantsAPI(ContextAPI::Enum api) const = 0;
+
         void setGameContexts(GameContext* gameThreadContext, GameContext* renderThreadContext);
 
 		virtual void sacInit(int windowW, int windowH);

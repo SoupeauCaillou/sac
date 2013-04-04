@@ -20,4 +20,4 @@
 // SETUP WINDOW, GL, stuff
 int initGame(const std::string& title);
 // START GAME
-int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv);
+int launchGame(Game* gameImpl, int argc, char** argv);
