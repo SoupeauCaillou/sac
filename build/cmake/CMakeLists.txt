@@ -159,7 +159,7 @@ elseif (MOBILE_BUILD)
     set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
         "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
 
-    target_link_libraries("sac" GLESv2 z ogg)
+    target_link_libraries("sac" GLESv2 z ogg log)
 elseif (WEB_BUILD)
     #for emscripten, all the files are in sac
     set(source_platforms_files "")
