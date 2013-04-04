@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "../../base/Log.h"
+#include "base/Log.h"
 
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
    jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
@@ -15,7 +15,8 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 struct CommunicationAPIAndroidImpl::CommunicationAPIAndroidImplDatas {
    jclass cls;
 
-   jmethodID isGameCenterSignedIn;
+   jmethodID isGameCenterLoggedIn;
+   jmethodID openGameCenter;
    jmethodID gameCenterSignIn;
    jmethodID gameCenterSignUp;
    jmethodID giftizMissionDone;
