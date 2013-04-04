@@ -30,6 +30,42 @@ static void _unlock() {
     twMutex.unlock();
 }
 
+static int _TwEventMouseButtonGLFW(int glfwButton, int glfwAction) {
+    _lock();
+    int rValue = TwEventMouseButtonGLFW(glfwButton, glfwAction);
+    _unlock();
+
+    return rValue;
+}
+static int _TwEventMousePosGLFW(int mouseX, int mouseY) {
+    _lock();
+    int rValue = TwEventMousePosGLFW(mouseX, mouseY);
+    _unlock();
+
+    return rValue;
+}
+static int _TwEventMouseWheelGLFW(int pos) {
+    _lock();
+    int rValue = TwEventMouseWheelGLFW(pos);
+    _unlock();
+
+    return rValue;
+}
+static int _TwEventKeyGLFW(int glfwKey, int glfwAction) {
+    _lock();
+    int rValue = TwEventKeyGLFW(glfwKey, glfwAction);
+    _unlock();
+
+    return rValue;
+}
+static int _TwEventCharGLFW(int glfwChar, int glfwAction) {
+    _lock();
+    int rValue = TwEventCharGLFW(glfwChar, glfwAction);
+    _unlock();
+
+    return rValue;
+}
+
 void LevelEditor::lock() {
     _lock();
 }
@@ -97,9 +133,7 @@ static void showTweakBarForEntity(Entity e) {
 }
 
 static void buttonCallback(void* e) {
-    _lock();
     showTweakBarForEntity((Entity)(e));
-    _unlock();
 }
 
 void LevelEditor::LevelEditorDatas::select(Entity e) {
@@ -137,11 +171,11 @@ LevelEditor::LevelEditor() {
 
     TwInit(TW_OPENGL, NULL);
 
-    glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
-    glfwSetMousePosCallback((GLFWmouseposfun)TwEventMousePosGLFW);
-    glfwSetMouseWheelCallback((GLFWmousewheelfun)TwEventMouseWheelGLFW);
-    glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
-    glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
+    glfwSetMouseButtonCallback((GLFWmousebuttonfun) _TwEventMouseButtonGLFW);
+    glfwSetMousePosCallback((GLFWmouseposfun) _TwEventMousePosGLFW);
+    glfwSetMouseWheelCallback((GLFWmousewheelfun) _TwEventMouseWheelGLFW);
+    glfwSetKeyCallback((GLFWkeyfun) _TwEventKeyGLFW);
+    glfwSetCharCallback((GLFWcharfun) _TwEventCharGLFW);
 
     logBar = TwNewBar("Log_Control");
     entityListBar = TwNewBar("EntityList");
