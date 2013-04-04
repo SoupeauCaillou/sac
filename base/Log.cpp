@@ -2,7 +2,12 @@
 #include "TimeUtil.h"
 #include <iomanip>
 
-LogVerbosity::Enum logLevel = LogVerbosity::INFO;
+LogVerbosity::Enum logLevel =
+#ifdef SAC_ANDROID
+    LogVerbosity::VERBOSE1;
+#else
+    LogVerbosity::INFO;
+#endif
 std::map<std::string, bool> verboseFilenameFilters;
 
 class NullStream : public std::ostream {
