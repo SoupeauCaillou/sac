@@ -1,11 +1,45 @@
 #pragma once
 
+#include <string>
+#include <list>
+
+namespace Achievement {
+    struct Struct {
+        unsigned _id;
+        bool _isUnlocked;
+        std::string _name;
+        std::string _description;
+    };
+}
+
+namespace Score {
+    enum Visibility {
+        ALL,
+        FRIEND,
+        ME
+    };
+
+    struct Struct {
+        std::string _name;
+        std::string _score;
+        unsigned _rank;
+        Visibility _visibility;
+    };
+}
+
 class CommunicationAPI {
 	public:
-		//return true if player is alreay logged on swarm
-		virtual bool swarmInstalled() = 0;
-		//launch swarm
-		virtual void swarmRegistering() = 0;
+		//is the player logged into the gamecenter?
+		virtual bool isGameCenterLoggedIn() = 0;
+        //open the gamecenter. Return true in success
+        virtual bool openGameCenter() = 0;
+
+        //retrieve all achievements
+        virtual std::list<Achievement::Struct> getAllAchievements() = 0;
+        //retrieve $count scores from a leaderboard, starting at rank $startRank
+        virtual std::list<Score::Struct> getScores(unsigned leaderboardID,
+            Score::Visibility visibility, unsigned startRank, unsigned count) = 0;
+        virtual void submitScore(unsigned leaderboardID, Score::Struct score) = 0;
 
 		//confirm to giftiz the mission is done
 		virtual void giftizMissionDone() = 0;
@@ -28,4 +62,3 @@ class CommunicationAPI {
 		//if we clicked on "rateItNever"
 		virtual void rateItNever() = 0;
 };
-

@@ -15,8 +15,9 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 struct CommunicationAPIAndroidImpl::CommunicationAPIAndroidImplDatas {
    jclass cls;
 
-   jmethodID swarmInstalled;
-   jmethodID swarmRegistering;
+   jmethodID isGameCenterSignedIn;
+   jmethodID gameCenterSignIn;
+   jmethodID gameCenterSignUp;
    jmethodID giftizMissionDone;
    jmethodID giftizGetButtonState;
    jmethodID giftizButtonClicked;
@@ -50,8 +51,8 @@ void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
 
    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/CommunicationAPI"));
 
-   datas->swarmInstalled = jniMethodLookup(env, datas->cls, "swarmEnabled", "()Z");
-   datas->swarmRegistering = jniMethodLookup(env, datas->cls, "swarmRegistering", "()V");
+   datas->isGameCenterLoggedIn = jniMethodLookup(env, datas->cls, "isGameCenterLoggedIn", "()Z");
+   datas->openGameCenter = jniMethodLookup(env, datas->cls, "openGameCenter", "()Z");
 
    datas->giftizMissionDone = jniMethodLookup(env, datas->cls, "giftizMissionDone", "()V");
    datas->giftizGetButtonState = jniMethodLookup(env, datas->cls, "giftizGetButtonState", "()I");
@@ -75,12 +76,12 @@ void CommunicationAPIAndroidImpl::uninit() {
    }
 }
 
-bool CommunicationAPIAndroidImpl::swarmInstalled() {
-   return env->CallStaticBooleanMethod(datas->cls, datas->swarmInstalled);
+bool CommunicationAPIAndroidImpl::isGameCenterLoggedIn() {
+   return env->CallStaticBooleanMethod(datas->cls, datas->isGameCenterLoggedIn);
 }
 
-void CommunicationAPIAndroidImpl::swarmRegistering() {
-   env->CallStaticBooleanMethod(datas->cls, datas->swarmRegistering);
+bool CommunicationAPIAndroidImpl::openGameCenter() {
+   return env->CallStaticBooleanMethod(datas->cls, datas->openGameCenter);
 }
 
 void CommunicationAPIAndroidImpl::giftizMissionDone() {

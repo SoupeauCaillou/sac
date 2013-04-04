@@ -10,8 +10,22 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI {
 		void init(JNIEnv* env);
 		void uninit();
 
-		bool swarmInstalled();
-		void swarmRegistering();
+
+        bool isGameCenterLoggedIn();
+        bool openGameCenter();
+
+        inline std::list<Achievement::Struct> getAllAchievements() {
+            std::list<Achievement::Struct> list;
+            LOGV(1, "TODO");
+            return list;
+        }
+
+        inline std::list<Score::Struct> getScores(unsigned leaderboardID,
+            Score::Visibility visibility, unsigned startRank, unsigned count) {
+            std::list<Score::Struct> list;
+            LOGV(1, "TODO");
+            return list;
+        }
 
 		void giftizMissionDone();
 		int  giftizGetButtonState();

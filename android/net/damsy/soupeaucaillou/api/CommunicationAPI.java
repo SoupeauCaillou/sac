@@ -11,15 +11,15 @@ import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.ButtonNeedsUpdateDelegate;
 
 public class CommunicationAPI {
 		static public GiftizSDK.Inner.GiftizButtonStatus buttonStatus;
-		
+
 		// -------------------------------------------------------------------------
 		// CommunicationAPI
 		// -------------------------------------------------------------------------
-		static public boolean swarmEnabled() {
+		static public boolean isGameCenterLoggedIn() {
 			return Swarm.isLoggedIn();
 		}
 
-		static public void swarmRegistering() {
+		static public void openGameCenter() {
 			SacJNILib.activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
@@ -102,7 +102,7 @@ public class CommunicationAPI {
 			editor.putBoolean("dontshowagain", true);
 			editor.commit();
 		}
-		
+
 		static public class GiftizDelegate implements ButtonNeedsUpdateDelegate {
 			@Override
 			public void buttonNeedsUpdate() {
