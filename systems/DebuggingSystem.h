@@ -7,7 +7,7 @@ struct DebuggingComponent {
 };
 
 #define theDebuggingSystem DebuggingSystem::GetInstance()
-#define SAC_DEBUGGING(e) theDebuggingSystem.Get(e)
+#define DEBUGGING(e) theDebuggingSystem.Get(e)
 
 UPDATABLE_SYSTEM(Debugging)
 

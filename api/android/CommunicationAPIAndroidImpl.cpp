@@ -53,7 +53,7 @@ void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/CommunicationAPI"));
 
    datas->isGameCenterLoggedIn = jniMethodLookup(env, datas->cls, "isGameCenterLoggedIn", "()Z");
-   datas->openGameCenter = jniMethodLookup(env, datas->cls, "openGameCenter", "()Z");
+   datas->openGameCenter = jniMethodLookup(env, datas->cls, "openGameCenter", "()V");
 
    datas->giftizMissionDone = jniMethodLookup(env, datas->cls, "giftizMissionDone", "()V");
    datas->giftizGetButtonState = jniMethodLookup(env, datas->cls, "giftizGetButtonState", "()I");
