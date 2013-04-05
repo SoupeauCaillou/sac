@@ -139,6 +139,12 @@ public:
 #if SAC_USE_VBO
     GLuint squareBuffers[3];
 private:
+
+void drawRenderCommands(RenderQueue& commands);
+void processDelayedTextureJobs();
+void setFrameQueueWritable(bool b);
+#if SAC_LINUX && SAC_DESKTOP
+void updateInotify();
 #endif
 
 #if ! SAC_EMSCRIPTEN
@@ -146,9 +152,10 @@ private:
     std::condition_variable *cond;
 #endif
 
-private:
-    EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
-    GLuint whiteTexture;
+void enableRendering();
+void disableRendering();
+typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
+ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
     bool initDone;
 private:

@@ -162,7 +162,7 @@ static void updateAndRenderLoop() {
      }
       }
    }
-   theRenderingSystem.setFrameQueueWritable(false);
+   theRenderingSystem.disableRendering();
    glfwTerminate();
 }
 

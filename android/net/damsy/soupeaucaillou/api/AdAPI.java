@@ -9,7 +9,7 @@ import com.chartboost.sdk.ChartboostDelegate;
 import android.util.Log;
 
 public class AdAPI {
-	public static boolean adHasBeenShown, adWaitingAdDisplay;
+	public static boolean adHasBeenShown = false, adWaitingAdDisplay = false;
 	public static RevMobFullscreen _revmobFullscreen;
 	public static Chartboost _cb;
      	// --- ----------------------------------------------------------------------

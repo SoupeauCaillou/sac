@@ -214,6 +214,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     int currentFlags = 0;
     bool useFbo = false;
 
+    LOGV(2, "Begin frame rendering: " << commands.count)
+
 	EffectRef currentEffect = InvalidTextureRef;
     const unsigned count = commands.count;
     for (unsigned i=0; i<count; i++) {
@@ -231,6 +233,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             firstCall = true;
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
+            LOGV(2, "   camera: pos=" << camera.worldPos.worldPosition.x << ',' << camera.worldPos.worldPosition.y
+                << "size=" << camera.worldPos.size.x << ',' << camera.worldPos.size.y
+                << " fb=" << camera.cameraAttr.fb)
 
             FramebufferRef fboRef = camera.cameraAttr.fb;
             if (fboRef == DefaultFrameBufferRef) {
@@ -302,7 +307,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found")
                 if (info->atlasIndex >= 0) {
                     LOGF_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size())
-                    rc.glref = textureLibrary.get(atlas[info->atlasIndex].ref, false)->glref;
+                    const TextureInfo* atlasInfo = textureLibrary.get(atlas[info->atlasIndex].ref, false);
+                    LOGF_IF(!atlasInfo, "TextureInfo for atlas index: "
+                        << info->atlasIndex << " not found (ref=" << atlas[info->atlasIndex].ref << ", name='" << atlas[info->atlasIndex].name << "')")
+                    rc.glref = atlasInfo->glref;
                 } else {
                     rc.glref = info->glref;
                 }
@@ -395,15 +403,16 @@ void RenderingSystem::render() {
 #if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
     //float frameready = TimeUtil::GetTime();
 #endif
+    int readQueue = (currentWriteQueue + 1) % 2;
+    newFrameReady = false;
     if (!frameQueueWritable) {
         LOGI("Rendering disabled")
+        renderQueue[readQueue].count = 0;
 #if ! SAC_EMSCRIPTEN
         lock.unlock();
 #endif
         return;
     }
-    newFrameReady = false;
-    int readQueue = (currentWriteQueue + 1) % 2;
 #if ! SAC_EMSCRIPTEN
     lock.unlock();
     PROFILE("Renderer", "wait-frame", EndEvent);

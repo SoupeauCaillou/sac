@@ -48,7 +48,7 @@ extern "C" {
  * Signature: ()J
  */
 JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
-  (JNIEnv *env, jclass) {
+  (JNIEnv *, jclass) {
   	LOGW("-->" <<  __FUNCTION__)
   	TimeUtil::Init();
 
@@ -90,9 +90,6 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
         game->setGameContexts(gCtx, rCtx);
 
         theTouchInputManager.setNativeTouchStatePtr(new AndroidNativeTouchState(myGameHolder));
-        pthread_mutex_init(&myGameHolder->mutex, 0);
-        pthread_cond_init(&myGameHolder->cond, 0);
-        myGameHolder->renderingStarted = myGameHolder->drawQueueChanged = false;
         LOGW("<--" <<  __FUNCTION__)
         return true;
     } else {
@@ -116,6 +113,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThr
     LOGW("-->" <<  __FUNCTION__)
 	myGameHolder->width = w;
 	myGameHolder->height = h;
+    myGameHolder->renderEnv = env;
 
     myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
     INIT_2(assetAPI, render, AssetAPIAndroidImpl)
@@ -128,6 +126,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
   (JNIEnv *env, jclass, jobject asset, jbyteArray jstate) {
     LOGW("-->" <<  __FUNCTION__)
     // init JNI env
+    myGameHolder->gameEnv = env;
 	myGameHolder->gameAssetManager = env->NewGlobalRef(asset);
     INIT_2(assetAPI, game, AssetAPIAndroidImpl)
     INIT_1(nameInputAPI, game, NameInputAPIAndroidImpl)
@@ -187,7 +186,6 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThr
 }
 #endif
 
-float bbbefore = 0;
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    step
@@ -195,21 +193,17 @@ float bbbefore = 0;
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
   (JNIEnv *env, jclass) {
-
 	if (!myGameHolder->game)
   		return;
-
+    LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv)
     myGameHolder->game->step();
 }
 
-static float tttttt = 0, prev;
-static int frameCount = 0;
-static float minDt = 10, maxDt = 0;
-float pauseTime;
+static float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
-  (JNIEnv *env, jclass) {
+  (JNIEnv *, jclass) {
 
     LOGW("-->" <<  __FUNCTION__)
 	if (!myGameHolder)
@@ -228,6 +222,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
   (JNIEnv *env, jclass) {
     if (!myGameHolder)
          return;
+    LOGE_IF(env != myGameHolder->renderEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->renderEnv)
     myGameHolder->game->render();
 }
 
@@ -236,7 +231,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
   	LOGW("-->" <<  __FUNCTION__)
   	if (!myGameHolder->game)
   		return;
-
+    LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv)
     // kill all music
     theMusicSystem.toggleMute(true);
 	myGameHolder->game->togglePause(true);
@@ -245,14 +240,45 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resume
-  (JNIEnv *env, jclass) {
+  (JNIEnv *, jclass) {
     LOGW("-->" <<  __FUNCTION__)
 
     LOGW("<--" <<  __FUNCTION__)
 }
 
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
+  (JNIEnv *, jclass) {
+     LOGW("-->" <<  __FUNCTION__)
+     if (RenderingSystem::GetInstancePointer()) {
+        theRenderingSystem.disableRendering();
+     }
+     LOGW("<--" <<  __FUNCTION__)
+}
+
+/*
+ * Class:     net_damsy_soupeaucaillou_SacJNILib
+ * Method:    restoreRenderingSystemState
+ * Signature: (J[B)V
+ */
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures
+  (JNIEnv *env, jclass, jobject asset) {
+    LOGW("-->" <<  __FUNCTION__)
+    if (!myGameHolder->game || !RenderingSystem::GetInstancePointer())
+        return;
+    myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
+    INIT_2(assetAPI, render, AssetAPIAndroidImpl)
+    myGameHolder->renderEnv = env;
+
+    theRenderingSystem.init();
+    theRenderingSystem.reloadTextures();
+    theRenderingSystem.enableRendering();
+
+    LOGW("<--" <<  __FUNCTION__)
+}
+
+
 JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBackEvent
-  (JNIEnv *env, jclass) {
+  (JNIEnv *, jclass) {
 
     LOGW("-->" <<  __FUNCTION__)
     bool res = ((myGameHolder && myGameHolder->game) ? myGameHolder->game->willConsumeBackEvent() : false);
@@ -260,36 +286,13 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBa
     return res;
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
-  (JNIEnv *env, jclass) {
-     LOGW("-->" <<  __FUNCTION__)
-     if (RenderingSystem::GetInstancePointer()) {
-        theRenderingSystem.setFrameQueueWritable(false);
-     }
-     LOGW("<--" <<  __FUNCTION__)
-}
-
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_back
   (JNIEnv *env, jclass) {
-     LOGW("-->" <<  __FUNCTION__)
-     if (!myGameHolder->game)
-         return;
-
+    LOGW("-->" <<  __FUNCTION__)
+    if (!myGameHolder->game)
+        return;
+    LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv)
     myGameHolder->game->backPressed();
-    LOGW("<--" <<  __FUNCTION__)
-}
-
-
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTextures
-  (JNIEnv *env, jclass, jobject asset) {
-     LOGW("-->" <<  __FUNCTION__)
-     if (!myGameHolder->game || !RenderingSystem::GetInstancePointer())
-         return;
-
-    myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
-    INIT_2(assetAPI, render, AssetAPIAndroidImpl)
-
-    theRenderingSystem.invalidateAtlasTextures();
     LOGW("<--" <<  __FUNCTION__)
 }
 
@@ -299,7 +302,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTexture
  * Signature: (JIFF)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
-  (JNIEnv *env, jclass, jint evt, jfloat x, jfloat y, jint pointerIndex) {
+  (JNIEnv *, jclass, jint evt, jfloat x, jfloat y, jint pointerIndex) {
 	if (myGameHolder == 0)
 		return;
 
@@ -325,7 +328,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
 JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState
   (JNIEnv *env, jclass) {
 	LOGW("-->" <<  __FUNCTION__)
-
+    LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv)
 	uint8_t* state;
 	int size = myGameHolder->game->saveState(&state);
 
@@ -338,23 +341,6 @@ JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeS
 
 	LOGW("<--" <<  __FUNCTION__)
 	return jb;
-}
-
-/*
- * Class:     net_damsy_soupeaucaillou_SacJNILib
- * Method:    restoreRenderingSystemState
- * Signature: (J[B)V
- */
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures
-  (JNIEnv *env, jclass) {
-  LOGW("-->" <<  __FUNCTION__)
-
-  theRenderingSystem.init();
-  theRenderingSystem.reloadTextures();
-//  theRenderingSystem.reloadEffects();
-  theRenderingSystem.setFrameQueueWritable(true);
-
-  LOGW("<--" <<  __FUNCTION__)
 }
 
 #ifdef __cplusplus

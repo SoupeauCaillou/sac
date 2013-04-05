@@ -84,8 +84,6 @@ public abstract class SacActivity extends SwarmActivity {
         
         /////////////////////////// SETUP AD
         // TODO: move this elsewhere, and make it all optional
-        AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
-
         if (getRevMobAppId() != null) {
         	revmob = RevMob.start(this, getRevMobAppId());
         	AdAPI._revmobFullscreen = revmob.createFullscreen(SacJNILib.activity, new AdAPI.revmobListener());
@@ -196,8 +194,9 @@ public abstract class SacActivity extends SwarmActivity {
     protected void onPause() {
     	super.onPause();
     	Log(W, "Activity LifeCycle ##### ON PAUSE");
-    	SacJNILib.stopRendering();
-    	
+    	// Notify game thread
+        gameThread.postEvent(Event.Pause);
+
     	// TODO: simplify this (or understand why it's so complicated)
     	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
     	int count = layout.getChildCount();
@@ -215,13 +214,11 @@ public abstract class SacActivity extends SwarmActivity {
     	    	break;
     		}
     	}
+    	SacJNILib.stopRendering();
     	
     	// Release WakeLock
         if (wl != null)
         	wl.release();
-
-        // Notify game thread
-        gameThread.postEvent(Event.Pause);
 	    
         if (giftizEnabled())
         	GiftizSDK.onPauseMainActivity(this);

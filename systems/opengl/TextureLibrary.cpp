@@ -87,9 +87,11 @@ void TextureLibrary::doUnload(const std::string& /*name*/, const TextureInfo& /*
 
 void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
     TextureInfo& info = ref2asset[ref];
+    doLoad(name, info, ref);
+    return;
     std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
-        LOGV(1, "TODO")
+        LOGW("TextureLibrary::doReload (" << name << ") -> TODO")
     } else {
         const ImageDesc& imageDesc = it->second;
         LOGV(1, "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')')

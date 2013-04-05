@@ -26,7 +26,7 @@ INSTANCE_IMPL(RenderingSystem);
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
     nextValidFBRef = 1;
     currentWriteQueue = 0;
-    frameQueueWritable = true;
+    frameQueueWritable = false;
     newFrameReady = false;
 #if ! SAC_EMSCRIPTEN
     mutexes = new std::mutex[3];
@@ -80,7 +80,6 @@ void RenderingSystem::init() {
 	defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
 	defaultShaderNoAlpha = effectLibrary.load("default_no_alpha.fs");
     defaultShaderEmpty = effectLibrary.load("empty.fs");
-    effectLibrary.update();
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};
@@ -297,8 +296,8 @@ void RenderingSystem::DoUpdate(float) {
                     int atlasIdx = info->atlasIndex;
                     // If atlas texture is not loaded yet, load it
                     if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
-                        LOGI("Requested effective load of atlas '" << atlas[atlasIdx].name << "'")
                         atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
+                        LOGI("Requested effective load of atlas '" << atlas[atlasIdx].name << "' -> ref=" << atlas[atlasIdx].ref)
                     }
 
                     // Only display the required area of the texture
@@ -541,14 +540,27 @@ void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) 
 #endif
 }
 
-void RenderingSystem::setFrameQueueWritable(bool b) {
-    if (frameQueueWritable == b || !initDone)
+void RenderingSystem::enableRendering() {
+    if (frameQueueWritable || !initDone)
         return;
-    LOGI("Writable: " << b)
+    setFrameQueueWritable(true);
+}
+void RenderingSystem::disableRendering() {
+    if (!frameQueueWritable || !initDone)
+        return;
+    setFrameQueueWritable(false);
+}
+
+void RenderingSystem::setFrameQueueWritable(bool b) {
 #if ! SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
+    LOGI("Set rendering queue writable= " << b << " and flush queues")
+    // Change writable state
     frameQueueWritable = b;
+    // Flush queues
+    renderQueue[0].count = 0;
+    renderQueue[1].count = 0;
 #if ! SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();
     mutexes[L_QUEUE].unlock();

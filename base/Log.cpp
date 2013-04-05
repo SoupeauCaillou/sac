@@ -2,8 +2,12 @@
 #include "TimeUtil.h"
 #include <iomanip>
 
-LogVerbosity::Enum logLevel = LogVerbosity::INFO;
-
+LogVerbosity::Enum logLevel =
+#ifdef SAC_ANDROID
+    LogVerbosity::VERBOSE2;
+#else
+    LogVerbosity::INFO;
+#endif
 std::map<std::string, bool> verboseFilenameFilters;
 
 class NullStream : public std::ostream {
@@ -43,7 +47,7 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
 
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line) {
     const char* trimmed = keepOnlyFilename(file);
-    if (!verboseFilenameFilters[trimmed]) {
+    if (false && !verboseFilenameFilters[trimmed]) {
         return slashDevslashNull;
     }
 	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";

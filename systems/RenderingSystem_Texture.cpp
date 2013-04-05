@@ -138,8 +138,9 @@ cleanup:
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
-	for (unsigned int i=0; i<atlas.size(); i++) {
-		atlas[i].ref = InvalidTextureRef;
+	for (unsigned atlasIdx=0; atlasIdx<atlas.size(); atlasIdx++) {
+        LOGI("Invalidate atlas: #" << atlasIdx << ": ref='" << atlas[atlasIdx].ref << "', name='" << atlas[atlasIdx].name << "'")
+        textureLibrary.reload(atlas[atlasIdx].name);
 	}
 }
 
@@ -152,13 +153,15 @@ void RenderingSystem::reloadTextures() {
 	invalidateAtlasTextures(); // not useful me thinks
 
 	// reload individual textures
-    textureLibrary.reloadAll();
+    // textureLibrary.reloadAll();
+    effectLibrary.reloadAll();
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
 	PROFILE("Texture", "processDelayedTextureJobs", BeginEvent);
 
     textureLibrary.update();
+    effectLibrary.update();
 
 	PROFILE("Texture", "processDelayedTextureJobs", EndEvent);
 }

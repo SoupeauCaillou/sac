@@ -156,7 +156,7 @@ void Game::sacInit(int windowW, int windowH) {
 	theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));
 
 	theRenderingSystem.init();
-    theRenderingSystem.setFrameQueueWritable(true);
+    theRenderingSystem.enableRendering();
 }
 
 void Game::backPressed() {
@@ -179,7 +179,6 @@ void Game::backPressed() {
 }
 
 int Game::saveState(uint8_t**) {
-    theRenderingSystem.setFrameQueueWritable(false);
 	return 0;
 }
 
@@ -259,7 +258,7 @@ void Game::step() {
     theParticuleSystem.Update(delta);
     theContainerSystem.Update(delta);
     theAutoDestroySystem.Update(delta);
-    theDebuggingSystem.Update(delta);
+    // theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
 #if SAC_INGAME_EDITORS
     } else {

@@ -99,7 +99,10 @@ class NamedAssetLibrary {
         }
 
         void reloadAll() {
-            LOGW("TODO")
+            LOGV(1, "Reload all - " << nameToRef.size())
+            for (typename std::map<std::string, TRef>::const_iterator it=nameToRef.begin(); it!=nameToRef.end(); ++it) {
+                reload(it->first);
+            }
         }
 
         void update() {
@@ -155,6 +158,7 @@ class NamedAssetLibrary {
             std::unique_lock<std::mutex> lock(mutex);
             typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
             if (it == ref2asset.end()) {
+                LOGW("Unavailable resource requested " << ref);
 #if USE_COND_SIGNALING
                 if (waitIfLoadingInProgress) {
                     // wait for next load end, the requested resource might be loaded in the next batch
@@ -184,7 +188,6 @@ class NamedAssetLibrary {
                 LOGW("Asset " << r << " already have one data source registered")
             dataSource.insert(std::make_pair(r, type));
         }
-
 
     protected:
         void setNextValidRef(TRef r) {

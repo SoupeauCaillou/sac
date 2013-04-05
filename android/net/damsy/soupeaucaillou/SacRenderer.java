@@ -29,7 +29,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
     	SacJNILib.render();
     }
-    
+
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
     	SacActivity.Log(SacActivity.W, "onSurfaceCreated");
     	// Create (or reset) native game
@@ -38,11 +38,10 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	} else {
     		// Clear saved state if native game is not recreated
     		sacGame.clearSavedState();
-    		SacJNILib.invalidateTextures(asset);
-    		SacJNILib.initAndReloadTextures();
+    		SacJNILib.initAndReloadTextures(asset);
     	}
 
-    	if (!gameThread.isAlive()) {    		
+    	if (!gameThread.isAlive()) {
     		SacActivity.Log(SacActivity.I, "Start game thread");
     		gameThread.start();
     	} else {

@@ -20,7 +20,7 @@ public class SacJNILib {
 	 * @param height View height
 	 */
 	public static native void initFromRenderThread(AssetManager mgr, int width, int height);
-	
+
 	/**
 	 * Initialize sac engine, from game thread context
 	 * @param mgr Access to assets
@@ -37,12 +37,12 @@ public class SacJNILib {
 	 * Reset time origin
 	 */
 	public static native void resetTimestep();
-	
+
 	/**
 	 * Prevent simulation to queue new frames to draw
 	 */
 	public static native void stopRendering();
-	
+
 	/**
 	 * Draw next frame
 	 */
@@ -64,15 +64,10 @@ public class SacJNILib {
 	public static native void back();
 
 	/**
-	 * Mark all GL textures as invalid (force reload), useful when GL context as been lost
+	 * Quick initialization of rendering system - useful when GL context as been lost
 	 */
-	public static native void invalidateTextures(AssetManager mgr);
+	public static native void initAndReloadTextures(AssetManager mgr);
 
-	/**
-	 * Quick initialization of rendering system
-	 */
-	public static native void initAndReloadTextures();
-	
 	/**
 	 * Forward touch event to native game
 	 */
