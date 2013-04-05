@@ -38,7 +38,7 @@ foreach (FILE ${FILES_LIST})
 endforeach()
 
 #######################################################################
-######################How to build SAC#################################
+######################How to build sac#################################
 #######################################################################
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
@@ -68,17 +68,8 @@ else()
         GLOB_RECURSE opt_source_files
         ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
         ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
-        ${PROJECT_SOURCE_DIR}/sac/libs/enet/*.c #lib enet
     )
 
-    # following defs replace enet's config.h
-    add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1
-    -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1
-    -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1
-    -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1
-    -DHAS_SOCKLEN_T=1)
-
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
     include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 
 
@@ -103,18 +94,50 @@ else()
     endif()
 
     add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files})
-    #the necessary libs for not emscripten
-    if (DESKTOP_BUILD)
-        check_and_link_libs("sac" GLEW GLFW )
-    endif()
 endif()
 
 #######################################################################
-######################Libraries for all targets########################
+##########Build and link libraries per target##########################
 #######################################################################
+if (NETWORK_BUILD)
+    ########## build enet lib ###########
+    # following defs replace enet's config.h
+    add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1
+    -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1
+    -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1
+    -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1
+    -DHAS_SOCKLEN_T=1)
+
+    set (enet_base ${PROJECT_SOURCE_DIR}/sac/libs/enet)
+    file(
+        GLOB_RECURSE enet_sources
+        ${enet_base}/*.c
+    )
+    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
+
+    add_library("enet" STATIC ${enet_sources})
+
+    target_link_libraries("sac" enet)
+endif()
+
 if (DESKTOP_BUILD)
-    check_and_link_libs("sac" OpenAL Sqlite3 VorbisFile Vorbis ZLIB
+    check_and_link_libs("sac" GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB
         AntTweakBar Ogg Tinyxml2)
+elseif (MOBILE_BUILD)
+    ########## build ogg lib ###########
+    enable_language(ASM)
+    set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
+    file(
+        GLOB_RECURSE ogg_sources
+        ${ogg_base}/*.s
+        ${ogg_base}/*.c
+    )
+
+    add_library("ogg" STATIC ${ogg_sources})
+    set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
+        "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
+
+    target_link_libraries("sac" GLESv2 z ogg log)
 endif()
 
 #######################################################################
@@ -123,49 +146,24 @@ endif()
 import_specific_libs()
 
 #######################################################################
-#######################Build the game executable#######################
+#######Build the game executable (except for mobile)###################
 #######################################################################
 if (DESKTOP_BUILD)
     file(
         GLOB_RECURSE source_platforms_files
         ${PROJECT_SOURCE_DIR}/platforms/default/*
     )
+else()
+    set (source_platforms_files "")
+endif()
+
+if (NOT MOBILE_BUILD)
     add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
     target_link_libraries(${EXECUTABLE_NAME} sac)
-elseif (MOBILE_BUILD)
-    ENABLE_LANGUAGE(ASM)
-    # build ogg lib
-    set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
-    set (ogg_sources ${ogg_base}/bitwiseARM.s
-        ${ogg_base}/bitwise.c
-        ${ogg_base}/codebook.c
-        ${ogg_base}/dpenARM.s
-        ${ogg_base}/dsp.c
-        ${ogg_base}/floor0.c
-        ${ogg_base}/floor1ARM.s
-        ${ogg_base}/floor1.c
-        ${ogg_base}/floor1LARM.s
-        ${ogg_base}/floor_lookup.c
-        ${ogg_base}/framing.c
-        ${ogg_base}/info.c
-        ${ogg_base}/mapping0.c
-        ${ogg_base}/mdctARM.s
-        ${ogg_base}/mdct.c
-        ${ogg_base}/mdctLARM.s
-        ${ogg_base}/misc.c
-        ${ogg_base}/res012.c
-        ${ogg_base}/vorbisfile.c)
-    add_library("ogg" STATIC ${ogg_sources})
-    set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
-        "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
-
-    target_link_libraries("sac" GLESv2 z ogg log)
-elseif (WEB_BUILD)
-    #for emscripten, all the files are in sac
-    set(source_platforms_files "")
-else()
-    message(SEND_ERROR "which platform?")
 endif()
+
+
+
 
 #######################################################################
 #############################Post build actions########################
@@ -197,4 +195,15 @@ if (DESKTOP_BUILD)
         #launch sac_tests after each build
         add_custom_command(TARGET sac_tests POST_BUILD COMMAND sac_tests)
     endif ()
+endif()
+
+if (NETWORK_BUILD)
+    ########## lobby server ###########
+    file(
+        GLOB_RECURSE lobby_server_source_files
+        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.cpp
+        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.h
+    )
+    add_executable(lobby_server ${lobby_server_source_files})
+    target_link_libraries(lobby_server sac)
 endif()

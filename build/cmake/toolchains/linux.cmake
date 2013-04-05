@@ -8,16 +8,6 @@ set(DESKTOP_BUILD 1)
 SET (SAC_LIB_TYPE STATIC)
 
 function (others_specific_executables)
-    #lobby server
-    file(
-        GLOB_RECURSE lobby_server_source_files
-        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.cpp
-        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.h
-    )
-    add_executable(lobby_server ${lobby_server_source_files})
-    target_link_libraries(lobby_server sac z) #WARNING!
-
-
     #texture packer
     file(
         GLOB_RECURSE texture_packer_source_files

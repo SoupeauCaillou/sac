@@ -1,24 +1,15 @@
-#if ! SAC_EMSCRIPTEN
 #include "NetworkAPILinuxImpl.h"
+
+#ifdef SAC_NETWORK
+#include <base/TimeUtil.h>
+#include <base/Log.h>
+
 #include <enet/enet.h>
-#include <thread>
-#include "base/Log.h"
-
-#if SAC_WINDOWS
-NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
-void NetworkAPILinuxImpl::runLobbyThread() {}
-bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort) { return false; }
-void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {}
-bool NetworkAPILinuxImpl::amIGameMaster() { return false; }
-void NetworkAPILinuxImpl::connectToLobby(const std::string& nick, const char* addr) { }
-bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() { return false; }
-NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();}
-
-#else
-
-#include "../../base/TimeUtil.h"
-#include <cstring>
 #include <arpa/inet.h>
+
+#include <thread>
+#include <cstring>
+#include <iostream>
 
 struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
     NetworkAPILinuxImplDatas() {
@@ -197,7 +188,7 @@ bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint1
     LOGE("Fail")
     return false;
 }
-#include <iostream>
+
 bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint16_t remotePort) {
     datas->match.host = enet_host_create (0,
                                   32      /* allow up to 32 clients and/or outgoing connections */,
@@ -360,5 +351,16 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
     } else
         LOGI("allo : " << addr << " failed")
 }
-#endif
+
+#else
+
+NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
+void NetworkAPILinuxImpl::runLobbyThread() {}
+bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char*, uint16_t, uint16_t) { return false; }
+void NetworkAPILinuxImpl::sendPacket(NetworkPacket) {}
+bool NetworkAPILinuxImpl::amIGameMaster() { return false; }
+void NetworkAPILinuxImpl::connectToLobby(const std::string&, const char*) { }
+bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() { return false; }
+NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();}
+
 #endif
