@@ -64,7 +64,7 @@ void CollisionSystem::DoUpdate(float) {
 }
 
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void CollisionSystem::addEntityPropertiesToBar(Entity entity, TwBar*) {
     CollisionComponent* tc = Get(entity, false);
     if (!tc) return;

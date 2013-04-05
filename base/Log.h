@@ -18,7 +18,7 @@ extern std::map<std::string, bool> verboseFilenameFilters;
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
-#ifdef SAC_ANDROID
+#if SAC_ANDROID
 #define LOGF(x) {}
 #define LOGE(x) {}
 #define LOGW(x) {}

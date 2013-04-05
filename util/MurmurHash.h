@@ -5,14 +5,14 @@
 
 class MurmurHash {
     public:
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
         static inline unsigned staticHash(const char *s, unsigned value) {
             LOGF_IF(compute(s, strlen(s), 0) != value, "Invalid precalculated hash value. Expected: " << compute(s, strlen(s), 0)  << ". Actual: " << value)
             return value;
         }
-        #else
+#else
         #define staticHash(s,v) (v)
-        #endif
+#endif
 
         static unsigned int compute( const void * key, int len, unsigned int seed );
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
+#if SAC_LINUX && ! SAC_EMSCRIPTEN
 #include <GL/glew.h>
 #include <GL/glfw.h>
 #include <cstdlib>
@@ -22,7 +22,7 @@ class Recorder {
 
         Recorder(int width, int height);
         ~Recorder();
-        
+
         void start();
         void stop();
         void toggle();
@@ -30,28 +30,28 @@ class Recorder {
         void record();
 
         void thread_video_encode();
-        
+
     private:
         void addFrame(GLubyte *ptr);
 
         bool initVP8();
         bool initOpenGl_PBO();
         bool initSound();
-        
+
         int width, height;
         bool recording;
-        
+
         GLuint pboIds[PBO_COUNT];
 
         std::queue<GLubyte*> buf;
-                
+
         vpx_codec_ctx_t codec;
         vpx_codec_enc_cfg_t cfg;
         vpx_image_t raw;
-        
+
         int frameCounter;
         int flags;
-        
+
         FILE *outfile;
 
         std::thread th1;

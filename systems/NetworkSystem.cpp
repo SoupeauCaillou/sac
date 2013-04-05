@@ -231,7 +231,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
             ComponentSystem* system = ComponentSystem::Named(jt->first);
             // find cache entry, if any
             uint8_t* cacheEntry = 0;
-            #if 1
+#if 1
             CacheIt c = cache.components.find(jt->first);
             if (c == cache.components.end()) {
                 // cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
@@ -239,7 +239,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
             } else {
                 cacheEntry = c->second;
             }
-            #endif
+#endif
             uint8_t* out;
             int size = system->serialize(e, &out, cacheEntry);
             if (size > 0) {
@@ -350,7 +350,7 @@ static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
     SEND(pkt);
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void NetworkSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

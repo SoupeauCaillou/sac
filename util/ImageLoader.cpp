@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#ifdef SAC_LINUX
+#if SAC_LINUX
 #include <endian.h>
 #endif
 

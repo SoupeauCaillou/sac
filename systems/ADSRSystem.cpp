@@ -66,7 +66,7 @@ void ADSRSystem::DoUpdate(float dt) {
 	}
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void ADSRSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     ADSRComponent* tc = Get(entity, false);
     if (!tc) return;

@@ -23,7 +23,7 @@
 #include "TextureLibrary.h"
 class AssetAPI;
 
-#if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN)
+#if SAC_ANDROID || SAC_EMSCRIPTEN
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #else
@@ -32,7 +32,7 @@ class AssetAPI;
 
 
 class OpenGLTextureCreator {
-    public: 
+    public:
         enum Type { COLOR, ALPHA_MASK, COLOR_ALPHA };
 
         static void detectSupportedTextureFormat();

@@ -2,7 +2,9 @@
 #include "TimeUtil.h"
 #include <iomanip>
 
+
 LogVerbosity::Enum logLevel = LogVerbosity::INFO;
+
 std::map<std::string, bool> verboseFilenameFilters;
 
 class NullStream : public std::ostream {

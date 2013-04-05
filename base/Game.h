@@ -4,7 +4,7 @@
 #include <string>
 #include "GameContext.h"
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 
 #include "../util/LevelEditor.h"
 
@@ -36,7 +36,7 @@ class Game {
 
 		virtual int saveState(uint8_t** out);
 
-#ifdef SAC_ENABLE_PROFILING
+#if SAC_ENABLE_PROFILING
         void backPressed();
         bool willConsumeBackEvent() { return true; }
 #else
@@ -69,7 +69,7 @@ class Game {
         }
     } fpsStats;
     float lastUpdateTime;
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     GameType::Enum gameType;
     LevelEditor* levelEditor;
 #endif

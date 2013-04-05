@@ -9,15 +9,16 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
-#if defined(SAC_DEBUG)
-    // #include <GL/glew.h>
-    #include <stdint.h>
+#if SAC_DEBUG
+// #include <GL/glew.h>
+#include <stdint.h>
 #endif
 
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
 #include "base/Assert.h"
 #endif
-#ifdef SAC_INGAME_EDITORS
+
+#if SAC_INGAME_EDITORS
 #include <AntTweakBar.h>
 #endif
 
@@ -28,7 +29,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     currentWriteQueue = 0;
     frameQueueWritable = true;
     newFrameReady = false;
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     mutexes = new std::mutex[3];
     cond = new std::condition_variable[2];
 #endif
@@ -51,7 +52,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 }
 
 RenderingSystem::~RenderingSystem() {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     delete[] mutexes;
     delete[] cond;
 #endif
@@ -65,9 +66,9 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 	screenW = sW;
 	screenH = sH;
 	GL_OPERATION(glViewport(0, 0, windowW, windowH))
-    #ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     TwWindowSize(width, height);
-    #endif
+#endif
 }
 
 void RenderingSystem::init() {
@@ -100,7 +101,7 @@ void RenderingSystem::init() {
 	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
 	GL_OPERATION(glEnable(GL_DEPTH_TEST))
 	GL_OPERATION(glDepthFunc(GL_GREATER))
-#if defined(SAC_DESKTOP)
+#if SAC_DESKTOP
     GL_OPERATION(glClearDepth(0.0))
 #else
     GL_OPERATION(glClearDepthf(0.0))
@@ -108,7 +109,7 @@ void RenderingSystem::init() {
 	// GL_OPERATION(glDepthRangef(0, 1))
 	GL_OPERATION(glDepthMask(false))
 
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 	glGenBuffers(3, squareBuffers);
 GLfloat sqArray[] = {
 -0.5, -0.5, 0,0,0,
@@ -150,7 +151,7 @@ static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const Rend
 }
 
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-    #define EPSILON 0.0001
+#define EPSILON 0.0001
 	if (glm::abs(r1.z - r2.z) <= EPSILON) {
 		if (r1.effectRef == r2.effectRef) {
 			if (r1.texture == r2.texture) {
@@ -227,7 +228,7 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
     return true;
 }
 
-#if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#if SAC_LINUX && SAC_DESKTOP
 void RenderingSystem::updateInotify() {
     effectLibrary.updateInotify();
     textureLibrary.updateInotify();
@@ -235,9 +236,9 @@ void RenderingSystem::updateInotify() {
 #endif
 
 void RenderingSystem::DoUpdate(float) {
-    #if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#if SAC_LINUX && SAC_DESKTOP
     updateInotify();
-    #endif
+#endif
 
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
@@ -272,9 +273,9 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-            #ifdef SAC_DEBUG
+#if SAC_DEBUG
             LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
-            #endif
+#endif
 
     		RenderCommand c;
     		c.z = tc->worldZ;
@@ -309,7 +310,7 @@ void RenderingSystem::DoUpdate(float) {
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
 
-                   #ifndef SAC_USE_VBO
+#if ! SAC_USE_VBO
                     // Check if we can enable opaque-first optimisation. Conditions are:
                     // 1. blending-enabled sprite
                     // 2. alpha == 1
@@ -361,17 +362,17 @@ void RenderingSystem::DoUpdate(float) {
 #endif
                         continue;
                     }
-                    #endif
+#endif
                 }
             }
 
-             #ifndef SAC_USE_VBO
+#if ! SAC_USE_VBO
              if (!rc->fastCulling) {
                 if (!cull(camTrans, c)) {
                     continue;
                 }
              }
-             #endif
+#endif
 
             switch (rc->opaqueType) {
              	case RenderingComponent::NON_OPAQUE:
@@ -403,7 +404,7 @@ void RenderingSystem::DoUpdate(float) {
         outQueue.count += semiOpaqueCommands.size();
     }
 
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
     float invSize = 400.0 / (theRenderingSystem.screenW * theRenderingSystem.screenH);
     for (int i=0; i<3; i++)
         renderingStats[i].reset();
@@ -444,7 +445,7 @@ void RenderingSystem::DoUpdate(float) {
     //LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
     //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
     mutexes[L_RENDER].lock();
     // Lock for notifying queue change
@@ -452,7 +453,7 @@ void RenderingSystem::DoUpdate(float) {
 #endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = true;
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();
     mutexes[L_QUEUE].unlock();
     mutexes[L_RENDER].unlock();
@@ -465,7 +466,7 @@ bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
 
 bool RenderingSystem::isVisible(const TransformationComponent* /*tc*/, int /*cameraIndex*/) const {
     return true;
-    #if 0
+#if 0
     if (cameraIndex < 0) {
         for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
             if (isVisible(tc, camIdx)) {
@@ -484,13 +485,13 @@ bool RenderingSystem::isVisible(const TransformationComponent* /*tc*/, int /*cam
 	if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
 	if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
 	return true;
-    #endif
+#endif
 }
 
 int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
 	int size = 0;
     LOGW("TODO")
-    #if 0
+#if 0
     for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
         size += (*it).first.length() + 1;
         size += sizeof(TextureRef);
@@ -505,13 +506,13 @@ int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
 		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
 		ptr = (uint8_t*) mempcpy(ptr, &(textures[it->second]), sizeof(TextureInfo));
 	}
-    #endif
+#endif
 	return size;
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) {
     LOGW("TODO")
-    #if 0
+#if 0
 	assetTextures.clear();
 	textures.clear();
 	nextValidRef = 1;
@@ -543,18 +544,18 @@ void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) 
 		++it) {
 		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
 	}
-    #endif
+#endif
 }
 
 void RenderingSystem::setFrameQueueWritable(bool b) {
     if (frameQueueWritable == b || !initDone)
         return;
     LOGI("Writable: " << b)
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
     frameQueueWritable = b;
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();
     mutexes[L_QUEUE].unlock();
 
@@ -576,9 +577,9 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    #if SAC_DESKTOP
+#if SAC_DESKTOP
     glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-    #endif
+#endif
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -642,7 +643,7 @@ void unpackCameraAttributes(
     ccc->clearColor = in.color;
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void RenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     RenderingComponent* tc = Get(entity, false);
     if (!tc) return;

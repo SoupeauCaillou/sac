@@ -1,7 +1,7 @@
 #include "MusicAPILinuxOpenALImpl.h"
 #include "base/Log.h"
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 #include <al.h>
 #include <alc.h>
 #else
@@ -11,7 +11,7 @@
 #include <cassert>
 #include <vector>
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 static const char* errToString(ALenum err);
 static void check_AL_errors(const char* context);
 #define AL_OPERATION(x)  \
@@ -23,17 +23,17 @@ static void check_AL_errors(const char* context);
 #define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
-	#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     ALuint source;
     std::vector<ALuint> queuedBuffers;
     int queuedSize;
-    #else
+#else
     int channel;
-    #endif
+#endif
 };
 
 void MusicAPILinuxOpenALImpl::init() {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     ALCdevice* device = alcOpenDevice(0);
     ALCcontext* context = alcCreateContext(device, 0);
     if (!(device && context && alcMakeContextCurrent(context)))
@@ -66,7 +66,7 @@ int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr*) {
 
 void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
 	OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     // create buffer
     ALuint buffer;
     AL_OPERATION(alGenBuffers(1, &buffer))
@@ -82,7 +82,7 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, 
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     if (master) {
 	    int pos;
@@ -97,7 +97,7 @@ void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* 
 
 void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alSourceStop(openalptr->source))
 #else
 	Mix_HaltChannel(openalptr->channel);
@@ -106,7 +106,7 @@ void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
 
 void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alSourcePause(openalptr->source))
 #else
     Mix_Pause(openalptr->channel);
@@ -127,7 +127,7 @@ void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
 
 void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alSourcef(openalptr->source, AL_GAIN, volume))
 #else
 	Mix_Volume(openalptr->channel, volume * MIX_MAX_VOLUME * 0.6);
@@ -136,17 +136,17 @@ void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {
 
 bool MusicAPILinuxOpenALImpl::isPlaying(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     ALint state;
     AL_OPERATION(alGetSourcei(openalptr->source, AL_SOURCE_STATE, &state))
     return state == AL_PLAYING;
-    #else
+#else
     return true;//Mix_Playing(openalptr->channel);
-   	#endif
+#endif
 }
 
 void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     stopPlayer(ptr);
     // destroy buffers
@@ -160,7 +160,7 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     delete ptr;
 }
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 static void check_AL_errors(const char* context) {
     int maxIterations=10;
     ALenum error;

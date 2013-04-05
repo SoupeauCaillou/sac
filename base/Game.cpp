@@ -27,12 +27,12 @@
 #include "util/DataFileParser.h"
 #include <sstream>
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 #include <GL/glfw.h>
 #endif
 
 Game::Game() {
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     gameType = GameType::Default;
 #endif
     targetDT = 1.0f / 60.0f;
@@ -62,13 +62,13 @@ Game::Game() {
     GraphSystem::CreateInstance();
     DebuggingSystem::CreateInstance();
 
-#ifdef SAC_NETWORK
+#if SAC_NETWORK
     NetworkSystem::CreateInstance();
 #endif
 
     fpsStats.reset(0);
     lastUpdateTime = TimeUtil::GetTime();
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     levelEditor = new LevelEditor();
 #endif
 }
@@ -94,7 +94,7 @@ Game::~Game() {
     GraphSystem::DestroyInstance();
 	DebuggingSystem::DestroyInstance();
 
-#ifdef SAC_NETWORK
+#if SAC_NETWORK
     NetworkSystem::DestroyInstance();
 #endif
 }
@@ -136,7 +136,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 }
 
 void Game::sacInit(int windowW, int windowH) {
-#ifdef SAC_ENABLE_PROFILING
+#if SAC_ENABLE_PROFILING
 	initProfiler();
 #endif
 
@@ -160,22 +160,22 @@ void Game::sacInit(int windowW, int windowH) {
 }
 
 void Game::backPressed() {
-	#ifdef SAC_ENABLE_PROFILING
+#if SAC_ENABLE_PROFILING
 	static int profStarted = 0;
 	if ((profStarted % 2) == 0) {
 		startProfiler();
 	} else {
 		std::stringstream a;
-		#ifdef SAC_ANDROID
+#if SAC_ANDROID
 		a << "/sdcard/";
-		#else
+#else
 		a << "/tmp/";
-		#endif
+#endif
 		a << "sac_prof_" << (int)(profStarted / 2) << ".json";
 		stopProfiler(a.str());
 	}
 	profStarted++;
-	#endif
+#endif
 }
 
 int Game::saveState(uint8_t**) {
@@ -194,13 +194,13 @@ void Game::step() {
     float delta = timeBeforeThisStep - lastUpdateTime;
 
     theTouchInputManager.Update(delta);
-    #ifdef SAC_ENABLE_PROFILING
+#if SAC_ENABLE_PROFILING
     std::stringstream framename;
     framename << "update-" << (int)(delta * 1000000);
     PROFILE("Game", framename.str(), InstantEvent);
-    #endif
+#endif
     // update game state
-    #ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     static float speedFactor = 1.0f;
     if (glfwGetKey(GLFW_KEY_F1))
         gameType = GameType::Default;
@@ -222,17 +222,17 @@ void Game::step() {
             delta *= speedFactor;
             tick(delta);
     }
-    #else
+#else
     LOGI("Delta: " << delta);
-    tick(delta);
-    #endif
+#endif
 
-    #ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     if (delta > 0) {
-    #endif
-    #ifdef SAC_NETWORK
+#endif
+
+#if SAC_NETWORK
     theNetworkSystem.Update(delta);
-    #endif
+#endif
 
 	++countD;
 
@@ -261,11 +261,11 @@ void Game::step() {
     theAutoDestroySystem.Update(delta);
     theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
-    #ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     } else {
         theTransformationSystem.Update(delta);
     }
-    #endif
+#endif
     // produce 1 new frame
     theRenderingSystem.Update(0);
 

@@ -67,7 +67,7 @@ void SoundSystem::DoUpdate(float) {
     }
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void SoundSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

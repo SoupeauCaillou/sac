@@ -1,6 +1,6 @@
 #include "Serializer.h"
 #include "systems/System.h"
-#ifdef SAC_NETWORK
+#if SAC_NETWORK
 #include "systems/NetworkSystem.h"
 #endif
 #include <cstring>

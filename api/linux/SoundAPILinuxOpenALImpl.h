@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../SoundAPI.h"
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 
 #else
 #include <SDL/SDL_mixer.h>
@@ -19,9 +19,9 @@ class SoundAPILinuxOpenALImpl : public SoundAPI {
 
     private:
         AssetAPI* assetAPI;
-    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
         unsigned int* soundSources;
-    #endif
+#endif
 };
 
 

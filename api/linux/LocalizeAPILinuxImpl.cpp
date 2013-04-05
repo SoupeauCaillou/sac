@@ -17,18 +17,18 @@
     along with Heriswap.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "LocalizeAPILinuxImpl.h"
-#ifndef SAC_EMSCRIPTEN
-	#if defined(SAC_WINDOWS) || defined(SAC_DARWIN)
+
+
+#if SAC_EMSCRIPTEN
+#elif SAC_WINDOWS || SAC_DARWIN
 	//TODO
-	#else
-	#include <libintl.h>
-	#include <locale.h>
-	#endif
+#else
+#include <libintl.h>
+#include <locale.h>
 #endif
 
 
-#if defined(SAC_DARWIN) || defined(SAC_WINDOWS)
-
+#if SAC_DARWIN || SAC_WINDOWS
 
 int LocalizeAPILinuxImpl::init(const std::string & lang) {
 	return 0;
@@ -87,9 +87,9 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string&) {
     if (_idToMessage[s].empty()) {
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
             LOG_EVERY_N(LOGE, 100, "'" << s << "' is not a valid localizable ID");
-        #endif
+#endif
 
         return "INVALID-" + s + "-ID";
     }

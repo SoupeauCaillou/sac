@@ -26,14 +26,14 @@
 #include <condition_variable>
 #include "Log.h"
 
-#if defined(SAC_ANDROID)
+#if SAC_ANDROID
 // #undef USE_COND_SIGNALING
 #define USE_COND_SIGNALING 1
 #else
 #define USE_COND_SIGNALING 1
 #endif
 
-#if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#if SAC_LINUX && SAC_DESKTOP
 #include <sys/inotify.h>
 #include <list>
 #include <fstream>
@@ -45,7 +45,7 @@ class AssetAPI;
 
 template <typename T, typename TRef, typename SourceDataType>
 class NamedAssetLibrary {
-    #define InvalidRef -1
+#define InvalidRef -1
     public:
         NamedAssetLibrary() : nextValidRef(1), assetAPI(0) {
         }
@@ -66,9 +66,9 @@ class NamedAssetLibrary {
                 result = nextValidRef++;
                 LOGV(1, "Put asset '" << name << "' on delayed load queue. Ref value: " << result)
                 nameToRef.insert(std::make_pair(name, result));
-                #if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#if SAC_LINUX && SAC_DESKTOP
                 registerNewAsset(name);
-                #endif
+#endif
             } else {
                 result = it->second;
             }
@@ -145,9 +145,9 @@ class NamedAssetLibrary {
             delayed.loads.clear();
             delayed.unloads.clear();
             delayed.reloads.clear();
-            #if USE_COND_SIGNALING
+#if USE_COND_SIGNALING
             cond.notify_all();
-            #endif
+#endif
             mutex.unlock();
         }
 
@@ -155,14 +155,14 @@ class NamedAssetLibrary {
             std::unique_lock<std::mutex> lock(mutex);
             typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
             if (it == ref2asset.end()) {
-                #if USE_COND_SIGNALING
+#if USE_COND_SIGNALING
                 if (waitIfLoadingInProgress) {
                     // wait for next load end, the requested resource might be loaded in the next batch
                     while (!delayed.loads.empty())
                         cond.wait(lock);
                     it = ref2asset.find(ref);
                 } else {
-                #endif
+#endif
                     lock.unlock();
                     return 0;
                 }
@@ -198,9 +198,9 @@ class NamedAssetLibrary {
 
     protected:
         std::mutex mutex;
-        #if USE_COND_SIGNALING
+#if USE_COND_SIGNALING
         std::condition_variable cond;
-        #endif
+#endif
         TRef nextValidRef;
         AssetAPI* assetAPI;
 
@@ -213,7 +213,7 @@ class NamedAssetLibrary {
             std::set<std::string> reloads;
         } delayed;
 
-    #if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#if SAC_LINUX && SAC_DESKTOP
     public:
         void updateInotify() {
             for (auto it : filenames) {
@@ -239,11 +239,11 @@ class NamedAssetLibrary {
             }
         }
         void registerNewAsset(const std::string & name) {
-            #ifdef SAC_ASSETS_DIR
+#ifdef SAC_ASSETS_DIR
                 std::string full = SAC_ASSETS_DIR + name;
-            #else
+#else
                 std::string full = "assets/" + name;
-            #endif
+#endif
             std::ifstream ifile(full);
             if (!ifile) {
                 const std::string assetsDirectory = "assets/";
@@ -276,5 +276,5 @@ class NamedAssetLibrary {
         std::list<InotifyDatas> filenames;
 
 
-    #endif
+#endif
 };

@@ -24,7 +24,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
     frameCount = 0;
 }
 
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
 static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCount, Entity& entityCountLabel, Entity& systems) {
     const glm::vec2& cameraSize = TRANSFORM(camera)->size;
 
@@ -316,7 +316,7 @@ void DebuggingSystem::DoUpdate(float dt) {
 #endif
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
     DebuggingComponent* dc = Get(entity, false);
     if (!dc) return;

@@ -49,7 +49,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 	}
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void AutonomousAgentSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

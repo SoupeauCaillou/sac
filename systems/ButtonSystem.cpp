@@ -46,9 +46,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
-                        #ifdef SAC_DEBUG
+#if SAC_DEBUG
                          LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked")
-                        #endif
+#endif
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
                         }
@@ -65,7 +65,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
     }
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void ButtonSystem::addEntityPropertiesToBar(Entity /*e*/, TwBar* /*bar*/) {
 
 }

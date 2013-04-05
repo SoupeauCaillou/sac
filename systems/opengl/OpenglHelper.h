@@ -18,24 +18,21 @@
 */
 #pragma once
 
-#if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN)
+#if SAC_ANDROID || SAC_EMSCRIPTEN
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #else
 #include <GL/glew.h>
-#endif
-
-#if !defined(SAC_ANDROID) && !defined(SAC_EMSCRIPTEN)
 #define CHECK_GL_ERROR
 #endif
 
 void check_GL_errors(const char* context);
 
 #ifdef CHECK_GL_ERROR
- #define GL_OPERATION(x) \
-     (x); \
-     check_GL_errors(#x);
+#define GL_OPERATION(x) \
+    (x); \
+    check_GL_errors(#x);
 #else
- #define GL_OPERATION(x) \
-     (x);
+#define GL_OPERATION(x) \
+    (x);
 #endif

@@ -87,7 +87,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 	elements[e] = se;
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void ScrollingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

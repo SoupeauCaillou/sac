@@ -564,7 +564,7 @@ youpi:
 
   void validate(void)
   {
-    #ifdef _SAC_DEBUG
+#ifdef _SAC_DEBUG
     Node *f = mFreeList;
     while ( f )
     {
@@ -579,7 +579,7 @@ youpi:
       }
       f = f->mNext;
     }
-    #endif
+#endif
   }
 
   virtual bool  getTextureLocation(int index,int &x,int &y,int &wid,int &hit)

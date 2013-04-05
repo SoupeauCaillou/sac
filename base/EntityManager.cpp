@@ -3,9 +3,9 @@
 #include "systems/System.h"
 #include <cstring>
 
-#if defined(SAC_ANDROID) || defined(SAC_EMSCRIPTEN) || defined(SAC_WINDOWS) || defined(SAC_DARWIN)
+#if SAC_ANDROID || SAC_EMSCRIPTEN || SAC_WINDOWS || SAC_DARWIN
 void* mempcpy(void* dst, const void* src, size_t size)
-#if defined(SAC_ANDROID)
+#if SAC_ANDROID
 throw()
 #endif
 {
@@ -39,9 +39,9 @@ void EntityManager::DestroyInstance() {
 }
 
 Entity EntityManager::CreateEntity(const std::string&
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
             name
-        #endif
+#endif
         , EntityType::Enum type) {
 	Entity e = nextEntity++;
 
@@ -54,7 +54,7 @@ Entity EntityManager::CreateEntity(const std::string&
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
-    #ifdef SAC_DEBUG
+#if SAC_DEBUG
     if (name2entity.find(name) == name2entity.end()) {
         name2entity.insert(std::make_pair(name, e));
     } else {
@@ -65,11 +65,11 @@ Entity EntityManager::CreateEntity(const std::string&
         } while (name2entity.find(namesuffix.str()) != name2entity.end());
         name2entity.insert(std::make_pair(namesuffix.str(), e));
     }
-    #endif
+#endif
 	return e;
 }
 
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
 const std::string& EntityManager::entityName(Entity e) const {
     for (std::map<std::string, Entity>::const_iterator it=name2entity.begin();
         it!=name2entity.end(); ++it) {
@@ -89,9 +89,9 @@ void EntityManager::DeleteEntity(Entity e) {
 		(*it)->Delete(e);
 	}
 	entityComponents.erase(e);
-    #ifdef SAC_DEBUG
+#if SAC_DEBUG
     name2entity.erase(entityName(e));
-    #endif
+#endif
 }
 
 void EntityManager::AddComponent(Entity e, ComponentSystem* system) {

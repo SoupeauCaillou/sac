@@ -1,4 +1,4 @@
-#if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
+#if SAC_LINUX && ! SAC_EMSCRIPTEN
 #include "Recorder.h"
 #include <iostream>
 #include <sstream>
@@ -204,9 +204,6 @@ bool Recorder::initSound (){
 }
 
 void Recorder::start(){
-#ifdef SAC_WINDOWS
-    
-#else
     if (outfile == NULL && !recording && !th1.joinable()){
         std::cout << "Recording start" << std::endl;
 
@@ -230,7 +227,6 @@ void Recorder::start(){
             std::cout << "thread creating error" << std::endl;
         }
     }
-#endif
 }
 
 void Recorder::stop(){

@@ -108,17 +108,17 @@ std::map<FramebufferRef, Framebuffer> ref2Framebuffers;
 bool newFrameReady, frameQueueWritable;
 int currentWriteQueue;
 RenderQueue* renderQueue;
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 public:
 GLuint squareBuffers[3];
 private:
 #endif
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 std::mutex *mutexes;
 std::condition_variable *cond;
 #endif
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 public:
 #endif
 
@@ -136,7 +136,7 @@ private:
 void drawRenderCommands(RenderQueue& commands);
 void processDelayedTextureJobs();
 
-#if defined(SAC_LINUX) & defined(SAC_DESKTOP)
+#if SAC_LINUX && SAC_DESKTOP
 void updateInotify();
 #endif
 
@@ -152,7 +152,7 @@ void setFrameQueueWritable(bool b);
 typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
 ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
 public:
     struct Stats {
         unsigned count;

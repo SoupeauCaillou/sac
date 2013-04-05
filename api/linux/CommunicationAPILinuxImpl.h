@@ -22,8 +22,10 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
             return list;
         }
 
-        inline std::list<Score::Struct> getScores(unsigned leaderboardID,
-            Score::Visibility visibility, unsigned startRank, unsigned count) {
+        inline std::list<Score::Struct> getScores(
+            /*unsigned leaderboardID, Score::Visibility visibility, unsigned startRank, unsigned count*/
+            unsigned, Score::Visibility, unsigned startRank, unsigned) {
+
             std::list<Score::Struct> list;
             list.push_front(Score::Struct("Player3", "10", startRank+2, Score::FRIEND));
             list.push_front(Score::Struct("Player2", "433", startRank+1, Score::ME));
@@ -34,7 +36,7 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
         }
 
         inline void submitScore(unsigned leaderboardID, Score::Struct score) {
-            LOGV(1, "TODO");
+            LOGV(1, "TODO" << leaderboardID << "+" << score);
             //storageAPI->blablabla
         }
 

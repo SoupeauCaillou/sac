@@ -1,11 +1,11 @@
-    #include "AssetAPILinuxImpl.h"
+#include "AssetAPILinuxImpl.h"
 #include <cstring>
 #include <base/Log.h>
 
-#ifdef SAC_WINDOWS
+#if SAC_WINDOWS
 
 #else
-    #include <dirent.h>
+#include <dirent.h>
 #endif
 
 void AssetAPILinuxImpl::init() {
@@ -45,16 +45,16 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
 }
 
 std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extension, const std::string& subfolder) {
-    #ifdef SAC_ASSETS_DIR
+#ifdef SAC_ASSETS_DIR
         std::string directory = SAC_ASSETS_DIR + subfolder;
-    #else
+#else
         std::string directory = "assets/" + subfolder;
-    #endif
+#endif
 
     std::list<std::string> content;
-    #ifdef SAC_WINDOWS
+#if SAC_WINDOWS
         // TODO
-    #else
+#else
         // TODO : Use scandir ?
         DIR* dir = opendir(directory.c_str());
         if (dir == NULL)
@@ -82,6 +82,6 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
             }
         }
         closedir(dir);
-    #endif
+#endif
     return content;
 }

@@ -315,7 +315,7 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
     return computeStringWidth(trc, trc->charHeight, fontIt->second);
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void TextRenderingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

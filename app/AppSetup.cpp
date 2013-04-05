@@ -18,7 +18,7 @@
 #include "base/Game.h"
 #include "base/GameContext.h"
 
-#ifdef SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
 #include <SDL/SDL.h>
 #include <emscripten/emscripten.h>
 #else
@@ -39,13 +39,9 @@
 #include <thread>
 #include <mutex>
 
-#ifndef SAC_EMSCRIPTEN
-	#if defined(SAC_WINDOWS) || defined(SAC_DARWIN)
-
-	#else
-		#include <locale.h>
-		#include <libintl.h>
-	#endif
+#if SAC_LINUX || SAC_ANDROID
+#include <locale.h>
+#include <libintl.h>
 #endif
 
 #include <glm/glm.hpp>
@@ -81,11 +77,11 @@ Game* game = 0;
 NameInputAPILinuxImpl* nameInput = 0;
 Entity globalFTW = 0;
 
-#if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
+#if SAC_LINUX && ! SAC_EMSCRIPTEN
 Recorder *record;
 #endif
 
-#if !defined(SAC_EMSCRIPTEN)
+#if ! SAC_EMSCRIPTEN
 std::mutex m;
 
 void GLFWCALL myCharCallback( int c, int action ) {
@@ -150,7 +146,7 @@ static void updateAndRenderLoop() {
       }
       //pause ?
 
-      #if defined(SAC_LINUX) && !defined(SAC_EMSCRIPTEN)
+#if SAC_LINUX && ! SAC_EMSCRIPTEN
       // recording
       if (glfwGetKey( GLFW_KEY_F10)){
      record->stop();
@@ -158,7 +154,7 @@ static void updateAndRenderLoop() {
       if (glfwGetKey( GLFW_KEY_F9)){
      record->start();
       }
-      #endif
+#endif
       //user entered his name?
       if (nameInput && glfwGetKey( GLFW_KEY_ENTER )) {
      if (!TEXT_RENDERING(nameInput->nameEdit)->show) {
@@ -194,7 +190,7 @@ int initGame(const std::string& title) {
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
-#ifdef SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
@@ -221,7 +217,7 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     // Handle --restore cmd line switch
     uint8_t* state = 0;
     int size = 0;
-    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     bool restore = false;
     for (int i=1; i<argc; i++) {
         restore |= !strcmp(argv[i], "-restore");
@@ -242,7 +238,7 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
             std::cout << "Restoring game state from file (size: " << size << ")" << std::endl;
         }
     }
-    #endif
+#endif
 
     /////////////////////////////////////////////////////
     // Game context initialisation
@@ -297,14 +293,14 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     setlocale( LC_ALL, "" );
     // breaks editor -> glfwSetCharCallback(myCharCallback);
     // breaks editor -> glfwSetKeyCallback(myKeyCallback);
 #endif
 
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     // record = new Recorder(resolution.x, resolution.y);
 
     std::thread th1(callback_thread);
@@ -318,7 +314,7 @@ int launchGame(Game* gameImpl, unsigned contextOptions, int argc, char** argv) {
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #endif
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     delete game;
  //   delete record;
 #endif

@@ -93,7 +93,7 @@ void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, cons
     delete[] file.data;
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void AnimationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     AnimationComponent* tc = Get(entity, false);
     if (!tc) return;

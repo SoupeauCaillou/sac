@@ -29,9 +29,9 @@ typedef int EffectRef;
 struct Shader {
     GLuint program;
     GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor, uniformCamera;
-    #ifdef SAC_USE_VBO
+#if SAC_USE_VBO
     GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
-    #endif
+#endif
 };
 
 #define DEFAULT_FRAGMENT "default.fs"
@@ -46,7 +46,7 @@ class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
 
     public:
         virtual void init(AssetAPI* pAssetAPI);
-        
+
         enum {
             ATTRIB_VERTEX = 0,
             ATTRIB_UV,

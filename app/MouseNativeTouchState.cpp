@@ -17,7 +17,7 @@
 */
 #include "MouseNativeTouchState.h"
 
-#ifdef SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
 #include <SDL/SDL.h>
 #include <emscripten/emscripten.h>
 #else
@@ -29,7 +29,7 @@
 #include <base/Log.h>
 
 bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
-    #ifdef SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
      static bool down = false;
      static glm::vec2 position;
       SDL_Event event;
@@ -105,11 +105,11 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
        }
        *windowCoords = position;
     return down;
-    #else
+#else
     int x,y;
     glfwGetMousePos(&x, &y);
     windowCoords->x = x;
     windowCoords->y = y;
     return glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
-    #endif
+#endif
 }

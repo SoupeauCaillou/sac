@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 #include <AntTweakBar.h>
 #include "util/LevelEditor.h"
 #endif
@@ -24,7 +24,7 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
     }
 }
 
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 #define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
 static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, bool rotateUV, int batchSize) {
 #else
@@ -45,7 +45,7 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
     	}
 
-    #ifdef SAC_USE_VBO
+#if SAC_USE_VBO
     	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
 
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
@@ -55,7 +55,7 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
 
     	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
     	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
-    #else
+#else
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
@@ -67,7 +67,7 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     return 0;
 }
 
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info, GLint unif) {
 #else
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
@@ -105,22 +105,22 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
     }
     rc.rotateUV = info.rotateUV;
 
-    #ifdef SAC_USE_VBO
+#if SAC_USE_VBO
     float uvso[4];
     uvso[0] = rc.uv[1].x - rc.uv[0].x;
     uvso[1] = rc.uv[1].y - rc.uv[0].y;
     uvso[2] = rc.uv[0].x;
     uvso[3] = rc.uv[0].y;
     GL_OPERATION(glUniform4fv(unif, 1, uvso))
-    #endif
+#endif
 }
 
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const RenderingSystem::Camera& camera, const RenderingSystem::Shader& shader) {
 #else
 static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
 #endif
-    #ifdef SAC_USE_VBO
+#if SAC_USE_VBO
     float hW = 0.5 * screenW;
     float hH = 0.5 * screenH;
     GLfloat mat[16];
@@ -134,7 +134,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     float scaleZ[] = { 2 * rc.halfSize.x, 2 * rc.halfSize.y, rc.z };
     GL_OPERATION(glUniform3fv(shader.uniformScaleZ, 1, scaleZ))
     GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
-    #else
+#else
     // fill batch
     glm::vec2 onScreenVertices[4];
     computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
@@ -161,7 +161,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     indices[batchSize * 6 + 3] = baseIdx + 1;
     indices[batchSize * 6 + 4] = baseIdx + 3;
     indices[batchSize * 6 + 5] = baseIdx + 2;
-    #endif
+#endif
 }
 
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled) {
@@ -169,7 +169,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 	GL_OPERATION(glUseProgram(shader.program))
 	GLfloat mat[16], camera[3];
 
-#ifndef SAC_USE_VBO
+#if ! SAC_USE_VBO
     const float left = (-cameraTransf.size.x * 0.5);
     const float right = (cameraTransf.size.x * 0.5);
     const float bottom = (-cameraTransf.size.y * 0.5);
@@ -189,7 +189,7 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
-#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 #define MAX_BATCH_SIZE 1
 #else
 #define MAX_BATCH_SIZE 128
@@ -222,11 +222,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.texture == BeginFrameMarker) {
             batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
 
-            #ifdef SAC_ENABLE_PROFILING
+#if SAC_ENABLE_PROFILING
             std::stringstream framename;
             framename << "render-frame-" << (unsigned int)rc.rotateUV;
             PROFILE("Render", framename.str(), InstantEvent);
-            #endif
+#endif
 
             firstCall = true;
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
@@ -305,11 +305,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 } else {
                     rc.glref = info->glref;
                 }
-                #ifdef USE_VBO
+#ifdef USE_VBO
                 computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
-                #else
+#else
                 computeUV(rc, *info);
-                #endif
+#endif
             } else {
                 rc.uv[0] = glm::vec2(0, 1);
                 rc.uv[1] = glm::vec2(1, 0);
@@ -324,12 +324,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			rc.uv[0] = glm::vec2(0.0f, 0.0f);
 			rc.uv[1] = glm::vec2(1.0f, 1.0f);
 			rc.rotateUV = 0;
-			#ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 			float uvso[4];
 			uvso[0] = uvso[1] = 1;
 			uvso[2] = uvso[3] = 0;
 			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset, 1, uvso))
-			#endif
+#endif
 		}
 
         // TEXTURE OR COLOR HAS CHANGED ?
@@ -351,11 +351,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // ADD TO BATCH
-        #ifdef SAC_USE_VBO
+#if SAC_USE_VBO
 		addRenderCommandToBatch(screenW, screenH, rc, camera, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
-        #else
+#else
         addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
-        #endif
+#endif
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
@@ -367,7 +367,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #include <errno.h>
 
 void RenderingSystem::waitDrawingComplete() {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
@@ -379,10 +379,10 @@ void RenderingSystem::waitDrawingComplete() {
 }
 
 void RenderingSystem::render() {
-#ifdef SAC_ENABLE_LOG
+#if SAC_ENABLE_LOG
     float enter = TimeUtil::GetTime();
 #endif
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
 
     std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);
@@ -391,35 +391,35 @@ void RenderingSystem::render() {
         cond[C_FRAME_READY].wait(lock);
     }
 #endif
-#if defined(SAC_ENABLE_LOG) && !defined(SAC_EMSCRIPTEN)
+#if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
     //float frameready = TimeUtil::GetTime();
 #endif
     if (!frameQueueWritable) {
         LOGI("Rendering disabled")
-        #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
         lock.unlock();
-        #endif
+#endif
         return;
     }
     newFrameReady = false;
     int readQueue = (currentWriteQueue + 1) % 2;
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     lock.unlock();
     PROFILE("Renderer", "wait-frame", EndEvent);
 #endif
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
-#if defined(SAC_ENABLE_LOG) && !defined(SAC_EMSCRIPTEN)
+#if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
     //float aftertexture= TimeUtil::GetTime();
 #endif
     PROFILE("Renderer", "load-textures", EndEvent);
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     if (!mutexes[L_RENDER].try_lock()) {
         LOGV(1, "HMM Busy render lock")
         mutexes[L_RENDER].lock();
     }
 #endif
-#if defined(SAC_ENABLE_LOG) && !defined(SAC_EMSCRIPTEN)
+#if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
     float ppp = TimeUtil::GetTime();
     float diff =  ppp - enter;
     if (diff > 0.001) {
@@ -438,16 +438,16 @@ void RenderingSystem::render() {
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     cond[C_RENDER_DONE].notify_all();
     mutexes[L_RENDER].unlock();
 #endif
 	PROFILE("Renderer", "render", EndEvent);
-    #ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
     LevelEditor::lock();
     TwDraw();
     LevelEditor::unlock();
-    #endif
+#endif
 }
 
 static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out) {
@@ -478,7 +478,7 @@ void RenderingSystem::loadOrthographicMatrix(float left, float right, float bott
     float ty = - (top + bottom) / t_b;
     float tz = - (far_ + near_) / f_n;
 
-#ifndef SAC_USE_VBO
+#if ! SAC_USE_VBO
     mat[0] = 2.0f / r_l;
     mat[1] = 2.0f / t_b;
     mat[2] = -2.0f / f_n;

@@ -6,7 +6,7 @@
 #include <map>
 #include <list>
 #include <vector>
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
 #include <string>
 #endif
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
@@ -30,9 +30,9 @@ class EntityManager {
 
 	public:
 		Entity CreateEntity(const std::string&
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
             name = "noname"
-        #endif
+#endif
             , EntityType::Enum type = EntityType::Volatile);
 
     	void DeleteEntity(Entity e);
@@ -43,18 +43,18 @@ class EntityManager {
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
         const std::string& entityName(Entity e) const;
-        #endif
+#endif
 
         int getNumberofEntity() {return entityComponents.size();}
 
 	private:
 		Entity nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
         std::map<std::string, Entity> name2entity;
-        #endif
+#endif
 };
 
 void deleteEntityFunctor(Entity e);

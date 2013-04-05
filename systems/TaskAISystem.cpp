@@ -23,7 +23,7 @@ void TaskAISystem::DoUpdate(float dt) {
     }
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void TaskAISystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

@@ -28,7 +28,7 @@ public:
 	};
 	static void setPosition(TransformationComponent* tc, const glm::vec2& p, PositionReference ref=C);
 
-	#ifdef SAC_DEBUG
+#if SAC_DEBUG
 	void preDeletionCheck(Entity e) {
 		FOR_EACH_COMPONENT(Transformation, bc)
 			if (bc->parent == e) {
@@ -36,5 +36,5 @@ public:
 			}
 		}
 	}
-	#endif
+#endif
 };

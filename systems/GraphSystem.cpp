@@ -283,7 +283,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
     }
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void GraphSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     GraphComponent* tc = Get(entity, false);
     if (!tc) return;

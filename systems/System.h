@@ -14,10 +14,10 @@
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
 #include "base/EntityManager.h"
 #endif
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 #include "AntTweakBar.h"
 #endif
 
@@ -29,7 +29,7 @@
 #define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 #define UPDATABLE_SYSTEM(type) \
     class type##System : public ComponentSystemImpl<type##Component> {  \
         public: \
@@ -140,9 +140,9 @@
 class ComponentSystem {
 	public:
 		ComponentSystem(const std::string& n) : name(n)
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
             , updateDuration(0)
-        #endif
+#endif
          { bool inserted = registry.insert(std::make_pair(name, this)).second; assert(inserted); }
 
         virtual ~ComponentSystem() { registry.erase(name); }
@@ -156,13 +156,13 @@ class ComponentSystem {
 
 		void Update(float dt) {
             PROFILE("SystemUpdate", name, BeginEvent);
-            #ifdef SAC_DEBUG
+#if SAC_DEBUG
             float before = TimeUtil::GetTime();
-            #endif
+#endif
             DoUpdate(dt);
-            #ifdef SAC_DEBUG
+#if SAC_DEBUG
             updateDuration = TimeUtil::GetTime() - before;
-            #endif
+#endif
             PROFILE("SystemUpdate", name, EndEvent);
         }
 
@@ -177,7 +177,7 @@ class ComponentSystem {
 
 		static std::vector<std::string> registeredSystemNames();
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
         virtual void addEntityPropertiesToBar(Entity , TwBar* ) {}
 #endif
 
@@ -187,9 +187,9 @@ class ComponentSystem {
 	private:
 		std::string name;
     public:
-        #ifdef SAC_DEBUG
+#if SAC_DEBUG
         float updateDuration;
-        #endif
+#endif
 };
 
 template <typename T>
@@ -197,13 +197,13 @@ class ComponentSystemImpl: public ComponentSystem {
 	public:
 		ComponentSystemImpl(const std::string& t) : ComponentSystem(t) {
             previous = 0;
-            #if SAC_USE_VECTOR_STORAGE
+#if SAC_USE_VECTOR_STORAGE
             _freelist = UINT_MAX;
-            #endif
+#endif
 		}
 
 		void Add(Entity entity) {
-            #if SAC_USE_VECTOR_STORAGE
+#if SAC_USE_VECTOR_STORAGE
             if (_freelist == UINT_MAX) {
                  entityWithComponent.push_back(EntityNextFree(entity));
                  components.push_back(T());
@@ -216,34 +216,35 @@ class ComponentSystemImpl: public ComponentSystem {
                  entityToIndice[entity] = idx;
              }
             assert(components.size() == entityWithComponent.size());
-            #else
+#else
 			assert (components.find(entity) == components.end());
 			components.insert(std::make_pair(entity, CreateComponent()));
-            #endif
+#endif
 		}
 
-		#ifdef SAC_DEBUG
+#if SAC_DEBUG
 		virtual void preDeletionCheck(Entity) { };
-		#endif
+#endif
 
 		void Delete(Entity entity) {
-		#ifdef SAC_DEBUG
+#if SAC_DEBUG
 		    preDeletionCheck(entity);
-		#endif
-            #if SAC_USE_VECTOR_STORAGE
+#endif
+
+#if SAC_USE_VECTOR_STORAGE
             std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
             unsigned idx = it->second;
             entityWithComponent[idx].entity = 0;
             entityWithComponent[idx].nextFree = _freelist;
             entityToIndice.erase(it);
             _freelist = idx;
-            #else
+#else
 			ComponentIt it = components.find(entity);
 			if (it != components.end()) {
 				delete it->second;
 				components.erase(it);
 			}
-            #endif
+#endif
             if (previous == entity) {
                 previous = 0;
                 previousComp = 0;
@@ -252,7 +253,7 @@ class ComponentSystemImpl: public ComponentSystem {
 
 		T* Get(Entity entity, bool failIfNotfound = true) {
             if (entity != previous) {
-                #if SAC_USE_VECTOR_STORAGE
+#if SAC_USE_VECTOR_STORAGE
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
                     if (failIfNotfound) {
@@ -262,22 +263,22 @@ class ComponentSystemImpl: public ComponentSystem {
                     return 0;
                 }
                 previousComp = &components[it->second];
-                #else
+#else
     			ComponentIt it = components.find(entity);
     			if (it == components.end()) {
                     // crash here
                     if (failIfNotfound) {
-                        #ifdef SAC_DEBUG
+#if SAC_DEBUG
                         LOGF("Entity '" << theEntityManager.entityName(entity)
                             << "' (" << entity << ") has no component of type '" << getName())
-                        #else
+#else
                         LOGF("Entity '" << entity << "' has no component of type '" << getName())
-                        #endif
+#endif
                     }
     				return 0;
     			}
                 previousComp = (*it).second;
-                #endif
+#endif
                 previous = entity;
             }
 			return previousComp;
@@ -285,11 +286,11 @@ class ComponentSystemImpl: public ComponentSystem {
 
 		std::vector<Entity> RetrieveAllEntityWithComponent() {
 			std::vector<Entity> result;
-            #ifdef SAC_USE_VECTOR_STORAGE
+#if SAC_USE_VECTOR_STORAGE
             for(std::map<Entity, unsigned>::iterator it=entityToIndice.begin(); it!=entityToIndice.end(); ++it) {
-			#else
+#else
             for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-            #endif
+#endif
 				result.push_back((*it).first);
 			}
 			return result;
@@ -311,17 +312,17 @@ class ComponentSystemImpl: public ComponentSystem {
 		int deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = Get(entity, false);
             if (!component)
-            #if SAC_USE_VECTOR_STORAGE
+#if SAC_USE_VECTOR_STORAGE
                 { Add(entity); component = Get(entity); }
-            #else
+#else
                 component = new T();
-            #endif
+#endif
             int s = componentSerializer.deserializeObject(in, size, component);
-            #if SAC_USE_VECTOR_STORAGE
+#if SAC_USE_VECTOR_STORAGE
 
-            #else
+#else
 			components[entity] = component;
-            #endif
+#endif
             return s;
 		}
 
@@ -341,7 +342,8 @@ class ComponentSystemImpl: public ComponentSystem {
         std::map<Entity, unsigned> entityToIndice;
         unsigned _freelist;
 #else
-#ifdef SAC_DEBUG
+
+#if SAC_DEBUG
 	public:
 #endif
 		std::map<Entity, T*> components;

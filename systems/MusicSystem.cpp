@@ -3,28 +3,28 @@
 #include "base/CircularBuffer.h"
 #include <base/Log.h>
 
-#ifdef SAC_MUSIC_VISU
-    #include "TextRenderingSystem.h"
-    #include "RenderingSystem.h"
-    #include "base/PlacementHelper.h"
-    #include "base/EntityManager.h"
+#if SAC_MUSIC_VISU
+#include "TextRenderingSystem.h"
+#include "RenderingSystem.h"
+#include "base/PlacementHelper.h"
+#include "base/EntityManager.h"
 #endif
 
-#ifdef SAC_ANDROID
-    #define assert(x) x
+#if SAC_ANDROID
+#define assert(x) x
 #endif
 
-#ifdef SAC_EMSCRIPTEN
-	#include <SDL/SDL_mixer.h>
-	#include <sstream>
-#elif defined(SAC_ANDROID)
-	#include "tremor/ivorbisfile.h"
+#if SAC_EMSCRIPTEN
+#include <SDL/SDL_mixer.h>
+#include <sstream>
+#elif SAC_ANDROID
+#include "tremor/ivorbisfile.h"
 #else
-	#include <vorbis/vorbisfile.h>
+#include <vorbis/vorbisfile.h>
 #endif
 
-#ifdef SAC_LINUX
-	#include <linux/sched.h>
+#if SAC_LINUX
+#include <linux/sched.h>
 #endif
 
 #include <glm/glm.hpp>
@@ -36,33 +36,33 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), asset
 }
 
 MusicSystem::~MusicSystem() {
-    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     runDecompLoop = false;
     cond.notify_all();
     if (oggDecompressionThread.joinable())
         oggDecompressionThread.join();
     LOGI("MusicSystem uninitinalized")
-    #endif
-    #ifndef SAC_EMSCRIPTEN
+#endif
+#if ! SAC_EMSCRIPTEN
     for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
         delete it->second.buffer;
         ov_clear(it->second.ovf);
         delete it->second.ovf;
-    #else
+#else
     for (std::map<MusicRef, Mix_Chunk*>::iterator it=musics.begin(); it!=musics.end(); ++it) {
         // delete ...
-    #endif
+#endif
     }
     musics.clear();
-    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     for (std::map<std::string, FileBuffer>::iterator it=name2buffer.begin(); it!=name2buffer.end(); ++it) {
         delete[] it->second.data;
     }
     name2buffer.clear();
-    #endif
+#endif
 }
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 static void* _startOggThread(void* arg) {
     static_cast<MusicSystem*>(arg)->oggDecompRunLoop();
     return 0;
@@ -73,13 +73,13 @@ void MusicSystem::init() {
     muted = false;
     nextValidRef = 1;
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     oggDecompressionThread = std::thread(_startOggThread, this);
 #endif
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     if (ref == InvalidMusicRef)
         return;
     mutex.lock();
@@ -109,9 +109,9 @@ void MusicSystem::stopMusic(MusicComponent* m) {
             musicAPI->deletePlayer(m->opaque[i]);
             m->opaque[i] = 0;
             m->positionI = 0;
-            #ifdef SAC_MUSIC_VISU
+#if SAC_MUSIC_VISU
             m->positionF = 0;
-            #endif
+#endif
         }
     }
     if (m->music != InvalidMusicRef)
@@ -187,16 +187,16 @@ void MusicSystem::DoUpdate(float dt) {
 	        	}
             }
             // need to queue more data ?
-            #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
             feed(m->opaque[0], m->music, 0, dt);
-            #endif
+#endif
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
             assert (m->music != InvalidMusicRef);
-            #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
-	        #else
+#else
 	        if (!musicAPI->isPlaying(m->opaque[0])) {
 	        #endif
 	            LOGV(1, "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music)
@@ -214,17 +214,17 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->master) {
                     loop = m->master->looped;
                 } else {
-	                #ifndef SAC_EMSCRIPTEN
-                    loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
-                    #else
+#if SAC_EMSCRIPTEN
                     loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
-                    #endif
+#else
+                    loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
+#endif
                 }
 
                 if (loop) {
-                    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
                     LOGV(1, "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']')
-                    #endif
+#endif
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
                     // memorize ending music
@@ -237,11 +237,11 @@ void MusicSystem::DoUpdate(float dt) {
                     if (m->master) {
                         m->opaque[0] = startOpaque(m, m->music, m->master, 0);
                     } else {
-                        #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
                         int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
-                        #else
+#else
                         int offset = 0;
-                        #endif
+#endif
                         m->opaque[0] = startOpaque(m, m->music, 0, offset);
                     }
 
@@ -258,12 +258,12 @@ void MusicSystem::DoUpdate(float dt) {
             if (m->currentVolume != m->volume) {
                 musicAPI->setVolume(m->opaque[1], m->volume);
             }
-            #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
             feed(m->opaque[1], m->previousEnding, 0, dt);
             if ((m->previousEnding != InvalidMusicRef && musicAPI->getPosition(m->opaque[1]) >= musics[m->previousEnding].nbSamples) || !musicAPI->isPlaying(m->opaque[1])) {
-            #else
+#else
             if (!musicAPI->isPlaying(m->opaque[1])) {
-            #endif
+#endif
                 musicAPI->deletePlayer(m->opaque[1]);
                 m->opaque[1] = 0;
                 // remove m->loopNext from musics
@@ -293,14 +293,14 @@ void MusicSystem::DoUpdate(float dt) {
         }
 
 
-        #ifdef SAC_MUSIC_VISU
+#if SAC_MUSIC_VISU
         if (m->music != InvalidMusicRef) {
             m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
-        #endif
+#endif
     }
 
-    #ifdef SAC_MUSIC_VISU
+#if SAC_MUSIC_VISU
     int idx = 0;
     FOR_EACH_ENTITY_COMPONENT(Music, a, rc)
         if (visualisationEntities.find(a) == visualisationEntities.end()) {
@@ -386,10 +386,10 @@ void MusicSystem::DoUpdate(float dt) {
         }
         idx++;
     }
-    #endif
+#endif
 }
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 void MusicSystem::oggDecompRunLoop() {
     runDecompLoop = true;
 
@@ -451,7 +451,7 @@ void MusicSystem::oggDecompRunLoop() {
 }
 #endif
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
     assert (m != InvalidMusicRef);
     if (musics.find(m) == musics.end()) {
@@ -492,7 +492,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
     assert (r != InvalidMusicRef);
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     MusicInfo& info = musics[r];
     if (info.sampleRate <=0) {
         LOGW("Invalid sample rate: " << info.sampleRate)
@@ -528,7 +528,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
 }
 
 void MusicSystem::toggleMute(bool enable) {
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     if (enable && !muted) {
         muted = true;
         FOR_EACH_COMPONENT(Music, m)
@@ -547,7 +547,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     if (!assetAPI)
         return InvalidMusicRef;
     PROFILE("Music", "loadMusicFile", BeginEvent);
-    #ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     FileBuffer b;
     if (name2buffer.find(assetName) == name2buffer.end()) {
         PROFILE("Music", "loadAsset", BeginEvent);
@@ -562,9 +562,9 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     } else {
         b = name2buffer[assetName];
     }
-    #endif
+#endif
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
     FileBufferWithCursor* fbc = new FileBufferWithCursor(b, true);
 
     ov_callbacks cb;
@@ -591,11 +591,11 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     LOGV(1, "(music) File: " << assetName << " / rate: " << info.sampleRate << " duration: " << info.totalTime << " nbSample: " << info.nbSamples << " -> " << nextValidRef)
     PROFILE("Music", "mutex-section", BeginEvent);
     mutex.lock();
-    #ifdef SAC_MUSIC_VISU
+#if SAC_MUSIC_VISU
     int start = assetName.find("audio/") + 6;
     int end = assetName.find(".ogg");
     info.name = assetName.substr(start, end - start);
-    #endif
+#endif
     musics[nextValidRef] = info;
     // LOGI("================================ ++ %d => %lu", nextValidRef, musics.size());
     mutex.unlock();
@@ -612,16 +612,16 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     return nextValidRef++;
 }
 
-#ifndef SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN
 int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize) {
     int bitstream;
     int read = 0;
     while (read < chunkSize) {
-        #ifdef SAC_ANDROID
+#if SAC_ANDROID
         int n = ov_read(file, (char*) &data[read], chunkSize - read, &bitstream);
-        #else
+#else
         int n = ov_read(file, (char*) &data[read], chunkSize - read, 0, 2, 1, &bitstream);
-        #endif
+#endif
         if (n == 0) {
             // LOGI("%p] EOF (read: %d/%d)", file, read, chunkSize);
             // EOF
@@ -642,7 +642,7 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
 }
 #endif
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void MusicSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 
 }

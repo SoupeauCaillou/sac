@@ -47,10 +47,10 @@ void ParticuleSystem::DoUpdate(float dt) {
 
         // emit particules
         if (pc->emissionRate > 0) {
-            #ifdef SAC_DEBUG
+#if SAC_DEBUG
             std::stringstream name;
             name << "particule_" << theEntityManager.entityName(a);
-            #endif
+#endif
             int count = pc->emissionRate * (dt + pc->spawnLeftOver);
             pc->spawnLeftOver += dt - count / pc->emissionRate;
             count = glm::min(count, MAX_PARTICULE_COUNT - (int)particules.size());
@@ -61,11 +61,11 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.time = 0;
                 internal.lifetime = pc->lifetime.random();
 
-                #ifdef SAC_DEBUG
+#if SAC_DEBUG
                 Entity e = internal.e = theEntityManager.CreateEntity(name.str());
-                #else
+#else
                 Entity e = internal.e = theEntityManager.CreateEntity();
-                #endif
+#endif
                 ADD_COMPONENT(e, Transformation);
                 TransformationComponent* tc = TRANSFORM(e);
                 tc->position = tc->worldPosition = ptc->worldPosition + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->worldRotation);
@@ -115,7 +115,7 @@ void ParticuleSystem::DoUpdate(float dt) {
     }
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void ParticuleSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     ParticuleComponent* tc = Get(entity, false);
     if (!tc) return;

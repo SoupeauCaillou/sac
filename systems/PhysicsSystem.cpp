@@ -92,7 +92,7 @@ void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	pc->forces.push_back(std::make_pair(Force(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0)), 0.016));
 }
 
-#ifdef SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 void PhysicsSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     PhysicsComponent* tc = Get(entity, false);
     if (!tc) return;
