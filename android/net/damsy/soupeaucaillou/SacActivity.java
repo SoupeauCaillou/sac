@@ -6,10 +6,8 @@ import java.util.List;
 import net.damsy.soupeaucaillou.SacGameThread.Event;
 import net.damsy.soupeaucaillou.api.AdAPI;
 import net.damsy.soupeaucaillou.api.CommunicationAPI;
-import net.damsy.soupeaucaillou.prototype.PrototypeActivity;
 import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -18,18 +16,9 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 
-import com.chartboost.sdk.Chartboost;
-import com.purplebrain.giftiz.sdk.GiftizSDK;
-import com.revmob.RevMob;
-import com.swarmconnect.Swarm;
-import com.swarmconnect.SwarmActivity;
-//import android.util.Log;
-
-public abstract class SacActivity extends SwarmActivity {
+public abstract class SacActivity extends Activity {
 	protected SacRenderer renderer;
 	protected SacGameThread gameThread;
 	PowerManager.WakeLock wl;
@@ -37,31 +26,13 @@ public abstract class SacActivity extends SwarmActivity {
 	public static final String UseLowGfxPref = "UseLowGfxPref";
 
 	public Vibrator vibrator;
-	
-	public Chartboost cb;
-	public RevMob revmob;
-	
-	public abstract int getSwarmGameID();
-	public abstract String getSwarmGameKey();
-	public abstract int[] getSwarmBoards();
+		
+	// public abstract boolean canShowAppRater();
 
-	public abstract boolean canShowAppRater();
-	public abstract String getBundleKey();
-
+	public abstract void initRequiredAPI();
+	
 	public abstract int getLayoutId();
 	public abstract int getParentViewId();
-
-	public abstract String getRevMobAppId();
-	
-	public abstract String getCharboostAppId();
-	public abstract String getCharboostAppSignature();
-
-	public abstract boolean giftizEnabled();
-	
-	public abstract View getNameInputView();
-	public abstract EditText getNameInputEdit();
-	public abstract Button getNameInputButton();
-	public void preNameInputViewShow() {}
 
 	float factor = 1.f;
  
@@ -80,34 +51,14 @@ public abstract class SacActivity extends SwarmActivity {
     protected void onCreate(Bundle savedInstanceState) {
 		Log(W, "-> onCreate [" + savedInstanceState);
         super.onCreate(savedInstanceState);
-        SacJNILib.activity = this;
         
-        /////////////////////////// SETUP AD
-        // TODO: move this elsewhere, and make it all optional
-        if (getRevMobAppId() != null) {
-        	revmob = RevMob.start(this, getRevMobAppId());
-        	AdAPI._revmobFullscreen = revmob.createFullscreen(SacJNILib.activity, new AdAPI.revmobListener());
-        } else {
-        	Log(I, "Revmob not initialized");
-        }
+        initRequiredAPI();
 
-        if (getCharboostAppId() != null) {
-        	cb = Chartboost.sharedChartboost();
-        	cb.onCreate(this, getCharboostAppId(), getCharboostAppSignature(), new AdAPI.CharboostDelegate());
-        	cb.startSession();
-        	// cb.install();
-
-        	AdAPI._cb = cb;
-        	
-	        cb.cacheInterstitial();
-        } else {
-        	Log(I, "Chartboost not initialized");
-        }
-
-        // Store savedInstanceStatefor later use
+        /////////////////////////// 
+        // Create Game thread
         byte[] savedState = null;
         if (savedInstanceState != null) {
-        	savedState = savedInstanceState.getByteArray(getBundleKey());
+        	savedState = savedInstanceState.getByteArray(this.getPackageName() + "/Bundle");
 	        if (savedState != null) {
 	        	Log(I, "State restored from app bundle");
 	        }
@@ -126,7 +77,7 @@ public abstract class SacActivity extends SwarmActivity {
         GLSurfaceView mGLView = new GLSurfaceView(this);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
 
-        SharedPreferences preferences = getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
+        /*SharedPreferences preferences = getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
 
         if (preferences.getBoolean(UseLowGfxPref, false)) {
         	factor = 0.6f;
@@ -134,7 +85,9 @@ public abstract class SacActivity extends SwarmActivity {
         } else {
         	factor = 0.9f;
         	Log(I, "Current GFX value: HIGH RES");
-        }
+        }*/
+        Log(W, "TODO: restore GFX setting preference");
+        factor = 1;
         
         int viewHeight = (int)(getWindowManager().getDefaultDisplay().getHeight() * factor);
         int viewWidth = (int)(getWindowManager().getDefaultDisplay().getWidth() * factor);
@@ -170,24 +123,6 @@ public abstract class SacActivity extends SwarmActivity {
         /////////////////////////// PREVENT PHONE SLEEP
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
-
-        /////////////////////////// RETRIEVE VIBRATOR SERVICE
-        // TODO: do this only in VibratorAPI
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-        /////////////////////////// INCREASE LAUNCH_COUNT
-        SharedPreferences prefs = getSharedPreferences("apprater", 0);
-        long newValue = prefs.getLong("launch_count", 0) + 1;
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putLong("launch_count", newValue);
-        editor.commit();
-        
-        /////////////////////////// INIT GIFTIZ
-        // TODO: only is requested
-        if (giftizEnabled()) {
-        	CommunicationAPI.buttonStatus = GiftizSDK.Inner.getButtonStatus(this);
-        	GiftizSDK.Inner.setButtonNeedsUpdateDelegate(new CommunicationAPI.GiftizDelegate());
-        }
     }
 
     @Override
@@ -220,8 +155,7 @@ public abstract class SacActivity extends SwarmActivity {
         if (wl != null)
         	wl.release();
 	    
-        if (giftizEnabled())
-        	GiftizSDK.onPauseMainActivity(this);
+        CommunicationAPI.Instance().onActivityPaused(this);
     }
 
     @Override
@@ -253,37 +187,18 @@ public abstract class SacActivity extends SwarmActivity {
     		}
     	}
 
-    	if (giftizEnabled())
-    		GiftizSDK.onResumeMainActivity(this);
-    	
-    	int id = getSwarmGameID();
-    	final Activity act = this;
-    	//	start swarm if this is the first launch (0 coin) OR it's enabled
-    	if (Swarm.isEnabled() && id != 0) {
-		    runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					SacActivity.Log(SacActivity.I, "Init swarm");
-					Swarm.init(act, getSwarmGameID(), getSwarmGameKey());
-				}
-			});
-    	}
+    	CommunicationAPI.Instance().onActivityResumed(this);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
     	Log(W, "Activity LifeCycle ##### ON SAVE INSTANCE");
-    	/*if (savedState != null) {
-    		Log(I, "Return the same savedState");
-    		outState.putByteArray(getBundleKey(), savedState);
-    		return;
-    	}*/
 
     	/* save current state; we'll be used only if app get killed */
     		Log(I, "Save state!");
 	    	byte[] savedState = SacJNILib.serialiazeState();
 	    	if (savedState != null) {
-	    		outState.putByteArray(getBundleKey(), savedState);
+	    		outState.putByteArray(this.getPackageName() + "/Bundle", savedState);
 	    		Log(I, "State saved: " + savedState.length + " bytes");
 	    	} else {
 	    		Log(I, "No state saved");
@@ -324,14 +239,12 @@ public abstract class SacActivity extends SwarmActivity {
     protected void onDestroy() {
     	Log(W, "Activity LifeCycle ##### ON DESTROY");
     	super.onDestroy();
-    	if (Swarm.isInitialized())
-    		Swarm.logOut();
     }
 
     @Override
     public void onBackPressed() {
-    	// Ask Charboost if it wants to consume the event
-    	if ((getCharboostAppId() != null) && cb.onBackPressed())
+    	// Ask Ads if it wants to consume the event
+    	if (AdAPI.Instance().onBackPressed())
     	{
     		return;
     	}
@@ -350,13 +263,13 @@ public abstract class SacActivity extends SwarmActivity {
     @Override
     protected void onStart() {
     	super.onStart();
-    	if (getCharboostAppId() != null) cb.onStart(this);    
+    	AdAPI.Instance().onActivityStarted(this);    
     }
 
     @Override
     protected void onStop() {
     	super.onStop();
-    	if (getCharboostAppId() != null) cb.onStop(this);
+    	AdAPI.Instance().onActivityStopped(this);
     }
 
     final static public int V = android.util.Log.VERBOSE;

@@ -1,21 +1,35 @@
 package net.damsy.soupeaucaillou.api;
 
-import net.damsy.soupeaucaillou.SacJNILib;
+import net.damsy.soupeaucaillou.SacActivity;
 import android.content.res.Resources;
 
 public class LocalizeAPI {
+	private static LocalizeAPI instance = null;
+
+	public synchronized static LocalizeAPI Instance() {
+		if (instance == null) {
+			instance = new LocalizeAPI();
+		}
+		return instance;
+	}
+
+	private Resources resources;
+	private String resPackage;
+	
+	public void init(Resources resources, String resPackage) {
+		this.resources = resources;
+		this.resPackage = resPackage;
+	}
+	
 	// -------------------------------------------------------------------------
 	// LocalizeAPI
 	// -------------------------------------------------------------------------
-	static public String localize(String name) {
-		final Resources res = SacJNILib.activity.getResources();
-		
-		int id = res.getIdentifier(name, "string",
-				"net.damsy.soupeaucaillou.recursiveRunner");
+	public String localize(String name) {		
+		int id = resources.getIdentifier(name, "string", resPackage);
 		if (id == 0) {
-			//NOLOGLog.e(HeriswapActivity.Tag, "Cannot find text entry : '" + name+ "' for localization");
+			SacActivity.Log(SacActivity.E, "Cannot find text entry : '" + name+ "' for localization");
 			return "LOC" + name + "LOC";
 		}
-		return res.getString(id);
+		return resources.getString(id);
 	}
 }

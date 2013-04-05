@@ -3,6 +3,8 @@ package net.damsy.soupeaucaillou.api;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.damsy.soupeaucaillou.SacActivity;
+
 import android.content.res.AssetManager;
 
 public class AssetAPI {
@@ -18,7 +20,7 @@ public class AssetAPI {
 			stream.read(data);
 			return data;
 		} catch (Exception exc) {
-			//Log.e("sac", "load asset error: " + exc.toString(), exc);
+			SacActivity.Log(SacActivity.E, "load asset error: " + exc.toString());
 			return null;
 		}
 	}

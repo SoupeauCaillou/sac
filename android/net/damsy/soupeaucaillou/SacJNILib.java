@@ -3,10 +3,6 @@ package net.damsy.soupeaucaillou;
 import android.content.res.AssetManager;
 
 public class SacJNILib {
-	static public SacActivity activity;
-
-	static final String PREF_NAME = "HeriswapPref";
-
 	/**
 	 * Create native game
 	 * @return true if game is new instance, false if we reused a previous one

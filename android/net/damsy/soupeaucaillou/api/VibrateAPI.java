@@ -1,10 +1,23 @@
 package net.damsy.soupeaucaillou.api;
 
-import net.damsy.soupeaucaillou.SacJNILib;
+import android.os.Vibrator;
 
 public class VibrateAPI {
+	private static VibrateAPI instance = null;
 
-	public static void vibrate(float duration) {
-		SacJNILib.activity.vibrator.vibrate((long)(duration * 1000));
+	public synchronized static VibrateAPI Instance() {
+		if (instance == null) {
+			instance = new VibrateAPI();
+		}
+		return instance;
+	}
+	
+	private Vibrator vibrator;
+	public void init(Vibrator vibrator) {
+		this.vibrator = vibrator;
+	}
+	
+	public void vibrate(float duration) {
+		vibrator.vibrate((long)(duration * 1000));
 	}
 }
