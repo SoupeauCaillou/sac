@@ -3,17 +3,17 @@ package net.damsy.soupeaucaillou;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.damsy.soupeaucaillou.SacGameThread.Event;
 import net.damsy.soupeaucaillou.api.AdAPI;
 import net.damsy.soupeaucaillou.api.CommunicationAPI;
 import net.damsy.soupeaucaillou.prototype.PrototypeActivity;
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
-//import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -22,22 +22,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
-import com.revmob.RevMob;
 import com.chartboost.sdk.Chartboost;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
+import com.revmob.RevMob;
 import com.swarmconnect.Swarm;
 import com.swarmconnect.SwarmActivity;
+//import android.util.Log;
 
 public abstract class SacActivity extends SwarmActivity {
-	public Object mutex;
-	public long game = 0;
-	public boolean runGameLoop;
-	public byte[] savedState;
-	public boolean isRunning;
-	public boolean requestPausedFromJava, backPressed;
-	// public GLSurfaceView mGLView;
-	final public int openGLESVersion = 2;
 	protected SacRenderer renderer;
+	protected SacGameThread gameThread;
 	PowerManager.WakeLock wl;
 	
 	public static final String UseLowGfxPref = "UseLowGfxPref";
@@ -71,21 +65,34 @@ public abstract class SacActivity extends SwarmActivity {
 
 	float factor = 1.f;
  
+	/**
+	 * 3 potential reasons for onCreate to be called:
+	 *   - 1) application has just been started
+	 *   - 2) Activity has been destroyed BUT the holding process wasn't killed
+	 *   - 3) Activity has been destroyed AND the holding process has been killed
+	 *   
+	 *   1) is the easiest one to handle: we just need to initialize everything
+	 *   2) we should ignore savedInstanceState, because C side of our process has been untouched.
+	 *      Still required: Java init, reload all GL resources, un-pause game and rendering threads
+	 *   3) similar to 1), except we need to restore game from Bundle if any
+	 */
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
-		android.util.Log.i("sac", "-> onCreate [" + savedInstanceState);
+		Log(W, "-> onCreate [" + savedInstanceState);
         super.onCreate(savedInstanceState);
         SacJNILib.activity = this;
+        
+        /////////////////////////// SETUP AD
+        // TODO: move this elsewhere, and make it all optional
         AdAPI.adHasBeenShown = AdAPI.adWaitingAdDisplay = false;
 
         if (getRevMobAppId() != null) {
         	revmob = RevMob.start(this, getRevMobAppId());
         	AdAPI._revmobFullscreen = revmob.createFullscreen(SacJNILib.activity, new AdAPI.revmobListener());
         } else {
-        	//Log.w("sac", "Revmob not initialized");
+        	Log(I, "Revmob not initialized");
         }
 
-        
         if (getCharboostAppId() != null) {
         	cb = Chartboost.sharedChartboost();
         	cb.onCreate(this, getCharboostAppId(), getCharboostAppSignature(), new AdAPI.CharboostDelegate());
@@ -96,11 +103,22 @@ public abstract class SacActivity extends SwarmActivity {
         	
 	        cb.cacheInterstitial();
         } else {
-        	//Log.w("sac", "Chartboost not initialized");
+        	Log(I, "Chartboost not initialized");
         }
 
-        mutex = new Object();
-
+        // Store savedInstanceStatefor later use
+        byte[] savedState = null;
+        if (savedInstanceState != null) {
+        	savedState = savedInstanceState.getByteArray(getBundleKey());
+	        if (savedState != null) {
+	        	Log(I, "State restored from app bundle");
+	        }
+        } else {
+        	Log(V, "savedInstanceState is null");
+        }
+        gameThread = new SacGameThread(getAssets(), savedState);
+        
+        /////////////////////////// CREATE VIEW
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
     			LayoutParams.FLAG_FULLSCREEN);
 
@@ -109,72 +127,65 @@ public abstract class SacActivity extends SwarmActivity {
 
         GLSurfaceView mGLView = new GLSurfaceView(this);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
-        int width = getWindowManager().getDefaultDisplay().getWidth();
 
-        SharedPreferences preferences = this
-				.getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
-        
+        SharedPreferences preferences = getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
+
         if (preferences.getBoolean(UseLowGfxPref, false)) {
         	factor = 0.6f;
-        	// Log.i("sac", "Current GFX value: LOW RES");
+        	Log(I, "Current GFX value: LOW RES");
         } else {
         	factor = 0.9f;
-        	// Log.i("sac", "Current GFX value: HIGH RES");
+        	Log(I, "Current GFX value: HIGH RES");
         }
         
-        int height = getWindowManager().getDefaultDisplay().getHeight();
+        int viewHeight = (int)(getWindowManager().getDefaultDisplay().getHeight() * factor);
+        int viewWidth = (int)(getWindowManager().getDefaultDisplay().getWidth() * factor);
         android.view.SurfaceHolder holder = mGLView.getHolder();
-        holder.setFixedSize((int)(width * factor), (int)((height) * factor));
-        //setContentView(mGLView);
+        holder.setFixedSize(viewWidth, viewHeight);
         layout.addView(mGLView);
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
-        	renderer = new SacRenderer(this, getAssets());
+        	renderer = new SacRenderer(viewWidth, viewHeight, getAssets(), gameThread);
             mGLView.setRenderer(renderer);
 		}
         holder.addCallback(new SurfaceHolder.Callback() {
-			
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {
-				// Log.i("sac", "SURFACE DESTROYED!" + holder.getSurface().hashCode());
-				
+				Log(V, "SURFACE DESTROYED!" + holder.getSurface().hashCode());
 			}
 			
 			@Override
 			public void surfaceCreated(SurfaceHolder holder) {
-				// Log.i("sac", "SURFACE CREATED!" + holder.getSurface().hashCode());
+				Log(V, "SURFACE CREATED!" + holder.getSurface().hashCode());
 			}
 			
 			@Override
 			public void surfaceChanged(SurfaceHolder holder, int format, int width,
 					int height) {
-				// Log.i("sac", "SURFACE CHANGED!" + holder.getSurface().hashCode());
+				Log(V, "SURFACE CHANGED!" + holder.getSurface().hashCode());
 			}
 		});
 
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
-        if (savedInstanceState != null) {
-        	savedState = savedInstanceState.getByteArray(getBundleKey());
-	        if (savedState != null) {
-	        	//Log.i("Sac", "State restored from app bundle");
-	        } else {
-	        	//NOLOGLog.i(HeriswapActivity.Tag, "WTF?");
-	        }
-        } else {
-        	//Log.i("Sac", "savedInstanceState is null");
-        }
 
+        /////////////////////////// PREVENT PHONE SLEEP
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+
+        /////////////////////////// RETRIEVE VIBRATOR SERVICE
+        // TODO: do this only in VibratorAPI
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+        /////////////////////////// INCREASE LAUNCH_COUNT
         SharedPreferences prefs = getSharedPreferences("apprater", 0);
         long newValue = prefs.getLong("launch_count", 0) + 1;
         SharedPreferences.Editor editor = prefs.edit();
         editor.putLong("launch_count", newValue);
         editor.commit();
         
+        /////////////////////////// INIT GIFTIZ
+        // TODO: only is requested
         if (giftizEnabled()) {
         	CommunicationAPI.buttonStatus = GiftizSDK.Inner.getButtonStatus(this);
         	GiftizSDK.Inner.setButtonNeedsUpdateDelegate(new CommunicationAPI.GiftizDelegate());
@@ -184,15 +195,16 @@ public abstract class SacActivity extends SwarmActivity {
     @Override
     protected void onPause() {
     	super.onPause();
-    	android.util.Log.i("sac", "Activity LifeCycle ##### ON PAUSE");
+    	Log(W, "Activity LifeCycle ##### ON PAUSE");
     	SacJNILib.stopRendering();
     	
+    	// TODO: simplify this (or understand why it's so complicated)
     	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
     	int count = layout.getChildCount();
     	for (int i=0; i<count; i++) {
     		View v = layout.getChildAt(i);
     		if (v instanceof GLSurfaceView) {
-    			// Log.i("sac", "Found GLSurfaceView child -> pause it");
+    			Log(I, "Found GLSurfaceView child -> pause it");
     			GLSurfaceView mGLView = (GLSurfaceView) v;
     	    	synchronized (mGLView) {
     		       	if (renderer != null) {
@@ -204,40 +216,36 @@ public abstract class SacActivity extends SwarmActivity {
     		}
     	}
     	
-
-    	
+    	// Release WakeLock
         if (wl != null)
         	wl.release();
 
-        requestPausedFromJava = true;
-
-        if (game != 0) {
-        	runGameLoop = false; // prevent step being called again
-	        synchronized (mutex) {
-	        	// HeriswapJNILib.invalidateTextures(HeriswapActivity.game);
-			}
-        }
-        if (giftizEnabled()) GiftizSDK.onResumeMainActivity(this);
+        // Notify game thread
+        gameThread.postEvent(Event.Pause);
+	    
+        if (giftizEnabled())
+        	GiftizSDK.onPauseMainActivity(this);
     }
 
     @Override
     protected void onResume() {
-    	android.util.Log.i("sac", "Activity LifeCycle ##### onResume");
+    	Log(W, "Activity LifeCycle ##### onResume");
         super.onResume();
-        getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
-    			LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN);
+        
+        // Restore WakeLock
         if (wl != null)
         	wl.acquire();
-        SacJNILib.resetTimestep(game);
-        requestPausedFromJava = false;
-        isRunning = true;
 
+        // Game Thread is not notified. It'll be waken up by OnCreateSurface cb 
+
+    	// TODO: simplify this (or understand why it's so complicated)
     	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
     	int count = layout.getChildCount();
     	for (int i=0; i<count; i++) {
     		View v = layout.getChildAt(i);
     		if (v instanceof GLSurfaceView) {
-    			// Log.i("sac", "Found GLSurfaceView child -> resume it");
+    			Log(I, "Found GLSurfaceView child -> resume it");
     			GLSurfaceView mGLView = (GLSurfaceView) v;
     	        synchronized (mGLView) {
     	        	if (renderer != null) {
@@ -248,83 +256,76 @@ public abstract class SacActivity extends SwarmActivity {
     		}
     	}
 
-    	if (giftizEnabled()) GiftizSDK.onResumeMainActivity(this);
+    	if (giftizEnabled())
+    		GiftizSDK.onResumeMainActivity(this);
+    	
+    	int id = getSwarmGameID();
+    	final Activity act = this;
+    	//	start swarm if this is the first launch (0 coin) OR it's enabled
+    	if (Swarm.isEnabled() && id != 0) {
+		    runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					SacActivity.Log(SacActivity.I, "Init swarm");
+					Swarm.init(act, getSwarmGameID(), getSwarmGameKey());
+				}
+			});
+    	}
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-    	android.util.Log.i("sac", "Activity LifeCycle ##### ON SAVE INSTANCE");
-    	if (savedState != null) {
-    		android.util.Log.i("sac", "Return the same savedState");
+    	Log(W, "Activity LifeCycle ##### ON SAVE INSTANCE");
+    	/*if (savedState != null) {
+    		Log(I, "Return the same savedState");
     		outState.putByteArray(getBundleKey(), savedState);
     		return;
-    	}
-    	if (game == 0)
-    		return;
+    	}*/
+
     	/* save current state; we'll be used only if app get killed */
-    	synchronized (mutex) {
-    		android.util.Log.i("sac", "Save state!");
-	    	byte[] savedState = SacJNILib.serialiazeState(game);
+    		Log(I, "Save state!");
+	    	byte[] savedState = SacJNILib.serialiazeState();
 	    	if (savedState != null) {
 	    		outState.putByteArray(getBundleKey(), savedState);
-	    		android.util.Log.i("sac", "State saved: " + savedState.length + " bytes");
+	    		Log(I, "State saved: " + savedState.length + " bytes");
 	    	} else {
-	    		android.util.Log.i("sac", "No state saved");
+	    		Log(I, "No state saved");
 	    	}
-	    	
-    	}
     	super.onSaveInstanceState(outState);
     }
 
     List<Integer> activePointersId = new ArrayList<Integer>();
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-    	if (game == 0)
-    		return false;
     	final int action = event.getActionMasked();
     	final int ptrIdx = event.getActionIndex();
 
     	switch (action) {
-    	/*
-    		activePointersId.add(0);
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
-    		return true;
-    	case MotionEvent.ACTION_UP:
-    		activePointersId.remove((Object)Integer.valueOf(0));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(), event.getY(), event.getPointerId(event.getActionIndex()));
-    		return true;*/
-    	case MotionEvent.ACTION_DOWN:
-    	case MotionEvent.ACTION_POINTER_DOWN:
-    		activePointersId.add(event.getPointerId(ptrIdx));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_DOWN, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
-    		return true;
-    	case MotionEvent.ACTION_UP:
-    	case MotionEvent.ACTION_POINTER_UP:
-    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(ptrIdx)));
-    		SacJNILib.handleInputEvent(game, MotionEvent.ACTION_UP, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
-    		return true;
-    	case MotionEvent.ACTION_MOVE:
-    		for (Integer ptr : activePointersId) {
-    			int idx = event.findPointerIndex(ptr);
-    			if (idx >= 0)
-    				SacJNILib.handleInputEvent(game, event.getAction(), event.getX(idx) * factor, event.getY(idx) * factor, ptr);
-    		}
-    		return true;
+	    	case MotionEvent.ACTION_DOWN:
+	    	case MotionEvent.ACTION_POINTER_DOWN:
+	    		activePointersId.add(event.getPointerId(ptrIdx));
+	    		SacJNILib.handleInputEvent(MotionEvent.ACTION_DOWN, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
+	    		return true;
+	    	case MotionEvent.ACTION_UP:
+	    	case MotionEvent.ACTION_POINTER_UP:
+	    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(ptrIdx)));
+	    		SacJNILib.handleInputEvent(MotionEvent.ACTION_UP, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
+	    		return true;
+	    	case MotionEvent.ACTION_MOVE:
+	    		for (Integer ptr : activePointersId) {
+	    			int idx = event.findPointerIndex(ptr);
+	    			if (idx >= 0)
+	    				SacJNILib.handleInputEvent(event.getAction(), event.getX(idx) * factor, event.getY(idx) * factor, ptr);
+	    		}
+	    		return true;
+	    	default:
+	    		return super.onTouchEvent(event);
     	}
-    	return super.onTouchEvent(event);
-    }
-
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-    	if (keyCode == KeyEvent.KEYCODE_MENU) {
-    		backPressed = true;
-    		// TilematchJNILib.pause(game);
-    	}
-    	return super.onKeyUp(keyCode, event);
     }
 
     @Override
     protected void onDestroy() {
+    	Log(W, "Activity LifeCycle ##### ON DESTROY");
     	super.onDestroy();
     	if (Swarm.isInitialized())
     		Swarm.logOut();
@@ -332,11 +333,19 @@ public abstract class SacActivity extends SwarmActivity {
 
     @Override
     public void onBackPressed() {
-    	if ((getCharboostAppId() != null) && cb.onBackPressed()) {
+    	// Ask Charboost if it wants to consume the event
+    	if ((getCharboostAppId() != null) && cb.onBackPressed())
+    	{
     		return;
-    	} else if (SacJNILib.willConsumeBackEvent(game)) {
-    		backPressed = true;
-    	} else {
+    	}
+    	// If not interested, ask the game
+    	else if (SacJNILib.willConsumeBackEvent())
+    	{
+    		gameThread.postEvent(Event.BackPressed);
+    	}
+    	// Else forward to system
+    	else
+    	{
     		super.onBackPressed();
     	}
     }
@@ -351,5 +360,16 @@ public abstract class SacActivity extends SwarmActivity {
     protected void onStop() {
     	super.onStop();
     	if (getCharboostAppId() != null) cb.onStop(this);
+    }
+
+    final static public int V = android.util.Log.VERBOSE;
+    final static public int I = android.util.Log.INFO;
+    final static public int W = android.util.Log.WARN;
+    final static public int E = android.util.Log.ERROR;
+    final static public int F = android.util.Log.ASSERT;
+    public static void Log(final int priority, final String msg) {
+    	final int logLevel = android.util.Log.VERBOSE;
+    	if (priority >= logLevel)
+    		android.util.Log.println(priority, "sac", msg);
     }
 }

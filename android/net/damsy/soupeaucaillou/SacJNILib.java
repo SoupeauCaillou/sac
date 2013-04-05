@@ -7,39 +7,81 @@ public class SacJNILib {
 
 	static final String PREF_NAME = "HeriswapPref";
 
-	/* Create native game instance */
-	public static native long createGame(int openGLESVersion);
+	/**
+	 * Create native game
+	 * @return true if game is new instance, false if we reused a previous one
+	 */
+	public static native boolean createGame();
 
-	public static native void destroyGame(long game);
+	/**
+	 * Initialize sac engine, from render thread context
+	 * @param mgr Access to assets
+	 * @param width View width
+	 * @param height View height
+	 */
+	public static native void initFromRenderThread(AssetManager mgr, int width, int height);
+	
+	/**
+	 * Initialize sac engine, from game thread context
+	 * @param mgr Access to assets
+	 * @param state State to restore from (may be null)
+	 */
+	public static native void initFromGameThread(AssetManager mgr, byte[] state);
 
-	/* Initialize game, reset graphics assets, etc... */
-	public static native void initFromRenderThread(AssetManager mgr, long game, int width,
-			int height);
+	/**
+	 * Update game (run 1 simulation step)
+	 */
+	public static native void step();
 
-	public static native void initFromGameThread(AssetManager mgr, long game, byte[] state);
-
-	public static native void uninitFromRenderThread(long game);
-
-	public static native void uninitFromGameThread(long game);
-
-	public static native void step(long game);
-
-	public static native void resetTimestep(long game);
+	/**
+	 * Reset time origin
+	 */
+	public static native void resetTimestep();
+	
+	/**
+	 * Prevent simulation to queue new frames to draw
+	 */
 	public static native void stopRendering();
-	public static native void render(long game);
+	
+	/**
+	 * Draw next frame
+	 */
+	public static native void render();
 
-	public static native boolean willConsumeBackEvent(long game);
+	/**
+	 * Ask native game code if it'll consume 'back pressed' event
+	 */
+	public static native boolean willConsumeBackEvent();
 
-	public static native void pause(long game);
+	/**
+	 * Notify native game code that it'll be paused
+	 */
+	public static native void pause();
 
-	public static native void back(long game);
+	/**
+	 * Forward 'back pressed' event to native game
+	 */
+	public static native void back();
 
-	public static native void invalidateTextures(AssetManager mgr, long game);
+	/**
+	 * Mark all GL textures as invalid (force reload), useful when GL context as been lost
+	 */
+	public static native void invalidateTextures(AssetManager mgr);
 
-	public static native void handleInputEvent(long game, int event, float x,
+	/**
+	 * Quick initialization of rendering system
+	 */
+	public static native void initAndReloadTextures();
+	
+	/**
+	 * Forward touch event to native game
+	 */
+	public static native void handleInputEvent(int event, float x,
 			float y, int pointerIndex);
 
-	public static native byte[] serialiazeState(long game);
-
-	public static native void initAndReloadTextures(long game);
+	/**
+	 * Ask native game to save its state
+	 * @return array holding native game state
+	 */
+	public static native byte[] serialiazeState();
 }

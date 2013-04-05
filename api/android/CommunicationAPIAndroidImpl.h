@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../CommunicationAPI.h"
+#include "base/Log.h"
 #include <jni.h>
 
 class CommunicationAPIAndroidImpl : public CommunicationAPI {
@@ -26,6 +27,7 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI {
             LOGV(1, "TODO");
             return list;
         }
+        void submitScore(unsigned , Score::Struct ) {}
 
 		void giftizMissionDone();
 		int  giftizGetButtonState();

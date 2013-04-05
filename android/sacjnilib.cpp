@@ -15,11 +15,25 @@
 #include "systems/MusicSystem.h"
 #include "base/TouchInputManager.h"
 #include "base/EntityManager.h"
+#include "AndroidNativeTouchState.h"
+
+#include "api/android/AssetAPIAndroidImpl.h"
+#include "api/android/CommunicationAPIAndroidImpl.h"
+#include "api/android/MusicAPIAndroidImpl.h"
+#include "api/android/SoundAPIAndroidImpl.h"
+#include "api/android/LocalizeAPIAndroidImpl.h"
+#include "api/android/NameInputAPIAndroidImpl.h"
+#include "api/android/AdAPIAndroidImpl.h"
+#include "api/android/ExitAPIAndroidImpl.h"
+#include "api/android/SuccessAPIAndroidImpl.h"
+#include "api/android/VibrateAPIAndroidImpl.h"
 
 #include <png.h>
 #include <algorithm>
 
 #include <sys/time.h>
+
+static GameHolder* myGameHolder = 0;
 
 #ifndef _Included_net_damsy_soupeaucaillou_SacJNILib
 #define _Included_net_damsy_soupeaucaillou_SacJNILib
@@ -27,68 +41,70 @@
 extern "C" {
 #endif
 
-struct GameHolder;
-
-struct AndroidNativeTouchState : public NativeTouchState{
-	GameHolder* holder;
-	AndroidNativeTouchState(GameHolder* h) {
-		holder = h;
-	}
-    int maxTouchingCount() {
-        return holder->input.size();
-    }
-	bool isTouching (int index, glm::vec2* windowCoords) const {
-        // map stable order ?
-        std::map<int, GameHolder::__input>::iterator it = holder->input.begin();
-        for (int i=0; i<index && it!=holder->input.end(); ++it, i++) ;
-
-        if (it == holder->input.end())
-            return false;
-
-		windowCoords->x = it->second.x;
-		windowCoords->y = it->second.y;
-
-		return it->second.touching;
-	}
-};
-
-GameHolder::~GameHolder() {
-    delete gameThreadJNICtx;
-}
 
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
  * Method:    createGame
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
-  (JNIEnv *env, jclass, jint openglesVersion) {
+JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
+  (JNIEnv *env, jclass) {
   	LOGW("-->" <<  __FUNCTION__)
-  	//if (env == (JNIEnv*)0x2) {
-	//  	plop();
-  	//}
   	TimeUtil::Init();
-	GameHolder* hld = GameHolder::build();
-	hld->initDone = false;
 
-	theRenderingSystem.assetAPI = &hld->renderThreadJNICtx.asset;
-	theTouchInputManager.setNativeTouchStatePtr(new AndroidNativeTouchState(hld));
+    if (!myGameHolder) {
+        LOGI("Create new native game instance")
+        myGameHolder = GameHolder::build();
+        myGameHolder->initDone = false;
 
-    pthread_mutex_init(&hld->mutex, 0);
-    pthread_cond_init(&hld->cond, 0);
-    hld->renderingStarted = hld->drawQueueChanged = false;
-    LOGW("<--" <<  __FUNCTION__)
-	return (jlong)hld;
+        Game* game = myGameHolder->game;
+
+        GameContext* gCtx = new GameContext, *rCtx = new GameContext;
+        if (game->wantsAPI(ContextAPI::Ad))
+            gCtx->adAPI = new AdAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Asset) || true) {
+            gCtx->assetAPI = new AssetAPIAndroidImpl();
+            rCtx->assetAPI = new AssetAPIAndroidImpl();
+        }
+        if (game->wantsAPI(ContextAPI::Communication))
+            gCtx->communicationAPI = new CommunicationAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Exit))
+            gCtx->exitAPI = new ExitAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Localize))
+            gCtx->localizeAPI = new LocalizeAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Music))
+            gCtx->musicAPI = new MusicAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::NameInput))
+            gCtx->nameInputAPI = new NameInputAPIAndroidImpl();
+        //if (game->wantsAPI(ContextAPI::Network))
+            gCtx->networkAPI = 0;
+        if (game->wantsAPI(ContextAPI::Sound))
+            gCtx->soundAPI = new SoundAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Success))
+            gCtx->successAPI = new SuccessAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Vibrate))
+            gCtx->vibrateAPI = new VibrateAPIAndroidImpl();
+
+        theRenderingSystem.assetAPI = rCtx->assetAPI;
+
+        game->setGameContexts(gCtx, rCtx);
+
+        theTouchInputManager.setNativeTouchStatePtr(new AndroidNativeTouchState(myGameHolder));
+        pthread_mutex_init(&myGameHolder->mutex, 0);
+        pthread_cond_init(&myGameHolder->cond, 0);
+        myGameHolder->renderingStarted = myGameHolder->drawQueueChanged = false;
+        LOGW("<--" <<  __FUNCTION__)
+        return true;
+    } else {
+        LOGW("<--" <<  __FUNCTION__)
+        return false;
+    }
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
-  (JNIEnv *env, jclass, jlong g) {
-    LOGW("-->" <<  __FUNCTION__)
-    GameHolder* hld = (GameHolder*) g;
-    delete hld->game;
-    delete hld;
-    LOGW("<--" <<  __FUNCTION__)
-}
+#define INIT_1(var, ctx, type) if (myGameHolder->game-> ctx##ThreadContext-> var) \
+    {LOGI("JNI init: " << #type) (static_cast< type *>(myGameHolder->game-> ctx##ThreadContext-> var))->init(env); }
+#define INIT_2(var, ctx, type) if (myGameHolder->game-> ctx##ThreadContext-> var) \
+    {LOGI("JNI init_: " << #type) (static_cast< type *>(myGameHolder->game-> ctx##ThreadContext-> var))->init(env, myGameHolder-> ctx##AssetManager); }
 
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
@@ -96,36 +112,37 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_destroyGame
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread
-  (JNIEnv *env, jclass, jobject asset, jlong g, jint w, jint h) {
-  LOGW("-->" <<  __FUNCTION__)
-	GameHolder* hld = (GameHolder*) g;
-	hld->width = w;
-	hld->height = h;
+  (JNIEnv *env, jclass, jobject asset, jint w, jint h) {
+    LOGW("-->" <<  __FUNCTION__)
+	myGameHolder->width = w;
+	myGameHolder->height = h;
 
-	hld->renderThreadJNICtx.init(env, asset);
+    myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
+    INIT_2(assetAPI, render, AssetAPIAndroidImpl)
 
-	hld->game->sacInit(hld->width, hld->height);
-	LOGW("<--" <<  __FUNCTION__)
-}
-
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromRenderThread
-  (JNIEnv *env, jclass, jlong g) {
-  LOGW("-->" <<  __FUNCTION__)
-	GameHolder* hld = (GameHolder*) g;
-	hld->renderThreadJNICtx.uninit(env);
+	myGameHolder->game->sacInit(myGameHolder->width, myGameHolder->height);
 	LOGW("<--" <<  __FUNCTION__)
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
-  (JNIEnv *env, jclass, jobject asset, jlong g, jbyteArray jstate) {
+  (JNIEnv *env, jclass, jobject asset, jbyteArray jstate) {
     LOGW("-->" <<  __FUNCTION__)
-  	GameHolder* hld = (GameHolder*) g;
     // init JNI env
-	hld->gameThreadJNICtx->init(env, asset);
+	myGameHolder->gameAssetManager = env->NewGlobalRef(asset);
+    INIT_2(assetAPI, game, AssetAPIAndroidImpl)
+    INIT_1(nameInputAPI, game, NameInputAPIAndroidImpl)
+    INIT_1(localizeAPI, game, LocalizeAPIAndroidImpl)
+    INIT_1(adAPI, game, AdAPIAndroidImpl)
+    INIT_1(exitAPI, game, ExitAPIAndroidImpl)
+    INIT_1(musicAPI, game, MusicAPIAndroidImpl)
+    INIT_2(soundAPI, game, SoundAPIAndroidImpl)
+    INIT_1(successAPI, game, SuccessAPIAndroidImpl)
+    INIT_1(vibrateAPI, game, VibrateAPIAndroidImpl)
+    INIT_1(communicationAPI, game, CommunicationAPIAndroidImpl)
 
-	theMusicSystem.musicAPI = &hld->gameThreadJNICtx->musicAPI;
-	theMusicSystem.assetAPI = &hld->gameThreadJNICtx->asset;
-	theSoundSystem.soundAPI = &hld->gameThreadJNICtx->soundAPI;
+	theMusicSystem.musicAPI = myGameHolder->game->gameThreadContext->musicAPI;
+	theMusicSystem.assetAPI = myGameHolder->game->gameThreadContext->assetAPI;
+	theSoundSystem.soundAPI = myGameHolder->game->gameThreadContext->soundAPI;
 
     // really needed ?
 	theSoundSystem.init();
@@ -139,8 +156,8 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 		LOGW("Restoring saved state (size:" << size << ")")
 	}
     // we don't need to re-init the game
-    else if (hld->initDone) {
-        hld->game->quickInit();
+    else if (myGameHolder->initDone) {
+        myGameHolder->game->quickInit();
         LOGW("<-- (early) " <<  __FUNCTION__)
 		return;
 	}
@@ -151,23 +168,24 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
 	theMusicSystem.init();
 
-	hld->dtAccumuled = 0;
+	myGameHolder->dtAccumuled = 0;
 
-	hld->game->init(state, size);
-	hld->initDone = true;
+	myGameHolder->game->init(state, size);
+	myGameHolder->initDone = true;
 
-    hld->game->resetTime();
-    // theRenderingSystem.Update(0);
+    myGameHolder->game->resetTime();
+
     LOGW("<--" <<  __FUNCTION__)
 }
 
+#if 0
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThread
   (JNIEnv *env, jclass, jlong g) {
     LOGW("-->" <<  __FUNCTION__)
-	GameHolder* hld = (GameHolder*) g;
-	hld->gameThreadJNICtx->uninit(env);
+	myGameHolder->gameThreadJNICtx->uninit(env);
 	LOGW("<--" <<  __FUNCTION__)
 }
+#endif
 
 float bbbefore = 0;
 /*
@@ -176,13 +194,12 @@ float bbbefore = 0;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
-  (JNIEnv *env, jclass, jlong g) {
-  	GameHolder* hld = (GameHolder*) g;
+  (JNIEnv *env, jclass) {
 
-	if (!hld->game)
+	if (!myGameHolder->game)
   		return;
 
-    hld->game->step();
+    myGameHolder->game->step();
 }
 
 static float tttttt = 0, prev;
@@ -192,13 +209,13 @@ float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
-  (JNIEnv *env, jclass, jlong g) {
-  	GameHolder* hld = (GameHolder*) g;
+  (JNIEnv *env, jclass) {
+
     LOGW("-->" <<  __FUNCTION__)
-	if (!hld)
+	if (!myGameHolder)
   		return;
   	float d = TimeUtil::GetTime();
-    hld->game->resetTime();
+    myGameHolder->game->resetTime();
 	LOGW("resume time: " << d << ", diff:" << (d - pauseTime) << ", " << theSoundSystem.mute)
   	if ((d - pauseTime) <= 5) {
 	  	theMusicSystem.toggleMute(theSoundSystem.mute);
@@ -208,38 +225,43 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
 
 float renderingPrevTime = 0;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
-  (JNIEnv *env, jclass, jlong g) {
-    GameHolder* hld = (GameHolder*) g;
-    if (!hld)
+  (JNIEnv *env, jclass) {
+    if (!myGameHolder)
          return;
-    hld->game->render();
+    myGameHolder->game->render();
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
-  (JNIEnv *env, jclass, jlong g) {
-  	GameHolder* hld = (GameHolder*) g;
+  (JNIEnv *env, jclass) {
   	LOGW("-->" <<  __FUNCTION__)
-  	if (!hld->game)
+  	if (!myGameHolder->game)
   		return;
 
     // kill all music
     theMusicSystem.toggleMute(true);
-	hld->game->togglePause(true);
+	myGameHolder->game->togglePause(true);
 	pauseTime = TimeUtil::GetTime();
 	LOGW("<--" <<  __FUNCTION__)
 }
 
-JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBackEvent
-  (JNIEnv *env, jclass, jlong g) {
-    GameHolder* hld = (GameHolder*) g;
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resume
+  (JNIEnv *env, jclass) {
     LOGW("-->" <<  __FUNCTION__)
-    bool res = (hld->game ? hld->game->willConsumeBackEvent() : false);
+
+    LOGW("<--" <<  __FUNCTION__)
+}
+
+JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBackEvent
+  (JNIEnv *env, jclass) {
+
+    LOGW("-->" <<  __FUNCTION__)
+    bool res = ((myGameHolder && myGameHolder->game) ? myGameHolder->game->willConsumeBackEvent() : false);
     LOGW("<--" <<  __FUNCTION__)
     return res;
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
-  (JNIEnv *env, jclass, jlong g) {
+  (JNIEnv *env, jclass) {
      LOGW("-->" <<  __FUNCTION__)
      if (RenderingSystem::GetInstancePointer()) {
         theRenderingSystem.setFrameQueueWritable(false);
@@ -248,27 +270,25 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_back
-  (JNIEnv *env, jclass, jlong g) {
-     GameHolder* hld = (GameHolder*) g;
+  (JNIEnv *env, jclass) {
      LOGW("-->" <<  __FUNCTION__)
-     if (!hld->game)
+     if (!myGameHolder->game)
          return;
 
-    hld->game->backPressed();
+    myGameHolder->game->backPressed();
     LOGW("<--" <<  __FUNCTION__)
 }
 
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTextures
-  (JNIEnv *env, jclass, jobject asset, jlong g) {
-     GameHolder* hld = (GameHolder*) g;
+  (JNIEnv *env, jclass, jobject asset) {
      LOGW("-->" <<  __FUNCTION__)
-     if (!hld->game || !RenderingSystem::GetInstancePointer())
+     if (!myGameHolder->game || !RenderingSystem::GetInstancePointer())
          return;
 
-    hld->renderThreadJNICtx.init(env, asset);
+    myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
+    INIT_2(assetAPI, render, AssetAPIAndroidImpl)
 
-    // kill all music
     theRenderingSystem.invalidateAtlasTextures();
     LOGW("<--" <<  __FUNCTION__)
 }
@@ -279,13 +299,11 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_invalidateTexture
  * Signature: (JIFF)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
-  (JNIEnv *env, jclass, jlong g, jint evt, jfloat x, jfloat y, jint pointerIndex) {
-	GameHolder* hld = (GameHolder*) g;
-
-	if (g == 0)
+  (JNIEnv *env, jclass, jint evt, jfloat x, jfloat y, jint pointerIndex) {
+	if (myGameHolder == 0)
 		return;
 
-    GameHolder::__input& input = hld->input[pointerIndex];
+    GameHolder::__input& input = myGameHolder->input[pointerIndex];
 
 	/* ACTION_DOWN == 0 | ACTION_MOVE == 2 */
     if (evt == 0 || evt == 2) {
@@ -305,11 +323,11 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
  * Signature: (J)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState
-  (JNIEnv *env, jclass, jlong g) {
+  (JNIEnv *env, jclass) {
 	LOGW("-->" <<  __FUNCTION__)
-	GameHolder* hld = (GameHolder*) g;
+
 	uint8_t* state;
-	int size = hld->game->saveState(&state);
+	int size = myGameHolder->game->saveState(&state);
 
 	jbyteArray jb = 0;
 	if (size) {
@@ -317,9 +335,6 @@ JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeS
 		env->SetByteArrayRegion(jb, 0, size, (jbyte*)state);
 		LOGW("Serialized state size: " << size)
 	}
-
-    // delete hld->game;
-    // delete hld;
 
 	LOGW("<--" <<  __FUNCTION__)
 	return jb;
@@ -331,9 +346,9 @@ JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeS
  * Signature: (J[B)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures
-  (JNIEnv *env, jclass, jlong g) {
+  (JNIEnv *env, jclass) {
   LOGW("-->" <<  __FUNCTION__)
-  GameHolder* hld = (GameHolder*) g;
+
   theRenderingSystem.init();
   theRenderingSystem.reloadTextures();
 //  theRenderingSystem.reloadEffects();

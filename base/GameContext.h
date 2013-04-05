@@ -29,20 +29,29 @@ class SoundAPI;
 class SuccessAPI;
 class VibrateAPI;
 
-#define CONTEXT_WANT_AD_API         0x1 << 0
-#define CONTEXT_WANT_ASSET_API      0x1 << 1
-#define CONTEXT_WANT_COMM_API       0x1 << 2
-#define CONTEXT_WANT_EXIT_API       0x1 << 3
-#define CONTEXT_WANT_LOCALIZE_API   0x1 << 4
-#define CONTEXT_WANT_MUSIC_API      0x1 << 5
-#define CONTEXT_WANT_NAME_INPUT_API 0x1 << 6
-#define CONTEXT_WANT_NETWORK_API    0x1 << 7
-#define CONTEXT_WANT_SOUND_API      0x1 << 8
-#define CONTEXT_WANT_SUCCESS_API    0x1 << 9
-#define CONTEXT_WANT_VIBRATE_API    0x1 << 10
-
+namespace ContextAPI {
+    enum Enum {
+        Ad,
+        Asset,
+        Communication,
+        Exit,
+        Localize,
+        Music,
+        NameInput,
+        Network,
+        Sound,
+        Success,
+        Vibrate
+    };
+}
 
 struct GameContext {
+    GameContext() : adAPI(0),
+        assetAPI(0), communicationAPI(0),
+        exitAPI(0), localizeAPI(0),
+        musicAPI(0), nameInputAPI(0),
+        networkAPI(0), soundAPI(0),
+        successAPI(0), vibrateAPI(0) {}
     AdAPI* adAPI;
     AssetAPI* assetAPI;
     CommunicationAPI* communicationAPI;

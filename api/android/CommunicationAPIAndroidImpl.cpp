@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "../../base/Log.h"
+#include "base/Log.h"
 
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
    jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
@@ -15,7 +15,8 @@ static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name,
 struct CommunicationAPIAndroidImpl::CommunicationAPIAndroidImplDatas {
    jclass cls;
 
-   jmethodID isGameCenterSignedIn;
+   jmethodID isGameCenterLoggedIn;
+   jmethodID openGameCenter;
    jmethodID gameCenterSignIn;
    jmethodID gameCenterSignUp;
    jmethodID giftizMissionDone;
@@ -52,7 +53,7 @@ void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
    datas->cls = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/CommunicationAPI"));
 
    datas->isGameCenterLoggedIn = jniMethodLookup(env, datas->cls, "isGameCenterLoggedIn", "()Z");
-   datas->openGameCenter = jniMethodLookup(env, datas->cls, "openGameCenter", "()Z");
+   datas->openGameCenter = jniMethodLookup(env, datas->cls, "openGameCenter", "()V");
 
    datas->giftizMissionDone = jniMethodLookup(env, datas->cls, "giftizMissionDone", "()V");
    datas->giftizGetButtonState = jniMethodLookup(env, datas->cls, "giftizGetButtonState", "()I");

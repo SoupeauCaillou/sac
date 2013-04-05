@@ -20,6 +20,7 @@ struct JNIEnvDependantContext {
 	JNIEnv* env;
 };
 
+#if 0
 struct GameThreadJNIEnvCtx : JNIEnvDependantContext {
 	NameInputAPIAndroidImpl nameInput;
 	LocalizeAPIAndroidImpl localize;
@@ -88,19 +89,20 @@ struct RenderThreadJNIEnvCtx : JNIEnvDependantContext {
 		JNIEnvDependantContext::uninit(pEnv);
 	}
 };
+#endif
 
 struct Game;
 
 class GameHolder {
 	public:
 	static GameHolder* build();
-    ~GameHolder();
 
 	Game* game;
 	int width, height;
+    jobject gameAssetManager, renderAssetManager;
 
-	GameThreadJNIEnvCtx* gameThreadJNICtx;
-	RenderThreadJNIEnvCtx renderThreadJNICtx;
+	// GameThreadJNIEnvCtx* gameThreadJNICtx;
+	// RenderThreadJNIEnvCtx renderThreadJNICtx;
 
 	struct __input {
         __input() : touching(0) {}
