@@ -69,9 +69,9 @@ TEST(LoadFramesTransforms)
         "entity_transform_1=8,-5.3, 10, 20, 3.1\n";
     AnimDescriptor desc;
     CHECK(desc.load(FB(content)));
-    CHECK_EQUAL(2, desc.frames.size());
-    CHECK_EQUAL(1, desc.frames[0].transforms.size());
-    CHECK_EQUAL(2, desc.frames[1].transforms.size());
+    CHECK_EQUAL((unsigned)2, desc.frames.size());
+    CHECK_EQUAL((unsigned)1, desc.frames[0].transforms.size());
+    CHECK_EQUAL((unsigned)2, desc.frames[1].transforms.size());
     CHECK_CLOSE(120, desc.frames[0].transforms[0].position.x, 0.001);
     CHECK_CLOSE(30, desc.frames[0].transforms[0].position.y, 0.001);
     CHECK_CLOSE(50, desc.frames[0].transforms[0].size.x, 0.001);
