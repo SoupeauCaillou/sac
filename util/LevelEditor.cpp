@@ -119,7 +119,13 @@ static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
 
 static void showTweakBarForEntity(Entity e) {
     std::stringstream barName;
+
+#ifdef SAC_DEBUG
     barName << theEntityManager.entityName(e);
+#else
+    barName << e;
+#endif
+
     TwBar* bar = TwGetBarByName(barName.str().c_str());
     if (bar == 0) {
         bar = createTweakBarForEntity(e, barName.str());
@@ -222,10 +228,20 @@ void LevelEditor::tick(float dt) {
         std::vector<Entity> entities = theEntityManager.allEntities();
         TwRemoveAllVars(entityListBar);
         for (unsigned i=0; i<entities.size(); i++) {
-            if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay) continue;
-            const std::string n(theEntityManager.entityName(entities[i]));
-            if (n.find("__debug") == 0 || n.find("__text") == 0) continue;
-            TwAddButton(entityListBar, n.c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], "");
+            if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay)
+                continue;
+
+            std::stringstream n;
+#ifdef SAC_DEBUG
+            n << theEntityManager.entityName(entities[i]);
+#else
+            n << entities[i];
+#endif
+
+            if (n.str().find("__debug") == 0 || n.str().find("__text") == 0)
+                continue;
+
+            TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], "");
         }
         accum = 0;
 

@@ -8,14 +8,18 @@
 
 #include <base/EntityManager.h>
 
+#if SAC_DEBUG
 static const char* FpsTextureName = "__debug_fps_texture";
 static const char* EntitiesTextureName = "__debug_entities_texture";
 static const char* SystemsTextureName = "__debug_systems_texture";
 
-static unsigned long frameCount = 0;
 static float timeUntilGraphUpdate = 0;
 
 static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index, const std::string& s, float maxY = 0);
+#endif
+
+static unsigned long frameCount = 0;
+
 
 INSTANCE_IMPL(DebuggingSystem);
 
@@ -316,13 +320,16 @@ void DebuggingSystem::DoUpdate(float dt) {
 #endif
 }
 
-#if SAC_INGAME_EDITORS
 void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
+#if SAC_INGAME_EDITORS
     DebuggingComponent* dc = Get(entity, false);
     if (!dc) return;
-}
 #endif
+}
+
 #else
-void DebuggingSystem::DoUpdate(float dt) {
+void DebuggingSystem::DoUpdate(float) {
+}
+void DebuggingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 }
 #endif

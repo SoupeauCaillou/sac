@@ -69,7 +69,8 @@ Entity EntityManager::CreateEntity(const std::string&
 	return e;
 }
 
-#if SAC_DEBUG
+
+#ifdef SAC_DEBUG
 const std::string& EntityManager::entityName(Entity e) const {
     for (std::map<std::string, Entity>::const_iterator it=name2entity.begin();
         it!=name2entity.end(); ++it) {
@@ -81,6 +82,7 @@ const std::string& EntityManager::entityName(Entity e) const {
     return u;
 }
 #endif
+
 
 void EntityManager::DeleteEntity(Entity e) {
 	std::list<ComponentSystem*>& l = entityComponents[e];

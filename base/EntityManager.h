@@ -29,10 +29,8 @@ class EntityManager {
 		static void DestroyInstance();
 
 	public:
-		Entity CreateEntity(const std::string&
-#if SAC_DEBUG
-            name = "noname"
-#endif
+
+		Entity CreateEntity(const std::string& name = "noname"
             , EntityType::Enum type = EntityType::Volatile);
 
     	void DeleteEntity(Entity e);
@@ -43,10 +41,9 @@ class EntityManager {
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
-#if SAC_DEBUG
+#ifdef SAC_DEBUG
         const std::string& entityName(Entity e) const;
 #endif
-
         int getNumberofEntity() {return entityComponents.size();}
 
 	private:
