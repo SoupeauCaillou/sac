@@ -110,7 +110,7 @@ else()
             GLOB_RECURSE platform_source_files
             ${PROJECT_SOURCE_DIR}/sac/app/*
             ${PROJECT_SOURCE_DIR}/sac/api/linux/*
-            ${PROJECT_SOURCE_DIR}/sources/api/linux/*
+            ${PROJECT_SOURCE_DIR}/platforms/default/api/*
         )
     elseif (MOBILE_BUILD)
         file(
@@ -118,7 +118,7 @@ else()
             ${PROJECT_SOURCE_DIR}/sac/api/android/*
             ${PROJECT_SOURCE_DIR}/sources/api/android/*
             ${PROJECT_SOURCE_DIR}/sac/android/*
-            ${PROJECT_SOURCE_DIR}/platforms/android/*cpp
+            ${PROJECT_SOURCE_DIR}/platforms/android/*.cpp
         )
     else()
         message(SEND_ERROR "which platform?")
@@ -182,7 +182,7 @@ import_specific_libs()
 if (DESKTOP_BUILD)
     file(
         GLOB_RECURSE source_platforms_files
-        ${PROJECT_SOURCE_DIR}/platforms/default/*
+        ${PROJECT_SOURCE_DIR}/platforms/default/*.cpp
     )
 else()
     set (source_platforms_files "")
