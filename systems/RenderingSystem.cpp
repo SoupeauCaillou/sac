@@ -319,7 +319,7 @@ void RenderingSystem::DoUpdate(float) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
                         cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
-                        cCenter.color.b = cCenter.color.g = 0;
+
                         // Note: no need to take rotate info->rotate into account.
                         // (opaqueStart/Size attributes do not depend on this)
                         modifyR(cCenter, info->opaqueStart, info->opaqueSize);
