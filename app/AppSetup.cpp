@@ -305,7 +305,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #endif
 
 
-#if ! SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
+    emscripten_set_main_loop(updateAndRender, 60, 0);
+#else
     // record = new Recorder(resolution.x, resolution.y);
 
     std::thread th1(callback_thread);
@@ -315,11 +317,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         // record->record();
     } while (!m.try_lock());
     th1.join();
-#else
-    emscripten_set_main_loop(updateAndRender, 60, 0);
-#endif
 
-#if ! SAC_EMSCRIPTEN
     delete game;
  //   delete record;
 #endif
