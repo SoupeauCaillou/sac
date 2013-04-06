@@ -27,6 +27,7 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
 #if SAC_USE_VBO
 #define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
 static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, bool rotateUV, int batchSize) {
+
 #else
 #define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, vert, uv, indices, batchSize)
 static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
