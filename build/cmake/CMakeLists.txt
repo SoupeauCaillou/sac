@@ -1,5 +1,5 @@
 #######################################################################
-########Library path finding related tools#############################
+####################Target check & validation##########################
 #######################################################################
 #list of the supported OS
 SET(SUPPORTED_TARGETS linux android emscripten windows darwin)
