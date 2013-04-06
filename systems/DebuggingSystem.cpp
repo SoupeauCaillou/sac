@@ -319,17 +319,12 @@ void DebuggingSystem::DoUpdate(float dt) {
     }
 #endif
 }
+#endif
 
-void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
 #if SAC_INGAME_EDITORS
+void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
+
     DebuggingComponent* dc = Get(entity, false);
     if (!dc) return;
-#endif
-}
-
-#else
-void DebuggingSystem::DoUpdate(float) {
-}
-void DebuggingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
 }
 #endif

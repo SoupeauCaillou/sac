@@ -114,11 +114,13 @@ public:
     const glm::vec2& getTextureSize(const std::string& textureName);
     void removeExcessiveFrames(int& readQueue, int& writeQueue);
 
-    void setFrameQueueWritable(bool b);
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
     static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 public:
+    void enableRendering();
+    void disableRendering();
+
     AssetAPI* assetAPI;
 
     int windowW, windowH;
@@ -138,29 +140,22 @@ public:
 
 #if SAC_USE_VBO
     GLuint squareBuffers[3];
+#endif
 private:
 
-void drawRenderCommands(RenderQueue& commands);
-void processDelayedTextureJobs();
 void setFrameQueueWritable(bool b);
-#if SAC_LINUX && SAC_DESKTOP
-void updateInotify();
-#endif
 
 #if ! SAC_EMSCRIPTEN
     std::mutex *mutexes;
     std::condition_variable *cond;
 #endif
 
-void enableRendering();
-void disableRendering();
-typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
-ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
-
     bool initDone;
 private:
     void drawRenderCommands(RenderQueue& commands);
     void processDelayedTextureJobs();
+    EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
+    GLuint whiteTexture;
 
 #if SAC_LINUX && SAC_DESKTOP
     //reload on runtime .fs files when modified
