@@ -98,42 +98,20 @@
             type##Component* comp = &components[___i]; \
             ++___i;
 #else
+
     #define FOR_EACH_ENTITY(type, ent) \
-        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end();) { \
-            Entity ent = it->first; \
-				++it;
+         for(auto __it__ : the##type##System.getAllComponents()) { \
+        LOGI("the#type##System");\
+            Entity ent = __it__.first;
 
     #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
-        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end();) { \
-            Entity ent = it->first;\
-            type##Component* comp = it->second; \
-				++it;
+         for(auto __it__ : the##type##System.getAllComponents()) { \
+            Entity ent = __it__.first;\
+            type##Component* comp = __it__.second;
 
     #define FOR_EACH_COMPONENT(type, comp) \
-        for(std::map<Entity, type##Component*>::iterator it=components.begin(); it!=components.end();) { \
-            type##Component* comp = it->second; \
-				++it;
-
-
-    #define FOR_EACH_EXT_ENTITY(type, ent) \
-        std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
-        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end();) { \
-            Entity ent = *it; \
-				++it;
-
-
-    #define FOR_EACH_EXT_ENTITY_COMPONENT(type, ent, comp) \
-        std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
-        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end();) { \
-            Entity ent = *it;\
-				type##Component* comp = the##type##System.Get(*it); \
-				++it;
-
-    #define FOR_EACH_EXT_COMPONENT(type, comp) \
-        std::vector<Entity> type##v = type##System::GetInstance().RetrieveAllEntityWithComponent(); \
-        for(std::vector<Entity>::iterator it=type##v.begin(); it!=type##v.end();) { \
-				type##Component* comp = the##type##System.Get(*it); \
-				++it;
+         for(auto __it__ : the##type##System.getAllComponents()) { \
+            type##Component* comp = __it__.second;
 
 #endif
 
@@ -251,6 +229,10 @@ class ComponentSystemImpl: public ComponentSystem {
             }
 		}
 
+        std::map<Entity, T*> getAllComponents() {
+            return components;
+        }
+
 		T* Get(Entity entity, bool failIfNotfound = true) {
             if (entity != previous) {
 #if SAC_USE_VECTOR_STORAGE
@@ -342,6 +324,7 @@ class ComponentSystemImpl: public ComponentSystem {
         std::map<Entity, unsigned> entityToIndice;
         unsigned _freelist;
 #else
+
 
 #if SAC_DEBUG
 	public:
