@@ -29,18 +29,19 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define SAC_LOG_POST __android_log_print(ANDROID_LOG_INFO, "sac", "%s", __log_ss.str().c_str());
 #else
 #include <iostream>
+#include <cassert>
 #define SAC_LOG_PRE
 #define SAC_LOG_STREAM std::cout
 #define SAC_LOG_POST
 #endif
 
-#define LOGF(x) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST }
+#define LOGF(x) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST; assert(false); }
 #define LOGE(x) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::ERROR, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST }
 #define LOGW(x) { if (logLevel >= (int)LogVerbosity::WARNING) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::WARNING, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST } }
 #define LOGI(x) { if (logLevel >= (int)LogVerbosity::INFO) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::INFO, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST } }
 #define LOGV(verbosity, x) { if (logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
 
-#define LOGF_IF(cond, x) { if ((cond)) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST}}
+#define LOGF_IF(cond, x) { if ((cond)) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST; assert(false); }}
 #define LOGE_IF(cond, x) { if ((cond)) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::ERROR, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST}}
 #define LOGW_IF(cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::WARNING) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::WARNING, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
 #define LOGI_IF(cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::INFO) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::INFO, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
