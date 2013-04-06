@@ -3,19 +3,18 @@
 #include "base/EntityManager.h"
 #include "TransformationSystem.h"
 #include "CameraSystem.h"
+
 #include <cmath>
 #include <sstream>
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+
 #include "util/IntersectionUtil.h"
 #include "opengl/OpenGLTextureCreator.h"
+
 #if SAC_DEBUG
 // #include <GL/glew.h>
 #include <stdint.h>
-#endif
-
-#if SAC_DEBUG
-#include "base/Assert.h"
 #endif
 
 #if SAC_INGAME_EDITORS
@@ -56,6 +55,7 @@ RenderingSystem::~RenderingSystem() {
     delete[] mutexes;
     delete[] cond;
 #endif
+
     initDone = false;
     delete[] renderQueue;
 }
@@ -80,10 +80,7 @@ void RenderingSystem::init() {
 	defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
 	defaultShaderNoAlpha = effectLibrary.load("default_no_alpha.fs");
     defaultShaderEmpty = effectLibrary.load("empty.fs");
-
     effectLibrary.update();
-
-	GL_OPERATION(glClearColor(148.0/255, 148.0/255, 148.0/255, 1.0)) // temp setting for RR
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};
@@ -111,63 +108,59 @@ void RenderingSystem::init() {
 
 #if SAC_USE_VBO
 	glGenBuffers(3, squareBuffers);
-GLfloat sqArray[] = {
--0.5, -0.5, 0,0,0,
-0.5, -0.5, 0,1,0,
--0.5, 0.5, 0,0,1,
-0.5, 0.5, 0,1,1
-};
+    GLfloat sqArray[] = {
+    -0.5,  -0.5,    0,  0,  0,
+     0.5,  -0.5,    0,  1,  0,
+    -0.5,   0.5,    0,  0,  1,
+     0.5,   0.5,    0,  1,  1
+    };
 
-GLfloat sqArrayRev[] = {
-0.5, -0.5, 0,0,0,
-0.5, 0.5, 0,1,0,
--0.5, -0.5, 0,0,1,
--0.5, 0.5, 0,1,1
-};
-unsigned short sqIndiceArray[] = {
-	0,1,2,1,3,2
-};
-// Buffer d'informations de vertex
-glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[0]);
-glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
+    GLfloat sqArrayRev[] = {
+     0.5,   -0.5,   0,  0,  0,
+     0.5,    0.5,   0,  1,  0,
+    -0.5,   -0.5,   0,  0,  1,
+    -0.5,    0.5,   0,  1,  1
+    };
+    unsigned short sqIndiceArray[] = {
+    	0,1,2,1,3,2
+    };
+    // Buffer d'informations de vertex
+    glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
 
-glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]);
-glBufferData(GL_ARRAY_BUFFER, sizeof(sqArrayRev), sqArrayRev, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sqArrayRev), sqArrayRev, GL_STATIC_DRAW);
 
-// Buffer d'indices
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[2]);
-glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sqIndiceArray), sqIndiceArray, GL_STATIC_DRAW);
-
+    // Buffer d'indices
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[2]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sqIndiceArray), sqIndiceArray, GL_STATIC_DRAW);
 #endif
 }
+
 static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-	if (r1.z == r2.z) {
-		if (r1.effectRef == r2.effectRef)
-			return r1.texture < r2.texture;
-		else
-			return r1.effectRef < r2.effectRef;
-	} else
-		return r1.z > r2.z;
+    static const double EPSILON = 0.0001;
+
+    if (glm::abs(r1.z - r2.z) <= EPSILON) {
+        if (r1.effectRef == r2.effectRef) {
+            if (r1.texture == r2.texture) {
+                if (r1.flags != r2.flags) {
+                    return r1.flags < r2.flags;
+                } else {
+                    return r1.color > r2.color;
+                }
+            } else {
+                return r1.texture > r2.texture;
+            }
+        } else {
+            return r1.effectRef > r2.effectRef;
+        }
+    } else {
+        return r1.z > r2.z;
+    }
 }
 
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-#define EPSILON 0.0001
-	if (glm::abs(r1.z - r2.z) <= EPSILON) {
-		if (r1.effectRef == r2.effectRef) {
-			if (r1.texture == r2.texture) {
-                if (r1.flags != r2.flags)
-                    return r1.flags > r2.flags;
-                else
-	                return r1.color < r2.color;
-	        } else {
-	            return r1.texture < r2.texture;
-	        }
-		} else {
-			return r1.effectRef < r2.effectRef;
-		}
-	} else {
-		return r1.z < r2.z;
-    }
+    return ! sortFrontToBack(r1, r2);
 }
 
 static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
@@ -176,7 +169,7 @@ static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& o
     r.halfSize = size * r.halfSize;
 }
 
-// offsetPos and size are in [0, 1] interval -> must be multiplied by object size hen used
+// offsetPos and size are in [0, 1] interval -> must be multiplied by object size when used
 static void modifyR(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
     const glm::vec2 fullSize(r.halfSize * 2.0f);
     const glm::vec2 newCenterFromBL = (offsetPos + size * 0.5f) * fullSize;
@@ -233,11 +226,12 @@ void RenderingSystem::updateInotify() {
     effectLibrary.updateInotify();
     textureLibrary.updateInotify();
 }
-#endif
 
 void RenderingSystem::DoUpdate(float) {
-#if SAC_LINUX && SAC_DESKTOP
     updateInotify();
+
+#else
+void RenderingSystem::DoUpdate(float) {
 #endif
 
     static unsigned int cccc = 0;
@@ -406,10 +400,10 @@ void RenderingSystem::DoUpdate(float) {
 
 #if SAC_DEBUG
     float invSize = 400.0 / (theRenderingSystem.screenW * theRenderingSystem.screenH);
-    for (int i=0; i<3; i++)
+    for (int i=0; i<3; ++i)
         renderingStats[i].reset();
-    std::for_each(outQueue.commands.begin(), outQueue.commands.end(),
-        [this, invSize] (const RenderCommand& a) -> void {
+        std::for_each(outQueue.commands.begin(), outQueue.commands.end(),
+            [this, invSize] (const RenderCommand& a) -> void {
             if (a.flags & EnableZWriteBit) {
                 if (a.flags & DisableColorWriteBit) {
                     renderingStats[2].count++;
@@ -460,7 +454,7 @@ void RenderingSystem::DoUpdate(float) {
 #endif
 }
 
-bool RenderingSystem::isEntityVisible(Entity e, int cameraIndex) const {
+bool RenderingSystem::isVisible(Entity e, int cameraIndex) const {
     return isVisible(TRANSFORM(e), cameraIndex);
 }
 
@@ -614,8 +608,9 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
 
 FramebufferRef RenderingSystem::getFramebuffer(const std::string& fbName) const {
     std::map<std::string, FramebufferRef>::const_iterator it = nameToFramebuffer.find(fbName);
-    if (it == nameToFramebuffer.end())
-        LOGF("Framebuffer '" << fbName << "' does not exist")
+
+    LOGF_IF(it == nameToFramebuffer.end(), "Framebuffer '" << fbName << "' does not exist");
+
     return it->second;
 }
 
