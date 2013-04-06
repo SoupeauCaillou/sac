@@ -55,17 +55,20 @@
 #include "systems/TextRenderingSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/TransformationSystem.h"
+
 #include "api/AdAPI.h"
-#include "api/linux/MusicAPILinuxOpenALImpl.h"
 #include "api/linux/AssetAPILinuxImpl.h"
-#include "api/linux/SoundAPILinuxOpenALImpl.h"
-#include "api/linux/LocalizeAPILinuxImpl.h"
-#include "api/linux/NameInputAPILinuxImpl.h"
-#include "api/linux/ExitAPILinuxImpl.h"
-#include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/CommunicationAPILinuxImpl.h"
+#include "api/linux/ExitAPILinuxImpl.h"
+#include "api/linux/LocalizeAPILinuxImpl.h"
+#include "api/linux/MusicAPILinuxOpenALImpl.h"
+#include "api/linux/NameInputAPILinuxImpl.h"
+#include "api/linux/NetworkAPILinuxImpl.h"
+#include "api/linux/SoundAPILinuxOpenALImpl.h"
+#include "api/linux/StorageAPILinuxImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/SuccessAPI.h"
+
 #include "util/Recorder.h"
 
 #include "MouseNativeTouchState.h"
@@ -261,6 +264,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx.networkAPI = new NetworkAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Sound))
         ctx.soundAPI = new SoundAPILinuxOpenALImpl();
+    if (game->wantsAPI(ContextAPI::Storage))
+        ctx.storageAPI = new StorageAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Success))
         ctx.successAPI = new SuccessAPI();
     if (game->wantsAPI(ContextAPI::Vibrate))
@@ -286,7 +291,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         lang[2] = '\0';
         static_cast<LocalizeAPILinuxImpl*>(ctx.localizeAPI)->init(ctx.assetAPI, lang);
     }
-
+    if (game->wantsAPI(ContextAPI::Storage)) {
+        static_cast<StorageAPILinuxImpl*>(ctx.storageAPI)->init("sacToChange");
+    }
     /////////////////////////////////////////////////////
     // Init game
     game->setGameContexts(&ctx, &ctx);

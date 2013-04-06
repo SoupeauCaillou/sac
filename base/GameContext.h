@@ -26,6 +26,7 @@ class MusicAPI;
 class NameInputAPI;
 class NetworkAPI;
 class SoundAPI;
+class StorageAPI;
 class SuccessAPI;
 class VibrateAPI;
 
@@ -40,6 +41,7 @@ namespace ContextAPI {
         NameInput,
         Network,
         Sound,
+        Storage,
         Success,
         Vibrate
     };
@@ -51,6 +53,7 @@ struct GameContext {
         exitAPI(0), localizeAPI(0),
         musicAPI(0), nameInputAPI(0),
         networkAPI(0), soundAPI(0),
+        storageAPI(0),
         successAPI(0), vibrateAPI(0) {}
     AdAPI* adAPI;
     AssetAPI* assetAPI;
@@ -61,6 +64,7 @@ struct GameContext {
     NameInputAPI* nameInputAPI;
     NetworkAPI* networkAPI;
     SoundAPI* soundAPI;
+    StorageAPI* storageAPI;
     SuccessAPI* successAPI;
     VibrateAPI* vibrateAPI;
 };

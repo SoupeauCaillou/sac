@@ -1,6 +1,9 @@
 #pragma once
 
 #include "../CommunicationAPI.h"
+
+#include "api/linux/StorageAPILinuxImpl.h"
+
 #include "base/Log.h"
 
 class CommunicationAPILinuxImpl : public CommunicationAPI {
@@ -14,7 +17,7 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
             LOGV(1, "You can't open gameCenter on this platform.");
             return false;
         }
-
+/*
         inline std::list<Achievement::Struct> getAllAchievements() {
             std::list<Achievement::Struct> list;
             LOGW("TODO");
@@ -23,7 +26,7 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
         }
 
         inline std::list<Score::Struct> getScores(
-            /*unsigned leaderboardID, Score::Visibility visibility, unsigned startRank, unsigned count*/
+            //unsigned leaderboardID, Score::Visibility visibility, unsigned startRank, unsigned count
             unsigned, Score::Visibility, unsigned startRank, unsigned) {
 
             std::list<Score::Struct> list;
@@ -39,7 +42,7 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
             LOGV(1, "TODO" << leaderboardID << "+" << score);
             //storageAPI->blablabla
         }
-
+*/
 
 		inline void giftizMissionDone() {
             LOGV(1, "Mission done!");
@@ -61,4 +64,6 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
 		void rateItNow() { LOGV(1, "not handled"); }
 		void rateItLater() { LOGV(1, "not handled"); }
 		void rateItNever() { LOGV(1, "not handled"); }
+    private:
+        StorageAPILinuxImpl * _storage;
 };

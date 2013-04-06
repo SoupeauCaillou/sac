@@ -4,7 +4,7 @@
 #include <list>
 #include <ostream>
 
-namespace Achievement {
+/*namespace Achievement {
     struct Struct {
         unsigned _id;
         bool _isUnlocked;
@@ -43,7 +43,7 @@ namespace Score {
             return o << ") '" << s._name << "' did " << s._score;
         }
     };
-}
+}*/
 
 class CommunicationAPI {
 	public:
@@ -52,6 +52,7 @@ class CommunicationAPI {
         //open the gamecenter. Return true in success
         virtual bool openGameCenter() = 0;
 
+/*
         //retrieve all achievements
         virtual std::list<Achievement::Struct> getAllAchievements() = 0;
         //retrieve $count scores from a leaderboard, starting at rank $startRank
@@ -59,6 +60,7 @@ class CommunicationAPI {
             Score::Visibility visibility, unsigned startRank, unsigned count) = 0;
         //submit a score on a specific leaderboard
         virtual void submitScore(unsigned leaderboardID, Score::Struct score) = 0;
+*/
 
 		//confirm to giftiz the mission is done
 		virtual void giftizMissionDone() = 0;
