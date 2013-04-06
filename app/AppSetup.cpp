@@ -291,9 +291,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         lang[2] = '\0';
         static_cast<LocalizeAPILinuxImpl*>(ctx.localizeAPI)->init(ctx.assetAPI, lang);
     }
-    if (game->wantsAPI(ContextAPI::Storage)) {
-        static_cast<StorageAPILinuxImpl*>(ctx.storageAPI)->init("sacToChange");
-    }
+
     /////////////////////////////////////////////////////
     // Init game
     game->setGameContexts(&ctx, &ctx);

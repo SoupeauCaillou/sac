@@ -42,52 +42,39 @@
 
 #if ! SAC_EMSCRIPTEN
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////Callbacks for sqlite datas treatment////////////////////
+///////////////////////////////////////////////////////////////////////////////
+    //convert tuple into string with format "res1, res2, res3, ..."
+    int callback(void *save, int argc, char **argv, char **){
+        std::string *sav = static_cast<std::string*>(save);
 
-
-
-//convertit le résultat en une string de la forme "res1, res2, res3, ..."
-int callback(void *save, int argc, char **argv, char **){
-    std::string *sav = static_cast<std::string*>(save);
-
-    int i = 0;
-    for (; i < argc - 1; i++) {
-        (*sav) += argv[i];
-        (*sav) += ", ";
-    }
-    (*sav) += argv[i];
-
-    return 0;
-}
-
-//convertit un tuple en une struct score
-int callbackScore(void *save, int argc, char **argv, char **azColName){
-    // name | coins | points
-    std::vector<StorageAPI::Score> *sav = static_cast<std::vector<StorageAPI::Score>* >(save);
-    StorageAPI::Score score;
-
-    for(int i = 0; i < argc; i++){
-        if (!strcmp(azColName[i],"points")) {
-            sscanf(argv[i], "%d", &score.points);
-        } else if (!strcmp(azColName[i],"coins")) {
-            sscanf(argv[i], "%d", &score.coins);
-        } else if (!strcmp(azColName[i],"name")) {
-            score.name = argv[i];
+        int i = 0;
+        for (; i < argc - 1; i++) {
+            (*sav) += argv[i];
+            (*sav) += ", ";
         }
-    }
-    sav->push_back(score);
-    return 0;
-}
+        (*sav) += argv[i];
 
-//renvoie le nom des colonnes de la requête
-int callbackNames(void *save, int argc, char **argv, char **){
-    std::vector<std::string> *sav = static_cast<std::vector<std::string>*>(save);
-    for (int i = 0; i < argc; i++) {
-        sav->push_back(argv[i]);
+        return 0;
     }
-    return 0;
-}
+
+    //return columns' names of the table
+    int callbackColumnNames(void *save, int argc, char **argv, char **){
+        std::vector<std::string> *sav = static_cast<std::vector<std::string>*>(save);
+        for (int i = 0; i < argc; i++) {
+            sav->push_back(argv[i]);
+        }
+        return 0;
+    }
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////End of callbacks////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 
 bool StorageAPILinuxImpl::request(const std::string & statement, void* res, int (*callbackP)(void*,int,char**,char**)) {
+    LOGF_IF(!initialized, "The database hasn't been initialized before first request!");
+
 	sqlite3 *db;
 	char *zErrMsg = 0;
 
@@ -137,8 +124,9 @@ const std::string & valueIfExist, const std::string & valueIf404) {
 }
 #endif
 
-
 void StorageAPILinuxImpl::init(const std::string & databaseName) {
+    initialized = true;
+
 #if EMSCRIPTEN
     muted = false;
 #else
@@ -171,53 +159,12 @@ void StorageAPILinuxImpl::init(const std::string & databaseName) {
 
     if (r) {
         LOGI("initializing database...")
-        LOGW("Should not crteate score table here");
-        request("create table score(points number(7) default '0', coins number(7) default '0', name varchar2(11) default 'Anonymous')", 0, 0);
+
         request("create table info(opt varchar2(8), value varchar2(11), constraint f1 primary key(opt,value))", 0, 0);
 
         checkInTable("sound", "(null)", "on");
         checkInTable("gameCount", "(null)", "0");
     }
-#endif
-}
-
-void StorageAPILinuxImpl::submitScore(Score inScr) {
-#if SAC_EMSCRIPTEN
-    int count = MathUtil::Min(5, (int)scores.size());
-    for (int i=0; i<count; i++) {
-        if (inScr.points > scores[i].points) {
-            scores.insert(scores.begin() + i, inScr);
-            return;
-        }
-    }
-    if (count < 5)
-        scores.push_back(inScr);
-
-#else
-    //check that the player isn't cheating (adding himself coins) (max is number of coints * runnerCount * runnerghost)
-    if (inScr.coins > 20*10) {
-        LOGE("you're cheating! " << inScr.coins << " coins really ?")
-        return;
-    }
-
-
-    std::stringstream statement;
-
-    statement << "INSERT INTO score VALUES (" << inScr.points << "," << 2 * inScr.coins + 1 << ",'" << inScr.name << "')";
-    request(statement.str().c_str(), 0, 0);
-
-#endif
-}
-
-std::vector<StorageAPI::Score> StorageAPILinuxImpl::getScores(float& outAvg) {
-	std::vector<StorageAPI::Score> result;
-
-#if SAC_EMSCRIPTEN
-    return scores;
-#else
-    request("select * from score order by points desc limit 5", &result, callbackScore);
-	outAvg = -1;
-	return result;
 #endif
 }
 
