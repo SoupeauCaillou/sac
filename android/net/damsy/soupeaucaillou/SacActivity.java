@@ -65,7 +65,7 @@ public abstract class SacActivity extends Activity {
         } else {
         	Log(V, "savedInstanceState is null");
         }
-        gameThread = new SacGameThread(getAssets(), savedState);
+        gameThread = new SacGameThread(savedState);
         
         /////////////////////////// CREATE VIEW
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
@@ -96,7 +96,7 @@ public abstract class SacActivity extends Activity {
         layout.addView(mGLView);
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
-        	renderer = new SacRenderer(viewWidth, viewHeight, getAssets(), gameThread);
+        	renderer = new SacRenderer(viewWidth, viewHeight, gameThread);
             mGLView.setRenderer(renderer);
 		}
         holder.addCallback(new SurfaceHolder.Callback() {

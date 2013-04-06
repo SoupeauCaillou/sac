@@ -1,17 +1,16 @@
 #pragma once
 
 #include "../ExitAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class ExitAPIAndroidImpl : public ExitAPI {
+namespace jni_exit_api {
+    enum Enum {
+        Exit
+    };
+}
+
+class ExitAPIAndroidImpl : public ExitAPI, public JNIWrapper<jni_exit_api::Enum> {
 	public:
 		ExitAPIAndroidImpl();
-		void init(JNIEnv *env);
-		void uninit();
 		void exitGame();
-
-    	JNIEnv *env;
-    private:
-    	struct ExitAPIAndroidImplData;
-		ExitAPIAndroidImplData* datas;
 };

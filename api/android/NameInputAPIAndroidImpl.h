@@ -1,20 +1,20 @@
 #pragma once
 
 #include "../NameInputAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class NameInputAPIAndroidImpl : public NameInputAPI {
+namespace jni_name_api {
+    enum Enum {
+        Show,
+        Done,
+    };
+}
+
+class NameInputAPIAndroidImpl : public NameInputAPI, public JNIWrapper<jni_name_api::Enum> {
     public:
     	NameInputAPIAndroidImpl();
-        ~NameInputAPIAndroidImpl();
-        void init(JNIEnv* env);
-        void uninit();
+
         void show();
         bool done(std::string& name);
         void hide();
-
-    private:
-        JNIEnv* env;
-        class NameInputAPIAndroidImplDatas;
-        NameInputAPIAndroidImplDatas* datas;
 };

@@ -1,23 +1,21 @@
 #pragma once
 
 #include "../AssetAPI.h"
-#include <cstdio>
-#include <jni.h>
-#include <string>
+#include "JNIWrapper.h"
 
-class AssetAPIAndroidImpl : public AssetAPI {
+
+namespace jni_asset_api {
+    enum Enum {
+        LoadAsset,
+        ListContent,
+    };
+}
+
+class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::Enum> {
 	public:
 		AssetAPIAndroidImpl();
-        ~AssetAPIAndroidImpl();
-		void init(JNIEnv *env, jobject assetManager);
-		void uninit();
+
         std::list<std::string > listContent(const std::string&, const std::string&);
 
     	FileBuffer loadAsset(const std::string& asset);
-
-    private:
-    	JNIEnv *env;
-    	jobject assetManager;
-    	struct AssetAPIAndroidImplData;
-		AssetAPIAndroidImplData* datas;
 };

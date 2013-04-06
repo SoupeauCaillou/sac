@@ -1,18 +1,19 @@
 #pragma once
 
 #include "../LocalizeAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class LocalizeAPIAndroidImpl : public LocalizeAPI {
+namespace jni_loc_api {
+    enum Enum {
+        Text
+    };
+}
+
+class LocalizeAPIAndroidImpl : public LocalizeAPI, public JNIWrapper<jni_loc_api::Enum> {
 	public:
 		LocalizeAPIAndroidImpl();
-        ~LocalizeAPIAndroidImpl();
-		void init(JNIEnv *env);
-		void uninit();
 		std::string text(const std::string& s, const std::string& spc);
 
-    	JNIEnv *env;
     private:
-    	struct LocalizeAPIAndroidImplData;
-		LocalizeAPIAndroidImplData* datas;
+        std::map<std::string, std::string> cache;
 };

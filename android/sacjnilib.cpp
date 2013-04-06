@@ -100,8 +100,6 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
 
 #define INIT_1(var, ctx, type) if (myGameHolder->game-> ctx##ThreadContext-> var) \
     {LOGI("JNI init: " << #type) (static_cast< type *>(myGameHolder->game-> ctx##ThreadContext-> var))->init(env); }
-#define INIT_2(var, ctx, type) if (myGameHolder->game-> ctx##ThreadContext-> var) \
-    {LOGI("JNI init_: " << #type) (static_cast< type *>(myGameHolder->game-> ctx##ThreadContext-> var))->init(env, myGameHolder-> ctx##AssetManager); }
 
 /*
  * Class:     net_damsy_soupeaucaillou_SacJNILib
@@ -109,32 +107,30 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread
-  (JNIEnv *env, jclass, jobject asset, jint w, jint h) {
+  (JNIEnv *env, jclass, jint w, jint h) {
     LOGW("-->" <<  __FUNCTION__)
 	myGameHolder->width = w;
 	myGameHolder->height = h;
     myGameHolder->renderEnv = env;
 
-    myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
-    INIT_2(assetAPI, render, AssetAPIAndroidImpl)
+    INIT_1(assetAPI, render, AssetAPIAndroidImpl)
 
 	myGameHolder->game->sacInit(myGameHolder->width, myGameHolder->height);
 	LOGW("<--" <<  __FUNCTION__)
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
-  (JNIEnv *env, jclass, jobject asset, jbyteArray jstate) {
+  (JNIEnv *env, jclass, jbyteArray jstate) {
     LOGW("-->" <<  __FUNCTION__)
     // init JNI env
     myGameHolder->gameEnv = env;
-	myGameHolder->gameAssetManager = env->NewGlobalRef(asset);
-    INIT_2(assetAPI, game, AssetAPIAndroidImpl)
+	INIT_1(assetAPI, game, AssetAPIAndroidImpl)
     INIT_1(nameInputAPI, game, NameInputAPIAndroidImpl)
     INIT_1(localizeAPI, game, LocalizeAPIAndroidImpl)
     INIT_1(adAPI, game, AdAPIAndroidImpl)
     INIT_1(exitAPI, game, ExitAPIAndroidImpl)
     INIT_1(musicAPI, game, MusicAPIAndroidImpl)
-    INIT_2(soundAPI, game, SoundAPIAndroidImpl)
+    INIT_1(soundAPI, game, SoundAPIAndroidImpl)
     INIT_1(successAPI, game, SuccessAPIAndroidImpl)
     INIT_1(vibrateAPI, game, VibrateAPIAndroidImpl)
     INIT_1(communicationAPI, game, CommunicationAPIAndroidImpl)
@@ -261,12 +257,11 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_stopRendering
  * Signature: (J[B)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initAndReloadTextures
-  (JNIEnv *env, jclass, jobject asset) {
+  (JNIEnv *env, jclass) {
     LOGW("-->" <<  __FUNCTION__)
     if (!myGameHolder->game || !RenderingSystem::GetInstancePointer())
         return;
-    myGameHolder->renderAssetManager = env->NewGlobalRef(asset);
-    INIT_2(assetAPI, render, AssetAPIAndroidImpl)
+    INIT_1(assetAPI, render, AssetAPIAndroidImpl)
     myGameHolder->renderEnv = env;
 
     theRenderingSystem.init();

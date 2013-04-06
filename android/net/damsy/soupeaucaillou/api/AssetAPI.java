@@ -8,14 +8,29 @@ import net.damsy.soupeaucaillou.SacActivity;
 import android.content.res.AssetManager;
 
 public class AssetAPI {
+	private static AssetAPI instance = null;
+
+	public synchronized static AssetAPI Instance() {
+		if (instance == null) {
+			instance = new AssetAPI();
+		}
+		return instance;
+	}
+	
+	private AssetManager assetManager;
+	
+	public void init(AssetManager mgr) {
+		this.assetManager = mgr;
+	}
+	
 	// -------------------------------------------------------------------------
 	// AssetAPI
 	// -------------------------------------------------------------------------
-	static public byte[] assetToByteArray(AssetManager mgr, String assetName) {
+	public byte[] assetToByteArray(String assetName) {
 		if (assetName.endsWith(".pkm") || assetName.endsWith(".pvr"))
-			return chunkedAssetToByteArray(mgr, assetName);
+			return chunkedAssetToByteArray(assetManager, assetName);
 		try {
-			InputStream stream = mgr.open(assetName);
+			InputStream stream = assetManager.open(assetName);
 			byte[] data = new byte[stream.available()];
 			stream.read(data);
 			return data;

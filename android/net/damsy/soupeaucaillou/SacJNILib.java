@@ -1,6 +1,5 @@
 package net.damsy.soupeaucaillou;
 
-import android.content.res.AssetManager;
 
 public class SacJNILib {
 	/**
@@ -15,14 +14,14 @@ public class SacJNILib {
 	 * @param width View width
 	 * @param height View height
 	 */
-	public static native void initFromRenderThread(AssetManager mgr, int width, int height);
+	public static native void initFromRenderThread(int width, int height);
 
 	/**
 	 * Initialize sac engine, from game thread context
 	 * @param mgr Access to assets
 	 * @param state State to restore from (may be null)
 	 */
-	public static native void initFromGameThread(AssetManager mgr, byte[] state);
+	public static native void initFromGameThread(byte[] state);
 
 	/**
 	 * Update game (run 1 simulation step)
@@ -62,7 +61,7 @@ public class SacJNILib {
 	/**
 	 * Quick initialization of rendering system - useful when GL context as been lost
 	 */
-	public static native void initAndReloadTextures(AssetManager mgr);
+	public static native void initAndReloadTextures();
 
 	/**
 	 * Forward touch event to native game

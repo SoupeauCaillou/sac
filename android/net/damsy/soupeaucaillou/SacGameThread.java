@@ -3,13 +3,10 @@ package net.damsy.soupeaucaillou;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import android.content.res.AssetManager;
-
 public class SacGameThread implements Runnable {
 	final private Queue<Event> eventsToConsume;
 	final private Object queueMutex;
 	private byte[] savedState;
-	final private AssetManager asset;
 	
 	static public enum Event {
 		BackPressed,
@@ -29,17 +26,16 @@ public class SacGameThread implements Runnable {
 		savedState = null;
 	}
 	
-	public SacGameThread(AssetManager asset, byte[] savedState) {
+	public SacGameThread(byte[] savedState) {
 		super();
 		this.queueMutex = new Object();
-		this.asset = asset;
 		this.savedState = savedState;
 		eventsToConsume = new ConcurrentLinkedQueue<SacGameThread.Event>();
 	}
 	
 	
 	public void run() {
-		SacJNILib.initFromGameThread(asset, savedState);
+		SacJNILib.initFromGameThread(savedState);
 
 		boolean runGameLoop = true;
 		while (true) {

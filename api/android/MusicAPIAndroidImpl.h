@@ -1,14 +1,31 @@
 #pragma once
 
 #include "../MusicAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class MusicAPIAndroidImpl : public MusicAPI {
+namespace jni_music_api {
+    enum Enum {
+        CreatePlayer,
+        PcmBufferSize,
+        Allocate,
+        Deallocate,
+        InitialPacketCount,
+        QueueMusicData,
+        StartPlaying,
+        StopPlayer,
+        PausePlayer,
+        GetPosition,
+        SetPosition,
+        SetVolume,
+        DeletePlayer,
+        IsPlaying
+    };
+}
+
+class MusicAPIAndroidImpl : public MusicAPI, public JNIWrapper<jni_music_api::Enum> {
     public:
     	MusicAPIAndroidImpl();
-    	~MusicAPIAndroidImpl();
-        void init(JNIEnv *env);
-        void uninit();
+
         OpaqueMusicPtr* createPlayer(int sampleRate);
         int pcmBufferSize(int sampleRate);
         int8_t* allocate(int size);
@@ -23,9 +40,6 @@ class MusicAPIAndroidImpl : public MusicAPI {
         void setVolume(OpaqueMusicPtr* ptr, float v);
         void deletePlayer(OpaqueMusicPtr* ptr);
         bool isPlaying(OpaqueMusicPtr* ptr);
-
-	private:
-		JNIEnv *env;
-		struct MusicAPIAndroidImplData;
-		MusicAPIAndroidImplData* datas;
+    private:
+        std::map<int8_t*, jbyteArray> ptr2array;
 };

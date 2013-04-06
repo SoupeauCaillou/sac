@@ -1,21 +1,19 @@
 #pragma once
 
 #include "../AdAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class AdAPIAndroidImpl : public AdAPI {
+namespace jni_ad_api {
+    enum Enum {
+        ShowAd,
+        Done,
+    };
+}
+
+class AdAPIAndroidImpl : public AdAPI, public JNIWrapper<jni_ad_api::Enum> {
     public:
     	AdAPIAndroidImpl();
-        ~AdAPIAndroidImpl();
-
-        void init(JNIEnv* env);
-        void uninit();
 
         bool showAd();
         bool done();
-
-    private:
-        JNIEnv *env;
-        struct AdAPIAndroidImplData;
-        AdAPIAndroidImplData* datas;
 };

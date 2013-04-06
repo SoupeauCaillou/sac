@@ -4,20 +4,16 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
-
-import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
 
 public class SacRenderer implements GLSurfaceView.Renderer {
-	AssetManager asset;
 	final Thread gameThread;
 	final SacGameThread sacGame;
 	long time;
 	final int width, height;
 
-	public SacRenderer(int width, int height, AssetManager asset, SacGameThread sacG) {
+	public SacRenderer(int width, int height, SacGameThread sacG) {
 		super();
-		this.asset = asset;
 		this.sacGame = sacG;
 		this.gameThread = new Thread(this.sacGame, "GameUpdate");
 		this.time = System.currentTimeMillis();
@@ -34,11 +30,11 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	SacActivity.Log(SacActivity.W, "onSurfaceCreated");
     	// Create (or reset) native game
     	if (SacJNILib.createGame()) {
-    		SacJNILib.initFromRenderThread(asset, width, height);
+    		SacJNILib.initFromRenderThread(width, height);
     	} else {
     		// Clear saved state if native game is not recreated
     		sacGame.clearSavedState();
-    		SacJNILib.initAndReloadTextures(asset);
+    		SacJNILib.initAndReloadTextures();
     	}
 
     	if (!gameThread.isAlive()) {

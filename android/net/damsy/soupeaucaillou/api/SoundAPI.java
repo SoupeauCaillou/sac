@@ -16,17 +16,19 @@ public class SoundAPI {
 	}
 
 	private SoundPool soundPool;
+	private AssetManager assetManager;
 	
-	void init() {
+	void init(AssetManager mgr) {
+		this.assetManager = mgr;
 		soundPool = new SoundPool(8, AudioManager.STREAM_MUSIC, 0);
 	}
 	
 	// -------------------------------------------------------------------------
 	// SoundAPI
 	// -------------------------------------------------------------------------
-	public int loadSound(AssetManager mgr, String assetPath) {
+	public int loadSound(String assetPath) {
 		try {
-			return soundPool.load(mgr.openFd(assetPath), 1);
+			return soundPool.load(assetManager.openFd(assetPath), 1);
 		} catch (Exception exc) {
 			SacActivity.Log(SacActivity.E, "Unable to load sound: " + assetPath);
 			return -1;

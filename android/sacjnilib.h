@@ -11,7 +11,6 @@ class GameHolder {
 
 	Game* game;
 	int width, height;
-    jobject gameAssetManager, renderAssetManager;
     JNIEnv* gameEnv, *renderEnv;
 	// GameThreadJNIEnvCtx* gameThreadJNICtx;
 	// RenderThreadJNIEnvCtx renderThreadJNICtx;

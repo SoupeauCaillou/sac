@@ -1,61 +1,23 @@
 #include "SoundAPIAndroidImpl.h"
-#include "base/Log.h"
 
 struct AndroidSoundOpaquePtr : public OpaqueSoundPtr {
     jint soundID;
 };
-struct SoundAPIAndroidImpl::SoundAPIAndroidImplData {
-    jclass javaSoundApi;
-    jmethodID jloadSound;
-    jmethodID jplaySound;
-    bool initialized;
-};
 
-static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
-    jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
-    if (!mId) {
-        LOGF("JNI Error : could not find method '" << name << "'/'" << signature << "'")
-    }
-    return mId;
-}
-
-
-SoundAPIAndroidImpl::SoundAPIAndroidImpl() {
-	datas = new SoundAPIAndroidImplData();
-	datas->initialized = false;
-}
-
-SoundAPIAndroidImpl::~SoundAPIAndroidImpl() {
-    uninit();
-    delete datas;
-}
-
-void SoundAPIAndroidImpl::uninit() {
-	if (datas->initialized) {
-		env->DeleteGlobalRef(datas->javaSoundApi);
-		datas->initialized = false;
-	}
-}
-
-void SoundAPIAndroidImpl::init(JNIEnv *pEnv, jobject assetMgr) {
-	env = pEnv;
-	assetManager = assetMgr;
-
-    datas->javaSoundApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/SoundAPI"));
-    datas->jloadSound = jniMethodLookup(env, datas->javaSoundApi, "loadSound", "(Landroid/content/res/AssetManager;Ljava/lang/String;)I");
-    datas->jplaySound = jniMethodLookup(env, datas->javaSoundApi, "playSound", "(IF)Z");
-    datas->initialized = true;
+SoundAPIAndroidImpl::SoundAPIAndroidImpl() : JNIWrapper<jni_sound_api::Enum>("net/damsy/soupeaucaillou/api/SoundAPI", true) {
+	declareMethod(jni_sound_api::LoadSound, "loadSound", "(Ljava/lang/String;)I");
+    declareMethod(jni_sound_api::Play, "playSound", "(IF)Z");
 }
 
 OpaqueSoundPtr* SoundAPIAndroidImpl::loadSound(const std::string& asset) {
     LOGI("loadSound: '" << asset << "'")
     jstring jasset = env->NewStringUTF(asset.c_str());
     AndroidSoundOpaquePtr* out = new AndroidSoundOpaquePtr();
-    out->soundID = env->CallStaticIntMethod(datas->javaSoundApi, datas->jloadSound, assetManager, jasset);
+    out->soundID = env->CallIntMethod(instance, methods[jni_sound_api::LoadSound], jasset);
     return out;
 }
 
 bool SoundAPIAndroidImpl::play(OpaqueSoundPtr* p, float volume) {
     AndroidSoundOpaquePtr* ptr = static_cast<AndroidSoundOpaquePtr*>(p);
-    return env->CallStaticBooleanMethod(datas->javaSoundApi, datas->jplaySound, ptr->soundID, volume);
+    return env->CallBooleanMethod(instance, methods[jni_sound_api::Play], ptr->soundID, volume);
 }

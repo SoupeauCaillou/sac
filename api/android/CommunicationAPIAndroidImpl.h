@@ -1,16 +1,29 @@
 #pragma once
 
 #include "../CommunicationAPI.h"
-#include "base/Log.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class CommunicationAPIAndroidImpl : public CommunicationAPI {
+namespace jni_comm_api {
+    enum Enum {
+        IsGameCenterLoggedIn,
+        OpenGameCenter,
+        // GetAllAchievements,
+        // GetScores,
+        // SubmitScore,
+        GiftizMissionDone,
+        GiftizGetButtonState,
+        GiftizButtonClicked,
+        ShareFacebook,
+        ShareTwitter,
+        MustShowRateDialog,
+        RateItNow,
+        RateItLater,
+        RateItNever,
+    };
+}
+class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<jni_comm_api::Enum> {
 	public:
 		CommunicationAPIAndroidImpl();
-		~CommunicationAPIAndroidImpl();
-		void init(JNIEnv* env);
-		void uninit();
-
 
         bool isGameCenterLoggedIn();
         bool openGameCenter();
@@ -40,11 +53,4 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI {
 		void rateItNow();
 		void rateItLater();
 		void rateItNever();
-
-	private:
-		class CommunicationAPIAndroidImplDatas;
-		CommunicationAPIAndroidImplDatas* datas;
-
-	public :
-		JNIEnv* env;
 };

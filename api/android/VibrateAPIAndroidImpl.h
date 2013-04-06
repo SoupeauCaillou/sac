@@ -1,20 +1,17 @@
 #pragma once
 
 #include "../VibrateAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class VibrateAPIAndroidImpl : public VibrateAPI {
+namespace jni_vibrate_api {
+    enum Enum {
+        Vibrate
+    };
+}
+
+class VibrateAPIAndroidImpl : public VibrateAPI, public JNIWrapper<jni_vibrate_api::Enum> {
     public:
         VibrateAPIAndroidImpl();
-        ~VibrateAPIAndroidImpl();
-
-        void init(JNIEnv* env);
-        void uninit();
 
         void vibrate(float duration);
-
-    private:
-        JNIEnv *env;
-        struct VibrateAPIAndroidImplData;
-        VibrateAPIAndroidImplData* datas;
 };

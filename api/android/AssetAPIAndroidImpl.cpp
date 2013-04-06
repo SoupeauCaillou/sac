@@ -1,49 +1,13 @@
 #include "AssetAPIAndroidImpl.h"
 #include "../../base/Log.h"
 
-static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
-    jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
-    if (!mId) {
-        LOGF("JNI Error : could not find method '" << name << "'/'" << signature << "'")
-    }
-    return mId;
+AssetAPIAndroidImpl::AssetAPIAndroidImpl() : JNIWrapper<jni_asset_api::Enum>("net/damsy/soupeaucaillou/api/AssetAPI", true) {
+    declareMethod(jni_asset_api::LoadAsset, "assetToByteArray", "(Ljava/lang/String;)[B");
 }
 
-struct AssetAPIAndroidImpl::AssetAPIAndroidImplData {
-	jclass javaAssetApi;
-	jmethodID assetToByteArray;
-	bool initialized;
-};
-
-AssetAPIAndroidImpl::AssetAPIAndroidImpl() {
-	datas = new AssetAPIAndroidImplData();
-	datas->initialized = false;
-}
-
-AssetAPIAndroidImpl::~AssetAPIAndroidImpl() {
-    uninit();
-    delete datas;
-}
-
-void AssetAPIAndroidImpl::init(JNIEnv *pEnv, jobject pAssetManager) {
-	assetManager = pAssetManager;
-	env = pEnv;
-
-	datas->javaAssetApi = (jclass)env->NewGlobalRef(env->FindClass("net/damsy/soupeaucaillou/api/AssetAPI"));
-	datas->assetToByteArray = jniMethodLookup(env, datas->javaAssetApi, "assetToByteArray", "(Landroid/content/res/AssetManager;Ljava/lang/String;)[B");
-	datas->initialized = true;
-}
-
-void AssetAPIAndroidImpl::uninit() {
-	if (datas->initialized) {
-		env->DeleteGlobalRef(datas->javaAssetApi);
-		datas->initialized = false;
-	}
-}
-
-static uint8_t* loadAssetFromJava(JNIEnv *env, jobject assetManager, const std::string& assetName, int* length, jclass cls, jmethodID mid) {
+static uint8_t* loadAssetFromJava(JNIEnv *env, const std::string& assetName, int* length, jobject instance, jmethodID mid) {
     jstring asset = env->NewStringUTF(assetName.c_str());
-    jobject _a = env->CallStaticObjectMethod(cls, mid, assetManager, asset);
+    jobject _a = env->CallObjectMethod(instance, mid, asset);
 
 	if (_a) {
 		jbyteArray a = (jbyteArray)_a;
@@ -51,6 +15,7 @@ static uint8_t* loadAssetFromJava(JNIEnv *env, jobject assetManager, const std::
 		jbyte* res = new jbyte[*length + 1];
 		env->GetByteArrayRegion(a, 0, *length, res);
 		res[*length] = '\0';
+        LOGV(1, "Loaded asset '" << assetName << "' -> size=" << *length)
 		return (uint8_t*)res;
 	} else {
 		LOGW("failed to load '" << assetName << "'")
@@ -61,7 +26,7 @@ static uint8_t* loadAssetFromJava(JNIEnv *env, jobject assetManager, const std::
 FileBuffer AssetAPIAndroidImpl::loadAsset(const std::string& asset) {
     LOGI("loadAssetFromJava: " << asset)
     FileBuffer fb;
-    fb.data = loadAssetFromJava(env, assetManager, asset, &fb.size, datas->javaAssetApi, datas->assetToByteArray);
+    fb.data = loadAssetFromJava(env, asset, &fb.size, instance, methods[jni_asset_api::LoadAsset]);
     return fb;
 }
 

@@ -37,18 +37,18 @@ public class DumbAndroid {
 	public Queue<DumbAndroid.Command> writePendings;
 	public boolean running;
 
-	public DumbAndroid(int rate) {
+	public DumbAndroid(int rate, int pcmBufferSize) {
 		playing = false;
 		// at least 0.5 (1 sec => too much memory pressure on AudioFlinger
 		// 1Mo mem pool)
 		initialCount = Math.max(
-				(int) (2 * 0.5 * rate) / MusicAPI.pcmBufferSize(rate),
+				(int) (2 * 0.5 * rate) / pcmBufferSize,
 				1
 						+ (int) AudioTrack.getMinBufferSize(rate,
 								AudioFormat.CHANNEL_OUT_MONO,
 								AudioFormat.ENCODING_PCM_16BIT)
-						/ MusicAPI.pcmBufferSize(rate));
-		bufferSize = initialCount * MusicAPI.pcmBufferSize(rate);
+						/ pcmBufferSize);
+		bufferSize = initialCount * pcmBufferSize;
 		writePendings = new LinkedList<DumbAndroid.Command>();
 
 		synchronized (DumbAndroid.audioTrackPool) {

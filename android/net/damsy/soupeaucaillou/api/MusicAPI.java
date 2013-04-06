@@ -31,14 +31,14 @@ public class MusicAPI {
 	}
 
 	public Object createPlayer(int rate) {
-		DumbAndroid result = new DumbAndroid(rate);
+		DumbAndroid result = new DumbAndroid(rate, pcmBufferSize(rate));
 		if (result.track == null)
 			return null;
 		else
 			return result;
 	}
 
-	static public int pcmBufferSize(int sampleRate) {
+	public int pcmBufferSize(int sampleRate) {
 		int r = (int) (0.1 * sampleRate * 2); // 100ms
 		// Log.i(TilematchActivity.Tag, "size : " + r);
 		return r;

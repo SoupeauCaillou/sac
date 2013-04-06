@@ -1,30 +1,20 @@
 #include "SuccessAPIAndroidImpl.h"
 
-void SuccessAPIAndroidImpl::init(JNIEnv *pEnv) {
-	env = pEnv;	
+SuccessAPIAndroidImpl::SuccessAPIAndroidImpl() : JNIWrapper<jni_success_api::Enum>("net/damsy/soupeaucaillou/heriswap/api/SuccessAPI", true) {
+    declareMethod(jni_success_api::SuccessCompleted, "unlockAchievement", "(I)V");
+    declareMethod(jni_success_api::OpenLeaderboard, "openLeaderboard", "(II)V");
+    declareMethod(jni_success_api::OpenDashboard, "openDashboard", "()V");
 }
 
-void SuccessAPIAndroidImpl::uninit() {
-	
-}
-		
 void SuccessAPIAndroidImpl::successCompleted(const char* description, unsigned long successId) {
 	SuccessAPI::successCompleted(description, successId);
-	// android spec stuff
-	jclass c = env->FindClass("net/damsy/soupeaucaillou/heriswap/api/SuccessAPI");
-	jmethodID mid = (env->GetStaticMethodID(c, "unlockAchievement", "(I)V"));
-	int sid = (int) successId;
-	env->CallStaticVoidMethod(c, mid, sid);
+	env->CallVoidMethod(instance, methods[jni_success_api::SuccessCompleted], (int)successId);
 }
 
 void SuccessAPIAndroidImpl::openLeaderboard(int mode, int diff) {
-	jclass c = env->FindClass("net/damsy/soupeaucaillou/heriswap/api/SuccessAPI");
-	jmethodID mid = env->GetStaticMethodID(c, "openLeaderboard", "(II)V");
-	env->CallStaticVoidMethod(c, mid, mode, diff);
+    env->CallVoidMethod(instance, methods[jni_success_api::OpenLeaderboard], mode, diff);
 }
 
 void SuccessAPIAndroidImpl::openDashboard() {
-	jclass c = env->FindClass("net/damsy/soupeaucaillou/heriswap/api/SuccessAPI");
-	jmethodID mid = env->GetStaticMethodID(c, "openDashboard", "()V");
-	env->CallStaticVoidMethod(c, mid);
+	env->CallVoidMethod(instance, methods[jni_success_api::OpenDashboard]);
 }

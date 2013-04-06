@@ -1,23 +1,19 @@
 #pragma once
 
 #include "../SoundAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-class SoundAPIAndroidImpl : public SoundAPI {
+namespace jni_sound_api {
+    enum Enum {
+        LoadSound,
+        Play
+    };
+}
+
+class SoundAPIAndroidImpl : public SoundAPI, public JNIWrapper<jni_sound_api::Enum> {
     public:
         SoundAPIAndroidImpl();
-        ~SoundAPIAndroidImpl();
-
-        void init(JNIEnv *env, jobject assetMgr);
-		void uninit();
 
         OpaqueSoundPtr* loadSound(const std::string& asset);
         bool play(OpaqueSoundPtr* p, float volume);
-
-    private:
-        JNIEnv *env;
-        jobject assetManager;
-        struct SoundAPIAndroidImplData;
-        SoundAPIAndroidImplData* datas;
-
 };
