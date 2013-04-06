@@ -27,7 +27,7 @@ public class LocalizeAPI {
 	public String localize(String name) {		
 		int id = resources.getIdentifier(name, "string", resPackage);
 		if (id == 0) {
-			SacActivity.Log(SacActivity.E, "Cannot find text entry : '" + name+ "' for localization");
+			SacActivity.LogE("Cannot find text entry : '" + name+ "' for localization");
 			return "LOC" + name + "LOC";
 		}
 		return resources.getString(id);

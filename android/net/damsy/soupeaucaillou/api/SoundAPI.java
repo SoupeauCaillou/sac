@@ -30,7 +30,7 @@ public class SoundAPI {
 		try {
 			return soundPool.load(assetManager.openFd(assetPath), 1);
 		} catch (Exception exc) {
-			SacActivity.Log(SacActivity.E, "Unable to load sound: " + assetPath);
+			SacActivity.LogE("Unable to load sound: " + assetPath);
 			return -1;
 		}
 	}

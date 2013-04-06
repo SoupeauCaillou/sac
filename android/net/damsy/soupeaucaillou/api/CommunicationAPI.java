@@ -55,7 +55,7 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 		}
         /////////////////////////// INCREASE LAUNCH_COUNT
         long newValue = appRaterPreference.getLong("launch_count", 0) + 1;
-        SacActivity.Log(SacActivity.I, "Increase launch count to: " + newValue);
+        SacActivity.LogI("Increase launch count to: " + newValue);
         SharedPreferences.Editor editor = appRaterPreference.edit();
         editor.putLong("launch_count", newValue);
         editor.commit();
@@ -90,7 +90,7 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 
 	public void giftizMissionDone() {
 		if (giftizEnabled) {
-			SacActivity.Log(SacActivity.I, "Mission done!");
+			SacActivity.LogI("Mission done!");
 			GiftizSDK.missionComplete(activity);
 		}
 	}
@@ -112,7 +112,7 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 
 	public void giftizButtonClicked() {
 		if (giftizEnabled) {
-			SacActivity.Log(SacActivity.I, "Giftiz clicked!");
+			SacActivity.LogI("Giftiz clicked!");
 			GiftizSDK.Inner.buttonClicked(activity);
 		}
 	}
@@ -189,7 +189,7 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 			    act.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						SacActivity.Log(SacActivity.I, "Init swarm");
+						SacActivity.LogI("Init swarm");
 						Swarm.init(act, swarmParam.gameID, swarmParam.gameKey);
 					}
 				});

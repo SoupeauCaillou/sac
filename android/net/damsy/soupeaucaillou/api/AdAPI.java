@@ -50,7 +50,7 @@ public class AdAPI implements ChartboostDelegate, RevMobAdsListener {
 			revmob = RevMob.start(activity, revMobParams.id);
 			_revmobFullscreen = revmob.createFullscreen(activity, this);
 		} else {
-			SacActivity.Log(SacActivity.W, "Revmob not initialized");
+			SacActivity.LogW("Revmob not initialized");
 		}
 
 		if (chartboostParams != null) {
@@ -60,7 +60,7 @@ public class AdAPI implements ChartboostDelegate, RevMobAdsListener {
 			chartboost.startSession();
 			chartboost.cacheInterstitial();
 		} else {
-			SacActivity.Log(SacActivity.W, "Chartboost not initialized");
+			SacActivity.LogW("Chartboost not initialized");
 		}
 	}
 
@@ -81,15 +81,15 @@ public class AdAPI implements ChartboostDelegate, RevMobAdsListener {
 
 		if (revmobReady && cbReady) {
 			adProviderSelection = (Math.random() > 0.5) ? 0 : 1;
-			SacActivity.Log(SacActivity.I, "Both ready; choosen "
+			SacActivity.LogI("Both ready; choosen "
 					+ adProviderSelection);
 		} else if (revmobReady) {
-			SacActivity.Log(SacActivity.I, "Only revmob is ready");
+			SacActivity.LogI("Only revmob is ready");
 			adProviderSelection = 0;
 			// load cb
 			chartboost.cacheInterstitial();
 		} else if (cbReady) {
-			SacActivity.Log(SacActivity.I, "Only cb is ready");
+			SacActivity.LogI("Only cb is ready");
 			adProviderSelection = 1;
 			// load revmob
 			_revmobFullscreen.load();
@@ -111,7 +111,7 @@ public class AdAPI implements ChartboostDelegate, RevMobAdsListener {
 			chartboost.cacheInterstitial();
 			return true;
 		} else {
-			SacActivity.Log(SacActivity.W, "No ad ready!");
+			SacActivity.LogW("No ad ready!");
 			adHasBeenShown = true;
 			return false;
 		}

@@ -4,7 +4,7 @@
 
 LogVerbosity::Enum logLevel =
 #ifdef SAC_ANDROID
-    LogVerbosity::VERBOSE2;
+    LogVerbosity::INFO;
 #else
     LogVerbosity::INFO;
 #endif

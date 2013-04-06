@@ -62,7 +62,7 @@ public class NameInputAPI {
 				nameEdit.setText("");
 			}
 		});
-		SacActivity.Log(SacActivity.I, "Show player name UI");
+		SacActivity.LogI("Show player name UI");
 	}
 
 	public void onNameInputComplete(final String newName) {
@@ -78,7 +78,7 @@ public class NameInputAPI {
 
 	public String queryPlayerName() {
 		if (nameReady) {
-			SacActivity.Log(SacActivity.I, "queryPlayerName successful: " + playerName);
+			SacActivity.LogI("queryPlayerName successful: " + playerName);
 			return playerName;
 		} else {
 			return null;

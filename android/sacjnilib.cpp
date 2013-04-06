@@ -50,9 +50,9 @@ extern "C" {
 JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
   (JNIEnv *, jclass) {
   	LOGW("-->" <<  __FUNCTION__)
-  	TimeUtil::Init();
 
     if (!myGameHolder) {
+        TimeUtil::Init();
         LOGI("Create new native game instance")
         myGameHolder = GameHolder::build();
         myGameHolder->initDone = false;
@@ -323,8 +323,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
 JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState
   (JNIEnv *env, jclass) {
 	LOGW("-->" <<  __FUNCTION__)
-    LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv)
-	uint8_t* state;
+    uint8_t* state;
 	int size = myGameHolder->game->saveState(&state);
 
 	jbyteArray jb = 0;

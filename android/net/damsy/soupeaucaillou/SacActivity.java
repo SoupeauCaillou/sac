@@ -239,6 +239,10 @@ public abstract class SacActivity extends Activity {
     protected void onDestroy() {
     	Log(W, "Activity LifeCycle ##### ON DESTROY");
     	super.onDestroy();
+    	// This activity is being terminated.
+    	// Kill gameThread! (because, next wake up will occur
+    	// in a fresh new activity's onCreate method)
+    	gameThread.postEvent(Event.Kill);
     }
 
     @Override
@@ -277,9 +281,26 @@ public abstract class SacActivity extends Activity {
     final static public int W = android.util.Log.WARN;
     final static public int E = android.util.Log.ERROR;
     final static public int F = android.util.Log.ASSERT;
-    public static void Log(final int priority, final String msg) {
-    	final int logLevel = android.util.Log.VERBOSE;
-    	if (priority >= logLevel)
-    		android.util.Log.println(priority, "sac", msg);
+    
+    final static int LogLevel = android.util.Log.INFO;
+    
+    static void Log(int prio, final String msg) {
+    	if (prio >= LogLevel)
+    		android.util.Log.println(prio, "sac", msg);
+    }
+    public static void LogV(final String msg) {
+    	Log(android.util.Log.VERBOSE, msg);
+    }
+    public static void LogI(final String msg) {
+    	Log(android.util.Log.INFO, msg);
+    }
+    public static void LogW(final String msg) {
+    	Log(android.util.Log.WARN, msg);
+    }
+    public static void LogE(final String msg) {
+    	Log(android.util.Log.ERROR, msg);
+    }
+    public static void LogF(final String msg) {
+    	Log(android.util.Log.ASSERT, msg);
     }
 }

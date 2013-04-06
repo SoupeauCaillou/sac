@@ -12,6 +12,7 @@ public class SacGameThread implements Runnable {
 		BackPressed,
 		Pause,
 		Resume,
+		Kill,
 	}
 	
 	public void postEvent(Event type) {
@@ -54,6 +55,9 @@ public class SacGameThread implements Runnable {
 						runGameLoop = true;
 						SacJNILib.resetTimestep();
 						break;
+					case Kill:
+						SacActivity.Log(SacActivity.W, "Halt game thread");
+						return;
 				}
 			}
 

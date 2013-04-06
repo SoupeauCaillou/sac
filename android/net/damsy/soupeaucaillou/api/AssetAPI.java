@@ -35,7 +35,7 @@ public class AssetAPI {
 			stream.read(data);
 			return data;
 		} catch (Exception exc) {
-			SacActivity.Log(SacActivity.E, "load asset error: " + exc.toString());
+			SacActivity.LogE("load asset error: " + exc.toString());
 			return null;
 		}
 	}
