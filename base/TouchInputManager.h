@@ -2,13 +2,14 @@
 
 #include <glm/glm.hpp>
 
+
 class NativeTouchState {
 	public:
         virtual int maxTouchingCount() = 0;
 		virtual bool isTouching(int index, glm::vec2* windowCoords) const = 0;
 };
 
-class TransformationComponent;
+struct TransformationComponent;
 
 #define theTouchInputManager (*TouchInputManager::Instance())
 
