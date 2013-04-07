@@ -6,7 +6,7 @@
 
 
 struct TransformationComponent {
-	TransformationComponent(): position(glm::vec2(0.0f, 0.0f)), size(1.0f, 1.0f), rotation(0), z(0), parent(0) { }
+	TransformationComponent(): position(0.0f), worldPosition(0.0f), size(1.0f), rotation(0), worldRotation(0), z(0), worldZ(0), parent(0) { }
 
 	glm::vec2 position, worldPosition, size;
 	float rotation, worldRotation;//radians
