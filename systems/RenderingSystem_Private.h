@@ -41,7 +41,7 @@ struct RenderingSystem::RenderCommand {
     bool mirrorH, fbo;
 };
 
-class CameraComponent;
+struct CameraComponent;
 
 void packCameraAttributes(
     const TransformationComponent* cameraTrans,
