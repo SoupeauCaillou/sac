@@ -401,8 +401,9 @@ void RenderingSystem::DoUpdate(float) {
     float invSize = 400.0 / (theRenderingSystem.screenW * theRenderingSystem.screenH);
     for (int i=0; i<3; ++i)
         renderingStats[i].reset();
-        std::for_each(outQueue.commands.begin(), outQueue.commands.end(),
+        std::for_each(outQueue.commands.begin(), outQueue.commands.begin() + outQueue.count,
             [this, invSize] (const RenderCommand& a) -> void {
+            if (a.texture == BeginFrameMarker) return;
             if (a.flags & EnableZWriteBit) {
                 if (a.flags & DisableColorWriteBit) {
                     renderingStats[2].count++;
