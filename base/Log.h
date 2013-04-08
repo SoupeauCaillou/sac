@@ -21,6 +21,8 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
 
+#include <cassert>
+
 #if SAC_ANDROID
 #include <sstream>
 #include <android/log.h>
@@ -29,7 +31,6 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define SAC_LOG_POST __android_log_print(ANDROID_LOG_INFO, "sac", "%s", __log_ss.str().c_str());
 #else
 #include <iostream>
-#include <cassert>
 #define SAC_LOG_PRE
 #define SAC_LOG_STREAM std::cout
 #define SAC_LOG_POST
