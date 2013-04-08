@@ -155,7 +155,17 @@ if (DESKTOP_BUILD)
     check_and_link_libs("sac" GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB
         AntTweakBar Ogg Tinyxml2)
 elseif (MOBILE_BUILD)
-    ########## build ogg lib ###########
+     ########## build sqlite3 lib ###########
+    set (sqlite3_base ${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
+    file(
+        GLOB_RECURSE sqlite3_sources
+        ${sqlite3_base}/sqlite3.c
+    )
+
+    add_library("sqlite3" STATIC ${sqlite3_sources})
+
+
+   ########## build ogg lib ###########
     enable_language(ASM)
     set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
     file(
@@ -168,7 +178,9 @@ elseif (MOBILE_BUILD)
     set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
         "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
 
-    target_link_libraries("sac" GLESv2 z ogg log)
+
+    ##########do the linkage with sac ###########
+    target_link_libraries("sac" GLESv2 z ogg log sqlite3)
 endif()
 
 #######################################################################
