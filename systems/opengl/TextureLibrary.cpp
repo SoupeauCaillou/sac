@@ -62,6 +62,9 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
     if (it == dataSource.end()) {
         LOGV(1, "loadTexture: '" << assetName << "' from file")
         out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.originalSize);
+        #if SAC_LINUX && SAC_DESKTOP
+        registerNewAsset(assetName + "_alpha");
+        #endif
     } else {
         const ImageDesc& imageDesc = it->second;
         LOGV(1, "loadTexture: '" << assetName << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')')

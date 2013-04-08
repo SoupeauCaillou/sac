@@ -233,19 +233,22 @@ class NamedAssetLibrary {
                         //it has changed! reload it
                         if (event->wd == it.wd) {
                             LOGI(it._filename << " has been changed! Reloading.");
-                            it.wd = inotify_add_watch(it.inotifyFd, it._filename.c_str(), IN_MODIFY);
-                            load(it._assetname);
+                            it.wd = inotify_add_watch(it.inotifyFd, it._filename.c_str(), IN_CLOSE_WRITE);
+                            reload(it._assetname);
                         }
 
                     }
                 }
             }
         }
+        virtual std::string assetPrefix() const { return ""; }
+        virtual std::string assetSuffix() const { return ""; }
         void registerNewAsset(const std::string & name) {
+            std::string cmp = assetPrefix() + name + assetSuffix();
 #ifdef SAC_ASSETS_DIR
-                std::string full = SAC_ASSETS_DIR + name;
+                std::string full = SAC_ASSETS_DIR + cmp;
 #else
-                std::string full = "assets/" + name;
+                std::string full = "assets/" + cmp;
 #endif
             std::ifstream ifile(full);
             if (!ifile) {
@@ -253,7 +256,7 @@ class NamedAssetLibrary {
                 full.replace(full.find(assetsDirectory), assetsDirectory.length(), "assetspc/");
                 ifile.open(full, std::ifstream::in);
                 if (!ifile) {
-                    LOGW("File " << full << " does not exist! Can't monitore it.");
+                    LOGW("File " << full << " does not exist! Can't monitore it. (prefix=" << assetPrefix() << ", suffix=" << assetSuffix() << ')');
                     return;
                 }
             }
@@ -272,7 +275,7 @@ class NamedAssetLibrary {
                 LOGI("New asset to monitor: " << _assetname << " from file "
                     << _filename);
                 inotifyFd = inotify_init();
-                wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_MODIFY);
+                wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_CLOSE_WRITE);
             }
         };
 
