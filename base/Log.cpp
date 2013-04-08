@@ -13,7 +13,7 @@ std::map<std::string, bool> verboseFilenameFilters;
 class NullStream : public std::ostream {
 public:
     template<class T>
-    std::ostream& operator<<(const T& r) {
+    std::ostream& operator<<(const T& ) {
         return *this;
     }
 };
