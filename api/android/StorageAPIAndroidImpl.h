@@ -21,13 +21,13 @@
 #include "../StorageAPI.h"
 #include "JNIWrapper.h"
 
-namespace jni_comm_api {
+namespace jni_stor_api {
     enum Enum {
         GetDatabasePath
     };
 }
 
-class StorageAPIAndroidImpl : public StorageAPI {
+class StorageAPIAndroidImpl : public StorageAPI, public JNIWrapper<jni_stor_api::Enum>  {
 	public:
 		StorageAPIAndroidImpl();
         void init(JNIEnv* env);
