@@ -58,7 +58,7 @@ void ParticuleSystem::DoUpdate(float dt) {
             std::list<InternalParticule>::reverse_iterator intP = particules.rbegin();
             for (int i=0; i<count; i++) {
                 InternalParticule& internal = *intP++;
-                internal.time = 0;
+                internal.time = -dt;
                 internal.lifetime = pc->lifetime.random();
 
 #if SAC_DEBUG
