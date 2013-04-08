@@ -23,12 +23,5 @@
 
 class StorageAPI {
 	public:
-        //only used for pc yet
-        virtual void init(const std::string &) {}
-
-		virtual bool isFirstGame() = 0;
-		virtual void incrementGameCount() = 0;
-
-        virtual bool isMuted() = 0;
-        virtual void setMuted(bool b) = 0;
+		virtual const std::string &  getDatabasePath() = 0;
 };

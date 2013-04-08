@@ -19,31 +19,20 @@
 #pragma once
 
 #include "../StorageAPI.h"
-#include <jni.h>
+#include "JNIWrapper.h"
 
-#include "api/CommunicationAPI.h"
+namespace jni_comm_api {
+    enum Enum {
+        GetDatabasePath
+    };
+}
 
 class StorageAPIAndroidImpl : public StorageAPI {
 	public:
 		StorageAPIAndroidImpl();
-		~StorageAPIAndroidImpl();
-		void init(JNIEnv* env);
-		void uninit();
+        void init(JNIEnv* env);
 
-		void submitScore(CommunicationAPI::Score inScr);
-		std::vector<CommunicationAPI::Score> getScores(float& outAverage);
-
-		int getCoinsCount();
-
-		bool isFirstGame();
-		void incrementGameCount();;
-
-        bool isMuted() const;
-        void setMuted(bool b);
-
-	private:
-		class StorageAPIAndroidImplDatas;
-		StorageAPIAndroidImplDatas* datas;
+        const std::string &  getDatabasePath();
 	public:
 		JNIEnv* env;
 };
