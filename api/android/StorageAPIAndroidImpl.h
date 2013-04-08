@@ -21,6 +21,8 @@
 #include "../StorageAPI.h"
 #include <jni.h>
 
+#include "api/CommunicationAPI.h"
+
 class StorageAPIAndroidImpl : public StorageAPI {
 	public:
 		StorageAPIAndroidImpl();
@@ -28,8 +30,8 @@ class StorageAPIAndroidImpl : public StorageAPI {
 		void init(JNIEnv* env);
 		void uninit();
 
-		void submitScore(Score inScr);
-		std::vector<Score> getScores(float& outAverage);
+		void submitScore(CommunicationAPI::Score inScr);
+		std::vector<CommunicationAPI::Score> getScores(float& outAverage);
 
 		int getCoinsCount();
 

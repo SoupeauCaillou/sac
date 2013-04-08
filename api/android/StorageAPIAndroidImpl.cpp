@@ -17,12 +17,12 @@
 	along with RecursiveRunner.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "StorageAPIAndroidImpl.h"
-#include "sac/base/Log.h"
+#include "base/Log.h"
 
 static jmethodID jniMethodLookup(JNIEnv* env, jclass c, const std::string& name, const std::string& signature) {
 	jmethodID mId = env->GetStaticMethodID(c, name.c_str(), signature.c_str());
 	if (!mId) {
-		LOGW("JNI Error : could not find method '%s'/'%s'", name.c_str(), signature.c_str());
+		LOGW("JNI Error : could not find method '" << name.c_str() << "'/'" <<  signature.c_str() << "'");
 	}
 	return mId;
 }
@@ -84,14 +84,14 @@ void StorageAPIAndroidImpl::uninit() {
 	}
 }
 
-void StorageAPIAndroidImpl::submitScore(Score inScr) {
-	jstring name = env->NewStringUTF(inScr.name.c_str());
+void StorageAPIAndroidImpl::submitScore(CommunicationAPI::Score inScr) {
+	jstring name = env->NewStringUTF(inScr._name.c_str());
 
-	env->CallStaticVoidMethod(datas->cls, datas->submitScore, inScr.points, inScr.coins, name);
+	env->CallStaticVoidMethod(datas->cls, datas->submitScore, 0/*inScr._score*/, 0/*coins*/, name);
 }
 
-std::vector<StorageAPI::Score> StorageAPIAndroidImpl::getScores(float& outAverage) {
-	std::vector<StorageAPI::Score> sav;
+std::vector<CommunicationAPI::Score> StorageAPIAndroidImpl::getScores(float& outAverage) {
+	std::vector<CommunicationAPI::Score> sav;
 
 	// build arrays params
 	jintArray points = env->NewIntArray(5);
@@ -109,16 +109,18 @@ std::vector<StorageAPI::Score> StorageAPIAndroidImpl::getScores(float& outAverag
 	int count = env->CallStaticIntMethod(datas->cls, datas->getScores, points, coins, names);
 
 	for (int i=0; i<count; i++) {
-		StorageAPI::Score s;
-		env->GetIntArrayRegion(points, i, 1, &s.points);
-		env->GetIntArrayRegion(coins, i, 1, &s.coins);
+		CommunicationAPI::Score s;
+        int score;
+		env->GetIntArrayRegion(points, i, 1, &score);
+        //s._score = score;
+		/*env->GetIntArrayRegion(coins, i, 1, &s.coins);*/
 		jstring n = (jstring)env->GetObjectArrayElement(names, i);
 		if (n) {
 			const char *mfile = env->GetStringUTFChars(n, 0);
-			s.name = (char*)mfile;
+			s._name = (char*)mfile;
 			env->ReleaseStringUTFChars(n, mfile);
 		} else {
-			s.name = "unknown";
+			s._name = "unknown";
 		}
 		sav.push_back(s);
 	}

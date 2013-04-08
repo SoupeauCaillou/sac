@@ -25,22 +25,28 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<j
 	public:
 		CommunicationAPIAndroidImpl();
 
+        void init(JNIEnv* env);
+
+        void init(ScoreHandler* scoreHandler) {}
+
         bool isGameCenterLoggedIn();
         bool openGameCenter();
 
-        inline std::list<Achievement::Struct> getAllAchievements() {
-            std::list<Achievement::Struct> list;
+        inline std::list<Achievement> getAllAchievements() {
+            std::list<Achievement> list;
             LOGV(1, "TODO");
             return list;
         }
 
-        inline std::list<Score::Struct> getScores(unsigned leaderboardID,
-            Score::Visibility visibility, unsigned startRank, unsigned count) {
-            std::list<Score::Struct> list;
+        inline std::list<Score> getScores(
+//            unsigned leaderboardID, Score::Visibility visibility, unsigned startRank, unsigned count) {
+            unsigned, Score::Visibility, unsigned, unsigned) {
+
+            std::list<Score> list;
             LOGV(1, "TODO");
             return list;
         }
-        void submitScore(unsigned , Score::Struct ) {}
+        void submitScore(unsigned , Score) {}
 
 		void giftizMissionDone();
 		int  giftizGetButtonState();
@@ -53,4 +59,6 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<j
 		void rateItNow();
 		void rateItLater();
 		void rateItNever();
+    public:
+        JNIEnv* env;
 };

@@ -30,6 +30,7 @@ class CommunicationAPI {
             unsigned _rank;
             Visibility _visibility;
 
+            Score() {}
             Score(const std::string& name, const float & score, unsigned rank, Visibility visibility)
                 : _name(name), _rank(rank), _visibility(visibility) {
                     std::stringstream ss;
