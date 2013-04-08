@@ -51,7 +51,7 @@ bool Color::operator<(const Color& c) const {
 	return memcmp(rgba, c.rgba, sizeof(rgba)) < 0;
 }
 bool Color::operator>(const Color& c) const {
-    return ! (*this < c);
+    return memcmp(rgba, c.rgba, sizeof(rgba)) > 0;
 }
 
 bool Color::operator==(const Color& c) const {
