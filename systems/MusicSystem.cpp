@@ -10,10 +10,6 @@
 #include "base/EntityManager.h"
 #endif
 
-#if SAC_ANDROID
-#define assert(x) x
-#endif
-
 #if SAC_EMSCRIPTEN
 #include <SDL/SDL_mixer.h>
 #include <sstream>
