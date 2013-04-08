@@ -136,30 +136,49 @@ void RenderingSystem::init() {
 #endif
 }
 
-static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-    static const double EPSILON = 0.0001;
 
-    if (glm::abs(r1.z - r2.z) <= EPSILON) {
+// The goal of this sort function is to group sprites to reduce OpenGL state changes.
+static bool sortToMinizeStateChanges(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
+    // 1st compare state (flags)
+    if (r1.flags == r2.flags) {
+        // 2nd: compare shader
         if (r1.effectRef == r2.effectRef) {
+            // 3rd : compare texture
             if (r1.texture == r2.texture) {
-                if (r1.flags != r2.flags) {
-                    return r1.flags < r2.flags;
-                } else {
-                    return r1.color > r2.color;
-                }
+                // 4th : compare color
+                return r1.color < r2.color;
             } else {
-                return r1.texture > r2.texture;
+                return r1.texture < r2.texture;
             }
         } else {
-            return r1.effectRef > r2.effectRef;
+            return r1.effectRef < r2.effectRef;
         }
+    } else {
+        return r1.flags < r2.flags;
+    }
+}
+
+// This function is used to sort opaque sprites from front to back
+// Note: the sort algorithm sort from min to max, so in this case, r1 < r2
+// means r1.z > r2.z
+static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
+    static const double EPSILON = 0.0001;
+    if (glm::abs(r1.z - r2.z) <= EPSILON) {
+        return sortToMinizeStateChanges(r1, r2);
     } else {
         return r1.z > r2.z;
     }
 }
 
+// This function is used to sort alpha-blended sprites from back to front.
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-    return ! sortFrontToBack(r1, r2);
+    static const double EPSILON = 0.0001;
+    if (glm::abs(r1.z - r2.z) <= EPSILON) {
+        return sortToMinizeStateChanges(r1, r2);
+    } else {
+        return r1.z < r2.z;
+    }
+
 }
 
 static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
@@ -380,8 +399,11 @@ void RenderingSystem::DoUpdate(float) {
             }
         }
 
-        outQueue.commands.resize(
-            outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1);
+        unsigned cnt = outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1;
+
+        if (outQueue.commands.size() < cnt)
+            outQueue.commands.resize(cnt);
+
     	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
     	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 
@@ -390,10 +412,9 @@ void RenderingSystem::DoUpdate(float) {
         packCameraAttributes(camTrans, camComp, dummy);
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
-        std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);//&outQueue.commands[outQueue.count]);
+        std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);
         outQueue.count += opaqueCommands.size();
-        // semiOpaqueCommands.front().flags = (DisableZWriteBit | EnableBlendingBit);
-        std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), outQueue.commands.begin() + outQueue.count); //&outQueue.commands[outQueue.count]);
+        std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), outQueue.commands.begin() + outQueue.count);
         outQueue.count += semiOpaqueCommands.size();
     }
 
