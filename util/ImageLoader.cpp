@@ -56,7 +56,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	if (setjmp(png_jmpbuf(PNG_reader)))
 	{
         LOGW("ERROR: Can't load " << context)
-		png_destroy_read_struct(&PNG_reader, &PNG_info, &PNG_info);
+		png_destroy_read_struct(&PNG_reader, &PNG_info, &PNG_end_info);
 		return result;
 	}
 
