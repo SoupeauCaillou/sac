@@ -55,7 +55,7 @@ void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI, bool openALAlreadyInit) 
 #else
 	int ret = Mix_OpenAudio(0, 0, 0, 0);
 	if (ret != 0) {
-		LOG(ERROR) << "Mix_OpenAudio failed: " <<ret;
+		LOGE("Mix_OpenAudio failed: " <<ret)
 	}
 #endif
 }

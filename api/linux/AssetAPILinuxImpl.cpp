@@ -52,7 +52,7 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
 #endif
 
     std::list<std::string> content;
-#if SAC_WINDOWS
+#if SAC_WINDOWS || SAC_EMSCRIPTEN
         // TODO
 #else
         // TODO : Use scandir ?

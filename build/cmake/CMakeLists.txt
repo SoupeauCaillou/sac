@@ -89,43 +89,40 @@ file(
 
 if (WEB_BUILD)
     set(EXECUTABLE_NAME ${PROJECT_NAME}.bc)
-
-    add_library(sac ${LIB_TYPE} ${source_files})
-    check_and_link_libs("sac" SDL)
 else()
     set(EXECUTABLE_NAME ${PROJECT_NAME})
+
+    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 
     file(
         GLOB_RECURSE opt_source_files
         ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
         ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
     )
-
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
-
-
-    #include platform dependent APIs
-    if (DESKTOP_BUILD)
-        file(
-            GLOB_RECURSE platform_source_files
-            ${PROJECT_SOURCE_DIR}/sac/app/*
-            ${PROJECT_SOURCE_DIR}/sac/api/linux/*
-            ${PROJECT_SOURCE_DIR}/platforms/default/api/*
-        )
-    elseif (MOBILE_BUILD)
-        file(
-            GLOB_RECURSE platform_source_files
-            ${PROJECT_SOURCE_DIR}/sac/api/android/*
-            ${PROJECT_SOURCE_DIR}/sources/api/android/*
-            ${PROJECT_SOURCE_DIR}/sac/android/*
-            ${PROJECT_SOURCE_DIR}/platforms/android/*.cpp
-        )
-    else()
-        message(SEND_ERROR "which platform?")
-    endif()
-
-    add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files})
 endif()
+
+#include platform dependent APIs
+if (DESKTOP_BUILD OR WEB_BUILD)
+    file(
+        GLOB_RECURSE platform_source_files
+        ${PROJECT_SOURCE_DIR}/sac/app/*
+        ${PROJECT_SOURCE_DIR}/sac/api/linux/*
+        ${PROJECT_SOURCE_DIR}/platforms/default/api/*
+    )
+elseif (MOBILE_BUILD)
+    file(
+        GLOB_RECURSE platform_source_files
+        ${PROJECT_SOURCE_DIR}/sac/api/android/*
+        ${PROJECT_SOURCE_DIR}/sources/api/android/*
+        ${PROJECT_SOURCE_DIR}/sac/android/*
+        ${PROJECT_SOURCE_DIR}/platforms/android/*.cpp
+    )
+else()
+    message(SEND_ERROR "which platform?")
+endif()
+
+add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files})
+
 
 #######################################################################
 ##########Build and link libraries per target##########################

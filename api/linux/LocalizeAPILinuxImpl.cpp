@@ -28,9 +28,9 @@
 #endif
 
 
-#if SAC_DARWIN || SAC_WINDOWS
+#if SAC_DARWIN || SAC_WINDOWS || SAC_EMSCRIPTEN
 
-int LocalizeAPILinuxImpl::init(const std::string & lang) {
+int LocalizeAPILinuxImpl::init(AssetAPI* , const std::string & ) {
 	return 0;
 }
 
