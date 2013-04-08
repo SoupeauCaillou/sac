@@ -1,4 +1,4 @@
-#if SAC_DESKTOP
+#if SAC_DESKTOP && SAC_INGAME_EDITORS
 
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
