@@ -62,7 +62,7 @@ foreach (FILE ${FILES_LIST})
     if (NOT ${FILE} MATCHES "(.*).h")
         #output format: foo.vs -> foo_vs.h
         STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
-
+        message ("Build shader: ${FILE} -> ${Output}.h")
         execute_process(COMMAND xxd -i ${FILE} ${Output}.h
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders)
     endif()
@@ -191,16 +191,12 @@ import_specific_libs()
 #######################################################################
 #######Build the game executable (except for mobile)###################
 #######################################################################
-if (DESKTOP_BUILD)
+if (NOT MOBILE_BUILD)
     file(
         GLOB_RECURSE source_platforms_files
         ${PROJECT_SOURCE_DIR}/platforms/default/*.cpp
     )
-else()
-    set (source_platforms_files "")
-endif()
 
-if (NOT MOBILE_BUILD)
     add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
     target_link_libraries(${EXECUTABLE_NAME} sac)
 endif()

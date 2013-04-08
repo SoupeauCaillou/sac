@@ -117,7 +117,7 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
 }
 
 #if SAC_USE_VBO
-static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const RenderingSystem::Camera& camera, const RenderingSystem::Shader& shader) {
+static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const Shader& shader) {
 #else
 static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
 #endif
@@ -314,7 +314,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 } else {
                     rc.glref = info->glref;
                 }
-#ifdef USE_VBO
+#if SAC_USE_VBO
                 computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
 #else
                 computeUV(rc, *info);
@@ -361,7 +361,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // ADD TO BATCH
 #if SAC_USE_VBO
-		addRenderCommandToBatch(screenW, screenH, rc, camera, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
+		addRenderCommandToBatch(screenW, screenH, rc, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
 #else
         addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
 #endif

@@ -4,6 +4,10 @@
 #include <cstring>
 #if SAC_ANDROID
 #include <GLES2/gl2ext.h>
+#elif SAC_EMSCRIPTEN
+#include <sstream>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #endif
 
 #include "OpenglHelper.h"
@@ -235,23 +239,26 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
 
 ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) {
 #if SAC_EMSCRIPTEN
-    TODO
     ImageDesc image;
+    image.datas = 0;
     std::stringstream a;
     a << "assets/" << basename << ".png";
     std::string aa = a.str();
     SDL_Surface* s = IMG_Load(aa.c_str());
     if (s == 0) {
         LOGW("Failed to load '" << a.str() << "'")
-        return whiteTexture;
+        return image;
     }
-    LOGV(1, ("Image format: " << s->w << 'x' << s->h << ' ' << s->format->BitsPerPixel))
+    LOGV(1, "Image format: " << s->w << 'x' << s->h << ' ' << s->format->BitsPerPixel)
     image.channels = s->format->BitsPerPixel / 8;
 
+    image.type = ImageDesc::RAW;
     image.width = s->w;
     image.height = s->h;
     image.datas = new char[image.width * image.height * image.channels];
     memcpy(image.datas, s->pixels, image.width * image.height * image.channels);
+    LOGW("TODO FIXME")
+    #if 0
     if (!colorOrAlpha && image.channels==4) {
         for (int i=0; i<image.height; i++) {
             for (int j=0; j<image.width; j++) {
@@ -260,8 +267,8 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
             }
         }
     }
+    #endif
     SDL_FreeSurface(s);
-    png = true;
 #else
     // load image
     return isPng ? ImageLoader::loadPng(basename, file) : pvrFormatSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);

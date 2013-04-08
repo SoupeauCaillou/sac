@@ -168,9 +168,13 @@ void RenderingSystem::processDelayedTextureJobs() {
 
 TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 	PROFILE("Texture", "loadTextureFile", BeginEvent);
+#ifndef SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
+#endif
     TextureRef result = textureLibrary.load(assetName);
+#ifndef SAC_EMSCRIPTEN
     mutexes[L_QUEUE].unlock();
+#endif
     return result;
 }
 

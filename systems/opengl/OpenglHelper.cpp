@@ -20,7 +20,7 @@
 #include "base/Log.h"
 
 void check_GL_errors(const char* context) {
-     int maxIterations=10;
+    int maxIterations=10;
     GLenum error;
     while (((error = glGetError()) != GL_NO_ERROR) && maxIterations > 0)
     {
