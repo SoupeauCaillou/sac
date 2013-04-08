@@ -388,9 +388,6 @@ void RenderingSystem::waitDrawingComplete() {
 }
 
 void RenderingSystem::render() {
-#if SAC_ENABLE_LOG
-    float enter = TimeUtil::GetTime();
-#endif
 #if ! SAC_EMSCRIPTEN
     PROFILE("Renderer", "wait-frame", BeginEvent);
 
@@ -429,17 +426,7 @@ void RenderingSystem::render() {
         mutexes[L_RENDER].lock();
     }
 #endif
-#if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
-    float ppp = TimeUtil::GetTime();
-    float diff =  ppp - enter;
-    if (diff > 0.001) {
-        //- LOGI("Diff : %.1f ms / %.1f ms -> %.1f ms -> %.1f ms",
-            //- diff * 1000,
-            //- 1000 * (frameready - enter),
-            //- 1000 * (aftertexture - frameready),
-            //- 1000 * (ppp - aftertexture));
-    }
-#endif
+
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
         LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')')
