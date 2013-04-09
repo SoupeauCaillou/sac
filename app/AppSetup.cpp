@@ -178,8 +178,11 @@ static void* callback_thread(){
 
 #else
 static void updateAndRender() {
+    LOGV(1, "gameloop - Pump events");
     SDL_PumpEvents();
+    LOGV(1, "gameloop - step");
     game->step();
+    LOGV(1, "gameloop - render");
     game->render();
 }
 
@@ -245,6 +248,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     /////////////////////////////////////////////////////
     // Game context initialisation
+    LOGV(1, "Initialize APIs");
     GameContext ctx;
     if (game->wantsAPI(ContextAPI::Ad))
         ctx.adAPI = new AdAPI();
@@ -294,6 +298,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     /////////////////////////////////////////////////////
     // Init game
+    LOGV(1, "Initialize sac & game");
     game->setGameContexts(&ctx, &ctx);
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
@@ -305,6 +310,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #endif
 
 
+    LOGV(1, "Run game loop");
 #if SAC_EMSCRIPTEN
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #else
