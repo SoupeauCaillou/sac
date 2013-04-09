@@ -249,57 +249,57 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     /////////////////////////////////////////////////////
     // Game context initialisation
     LOGV(1, "Initialize APIs");
-    GameContext ctx;
+    GameContext* ctx = new GameContext;
     if (game->wantsAPI(ContextAPI::Ad))
-        ctx.adAPI = new AdAPI();
+        ctx->adAPI = new AdAPI();
     if (game->wantsAPI(ContextAPI::Asset) || true)
-        ctx.assetAPI = new AssetAPILinuxImpl();
+        ctx->assetAPI = new AssetAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Communication))
-        ctx.communicationAPI = new CommunicationAPILinuxImpl();
+        ctx->communicationAPI = new CommunicationAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Exit))
-        ctx.exitAPI = new ExitAPILinuxImpl();
+        ctx->exitAPI = new ExitAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Localize))
-        ctx.localizeAPI = new LocalizeAPILinuxImpl();
+        ctx->localizeAPI = new LocalizeAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Music))
-        ctx.musicAPI = new MusicAPILinuxOpenALImpl();
+        ctx->musicAPI = new MusicAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::NameInput))
-        ctx.nameInputAPI = new NameInputAPILinuxImpl();
+        ctx->nameInputAPI = new NameInputAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Network))
-        ctx.networkAPI = new NetworkAPILinuxImpl();
+        ctx->networkAPI = new NetworkAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Sound))
-        ctx.soundAPI = new SoundAPILinuxOpenALImpl();
+        ctx->soundAPI = new SoundAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Storage))
-        ctx.storageAPI = new StorageAPILinuxImpl();
+        ctx->storageAPI = new StorageAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Success))
-        ctx.successAPI = new SuccessAPI();
+        ctx->successAPI = new SuccessAPI();
     if (game->wantsAPI(ContextAPI::Vibrate))
-        ctx.vibrateAPI = new VibrateAPILinuxImpl();
+        ctx->vibrateAPI = new VibrateAPILinuxImpl();
 
     /////////////////////////////////////////////////////
     // Init systems
     theTouchInputManager.setNativeTouchStatePtr(new MouseNativeTouchState());
-    theRenderingSystem.assetAPI = ctx.assetAPI;
+    theRenderingSystem.assetAPI = ctx->assetAPI;
     if (game->wantsAPI(ContextAPI::Music)) {
-        theMusicSystem.musicAPI = ctx.musicAPI;
-        theMusicSystem.assetAPI = ctx.assetAPI;
-        static_cast<MusicAPILinuxOpenALImpl*>(ctx.musicAPI)->init();
+        theMusicSystem.musicAPI = ctx->musicAPI;
+        theMusicSystem.assetAPI = ctx->assetAPI;
+        static_cast<MusicAPILinuxOpenALImpl*>(ctx->musicAPI)->init();
         theMusicSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Sound)) {
-        theSoundSystem.soundAPI = ctx.soundAPI;
-        static_cast<SoundAPILinuxOpenALImpl*>(ctx.soundAPI)->init(ctx.assetAPI, game->wantsAPI(ContextAPI::Music));
+        theSoundSystem.soundAPI = ctx->soundAPI;
+        static_cast<SoundAPILinuxOpenALImpl*>(ctx->soundAPI)->init(ctx->assetAPI, game->wantsAPI(ContextAPI::Music));
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
         char* lang = strdup(getenv("LANG"));
         lang[2] = '\0';
-        static_cast<LocalizeAPILinuxImpl*>(ctx.localizeAPI)->init(ctx.assetAPI, lang);
+        static_cast<LocalizeAPILinuxImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, lang);
     }
 
     /////////////////////////////////////////////////////
     // Init game
     LOGV(1, "Initialize sac & game");
-    game->setGameContexts(&ctx, &ctx);
+    game->setGameContexts(ctx, ctx);
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
@@ -324,6 +324,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     } while (!m.try_lock());
     th1.join();
 
+    delete ctx;
     delete game;
  //   delete record;
 #endif
