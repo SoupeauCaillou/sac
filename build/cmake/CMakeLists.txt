@@ -56,6 +56,7 @@ endfunction()
 execute_process(COMMAND ls
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
     OUTPUT_VARIABLE FILES)
+
 #set it into a list
 string(REPLACE "\n" ";" FILES_LIST ${FILES})
 foreach (FILE ${FILES_LIST})
@@ -63,7 +64,11 @@ foreach (FILE ${FILES_LIST})
         #output format: foo.vs -> foo_vs.h
         STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
         message ("Build shader: ${FILE} -> ${Output}.h")
-        execute_process(COMMAND xxd -i ${FILE} ${Output}.h
+
+        add_custom_command(
+            OUTPUT ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${Output}.h
+            COMMAND xxd -i ${FILE} ${Output}.h
+            DEPENDS ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${FILE}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders)
     endif()
 endforeach()
