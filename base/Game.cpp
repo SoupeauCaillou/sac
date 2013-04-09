@@ -183,7 +183,7 @@ int Game::saveState(uint8_t**) {
 }
 
 const float DDD = 1.0/60.f;
-float countD = 0;
+
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
 
@@ -192,6 +192,8 @@ void Game::step() {
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
 
+    LOGV(2, "dt = " << delta)
+    LOGV(2, "Update input")
     theTouchInputManager.Update(delta);
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
@@ -222,6 +224,7 @@ void Game::step() {
             tick(delta);
     }
 #else
+    LOGV(1, "Update game")
     tick(delta);
 #endif
 
@@ -233,16 +236,7 @@ void Game::step() {
     theNetworkSystem.Update(delta);
 #endif
 
-	++countD;
-
-#if 0
-    // Update FPS graph data
-	theDebuggingSystem.addValue(DebuggingSystem::fpsGraphEntity, std::make_pair(countD, 1/delta));
-    // Update entity count data
-	theDebuggingSystem.addValue(DebuggingSystem::entityGraphEntity, std::make_pair(countD, theEntityManager.getNumberofEntity()));
-
-#endif
-
+    LOGV(2, "Update systems");
     theCameraSystem.Update(delta);
     theADSRSystem.Update(delta);
     theAnimationSystem.Update(delta);
@@ -265,6 +259,7 @@ void Game::step() {
         theTransformationSystem.Update(delta);
     }
 #endif
+    LOGV(2, "Produce rendering frame")
     // produce 1 new frame
     theRenderingSystem.Update(0);
 
