@@ -14,9 +14,17 @@ endfunction()
 
 function (postbuild_specific_actions)
     add_custom_command(
+        TARGET ${EXECUTABLE_NAME} PRE_LINK
+        COMMAND rm -r assets
+        COMMAND mkdir assets
+        COMMAND cp -r ${PROJECT_SOURCE_DIR}/assets/* ${PROJECT_SOURCE_DIR}/assetspc/* assets
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Building 'assets' folder"
+    )
+    add_custom_command(
         TARGET ${EXECUTABLE_NAME} POST_BUILD
         COMMAND EMCC_DEBUG=1 emcc -s WARN_ON_UNDEFINED_SYMBOLS=1
-        ${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME} -o /tmp/${PROJECT_NAME}.html
+        ${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME} -o ${PROJECT_NAME}.html
          --preload-file assets
 
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
