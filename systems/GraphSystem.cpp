@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cmath>
 
 #ifndef uint
 	#define uint unsigned long
@@ -97,16 +98,20 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
     }
 
     if (gc->maxX != gc->minX) {
+        if (gc->minX < minScaleX / 2 || gc->maxX > maxScaleX * 2)
+            LOGW_EVERY_N(50, "Check your X-scale on graph '" << gc->textureName << "'");
         minScaleX = gc->minX;
         maxScaleX = gc->maxX;
     }
     if (gc->maxY != gc->minY) {
+        if (gc->minY < minScaleY / 2 || gc->maxY > maxScaleY * 2)
+            LOGW_EVERY_N(50, "Check your Y-scale on graph '" << gc->textureName << "'");
         minScaleY = gc->minY;
         maxScaleY = gc->maxY;
     }
 
-    minScaleY *= (minScaleY<0 ? 1.1f : 0.9f);
-    maxScaleY *= (maxScaleY<0 ? 0.9f : 1.1f);
+    minScaleY -= 0.1 * std::abs(minScaleY);
+    maxScaleY += 0.1 * std::abs(minScaleY);
 
 	if (gc->maxX != gc->minX) {
 		int value_xmin = (gc->minX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
