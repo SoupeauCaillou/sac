@@ -54,3 +54,10 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
         SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::ERROR, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST \
     } \
 }
+
+#define LOGW_EVERY_N(n, x) {\
+    static unsigned __log_count = 0;\
+    if ((__log_count++ % n) == 0) {\
+        LOGW(x); \
+    } \
+}
