@@ -6,7 +6,7 @@ LocalizeAPIAndroidImpl::LocalizeAPIAndroidImpl() : JNIWrapper<jni_loc_api::Enum>
 	declareMethod(jni_loc_api::Text, "localize", "(Ljava/lang/String;)Ljava/lang/String;");
 }
 
-std::string LocalizeAPIAndroidImpl::text(const std::string& s, const std::string& spc) {
+std::string LocalizeAPIAndroidImpl::text(const std::string& s) {
 	std::map<std::string, std::string>::iterator it = cache.find(s);
 	if (it != cache.end()) {
 		return it->second;

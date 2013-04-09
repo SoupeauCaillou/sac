@@ -12,7 +12,7 @@ namespace jni_loc_api {
 class LocalizeAPIAndroidImpl : public LocalizeAPI, public JNIWrapper<jni_loc_api::Enum> {
 	public:
 		LocalizeAPIAndroidImpl();
-		std::string text(const std::string& s, const std::string& spc);
+		std::string text(const std::string& s);
 
     private:
         std::map<std::string, std::string> cache;

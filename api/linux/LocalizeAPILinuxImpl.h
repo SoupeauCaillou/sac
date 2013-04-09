@@ -11,5 +11,5 @@ class LocalizeAPILinuxImpl : public LocalizeAPI {
 		std::map<std::string, std::string> _idToMessage;
 	public:
 		int init(AssetAPI* assetAPI, const std::string & lang);
-		std::string text(const std::string& s, const std::string& spc);
+		std::string text(const std::string& s);
 };

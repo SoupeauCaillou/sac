@@ -20,6 +20,7 @@
 
 
 #if SAC_EMSCRIPTEN
+#include "base/Log.h"
 #elif SAC_WINDOWS || SAC_DARWIN
 	//TODO
 #else
@@ -85,14 +86,13 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
 }
 #endif
 
-std::string LocalizeAPILinuxImpl::text(const std::string& s, const std::string&) {
-    if (_idToMessage[s].empty()) {
-#if SAC_DEBUG
-            LOG_EVERY_N(LOGE, 100, "'" << s << "' is not a valid localizable ID");
-#endif
-
+std::string LocalizeAPILinuxImpl::text(const std::string& s) {
+    auto it = _idToMessage.find(s);
+    LOGV(2, "Request localisation for: '" << s << "'")
+    if (it == _idToMessage.end()) {
+        LOGE_EVERY_N(60, "'" << s << "' is not a valid localizable ID")
         return "INVALID-" + s + "-ID";
+    } else {
+        return (*it).second;
     }
-
-    return _idToMessage[s];
 }

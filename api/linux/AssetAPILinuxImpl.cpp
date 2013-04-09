@@ -26,7 +26,7 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
         full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
         file = fopen(full.c_str(), "rb");
         if (!file) {
-            LOGE("Error opening file '" << full << "'");
+            LOGE("Error opening file '" << asset << "'");
             return fb;
         }
     }
