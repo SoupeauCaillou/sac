@@ -137,6 +137,16 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
         LOGE("Could not read image, aborting")
         return 0;
     }
+    #if SAC_EMSCRIPTEN
+    if (type == ALPHA_MASK && image.channels==4) {
+        for (int i=0; i<image.height; i++) {
+            for (int j=0; j<image.width; j++) {
+                char* pixel = &image.datas[i * image.width * 4 + j * 4];
+                pixel[3] = pixel[0]; // assign red channel to alpha
+            }
+        }
+    }
+    #endif
     imgChannelCount = image.channels;
 
     GLuint result = loadFromImageDesc(image, name, type, outSize);
@@ -249,7 +259,7 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
         LOGW("Failed to load '" << a.str() << "'")
         return image;
     }
-    LOGV(1, "Image format: " << s->w << 'x' << s->h << ' ' << s->format->BitsPerPixel)
+    LOGI("Image : " << basename << " format: " << s->w << 'x' << s->h << ' ' << (int)s->format->BitsPerPixel << " bpp")
     image.channels = s->format->BitsPerPixel / 8;
 
     image.type = ImageDesc::RAW;
@@ -257,18 +267,8 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
     image.height = s->h;
     image.datas = new char[image.width * image.height * image.channels];
     memcpy(image.datas, s->pixels, image.width * image.height * image.channels);
-    LOGW("TODO FIXME")
-    #if 0
-    if (!colorOrAlpha && image.channels==4) {
-        for (int i=0; i<image.height; i++) {
-            for (int j=0; j<image.width; j++) {
-                char* pixel = &image.datas[i * image.width * 4 + j * 4];
-                pixel[3] = pixel[0]; // assign red channel to alpha
-            }
-        }
-    }
-    #endif
     SDL_FreeSurface(s);
+    return image;
 #else
     // load image
     return isPng ? ImageLoader::loadPng(basename, file) : pvrFormatSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);

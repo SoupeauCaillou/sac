@@ -397,9 +397,6 @@ void RenderingSystem::render() {
         cond[C_FRAME_READY].wait(lock);
     }
 #endif
-#if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
-    //float frameready = TimeUtil::GetTime();
-#endif
     int readQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = false;
     if (!frameQueueWritable) {
