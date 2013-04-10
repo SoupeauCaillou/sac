@@ -117,7 +117,7 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
 }
 
 #if SAC_USE_VBO
-static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const Shader& shader) {
+static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const TransformationComponent& camera, const Shader& shader) {
 #else
 static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
 #endif
@@ -126,10 +126,10 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     float hH = 0.5 * screenH;
     GLfloat mat[16];
     RenderingSystem::loadOrthographicMatrix(
-        -hW - rc.position.x, // + camera.worldPosition.x,
-        hW - rc.position.x, // + camera.worldPosition.x,
-        -hH - rc.position.y, // + camera.worldPosition.y,
-        hH - rc.position.y, // + camera.worldPosition.y,
+        -hW - rc.position.x + camera.worldPosition.x,
+        hW - rc.position.x + camera.worldPosition.x,
+        -hH - rc.position.y + camera.worldPosition.y,
+        hH - rc.position.y + camera.worldPosition.y,
         0, 1, mat);
     GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
     float scaleZ[] = { 2 * rc.halfSize.x, 2 * rc.halfSize.y, rc.z };
@@ -361,7 +361,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // ADD TO BATCH
 #if SAC_USE_VBO
-		addRenderCommandToBatch(screenW, screenH, rc, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
+		addRenderCommandToBatch(screenW, screenH, rc, camera.worldPos, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
 #else
         addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
 #endif
