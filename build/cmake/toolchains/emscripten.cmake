@@ -19,7 +19,7 @@ endfunction()
 function (postbuild_specific_actions)
     add_custom_command(
         TARGET ${EXECUTABLE_NAME} PRE_LINK
-        COMMAND rm -r assets
+        COMMAND rm -rf assets
         COMMAND mkdir assets
         COMMAND cp -r ${PROJECT_SOURCE_DIR}/assets/* ${PROJECT_SOURCE_DIR}/assetspc/* assets
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
