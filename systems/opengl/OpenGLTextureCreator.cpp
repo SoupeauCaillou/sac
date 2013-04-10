@@ -94,10 +94,13 @@ InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std
     result.color = result.alpha = 0;
     int imgChannelCount = 0;
     result.color = loadSplittedFromFile(assetAPI, name, COLOR, outSize, imgChannelCount);
+#if ! SAC_EMSCRIPTEN
     if (result.color && imgChannelCount == 4) {
         LOGV(1, name << " texture has 4 channels. Use it for alpha as well")
         result.alpha = loadSplittedFromFile(assetAPI, name, ALPHA_MASK, outSize, imgChannelCount);
-    } else {
+    } else
+#endif
+    {
         result.alpha = loadSplittedFromFile(assetAPI, name + "_alpha", ALPHA_MASK, outSize, imgChannelCount);
     }
     return result;
