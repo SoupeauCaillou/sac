@@ -30,6 +30,22 @@ add_definitions(-DSAC_${VARPLATFORM})
 include(${PROJECT_SOURCE_DIR}/sac/build/cmake/toolchains/${varplatform}.cmake)
 
 #######################################################################
+############Check build target (release/debug)#########################
+#######################################################################
+if (NOT CMAKE_BUILD_TYPE)
+    message("No build target specified (CMAKE_BUILD_TYPE), will use ******DEBUG******.")
+    set (BUILD_TARGET "DEBUG")
+else()
+    string (TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TARGET)
+endif()
+
+message("Build target: " ${BUILD_TARGET})
+
+#import gcc/g++ flags relative to toolchain
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_${BUILD_TARGET}}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
+
+#######################################################################
 ########Library path finding related tools#############################
 #######################################################################
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/Modules")
