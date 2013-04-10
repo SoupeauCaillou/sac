@@ -211,7 +211,7 @@ import_specific_libs()
 #######################################################################
 if (NOT MOBILE_BUILD)
     file(
-        GLOB_RECURSE source_platforms_files
+        GLOB source_platforms_files
         ${PROJECT_SOURCE_DIR}/platforms/default/*.cpp
     )
 
