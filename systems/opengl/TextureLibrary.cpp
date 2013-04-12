@@ -90,7 +90,9 @@ void TextureLibrary::doUnload(const std::string& /*name*/, const TextureInfo& /*
 
 void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
     TextureInfo& info = ref2asset[ref];
-    doLoad(name, info, ref);
+    if (info.atlasIndex == -1) {
+        doLoad(name, info, ref);
+    }
     return;
     std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
