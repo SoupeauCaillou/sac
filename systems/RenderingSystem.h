@@ -108,7 +108,7 @@ public:
     void render();
     void waitDrawingComplete();
 
-    EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const TransformationComponent& cameraTransf,
+    EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const glm::mat4& mvp,
         bool colorEnabled = true);
     const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
     const glm::vec2& getTextureSize(const std::string& textureName);

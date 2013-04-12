@@ -10,6 +10,8 @@
 #include <AntTweakBar.h>
 #include "util/LevelEditor.h"
 #endif
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out);
 
@@ -165,26 +167,16 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
 #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const TransformationComponent& cameraTransf, bool colorEnabled) {
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
 	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled);
+    // change active shader
 	GL_OPERATION(glUseProgram(shader.program))
-	GLfloat mat[16], camera[3];
-
-#if ! SAC_USE_VBO
-    const float left = (-cameraTransf.size.x * 0.5);
-    const float right = (cameraTransf.size.x * 0.5);
-    const float bottom = (-cameraTransf.size.y * 0.5);
-    const float top = (cameraTransf.size.y * 0.5);
-	loadOrthographicMatrix(left, right, bottom /*camera.mirrorY ? top : bottom*/, top /*camera.mirrorY ? bottom : top*/, 0, 1, mat);
-	GL_OPERATION(glUniform1fv(shader.uniformMatrix, 6, mat))
-    camera[0] = cameraTransf.worldPosition.x;
-    camera[1] = cameraTransf.worldPosition.y;
-    camera[2] = cameraTransf.worldRotation;
-    GL_OPERATION(glUniform3fv(shader.uniformCamera, 1, camera))
-#endif
-
+    // upload transform matrix (perspective + view)
+    GL_OPERATION( glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)))
+    // upload texture uniforms
 	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
 	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
+    // upload color uniform
 	GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
 	return ref;
 }
@@ -213,6 +205,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
     int currentFlags = 0;
     bool useFbo = false;
+
+    // matrices
+    glm::mat4 camViewPerspMatrix;
 
     LOGV(2, "Begin frame rendering: " << commands.count)
 
@@ -247,8 +242,18 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 GL_OPERATION(glViewport(0, 0, fb.width, fb.height))
             }
 
+            // setup transformation matrix (based on camera attributes)
+            camViewPerspMatrix =
+                glm::ortho(-camera.worldPos.size.x * 0.5f, camera.worldPos.size.x * 0.5f,
+                    -camera.worldPos.size.y * 0.5f, camera.worldPos.size.y * 0.5f,
+                    0.0f, 1.0f) *
+                glm::rotate( glm::mat4(1.0f),
+                    -camera.worldPos.worldRotation, glm::vec3(0, 0, 1) ) *
+                glm::translate( glm::mat4(1.0f),
+                    glm::vec3(-camera.worldPos.worldPosition, 0.0f));
+
             // setup initial GL state
-            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
+            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
@@ -272,7 +277,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 firstCall = false;
                 GL_OPERATION(glEnable(GL_BLEND))
                 if (currentEffect == DefaultEffectRef) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);
                 }
             } else if (rc.flags & DisableBlendingBit) {
                  GL_OPERATION(glDisable(GL_BLEND))
@@ -280,14 +285,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 GL_OPERATION(glColorMask(true, true, true, true))
                 if (!(currentFlags & EnableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);
                     }
                 }
             } else if (rc.flags & DisableColorWriteBit) {
                 GL_OPERATION(glColorMask(false, false, false, false))
                 if (!(currentFlags & DisableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camera.worldPos, false);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix, false);
                     }
                 }
             }
@@ -297,7 +302,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
 			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camera.worldPos, currentFlags & EnableColorWriteBit);
+			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING
