@@ -5,7 +5,7 @@
 #include <map>
 namespace LogVerbosity {
 	enum Enum {
-		FATAL,
+		FATAL = 0,
 		ERROR,
 		WARNING,
 		INFO,
@@ -36,28 +36,31 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define SAC_LOG_POST
 #endif
 
-#define LOGF(x) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST; assert(false); }
-#define LOGE(x) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::ERROR, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST }
-#define LOGW(x) { if (logLevel >= (int)LogVerbosity::WARNING) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::WARNING, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST } }
-#define LOGI(x) { if (logLevel >= (int)LogVerbosity::INFO) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::INFO, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST } }
+#define __LOG(level, x) { if ((int)logLevel >= (int)level) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::WARNING, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST } }
+
+
+#define LOGF(x) { __LOG(LogVerbosity::FATAL, x) assert(false); }
+#define LOGE(x) __LOG(LogVerbosity::ERROR, x)
+#define LOGW(x) __LOG(LogVerbosity::WARNING, x)
+#define LOGI(x) __LOG(LogVerbosity::INFO, x)
 #define LOGV(verbosity, x) { if (logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
 
-#define LOGF_IF(cond, x) { if ((cond)) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::FATAL, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST; assert(false); }}
-#define LOGE_IF(cond, x) { if ((cond)) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::ERROR, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST}}
-#define LOGW_IF(cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::WARNING) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::WARNING, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
-#define LOGI_IF(cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::INFO) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::INFO, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
+#define LOGF_IF(cond, x) { if ((cond)) LOGF(x) }
+#define LOGE_IF(cond, x) { if ((cond)) LOGE(x) }
+#define LOGW_IF(cond, x) { if ((cond)) LOGW(x) }
+#define LOGI_IF(cond, x) { if ((cond)) LOGI(x) }
 #define LOGV_IF(verbosity, cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::INFO + verbosity) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
 
 #define LOGE_EVERY_N(n, x) {\
     static unsigned __log_count = 0;\
     if ((__log_count++ % n) == 0) {\
-        SAC_LOG_PRE logToStream(SAC_LOG_STREAM, LogVerbosity::ERROR, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST \
+        LOGE(x) \
     } \
 }
 
 #define LOGW_EVERY_N(n, x) {\
     static unsigned __log_count = 0;\
     if ((__log_count++ % n) == 0) {\
-        LOGW(x); \
+        LOGW(x) \
     } \
 }
