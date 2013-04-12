@@ -52,3 +52,9 @@ void unpackCameraAttributes(
     const RenderingSystem::RenderCommand& in,
     TransformationComponent* cameraTrans,
     CameraComponent* cameraComp);
+
+#if SAC_USE_VBO
+#define MAX_BATCH_SIZE 128
+#else
+#define MAX_BATCH_SIZE 128
+#endif

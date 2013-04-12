@@ -1,16 +1,9 @@
 #include "EffectLibrary.h"
 
 #include "shaders/default_fs.h"
-#if SAC_USE_VBO
-#include "shaders/default_vbo_vs.h"
-#define VERTEX_SHADER_ARRAY default_vbo_vs
-#define VERTEX_SHADER_SIZE default_vbo_vs_len
-#else
 #include "shaders/default_vs.h"
 #define VERTEX_SHADER_ARRAY default_vs
 #define VERTEX_SHADER_SIZE default_vs_len
-#endif
-
 
 static GLuint compileShader(const std::string&, GLuint type, const FileBuffer& fb) {
     LOGV(1, "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader...")

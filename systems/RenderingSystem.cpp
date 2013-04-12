@@ -106,33 +106,35 @@ void RenderingSystem::init() {
 	GL_OPERATION(glDepthMask(false))
 
 #if SAC_USE_VBO
-	glGenBuffers(3, squareBuffers);
-    GLfloat sqArray[] = {
-    -0.5,  -0.5,    0,  0,  0,
-     0.5,  -0.5,    0,  1,  0,
-    -0.5,   0.5,    0,  0,  1,
-     0.5,   0.5,    0,  1,  1
-    };
+	GL_OPERATION(glGenBuffers(3, squareBuffers))
+#else
+    GL_OPERATION(glGenBuffers(1, squareBuffers))
+#endif
 
-    GLfloat sqArrayRev[] = {
-     0.5,   -0.5,   0,  0,  0,
-     0.5,    0.5,   0,  1,  0,
-    -0.5,   -0.5,   0,  0,  1,
-    -0.5,    0.5,   0,  1,  1
-    };
-    unsigned short sqIndiceArray[] = {
-    	0,1,2,1,3,2
-    };
-    // Buffer d'informations de vertex
-    glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(sqArray), sqArray, GL_STATIC_DRAW);
+    // create a static VBO for indices
+    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[0]))
+    unsigned short indices[MAX_BATCH_SIZE * 6];
+    for (unsigned c = 0; c < MAX_BATCH_SIZE; c++) {
+        const int baseIdx = 4 * c;
+        indices[c * 6 + 0] = baseIdx + 0;
+        indices[c * 6 + 1] = baseIdx + 1;
+        indices[c * 6 + 2] = baseIdx + 2;
+        indices[c * 6 + 3] = baseIdx + 1;
+        indices[c * 6 + 4] = baseIdx + 3;
+        indices[c * 6 + 5] = baseIdx + 2;
+    }
+    GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+        sizeof(indices), indices, GL_STATIC_DRAW))
+    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0))
 
-    glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(sqArrayRev), sqArrayRev, GL_STATIC_DRAW);
-
-    // Buffer d'indices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[2]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sqIndiceArray), sqIndiceArray, GL_STATIC_DRAW);
+#if SAC_USE_VBO
+    // 4 vertices per element (2 triangles with 2 shared vertices)
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]))
+    GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
+        MAX_BATCH_SIZE * 4 * 3 * sizeof(float), 0, GL_STATIC_DRAW))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[2]))
+    GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
+        MAX_BATCH_SIZE * 4 * 2 * sizeof(float), 0, GL_STATIC_DRAW))
 #endif
 }
 
@@ -322,7 +324,7 @@ void RenderingSystem::DoUpdate(float) {
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
 
-#if ! SAC_USE_VBO
+#if 1
                     // Check if we can enable opaque-first optimisation. Conditions are:
                     // 1. blending-enabled sprite
                     // 2. alpha == 1
@@ -378,7 +380,7 @@ void RenderingSystem::DoUpdate(float) {
                 }
             }
 
-#if ! SAC_USE_VBO
+#if 1
              if (!rc->fastCulling) {
                 if (!cull(camTrans, c)) {
                     continue;

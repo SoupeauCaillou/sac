@@ -116,7 +116,6 @@ public:
 
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
-    static void loadOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, float* mat);
 public:
     void enableRendering();
     void disableRendering();
@@ -140,6 +139,8 @@ public:
 
 #if SAC_USE_VBO
     GLuint squareBuffers[3];
+#else
+    GLuint squareBuffers[1];
 #endif
 private:
 

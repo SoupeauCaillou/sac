@@ -79,7 +79,7 @@ foreach (FILE ${FILES_LIST})
     if (NOT ${FILE} MATCHES "(.*).h")
         #output format: foo.vs -> foo_vs.h
         STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
-        message ("Build shader: ${FILE} -> ${Output}.h")
+        message ("Add rule to build shader: ${FILE} -> ${Output}.h")
 
         add_custom_command(
             OUTPUT ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${Output}.h

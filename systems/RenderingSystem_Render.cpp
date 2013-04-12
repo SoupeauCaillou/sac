@@ -26,14 +26,8 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
     }
 }
 
-#if SAC_USE_VBO
-#define DRAW(texture, vert, uv, indices, batchSize, rotateUV) drawBatchES2(texture, rotateUV, batchSize)
-static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, bool rotateUV, int batchSize) {
-
-#else
-#define DRAW(texture, vert, uv, indices, batchSize, reverseUV) drawBatchES2(texture, vert, uv, indices, batchSize)
-static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const GLfloat* vertices, const GLfloat* uvs, const unsigned short* indices, int batchSize) {
-#endif
+#define DRAW(texture, vert, uv, batchSize, reverseUV) drawBatchES2(texture, vert, uv, batchSize)
+static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const GLfloat* vertices, const GLfloat* uvs, int batchSize) {
     if (batchSize > 0)
     {
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
@@ -49,32 +43,39 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     	}
 
 #if SAC_USE_VBO
-    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[rotateUV ? 1 : 0]))
+        // update vertex buffer
+    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[1]))
+        GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
+            batchSize * 4 * 3 * sizeof(float), vertices))
+        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 3 * sizeof(float), 0))
 
-    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
-    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
-    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 5 * sizeof(float), 0))
-    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 5 * sizeof(float), (float*) 0 + 3))
+        // update uv buffer
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
+        GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
+            batchSize * 4 * 2 * sizeof(float), uvs))
+        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 2 * sizeof(float), 0))
 
-    	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
-    	GL_OPERATION(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0))
+        // indices buffer
+        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[0]))
+
+    	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, 0))
 #else
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
 
-    	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, indices))
+    	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[0]))
+
+        GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, 0))
 #endif
     }
     return 0;
 }
 
-#if SAC_USE_VBO
-static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info, GLint unif) {
-#else
 static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureInfo& info) {
-#endif
     // Those 2 are used by RenderingSystem to display part of the texture, with different flags.
     // For instance: display a partial-but-opaque-version before the original alpha-blended one.
     // So, their default value are: offset=0,0 and size=1,1
@@ -107,37 +108,9 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
             std::swap(rc.uv[0].x, rc.uv[1].x);
     }
     rc.rotateUV = info.rotateUV;
-
-#if SAC_USE_VBO
-    float uvso[4];
-    uvso[0] = rc.uv[1].x - rc.uv[0].x;
-    uvso[1] = rc.uv[1].y - rc.uv[0].y;
-    uvso[2] = rc.uv[0].x;
-    uvso[3] = rc.uv[0].y;
-    GL_OPERATION(glUniform4fv(unif, 1, uvso))
-#endif
 }
 
-#if SAC_USE_VBO
-static inline void addRenderCommandToBatch(float screenW, float screenH, const RenderingSystem::RenderCommand& rc, const TransformationComponent& camera, const Shader& shader) {
-#else
-static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs, unsigned short* indices) {
-#endif
-#if SAC_USE_VBO
-    float hW = 0.5 * screenW;
-    float hH = 0.5 * screenH;
-    GLfloat mat[16];
-    RenderingSystem::loadOrthographicMatrix(
-        -hW - rc.position.x + camera.worldPosition.x,
-        hW - rc.position.x + camera.worldPosition.x,
-        -hH - rc.position.y + camera.worldPosition.y,
-        hH - rc.position.y + camera.worldPosition.y,
-        0, 1, mat);
-    GL_OPERATION(glUniform1f(shader.uniformRotation, -rc.rotation))
-    float scaleZ[] = { 2 * rc.halfSize.x, 2 * rc.halfSize.y, rc.z };
-    GL_OPERATION(glUniform3fv(shader.uniformScaleZ, 1, scaleZ))
-    GL_OPERATION(glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, mat))
-#else
+static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs) {
     // fill batch
     glm::vec2 onScreenVertices[4];
     computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
@@ -157,14 +130,6 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     uvs[baseIdx * 2 + 5] = 1-rc.uv[1].y;
     uvs[baseIdx * 2 + 6] = rc.uv[1].x;
     uvs[baseIdx * 2 + 7] = 1-rc.uv[1].y;
-
-    indices[batchSize * 6 + 0] = baseIdx + 0;
-    indices[batchSize * 6 + 1] = baseIdx + 1;
-    indices[batchSize * 6 + 2] = baseIdx + 2;
-    indices[batchSize * 6 + 3] = baseIdx + 1;
-    indices[batchSize * 6 + 4] = baseIdx + 3;
-    indices[batchSize * 6 + 5] = baseIdx + 2;
-#endif
 }
 
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
@@ -182,14 +147,8 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
-#if SAC_USE_VBO
-#define MAX_BATCH_SIZE 1
-#else
-#define MAX_BATCH_SIZE 128
-#endif
 	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
 	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
-	static unsigned short indices[MAX_BATCH_SIZE * 6];
     struct {
         TransformationComponent worldPos;
         CameraComponent cameraAttr;
@@ -218,7 +177,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // HANDLE BEGIN/END FRAME MARKERS
         if (rc.texture == BeginFrameMarker) {
-            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
 
 #if SAC_ENABLE_PROFILING
             std::stringstream framename;
@@ -268,7 +227,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
             // flush batch before changing state
-            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
             if (rc.flags & EnableZWriteBit) {
                 GL_OPERATION(glDepthMask(true))
             } else if (rc.flags & DisableZWriteBit) {
@@ -301,7 +260,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // EFFECT HAS CHANGED ?
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
-			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
 			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
 		}
 
@@ -319,11 +278,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 } else {
                     rc.glref = info->glref;
                 }
-#if SAC_USE_VBO
-                computeUV(rc, *info, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset);
-#else
                 computeUV(rc, *info);
-#endif
             } else {
                 rc.uv[0] = glm::vec2(0, 1);
                 rc.uv[1] = glm::vec2(1, 0);
@@ -338,18 +293,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			rc.uv[0] = glm::vec2(0.0f, 0.0f);
 			rc.uv[1] = glm::vec2(1.0f, 1.0f);
 			rc.rotateUV = 0;
-#if SAC_USE_VBO
-			float uvso[4];
-			uvso[0] = uvso[1] = 1;
-			uvso[2] = uvso[3] = 0;
-			GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformUVScaleOffset, 1, uvso))
-#endif
 		}
 
         // TEXTURE OR COLOR HAS CHANGED ?
 		if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
             // flush before changing texture/color
-			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
             if (rc.fbo) {
                 fboRef = rc.framebuffer;
                 boundTexture = InternalTexture::Invalid;
@@ -365,18 +314,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // ADD TO BATCH
-#if SAC_USE_VBO
-		addRenderCommandToBatch(screenW, screenH, rc, camera.worldPos, effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit));
-#else
-        addRenderCommandToBatch(rc, batchSize, vertices, uvs, indices);
-#endif
+        addRenderCommandToBatch(rc, batchSize, vertices, uvs);
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
-            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, rc.rotateUV);
+            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, rc.rotateUV);
 		}
 	}
-    batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, indices, batchSize, false);
+    batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
 }
 #include <errno.h>
 
@@ -466,41 +411,6 @@ static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2&
 	out[rotateUV ? 3 : 2] = glm::vec2(-crX + srY + position.x, -(-srX) + crY + position.y);
 	// +x +y
 	out[rotateUV ? 1 : 3] = glm::vec2(crX + srY + position.x, -srX + crY + position.y);
-}
-
-void RenderingSystem::loadOrthographicMatrix(float left, float right, float bottom, float top, float near_, float far_, float* mat)
-{
-    float r_l = right - left;
-    float t_b = top - bottom;
-    float f_n = far_ - near_;
-    float tx = - (right + left) / r_l;
-    float ty = - (top + bottom) / t_b;
-    float tz = - (far_ + near_) / f_n;
-
-#if ! SAC_USE_VBO
-    mat[0] = 2.0f / r_l;
-    mat[1] = 2.0f / t_b;
-    mat[2] = -2.0f / f_n;
-    mat[3] = tx;
-    mat[4] = ty;
-    mat[5] = tz;
-#else
-    mat[0] = 2.0f / r_l;
-    mat[1] = mat[2] = mat[3] = 0.0f;
-
-    mat[4] = 0.0f;
-    mat[5] = 2.0f / t_b;
-    mat[6] = mat[7] = 0.0f;
-
-    mat[8] = mat[9] = 0.0f;
-    mat[10] = -2.0f / f_n;
-    mat[11] = 0.0f;
-
-    mat[12] = tx;
-    mat[13] = ty;
-    mat[14] = tz;
-    mat[15] = 1.0f;
-#endif
 }
 
 const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
