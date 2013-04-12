@@ -10,3 +10,4 @@ sac_tests
 bin/texture_packer
 sac.pidb
 *.o
+systems/opengl/shaders/default*h
