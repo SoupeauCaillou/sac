@@ -66,6 +66,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
     CacheKey key;
     unsigned letterCount = 0;
 
+    LOGW_EVERY_N(6000, "TODO: textrendering cache")
+
     FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
         // compute cache entry
         if (0 && trc->blink.onDuration == 0) {
@@ -78,6 +80,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
             }
             cache[entity] = hash;
         }
+        LOGV(3, "Text: '" << trc->text << "'")
 
 		// early quit if hidden
 		if (!trc->show) {
