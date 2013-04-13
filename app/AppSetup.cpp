@@ -189,10 +189,8 @@ static void updateAndRender() {
 #endif
 
 glm::vec2 resolution;
-int initGame(const std::string& title) {
-    glm::ivec2 reso16_9(394, 700);
-    glm::ivec2 reso16_10(900, 625);
-    resolution = reso16_10;
+int initGame(const std::string& title, const glm::ivec2& res) {
+    resolution = res;
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering

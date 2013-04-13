@@ -18,6 +18,6 @@
 #pragma once
 
 // SETUP WINDOW, GL, stuff
-int initGame(const std::string& title);
+int initGame(const std::string& title, const glm::ivec2& resolution);
 // START GAME
 int launchGame(Game* gameImpl, int argc, char** argv);
