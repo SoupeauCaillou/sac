@@ -66,7 +66,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 
 	TransformationComponent* ptc = TRANSFORM(e);
 	for (int i=0; i<2; i++) {
-		se.e[i] = theEntityManager.CreateEntity();
+		se.e[i] = theEntityManager.CreateEntity("scroll_" + theEntityManager.entityName(e));
 		ADD_COMPONENT(se.e[i], Transformation);
 		ADD_COMPONENT(se.e[i], Rendering);
 
@@ -74,7 +74,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		tc->parent = e;
 		tc->size = sc->displaySize;
 		tc->position = -glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y) * (float)i;
-		tc->z = ptc->z + i * 0.05;
+		tc->z = i * 0.05;
 
 		RenderingComponent* rc = RENDERING(se.e[i]);
 		// rc->hide = false;
