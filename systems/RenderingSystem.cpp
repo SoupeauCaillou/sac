@@ -78,8 +78,8 @@ void RenderingSystem::init() {
     effectLibrary.init(assetAPI);
 
 	defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
-	defaultShaderNoAlpha = effectLibrary.load("default_no_alpha.fs");
-    defaultShaderEmpty = effectLibrary.load("empty.fs");
+	defaultShaderNoAlpha = effectLibrary.load(DEFAULT_NO_ALPHA_FRAGMENT);
+    defaultShaderEmpty = effectLibrary.load(EMPTY_FRAGMENT);
 
 	// create 1px white texture
 	uint8_t data[] = {255, 255, 255, 255};

@@ -1,6 +1,8 @@
 #include "EffectLibrary.h"
 
 #include "shaders/default_fs.h"
+#include "shaders/default_no_alpha_fs.h"
+#include "shaders/empty_fs.h"
 #include "shaders/default_vs.h"
 #define VERTEX_SHADER_ARRAY default_vs
 #define VERTEX_SHADER_SIZE default_vs_len
@@ -91,6 +93,12 @@ void EffectLibrary::init(AssetAPI* pAssetAPI) {
     fb.data = default_fs;
     fb.size = default_fs_len;
     registerDataSource(load(DEFAULT_FRAGMENT), fb);
+    fb.data = default_no_alpha_fs;
+    fb.size = default_no_alpha_fs_len;
+    registerDataSource(load(DEFAULT_NO_ALPHA_FRAGMENT), fb);
+    fb.data = empty_fs;
+    fb.size = empty_fs_len;
+    registerDataSource(load(EMPTY_FRAGMENT), fb);
 }
 
 bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const EffectRef& ref) {
