@@ -76,7 +76,8 @@ execute_process(COMMAND ls
 #set it into a list
 string(REPLACE "\n" ";" FILES_LIST ${FILES})
 foreach (FILE ${FILES_LIST})
-    if (NOT ${FILE} MATCHES "(.*).h")
+    # REGEX every file ending ('$' means end') by vs or fs
+    if (${FILE} MATCHES "[fv]s$")
         #output format: foo.vs -> foo_vs.h
         STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
         message ("Add rule to build shader: ${FILE} -> ${Output}.h")
@@ -210,11 +211,11 @@ import_specific_libs()
 #######Build the game executable (except for mobile)###################
 #######################################################################
 if (NOT MOBILE_BUILD)
+
     file(
         GLOB source_platforms_files
         ${PROJECT_SOURCE_DIR}/platforms/default/*.cpp
     )
-
     add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
     target_link_libraries(${EXECUTABLE_NAME} sac)
 endif()
