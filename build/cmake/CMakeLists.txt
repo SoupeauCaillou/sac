@@ -91,6 +91,29 @@ foreach (FILE ${FILES_LIST})
 endforeach()
 
 #######################################################################
+##################Make assets (from unprepared_assets##################
+#######################################################################
+
+#file(
+#    GLOB sub-dir
+#    ${PROJECT_SOURCE_DIR}/unprepared_assets/*)
+
+#message ("${sub-dir}")
+
+#foreach (dir ${sub-dir})
+#    if (IS_DIRECTORY ${dir})
+#        message("Add rules to make assets")
+#        message("Dir found : -> ${dir}")
+
+#        add_custom_command(
+#            COMMAND ${PROJECT_SOURCE_DIR}/sac/tools/generate_altas.sh
+#            DEPENDS ${dir}
+#            WORKING_DIRECTORY ${dir})
+#    endif()
+#endforeach()
+
+
+#######################################################################
 ######################How to build sac#################################
 #######################################################################
 include_directories(${PROJECT_SOURCE_DIR}/sources)
@@ -114,12 +137,18 @@ if (WEB_BUILD)
 else()
     set(EXECUTABLE_NAME ${PROJECT_NAME})
 
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
+    if(SAC_ENABLE_PROFILING)
+        include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
 
-    file(
+        file(
+            GLOB_RECURSE opt_source_files
+            ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
+        )
+    endif()
+
+    file (
         GLOB_RECURSE opt_source_files
         ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
-        ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
     )
 endif()
 
