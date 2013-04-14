@@ -88,7 +88,19 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 }
 
 #if SAC_INGAME_EDITORS
-void ScrollingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
+void ScrollingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
+	ScrollingComponent* sc = Get(entity, false);
+    if (!sc) return;
+    int s = sc->images.size();
+    TwAddVarRO(bar, "Image number", TW_TYPE_FLOAT, &s, "group=Scrolling");
+    for (auto i: sc->images)
+    	TwAddVarRO(bar, "Image Name", TW_TYPE_STDSTRING, &i, "group=Images");
+    TwAddVarRW(bar, "Direction X", TW_TYPE_FLOAT, &sc->direction.x, "group=Scrolling");
+    TwAddVarRW(bar, "Direction Y", TW_TYPE_FLOAT, &sc->direction.y, "group=Scrolling");
+    TwAddVarRW(bar, "Speed", TW_TYPE_FLOAT, &sc->speed, "group=Scrolling");
+    TwAddVarRW(bar, "Display Size X", TW_TYPE_FLOAT, &sc->displaySize.x, "group=Scrolling");
+    TwAddVarRW(bar, "Display Size Y", TW_TYPE_FLOAT, &sc->displaySize.y, "group=Scrolling");
+    TwAddVarRW(bar, "Show", TW_TYPE_BOOLCPP, &sc->show, "group=Scrolling");
+    TwAddVarRW(bar, "Opacity", TW_TYPE_BOOLCPP, &sc->opaqueType, "group=Scrolling");
 }
 #endif
