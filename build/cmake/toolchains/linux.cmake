@@ -3,7 +3,7 @@ ADD_DEFINITIONS(-DSAC_DESKTOP=1 -DSAC_DEBUG=1 -DSAC_ENABLE_LOG=1 -DSAC_INGAME_ED
 
 # Enable '-D_GLIBCXX_DEBUG' to debug stl containers related issues
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pthread -O0 -lGL")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pthread -O0")
 set(CXX_FLAGS_DEBUG "-Wall -W -g")
 
 if (${CMAKE_C_COMPILER} MATCHES "(.*)clang")
@@ -28,6 +28,7 @@ function (others_specific_executables)
 endfunction()
 
 function (postbuild_specific_actions)
+    target_link_libraries(${EXECUTABLE_NAME} GL)
 endfunction()
 
 function (import_specific_libs)
