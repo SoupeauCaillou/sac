@@ -47,7 +47,7 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
 
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line) {
     const char* trimmed = keepOnlyFilename(file);
-    if (false && !verboseFilenameFilters[trimmed]) {
+    if (!verboseFilenameFilters[trimmed]) {
         return slashDevslashNull;
     }
 	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";
