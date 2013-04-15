@@ -19,26 +19,12 @@
 #pragma once
 
 #include <list>
-#include <stack>
+#include <queue>
 #include <string>
 #include <map>
 
 class StorageProxy {
     public:
-        StorageProxy(const std::string & structName, const std::list<std::string> & columnsName)
-            : _tableName(structName), _columnsName(columnsName)
-            {}
-        //Return the columns' names of the database table
-        const std::list<std::string> & getColumnsName() const;
-
-        //get the value from the table
-        std::string getValue(const std::string& columnName);
-
-        //set the value into the table
-        void setValue(const std::string& columnName, const std::string& value);
-
-    public:
-        std::stack<std::map<std::string, std::string> > _stack;
-        std::string _tableName;
-        std::list<std::string> _columnsName;
+        static std::string int2sql(int value);
+        static int sql2int(const std::string & value);
 };

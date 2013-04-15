@@ -133,6 +133,22 @@ bool StorageAPI::request(const std::string & statement, void* res, int (*complet
     return true;
 }
 
+void StorageAPI::createTable(StorageProxy * pproxy) {
+    std::stringstream ss;
+    const char separator = '';
+
+    ss << "create table " << pproxy->_tableName << "(";
+    foreach (auto name : pproxy->_columnsNameAndType) {
+        if (! name.empty()) {
+            ss << separator << " " << name->first << " " << name->second;ç
+            separator = ',';
+        }
+    }
+    ss << ")";
+
+    request(ss.str(), 0, 0);
+}
+
 void StorageAPI::getEntries(StorageProxy * pproxy) {
     request("select * from " + pproxy->tableName, pproxy, 0);
 }

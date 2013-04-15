@@ -1,15 +1,21 @@
 #include "StorageProxy.h"
 
-const std::list<std::string> & StorageProxy::getColumnsName() const {
-    return _columnsName;
+#include <sstream>
+
+std::string StorageProxy::int2sql(int value) {
+    std::stringstream ss;
+
+    ss << value;
+
+    return ss.str();
 }
 
-//get the value from the table
-std::string StorageProxy::getValue(const std::string& columnName) {
-    return _stack.top()[columnName];
+int StorageProxy::sql2int(const std::string & value) {
+    std::istringstream iss(value);
+
+    int res;
+    iss >> res;
+
+    return res;
 }
 
-//set the value into the table
-void StorageProxy::setValue(const std::string& columnName, const std::string& value) {
-    _stack.top()[columnName] = value;
-}

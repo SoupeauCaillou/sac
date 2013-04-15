@@ -15,6 +15,8 @@ class StorageAPI {
 
         bool isOption(const std::string & name, const std::string & compareValue);
 
+        void createTable(StorageProxy * proxy);
+
         void getEntries(StorageProxy * proxy);
 
     private:
