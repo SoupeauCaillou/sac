@@ -52,7 +52,7 @@
     int callbackProxyConversion(void *save, int dataCount, char **tuple, char ** columnName) {
         StorageProxy * proxy = static_cast<StorageProxy *> (proxy);
 
-        proxy->stack->push();
+        proxy->pushAnElement();
         for (int i = 0; i < dataCount; ++i) {
             proxy->setValue(columnName[i], argv[i]);
         }

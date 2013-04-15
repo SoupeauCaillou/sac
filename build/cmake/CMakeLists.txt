@@ -6,12 +6,9 @@ SET(SUPPORTED_TARGETS linux android emscripten windows darwin)
 
 #if target = NULL then target = current OS
 if (NOT TARGET)
-    message("No target defined! Targets available: ${SUPPORTED_TARGETS}.
-    Example: cmake . -DTARGET=linux")
-
     string (TOLOWER "${CMAKE_SYSTEM_NAME}" varplatform)
     string (TOUPPER "${CMAKE_SYSTEM_NAME}" VARPLATFORM)
-    message("Assuming your OS platform: ${varplatform}")
+    message("No target defined (TARGET). Targets available: ${SUPPORTED_TARGETS}. Will use your OS ******${varplatform}******")
 else()
     string (TOLOWER "${TARGET}" varplatform)
     string (TOUPPER "${TARGET}" VARPLATFORM)
