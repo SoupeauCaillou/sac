@@ -5,20 +5,17 @@
 
 #include "util/StorageProxy.h"
 
+class AssetAPI;
+
 class StorageAPI {
 	public:
-		virtual const std::string & getDatabasePath() = 0;
+        virtual void init(AssetAPI * assetAPI, const std::string & databaseName) = 0;
 
-        void setOption(const std::string & name, const std::string & value);
+        virtual void setOption(const std::string & name, const std::string & value) = 0;
+        virtual std::string getOption(const std::string & name) = 0;
+        virtual bool isOption(const std::string & name, const std::string & compareValue) = 0;
 
-        std::string getOption(const std::string & name);
-
-        bool isOption(const std::string & name, const std::string & compareValue);
-
-        void createTable(StorageProxy * proxy);
-
-        void getEntries(StorageProxy * proxy);
-
-    private:
-        std::string _dbPath;
+        virtual void createTable(StorageProxy * proxy) = 0;
+        virtual void saveEntries(StorageProxy * proxy) = 0;
+        virtual void loadEntries(StorageProxy * proxy) = 0;
 };

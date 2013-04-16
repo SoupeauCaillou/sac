@@ -1,4 +1,4 @@
-#include "StorageAPILinuxImpl.h"
+#include "SqliteStorageAPIImpl.h"
 #include <string>
 #include <sstream>
 
@@ -50,11 +50,11 @@
 
     //convert a tuple to proxy
     int callbackProxyConversion(void *save, int dataCount, char **tuple, char ** columnName) {
-        StorageProxy * proxy = static_cast<StorageProxy *> (proxy);
+        StorageProxy * proxy = static_cast<StorageProxy *> (save);
 
         proxy->pushAnElement();
         for (int i = 0; i < dataCount; ++i) {
-            proxy->setValue(columnName[i], argv[i]);
+            proxy->setValue(columnName[i], tuple[i]);
         }
         return 0;
     }
@@ -64,11 +64,15 @@
 ///////////////////////End of callbacks////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-void StorageAPI::init(const std::string & databaseName) {
-    initialized = true;
+void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databaseName) {
+    LOGF_IF(_initialized, "The database has already been initialized!");
+
+    _initialized = true;
+
+    _assetAPI = assetAPI;
 
     std::stringstream ss;
-    ss << getDatabasePath() << "/" << databaseName <<".db";
+    ss << _assetAPI->getWritableAppDatasPath() << "/" << databaseName <<".db";
     _dbPath = ss.str();
 
     //test if we can connect to the db
@@ -84,7 +88,7 @@ void StorageAPI::init(const std::string & databaseName) {
     }
 }
 
-void StorageAPI::checkInTable(const std::string & option,
+void SqliteStorageAPIImpl::checkInTable(const std::string & option,
 const std::string & valueIfExist, const std::string & valueIf404) {
     std::string lookFor = "select value from info where opt like '" + option + "'";
     std::string res;
@@ -103,8 +107,8 @@ const std::string & valueIfExist, const std::string & valueIf404) {
 }
 
 
-bool StorageAPI::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
-    LOGF_IF(!initialized, "The database hasn't been initialized before first request!");
+bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
+    LOGF_IF(!_initialized, "The database hasn't been initialized before first request!");
 
     sqlite3 *db;
     char *zErrMsg = 0;
@@ -133,14 +137,15 @@ bool StorageAPI::request(const std::string & statement, void* res, int (*complet
     return true;
 }
 
-void StorageAPI::createTable(StorageProxy * pproxy) {
+void SqliteStorageAPIImpl::createTable(StorageProxy * pproxy) {
     std::stringstream ss;
-    const char separator = '';
+    char separator = ' ';
 
-    ss << "create table " << pproxy->_tableName << "(";
-    foreach (auto name : pproxy->_columnsNameAndType) {
-        if (! name.empty()) {
-            ss << separator << " " << name->first << " " << name->second;ç
+    ss << "create table " << pproxy->getTableName() << "(";
+    for (auto name : pproxy->getColumnsNameAndType()) {
+        //hack, used to set the first separator between first and second element (not before the first)
+        if (! name.first.empty()) {
+            ss << separator << " " << name.first << " " << name.second;
             separator = ',';
         }
     }
@@ -149,6 +154,28 @@ void StorageAPI::createTable(StorageProxy * pproxy) {
     request(ss.str(), 0, 0);
 }
 
-void StorageAPI::getEntries(StorageProxy * pproxy) {
-    request("select * from " + pproxy->tableName, pproxy, 0);
+void SqliteStorageAPIImpl::saveEntries(StorageProxy * pproxy) {
+    do {
+        std::stringstream ss;
+        char separator = ' ';
+
+        ss << "insert into " << pproxy->getTableName() << " values (";
+        for (auto name : pproxy->getColumnsNameAndType()) {
+            //hack, used to set the first separator between first and second element (not before the first)
+            if (! name.first.empty()) {
+                if (name.second == "string")
+                    ss << separator << " '" << pproxy->getValue(name.first) << "'";
+                else
+                    ss << separator << " " << pproxy->getValue(name.first);
+                separator = ',';
+            }
+        }
+        ss << ")";
+        LOGI("Final statement: " << ss.str());
+        request(ss.str(), 0, 0);
+    } while (pproxy->popAnElement());
+}
+
+void SqliteStorageAPIImpl::loadEntries(StorageProxy * pproxy) {
+    request("select * from " + pproxy->getTableName(), pproxy, 0);
 }

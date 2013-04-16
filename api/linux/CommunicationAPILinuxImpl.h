@@ -2,8 +2,6 @@
 
 #include "../CommunicationAPI.h"
 
-#include "api/linux/StorageAPILinuxImpl.h"
-
 #include "base/Log.h"
 
 class CommunicationAPILinuxImpl : public CommunicationAPI {

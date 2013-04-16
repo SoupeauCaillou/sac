@@ -65,8 +65,8 @@
 #include "api/linux/NameInputAPILinuxImpl.h"
 #include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
-#include "api/linux/StorageAPILinuxImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
+#include "api/default/SqliteStorageAPIImpl.h"
 #include "api/SuccessAPI.h"
 
 #include "util/Recorder.h"
@@ -267,7 +267,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (game->wantsAPI(ContextAPI::Sound))
         ctx->soundAPI = new SoundAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Storage))
-        ctx->storageAPI = new StorageAPILinuxImpl();
+        ctx->storageAPI = new SqliteStorageAPIImpl();
     if (game->wantsAPI(ContextAPI::Success))
         ctx->successAPI = new SuccessAPI();
     if (game->wantsAPI(ContextAPI::Vibrate))
