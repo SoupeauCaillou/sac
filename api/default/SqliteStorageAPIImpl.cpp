@@ -137,6 +137,20 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     return true;
 }
 
+void SqliteStorageAPIImpl::setOption(const std::string & name, const std::string & value) {
+    checkInTable(name, value, value);
+}
+std::string SqliteStorageAPIImpl::getOption(const std::string & name) {
+    std::string lookFor = "select value from info where opt like '" + name + "'";
+    std::string res;
+
+    request(lookFor, &res, 0);
+    return res;
+}
+bool SqliteStorageAPIImpl::isOption(const std::string & name, const std::string & compareValue) {
+    return (getOption(name) == compareValue);
+}
+
 void SqliteStorageAPIImpl::createTable(StorageProxy * pproxy) {
     std::stringstream ss;
     char separator = ' ';

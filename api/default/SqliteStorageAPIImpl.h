@@ -14,9 +14,9 @@ class SqliteStorageAPIImpl : public StorageAPI {
 
         void init(AssetAPI * assetAPI, const std::string & databaseName);
 
-        void setOption(const std::string & name, const std::string & value) {}
-        std::string getOption(const std::string & name) {}
-        bool isOption(const std::string & name, const std::string & compareValue) {}
+        void setOption(const std::string & name, const std::string & value);
+        std::string getOption(const std::string & name);
+        bool isOption(const std::string & name, const std::string & compareValue);
 
         void createTable(StorageProxy * proxy);
         void saveEntries(StorageProxy * proxy);
