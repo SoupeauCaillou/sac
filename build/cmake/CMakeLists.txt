@@ -127,6 +127,7 @@ file(
     ${PROJECT_SOURCE_DIR}/sac/util/*
     ${PROJECT_SOURCE_DIR}/sac/steering/*
     ${PROJECT_SOURCE_DIR}/sources/*
+    ${PROJECT_SOURCE_DIR}/sac/api/default/*
 )
 
 if (WEB_BUILD)
