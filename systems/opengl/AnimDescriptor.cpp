@@ -61,7 +61,10 @@ bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varc
             if (dfp.get(section, "texture", &texture, 1)) {
                 LOGV(1, "\t" << section << ':' << texture)
                 AnimFrame frame;
-                frame.texture = theRenderingSystem.loadTextureFile(texture);
+                if (texture.empty())
+                    frame.texture = InvalidTextureRef;
+                else
+                    frame.texture = theRenderingSystem.loadTextureFile(texture);
 
                 int subEntityIndex = 0;
                 do {

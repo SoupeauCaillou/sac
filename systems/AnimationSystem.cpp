@@ -6,6 +6,7 @@ static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, con
 #ifdef SAC_DEBUG
     LOGV(1, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");
 #endif
+    RENDERING(e)->show = (frame.texture != InvalidTextureRef);
     RENDERING(e)->texture = frame.texture;
     LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size())
     for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
@@ -66,6 +67,8 @@ void AnimationSystem::DoUpdate(float dt) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
                             RENDERING(a)->show = false;
                         bc->name = anim->nextAnim;
+                        // hum, maybe bc->waitAccum should be -= accum leftover..
+                        bc->accum = 0;
                         break;
                     }
                 } else {
