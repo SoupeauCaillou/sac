@@ -18,9 +18,9 @@ class SqliteStorageAPIImpl : public StorageAPI {
         std::string getOption(const std::string & name);
         bool isOption(const std::string & name, const std::string & compareValue);
 
-        void createTable(StorageProxy * proxy);
-        void saveEntries(StorageProxy * proxy);
-        void loadEntries(StorageProxy * proxy);
+        void createTable(IStorageProxy * proxy);
+        void saveEntries(IStorageProxy * proxy);
+        void loadEntries(IStorageProxy * proxy);
 
     private:
         bool request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**));

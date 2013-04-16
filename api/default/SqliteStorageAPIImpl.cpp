@@ -50,7 +50,7 @@
 
     //convert a tuple to proxy
     int callbackProxyConversion(void *save, int dataCount, char **tuple, char ** columnName) {
-        StorageProxy * proxy = static_cast<StorageProxy *> (save);
+        IStorageProxy * proxy = static_cast<IStorageProxy *> (save);
 
         proxy->pushAnElement();
         for (int i = 0; i < dataCount; ++i) {
@@ -151,7 +151,7 @@ bool SqliteStorageAPIImpl::isOption(const std::string & name, const std::string 
     return (getOption(name) == compareValue);
 }
 
-void SqliteStorageAPIImpl::createTable(StorageProxy * pproxy) {
+void SqliteStorageAPIImpl::createTable(IStorageProxy * pproxy) {
     std::stringstream ss;
     char separator = ' ';
 
@@ -168,7 +168,7 @@ void SqliteStorageAPIImpl::createTable(StorageProxy * pproxy) {
     request(ss.str(), 0, 0);
 }
 
-void SqliteStorageAPIImpl::saveEntries(StorageProxy * pproxy) {
+void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
     do {
         std::stringstream ss;
         char separator = ' ';
@@ -190,6 +190,6 @@ void SqliteStorageAPIImpl::saveEntries(StorageProxy * pproxy) {
     } while (pproxy->popAnElement());
 }
 
-void SqliteStorageAPIImpl::loadEntries(StorageProxy * pproxy) {
+void SqliteStorageAPIImpl::loadEntries(IStorageProxy * pproxy) {
     request("select * from " + pproxy->getTableName(), pproxy, 0);
 }
