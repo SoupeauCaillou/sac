@@ -16,6 +16,7 @@ class AssetAPI {
     public:
         virtual FileBuffer loadAsset(const std::string& asset) = 0;
         virtual std::list<std::string> listContent(const std::string& extension, const std::string& subfolder = "") = 0;
+        virtual const std::string & getWritableAppDatasPath() = 0;
 };
 
 

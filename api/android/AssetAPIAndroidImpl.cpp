@@ -1,8 +1,9 @@
 #include "AssetAPIAndroidImpl.h"
-#include "../../base/Log.h"
+#include "base/Log.h"
 
 AssetAPIAndroidImpl::AssetAPIAndroidImpl() : JNIWrapper<jni_asset_api::Enum>("net/damsy/soupeaucaillou/api/AssetAPI", true) {
     declareMethod(jni_asset_api::LoadAsset, "assetToByteArray", "(Ljava/lang/String;)[B");
+    declareMethod(jni_stor_api::GetWritableAppDatasPath, "getWritableAppDatasPath", "()Ljava/lang/String")
 }
 
 static uint8_t* loadAssetFromJava(JNIEnv *env, const std::string& assetName, int* length, jobject instance, jmethodID mid) {
@@ -34,3 +35,15 @@ std::list<std::string> AssetAPIAndroidImpl::listContent(const std::string&, cons
     LOGW("TODO");
     return std::list<std::string>();
 }
+
+const std::string &  AssetAPIAndroidImpl::getWritableAppDatasPath() {
+    static std::string path;
+
+    jobject result = env->CallObjectMethod(instance, methods[jni_stor_api::GetWritableAppDatasPath]);
+    static const char* str = env->GetStringUTFChars((jstring) result, NULL);
+    path.assign(str);
+
+    LOGV(1, "path is '" << path << "'.");
+    return path;
+ }
+

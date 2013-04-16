@@ -1,6 +1,17 @@
 #include "AssetAPILinuxImpl.h"
+
+#include "base/Log.h"
+
 #include <cstring>
-#include <base/Log.h>
+
+#include <sstream>
+
+#include <sys/stat.h>
+//#include <sys/types.h>
+
+//for getenv
+#include <cstdlib>
+
 
 #if SAC_WINDOWS
 
@@ -85,3 +96,31 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
 #endif
     return content;
 }
+ const std::string &  AssetAPILinuxImpl::getWritableAppDatasPath() {
+    static std::string path;
+
+    if (path.empty()) {
+        std::stringstream ss;
+        char * pPath = getenv ("XDG_DATA_HOME");
+        if (pPath) {
+            ss << pPath;
+        } else if ((pPath = getenv ("HOME")) != 0) {
+            ss << pPath << "/.local/share/";
+        } else {
+            ss << "/tmp/";
+        }
+        ss << "sac/";
+
+        // create folder if needed
+        struct stat statFolder;
+        int st = stat(ss.str().c_str(), &statFolder);
+        if (st || (statFolder.st_mode & S_IFMT) != S_IFDIR) {
+            if (mkdir(ss.str().c_str(), S_IRWXU | S_IWGRP | S_IROTH)) {
+                LOGF("Failed to create : '" << ss.str() << "'")
+            }
+        }
+
+        path = ss.str();
+    }
+    return path;
+ }
