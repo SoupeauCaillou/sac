@@ -36,7 +36,7 @@ AnimationSystem::~AnimationSystem() {
 void AnimationSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Animation, a, bc)
         AnimIt jt = animations.find(bc->name);
-        if (jt == animations.end())
+        if (jt == animations.end() || bc->playbackSpeed <= 0)
             continue;
         AnimDescriptor* anim = jt->second;
 
