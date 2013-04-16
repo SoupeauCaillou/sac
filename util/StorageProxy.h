@@ -18,8 +18,6 @@
 */
 #pragma once
 
-#include <list>
-#include <queue>
 #include <string>
 #include <map>
 
@@ -27,4 +25,16 @@ class StorageProxy {
     public:
         static std::string int2sql(int value);
         static int sql2int(const std::string & value);
+        static std::string float2sql(float value);
+        static float sql2float(const std::string & value);
+
+        virtual std::string getValue(const std::string& columnName)= 0;
+
+        virtual void setValue(const std::string& columnName, const std::string& value)= 0;
+
+        virtual void pushAnElement()= 0;
+        virtual bool popAnElement()= 0;
+
+        virtual const std::string & getTableName() = 0;
+        virtual const std::map<std::string, std::string> & getColumnsNameAndType() = 0;
 };
