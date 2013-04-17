@@ -25,6 +25,8 @@ class TouchInputManager {
 
 		bool isTouched(int idx = 0) const { return touching[idx]; }
 
+        bool hasClicked(int idx = 0) const { return !touching[idx] && wasTouching[idx]; }
+
         const glm::vec2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
 
 		void Update(float dt);
