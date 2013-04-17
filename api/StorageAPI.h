@@ -17,5 +17,9 @@ class StorageAPI {
 
         virtual void createTable(IStorageProxy * proxy) = 0;
         virtual void saveEntries(IStorageProxy * proxy) = 0;
-        virtual void loadEntries(IStorageProxy * proxy) = 0;
+        virtual void loadEntries(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "") = 0;
+
+        virtual int count(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "") = 0;
+
+        virtual float sum(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "") = 0;
 };

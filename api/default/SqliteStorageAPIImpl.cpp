@@ -190,6 +190,37 @@ void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
     } while (pproxy->popAnElement());
 }
 
-void SqliteStorageAPIImpl::loadEntries(IStorageProxy * pproxy) {
-    request("select * from " + pproxy->getTableName(), pproxy, 0);
+void SqliteStorageAPIImpl::loadEntries(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
+    request("select " +  selectArg + " from " + pproxy->getTableName() + " " + options, pproxy, 0);
 }
+
+
+int SqliteStorageAPIImpl::count(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
+    //because callbacks are C still, we must create a temp string variable because we cannot pass iss.str() to the callback
+    std::string res;
+
+    //we do select count(*) from (select ...) because for some specific requests it's needed
+    //for example, this cannot be done in a single time: select count(*) from (select distinct difficulty, mode from Score);
+    request("select count(*) from (select  " +  selectArg + " from " + pproxy->getTableName() + " " + options, &res, 0);
+    std::istringstream iss;
+    iss.str(res);
+    int finalRes;
+
+    iss >> finalRes;
+
+    return finalRes;
+}
+
+float SqliteStorageAPIImpl::sum(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
+    //because callbacks are C still, we must create a temp string variable because we cannot pass iss.str() to the callback
+    std::string res;
+    request("select sum(" +  selectArg + ") from " + pproxy->getTableName() + " " + options, &res, 0);
+    std::istringstream iss;
+    iss.str(res);
+    float finalRes;
+
+    iss >> finalRes;
+
+    return finalRes;
+}
+

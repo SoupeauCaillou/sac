@@ -20,7 +20,11 @@ class SqliteStorageAPIImpl : public StorageAPI {
 
         void createTable(IStorageProxy * proxy);
         void saveEntries(IStorageProxy * proxy);
-        void loadEntries(IStorageProxy * proxy);
+        void loadEntries(IStorageProxy * proxy, const std::string & selectArg = "*", const std::string & options = "");
+
+        int count(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "");
+
+        float sum(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "");
 
     private:
         bool request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**));
@@ -28,5 +32,7 @@ class SqliteStorageAPIImpl : public StorageAPI {
         std::string _dbPath;
 
         bool _initialized;
+
+        /*Needed to get the datapath on filesystem which is platform dependent*/
         AssetAPI* _assetAPI;
 };
