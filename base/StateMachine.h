@@ -71,6 +71,8 @@ class StateMachine {
 
         T getCurrentState() const;
 
+        const std::map<T, StateHandler<T>*>& getHandlers() const;
+
 	private:
 		T currentState, overrideNextState;
 		std::map<T, StateHandler<T>*> state2handler;

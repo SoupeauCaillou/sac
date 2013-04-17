@@ -112,3 +112,8 @@ void StateMachine<T>::reEnterCurrentState() {
     state2handler[currentState]->onPreEnter(currentState);
     state2handler[currentState]->onEnter(currentState);
 }
+
+template<typename T>
+const std::map<T, StateHandler<T>*>& StateMachine<T>::getHandlers() const {
+    return state2handler;
+}
