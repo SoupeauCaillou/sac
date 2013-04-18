@@ -110,6 +110,10 @@ const std::string & valueIfExist, const std::string & valueIf404) {
 bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
     LOGF_IF(!_initialized, "The database hasn't been initialized before first request!");
 
+#ifdef SAC_DEBUG
+    LOGI("sqlite request: " << statement);
+#endif
+
     sqlite3 *db;
     char *zErrMsg = 0;
 
@@ -169,6 +173,9 @@ void SqliteStorageAPIImpl::createTable(IStorageProxy * pproxy) {
 }
 
 void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
+    if (pproxy->isEmpty())
+        return;
+
     do {
         std::stringstream ss;
         char separator = ' ';
@@ -187,7 +194,9 @@ void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
         ss << ")";
         LOGI("Final statement: " << ss.str());
         request(ss.str(), 0, 0);
-    } while (pproxy->popAnElement());
+
+        pproxy->popAnElement();
+    } while (!pproxy->isEmpty());
 }
 
 void SqliteStorageAPIImpl::loadEntries(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
@@ -201,7 +210,7 @@ int SqliteStorageAPIImpl::count(IStorageProxy * pproxy, const std::string & sele
 
     //we do select count(*) from (select ...) because for some specific requests it's needed
     //for example, this cannot be done in a single time: select count(*) from (select distinct difficulty, mode from Score);
-    request("select count(*) from (select  " +  selectArg + " from " + pproxy->getTableName() + " " + options, &res, 0);
+    request("select count(*) from (select  " +  selectArg + " from " + pproxy->getTableName() + " " + options + ")", &res, 0);
     std::istringstream iss;
     iss.str(res);
     int finalRes;
