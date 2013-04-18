@@ -214,7 +214,8 @@ int SqliteStorageAPIImpl::count(IStorageProxy * pproxy, const std::string & sele
 float SqliteStorageAPIImpl::sum(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
     //because callbacks are C still, we must create a temp string variable because we cannot pass iss.str() to the callback
     std::string res;
-    request("select sum(" +  selectArg + ") from " + pproxy->getTableName() + " " + options, &res, 0);
+    //'not null' is needed if there is no score, it will return '0' instead of ''
+    request("select sum(" +  selectArg + ") not null from " + pproxy->getTableName() + " " + options, &res, 0);
     std::istringstream iss;
     iss.str(res);
     float finalRes;
