@@ -20,9 +20,11 @@ public:
 NullStream slashDevslashNull;
 
 static const char* enumNames[] ={
+    //5 chars length for all
 	"FATAL",
 	"ERROR",
-	"WARN ",
+    "TODO ",
+    "WARN ",
 	"INFO ",
 	"VERB "
 };

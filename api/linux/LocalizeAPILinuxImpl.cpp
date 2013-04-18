@@ -50,7 +50,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
         filename += lang.c_str();
     }
     filename += "/strings.xml";
-    LOGE("Found language:" << lang << " -> " << filename)
+    LOGI("[INIT]Found language:" << lang << " -> " << filename)
 
     //first, clean the map
     _idToMessage.clear();
@@ -80,7 +80,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
         _idToMessage[pElem->Attribute("name")] = s;
         LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'")
     }
-    LOGI("Localize strings count: " << _idToMessage.size())
+    LOGI("[INIT]Localize strings count: " << _idToMessage.size())
 
     return 0;
 }
