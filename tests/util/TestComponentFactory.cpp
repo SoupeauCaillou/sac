@@ -67,3 +67,17 @@ TEST(TestStringProperty)
 	CHECK_EQUAL("super_animation", comp.name);
 	AnimationSystem::DestroyInstance();
 }
+
+TEST(TestTextureProperty)
+{
+	RenderingSystem::CreateInstance();
+	FileBuffer fb = FB("texture=my_texture");
+	DataFileParser dfp;
+	dfp.load(fb);
+	RenderingComponent comp;
+
+	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theRenderingSystem.getSerializer().getProperties(), &comp));
+
+	CHECK_EQUAL(theRenderingSystem.loadTextureFile("my_texture"), comp.texture);
+	RenderingSystem::DestroyInstance();
+}

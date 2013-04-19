@@ -19,6 +19,9 @@ inline Property<glm::vec2>::Property(const std::string& name, unsigned long offs
 template <class T>
 inline Property<T>::Property(const std::string& name, unsigned long offset, T pEpsilon) : IProperty(name, PropertyType::Unsupported, offset, sizeof(T)), epsilon(pEpsilon) {}
 
+template <class T>
+inline Property<T>::Property(const std::string& name, PropertyType::Enum type, unsigned long offset, T pEpsilon) : IProperty(name, type, offset, sizeof(T)), epsilon(pEpsilon) {}
+
 template <>
 inline bool Property<Color>::different(void* object, void* refObject) const {
     Color* a = (Color*) ((uint8_t*)object + offset);

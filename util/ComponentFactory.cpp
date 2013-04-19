@@ -2,6 +2,7 @@
 #include "DataFileParser.h"
 #include "Serializer.h"
 #include "base/Interval.h"
+#include "systems/RenderingSystem.h"
 
 template <class T>
 int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, T* out);
@@ -81,6 +82,15 @@ int ComponentFactory::build(const DataFileParser& dfp,
                 break;
             case PropertyType::String:
                 count += load(dfp, section, name, (std::string*)((uint8_t*)component + (*it)->offset));
+                break;
+            case PropertyType::Texture: {
+                std::string textureName;
+                if (load(dfp, section, name, &textureName)) {
+                    count++;
+                    *((TextureRef*)((uint8_t*)component + (*it)->offset)) = theRenderingSystem.loadTextureFile(textureName);
+                }
+                break;
+            }
             default:
                 break;
         }

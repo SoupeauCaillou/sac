@@ -15,6 +15,7 @@ namespace PropertyType {
         Float,
         Color,
         Interval,
+        Texture,
         Unsupported
     };
 }
@@ -43,6 +44,7 @@ class IProperty {
 template<typename T>
 class Property : public IProperty {
     public:
+        Property(const std::string& name, PropertyType::Enum type, unsigned long offset, T pEpsilon = 0);
         Property(const std::string& name, unsigned long offset, T pEpsilon = 0);
         bool different(void* object, void* refObject) const;
     private:
