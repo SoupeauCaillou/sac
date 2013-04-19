@@ -100,8 +100,6 @@ class MapProperty : public IProperty {
 
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 
-#include "Serializer.hpp"
-
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
 
 class Serializer {

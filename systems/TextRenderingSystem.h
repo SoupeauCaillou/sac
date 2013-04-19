@@ -7,6 +7,8 @@
 #endif
 
 #include "System.h"
+#include "base/Color.h"
+
 #include "opengl/TextureLibrary.h"
 
 #include <vector>
