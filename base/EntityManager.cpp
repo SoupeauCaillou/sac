@@ -75,6 +75,7 @@ Entity EntityManager::CreateEntity(const std::string&
         for (auto it = systems.begin(); it!=systems.end(); ++it) {
             if (dfp->hasSection(it->first)) {
                 it->second->Add(e, dfp);
+                entityComponents[e].push_back(it->second);
             }
         }
     }

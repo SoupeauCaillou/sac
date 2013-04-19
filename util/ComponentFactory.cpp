@@ -4,6 +4,9 @@
 #include "base/Interval.h"
 #include "systems/RenderingSystem.h"
 
+#define LOG_SUCCESS LOGE("Loaded " << section << "/" << name << " property: '" << *out << "'")
+#define LOG_SUCCESS_ LOGE("Loaded " << section << "/" << name << " property: '"
+
 template <class T>
 int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, T* out);
 
@@ -16,10 +19,12 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         // we got an interval
         Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
         *out = itv.random();
+        LOG_SUCCESS_ << out->x << ", " << out->y << "'")
         return 1;
     } else if (dfp.get(section, name, parsed, 2, false)) {
         // we got a single value
         *out = glm::vec2(parsed[0], parsed[1]);
+        LOG_SUCCESS_ << out->x << ", " << out->y << "'")
         return 1;
     } else {
         // fail
@@ -34,6 +39,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     if (dfp.get(section, name, &parsed, 1, false)) {
         // we got a single value
         *out = parsed;
+        LOG_SUCCESS
         return 1;
     } else {
         // fail
@@ -49,10 +55,12 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
         // we got an interval
         Interval<T> itv(parsed[0], parsed[1]);
         *out = itv.random();
+        LOG_SUCCESS
         return 1;
     } else if (dfp.get(section, name, parsed, 1, false)) {
         // we got a single value
         *out = parsed[0];
+        LOG_SUCCESS
         return 1;
     } else {
         // fail
