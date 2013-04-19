@@ -65,8 +65,16 @@ bool DataFileParser::load(const FileBuffer& fb) {
                 LOGW("Duplicate section found: '" << section << "'. This is not supported")
             }
         } else {
-            std::string key = s.substr(0, s.find('='));
-            std::string value = s.substr(s.find('=') + 1);
+            // first '='
+            int sep = s.find('=');
+            int st = 0, len = sep - st;
+            while (s[st] == ' ' || s[st] == '\t') { st++; len--; }
+            while (s[st + len - 1] == ' ' || s[st + len - 1] == '\t') len--;
+            sep++;
+            while (s[sep] == ' ' || s[sep] == '\t') sep++;
+
+            std::string key = s.substr(st, len);
+            std::string value = s.substr(sep);
             currentSection->insert(std::make_pair(key, value));
         }
     }
