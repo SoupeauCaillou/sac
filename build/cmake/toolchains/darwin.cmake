@@ -10,6 +10,7 @@ set(DESKTOP_BUILD 1)
 SET (SAC_LIB_TYPE STATIC)
 
 function (others_specific_executables)
+    check_and_link_libs("sac" GL)
 endfunction()
 
 function (postbuild_specific_actions)
