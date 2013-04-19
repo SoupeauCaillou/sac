@@ -26,6 +26,20 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     }
 }
 
+template <>
+inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, std::string* out) {
+    std::string parsed;
+
+    if (dfp.get(section, name, &parsed, 1, false)) {
+        // we got a single value
+        *out = parsed;
+        return 1;
+    } else {
+        // fail
+        return 0;
+    }
+}
+
 template <class T>
 inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, T* out) {
     T parsed[2];
@@ -65,6 +79,8 @@ int ComponentFactory::build(const DataFileParser& dfp,
             case PropertyType::Vec2:
                 count += load(dfp, section, name, (glm::vec2*)((uint8_t*)component + (*it)->offset));
                 break;
+            case PropertyType::String:
+                count += load(dfp, section, name, (std::string*)((uint8_t*)component + (*it)->offset));
             default:
                 break;
         }

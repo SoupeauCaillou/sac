@@ -2,6 +2,7 @@
 #include "util/ComponentFactory.h"
 #include "util/DataFileParser.h"
 #include "systems/TransformationSystem.h"
+#include "systems/AnimationSystem.h"
 
 static FileBuffer FB(const char* str) {
     FileBuffer fb;
@@ -51,4 +52,18 @@ TEST(TestSingleVec2Property)
 	CHECK_CLOSE(2, comp.size.x, 0.001);
 	CHECK_CLOSE(4, comp.size.y, 0.001);
 	TransformationSystem::DestroyInstance();
+}
+
+TEST(TestStringProperty)
+{
+	AnimationSystem::CreateInstance();
+	FileBuffer fb = FB("name=super_animation");
+	DataFileParser dfp;
+	dfp.load(fb);
+	AnimationComponent comp;
+
+	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theAnimationSystem.getSerializer().getProperties(), &comp));
+
+	CHECK_EQUAL("super_animation", comp.name);
+	AnimationSystem::DestroyInstance();
 }
