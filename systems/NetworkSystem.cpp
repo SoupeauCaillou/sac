@@ -65,7 +65,7 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"
     myNonce = glm::linearRand(0.0f, 65000.0f);
 
     NetworkComponentPriv nc;
-    componentSerializer.add(new MapProperty<std::string, float>(OFFSET(systemUpdatePeriod, nc)));
+    componentSerializer.add(new MapProperty<std::string, float>("system_update_periods", OFFSET(systemUpdatePeriod, nc)));
 }
 
 

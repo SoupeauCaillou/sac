@@ -16,10 +16,10 @@ class DataFileParser {
         void unload();
 
         template <class T>
-        bool get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true);
+        bool get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true) const;
 
         template <class T>
-        bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1);
+        bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1) const;
 
         unsigned sectionSize(const std::string& section) const;
         bool hasSection(const std::string& section) const;
@@ -31,10 +31,10 @@ class DataFileParser {
         const std::string& indexValue(const std::string& section, unsigned index, std::string& varName) const;
 
         template <class T>
-        bool parse(const std::string& value, T* out, const int count = 1);
+        bool parse(const std::string& value, T* out, const int count = 1) const;
 
     public:
-        bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes);
+        bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes) const;
         std::string replaceVariables(const std::string& str) const;
 
     private:
@@ -45,7 +45,7 @@ class DataFileParser {
 #define MAX_ELEMENTS 10
 
 template <class T>
-bool DataFileParser::parse(const std::string& value, T* out, const int count) {
+bool DataFileParser::parse(const std::string& value, T* out, const int count) const {
 	LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported")
 
 	size_t endIndexes[MAX_ELEMENTS];
@@ -69,7 +69,7 @@ bool DataFileParser::parse(const std::string& value, T* out, const int count) {
 }
 
 template <class T>
-bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound) {
+bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound)  const{
     // Retrieve value
     const std::string& val = keyValue(section, var, warnIfNotFound);
     if (val.empty())
@@ -79,7 +79,7 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
 }
 
 template <class T>
-bool DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count) {
+bool DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count)  const{
     // Retrieve value
     const std::string& val = indexValue(section, index, varName);
     if (val.empty())

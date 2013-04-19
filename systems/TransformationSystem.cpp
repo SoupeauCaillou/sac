@@ -6,11 +6,11 @@ INSTANCE_IMPL(TransformationSystem);
 
 TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") {
     TransformationComponent tc;
-    componentSerializer.add(new EntityProperty(OFFSET(parent, tc)));
-    componentSerializer.add(new Property<glm::vec2>(OFFSET(position, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<glm::vec2>(OFFSET(size, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>(OFFSET(rotation, tc), 0.001));
-    componentSerializer.add(new Property<float>(OFFSET(z, tc), 0.001));
+    componentSerializer.add(new EntityProperty("parent", OFFSET(parent, tc)));
+    componentSerializer.add(new Property<glm::vec2>("position", OFFSET(position, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>("size", OFFSET(size, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<float>("rotation", OFFSET(rotation, tc), 0.001));
+    componentSerializer.add(new Property<float>("z", OFFSET(z, tc), 0.001));
 }
 
 

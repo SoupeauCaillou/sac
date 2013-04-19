@@ -12,3 +12,7 @@ std::vector<std::string> ComponentSystem::registeredSystemNames() {
 	}
 	return result;
 }
+
+const std::map<std::string, ComponentSystem*>& ComponentSystem::registeredSystems() {
+    return registry;
+}

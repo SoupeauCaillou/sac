@@ -143,7 +143,7 @@ unsigned DataFileParser::sectionSize(const std::string& section) const {
     return it->second->size();
 }
 
-bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes) {
+bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes) const{
     // Determine substring indexes
     outIndexes[count - 1] = str.size() - 1;
     size_t index = 0;

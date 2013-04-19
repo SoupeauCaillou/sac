@@ -14,6 +14,8 @@
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
+#include "util/DataFileParser.h"
+#include "util/ComponentFactory.h"
 #if SAC_DEBUG
 #include "base/EntityManager.h"
 #endif
@@ -126,7 +128,7 @@ class ComponentSystem {
         virtual ~ComponentSystem() { registry.erase(name); }
 
 		virtual const std::string& getName() const { return name; }
-		virtual void Add(Entity entity) = 0;
+		virtual void Add(Entity entity, const DataFileParser* dfp = 0) = 0;
 		virtual void Delete(Entity entity) = 0;
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
@@ -154,6 +156,7 @@ class ComponentSystem {
 		}
 
 		static std::vector<std::string> registeredSystemNames();
+        static const std::map<std::string, ComponentSystem*>& registeredSystems();
 
 #if SAC_INGAME_EDITORS
         virtual void addEntityPropertiesToBar(Entity , TwBar* ) {}
@@ -162,7 +165,7 @@ class ComponentSystem {
 	protected:
 		virtual void DoUpdate(float dt) = 0;
 		static std::map<std::string, ComponentSystem*> registry;
-	private:
+	protected:
 		std::string name;
     public:
 #if SAC_DEBUG
@@ -180,7 +183,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #endif
 		}
 
-		void Add(Entity entity) {
+		void Add(Entity entity, const DataFileParser* dfp = 0) {
 #if SAC_USE_VECTOR_STORAGE
             if (_freelist == UINT_MAX) {
                  entityWithComponent.push_back(EntityNextFree(entity));
@@ -196,7 +199,12 @@ class ComponentSystemImpl: public ComponentSystem {
             assert(components.size() == entityWithComponent.size());
 #else
 			assert (components.find(entity) == components.end());
-			components.insert(std::make_pair(entity, CreateComponent()));
+            T* comp = CreateComponent();
+            if (dfp) {
+                int count = ComponentFactory::build(*dfp, name, componentSerializer.getProperties(), comp);
+                LOGV(2, "Initialized " << name << ": " << count << " properties read")
+            }
+			components.insert(std::make_pair(entity, comp));
 #endif
 		}
 
@@ -338,4 +346,8 @@ class ComponentSystemImpl: public ComponentSystem {
         Entity previous;
         T* previousComp;
         Serializer componentSerializer;
+    public:
+        const Serializer& getSerializer() const {
+            return componentSerializer;
+        }
 };

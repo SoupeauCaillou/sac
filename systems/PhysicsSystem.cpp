@@ -6,11 +6,10 @@ INSTANCE_IMPL(PhysicsSystem);
 
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
     PhysicsComponent tc;
-    componentSerializer.add(new Property<glm::vec2>(OFFSET(linearVelocity, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>(OFFSET(angularVelocity, tc), 0.001));
-    componentSerializer.add(new Property<float>(OFFSET(mass, tc), 0.001));
-    componentSerializer.add(new Property<glm::vec2>(OFFSET(gravity, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>(OFFSET(momentOfInertia, tc), 0.001));
+    componentSerializer.add(new Property<glm::vec2>("linear_velocity", OFFSET(linearVelocity, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<float>("angular_velocity", OFFSET(angularVelocity, tc), 0.001));
+    componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc), 0.001));
+    componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
 }
 
 void PhysicsSystem::DoUpdate(float dt) {
@@ -97,7 +96,7 @@ void PhysicsSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     PhysicsComponent* tc = Get(entity, false);
     if (!tc) return;
     TwAddVarRW(bar, "velocity.X", TW_TYPE_FLOAT, &tc->linearVelocity.x, "group=Physics precision=2 step=0,01");
-    TwAddVarRW(bar, "velocity.Y", TW_TYPE_FLOAT, &tc->linearVelocity.y, "group=Physics precision=2 step=0,01"); 
+    TwAddVarRW(bar, "velocity.Y", TW_TYPE_FLOAT, &tc->linearVelocity.y, "group=Physics precision=2 step=0,01");
     TwAddVarRW(bar, "angularVelocity", TW_TYPE_FLOAT, &tc->angularVelocity, "group=Physics step=0,01 precision=2");
     TwAddVarRW(bar, "mass", TW_TYPE_FLOAT, &tc->mass, "group=Physics precision=1");
     TwAddVarRW(bar, "gravity.X", TW_TYPE_FLOAT, &tc->gravity.x, "group=Physics precision=2 step=0,01");

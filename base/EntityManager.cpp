@@ -1,6 +1,7 @@
 #include "EntityManager.h"
 #include <glm/glm.hpp>
 #include "systems/System.h"
+#include "util/DataFileParser.h"
 #include <cstring>
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN || SAC_WINDOWS || SAC_DARWIN
@@ -42,7 +43,7 @@ Entity EntityManager::CreateEntity(const std::string&
 #if SAC_DEBUG
             name
 #endif
-        , EntityType::Enum type) {
+        , EntityType::Enum type, const DataFileParser* dfp) {
 	Entity e = nextEntity++;
 
 	switch (type) {
@@ -66,6 +67,18 @@ Entity EntityManager::CreateEntity(const std::string&
         name2entity.insert(std::make_pair(namesuffix.str(), e));
     }
 #endif
+
+    if (dfp) {
+        LOGV(1, "Create entity: " << name << " from file")
+        // browse system
+        const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
+        for (auto it = systems.begin(); it!=systems.end(); ++it) {
+            if (dfp->hasSection(it->first)) {
+                it->second->Add(e, dfp);
+            }
+        }
+    }
+
 	return e;
 }
 

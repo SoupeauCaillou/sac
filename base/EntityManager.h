@@ -12,6 +12,7 @@
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
 
 class ComponentSystem;
+class DataFileParser;
 
 namespace EntityType {
     enum Enum {
@@ -31,7 +32,8 @@ class EntityManager {
 	public:
 
 		Entity CreateEntity(const std::string& name = "noname"
-            , EntityType::Enum type = EntityType::Volatile);
+            , EntityType::Enum type = EntityType::Volatile,
+            const DataFileParser* dfp = 0);
 
     	void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system);

@@ -4,6 +4,22 @@
 #include "base/Color.h"
 
 template <>
+inline Property<float>::Property(const std::string& name, unsigned long offset, float pEpsilon) : IProperty(name, PropertyType::Float, offset, sizeof(float)), epsilon(pEpsilon) {}
+
+template <>
+inline Property<int>::Property(const std::string& name, unsigned long offset, int pEpsilon) : IProperty(name, PropertyType::Int, offset, sizeof(int)), epsilon(pEpsilon) {}
+
+template <>
+inline Property<Color>::Property(const std::string& name, unsigned long offset, Color pEpsilon) :
+    IProperty(name, PropertyType::Color, offset, sizeof(Color)), epsilon(pEpsilon) {}
+
+template <>
+inline Property<glm::vec2>::Property(const std::string& name, unsigned long offset, glm::vec2 pEpsilon) : IProperty(name, PropertyType::Vec2, offset, sizeof(glm::vec2)), epsilon(pEpsilon) {}
+
+template <class T>
+inline Property<T>::Property(const std::string& name, unsigned long offset, T pEpsilon) : IProperty(name, PropertyType::Unsupported, offset, sizeof(T)), epsilon(pEpsilon) {}
+
+template <>
 inline bool Property<Color>::different(void* object, void* refObject) const {
     Color* a = (Color*) ((uint8_t*)object + offset);
     Color* b = (Color*) ((uint8_t*)refObject + offset);
@@ -26,7 +42,7 @@ inline bool Property<T>::different(void* object, void* refObject) const {
 }
 
 template <typename T>
-VectorProperty<T>::VectorProperty(unsigned long offset) : IProperty(offset, 0) {}
+VectorProperty<T>::VectorProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Unsupported, offset, 0) {}
 
 template <typename T>
 inline unsigned VectorProperty<T>::size(void* object) const {
@@ -79,7 +95,7 @@ inline int VectorProperty<T>::deserialize(uint8_t* in, void* object) const {
 }
 
 template <typename T>
-IntervalProperty<T>::IntervalProperty(unsigned long offset) : IProperty(offset, 2 * sizeof(T)) {}
+IntervalProperty<T>::IntervalProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Interval, offset, 2 * sizeof(T)) {}
 
 template <typename T>
 inline bool IntervalProperty<T>::different(void* object, void* refObject) const {
@@ -105,7 +121,7 @@ inline int IntervalProperty<T>::deserialize(uint8_t* in, void* object) const {
 }
 
 template <typename T, typename U>
-MapProperty<T,U>::MapProperty(unsigned long offset) : IProperty(offset, 0) {}
+MapProperty<T,U>::MapProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Unsupported, offset, 0) {}
 
 template <typename T, typename U>
 inline unsigned MapProperty<T,U>::size(void* object) const {

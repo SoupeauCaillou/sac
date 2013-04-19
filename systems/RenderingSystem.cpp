@@ -34,15 +34,15 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 #endif
 
     RenderingComponent tc;
-    componentSerializer.add(new Property<TextureRef>(OFFSET(texture, tc)));
-    componentSerializer.add(new Property<EffectRef>(OFFSET(effectRef, tc)));
-    componentSerializer.add(new Property<Color>(OFFSET(color, tc)));
-    componentSerializer.add(new Property<bool>(OFFSET(show, tc)));
-    componentSerializer.add(new Property<bool>(OFFSET(mirrorH, tc)));
-    componentSerializer.add(new Property<bool>(OFFSET(zPrePass, tc)));
-    componentSerializer.add(new Property<bool>(OFFSET(fastCulling, tc)));
-    componentSerializer.add(new Property<int>(OFFSET(opaqueType, tc)));
-    componentSerializer.add(new Property<int>(OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<TextureRef>("texture", OFFSET(texture, tc)));
+    componentSerializer.add(new Property<EffectRef>("effectRef", OFFSET(effectRef, tc)));
+    componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
+    componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
+    componentSerializer.add(new Property<bool>("mirror_h", OFFSET(mirrorH, tc)));
+    componentSerializer.add(new Property<bool>("z_pre_pass", OFFSET(zPrePass, tc)));
+    componentSerializer.add(new Property<bool>("fast_culling", OFFSET(fastCulling, tc)));
+    componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
+    componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;

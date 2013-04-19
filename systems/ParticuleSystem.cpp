@@ -18,18 +18,19 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     minUsedIdx = maxUsedIdx = 0;
 
     ParticuleComponent tc;
-    componentSerializer.add(new Property<float>(OFFSET(emissionRate, tc)));
-    componentSerializer.add(new Property<float>(OFFSET(duration, tc)));
-    componentSerializer.add(new Property<TextureRef>(OFFSET(texture, tc)));
-    componentSerializer.add(new IntervalProperty<float>(OFFSET(lifetime, tc)));
-    componentSerializer.add(new IntervalProperty<Color>(OFFSET(initialColor, tc)));
-    componentSerializer.add(new IntervalProperty<Color>(OFFSET(finalColor, tc)));
-    componentSerializer.add(new IntervalProperty<float>(OFFSET(initialSize, tc)));
-    componentSerializer.add(new IntervalProperty<float>(OFFSET(finalSize, tc)));
-    componentSerializer.add(new IntervalProperty<float>(OFFSET(forceDirection, tc)));
-    componentSerializer.add(new IntervalProperty<float>(OFFSET(forceAmplitude, tc)));
-    componentSerializer.add(new IntervalProperty<float>(OFFSET(moment, tc)));
-    componentSerializer.add(new Property<float>(OFFSET(mass, tc)));
+    componentSerializer.add(new Property<float>("emissionRate", OFFSET(emissionRate, tc)));
+    componentSerializer.add(new Property<float>("duration", OFFSET(duration, tc)));
+    componentSerializer.add(new Property<TextureRef>("texture", OFFSET(texture, tc)));
+    componentSerializer.add(new IntervalProperty<float>("lifetime", OFFSET(lifetime, tc)));
+    componentSerializer.add(new IntervalProperty<Color>("initial_color", OFFSET(initialColor, tc)));
+    componentSerializer.add(new IntervalProperty<Color>("final_color", OFFSET(finalColor, tc)));
+    componentSerializer.add(new IntervalProperty<float>("initial_size", OFFSET(initialSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>("final_size", OFFSET(finalSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>("force_direction", OFFSET(forceDirection, tc)));
+    componentSerializer.add(new IntervalProperty<float>("force_amplitude", OFFSET(forceAmplitude, tc)));
+    componentSerializer.add(new IntervalProperty<float>("moment", OFFSET(moment, tc)));
+    componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc)));
+    componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
 }
 
 void ParticuleSystem::DoUpdate(float dt) {

@@ -6,7 +6,7 @@ TEST (DefaultProperty)
 {
     int i = 10, j=1, k;
     uint8_t buf[sizeof(int)];
-    Property<int> p(0);
+    Property<int> p("", 0);
     CHECK_EQUAL(sizeof(int), p.size(0));
     CHECK_EQUAL(true, p.different(&i, &j));
     p.serialize(buf, &i);
@@ -27,7 +27,7 @@ TEST (DefaultPropertyStruct)
     myStruct.s1 = 123;
     myStruct.f2 = 1.56;
 
-    Property<uint16_t> p(OFFSET(s1, myStruct));
+    Property<uint16_t> p("", OFFSET(s1, myStruct));
     p.serialize(buf, &myStruct);
 
     myStruct2.f1 = 5.26;
@@ -42,7 +42,7 @@ TEST (DefaultPropertyStruct)
 TEST (EpsilonPropertyFloat)
 {
     float i = 10.5, j=9, k = 10.49;
-    Property<float> p(0, 0.1);
+    Property<float> p("", 0, 0.1);
     CHECK_EQUAL(true, p.different(&i, &j));
     CHECK_EQUAL(false, p.different(&i, &k));
 }
@@ -50,7 +50,7 @@ TEST (EpsilonPropertyFloat)
 TEST (StringProperty)
 {
     std::string a = "plop", b;
-    StringProperty p(0);
+    StringProperty p("", 0);
     uint8_t buf[256];
     p.serialize(buf, &a);
     p.deserialize(buf, &b);
@@ -62,7 +62,7 @@ TEST (VectorProperty)
     std::vector<int> v, w;
     for (int i=0; i<10; i++)
         v.push_back(i);
-    VectorProperty<int> p(0);
+    VectorProperty<int> p("", 0);
     uint8_t buf[256];
     p.serialize(buf, &v);
     p.deserialize(buf, &w);
@@ -76,7 +76,7 @@ TEST (MapProperty)
     std::map<int, float> v, w;
     for (int i=0; i<10; i++)
         v[i] = i;
-    MapProperty<int, float> p(0);
+    MapProperty<int, float> p("", 0);
     uint8_t buf[256];
     p.serialize(buf, &v);
     p.deserialize(buf, &w);
@@ -95,7 +95,7 @@ TEST (MapPropertyStringKey)
         a << "a_" << i;
         v[a.str()] = 1+i;
     }
-    MapProperty<std::string, float> p(0);
+    MapProperty<std::string, float> p("", 0);
     uint8_t buf[256];
     CHECK(p.size(&v) <= 256);
     p.serialize(buf, &v);
@@ -112,7 +112,7 @@ TEST (MapPropertyDifference)
     std::map<std::string, float> v, w;
     for (int i=0; i<10; i++)
         v["a" + i] = i;
-    MapProperty<std::string, float> p(0);
+    MapProperty<std::string, float> p("", 0);
 
     CHECK(p.different(&v, &w));
     CHECK(!p.different(&v, &v));
@@ -133,9 +133,9 @@ TEST (StructSerializer)
     test1.c = "plop";
 
     Serializer s;
-    s.add(new Property<int>(OFFSET(a, test1)));
-    s.add(new Property<float>(OFFSET(b, test1), 0.1));
-    s.add(new StringProperty(OFFSET(c, test1)));
+    s.add(new Property<int>("", OFFSET(a, test1)));
+    s.add(new Property<float>("", OFFSET(b, test1), 0.1));
+    s.add(new StringProperty("", OFFSET(c, test1)));
 
     uint8_t* buf;
     int size = s.serializeObject(&buf, &test1);
@@ -157,9 +157,9 @@ TEST (StructSerializerNoDiff)
     test2 = test1;
 
     Serializer s;
-    s.add(new Property<int>(OFFSET(a, test1)));
-    s.add(new Property<float>(OFFSET(b, test1), 0.1));
-    s.add(new StringProperty(OFFSET(c, test1)));
+    s.add(new Property<int>("", OFFSET(a, test1)));
+    s.add(new Property<float>("", OFFSET(b, test1), 0.1));
+    s.add(new StringProperty("", OFFSET(c, test1)));
 
     uint8_t* buf;
     CHECK_EQUAL(0, s.serializeObject(&buf, &test1, &test2));
@@ -169,7 +169,7 @@ TEST (TestInterval)
 {
     uint8_t buf[2 * sizeof(float)];
     Interval<float> i(-0.3, 12.4), j;
-    IntervalProperty<float> ip(0);
+    IntervalProperty<float> ip("", 0);
     ip.serialize(buf, &i);
     ip.deserialize(buf, &j);
     CHECK_CLOSE(i.t1, j.t1, 0.001);
@@ -180,7 +180,7 @@ TEST (TestVector2)
 {
     uint8_t buf[sizeof(glm::vec2)];
     glm::vec2 i(1.5, -7.6), j;
-    Property<glm::vec2> vp(0, glm::vec2(0.001, 0));
+    Property<glm::vec2> vp("", 0, glm::vec2(0.001, 0));
     vp.serialize(buf, &i);
     vp.deserialize(buf, &j);
     CHECK_CLOSE(i.x, j.x, 0.001);
