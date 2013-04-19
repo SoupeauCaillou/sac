@@ -45,25 +45,25 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define LOGT(x) __LOG(LogVerbosity::TODO, "<--TODO-->" << x)
 #define LOGW(x) __LOG(LogVerbosity::WARNING, x)
 #define LOGI(x) __LOG(LogVerbosity::INFO, x)
-#define LOGV(verbosity, x) { if (logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
+#define LOGV(verbosity, x) { if ((int)logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
 
 #define LOGF_IF(cond, x) { if ((cond)) LOGF(x) }
 #define LOGE_IF(cond, x) { if ((cond)) LOGE(x) }
 #define LOGT_IF(cond, x) { if ((cond)) LOGT(x) }
 #define LOGW_IF(cond, x) { if ((cond)) LOGW(x) }
 #define LOGI_IF(cond, x) { if ((cond)) LOGI(x) }
-#define LOGV_IF(verbosity, cond, x) { if ((cond) && logLevel >= (int)LogVerbosity::INFO + verbosity) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
+#define LOGV_IF(verbosity, cond, x) { if ((cond) && (int)logLevel >= (int)LogVerbosity::INFO + verbosity) { SAC_LOG_PRE vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST} }
 
 #define LOGE_EVERY_N(n, x) {\
     static unsigned __log_count = 0;\
-    if ((__log_count++ % n) == 0) {\
+    if ((++__log_count % n) == 0) {\
         LOGE(x) \
     } \
 }
 
 #define LOGW_EVERY_N(n, x) {\
     static unsigned __log_count = 0;\
-    if ((__log_count++ % n) == 0) {\
+    if ((++__log_count % n) == 0) {\
         LOGW(x) \
     } \
 }

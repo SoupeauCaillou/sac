@@ -4,6 +4,12 @@
 #include <string>
 #include "GameContext.h"
 
+#if ! SAC_EMSCRIPTEN
+//used to handled keyboard events
+#include <GL/glew.h>
+#include <GL/glfw.h>
+#endif
+
 #if SAC_INGAME_EDITORS
 
 #include "../util/LevelEditor.h"
@@ -19,24 +25,12 @@ namespace GameType {
 class Game {
 	public:
 		Game();
-
 		virtual ~Game();
 
-        virtual bool wantsAPI(ContextAPI::Enum api) const = 0;
-
         void setGameContexts(GameContext* gameThreadContext, GameContext* renderThreadContext);
-
-		virtual void sacInit(int windowW, int windowH);
-
-		virtual void init(const uint8_t* in = 0, int size = 0) = 0;
-
-        virtual void quickInit() = 0;
-
         void step();
-
         void render();
-
-		virtual int saveState(uint8_t** out);
+        void resetTime();
 
 #if SAC_ENABLE_PROFILING
         void backPressed();
@@ -46,33 +40,42 @@ class Game {
         virtual bool willConsumeBackEvent() { return false; }
 #endif
 
+        virtual bool wantsAPI(ContextAPI::Enum api) const = 0;
+		virtual void sacInit(int windowW, int windowH);
+		virtual void init(const uint8_t* in = 0, int size = 0) = 0;
+        virtual void quickInit() = 0;
+		virtual int saveState(uint8_t** out);
         virtual void togglePause(bool) { }
-
-        void resetTime();
-
-        float targetDT;
-
 	protected:
 		void loadFont(AssetAPI* asset, const std::string& name);
-    public:
-        GameContext* gameThreadContext, *renderThreadContext;
     private:
         virtual void tick(float dt) = 0;
 
-    struct {
-        float minDt, maxDt;
-        float since;
-        int frameCount;
-        void reset(float timeMark) {
-            minDt = 10000000;
-            maxDt = 0;
-            since = timeMark;
-            frameCount = 0;
-        }
-    } fpsStats;
-    float lastUpdateTime;
+
+    private:
+#if ! SAC_EMSCRIPTEN
+        static void GLFWCALL sacKeyboardInputCallback( int key, int action );
+        static KeyboardInputHandlerAPI * _thisKeyboardAPI;
+#endif
+
+    public:
+        GameContext* gameThreadContext, *renderThreadContext;
+        float targetDT;
+
+        struct {
+            float minDt, maxDt;
+            float since;
+            int frameCount;
+            void reset(float timeMark) {
+                minDt = 10000000;
+                maxDt = 0;
+                since = timeMark;
+                frameCount = 0;
+            }
+        } fpsStats;
+        float lastUpdateTime;
 #if SAC_INGAME_EDITORS
-    GameType::Enum gameType;
-    LevelEditor* levelEditor;
+        GameType::Enum gameType;
+        LevelEditor* levelEditor;
 #endif
 };

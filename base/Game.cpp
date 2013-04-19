@@ -27,8 +27,10 @@
 #include "util/DataFileParser.h"
 #include <sstream>
 
-#if SAC_INGAME_EDITORS
-#include <GL/glfw.h>
+#include "api/KeyboardInputHandlerAPI.h"
+
+#if ! SAC_EMSCRIPTEN
+KeyboardInputHandlerAPI * Game::_thisKeyboardAPI = 0;
 #endif
 
 Game::Game() {
@@ -104,6 +106,35 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     renderThreadContext = pRenderThreadContext;
 }
 
+#if ! SAC_EMSCRIPTEN
+void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
+    if (action != GLFW_RELEASE)
+        return;
+
+
+    LOGI("key pressed: " << key);
+#if SAC_INGAME_EDITORS
+    //if we use the editor; we need to handle some keys for it
+#endif
+    if (_thisKeyboardAPI != 0) {
+        KeyboardInputHandlerAPI::KeyCode kc;
+
+        if (key == GLFW_KEY_BACKSPACE)
+            kc = KeyboardInputHandlerAPI::BACKSPACE;
+        else if (key == GLFW_KEY_ENTER)
+            kc = KeyboardInputHandlerAPI::ENTER;
+        else if (key == ' ')
+            kc = KeyboardInputHandlerAPI::SPACE;
+        else if (isalnum(key))
+            kc = KeyboardInputHandlerAPI::ALPHANUM;
+        else
+            return;
+
+        _thisKeyboardAPI->keyPressed(kc, key);
+    }
+}
+#endif
+
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".font");
     DataFileParser dfp;
@@ -147,10 +178,19 @@ void Game::sacInit(int windowW, int windowH) {
         PlacementHelper::ScreenWidth = 20;
         PlacementHelper::ScreenHeight = PlacementHelper::ScreenWidth * windowH / (float)windowW;
     }
+
     PlacementHelper::WindowWidth = windowW;
     PlacementHelper::WindowHeight = windowH;
     PlacementHelper::GimpWidth = 800.0f;
     PlacementHelper::GimpHeight = 1280.0f;
+
+#if ! SAC_EMSCRIPTEN
+    //handle keys
+    glfwSetKeyCallback(sacKeyboardInputCallback);
+    if (wantsAPI(ContextAPI::KeyboardInputHandler)) {
+        Game::_thisKeyboardAPI = gameThreadContext->keyboardInputHandlerAPI;
+    }
+#endif
 
 	theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
 	theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));

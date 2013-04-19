@@ -28,13 +28,17 @@
     //convert tuple into string with format "res1, res2, res3, ..."
     int callback(void *save, int argc, char **argv, char **){
         std::string *sav = static_cast<std::string*>(save);
+        sav->clear();
 
         int i = 0;
         for (; i < argc - 1; i++) {
-            (*sav) += argv[i];
-            (*sav) += ", ";
+            sav->append(argv[i]);
+            sav->append(", ");
         }
-        (*sav) += argv[i];
+        sav->append(argv[i]);
+#if SAC_DEBUG
+        LOGI("query string result: " << *sav);
+#endif
 
         return 0;
     }
@@ -200,7 +204,7 @@ void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
 }
 
 void SqliteStorageAPIImpl::loadEntries(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
-    request("select " +  selectArg + " from " + pproxy->getTableName() + " " + options, pproxy, 0);
+    request("select " +  selectArg + " from " + pproxy->getTableName() + " " + options, pproxy, callbackProxyConversion);
 }
 
 
@@ -223,8 +227,8 @@ int SqliteStorageAPIImpl::count(IStorageProxy * pproxy, const std::string & sele
 float SqliteStorageAPIImpl::sum(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
     //because callbacks are C still, we must create a temp string variable because we cannot pass iss.str() to the callback
     std::string res;
-    //'not null' is needed if there is no score, it will return '0' instead of ''
-    request("select sum(" +  selectArg + ") not null from " + pproxy->getTableName() + " " + options, &res, 0);
+    //'ifnull' is needed if there is no score, it will return '0' instead of a null string
+    request("select ifnull(sum(" +  selectArg + "), 0) from " + pproxy->getTableName() + " " + options, &res, 0);
     std::istringstream iss;
     iss.str(res);
     float finalRes;

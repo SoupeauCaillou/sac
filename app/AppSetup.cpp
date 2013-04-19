@@ -62,10 +62,10 @@
 #include "api/linux/ExitAPILinuxImpl.h"
 #include "api/linux/LocalizeAPILinuxImpl.h"
 #include "api/linux/MusicAPILinuxOpenALImpl.h"
-#include "api/linux/NameInputAPILinuxImpl.h"
 #include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
+#include "api/default/KeyboardInputHandlerAPIGLFWImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/SuccessAPI.h"
 
@@ -77,8 +77,6 @@
 #define MAGICKEYTIME 0.15
 
 Game* game = 0;
-NameInputAPILinuxImpl* nameInput = 0;
-Entity globalFTW = 0;
 
 #if SAC_LINUX && ! SAC_EMSCRIPTEN
 Recorder *record;
@@ -87,6 +85,7 @@ Recorder *record;
 #if ! SAC_EMSCRIPTEN
 std::mutex m;
 
+/*
 void GLFWCALL myCharCallback( int c, int action ) {
     if (globalFTW == 0) {
 
@@ -131,42 +130,42 @@ void GLFWCALL myKeyCallback( int key, int action ) {
             game->backPressed();
         }
     }
-}
+}*/
 
 static void updateAndRenderLoop() {
-   bool running = true;
+    bool running = true;
 
-   while(running) {
-      game->step();
+    while(running) {
+        game->step();
 
-      running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
+        running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
 
-      bool focus = (glfwGetWindowParam(GLFW_ACTIVE) != 0);
-      if (focus) {
-     theMusicSystem.toggleMute(theSoundSystem.mute);
-      } else {
-     // theMusicSystem.toggleMute(true);
-      }
-      //pause ?
+        bool focus = (glfwGetWindowParam(GLFW_ACTIVE) != 0);
+        if (focus) {
+            theMusicSystem.toggleMute(theSoundSystem.mute);
+        } else {
+            // theMusicSystem.toggleMute(true);
+        }
+        //pause ?
 
-#if SAC_LINUX && ! SAC_EMSCRIPTEN
-      // recording
-      if (glfwGetKey( GLFW_KEY_F10)){
-     record->stop();
-      }
-      if (glfwGetKey( GLFW_KEY_F9)){
-     record->start();
-      }
+#if SAC_LINUX && SAC_DESKTOP
+        // recording
+        if (glfwGetKey( GLFW_KEY_F10)){
+            record->stop();
+        }
+        if (glfwGetKey( GLFW_KEY_F9)){
+            record->start();
+        }
 #endif
-      //user entered his name?
-      if (nameInput && glfwGetKey( GLFW_KEY_ENTER )) {
-     if (!TEXT_RENDERING(nameInput->nameEdit)->show) {
-        nameInput->textIsReady = true;
-     }
-      }
-   }
-   theRenderingSystem.disableRendering();
-   glfwTerminate();
+/*        //user entered his name?
+        if (nameInput && glfwGetKey( GLFW_KEY_ENTER )) {
+            if (!TEXT_RENDERING(nameInput->nameEdit)->show) {
+                nameInput->textIsReady = true;
+            }
+        }*/
+    }
+    theRenderingSystem.disableRendering();
+    glfwTerminate();
 }
 
 static void* callback_thread(){
@@ -256,12 +255,12 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->communicationAPI = new CommunicationAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Exit))
         ctx->exitAPI = new ExitAPILinuxImpl();
+    if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
+        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPIGLFWImpl();
     if (game->wantsAPI(ContextAPI::Localize))
         ctx->localizeAPI = new LocalizeAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Music))
         ctx->musicAPI = new MusicAPILinuxOpenALImpl();
-    if (game->wantsAPI(ContextAPI::NameInput))
-        ctx->nameInputAPI = new NameInputAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Network))
         ctx->networkAPI = new NetworkAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Sound))
