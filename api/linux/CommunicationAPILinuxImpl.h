@@ -6,8 +6,7 @@
 
 class CommunicationAPILinuxImpl : public CommunicationAPI {
 	public:
-        inline void init(ScoreHandler* scoreHandler)  {
-            _scoreHandler = scoreHandler;
+        inline void init()  {
         }
 
         inline bool isGameCenterLoggedIn() {
@@ -21,28 +20,18 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
         }
 
         inline std::list<Achievement> getAllAchievements() {
-            return _scoreHandler->getAllAchievements();
+            LOGV(1, "Nothing done on pc");
+            return std::list<Achievement>();
         }
 
         inline std::list<Score> getScores(
-            unsigned leaderboardID, Score::Visibility visibility, unsigned startRank, unsigned count) {
-
-            return _scoreHandler->getScores(leaderboardID, visibility, startRank, count);
-/*
-
-
-            std::list<Score> list;
-            list.push_front(Score("Player3", "10", startRank+2, Score::FRIEND));
-            list.push_front(Score("Player2", "433", startRank+1, Score::ME));
-            list.push_front(Score("Player1", "1000", startRank, Score::ALL));
-            LOGW("TODO");
-            //storageAPI->blablabla
-            return list;
-*/
+            unsigned, Score::Visibility, unsigned, unsigned) {
+            LOGV(1, "Nothing done on pc");
+            return std::list<Score>();
         }
 
-        inline void submitScore(unsigned leaderboardID, Score score) {
-            return _scoreHandler->submitScore(leaderboardID, score);
+        inline void submitScore(unsigned, Score) {
+            LOGV(1, "Nothing done on pc");
         }
 
 		inline void giftizMissionDone() {
@@ -66,6 +55,5 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
 		void rateItLater() { LOGV(1, "not handled"); }
 		void rateItNever() { LOGV(1, "not handled"); }
 
-        //will handle the scores/achievements
-        ScoreHandler* _scoreHandler;
+        StorageAPI* _storageAPI;
 };

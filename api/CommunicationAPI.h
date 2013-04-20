@@ -55,19 +55,8 @@ class CommunicationAPI {
             }
         };
 
-        class ScoreHandler {
-            public:
-                //retrieve all achievements
-                virtual std::list<Achievement> getAllAchievements() = 0;
-                //retrieve $count scores from a leaderboard, starting at rank $startRank
-                virtual std::list<Score> getScores(unsigned leaderboardID,
-                    Score::Visibility visibility, unsigned startRank, unsigned count) = 0;
-                //submit a score on a specific leaderboard
-                virtual void submitScore(unsigned leaderboardID, Score score) = 0;
-        };
-
         //only for pc yet
-        virtual void init(ScoreHandler* scoreHandler) = 0;
+        virtual void init() = 0;
 
 		//is the player logged into the gamecenter?
 		virtual bool isGameCenterLoggedIn() = 0;
