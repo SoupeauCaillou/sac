@@ -11,16 +11,13 @@ DebugConsole & DebugConsole::Instance() {
     return _instance;
 }
 
-void DebugConsole::registerMethod(const std::string & name, void (*callback)(std::string*)) {
+void DebugConsole::registerMethod(const std::string & name, void (*callback)(void*)) {
     LOGF_IF(name2callback.find(name) != name2callback.end(), "function " << name << " already registered!");
 
     name2callback[name] = callback;
-}
 
-void DebugConsole::invoke(const std::string & name, std::string* args) {
-    LOGF_IF(name2callback.find(name) == name2callback.end(), "function " << name << " does not exist!");
-
-    (name2callback[name])(args);
+    LOGI("New entry for debug console: " << name);
+    TwAddButton(bar, name.c_str(), (TwButtonCallback)&callback, 0, 0);
 }
 
 #endif

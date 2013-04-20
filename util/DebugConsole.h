@@ -2,20 +2,26 @@
 
 #include <string>
 #include <map>
+#include <list>
+
+#include <AntTweakBar.h>
 
 class DebugConsole {
     public:
         static DebugConsole & Instance();
 
-        void registerMethod(const std::string & name, void (*callback)(std::string*));
+        void registerMethod(const std::string & name, void (*callback)(void*));
 
-        void invoke(const std::string & name, std::string* args);
-    private:
-        DebugConsole();
-        ~DebugConsole();
+        void setBar(TwBar* debugConsoleBar) { bar = debugConsoleBar; }
 
     private:
-        std::map<std::string, void (*)(std::string*)> name2callback;
+        DebugConsole() {}
+        ~DebugConsole() {}
+
+    private:
+        std::map<std::string, void (*)(void*)> name2callback;
+
+        TwBar* bar;
 };
 
 #endif

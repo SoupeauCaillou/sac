@@ -186,6 +186,8 @@ LevelEditor::LevelEditor() {
     glfwSetCharCallback((GLFWcharfun) _TwEventCharGLFW);
 
     debugConsoleBar = TwNewBar("Debug_Console");
+    DebugConsole::Instance().setBar(debugConsoleBar);
+
     logBar = TwNewBar("Log_Control");
     entityListBar = TwNewBar("EntityList");
     TwDefine(" Debug_Console iconified=true ");
@@ -258,6 +260,7 @@ void LevelEditor::tick(float dt) {
         }
         unlock();
     }
+
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     Entity camera = 0;
     for (unsigned i=0; i<cameras.size(); i++) {
