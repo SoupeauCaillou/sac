@@ -1,4 +1,4 @@
-#if SAC_DESKTOP && SAC_INGAME_EDITORS
+#if SAC_INGAME_EDITORS
 
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
@@ -13,6 +13,8 @@
 #include <mutex>
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>
+
+#include "DebugConsole.h"
 
 namespace EditorMode {
     enum Enum {
@@ -157,7 +159,7 @@ void LevelEditor::LevelEditorDatas::deselect(Entity) {
     RENDERING(selectionDisplay)->show = false;
 }
 
-TwBar* entityListBar, *logBar;
+TwBar* entityListBar, *debugConsoleBar, *logBar;
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
@@ -183,10 +185,12 @@ LevelEditor::LevelEditor() {
     glfwSetKeyCallback((GLFWkeyfun) _TwEventKeyGLFW);
     glfwSetCharCallback((GLFWcharfun) _TwEventCharGLFW);
 
+    debugConsoleBar = TwNewBar("Debug_Console");
     logBar = TwNewBar("Log_Control");
     entityListBar = TwNewBar("EntityList");
-    TwDefine(" EntityList iconified=true ");
+    TwDefine(" Debug_Console iconified=true ");
     TwDefine(" Log_Control iconified=true ");
+    TwDefine(" EntityList iconified=true ");
     // add default choice for log control
     TwEnumVal modes[] = {
         {LogVerbosity::FATAL, "Fatal"},
@@ -225,12 +229,12 @@ void LevelEditor::tick(float dt) {
     accum += dt;
     if (accum > 1) {
         lock();
+
         std::vector<Entity> entities = theEntityManager.allEntities();
         TwRemoveAllVars(entityListBar);
         for (unsigned i=0; i<entities.size(); i++) {
             if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay)
                 continue;
-
             std::stringstream n;
 #ifdef SAC_DEBUG
             n << theEntityManager.entityName(entities[i]);
