@@ -102,6 +102,8 @@ class MapProperty : public IProperty {
 
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
 
+#include "Serializer.hpp"
+
 class Serializer {
     std::vector<IProperty*> properties;
 
