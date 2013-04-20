@@ -24,6 +24,9 @@
 template<typename T>
 class StateHandler {
 	public:
+        // Virtual destructor
+        virtual ~StateHandler() {}
+
 		// Setup internal var, states, ...
 		virtual void setup() = 0;
 
