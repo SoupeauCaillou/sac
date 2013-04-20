@@ -36,7 +36,7 @@
             sav->append(", ");
         }
         sav->append(argv[i]);
-#if SAC_DEBUG
+#if SAC_ENABLE_LOG
         LOGI("query string result: " << *sav);
 #endif
 
@@ -85,16 +85,22 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
     if (r) {
         LOGI("initializing database...")
 
-        request("create table info(opt varchar2(10) primary key, value varchar2(10))", 0, 0);
+        createTable("info", "opt varchar2(10) primary key, value varchar2(10)");
     }
 }
 
-
+void SqliteStorageAPIImpl::createTable(const std::string & tableName, const std::string & statement) {
+    std::string res;
+    request("SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "'", &res, 0);
+    if (res.empty()) {
+        request("create table " + tableName + "(" + statement + ")", 0, 0);
+    }
+}
 
 bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
     LOGF_IF(!_initialized, "The database hasn't been initialized before first request!");
 
-#ifdef SAC_DEBUG
+#ifdef SAC_ENABLE_LOG
     LOGI("sqlite request: " << statement);
 #endif
 
@@ -116,9 +122,11 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
         rc = sqlite3_exec(db, statement.c_str(), callback, res, &zErrMsg);
     }
 
-    if (rc!=SQLITE_OK) {
+    if (rc != SQLITE_OK) {
         LOGE("SQL error: " << zErrMsg << "(asked = " << statement << ')')
         sqlite3_free(zErrMsg);
+        sqlite3_close(db);
+        return false;
     }
 
     sqlite3_close(db);
@@ -126,9 +134,8 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
 }
 
 void SqliteStorageAPIImpl::setOption(const std::string & name, const std::string & valueIfExisting, const std::string & valueIfNotExisting) {
-    std::string lookFor = "select value from info where opt like '" + name + "'";
+    std::string lookFor = "select opt from info where opt like '" + name + "'";
     std::string res;
-
     request(lookFor, &res, 0);
 
     //it doesn't exist yet
@@ -157,7 +164,6 @@ void SqliteStorageAPIImpl::createTable(IStorageProxy * pproxy) {
     std::stringstream ss;
     char separator = ' ';
 
-    ss << "create table " << pproxy->getTableName() << "(";
     for (auto name : pproxy->getColumnsNameAndType()) {
         //hack, used to set the first separator between first and second element (not before the first)
         if (! name.first.empty()) {
@@ -165,9 +171,7 @@ void SqliteStorageAPIImpl::createTable(IStorageProxy * pproxy) {
             separator = ',';
         }
     }
-    ss << ")";
-
-    request(ss.str(), 0, 0);
+    createTable(pproxy->getTableName(), ss.str());
 }
 
 void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
@@ -178,18 +182,23 @@ void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
         std::stringstream ss;
         char separator = ' ';
 
-        ss << "insert into " << pproxy->getTableName() << " values (";
+        ss << "insert into " << pproxy->getTableName() << "(";
+        std::stringstream ssNames;
+        std::stringstream ssValues;
+
         for (auto name : pproxy->getColumnsNameAndType()) {
             //hack, used to set the first separator between first and second element (not before the first)
             if (! name.first.empty()) {
+                ssNames << separator << " '" << name.first << "'";
+
                 if (name.second == "string")
-                    ss << separator << " '" << pproxy->getValue(name.first) << "'";
+                    ssValues << separator << " '" << pproxy->getValue(name.first) << "'";
                 else
-                    ss << separator << " " << pproxy->getValue(name.first);
+                    ssValues << separator << " " << pproxy->getValue(name.first);
                 separator = ',';
             }
         }
-        ss << ")";
+        ss << ssNames.str() << ") values (" << ssValues.str() << ")";
         LOGI("Final statement: " << ss.str());
         request(ss.str(), 0, 0);
 

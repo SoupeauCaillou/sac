@@ -29,6 +29,7 @@ class SqliteStorageAPIImpl : public StorageAPI {
     private:
         bool request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**));
         void checkInTable(const std::string & option, const std::string & valueIfExist, const std::string & valueIf404);
+        void createTable(const std::string & tableName, const std::string & statement);
         std::string _dbPath;
 
         bool _initialized;
