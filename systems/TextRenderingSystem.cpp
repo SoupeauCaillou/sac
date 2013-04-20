@@ -249,7 +249,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
  			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
-				x += fontDesc.entries['a'].h2wRatio * charHeight * 0.75;
+				x += fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
 			}
 
             // Fastforward to skip some chars (e.g: inline image description)
@@ -304,7 +304,7 @@ void TextRenderingSystem::registerFont(const std::string& fontName, const std::m
             LOGW("Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'")
         }
     }
-    font.entries[' '].h2wRatio = font.entries['r'].h2wRatio;
+    font.entries[(unsigned)' '].h2wRatio = font.entries[(unsigned)'r'].h2wRatio;
     fontRegistry[fontName] = font;
 }
 
@@ -363,7 +363,7 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
     float width = 0;
     // If it's a number, pre-add grouping spacing
     if (trc->flags & TextRenderingComponent::IsANumberBit) {
-        float spaceW = fontDesc.entries['a'].h2wRatio * charHeight * 0.75;
+        float spaceW = fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
         width += ((int) (from - toInc) / 3) * spaceW;
     }
     uint16_t unicode = 0;
