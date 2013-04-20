@@ -42,6 +42,8 @@ message("Build target: " ${BUILD_TARGET})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_${BUILD_TARGET}}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
 
+#add flag SAC_DEBUG or SAC_RELEASE
+add_definitions(-DSAC_${BUILD_TARGET})
 #######################################################################
 ########Library path finding related tools#############################
 #######################################################################

@@ -1,16 +1,5 @@
 #!/bin/bash
 
-#how to use the script
-export USAGE="$0 [options]"
-export OPTIONS="n: simply compile
-\tC: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)
-\tr: reset the terminal screen before compiling
-\tR: run the app
-\td: run&debug the app with gdb (no c option)
-\tv: enable log
-\tc [all/I/W/E/C] : use colorlog.sh script for colored logs"
-export EXAMPLE="'$0 R-v-c-I-W' will compile, launch the app and show only info and warnings in color."
-
 #where the script is
 whereAmI=$(cd "$(dirname "$0")" && pwd)
 cd $whereAmI
@@ -23,15 +12,59 @@ fi
 #import cool stuff
 source ../coolStuff.sh
 
+#how to use the script
+export USAGE="$0 [scripts_options] -[specifics_options] [and their values]"
+export OPTIONS="n: simply compile
+\tC: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)
+\tR: reset the terminal screen before compiling
+\tr: run the app\t\t\t\t\t(options available, see below)
+\td: run&debug the app with cgdb
+\tl: use colorlog.sh script for colored logs\t(options available, see below)
+You can also specify arguments:
+\t-c|--cmakeconfig \"arguments for cmake\": see cmake for options.
+\t-h|--help: show this help
+\t-l|--log \"arguments for coloredlog script\": options for this script. See it for arguments availables
+\t-r|--run \"arguments for game\": arguments handled by the game (--restore, --verbose, ..., whatever you did!)"
+export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restore\"'${yellow} will clean the screen, compile the game for DEBUG target, then launch the game with restore"
+
 ######### 0 : Check requirements. #########
 	if [ -z "$(pwd | grep /sac/tools/build)" ]; then
 		error_and_quit "The script must be in sac/tools/build !"
 	fi
 
-######### 1 : Check arguments. #########
-	if [ $# = 0 ] || [ ! -z $(echo $1 | grep -- -h) ]; then
+######### 1 : Read arguments. #########
+	if [ $# = 0 ]; then
 		usage_and_quit
-	fi
+    fi
+
+    CMAKE_CONFIG=""
+    TARGETS=""
+    RUN_ARGS=""
+    COLOREDLOGS_ARGS=""
+    while [ "$1" != "" ]; do
+        case $1 in
+            "-c" | "--cmakeconfig")
+                shift
+                CMAKE_CONFIG=$1
+                ;;
+            "-h" | "--help")
+                usage_and_quit
+                ;;
+            "-l" | "--log")
+                COLOREDLOGS_ARG=$1
+                ;;
+            "-r" | "--run")
+                RUN_ARGS=$1
+                ;;
+            -*)
+                echo "unknown option: " $1
+                ;;
+            *)
+                TARGETS=$TARGETS$1
+        esac
+        shift
+    done
+
 
 ######### 2 : Create build dir. #########
 	rootPath=$whereAmI"/../../.."
@@ -42,55 +75,47 @@ source ../coolStuff.sh
 	cd $rootPath/build/linux
 
 ######### 4 : Execute query. #########
-	count=$(pwd | tr -c -d / | wc -c)
-	count=$(expr $count - 1)
-
 	gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
-	if [ ! -z $(echo $1 | grep r) ]; then
+	if [ ! -z $(echo $TARGETS | grep R) ]; then
 		reset
 	fi
 
-	if [ ! -z $(echo $1 | grep C) ]; then
+	if [ ! -z $(echo $TARGETS | grep C) ]; then
 		info "Cleaning.."
 		rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
 	fi
 
-	if [ ! -z $(echo $1 | grep -e n -e R -e d) ]; then
+	if [ ! -z $(echo $TARGETS | grep -e n -e r -e d) ]; then
 		info "Compiling.."
-		if (!(cmake $rootPath -DTARGET=linux)); then
+		if (!(cmake $rootPath $CMAKE_CONFIG)); then
 			error_and_quit "Error in cmake. Maybe should run with C option?"
 		elif (!(make -j4)); then
 			error_and_quit "Error in make"
 		fi
 	fi
-	
-	executable=./$gameName
-	#debug required
-	if [ ! -z $(echo $1 | grep d) ]; then
-		#does not work with cgdb yet :(
-		info "A bug? Gdb on the way!"
-		(echo r; cat) | gdb $executable
-	#launch required
-	elif [ ! -z $(echo $1 | grep R) ]; then	
-		#verbose required
-		if [ ! -z $(echo $1 | grep -e v -e c) ]; then
-			#colored logs
-			if [ ! -z $(echo $1 | grep c) ]; then
-				info "Launch with colored log."
 
-				if [ $# = 2 ]; then
-					$executable -v | $rootPath/sac/tools/build/linux-coloredLogs.sh $2
-				else
-					info "No arg for color script ?\nUsage: $0 $1 args-for-it" $red
-					info "Using 'all' tag there"
-					sleep 3
-					$executable -v | $rootPath/sac/tools/build/linux-coloredLogs.sh 'all'
-				fi
-			else
-				info "Launch with log."
-				$executable -v
-			fi
+	executable=./$gameName $RUN_ARGS
+	#debug required
+	if [ ! -z $(echo $TARGETS | grep d) ]; then
+		info "A bug? Cgdb on the way!"
+        #(echo r; cat) | gdb $executable
+        cgdb $executable
+	#launch required
+	elif [ ! -z $(echo $TARGETS | grep r) ]; then
+		#verbose required
+		if [ ! -z $(echo $TARGETS | grep l) ]; then
+			info "Launch with colored log."
+
+            #coloredlogs shouldn't be empty
+            if [ -z "$COLOREDLOGS_ARG" ]; then
+                info "No arg for color script ?\nChoose tag with option -l" $red
+                info "I will use 'all' tag here"
+                COLOREDLOGS_ARGS='all'
+                sleep 3
+            fi
+			$executable | $rootPath/sac/tools/build/linux-coloredLogs.sh $COLOREDLOGS_ARGS
+
 		else
 			info "Launch game."
 			$executable
