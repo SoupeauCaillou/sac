@@ -58,7 +58,7 @@
 
         proxy->pushAnElement();
         for (int i = 0; i < dataCount; ++i) {
-            proxy->setValue(columnName[i], tuple[i]);
+            proxy->setValue(columnName[i], tuple[i], false);
         }
         return 0;
     }

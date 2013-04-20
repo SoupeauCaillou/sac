@@ -26,7 +26,7 @@
 class IStorageProxy {
     public:
         virtual std::string getValue(const std::string& columnName) = 0;
-        virtual void setValue(const std::string& columnName, const std::string& value) = 0;
+        virtual void setValue(const std::string& columnName, const std::string& value, bool pushNewElement) = 0;
         virtual void pushAnElement() = 0;
         virtual void popAnElement() = 0;
         virtual bool isEmpty() = 0;
@@ -38,7 +38,7 @@ template <class T>
 class StorageProxy : public IStorageProxy {
     public:
         virtual std::string getValue(const std::string& columnName) = 0;
-        virtual void setValue(const std::string& columnName, const std::string& value) = 0;
+        virtual void setValue(const std::string& columnName, const std::string& value, bool pushNewElement) = 0;
 
         void pushAnElement() {
             _queue.push(T());
