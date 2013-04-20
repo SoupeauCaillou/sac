@@ -68,7 +68,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 	for (int i=0; i<2; i++) {
 
 #ifdef SAC_DEBUG
-        se.e[i] = theEntityManager.CreateEntity("scroll_" + theEntityManager.entityName(e)
+        se.e[i] = theEntityManager.CreateEntity("scroll_" + theEntityManager.entityName(e));
 #else
         se.e[i] = theEntityManager.CreateEntity("");
 #endif
