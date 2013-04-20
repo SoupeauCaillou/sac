@@ -51,9 +51,11 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
                 usage_and_quit
                 ;;
             "-l" | "--log")
-                COLOREDLOGS_ARG=$1
+                shift
+                COLOREDLOGS_ARGS=$1
                 ;;
             "-r" | "--run")
+                shift
                 RUN_ARGS=$1
                 ;;
             -*)
@@ -108,7 +110,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
 			info "Launch with colored log."
 
             #coloredlogs shouldn't be empty
-            if [ -z "$COLOREDLOGS_ARG" ]; then
+            if [ -z "$COLOREDLOGS_ARGS" ]; then
                 info "No arg for color script ?\nChoose tag with option -l" $red
                 info "I will use 'all' tag here"
                 COLOREDLOGS_ARGS='all'
