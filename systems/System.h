@@ -198,7 +198,7 @@ class ComponentSystemImpl: public ComponentSystem {
              }
             LOGF_IF(components.size() != entityWithComponent.size(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
 #else
-            LOGF_IF(components.find(entity) != components.end(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
+            DEBUG_LOGF_IF(components.find(entity) != components.end(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
             T* comp = CreateComponent();
             if (dfp) {
                 int count = ComponentFactory::build(*dfp, name, componentSerializer.getProperties(), comp);
@@ -246,7 +246,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #if SAC_USE_VECTOR_STORAGE
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
-                    LOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type " << getName())
+                    DEBUGLOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type " << getName())
                 }
                 previousComp = &components[it->second];
 #else
@@ -254,12 +254,8 @@ class ComponentSystemImpl: public ComponentSystem {
     			if (it == components.end()) {
                     // crash here
                     if (failIfNotfound) {
-#if SAC_DEBUG
-                        LOGF("Entity '" << theEntityManager.entityName(entity)
+                        DEBUG_LOGF("Entity '" << theEntityManager.entityName(entity)
                             << "' (" << theEntityManager.entityName(entity) << ") has no component of type '" << getName())
-#else
-                        LOGF("Entity '" << theEntityManager.entityName(entity) << "' has no component of type '" << getName())
-#endif
                     }
     				return 0;
     			}

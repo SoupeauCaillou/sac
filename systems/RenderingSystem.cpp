@@ -287,9 +287,7 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-#if SAC_DEBUG
-            LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
-#endif
+            DEBUG_LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
 
     		RenderCommand c;
     		c.z = tc->worldZ;

@@ -43,7 +43,7 @@ class EntityManager {
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
-#ifdef SAC_DEBUG
+#if SAC_DEBUG
         const std::string& entityName(Entity e) const;
 #endif
         int getNumberofEntity() {return entityComponents.size();}

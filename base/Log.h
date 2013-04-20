@@ -67,3 +67,41 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
         LOGW(x) \
     } \
 }
+
+#if SAC_DEBUG
+
+#define DEBUG_LOGF(x) LOGF(x)
+#define DEBUG_LOGE(x) LOGE(x)
+#define DEBUG_LOGT(x) LOGT(x)
+#define DEBUG_LOGW(x) LOGW(x)
+#define DEBUG_LOGI(x) LOGI(x)
+#define DEBUG_LOGV(verbosity, x) LOGV(verbosity, x)
+
+#define DEBUG_LOGF_IF(cond, x) LOGF_IF(cond, x)
+#define DEBUG_LOGE_IF(cond, x) LOGE_IF(cond, x)
+#define DEBUG_LOGT_IF(cond, x) LOGT_IF(cond, x)
+#define DEBUG_LOGW_IF(cond, x) LOGW_IF(cond, x)
+#define DEBUG_LOGV_IF(verbosity, cond, x) LOGV_IF(verbosity, cond, x)
+
+#define DEBUG_LOGE_EVERY_N(n, x) LOGE_EVERY_N(n, x)
+#define DEBUG_LOGW_EVERY_N(n, x) LOGW_EVERY_N(n, x)
+
+#else
+
+#define DEBUG_LOGF(x) {}
+#define DEBUG_LOGE(x) {}
+#define DEBUG_LOGT(x) {}
+#define DEBUG_LOGW(x) {}
+#define DEBUG_LOGI(x) {}
+#define DEBUG_LOGV(verbosity, x) {}
+
+#define DEBUG_LOGF_IF(cond, x) {}
+#define DEBUG_LOGE_IF(cond, x) {}
+#define DEBUG_LOGT_IF(cond, x) {}
+#define DEBUG_LOGW_IF(cond, x) {}
+#define DEBUG_LOGV_IF(verbosity, cond, x) {}
+
+#define DEBUG_LOGE_EVERY_N(n, x) {}
+#define DEBUG_LOGW_EVERY_N(n, x) {}
+
+#endif

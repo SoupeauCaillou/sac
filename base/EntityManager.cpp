@@ -69,7 +69,7 @@ Entity EntityManager::CreateEntity(const std::string&
 #endif
 
     if (dfp) {
-        LOGV(1, "Create entity: " << name << " from file")
+        DEBUG_LOGV(1, "Create entity: " << name << " from file")
         // browse system
         const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
         for (auto it = systems.begin(); it!=systems.end(); ++it) {

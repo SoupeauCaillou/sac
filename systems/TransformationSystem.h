@@ -32,7 +32,7 @@ public:
 	void preDeletionCheck(Entity e) {
 		FOR_EACH_COMPONENT(Transformation, bc)
 			if (bc->parent == e) {
-				LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << ')')
+				DEBUG_LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << ')')
 			}
 		}
 	}

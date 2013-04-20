@@ -46,9 +46,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (t - comp->lastClick > .2) {
 						comp->lastClick = t;
 						comp->clicked = true;
-#if SAC_DEBUG
-                         LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked")
-#endif
+
+                         DEBUG_LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked")
+
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
                         }

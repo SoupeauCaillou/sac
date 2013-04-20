@@ -28,7 +28,9 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
     frameCount = 0;
 }
 
-#if SAC_DEBUG
+#if ! SAC_DEBUG
+void DebuggingSystem::DoUpdate(float dt) {}
+#else
 static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCount, Entity& entityCountLabel, Entity& systems) {
     const glm::vec2& cameraSize = TRANSFORM(camera)->size;
 
