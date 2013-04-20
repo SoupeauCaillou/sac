@@ -17,7 +17,7 @@ void DebugConsole::registerMethod(const std::string & name, void (*callback)(voi
     name2callback[name] = callback;
 
     LOGI("New entry for debug console: " << name);
-    TwAddButton(bar, name.c_str(), (TwButtonCallback)&callback, 0, 0);
+    TwAddButton(bar, name.c_str(), (TwButtonCallback)callback, 0, 0);
 }
 
 #endif
