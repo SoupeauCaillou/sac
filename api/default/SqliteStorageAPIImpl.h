@@ -14,7 +14,7 @@ class SqliteStorageAPIImpl : public StorageAPI {
 
         void init(AssetAPI * assetAPI, const std::string & databaseName);
 
-        void setOption(const std::string & name, const std::string & value);
+        void setOption(const std::string & name, const std::string & valueIfExisting, const std::string & valueIfNotExisting);
         std::string getOption(const std::string & name);
         bool isOption(const std::string & name, const std::string & compareValue);
 

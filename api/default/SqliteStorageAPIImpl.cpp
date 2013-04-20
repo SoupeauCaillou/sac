@@ -86,29 +86,9 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
         LOGI("initializing database...")
 
         request("create table info(opt varchar2(10) primary key, value varchar2(10))", 0, 0);
-
-        checkInTable("sound", std::string(), "on");
-        checkInTable("gameCount", std::string(), "0");
     }
 }
 
-void SqliteStorageAPIImpl::checkInTable(const std::string & option,
-const std::string & valueIfExist, const std::string & valueIf404) {
-    std::string lookFor = "select value from info where opt like '" + option + "'";
-    std::string res;
-
-    request(lookFor, &res, 0);
-
-    //it doesn't exist yet
-    if (res.length() == 0 && !valueIf404.empty()) {
-        lookFor = "insert into info values('" + option + "', '" + valueIf404 + "')";
-        request(lookFor, 0, 0);
-    //it exist - need to be updated?
-    } else if (res.length() != 0 && !valueIfExist.empty()) {
-        lookFor = "update info set value='" + valueIfExist + "' where opt='" + option + "'";
-        request(lookFor, 0, 0);
-    }
-}
 
 
 bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
@@ -145,9 +125,23 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     return true;
 }
 
-void SqliteStorageAPIImpl::setOption(const std::string & name, const std::string & value) {
-    checkInTable(name, value, value);
+void SqliteStorageAPIImpl::setOption(const std::string & name, const std::string & valueIfExisting, const std::string & valueIfNotExisting) {
+    std::string lookFor = "select value from info where opt like '" + name + "'";
+    std::string res;
+
+    request(lookFor, &res, 0);
+
+    //it doesn't exist yet
+    if (res.length() == 0 && !valueIfNotExisting.empty()) {
+        lookFor = "insert into info values('" + name + "', '" + valueIfNotExisting + "')";
+        request(lookFor, 0, 0);
+    //it exist - need to be updated?
+    } else if (res.length() != 0 && !valueIfExisting.empty()) {
+        lookFor = "update info set value='" + valueIfExisting + "' where opt='" + name + "'";
+        request(lookFor, 0, 0);
+    }
 }
+
 std::string SqliteStorageAPIImpl::getOption(const std::string & name) {
     std::string lookFor = "select value from info where opt like '" + name + "'";
     std::string res;
