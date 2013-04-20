@@ -172,7 +172,7 @@ void Game::sacInit(int windowW, int windowH) {
 #endif
 
     if (windowW < windowH) {
-	    PlacementHelper::ScreenHeight = 10;
+    	    PlacementHelper::ScreenHeight = 10;
         PlacementHelper::ScreenWidth = PlacementHelper::ScreenHeight * windowW / (float)windowH;
     } else {
         PlacementHelper::ScreenWidth = 20;
@@ -292,7 +292,7 @@ void Game::step() {
     theParticuleSystem.Update(delta);
     theContainerSystem.Update(delta);
     theAutoDestroySystem.Update(delta);
-    // theDebuggingSystem.Update(delta);
+    theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
 #if SAC_INGAME_EDITORS
     } else {
