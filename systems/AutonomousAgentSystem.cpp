@@ -1,11 +1,10 @@
 #include "AutonomousAgentSystem.h"
 
-#include <base/Assert.h>
-
 #include "../steering/SteeringBehavior.h"
 #include "TransformationSystem.h"
 #include "PhysicsSystem.h"
 #include "util/IntersectionUtil.h"
+#include "base/Log.h"
 
 INSTANCE_IMPL(AutonomousAgentSystem);
 
@@ -19,8 +18,8 @@ bool AutonomousAgentSystem::isArrived(Entity e) {
 
 void AutonomousAgentSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
-	    ASSERT(e != agent->seekTarget, e << ": I can't be my own target!");
-	    ASSERT(e != agent->fleeTarget, e << ": I can't be my own predator!");
+	    LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");
+	    LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
 		glm::vec2 force(glm::vec2(0.0f));
 
 		if (agent->seekTarget && agent->seekWeight > 0) {

@@ -121,7 +121,7 @@ void GLFWCALL myKeyCallback( int key, int action ) {
         if (size) {
             std::ofstream file("/tmp/rr.bin", std::ios_base::binary);
             file.write((const char*)out, size);
-            std::cout << "Save state: " << size << " bytes written" << std::endl;
+            LOGI("Save state: " << size << " bytes written");
         }
         exit(0);
     }
@@ -238,7 +238,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
             state = new uint8_t[size];
             fread(state, size, 1, file);
             fclose(file);
-            std::cout << "Restoring game state from file (size: " << size << ")" << std::endl;
+            LOGI("Restoring game state from file (size: " << size << ")");
         }
     }
 #endif
