@@ -3,6 +3,7 @@
 #include "util/DataFileParser.h"
 #include "systems/TransformationSystem.h"
 #include "systems/AnimationSystem.h"
+#include "base/PlacementHelper.h"
 
 static FileBuffer FB(const char* str) {
     FileBuffer fb;
@@ -80,4 +81,24 @@ TEST(TestTextureProperty)
 
 	CHECK_EQUAL(theRenderingSystem.loadTextureFile("my_texture"), comp.texture);
 	RenderingSystem::DestroyInstance();
+}
+
+TEST(TestTransformPercentProperty)
+{
+    PlacementHelper::ScreenWidth = 100;
+    PlacementHelper::ScreenHeight = 50;
+    TransformationSystem::CreateInstance();
+    FileBuffer fb = FB("size%screen=0.3, 0.2\nposition%screen_w=0.5,0.8");
+    DataFileParser dfp;
+    dfp.load(fb);
+    TransformationComponent comp;
+
+    CHECK_EQUAL(2, ComponentFactory::build(dfp, "", theTransformationSystem.getSerializer().getProperties(), &comp));
+
+    CHECK_CLOSE(0.3 * PlacementHelper::ScreenWidth, comp.size.x, 0.001);
+    CHECK_CLOSE(0.2 *  PlacementHelper::ScreenHeight, comp.size.y, 0.001);
+
+    CHECK_CLOSE(0.5 * PlacementHelper::ScreenWidth, comp.position.x, 0.001);
+    CHECK_CLOSE(0.8 *  PlacementHelper::ScreenWidth, comp.position.y, 0.001);
+    TransformationSystem::DestroyInstance();
 }
