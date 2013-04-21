@@ -45,6 +45,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
         case $1 in
             "-c" | "--cmakeconfig")
                 shift
+                TARGETS=$TARGETS"n"
                 CMAKE_CONFIG=$1
                 ;;
             "-h" | "--help")
@@ -52,10 +53,12 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
                 ;;
             "-l" | "--log")
                 shift
+                TARGETS=$TARGETS"l"
                 COLOREDLOGS_ARGS=$1
                 ;;
             "-r" | "--run")
                 shift
+                TARGETS=$TARGETS"r"
                 RUN_ARGS=$1
                 ;;
             -*)
