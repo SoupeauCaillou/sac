@@ -185,12 +185,11 @@ LevelEditor::LevelEditor() {
     glfwSetKeyCallback((GLFWkeyfun) _TwEventKeyGLFW);
     glfwSetCharCallback((GLFWcharfun) _TwEventCharGLFW);
 
-    debugConsoleBar = TwNewBar("Debug_Console");
-    DebugConsole::Instance().setBar(debugConsoleBar);
+    DebugConsole::Instance().init();
 
     logBar = TwNewBar("Log_Control");
     entityListBar = TwNewBar("EntityList");
-    TwDefine(" Debug_Console iconified=true ");
+
     TwDefine(" Log_Control iconified=true ");
     TwDefine(" EntityList iconified=true ");
     // add default choice for log control
@@ -203,7 +202,7 @@ LevelEditor::LevelEditor() {
         {(int)LogVerbosity::INFO + 2, "Verbose2"},
         {(int)LogVerbosity::INFO + 3, "Verbose3"}
     };
-    TwType type = TwDefineEnum("Verbosity", modes, 7);
+    TwType type = TwDefineEnum("Verbosity", modes, sizeof(modes)/sizeof(TwEnumVal));
     TwAddVarRW(logBar, "Verbosity", type, &logLevel, "");
     TwAddSeparator(logBar, "File control", "");
 }
@@ -318,11 +317,11 @@ void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {
 
     switch (newMode) {
         case EditorMode::Gallery:
-            std::cout << "GalleryMode" << std::endl;
+            LOGI("GalleryMode");
             buildGallery();
             break;
         default:
-            std::cout << "SelectionMode" << std::endl;
+            LOGI("SelectionMode");
             destroyGallery();
     }
     mode = newMode;
@@ -476,7 +475,7 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm:
     {
         for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
             if (glfwGetKey(GLFW_KEY_KP_1 + i) && i != activeCameraIndex) {
-                std::cout << "new active cam: " << i << std::endl;
+                LOGI("new active cam: " << i);
                 theRenderingSystem.cameras[activeCameraIndex].enable = false;
                 activeCameraIndex = i;
                 theRenderingSystem.cameras[activeCameraIndex].enable = true;

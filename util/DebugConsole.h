@@ -1,18 +1,27 @@
 #if SAC_INGAME_EDITORS
 
+#include "base/Log.h"
+
 #include <string>
 #include <map>
-#include <list>
 
 #include <AntTweakBar.h>
+
+
+//use this method to add a method to the debug console
+#define REGISTER(name, args)\
+    static int name##Value = args[0].Value;\
+    DebugConsole::Instance().registerMethod(#name, #args, &callback##name, args, sizeof(args)/sizeof(TwEnumVal), &name##Value);
+
 
 class DebugConsole {
     public:
         static DebugConsole & Instance();
 
-        void registerMethod(const std::string & name, void (*callback)(void*));
+        static void registerMethod(const std::string & name, const std::string & argumentName,
+            void (*callback)(void*), TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace);
 
-        void setBar(TwBar* debugConsoleBar) { bar = debugConsoleBar; }
+        void init();
 
     private:
         DebugConsole() {}
