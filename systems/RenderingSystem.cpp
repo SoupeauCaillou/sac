@@ -242,13 +242,13 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
 }
 
 #if SAC_LINUX && SAC_DESKTOP
-void RenderingSystem::updateInotify() {
-    effectLibrary.updateInotify();
-    textureLibrary.updateInotify();
+void RenderingSystem::updateReload() {
+    effectLibrary.updateReload();
+    textureLibrary.updateReload();
 }
 
 void RenderingSystem::DoUpdate(float) {
-    updateInotify();
+    updateReload();
 
 #else
 void RenderingSystem::DoUpdate(float) {

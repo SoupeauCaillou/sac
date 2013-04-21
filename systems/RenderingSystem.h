@@ -160,6 +160,6 @@ private:
 
 #if SAC_LINUX && SAC_DESKTOP
     //reload on runtime .fs files when modified
-    void updateInotify();
+    void updateReload();
 #endif
 };

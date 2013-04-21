@@ -25,6 +25,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "Log.h"
+#include "util/ResourceHotReload.h"
 
 #if SAC_ANDROID
 // #undef USE_COND_SIGNALING
@@ -33,18 +34,10 @@
 #define USE_COND_SIGNALING 1
 #endif
 
-#if SAC_LINUX && SAC_DESKTOP
-#include <sys/inotify.h>
-#include <list>
-#include <fstream>
-#include <unistd.h>
-#endif
-
-
 class AssetAPI;
 
 template <typename T, typename TRef, typename SourceDataType>
-class NamedAssetLibrary {
+class NamedAssetLibrary : public ResourceHotReload {
 #define InvalidRef -1
     public:
         NamedAssetLibrary() : nextValidRef(1), assetAPI(0) {
@@ -215,72 +208,4 @@ class NamedAssetLibrary {
             std::set<std::string> unloads;
             std::set<std::string> reloads;
         } delayed;
-
-#if SAC_LINUX && SAC_DESKTOP
-    public:
-        void updateInotify() {
-            for (auto it : filenames) {
-                fd_set fds;
-                FD_ZERO(&fds);
-                FD_SET(it.inotifyFd, &fds);
-                struct timeval tv = (struct timeval){0,0};
-                if (select(it.inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
-                    char buffer[8192];
-                    struct inotify_event *event;
-
-                    if (read(it.inotifyFd, buffer, sizeof(buffer)) > 0) {
-                        event = (struct inotify_event *) buffer;
-                        //it has changed! reload it
-                        if (event->wd == it.wd) {
-                            LOGI(it._filename << " has been changed! Reloading.");
-                            it.wd = inotify_add_watch(it.inotifyFd, it._filename.c_str(), IN_CLOSE_WRITE);
-                            reload(it._assetname);
-                        }
-
-                    }
-                }
-            }
-        }
-        virtual std::string assetPrefix() const { return ""; }
-        virtual std::string assetSuffix() const { return ""; }
-        void registerNewAsset(const std::string & name) {
-            std::string cmp = assetPrefix() + name + assetSuffix();
-#ifdef SAC_ASSETS_DIR
-                std::string full = SAC_ASSETS_DIR + cmp;
-#else
-                std::string full = "assets/" + cmp;
-#endif
-            std::ifstream ifile(full);
-            if (!ifile) {
-                const std::string assetsDirectory = "assets/";
-                full.replace(full.find(assetsDirectory), assetsDirectory.length(), "assetspc/");
-                ifile.open(full, std::ifstream::in);
-                if (!ifile) {
-                    LOGW("File " << full << " does not exist! Can't monitore it. (prefix=" << assetPrefix() << ", suffix=" << assetSuffix() << ')');
-                    return;
-                }
-            }
-            filenames.push_front(InotifyDatas(full, name));
-        }
-    private:
-        //for inotify
-        struct InotifyDatas {
-            int wd;
-            int inotifyFd;
-            std::string _filename;
-            std::string _assetname;
-
-            InotifyDatas(const std::string & file, const std::string & asset)
-             : _filename(file), _assetname(asset) {
-                LOGI("New asset to monitor: " << _assetname << " from file "
-                    << _filename);
-                inotifyFd = inotify_init();
-                wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_CLOSE_WRITE);
-            }
-        };
-
-        std::list<InotifyDatas> filenames;
-
-
-#endif
 };
