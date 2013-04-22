@@ -24,7 +24,7 @@ function (others_specific_executables)
         ${PROJECT_SOURCE_DIR}/sac/tools/texture_packer/*.h
     )
     add_executable(texture_packer ${texture_packer_source_files})
-    target_link_libraries(texture_packer sac)
+    target_link_libraries(texture_packer sac rt)
 endfunction()
 
 function (postbuild_specific_actions)
