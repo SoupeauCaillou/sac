@@ -55,6 +55,9 @@ class StateHandler {
 
 template<typename T>
 class StateMachine {
+#ifdef SAC_INGAME_EDITORS
+    friend class RecursiveRunnerDebugConsole;
+#endif
 	public:
         StateMachine();
 
