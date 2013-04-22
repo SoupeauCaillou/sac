@@ -37,12 +37,18 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
 #define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << name << " property: '" << *out << "'")
 #define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << name << " property: '"
 
+enum IntervalMode {
+    IntervalAsRandom,
+    IntervalValue1,
+    IntervalValue2,
+};
+
 template <class T>
-int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, T* out);
+int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, T* out);
 
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, glm::vec2* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, glm::vec2* out) {
     float parsed[4];
 
     // 5 different variants
@@ -50,11 +56,15 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         if (dfp.get(section, name + vec2modifiers[i], parsed, 4, false)) {
             // we got an interval
             Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
-            *out = itv.random();
+            switch (mode) {
+                case IntervalAsRandom: *out = itv.random(); break;
+                case IntervalValue1: *out = itv.t1; break;
+                case IntervalValue2: *out = itv.t2; break;
+            }
             applyVec2Modifiers(i, out);
             LOG_SUCCESS_ << out->x << ", " << out->y << "'")
             return 1;
-        } else if (dfp.get(section, name + vec2modifiers[i], parsed, 2, false)) {
+        } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[i], parsed, 2, false)) {
             // we got a single value
             *out = glm::vec2(parsed[0], parsed[1]);
             LOG_SUCCESS_ << out->x << ", " << out->y << "'")
@@ -66,16 +76,20 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, Color* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, Color* out) {
     float p[8];
     // 3 different variants: first 4 float (or 8 for an interval)
     if (dfp.get(section, name, p, 8, false)) {
         // we got an interval
         Interval<Color> itv(Color(&p[0], 0xffffffff), Color(&p[4], 0xffffffff));
-        *out = itv.random();
+        switch (mode) {
+            case IntervalAsRandom: *out = itv.random(); break;
+            case IntervalValue1: *out = itv.t1; break;
+            case IntervalValue2: *out = itv.t2; break;
+        }
         LOG_SUCCESS_ << *out << "'")
         return 1;
-    } else if (dfp.get(section, name, p, 4, false)) {
+    } else if (mode == IntervalAsRandom && dfp.get(section, name, p, 4, false)) {
         // we got a single value
         *out = Color(&p[0], 0xffffffff);
         LOG_SUCCESS_ << *out << "'")
@@ -91,7 +105,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, std::string* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode, std::string* out) {
     std::string parsed;
 
     if (dfp.get(section, name, &parsed, 1, false)) {
@@ -106,16 +120,20 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
 }
 
 template <class T>
-inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, T* out) {
+inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, T* out) {
     T parsed[2];
 
     if (dfp.get(section, name, parsed, 2, false)) {
         // we got an interval
         Interval<T> itv(parsed[0], parsed[1]);
-        *out = itv.random();
+        switch (mode) {
+            case IntervalAsRandom: *out = itv.random(); break;
+            case IntervalValue1: *out = itv.t1; break;
+            case IntervalValue2: *out = itv.t2; break;
+        }
         LOG_SUCCESS
         return 1;
-    } else if (dfp.get(section, name, parsed, 1, false)) {
+    } else if (mode == IntervalAsRandom && dfp.get(section, name, parsed, 1, false)) {
         // we got a single value
         *out = parsed[0];
         LOG_SUCCESS
@@ -129,8 +147,14 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
 int ComponentFactory::build(const DataFileParser& dfp,
 		const std::string& section,
 		const std::vector<IProperty*>& properties, void* component) {
-    #define TYPE_2_PTR(_type_) (_type_ )((uint8_t*)component + (*it)->offset)
-    #define LOAD(_type_) load(dfp, section, name, TYPE_2_PTR(_type_))
+    #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + (*it)->offset)
+    #define LOAD_SINGLE(_type_) load(dfp, section, name, IntervalAsRandom, TYPE_2_PTR(_type_))
+    #define LOAD_INTERVAL(_type_) { \
+        Interval<_type_>* itv = TYPE_2_PTR(Interval<_type_>); \
+        bool success = load(dfp, section, name, IntervalValue1, &itv->t1); \
+        success &= load(dfp, section, name, IntervalValue2, &itv->t2); \
+        count += success; }
+    #define LOAD(_type_) if ((*it)->isInterval()) LOAD_INTERVAL(_type_) else count += LOAD_SINGLE(_type_);
 
     int count = 0;
 
@@ -141,23 +165,23 @@ int ComponentFactory::build(const DataFileParser& dfp,
 
         switch ((*it)->getType()) {
             case PropertyType::Float:
-                count += LOAD(float*);
+                LOAD(float);
                 break;
             case PropertyType::Int:
-                count += LOAD(int*);
+                LOAD(int);
                 break;
             case PropertyType::Vec2:
-                count += LOAD(glm::vec2*);
+                LOAD(glm::vec2);
                 break;
             case PropertyType::String:
-                count += LOAD(std::string*);
+                count += LOAD_SINGLE(std::string);
                 break;
             case PropertyType::Color:
-                count += LOAD(Color*);
+                LOAD(Color);
                 break;
             case PropertyType::Texture: {
                 std::string textureName;
-                if (load(dfp, section, name, &textureName)) {
+                if (load(dfp, section, name, IntervalAsRandom,&textureName)) {
                     count++;
                     *((TextureRef*)((uint8_t*)component + (*it)->offset)) = theRenderingSystem.loadTextureFile(textureName);
                 }

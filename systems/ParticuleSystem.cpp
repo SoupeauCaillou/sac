@@ -18,7 +18,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     minUsedIdx = maxUsedIdx = 0;
 
     ParticuleComponent tc;
-    componentSerializer.add(new Property<float>("emissionRate", OFFSET(emissionRate, tc)));
+    componentSerializer.add(new Property<float>("emission_rate", OFFSET(emissionRate, tc)));
     componentSerializer.add(new Property<float>("duration", OFFSET(duration, tc)));
     componentSerializer.add(new Property<TextureRef>("texture", OFFSET(texture, tc)));
     componentSerializer.add(new IntervalProperty<float>("lifetime", OFFSET(lifetime, tc)));

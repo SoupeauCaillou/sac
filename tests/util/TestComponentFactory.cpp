@@ -3,6 +3,7 @@
 #include "util/DataFileParser.h"
 #include "systems/TransformationSystem.h"
 #include "systems/AnimationSystem.h"
+#include "systems/ParticuleSystem.h"
 #include "base/PlacementHelper.h"
 
 static FileBuffer FB(const char* str) {
@@ -26,7 +27,7 @@ TEST(TestFloatProperty)
 	TransformationSystem::DestroyInstance();
 }
 
-TEST(TestFloatIntervalProperty)
+TEST(TestFloatFromInterval)
 {
 	TransformationSystem::CreateInstance();
 	FileBuffer fb = FB("rotation=1.2, 3.5");
@@ -39,6 +40,19 @@ TEST(TestFloatIntervalProperty)
 	TransformationSystem::DestroyInstance();
 }
 
+TEST(TestFloatIntervalProperty)
+{
+    ParticuleSystem::CreateInstance();
+    FileBuffer fb = FB("lifetime=1.2, 3.5");
+    DataFileParser dfp;
+    dfp.load(fb);
+    ParticuleComponent comp;
+
+    CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theParticuleSystem.getSerializer().getProperties(), &comp));
+    CHECK_CLOSE(1.2, comp.lifetime.t1, 0.001);
+    CHECK_CLOSE(3.5, comp.lifetime.t2, 0.001);
+    ParticuleSystem::DestroyInstance();
+}
 
 TEST(TestSingleVec2Property)
 {

@@ -14,7 +14,6 @@ namespace PropertyType {
         Int,
         Float,
         Color,
-        Interval,
         Texture,
         Unsupported
     };
@@ -22,7 +21,7 @@ namespace PropertyType {
 
 class IProperty {
     protected:
-        IProperty(const std::string& name, PropertyType::Enum type, unsigned long offset, unsigned size);
+        IProperty(const std::string& name, PropertyType::Enum type, bool isInterval, unsigned long offset, unsigned size);
     public:
         virtual ~IProperty() {}
         virtual unsigned size(void* object) const;
@@ -32,12 +31,14 @@ class IProperty {
 
         const std::string& getName() const { return name; }
         PropertyType::Enum getType() const {return type;}
+        bool isInterval() const { return interval; }
     public:
         unsigned long offset;
         unsigned _size;
     private:
         std::string name;
         PropertyType::Enum type;
+        bool interval;
 
 };
 
