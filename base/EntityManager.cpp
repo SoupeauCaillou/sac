@@ -39,11 +39,7 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(const std::string&
-#if SAC_DEBUG
-            name
-#endif
-        , EntityType::Enum type, const DataFileParser* dfp) {
+Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum type) {
 	Entity e = nextEntity++;
 
 	switch (type) {
@@ -55,48 +51,92 @@ Entity EntityManager::CreateEntity(const std::string&
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
-#if SAC_DEBUG
-    if (name2entity.find(name) == name2entity.end()) {
-        name2entity.insert(std::make_pair(name, e));
-    } else {
-        std::stringstream namesuffix;
-        namesuffix << name;
-        do {
-            namesuffix << glm::floor(glm::linearRand(0.0f, 10.0f));
-        } while (name2entity.find(namesuffix.str()) != name2entity.end());
-        name2entity.insert(std::make_pair(namesuffix.str(), e));
-    }
-#endif
-
-    if (dfp) {
-        DEBUG_LOGV(1, "Create entity: " << name << " from file")
-        // browse system
-        const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
-        for (auto it = systems.begin(); it!=systems.end(); ++it) {
-            if (dfp->hasSection(it->first)) {
-                it->second->Add(e, dfp);
-                entityComponents[e].push_back(it->second);
-            }
-        }
-    }
+    entity2name[e] = name;
 
 	return e;
 }
 
-
-#ifdef SAC_DEBUG
-const std::string& EntityManager::entityName(Entity e) const {
-    for (std::map<std::string, Entity>::const_iterator it=name2entity.begin();
-        it!=name2entity.end(); ++it) {
-        if (e == it->second)
-            return it->first;
+void EntityManager::reloadEntity(Entity e, const DataFileParser& dfp) {
+    const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
+    for (auto it = systems.begin(); it!=systems.end(); ++it) {
+        if (dfp.hasSection(it->first)) {
+            ComponentSystem* sys = it->second;
+            sys->UpdateEntity(e, &dfp);
+        }
     }
-    LOGW("Unknown entity: " << e)
-    static std::string u("unknown");
-    return u;
 }
+
+void EntityManager::reload(const std::string& name) {
+    LOGI("Reload: '" << name << "'")
+    auto it = file2entities.find(name);
+    if (it == file2entities.end()) {
+        LOGE("Unable to find entity: '" << name << "'")
+        return;
+    }
+    DataFileParser dfp;
+    FileBuffer fb = assetAPI->loadAsset(asset2File(name));
+    if (!fb.size) {
+        LOGE("Unable to load '" << asset2File(name) << "'")
+        return;
+    }
+    if (!dfp.load(fb)) {
+        LOGE("Unable to parse '" << asset2File(name) << "'")
+        delete[] fb.data;
+        return;
+    }
+
+    for (Entity e : it->second) {
+        reloadEntity(e, dfp);
+    }
+    delete[] fb.data;
+}
+
+Entity EntityManager::CreateEntityFromFile(const std::string& name, EntityType::Enum type) {
+    Entity e = CreateEntity(name, type);
+
+    DataFileParser dfp;
+    FileBuffer fb = assetAPI->loadAsset(asset2File(name));
+    if (!fb.size) {
+        LOGE("Unable to load '" << asset2File(name) << "'")
+        return e;
+    }
+    if (!dfp.load(fb)) {
+        LOGE("Unable to parse '" << asset2File(name) << "'")
+        delete[] fb.data;
+        return e;
+    }
+
+    LOGI( "Create entity: '" << name << "' from file")
+    // browse system
+    const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
+    for (auto it = systems.begin(); it!=systems.end(); ++it) {
+        if (dfp.hasSection(it->first))
+            AddComponent(e, it->second);
+    }
+    reloadEntity(e, dfp);
+    delete[] fb.data;
+
+#if SAC_LINUX && SAC_DESKTOP
+    auto it = file2entities.find(name);
+    if (it == file2entities.end()) {
+        registerNewAsset(name);
+    }
+    file2entities[name].push_back(e);
 #endif
 
+
+    return e;
+}
+
+
+const std::string& EntityManager::entityName(Entity e) const {
+    static const std::string u("unknown");
+    auto it = entity2name.find(e);
+    if (it != entity2name.end())
+        return it->second;
+    else
+        return u;
+}
 
 void EntityManager::DeleteEntity(Entity e) {
 	std::list<ComponentSystem*>& l = entityComponents[e];
@@ -105,9 +145,16 @@ void EntityManager::DeleteEntity(Entity e) {
 		(*it)->Delete(e);
 	}
 	entityComponents.erase(e);
-#if SAC_DEBUG
-    name2entity.erase(entityName(e));
+
+#if SAC_LINUX && SAC_DESKTOP
+    auto it = entity2name.find(e);
+    if (it != entity2name.end()) {
+        auto jt = file2entities.find(it->second);
+        if (jt != file2entities.end())
+            jt->second.remove(e);
+    }
 #endif
+    entity2name.erase(e);
 }
 
 void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
@@ -231,11 +278,6 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 
 void deleteEntityFunctor(Entity e) {
     theEntityManager.DeleteEntity(e);
-}
-
-
-void EntityManager::reload(const std::string& assetName) {
-
 }
 
 std::string EntityManager::asset2File(const std::string& name) const {

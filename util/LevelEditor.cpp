@@ -32,6 +32,12 @@ static void _unlock() {
     twMutex.unlock();
 }
 
+static std::string entityToTwName(Entity e) {
+    std::stringstream s;
+    s << theEntityManager.entityName(e) << '_' << (e & 0xf7ffffff);
+    return s.str();
+}
+
 static int _TwEventMouseButtonGLFW(int glfwButton, int glfwAction) {
     _lock();
     int rValue = TwEventMouseButtonGLFW(glfwButton, glfwAction);
@@ -122,11 +128,7 @@ static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
 static void showTweakBarForEntity(Entity e) {
     std::stringstream barName;
 
-#ifdef SAC_DEBUG
-    barName << theEntityManager.entityName(e);
-#else
-    barName << e;
-#endif
+    barName << entityToTwName(e);
 
     TwBar* bar = TwGetBarByName(barName.str().c_str());
     if (bar == 0) {
@@ -237,11 +239,7 @@ void LevelEditor::tick(float dt) {
             if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay)
                 continue;
             std::stringstream n;
-#ifdef SAC_DEBUG
-            n << theEntityManager.entityName(entities[i]);
-#else
-            n << entities[i];
-#endif
+            n << entityToTwName(entities[i]);
 
             if (n.str().find("__debug") == 0 || n.str().find("__text") == 0)
                 continue;

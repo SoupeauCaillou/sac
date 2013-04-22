@@ -31,8 +31,8 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
     }
 }
 
-#define LOG_SUCCESS LOGE("Loaded " << section << "/" << name << " property: '" << *out << "'")
-#define LOG_SUCCESS_ LOGE("Loaded " << section << "/" << name << " property: '"
+#define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << name << " property: '" << *out << "'")
+#define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << name << " property: '"
 
 template <class T>
 int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, T* out);

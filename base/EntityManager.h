@@ -15,6 +15,7 @@
 
 class ComponentSystem;
 class DataFileParser;
+class AssetAPI;
 
 namespace EntityType {
     enum Enum {
@@ -31,11 +32,14 @@ class EntityManager : public ResourceHotReload{
 		static void CreateInstance();
 		static void DestroyInstance();
 
+        void setAssetAPI(AssetAPI* api) { assetAPI = api; }
+
 	public:
 
 		Entity CreateEntity(const std::string& name = "noname"
-            , EntityType::Enum type = EntityType::Volatile,
-            const DataFileParser* dfp = 0);
+            , EntityType::Enum type = EntityType::Volatile);
+        Entity CreateEntityFromFile(const std::string& filename = "noname"
+            , EntityType::Enum type = EntityType::Volatile);
 
     	void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system);
@@ -45,9 +49,7 @@ class EntityManager : public ResourceHotReload{
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
-#if SAC_DEBUG
         const std::string& entityName(Entity e) const;
-#endif
         int getNumberofEntity() {return entityComponents.size();}
 
         // ResourceHotReload implem
@@ -57,9 +59,12 @@ class EntityManager : public ResourceHotReload{
 	private:
 		Entity nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
-#if SAC_DEBUG
-        std::map<std::string, Entity> name2entity;
+        std::map<Entity, std::string> entity2name;
+#if SAC_LINUX && SAC_DESKTOP
+        std::map<std::string, std::list<Entity> > file2entities;
 #endif
+        AssetAPI* assetAPI;
+        void reloadEntity(Entity e, const DataFileParser& dfp);
 };
 
 void deleteEntityFunctor(Entity e);

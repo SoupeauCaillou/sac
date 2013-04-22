@@ -128,7 +128,8 @@ class ComponentSystem {
         virtual ~ComponentSystem() { registry.erase(name); }
 
 		virtual const std::string& getName() const { return name; }
-		virtual void Add(Entity entity, const DataFileParser* dfp = 0) = 0;
+		virtual void Add(Entity entity) = 0;
+        virtual void UpdateEntity(Entity entity, const DataFileParser* dfp) = 0;
 		virtual void Delete(Entity entity) = 0;
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
@@ -167,6 +168,11 @@ class ComponentSystem {
 		static std::map<std::string, ComponentSystem*> registry;
 	protected:
 		std::string name;
+    Serializer componentSerializer;
+    public:
+        const Serializer& getSerializer() const {
+            return componentSerializer;
+        }
     public:
 #if SAC_DEBUG
         float updateDuration;
@@ -183,7 +189,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #endif
 		}
 
-		void Add(Entity entity, const DataFileParser* dfp = 0) {
+		void Add(Entity entity) {
 #if SAC_USE_VECTOR_STORAGE
             if (_freelist == UINT_MAX) {
                  entityWithComponent.push_back(EntityNextFree(entity));
@@ -200,13 +206,18 @@ class ComponentSystemImpl: public ComponentSystem {
 #else
             DEBUG_LOGF_IF(components.find(entity) != components.end(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
             T* comp = CreateComponent();
-            if (dfp) {
-                int count = ComponentFactory::build(*dfp, name, componentSerializer.getProperties(), comp);
-                LOGV(2, "Initialized " << name << ": " << count << " properties read")
-            }
+
 			components.insert(std::make_pair(entity, comp));
 #endif
 		}
+
+        void UpdateEntity(Entity entity, const DataFileParser* dfp = 0) {
+            T* comp = Get(entity, false);
+            if (dfp && comp) {
+                int count = ComponentFactory::build(*dfp, name, componentSerializer.getProperties(), comp);
+                LOGV(2, "Updated " << name << ": " << count << " properties read")
+            }
+        }
 
 #if SAC_DEBUG
 		virtual void preDeletionCheck(Entity) { };
@@ -337,9 +348,4 @@ class ComponentSystemImpl: public ComponentSystem {
 #endif
         Entity previous;
         T* previousComp;
-        Serializer componentSerializer;
-    public:
-        const Serializer& getSerializer() const {
-            return componentSerializer;
-        }
 };
