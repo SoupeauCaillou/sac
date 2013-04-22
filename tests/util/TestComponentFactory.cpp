@@ -102,3 +102,20 @@ TEST(TestTransformPercentProperty)
     CHECK_CLOSE(0.8 *  PlacementHelper::ScreenWidth, comp.position.y, 0.001);
     TransformationSystem::DestroyInstance();
 }
+
+TEST(TestColorProperty)
+{
+    RenderingSystem::CreateInstance();
+    FileBuffer fb = FB("color=1.0, 0.5, 0.25, 1");
+    DataFileParser dfp;
+    dfp.load(fb);
+    RenderingComponent comp;
+
+    CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theRenderingSystem.getSerializer().getProperties(), &comp));
+
+    CHECK_CLOSE(1.0, comp.color.r, 0.001);
+    CHECK_CLOSE(0.5, comp.color.g, 0.001);
+    CHECK_CLOSE(0.25, comp.color.b, 0.001);
+    CHECK_CLOSE(1, comp.color.a, 0.001);
+    RenderingSystem::DestroyInstance();
+}

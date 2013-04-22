@@ -8,6 +8,9 @@
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
 
+const std::string colormodifiers[] =
+    { "", "%html", "%255" };
+
 static void applyVec2Modifiers(int idx, glm::vec2* out) {
     switch (idx) {
         case 0:
@@ -43,8 +46,6 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     float parsed[4];
 
     // 5 different variants
-
-
     for (int i = 0; i<5; i++) {
         if (dfp.get(section, name + vec2modifiers[i], parsed, 4, false)) {
             // we got an interval
@@ -61,6 +62,31 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             return 1;
         }
     }
+    return 0;
+}
+
+template <>
+inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, Color* out) {
+    float p[8];
+    // 3 different variants: first 4 float (or 8 for an interval)
+    if (dfp.get(section, name, p, 8, false)) {
+        // we got an interval
+        Interval<Color> itv(Color(&p[0], 0xffffffff), Color(&p[4], 0xffffffff));
+        *out = itv.random();
+        LOG_SUCCESS_ << *out << "'")
+        return 1;
+    } else if (dfp.get(section, name, p, 4, false)) {
+        // we got a single value
+        *out = Color(&p[0], 0xffffffff);
+        LOG_SUCCESS_ << *out << "'")
+        return 1;
+    }
+    uint32_t html;
+    // 0xffffffff variant
+    // ....todo
+    uint8_t rgba[4];
+    // 128, 255, 0, 128 variant
+    // ... todo
     return 0;
 }
 
@@ -125,6 +151,9 @@ int ComponentFactory::build(const DataFileParser& dfp,
                 break;
             case PropertyType::String:
                 count += LOAD(std::string*);
+                break;
+            case PropertyType::Color:
+                count += LOAD(Color*);
                 break;
             case PropertyType::Texture: {
                 std::string textureName;
