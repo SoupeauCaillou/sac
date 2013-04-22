@@ -11,6 +11,8 @@
 #endif
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
 
+#include "util/ResourceHotReload.h"
+
 class ComponentSystem;
 class DataFileParser;
 
@@ -20,7 +22,7 @@ namespace EntityType {
         Persistent
     };
 }
-class EntityManager {
+class EntityManager : public ResourceHotReload{
 	private:
 		static EntityManager* instance;
 		EntityManager();
@@ -47,6 +49,10 @@ class EntityManager {
         const std::string& entityName(Entity e) const;
 #endif
         int getNumberofEntity() {return entityComponents.size();}
+
+        // ResourceHotReload implem
+        std::string asset2File(const std::string& name) const;
+        void reload(const std::string& assetName);
 
 	private:
 		Entity nextEntity;

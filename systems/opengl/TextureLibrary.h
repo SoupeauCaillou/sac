@@ -76,6 +76,6 @@ class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef, ImageDe
     public:
         void add(const std::string& name, const TextureInfo& info);
 
-        std::string assetSuffix() const { return ".png"; }
+        std::string asset2File(const std::string& assetName) const { return assetName + ".png"; }
 
 };

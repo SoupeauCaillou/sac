@@ -49,6 +49,8 @@ class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
     public:
         virtual void init(AssetAPI* pAssetAPI);
 
+        std::string asset2File(const std::string& asset) const { return asset; }
+
         enum {
             ATTRIB_VERTEX = 0,
             ATTRIB_UV,

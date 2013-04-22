@@ -43,16 +43,19 @@ void ResourceHotReload::updateReload() {
 
 void ResourceHotReload::registerNewAsset(const std::string & name) {
 #if SAC_LINUX && SAC_DESKTOP
-    std::string cmp = assetPrefix() + name + assetSuffix();
-    std::string full = SAC_ASSETS_DIR + cmp;
+    std::string full = SAC_ASSETS_DIR + '/' + asset2File(name);
 
     std::ifstream ifile(full);
     if (!ifile) {
         const std::string assetsDirectory = "assets/";
-        full.replace(full.find(assetsDirectory), assetsDirectory.length(), "assetspc/");
+        size_t idx = full.find(assetsDirectory);
+        if (idx == std::string::npos) {
+            return;
+        }
+        full.replace(idx, assetsDirectory.length(), "assetspc/");
         ifile.open(full, std::ifstream::in);
         if (!ifile) {
-            LOGW("File " << full << " does not exist! Can't monitore it. (prefix=" << assetPrefix() << ", suffix=" << assetSuffix() << ')');
+            LOGW("File " << asset2File(name) << " does not exist! Can't monitore it")
             return;
         }
     }

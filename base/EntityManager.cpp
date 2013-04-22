@@ -232,3 +232,12 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 void deleteEntityFunctor(Entity e) {
     theEntityManager.DeleteEntity(e);
 }
+
+
+void EntityManager::reload(const std::string& assetName) {
+
+}
+
+std::string EntityManager::asset2File(const std::string& name) const {
+    return "entities/" + name + ".entity";
+}

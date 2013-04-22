@@ -9,13 +9,11 @@ class ResourceHotReload {
 
         void updateReload();
 
-        virtual void reload(const std::string& file) = 0;
+        virtual void reload(const std::string& assetName) = 0;
 
-        virtual std::string assetPrefix() const { return ""; }
+        virtual std::string asset2File(const std::string& assetName) const = 0;
 
-        virtual std::string assetSuffix() const { return ""; }
-
-        void registerNewAsset(const std::string & name);
+        void registerNewAsset(const std::string & assetName);
 
 #if SAC_LINUX && SAC_DESKTOP
     private:
