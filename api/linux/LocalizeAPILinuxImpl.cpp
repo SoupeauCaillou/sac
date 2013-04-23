@@ -19,8 +19,8 @@
 #include "LocalizeAPILinuxImpl.h"
 
 
-#if SAC_EMSCRIPTEN
 #include "base/Log.h"
+#if SAC_EMSCRIPTEN
 #elif SAC_WINDOWS || SAC_DARWIN
 	//TODO
 #else

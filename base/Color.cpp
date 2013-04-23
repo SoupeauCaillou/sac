@@ -20,7 +20,7 @@ Color::Color(float _r, float _g, float _b, float _a):
 	r(_r), g(_g), b(_b), a(_a) {
 }
 
-Color::Color(float* pRgba, uint32_t mask) {
+Color::Color(float* pRgba, uint32_t) {
     LOGW("Color mask ignored")
     memcpy(rgba, pRgba, 4 * sizeof(float));
 }

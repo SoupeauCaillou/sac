@@ -21,7 +21,9 @@ export OPTIONS="n: simply compile
 \td: run&debug the app with cgdb
 \tl: use colorlog.sh script for colored logs\t(options available, see below)
 You can also specify arguments:
-\t-c|--cmakeconfig \"arguments for cmake\": see cmake for options.
+\t-c|--cmakeconfig \"arguments for cmake\": see cmake for options. Some useful:
+\t\t-DCMAKE_BUILD_TYPE=release or debug
+\t\t-DTARGET=linux or android or emscripten or windows or darwin
 \t-h|--help: show this help
 \t-l|--log \"arguments for coloredlog script\": options for this script. See it for arguments availables
 \t-r|--run \"arguments for game\": arguments handled by the game (--restore, --verbose, ..., whatever you did!)"
@@ -70,14 +72,26 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
         shift
     done
 
-
 ######### 2 : Create build dir. #########
 	rootPath=$whereAmI"/../../.."
 
-	mkdir -p $rootPath/build/linux
+# retrieve build target
+    cmakebuildtarget="linux"
+
+    if [ ! -z $(grep -i -- '-DTARGET=' <<< "$CMAKE_CONFIG" ) ]; then
+        cmakebuildtarget=$(echo $CMAKE_CONFIG | sed 's/-DTARGET=/~/' | cut -d '~' -f2 | cut -d ' ' -f1)
+    fi
+# retrieve build type
+    cmakebuildtype="debug"
+    if [ ! -z $(grep -i -- '-DCMAKE_BUILD_TYPE=' <<< "$CMAKE_CONFIG") ]; then
+        cmakebuildtype=$(echo $CMAKE_CONFIG | sed 's/-DCMAKE_BUILD_TYPE=/~/' | cut -d '~' -f2 | cut -d ' ' -f1)
+    fi
+
+    builddir=$rootPath/build/$cmakebuildtarget-$cmakebuildtype
+	mkdir -p $builddir
 
 ######### 3 : Go into build/emscripten #########
-	cd $rootPath/build/linux
+	cd $builddir
 
 ######### 4 : Execute query. #########
 	gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
