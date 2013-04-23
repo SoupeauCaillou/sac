@@ -102,7 +102,8 @@ TEST (MapPropertyStringKey)
     p.deserialize(buf, &w);
     CHECK_EQUAL((unsigned)10, w.size());
     for (int i=0; i<10; i++) {
-        std::string s = "a" + i;
+        std::string s = &"a"[i];
+
         CHECK_EQUAL(v[s], w[s]);
     }
 }
@@ -111,7 +112,7 @@ TEST (MapPropertyDifference)
 {
     std::map<std::string, float> v, w;
     for (int i=0; i<10; i++)
-        v["a" + i] = i;
+        v[&"a"[i]] = i;
     MapProperty<std::string, float> p("", 0);
 
     CHECK(p.different(&v, &w));
