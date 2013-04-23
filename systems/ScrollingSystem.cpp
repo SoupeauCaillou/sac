@@ -97,10 +97,18 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 void ScrollingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
 	ScrollingComponent* sc = Get(entity, false);
     if (!sc) return;
-    int s = sc->images.size();
-    TwAddVarRO(bar, "Image number", TW_TYPE_FLOAT, &s, "group=Scrolling");
-    for (auto i: sc->images)
-    	TwAddVarRO(bar, "Image Name", TW_TYPE_STDSTRING, &i, "group=Images");
+    int size = sc->images.size();
+    int i = 0;
+    TwEnumVal imageName[size];
+    for (auto name: sc->images) {
+		imageName[i].Value = i;
+		imageName[i].Label = name.c_str();
+    	++i;
+   	}
+   	TwType imageType = TwDefineEnum("imageType", imageName, size);
+    static char x;
+    TwAddVarRW(bar, "Images", imageType, &x, "group=Scrolling");
+
     TwAddVarRW(bar, "Direction X", TW_TYPE_FLOAT, &sc->direction.x, "group=Scrolling");
     TwAddVarRW(bar, "Direction Y", TW_TYPE_FLOAT, &sc->direction.y, "group=Scrolling");
     TwAddVarRW(bar, "Speed", TW_TYPE_FLOAT, &sc->speed, "group=Scrolling");
