@@ -1,6 +1,8 @@
 #include "RenderingSystem.h"
 #include "RenderingSystem_Private.h"
+
 #include "base/EntityManager.h"
+
 #include "TransformationSystem.h"
 #include "CameraSystem.h"
 
@@ -475,12 +477,27 @@ void RenderingSystem::DoUpdate(float) {
 #endif
 }
 
-bool RenderingSystem::isVisible(Entity e, int cameraIndex) const {
-    return isVisible(TRANSFORM(e), cameraIndex);
+bool RenderingSystem::isVisible(Entity e) const {
+    return isVisible(TRANSFORM(e));
 }
 
-bool RenderingSystem::isVisible(const TransformationComponent* /*tc*/, int /*cameraIndex*/) const {
-    return true;
+bool RenderingSystem::isVisible(const TransformationComponent* tc) const {
+    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    if (cameras.empty()) {
+        return false;
+    }
+    TransformationComponent* camTrans = 0;
+    for (auto& cam: cameras) {
+        if (CAMERA(cam)->fb == DefaultFrameBufferRef) {
+            camTrans = TRANSFORM(cam);
+            break;
+        }
+    }
+    if (!camTrans)
+        return false;
+
+    return IntersectionUtil::rectangleRectangle(camTrans, tc);
+
 #if 0
     if (cameraIndex < 0) {
         for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {

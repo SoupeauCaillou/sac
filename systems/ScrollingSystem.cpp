@@ -36,15 +36,16 @@ void ScrollingSystem::DoUpdate(float dt) {
 	        continue;
         }
 
-        assert (sc->speed >= 0);
+        LOGF_IF(sc->speed < 0, "Scrolling component '" << sc << "' has a speed < 0");
+	    
 	    ScrollingElement& se = iter->second;
 	    for (int i=0; i<2; i++) {
-		    if (!RENDERING(se.e[i])->show)
-		    	RENDERING(se.e[i])->show = true;
+	    	RENDERING(se.e[i])->show = true;
 
 	        TransformationComponent* tc = TRANSFORM(se.e[i]);
 	        TransformationComponent* ptc = TRANSFORM(a);
 	        tc->position += sc->direction * (sc->speed * dt);
+
 	        bool isVisible = theRenderingSystem.isVisible(tc);
 	        if (!se.hasBeenVisible[i] && isVisible) {
 		        se.hasBeenVisible[i] = true;
@@ -61,8 +62,6 @@ void ScrollingSystem::DoUpdate(float dt) {
 
 void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 	ScrollingElement se;
-
-	assert (glm::abs(glm::length(sc->direction) - 1) <= 0.001);
 
 	TransformationComponent* ptc = TRANSFORM(e);
 	for (int i=0; i<2; i++) {
@@ -83,7 +82,6 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 		tc->z = i * 0.05;
 
 		RenderingComponent* rc = RENDERING(se.e[i]);
-		// rc->hide = false;
 		se.imageIndex[i] = i % sc->images.size();
 		rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
 		// rc->color = debugColors[se.imageIndex[i]];
@@ -111,7 +109,7 @@ void ScrollingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
 
     TwAddVarRW(bar, "Direction X", TW_TYPE_FLOAT, &sc->direction.x, "group=Scrolling");
     TwAddVarRW(bar, "Direction Y", TW_TYPE_FLOAT, &sc->direction.y, "group=Scrolling");
-    TwAddVarRW(bar, "Speed", TW_TYPE_FLOAT, &sc->speed, "group=Scrolling");
+    TwAddVarRW(bar, "Speed", TW_TYPE_FLOAT, &sc->speed, "group=Scrolling min=0.1");
     TwAddVarRW(bar, "Display Size X", TW_TYPE_FLOAT, &sc->displaySize.x, "group=Scrolling");
     TwAddVarRW(bar, "Display Size Y", TW_TYPE_FLOAT, &sc->displaySize.y, "group=Scrolling");
     TwAddVarRW(bar, "Show", TW_TYPE_BOOLCPP, &sc->show, "group=Scrolling");

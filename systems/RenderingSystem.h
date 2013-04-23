@@ -100,8 +100,8 @@ public:
     FramebufferRef getFramebuffer(const std::string& fbName) const ;
     void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
-    bool isVisible(Entity e, int cameraIndex = -1) const;
-    bool isVisible(const TransformationComponent* tc, int cameraIndex = -1) const;
+    bool isVisible(Entity e) const;
+    bool isVisible(const TransformationComponent* tc) const;
 
     void reloadTextures();
 
