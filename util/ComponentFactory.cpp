@@ -4,6 +4,7 @@
 #include "base/PlacementHelper.h"
 #include "base/Interval.h"
 #include "systems/RenderingSystem.h"
+#include "systems/opengl/EntityTemplateLibrary.h"
 
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
@@ -192,4 +193,117 @@ int ComponentFactory::build(const DataFileParser& dfp,
         }
     }
 	return count;
+    #undef TYPE_2_PTR
+}
+
+int ComponentFactory::build(const DataFileParser& dfp,
+        const std::string& section,
+        const std::vector<IProperty*>& properties, EntityTemplate& templ) {
+    #define LOAD_INTERVAL_TEMPL(_type_) { \
+        Interval<_type_> itv; \
+        bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
+        if(success) load(dfp, section, name, IntervalValue2, &itv.t2);\
+        else { success = load(dfp, section, name, IntervalAsRandom, &itv.t1); itv.t2 = itv.t1; } \
+        if (success) {\
+        uint8_t* arr = new uint8_t[sizeof(itv)];\
+        memcpy(arr, &itv, sizeof(itv));\
+        propMap.insert(std::make_pair(name, arr)); }}
+
+    ComponentSystem* systm = ComponentSystem::Named(section);
+    LOGE_IF(!systm, "Missing system: '" << section << "'")
+    if (!systm)
+        return 0;
+    PropertyNameValueMap& propMap = templ[systm];
+    for (auto it : propMap) {
+        delete it.second;
+    }
+
+    // Browse properties
+    for (auto it = properties.begin(); it!=properties.end(); ++it) {
+        // Retrieve property name
+        const std::string& name = (*it)->getName();
+
+        switch ((*it)->getType()) {
+            case PropertyType::Float:
+                LOAD_INTERVAL_TEMPL(float);
+                break;
+            case PropertyType::Int:
+                LOAD_INTERVAL_TEMPL(int);
+                break;
+            case PropertyType::Vec2:
+                LOAD_INTERVAL_TEMPL(glm::vec2);
+                break;
+            case PropertyType::String: {
+                std::string s;
+                if (load(dfp, section, name, IntervalAsRandom, &s)) {
+                    unsigned l = s.length();
+                    uint8_t* arr = new uint8_t[sizeof(int) + l];
+                    memcpy(arr, &l, sizeof(int));
+                    memcpy(&arr[sizeof(int)], s.c_str(), l);
+                    propMap.insert(std::make_pair(name, arr));
+                }
+                break;
+            }
+            case PropertyType::Color:
+                LOAD_INTERVAL_TEMPL(Color);
+                break;
+            case PropertyType::Texture: {
+                std::string textureName;
+                if (load(dfp, section, name, IntervalAsRandom,&textureName)) {
+                    uint8_t* arr = new uint8_t[sizeof(TextureRef)];
+                    *((TextureRef*)arr) = theRenderingSystem.loadTextureFile(textureName);
+                    propMap.insert(std::make_pair(name, arr));
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return propMap.size();
+}
+
+void ComponentFactory::applyTemplate(void* component, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties) {
+    #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + prop->offset)
+    #define ASSIGN(_type_) { \
+        Interval< _type_ > itv; \
+        memcpy(&itv, (*it).second, sizeof(itv)); \
+        *(TYPE_2_PTR(_type_)) = itv.random(); }
+
+    for (IProperty* prop : properties) {
+        auto it = propValueMap.find(prop->getName());
+        if (it == propValueMap.end())
+            continue;
+        switch (prop->getType()) {
+           case PropertyType::Float:
+                ASSIGN(float);
+                break;
+            case PropertyType::Int:
+                ASSIGN(int);
+                break;
+            case PropertyType::Vec2:
+                ASSIGN(glm::vec2);
+                break;
+            case PropertyType::String: {
+                char tmp[1024];
+                unsigned l;
+                memcpy(&l, (*it).second, sizeof(int));
+                memcpy(tmp, (*it).second + sizeof(int), l);
+                tmp[l] = '\0';
+                std::string* s = TYPE_2_PTR(std::string);
+                *s = tmp;
+                break;
+            }
+            case PropertyType::Color:
+                ASSIGN(Color);
+                break;
+            case PropertyType::Texture: {
+                memcpy((uint8_t*)component + prop->offset, (*it).second, sizeof(TextureRef));
+                break;
+            }
+            default:
+                break;
+        }
+    }
 }

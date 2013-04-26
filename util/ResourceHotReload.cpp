@@ -30,7 +30,7 @@ void ResourceHotReload::updateReload() {
                 event = (struct inotify_event *) buffer;
                 //it has changed! reload it
                 if (event->wd == (it).second.wd) {
-                    LOGI((it).second._filename << " has been changed! Reloading.");
+                    LOGI((it).second._filename << " has changed! Reloading.");
                     (it).second.wd = inotify_add_watch((it).second.inotifyFd, (it).second._filename.c_str(), IN_CLOSE_WRITE);
                     reload((it).second._assetname);
                 }

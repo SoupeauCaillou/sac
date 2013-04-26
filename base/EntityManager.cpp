@@ -39,7 +39,7 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum type) {
+Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum type, EntityTemplateRef tmpl) {
 	Entity e = nextEntity++;
 
 	switch (type) {
@@ -51,83 +51,20 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
+    LOGF_IF(entity2name.find(e) != entity2name.end(), "Incoherent entity2name state")
     entity2name[e] = name;
 
+    if (tmpl != InvalidEntityTemplateRef) {
+        // add component
+        const EntityTemplate& templ = *entityTemplateLibrary.get(tmpl, false);
+        for (auto it: templ) {
+            ComponentSystem* s = it.first;
+            AddComponent(e, s);
+        }
+        entityTemplateLibrary.applyEntityTemplate(e, tmpl);
+    }
 	return e;
 }
-
-void EntityManager::reloadEntity(Entity e, const DataFileParser& dfp) {
-    const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
-    for (auto it = systems.begin(); it!=systems.end(); ++it) {
-        if (dfp.hasSection(it->first)) {
-            ComponentSystem* sys = it->second;
-            sys->UpdateEntity(e, &dfp);
-        }
-    }
-}
-
-void EntityManager::reload(const std::string& name) {
-    LOGI("Reload: '" << name << "'")
-    auto it = file2entities.find(name);
-    if (it == file2entities.end()) {
-        LOGE("Unable to find entity: '" << name << "'")
-        return;
-    }
-    DataFileParser dfp;
-    FileBuffer fb = assetAPI->loadAsset(asset2File(name));
-    if (!fb.size) {
-        LOGE("Unable to load '" << asset2File(name) << "'")
-        return;
-    }
-    if (!dfp.load(fb)) {
-        LOGE("Unable to parse '" << asset2File(name) << "'")
-        delete[] fb.data;
-        return;
-    }
-
-    for (Entity e : it->second) {
-        reloadEntity(e, dfp);
-    }
-    delete[] fb.data;
-}
-
-Entity EntityManager::CreateEntityFromFile(const std::string& name, EntityType::Enum type) {
-    Entity e = CreateEntity(name, type);
-
-    DataFileParser dfp;
-    FileBuffer fb = assetAPI->loadAsset(asset2File(name));
-    if (!fb.size) {
-        LOGE("Unable to load '" << asset2File(name) << "'")
-        return e;
-    }
-    if (!dfp.load(fb)) {
-        LOGE("Unable to parse '" << asset2File(name) << "'")
-        delete[] fb.data;
-        return e;
-    }
-
-    LOGI( "Create entity: '" << name << "' from file")
-    // browse system
-    const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
-    for (auto it = systems.begin(); it!=systems.end(); ++it) {
-        if (dfp.hasSection(it->first))
-            AddComponent(e, it->second);
-    }
-    reloadEntity(e, dfp);
-    delete[] fb.data;
-
-#if SAC_LINUX && SAC_DESKTOP
-    auto it = file2entities.find(name);
-    if (it == file2entities.end()) {
-        registerNewAsset(name);
-    }
-    file2entities[name].push_back(e);
-#endif
-
-
-    return e;
-}
-
 
 const std::string& EntityManager::entityName(Entity e) const {
     static const std::string u("unknown");
@@ -147,12 +84,7 @@ void EntityManager::DeleteEntity(Entity e) {
 	entityComponents.erase(e);
 
 #if SAC_LINUX && SAC_DESKTOP
-    auto it = entity2name.find(e);
-    if (it != entity2name.end()) {
-        auto jt = file2entities.find(it->second);
-        if (jt != file2entities.end())
-            jt->second.remove(e);
-    }
+    entityTemplateLibrary.remove(e);
 #endif
     entity2name.erase(e);
 }
@@ -278,8 +210,4 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 
 void deleteEntityFunctor(Entity e) {
     theEntityManager.DeleteEntity(e);
-}
-
-std::string EntityManager::asset2File(const std::string& name) const {
-    return "entities/" + name + ".entity";
 }

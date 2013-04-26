@@ -30,9 +30,9 @@ public:
 
 #if SAC_DEBUG
 	void preDeletionCheck(Entity e) {
-		FOR_EACH_COMPONENT(Transformation, bc)
+		FOR_EACH_ENTITY_COMPONENT(Transformation, child, bc)
 			if (bc->parent == e) {
-				DEBUG_LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << ')')
+				DEBUG_LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')')
 			}
 		}
 	}

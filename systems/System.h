@@ -134,6 +134,7 @@ class ComponentSystem {
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
+        virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) = 0;
 
 		void Update(float dt) {
             PROFILE("SystemUpdate", name, BeginEvent);
@@ -301,6 +302,11 @@ class ComponentSystemImpl: public ComponentSystem {
 			T* component = Get(entity);
             return componentSerializer.serializeObject(out, component, ref);
 		}
+
+        void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) {
+            T* comp = Get(entity);
+            ComponentFactory::applyTemplate(comp, propMap, componentSerializer.getProperties());
+        }
 
 		int deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = Get(entity, false);

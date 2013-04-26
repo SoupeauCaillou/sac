@@ -105,7 +105,7 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     gameThreadContext = pGameThreadContext;
     renderThreadContext = pRenderThreadContext;
 
-    theEntityManager.setAssetAPI(gameThreadContext->assetAPI);
+    theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
 }
 
 #if ! SAC_EMSCRIPTEN
@@ -242,7 +242,9 @@ void Game::step() {
     framename << "update-" << (int)(delta * 1000000);
     PROFILE("Game", framename.str(), InstantEvent);
 #endif
-    theEntityManager.updateReload();
+    theEntityManager.entityTemplateLibrary.update();
+    theEntityManager.entityTemplateLibrary.updateReload();
+
     // update game state
 #if SAC_INGAME_EDITORS
     static float speedFactor = 1.0f;

@@ -40,11 +40,12 @@ template <typename T, typename TRef, typename SourceDataType>
 class NamedAssetLibrary : public ResourceHotReload {
 #define InvalidRef -1
     public:
-        NamedAssetLibrary() : nextValidRef(1), assetAPI(0) {
+        NamedAssetLibrary() : nextValidRef(1), assetAPI(0), useDeferredLoading(true) {
         }
 
-        virtual void init(AssetAPI* pAssetAPI) {
+        virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true) {
             assetAPI = pAssetAPI;
+            useDeferredLoading = pUseDeferredLoading;
         }
 
         virtual ~NamedAssetLibrary() {
@@ -66,6 +67,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                 result = it->second;
             }
             mutex.unlock();
+            if (!useDeferredLoading) update();
             return result;
         }
 
@@ -73,11 +75,13 @@ class NamedAssetLibrary : public ResourceHotReload {
             mutex.lock();
             delayed.unloads.insert(name);
             mutex.unlock();
+            if (!useDeferredLoading) update();
         }
         void reload(const std::string& name) {
             mutex.lock();
             delayed.reloads.insert(name);
             mutex.unlock();
+            if (!useDeferredLoading) update();
         }
 
         void unload(const TRef& ref) {
@@ -89,6 +93,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                 }
             }
             mutex.unlock();
+            if (!useDeferredLoading) update();
         }
 
         void reloadAll() {
@@ -199,6 +204,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 #endif
         TRef nextValidRef;
         AssetAPI* assetAPI;
+        bool useDeferredLoading;
 
         std::map<std::string, TRef> nameToRef;
         std::map<TRef, T> ref2asset;
