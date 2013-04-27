@@ -123,7 +123,7 @@ void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
 
         if (key == GLFW_KEY_BACKSPACE)
             kc = KeyboardInputHandlerAPI::BACKSPACE;
-        else if (key == GLFW_KEY_ENTER)
+        else if (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER)
             kc = KeyboardInputHandlerAPI::ENTER;
         else if (key == ' ')
             kc = KeyboardInputHandlerAPI::SPACE;

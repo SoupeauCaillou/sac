@@ -2,6 +2,7 @@
 #include "util/DataFileParser.h"
 #include "util/ComponentFactory.h"
 #include "systems/System.h"
+#include "base/EntityManager.h"
 
 bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef& ref) {
     DataFileParser dfp;
