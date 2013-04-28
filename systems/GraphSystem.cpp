@@ -99,13 +99,17 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
 
     if (gc->maxX != gc->minX) {
         if (gc->minX < minScaleX / 2 || gc->maxX > maxScaleX * 2)
-            LOGW_EVERY_N(50, "Check your X-scale on graph '" << gc->textureName << "'");
+            LOGW_EVERY_N(120, "Check your X-scale on graph '" <<
+                gc->textureName << "' : min/maxX = " << gc->minX << '/' << gc->maxX << " minScale/maxScaleX = " <<
+                minScaleX << '/' << maxScaleX);
         minScaleX = gc->minX;
         maxScaleX = gc->maxX;
     }
     if (gc->maxY != gc->minY) {
         if (gc->minY < minScaleY / 2 || gc->maxY > maxScaleY * 2)
-            LOGW_EVERY_N(50, "Check your Y-scale on graph '" << gc->textureName << "'");
+            LOGW_EVERY_N(120, "Check your Y-scale on graph '" <<
+                gc->textureName << "' : min/maxY = " << gc->minY << '/' << gc->maxY << " minScale/maxScaleY = " <<
+                minScaleY << '/' << maxScaleY);
         minScaleY = gc->minY;
         maxScaleY = gc->maxY;
     }

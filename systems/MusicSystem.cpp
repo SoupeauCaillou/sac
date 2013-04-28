@@ -188,7 +188,7 @@ void MusicSystem::DoUpdate(float dt) {
 #endif
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
-            assert (m->music != InvalidMusicRef);
+            LOGE_IF (m->music == InvalidMusicRef, "Invalid music ref: " << m->music)
 #if ! SAC_EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
@@ -250,7 +250,7 @@ void MusicSystem::DoUpdate(float dt) {
             if (m->paused && m->control == MusicControl::Play) {
                 musicAPI->startPlaying(m->opaque[1], 0, 0);
             }
-            assert(m->previousEnding != InvalidMusicRef);
+            LOGE_IF(m->previousEnding == InvalidMusicRef, "Invalid previousEnding " << m->previousEnding)
             if (m->currentVolume != m->volume) {
                 musicAPI->setVolume(m->opaque[1], m->volume);
             }
@@ -399,7 +399,7 @@ void MusicSystem::oggDecompRunLoop() {
         bool roomForImprovement = false;
         PROFILE("Music", "DecompressMusic", BeginEvent);
         for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ) {
-            assert(it->first != InvalidMusicRef);
+            LOGE_IF(it->first == InvalidMusicRef, "Invalid state: " << it->first)
             MusicInfo& info = it->second;
 
             if (info.toRemove) {
@@ -449,7 +449,7 @@ void MusicSystem::oggDecompRunLoop() {
 
 #if ! SAC_EMSCRIPTEN
 bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
-    assert (m != InvalidMusicRef);
+    LOGE_IF (m == InvalidMusicRef, "Cannot feed, invalid music ref")
     if (musics.find(m) == musics.end()) {
         LOGW("Achtung, musicref : " << m << " not found")
         return false;
@@ -487,7 +487,7 @@ bool MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, int, float dt) {
 #endif
 
 OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset) {
-    assert (r != InvalidMusicRef);
+    LOGE_IF (r == InvalidMusicRef, "Invalid music ref")
 #if ! SAC_EMSCRIPTEN
     MusicInfo& info = musics[r];
     if (info.sampleRate <=0) {

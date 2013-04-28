@@ -1,6 +1,6 @@
 #include "CircularBuffer.h"
-#include <cassert>
 #include <cstring>
+#include "base/Log.h"
 #include <glm/glm.hpp>
 
 CircularBuffer::CircularBuffer(unsigned int pBufferSize) : bufferSize(pBufferSize) {
@@ -27,7 +27,7 @@ unsigned int CircularBuffer::readDataAvailable() const {
 
 unsigned int CircularBuffer::read(int8_t* out, unsigned int size) {
 	unsigned int count = 0;
-	assert(readDataAvailable() >= size);
+	LOGW_IF(readDataAvailable() < size, "Inconsistent data available: " << readDataAvailable() << '<' << size)
 	if (size == 0)
 		return 0;
 
@@ -36,7 +36,7 @@ unsigned int CircularBuffer::read(int8_t* out, unsigned int size) {
 		memcpy(&out[count], &buffer[readPos], amount);
 		count += amount;
 		readPos += amount;
-		assert (readPos <= bufferSize);
+		LOGW_IF (readPos > bufferSize, "Invalid readPos value: " << readPos << '>' << bufferSize)
 		if (readPos == bufferSize) {
 			readPos = 0;
 			readLoopCount++;
@@ -52,7 +52,7 @@ unsigned int CircularBuffer::writeSpaceAvailable() const {
 
 unsigned int CircularBuffer::write(int8_t* in, unsigned int size) {
 	unsigned int count = 0;
-	assert(writeSpaceAvailable() >= size);
+	LOGW_IF(writeSpaceAvailable() < size, "Not enough write-space available: " << writeSpaceAvailable() << '<' << size)
 
 	if (size == 0)
 		return 0;
@@ -62,7 +62,7 @@ unsigned int CircularBuffer::write(int8_t* in, unsigned int size) {
 		memcpy(&buffer[writePos], &in[count], amount);
 		count += amount;
 		writePos  += amount;
-		assert (writePos <= bufferSize);
+		LOGW_IF (writePos > bufferSize, "Incoherent writePos " << writePos << " is > " << bufferSize)
 		if (writePos == bufferSize) {
 			writePos = 0;
 			writeLoopCount++;

@@ -10,7 +10,6 @@
 #endif
 #include <sstream>
 #include <vector>
-#include <cassert>
 #include "base/Log.h"
 #include "api/AssetAPI.h"
 
@@ -150,7 +149,7 @@ static void check_AL_errors(const char* context) {
         maxIterations--;
         err = true;
     }
-    assert(!err);
+    LOGF_IF(err, "OpenAL error")
 }
 
 static const char* errToString(ALenum err) {

@@ -7,7 +7,6 @@
 #include <iostream>
 #include <cstring>
 #include <climits>
-#include <cassert>
 
 #include "base/Entity.h"
 
@@ -123,7 +122,7 @@ class ComponentSystem {
 #if SAC_DEBUG
             , updateDuration(0)
 #endif
-         { bool inserted = registry.insert(std::make_pair(name, this)).second; assert(inserted); }
+         { bool inserted = registry.insert(std::make_pair(name, this)).second; LOGF_IF(!inserted, "System with name '" << name << "' already exists") }
 
         virtual ~ComponentSystem() { registry.erase(name); }
 

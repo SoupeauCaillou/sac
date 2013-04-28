@@ -8,7 +8,6 @@
 #include <SDL/SDL_mixer.h>
 #endif
 
-#include <cassert>
 #include <vector>
 
 #if ! SAC_EMSCRIPTEN
@@ -170,7 +169,7 @@ static void check_AL_errors(const char* context) {
         maxIterations--;
         err = true;
     }
-    assert(!err);
+    LOGF_IF(err, "OpenAL error")
 }
 
 static const char* errToString(ALenum err) {

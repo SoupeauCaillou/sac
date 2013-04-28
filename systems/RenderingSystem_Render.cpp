@@ -4,7 +4,6 @@
 #include "TransformationSystem.h"
 #include "base/EntityManager.h"
 #include <cmath>
-#include <cassert>
 #include <sstream>
 #if SAC_INGAME_EDITORS
 #include <AntTweakBar.h>

@@ -444,7 +444,6 @@ void RenderingSystem::DoUpdate(float) {
 #endif
 
     outQueue.commands.reserve(outQueue.count + 1);
-    // assert(outQueue.commands.size() == (outQueue.count + 1));
 
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;

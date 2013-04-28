@@ -5,7 +5,6 @@
 #include "base/EntityManager.h"
 #include "util/DataFileParser.h"
 #include <cmath>
-#include <cassert>
 #include <sstream>
 
 #include <stdint.h>

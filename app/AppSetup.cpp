@@ -33,7 +33,6 @@
 #include <cstdlib>
 #include <algorithm>
 #include <sstream>
-#include <assert.h>
 #include <vector>
 #include <signal.h>
 #include <thread>

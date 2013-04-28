@@ -8,7 +8,6 @@
 #else
 #include <png.h>
 #endif
-#include <assert.h>
 #include <stdlib.h>
 
 #if SAC_LINUX
@@ -90,8 +89,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	} else if (color_type == PNG_COLOR_TYPE_RGBA) {
 		result.channels = 4;
 	} else {
-		LOGW(context << " INVALID color type: " << color_type)
-		assert(false);
+		LOGF(context << " INVALID color type: " << color_type)
 	}
 
 	// if (color_type & PNG_COLOR_MASK_ALPHA)

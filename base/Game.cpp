@@ -113,7 +113,6 @@ void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
     if (action != GLFW_RELEASE)
         return;
 
-
     LOGI("key pressed: " << key);
 #if SAC_INGAME_EDITORS
     //if we use the editor; we need to handle some keys for it
