@@ -96,11 +96,10 @@ void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
 
 void EntityManager::deleteAllEntities() {
     std::vector<Entity> entities = allEntities();
-    for (unsigned int i=0; i<entities.size(); i++) {
-		DeleteEntity(entities[i]);
-	}
+    for (auto it=entities.rbegin(); it!=entities.rend(); ++it)
+		DeleteEntity(*it);
 	nextEntity = 1;
-    assert (entityComponents.size() == 0);
+    LOGF_IF (entityComponents.size() != 0, "entityComponents not empty after deleting all entities")
 }
 
 std::vector<Entity> EntityManager::allEntities() {
