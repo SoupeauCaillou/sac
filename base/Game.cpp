@@ -117,6 +117,8 @@ void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
     LOGI("key pressed: " << key);
 #if SAC_INGAME_EDITORS
     //if we use the editor; we need to handle some keys for it
+    if (key == GLFW_KEY_F3)
+        theDebuggingSystem.toggle();
 #endif
     if (_thisKeyboardAPI != 0) {
         KeyboardInputHandlerAPI::KeyCode kc;

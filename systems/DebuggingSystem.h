@@ -11,7 +11,10 @@ struct DebuggingComponent {
 
 UPDATABLE_SYSTEM(Debugging)
 
+    public:
+        void toggle();
     private:
+        bool enable;
         std::map<std::string, Entity> debugEntities;
         std::vector<Entity> renderStatsEntities;
 

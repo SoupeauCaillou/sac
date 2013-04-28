@@ -24,8 +24,9 @@ static unsigned long frameCount = 0;
 INSTANCE_IMPL(DebuggingSystem);
 
 DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging") {
-    fps = entityCount = systems = 0;
+    fps = entityCount = systems = fpsLabel = entityCountLabel = 0;
     frameCount = 0;
+    enable = false;
 }
 
 #if ! SAC_DEBUG
@@ -138,7 +139,24 @@ std::string createLabel(const std::string& title, const std::list<std::pair<T, U
     return ss.str();
 }
 
+void DebuggingSystem::toggle() {
+    enable = !enable;
+    LOGI("Debugging " << (enable ? "enabled" : "disabled"))
+    for (auto it: debugEntities)
+        TEXT_RENDERING(it.second)->show = enable;
+    for (auto it: renderStatsEntities)
+        TEXT_RENDERING(it)->show = enable;
+
+    if (fps) RENDERING(fps)->show = enable;
+    if (entityCount) RENDERING(entityCount)->show = enable;
+    if (systems) RENDERING(systems)->show = enable;
+    if (fpsLabel) TEXT_RENDERING(fpsLabel)->show = enable;
+    if (entityCountLabel) TEXT_RENDERING(entityCountLabel)->show = enable;
+}
 void DebuggingSystem::DoUpdate(float dt) {
+    if (!enable) {
+        return;
+    }
 
     frameCount++;
     timeUntilGraphUpdate -= dt;
