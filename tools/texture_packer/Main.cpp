@@ -8,7 +8,7 @@ static char* loadPng(const char* assetName, int* width, int* height);
 
 int main(int argc, char** argv) {
 	if (argc <= 1) {
-		LOGE("Usage: texture_packer file1.png file2.png ... fileN.png")
+		std::cerr << "Usage: texture_packer file1.png file2.png ... fileN.png" << std::endl;
 		return -1;
 	}
 
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 		int width, height;
 		char* img = loadPng(argv[i], &width, &height);
 		if (!img) {
-			LOGE("Unable to load '" << argv[i] << "'")
+			std::cerr << "Unable to load '" << argv[i] << "'" << std::endl;
 			return -1;
 		}
 		tp->addTexture(width, height);
@@ -30,12 +30,12 @@ int main(int argc, char** argv) {
 	#endif
 	tp->packTextures(finalW, finalH,true,true);
 
-	LOGI("Atlas size:" << finalW << "," << finalH)
+	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
 
 	for (int i=1; i<argc; i++) {
 		int x, y, wid, hit;
 		bool rotated = tp->getTextureLocation(i-1, x, y, wid, hit);
-		LOGI(argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated)
+		std::cout << argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated << std::endl;
 	}
 
 	TEXTURE_PACKER::releaseTexturePacker(tp);
@@ -47,7 +47,7 @@ static char* loadPng(const char* assetName, int* width, int* height)
 	png_byte* PNG_image_buffer;
 	FILE *PNG_file = fopen(assetName, "rb");
 	if (PNG_file == NULL) {
-		LOGE(assetName << " not found")
+		std::cerr << assetName << " not found" << std::endl;
 		return 0;
 	}
 
@@ -55,14 +55,14 @@ static char* loadPng(const char* assetName, int* width, int* height)
 
 	fread(PNG_header, 1, 8, PNG_file);
 	if (png_sig_cmp(PNG_header, 0, 8) != 0) {
-		LOGE(assetName << " is not a PNG.")
+		std::cerr << assetName << " is not a PNG." << std::endl;
 		return 0;
 	}
 
 	png_structp PNG_reader = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (PNG_reader == NULL)
 	{
-		LOGE("Can't start reading %s." << assetName)
+		std::cerr << "Can't start reading %s." << assetName << std::endl;
 		fclose(PNG_file);
 		return 0;
 	}
@@ -70,7 +70,7 @@ static char* loadPng(const char* assetName, int* width, int* height)
 	png_infop PNG_info = png_create_info_struct(PNG_reader);
 	if (PNG_info == NULL)
 	{
-		LOGE("Can't get info for " << assetName)
+		std::cerr << "Can't get info for " << assetName << std::endl;
 		png_destroy_read_struct(&PNG_reader, NULL, NULL);
 		fclose(PNG_file);
 		return 0;
@@ -79,7 +79,7 @@ static char* loadPng(const char* assetName, int* width, int* height)
 	png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	if (PNG_end_info == NULL)
 	{
-		LOGE("Can't get end info for " << assetName)
+		std::cerr << "Can't get end info for " << assetName << std::endl;
 		png_destroy_read_struct(&PNG_reader, &PNG_info, NULL);
 		fclose(PNG_file);
 		return 0;
@@ -87,7 +87,7 @@ static char* loadPng(const char* assetName, int* width, int* height)
 
 	if (setjmp(png_jmpbuf(PNG_reader)))
 	{
-		LOGE("Can't load " << assetName)
+		std::cerr << "Can't load " << assetName << std::endl;
 		png_destroy_read_struct(&PNG_reader, &PNG_info, &PNG_end_info);
 		fclose(PNG_file);
 		return 0;
