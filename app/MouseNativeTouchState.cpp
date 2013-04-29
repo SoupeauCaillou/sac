@@ -28,7 +28,7 @@
 
 #include <base/Log.h>
 
-bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
+bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) const {
 #if SAC_EMSCRIPTEN
      static bool down = false;
      static glm::vec2 position;
@@ -110,6 +110,14 @@ bool MouseNativeTouchState::isTouching(int, glm::vec2* windowCoords) const {
     glfwGetMousePos(&x, &y);
     windowCoords->x = x;
     windowCoords->y = y;
-    return glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
+    switch (index) {
+        case 0:
+            return glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
+        case 1:
+            return glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_PRESS;
+        default:
+            return false;
+    }
+
 #endif
 }

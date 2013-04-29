@@ -26,6 +26,6 @@ class MouseNativeTouchState: public NativeTouchState {
         bool isTouching(int, glm::vec2* windowCoords) const;
 
         int maxTouchingCount() {
-            return 1;
+            return 2;
         }
 };
