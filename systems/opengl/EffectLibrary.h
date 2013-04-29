@@ -47,7 +47,7 @@ class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
         void doReload(const std::string& name, const EffectRef& ref);
 
     public:
-        virtual void init(AssetAPI* pAssetAPI);
+        virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true);
 
         std::string asset2File(const std::string& asset) const { return asset; }
 

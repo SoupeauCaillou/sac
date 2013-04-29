@@ -87,8 +87,8 @@ static Shader buildShaderFromAsset(AssetAPI* assetAPI, const std::string& vsName
     return shader;
 }
 
-void EffectLibrary::init(AssetAPI* pAssetAPI) {
-    NamedAssetLibrary<Shader, EffectRef, FileBuffer>::init(pAssetAPI);
+void EffectLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading) {
+    NamedAssetLibrary<Shader, EffectRef, FileBuffer>::init(pAssetAPI, pUseDeferredLoading);
     FileBuffer fb;
     fb.data = default_fs;
     fb.size = default_fs_len;
