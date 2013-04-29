@@ -149,13 +149,17 @@ int ComponentFactory::build(const DataFileParser& dfp,
 		const std::string& section,
 		const std::vector<IProperty*>& properties, void* component) {
     #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + (*it)->offset)
-    #define LOAD_SINGLE(_type_) load(dfp, section, name, IntervalAsRandom, TYPE_2_PTR(_type_))
+    #define LOAD_SINGLE(_type_) { \
+        _type_ vvv; \
+        if (load(dfp, section, name, IntervalAsRandom, &vvv)) {\
+            *TYPE_2_PTR(_type_) = vvv; count++; }\
+        }
     #define LOAD_INTERVAL(_type_) { \
-        Interval<_type_>* itv = TYPE_2_PTR(Interval<_type_>); \
-        bool success = load(dfp, section, name, IntervalValue1, &itv->t1); \
-        success &= load(dfp, section, name, IntervalValue2, &itv->t2); \
-        count += success; }
-    #define LOAD(_type_) if ((*it)->isInterval()) LOAD_INTERVAL(_type_) else count += LOAD_SINGLE(_type_);
+        Interval<_type_> itv; \
+        bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
+        success &= load(dfp, section, name, IntervalValue2, &itv.t2); \
+        count += success; if (success) *TYPE_2_PTR(Interval<_type_>) = itv;}
+    #define LOAD(_type_) { if ((*it)->isInterval()) LOAD_INTERVAL(_type_) else LOAD_SINGLE(_type_) }
 
     int count = 0;
 
@@ -166,16 +170,16 @@ int ComponentFactory::build(const DataFileParser& dfp,
 
         switch ((*it)->getType()) {
             case PropertyType::Float:
-                LOAD(float);
+                LOAD(float)
                 break;
             case PropertyType::Int:
-                LOAD(int);
+                LOAD(int)
                 break;
             case PropertyType::Vec2:
-                LOAD(glm::vec2);
+                LOAD(glm::vec2)
                 break;
             case PropertyType::String:
-                count += LOAD_SINGLE(std::string);
+                LOAD_SINGLE(std::string)
                 break;
             case PropertyType::Color:
                 LOAD(Color);
