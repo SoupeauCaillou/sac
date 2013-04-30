@@ -8,8 +8,8 @@ INSTANCE_IMPL(ZSQDSystem);
 
 ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
     ZSQDComponent zc;
-    componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, zc), 0.0001f));
-    componentSerializer.add(new Property<float>("friction_coeff", OFFSET(frictionCoeff, zc), 0.0001f));
+    componentSerializer.add(new Property<float>("frictionCoeff", OFFSET(frictionCoeff, zc), 0.0001f));
+    componentSerializer.add(new Property<float>("maxSpeed", OFFSET(maxSpeed, zc), 0.0001f));
 }
 
 void ZSQDSystem::DoUpdate(float dt) {
@@ -53,10 +53,11 @@ void ZSQDSystem::DoUpdate(float dt) {
 }
 
 #if SAC_INGAME_EDITORS
-void ZSQDSystem::addEntityPropertiesToBar(Entity entity, TwBar*) {
+void ZSQDSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     ZSQDComponent* zc = Get(entity, false);
     if (!zc) return;
 
-    //TwAddVarRW(bar, "velocity.X", TW_TYPE_FLOAT, &tc->linearVelocity.x, "group=ZSQD precision=2 step=0,01");
+    TwAddVarRW(bar, "frictionCoeff", TW_TYPE_FLOAT, &zc->frictionCoeff, "group=ZSQD precision=2 step=0,1");
+    TwAddVarRW(bar, "maxSpeed", TW_TYPE_FLOAT, &zc->maxSpeed, "group=ZSQD precision=2 step=0,1");
 }
 #endif
