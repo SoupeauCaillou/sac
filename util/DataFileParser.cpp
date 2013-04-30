@@ -88,42 +88,42 @@ void DataFileParser::unload() {
     data = 0;
 }
 
-const std::string& DataFileParser::keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const {
-    static const std::string empty = "";
+bool DataFileParser::keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& out) const {
     if (!data) {
         LOGE("No data loaded before requesting key value : " << section << '/' << var)
-        return empty;
+        return false;
     }
     const Section* sectPtr = 0;
     if (!data->selectSectionByName(section, &sectPtr)) {
-        return empty;
+        return false;
     }
     std::map<std::string, std::string>::const_iterator jt = sectPtr->find(var);
     if (jt == sectPtr->end()) {
         LOGE_IF(warnIfNotFound, "Cannot find var '" << var << "' in section '" << section << "'")
-        return empty;
+        return false;
     }
-    return jt->second;
+    out = jt->second;
+    return true;
 }
 
-const std::string& DataFileParser::indexValue(const std::string& section, unsigned index, std::string& varName) const {
-    static const std::string empty = "";
+bool DataFileParser::indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const {
     if (!data) {
         LOGE("No data loaded before requesting section " << section << " index " << index)
-        return empty;
+        return false;
     }
     const Section* sectPtr = 0;
     if (!data->selectSectionByName(section, &sectPtr)) {
-        return empty;
+        return false;
     }
     if (sectPtr->size() <= index) {
         LOGE("Requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements")
-        return empty;
+        return false;
     }
     Section::const_iterator jt = sectPtr->begin();
     for (unsigned i=0; i<index; i++) jt++;
     varName = jt->first;
-    return jt->second;
+    value = jt->second;
+    return true;
 }
 
 bool DataFileParser::hasSection(const std::string& section) const {

@@ -27,8 +27,8 @@ class DataFileParser {
         void defineVariable(const std::string& name, const std::string& value);
 
     private:
-        const std::string& keyValue(const std::string& section, const std::string& var, bool warnIfNotFound) const;
-        const std::string& indexValue(const std::string& section, unsigned index, std::string& varName) const;
+        bool keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& value) const;
+        bool indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const;
 
         template <class T>
         bool parse(const std::string& value, T* out, const int count = 1) const;
@@ -71,8 +71,8 @@ bool DataFileParser::parse(const std::string& value, T* out, const int count) co
 template <class T>
 bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound)  const{
     // Retrieve value
-    const std::string& val = keyValue(section, var, warnIfNotFound);
-    if (val.empty())
+    std::string val;
+    if (!keyValue(section, var, warnIfNotFound, val))
         return false;
 
     return parse(val, out, count);
@@ -81,8 +81,8 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
 template <class T>
 bool DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count)  const{
     // Retrieve value
-    const std::string& val = indexValue(section, index, varName);
-    if (val.empty())
+    std::string val;
+    if (!indexValue(section, index, varName, val))
         return false;
 
     return parse(val, out, count);
