@@ -16,7 +16,7 @@ class KeyboardInputHandlerAPI {
         virtual bool done(std::string & final)=0;
 
         virtual void keyRelease(KeyCode, int) {}
-        virtual void keyPress(KeyCode, int) {}
 
+        virtual void checkKeyPress() {}
         virtual void registerToKeyPress(int value, std::function<void()>) = 0;
 };

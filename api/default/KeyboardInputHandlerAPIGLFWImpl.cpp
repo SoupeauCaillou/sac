@@ -8,6 +8,8 @@
 #include "base/EntityManager.h"
 #include "base/Log.h"
 
+#include <GL/glfw.h>
+
 KeyboardInputHandlerAPIGLFWImpl::KeyboardInputHandlerAPIGLFWImpl() : textIsReady(true) {}
 
 void KeyboardInputHandlerAPIGLFWImpl::getUserInput(const int imaxSize) {
@@ -23,12 +25,6 @@ bool KeyboardInputHandlerAPIGLFWImpl::done(std::string & final) {
 	    return true;
     }
     return false;
-}
-
-void KeyboardInputHandlerAPIGLFWImpl::keyPress(KeyCode code, int value) {
-    //disable the function call
-    if (key2callback[value] != 0)
-        key2callback[value]();
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::keyRelease(KeyCode code, int value) {
@@ -55,6 +51,14 @@ void KeyboardInputHandlerAPIGLFWImpl::keyRelease(KeyCode code, int value) {
             break;
     }
     LOGI("current text: " << currentText);
+}
+
+void KeyboardInputHandlerAPIGLFWImpl::checkKeyPress() {
+    for (auto it : key2callback) {
+        if (glfwGetKey(it.first)) {
+            it.second();
+        }
+    }
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(int value, std::function<void()> f) {

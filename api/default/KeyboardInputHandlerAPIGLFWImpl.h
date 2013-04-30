@@ -13,8 +13,8 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         bool done(std::string & final);
 
         void keyRelease(KeyCode code, int value);
-        void keyPress(KeyCode code, int value);
 
+        void checkKeyPress();
         void registerToKeyPress(int value, std::function<void()> f);
 
     private:

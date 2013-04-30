@@ -113,18 +113,17 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
 
 #if ! SAC_EMSCRIPTEN
 void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
-    if ((action != GLFW_PRESS) && (action != GLFW_RELEASE))
+    if (action != GLFW_RELEASE)
         return;
 
 
-    if (action == GLFW_PRESS) {
-        LOGI("key pressed: " << key);
+    LOGI("key released: " << key);
 #if SAC_INGAME_EDITORS
-        //if we use the editor; we need to handle some keys for it
-        if (key == GLFW_KEY_F3)
-            theDebuggingSystem.toggle();
+    //if we use the editor; we need to handle some keys for it
+    if (key == GLFW_KEY_F3)
+        theDebuggingSystem.toggle();
 #endif
-    }
+
 
     if (_thisKeyboardAPI != 0) {
         KeyboardInputHandlerAPI::KeyCode kc;
@@ -140,10 +139,7 @@ void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
         else
             return;
 
-        if (action == GLFW_PRESS)
-            _thisKeyboardAPI->keyPress(kc, key);
-        else
-            _thisKeyboardAPI->keyRelease(kc, key);
+        _thisKeyboardAPI->keyRelease(kc, key);
     }
 }
 #endif
@@ -256,6 +252,10 @@ void Game::step() {
 #endif
     theEntityManager.entityTemplateLibrary.update();
     theEntityManager.entityTemplateLibrary.updateReload();
+
+#if ! SAC_EMSCRIPTEN
+    Game::_thisKeyboardAPI->checkKeyPress();
+#endif
 
     // update game state
 #if SAC_INGAME_EDITORS
