@@ -5,7 +5,7 @@
 static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {
     DEBUG_LOGV(1, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");
 
-    RENDERING(e)->show = (frame.texture != InvalidTextureRef);
+    // hum..RENDERING(e)->show = (frame.texture != InvalidTextureRef);
     RENDERING(e)->texture = frame.texture;
     LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size())
     for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
@@ -34,9 +34,13 @@ AnimationSystem::~AnimationSystem() {
 
 void AnimationSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Animation, a, bc)
-        AnimIt jt = animations.find(bc->name);
-        if (jt == animations.end() || bc->playbackSpeed <= 0)
+        if (bc->name.empty())
             continue;
+        AnimIt jt = animations.find(bc->name);
+        if (jt == animations.end() || bc->playbackSpeed <= 0) {
+            LOGW_IF(jt == animations.end(), "Animation '" << bc->name << "' not found")
+            continue;
+        }
         AnimDescriptor* anim = jt->second;
 
         if (bc->previousName != bc->name) {
@@ -62,6 +66,11 @@ void AnimationSystem::DoUpdate(float dt) {
                     if (bc->loopCount != 0) {
                         bc->frameIndex = 0;
                         bc->loopCount--;
+
+                        if (bc->loopCount == 0) {
+                            bc->name = bc->previousName = "";
+                            break;
+                        }
                     } else if (!anim->nextAnim.empty()) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
                             RENDERING(a)->show = false;

@@ -81,7 +81,7 @@ bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varc
                 } while (true);
                 frames.push_back(frame);
             } else {
-                LOGE("Missing texture attribute in section '" << section << "'")
+                LOGF("Missing texture attribute in section '" << section << "'")
                 return false;
             }
         }
