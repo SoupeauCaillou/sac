@@ -29,7 +29,8 @@ void ZSQDSystem::DoUpdate(float dt) {
                 newDir.y += it.y / norm;
             }
             //normalize the extra direction
-            newDir = glm::normalize(newDir);
+            if (newDir != glm::vec2(0.f, 0.f))
+                newDir = glm::normalize(newDir);
 
             DEBUG_LOGI("current dir: " << zc->currentDirection.x << ", " << zc->currentDirection.y << " at speed " << zc->currentSpeed << " and new direction is: " << newDir.x << ", " << newDir.y << " at speed " << zc->maxSpeed);
             //current direction is the average from itself and the new direction. The coefficient of each is the speed associated
