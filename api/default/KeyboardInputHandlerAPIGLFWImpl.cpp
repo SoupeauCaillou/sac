@@ -26,6 +26,9 @@ bool KeyboardInputHandlerAPIGLFWImpl::done(std::string & final) {
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::keyPressed(KeyCode code, int value) {
+    if (key2callback[value] != 0)
+        key2callback[value]();
+
     if (textIsReady)
         return;
 
@@ -49,4 +52,8 @@ void KeyboardInputHandlerAPIGLFWImpl::keyPressed(KeyCode code, int value) {
             break;
     }
     LOGI("current text: " << currentText);
+}
+
+void KeyboardInputHandlerAPIGLFWImpl::registerToKey(int value, std::function<void()> f) {
+    key2callback[value] = f;
 }

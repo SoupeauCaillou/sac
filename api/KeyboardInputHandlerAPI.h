@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-
+#include <functional>
 
 class KeyboardInputHandlerAPI {
     public:
@@ -17,4 +17,5 @@ class KeyboardInputHandlerAPI {
 
         virtual void keyPressed(KeyCode, int) {}
 
+        virtual void registerToKey(int value, std::function<void()>) = 0;
 };

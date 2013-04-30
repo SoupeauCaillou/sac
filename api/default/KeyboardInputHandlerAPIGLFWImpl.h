@@ -3,6 +3,7 @@
 #include "../KeyboardInputHandlerAPI.h"
 
 #include <string>
+#include <map>
 
 class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
     public:
@@ -13,8 +14,12 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
 
         void keyPressed(KeyCode code, int value);
 
+        void registerToKey(int value, std::function<void()> f);
+
     private:
         bool textIsReady;
         std::string currentText;
         int maxSize;
+
+        std::map<int, std::function<void()>> key2callback;
 };
