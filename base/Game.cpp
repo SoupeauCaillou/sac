@@ -11,6 +11,7 @@
 #include "systems/ContainerSystem.h"
 #include "systems/PhysicsSystem.h"
 #include "systems/ParticuleSystem.h"
+#include "systems/ZSQDSystem.h"
 #include "systems/ScrollingSystem.h"
 #include "systems/MorphingSystem.h"
 #include "systems/AutonomousAgentSystem.h"
@@ -53,7 +54,8 @@ Game::Game() {
 	ButtonSystem::CreateInstance();
 	TextRenderingSystem::CreateInstance();
 	ContainerSystem::CreateInstance();
-	PhysicsSystem::CreateInstance();
+    PhysicsSystem::CreateInstance();
+    ZSQDSystem::CreateInstance();
     ParticuleSystem::CreateInstance();
     ScrollingSystem::CreateInstance();
     MorphingSystem::CreateInstance();
@@ -85,6 +87,7 @@ Game::~Game() {
     ButtonSystem::DestroyInstance();
     TextRenderingSystem::DestroyInstance();
     ContainerSystem::DestroyInstance();
+    ZSQDSystem::DestroyInstance();
     PhysicsSystem::DestroyInstance();
     ParticuleSystem::DestroyInstance();
     ScrollingSystem::DestroyInstance();
@@ -291,7 +294,8 @@ void Game::step() {
     theMorphingSystem.Update(delta);
     thePhysicsSystem.Update(delta);
     theScrollingSystem.Update(delta);
-    theSoundSystem.Update(delta);
+    theZSQDSystem.Update(delta);
+   theSoundSystem.Update(delta);
     theMusicSystem.Update(delta);
     theTextRenderingSystem.Update(delta);
     theTransformationSystem.Update(delta);
