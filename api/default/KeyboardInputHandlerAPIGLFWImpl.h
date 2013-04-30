@@ -12,9 +12,10 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         void getUserInput(const int imaxSize);
         bool done(std::string & final);
 
-        void keyPressed(KeyCode code, int value);
+        void keyRelease(KeyCode code, int value);
+        void keyPress(KeyCode code, int value);
 
-        void registerToKey(int value, std::function<void()> f);
+        void registerToKeyPress(int value, std::function<void()> f);
 
     private:
         bool textIsReady;

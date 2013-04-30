@@ -96,10 +96,10 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         LOG_SUCCESS_ << *out << "'")
         return 1;
     }
-    uint32_t html;
+    //uint32_t html;
     // 0xffffffff variant
     // ....todo
-    uint8_t rgba[4];
+    //uint8_t rgba[4];
     // 128, 255, 0, 128 variant
     // ... todo
     return 0;

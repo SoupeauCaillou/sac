@@ -3,8 +3,8 @@
 #include "util/ComponentFactory.h"
 #include "systems/System.h"
 #include "base/EntityManager.h"
+bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef&) {
 
-bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef& ref) {
     DataFileParser dfp;
     FileBuffer fb = assetAPI->loadAsset(asset2File(name));
     if (!fb.size) {
@@ -32,7 +32,7 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     return true;
 }
 
-void EntityTemplateLibrary::doUnload(const std::string& name, const EntityTemplate& in) {
+void EntityTemplateLibrary::doUnload(const std::string&, const EntityTemplate&) {
 	LOGE("TODO")
 }
 
