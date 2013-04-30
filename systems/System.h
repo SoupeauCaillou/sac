@@ -257,7 +257,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #if SAC_USE_VECTOR_STORAGE
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
-                    DEBUGLOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type " << getName())
+                    DEBUGLOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type '" << getName() << "'")
                 }
                 previousComp = &components[it->second];
 #else
@@ -266,7 +266,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     // crash here
                     if (failIfNotfound) {
                         DEBUG_LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << theEntityManager.entityName(entity) << ") has no component of type '" << getName())
+                            << "' (" << theEntityManager.entityName(entity) << ") has no component of type '" << getName() << "'")
                     }
     				return 0;
     			}
