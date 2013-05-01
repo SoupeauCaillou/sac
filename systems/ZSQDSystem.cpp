@@ -8,8 +8,8 @@ INSTANCE_IMPL(ZSQDSystem);
 
 ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
     ZSQDComponent zc;
-    componentSerializer.add(new Property<float>("frictionCoeff", OFFSET(frictionCoeff, zc), 0.0001f));
-    componentSerializer.add(new Property<float>("maxSpeed", OFFSET(maxSpeed, zc), 0.0001f));
+    componentSerializer.add(new Property<float>("friction_coeff", OFFSET(frictionCoeff, zc), 0.0001f));
+    componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, zc), 0.0001f));
 }
 
 void ZSQDSystem::DoUpdate(float dt) {
