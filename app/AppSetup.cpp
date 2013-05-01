@@ -203,7 +203,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     /////////////////////////////////////////////////////
     // Init systems
-    theTouchInputManager.setNativeTouchStatePtr(new MouseNativeTouchState());
+    game->mouseNativeTouchState = new MouseNativeTouchState();
+    theTouchInputManager.setNativeTouchStatePtr(game->mouseNativeTouchState);
     theRenderingSystem.assetAPI = ctx->assetAPI;
     if (game->wantsAPI(ContextAPI::Music)) {
         theMusicSystem.musicAPI = ctx->musicAPI;

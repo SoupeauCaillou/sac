@@ -25,7 +25,7 @@
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {
     public:
-        bool isTouching(int, glm::vec2* windowCoords) const;
+        bool isTouching(int, glm::vec2* windowCoords);
 
         int maxTouchingCount() {
             return 2;

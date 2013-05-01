@@ -31,6 +31,7 @@
 #include <SDL/SDL.h>
 
 #include "api/KeyboardInputHandlerAPI.h"
+#include "app/MouseNativeTouchState.h"
 
 Game::Game() {
 #if SAC_INGAME_EDITORS
@@ -39,6 +40,8 @@ Game::Game() {
     targetDT = 1.0f / 60.0f;
 
     isFinished = false;
+
+    mouseNativeTouchState = 0;
 
     TimeUtil::Init();
 
@@ -140,8 +143,8 @@ void Game::eventsHandler() {
                 case SDL_MOUSEMOTION:
                 case SDL_MOUSEBUTTONDOWN:
                 case SDL_MOUSEBUTTONUP:
-                    LOGT("mouse handler");
-                    //TheMouseNativeTouchState.events.push_front(&event);
+                    if (mouseNativeTouchState)
+                        mouseNativeTouchState->events.push_front(event);
                     break;
 
                 case SDL_QUIT: {

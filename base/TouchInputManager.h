@@ -6,7 +6,7 @@
 class NativeTouchState {
 	public:
         virtual int maxTouchingCount() = 0;
-		virtual bool isTouching(int index, glm::vec2* windowCoords) const = 0;
+		virtual bool isTouching(int index, glm::vec2* windowCoords) = 0;
 };
 
 struct TransformationComponent;

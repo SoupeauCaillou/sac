@@ -23,8 +23,9 @@
 
 #include <base/Log.h>
 
-bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) const {
-    static bool down = false;
+bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) {
+    static bool downLeft = false;
+    static bool downRight = false;
     static glm::vec2 position;
     for (auto event : events) {
         int x, y;
@@ -32,13 +33,13 @@ bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) const
 
         switch (index) {
             case 0:
-                down = buttonType & SDL_BUTTON(1);
+                downLeft = buttonType & SDL_BUTTON(1);
                 break;
             case 1:
-                down = buttonType & SDL_BUTTON(3);
+                downRight = buttonType & SDL_BUTTON(3);
                 break;
             default:
-                down = false;
+                downLeft = downRight = false;
         }
 
         switch(event.type) {
@@ -50,15 +51,19 @@ bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) const
             }
             //mouse button clicked
             case SDL_MOUSEBUTTONDOWN: {
+                //LOGI("down! index=" << index << " down=" << ((index == 0) ? downLeft : downRight));
                 break;
             }
               //mouse button released
             case SDL_MOUSEBUTTONUP: {
-                down = !down;
+                (index == 0) ? downLeft = !downLeft : downRight = ! downRight;
+                //LOGI("up! down=" << ((index == 0) ? downLeft : downRight));
                 break;
             }
         }
     }
+    events.clear();
+
     *windowCoords = position;
-    return down;
+    return (index == 0) ? downLeft : downRight;
 }

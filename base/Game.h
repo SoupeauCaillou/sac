@@ -4,6 +4,8 @@
 #include <string>
 #include "GameContext.h"
 
+class MouseNativeTouchState;
+
 #if SAC_INGAME_EDITORS
 
 #include "../util/LevelEditor.h"
@@ -46,9 +48,12 @@ class Game {
     private:
         virtual void tick(float dt) = 0;
 
-
     public:
         GameContext* gameThreadContext, *renderThreadContext;
+
+        //tough... only needed for mouse events handling
+        MouseNativeTouchState * mouseNativeTouchState;
+
         float targetDT;
 
         bool isFinished;
