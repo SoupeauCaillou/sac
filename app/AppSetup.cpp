@@ -130,7 +130,12 @@ int initGame(const std::string& title, const glm::ivec2& res) {
     SDL_WM_SetCaption(title.c_str(), 0);
 
     // Double Buffering
-    SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL );
+    if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
+        return 1;
+
+    if (glewInit() != GLEW_OK)
+        return 1;
+
     return 0;
 }
 
