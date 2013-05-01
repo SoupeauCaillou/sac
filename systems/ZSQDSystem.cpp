@@ -33,9 +33,15 @@ void ZSQDSystem::DoUpdate(float dt) {
                 newDir = glm::normalize(newDir);
 
             DEBUG_LOGI("current dir: " << zc->currentDirection.x << ", " << zc->currentDirection.y << " at speed " << zc->currentSpeed << " and new direction is: " << newDir.x << ", " << newDir.y << " at speed " << zc->maxSpeed);
-            //current direction is the average from itself and the new direction. The coefficient of each is the speed associated
 
-            zc->currentDirection = (zc->currentDirection * zc->currentSpeed + newDir * zc->maxSpeed) / (zc->currentSpeed + zc->maxSpeed);
+
+            ///////////////////////method1
+            float weight = (newDir == glm::vec2(0.f, 0.f)) ? 0.3 : 0.1;
+            zc->currentDirection = newDir * weight + zc->currentDirection * (1-weight);
+
+            ///////////////////////method2
+            //current direction is the average from itself and the new direction. The coefficient of each is the speed associated
+            zc->currentDirection = (zc->currentDirection * zc->currentSpeed + newDir * (zc->maxSpeed -  zc->currentSpeed)) / (zc->maxSpeed);
 
             zc->currentDirection = (glm::length(zc->currentDirection) < 0.0001f) ?
                 glm::vec2(0.f, 0.f)
@@ -43,11 +49,12 @@ void ZSQDSystem::DoUpdate(float dt) {
 
             zc->currentSpeed = zc->maxSpeed;
 
+
             zc->directions.clear();
         }
 
         if (zc->currentSpeed > 0.f && zc->currentDirection != glm::vec2(0.f, 0.f)) {
-            DEBUG_LOGI("adding direction: " << zc->currentDirection.x << ", " << zc->currentDirection.y);
+            //DEBUG_LOGI("adding movement: " << zc->currentDirection.x << ", " << zc->currentDirection.y << " at speed " << zc->currentSpeed);
             TRANSFORM(a)->position += zc->currentDirection * zc->currentSpeed * dt;
         }
     }
