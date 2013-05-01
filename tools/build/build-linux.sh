@@ -21,6 +21,7 @@ export OPTIONS="n: simply compile
 \td: run&debug the app with cgdb
 \tl: use colorlog.sh script for colored logs\t(options available, see below)
 You can also specify arguments:
+\t--release|--debug: build type specifying
 \t-c|--cmakeconfig \"arguments for cmake\": see cmake for options. Some useful:
 \t\t-DCMAKE_BUILD_TYPE=release or debug
 \t\t-DTARGET=linux or android or emscripten or windows or darwin
@@ -48,7 +49,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
             "-c" | "--cmakeconfig")
                 shift
                 TARGETS=$TARGETS"n"
-                CMAKE_CONFIG=$1
+                CMAKE_CONFIG=$CMAKE_CONFIG" $1"
                 ;;
             "-h" | "--help")
                 usage_and_quit
@@ -62,6 +63,14 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
                 shift
                 TARGETS=$TARGETS"r"
                 RUN_ARGS=$1
+                ;;
+            "--release")
+                TARGETS=$TARGETS"n"
+                CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=release"
+                ;;
+            "--debug")
+                TARGETS=$TARGETS"n"
+                CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=release"
                 ;;
             -*)
                 echo "unknown option: " $1
