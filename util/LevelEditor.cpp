@@ -38,42 +38,6 @@ static std::string entityToTwName(Entity e) {
     return s.str();
 }
 
-static int _TwEventMouseButtonGLFW(int glfwButton, int glfwAction) {
-    _lock();
-    int rValue = TwEventMouseButtonGLFW(glfwButton, glfwAction);
-    _unlock();
-
-    return rValue;
-}
-static int _TwEventMousePosGLFW(int mouseX, int mouseY) {
-    _lock();
-    int rValue = TwEventMousePosGLFW(mouseX, mouseY);
-    _unlock();
-
-    return rValue;
-}
-static int _TwEventMouseWheelGLFW(int pos) {
-    _lock();
-    int rValue = TwEventMouseWheelGLFW(pos);
-    _unlock();
-
-    return rValue;
-}
-static int _TwEventKeyGLFW(int glfwKey, int glfwAction) {
-    _lock();
-    int rValue = TwEventKeyGLFW(glfwKey, glfwAction);
-    _unlock();
-
-    return rValue;
-}
-static int _TwEventCharGLFW(int glfwChar, int glfwAction) {
-    _lock();
-    int rValue = TwEventCharGLFW(glfwChar, glfwAction);
-    _unlock();
-
-    return rValue;
-}
-
 void LevelEditor::lock() {
     _lock();
 }
@@ -265,11 +229,14 @@ void LevelEditor::tick(float dt) {
         return;
     }
 
-    int x, y;
+    LOGT("What is this for?")
+    const glm::vec2 position = TRANSFORM(camera)->worldPosition;
+    int wheelDiff = 0;
+    /*int x, y;
     glfwGetMousePos(&x, &y);
     glm::vec2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5f, 0.5f - y / (float)PlacementHelper::WindowHeight);
-
     const glm::vec2 position = TRANSFORM(camera)->worldPosition + glm::rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
+
 
     static int prevWheel = 0;
     int wheel = glfwGetMouseWheel();
@@ -279,7 +246,7 @@ void LevelEditor::tick(float dt) {
     if (! SDL_GetMouseState(0, 0) & SDL_BUTTON(1) &&
         ! SDL_GetMouseState(0, 0) & SDL_BUTTON(3)) {
         datas->lastMouseOverPosition = position;
-    }
+    }*/
 
     Color& selectedColor = RENDERING(datas->selectionDisplay)->color;
     selectedColor.a += datas->selectionColorChangeSpeed * dt;
