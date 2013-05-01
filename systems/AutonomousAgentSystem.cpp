@@ -9,7 +9,13 @@
 INSTANCE_IMPL(AutonomousAgentSystem);
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") {
-    /* nothing saved */
+    AutonomousAgentComponent ac;
+    componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("max_force", OFFSET(maxForce, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("wander_weight", OFFSET(wanderWeight, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("wander_radius", OFFSET(wander.radius, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("wander_distance", OFFSET(wander.distance, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("wander_jitter", OFFSET(wander.jitter, ac), 0.0001f));
 }
 
 bool AutonomousAgentSystem::isArrived(Entity e) {

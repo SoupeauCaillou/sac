@@ -33,8 +33,8 @@ void ZSQDSystem::DoUpdate(float dt) {
             if (newDir != glm::vec2(0.f, 0.f))
                 newDir = glm::normalize(newDir);
 
-            DEBUG_LOGI("current dir: " << zc->currentDirection << " at speed " << zc->currentSpeed
-                << "\nAnd new direction is: " << newDir << " at speed " << zc->maxSpeed);
+            //DEBUG_LOGI("current dir: " << zc->currentDirection << " at speed " << zc->currentSpeed
+            //    << "\nAnd new direction is: " << newDir << " at speed " << zc->maxSpeed);
 
             //calculate the weight of the new direction
             float weight = zc->newDirectionCoeff;

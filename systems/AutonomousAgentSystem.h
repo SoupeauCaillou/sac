@@ -5,7 +5,7 @@
 #include "System.h"
 
 struct AutonomousAgentComponent {
-	AutonomousAgentComponent() : seekTarget(0), fleeTarget(0) {}
+	AutonomousAgentComponent() : maxSpeed(1.), maxForce(1.), seekTarget(0), fleeTarget(0) {}
 
 	float maxSpeed, maxForce;
 	union {
