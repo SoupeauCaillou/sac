@@ -115,6 +115,11 @@ void Game::eventsHandler() {
     SDL_Event event;
     int handled = 0;
 
+    //if (! (SDL_GetAppState() & SDL_APPINPUTFOCUS)) {
+        //LOGI("dont have the focus, dont treat inputs!");
+        //return;
+    //}
+
     while( SDL_PollEvent(&event) )
     {
 #if SAC_INGAME_EDITORS
@@ -163,6 +168,9 @@ void Game::eventsHandler() {
                 }
             }
         }
+    }
+    if (wantsAPI(ContextAPI::KeyboardInputHandler)) {
+        gameThreadContext->keyboardInputHandlerAPI->update();
     }
 }
 

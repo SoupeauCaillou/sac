@@ -12,8 +12,9 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         void getUserInput(const int imaxSize);
         bool done(std::string & final);
 
-        void registerToKeyPress(int value, std::function<void()> f);
+        void registerToKeyPressPerScancode(int value, std::function<void()> f);
 
+        void update();
 
         int eventSDL(const SDL_Event* event);
 
@@ -22,5 +23,5 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         std::string currentText;
         int maxSize;
 
-        std::map<int, std::function<void()>> key2callback;
+        std::map<int, std::pair<bool, std::function<void()>>> key2callback;
 };

@@ -57,10 +57,12 @@ void ZSQDSystem::DoUpdate(float dt) {
         }
 
         //if we are moving, update the position
-        if (zc->currentSpeed > 0.f && zc->currentDirection != glm::vec2(0.f, 0.f)) {
-            TRANSFORM(a)->position += zc->currentDirection * zc->currentSpeed * dt;
+        if (zc->currentSpeed > 0.f) {
+            if (zc->currentDirection != glm::vec2(0.f, 0.f))
+                TRANSFORM(a)->position += zc->currentDirection * zc->currentSpeed * dt;
+        } else {
+            zc->currentDirection = glm::vec2(0.f, 0.f);
         }
-
     }
 }
 
