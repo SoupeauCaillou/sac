@@ -4,12 +4,6 @@
 #include <string>
 #include "GameContext.h"
 
-#if ! SAC_EMSCRIPTEN
-//used to handled keyboard events
-#include <GL/glew.h>
-#include <GL/glfw.h>
-#endif
-
 #if SAC_INGAME_EDITORS
 
 #include "../util/LevelEditor.h"
@@ -31,6 +25,7 @@ class Game {
         void step();
         void render();
         void resetTime();
+        void eventsHandler();
 
 #if SAC_ENABLE_PROFILING
         void backPressed();
@@ -52,15 +47,11 @@ class Game {
         virtual void tick(float dt) = 0;
 
 
-    private:
-#if ! SAC_EMSCRIPTEN
-        static void GLFWCALL sacKeyboardInputCallback( int key, int action );
-        static KeyboardInputHandlerAPI * _thisKeyboardAPI;
-#endif
-
     public:
         GameContext* gameThreadContext, *renderThreadContext;
         float targetDT;
+
+        bool isFinished;
 
         struct {
             float minDt, maxDt;

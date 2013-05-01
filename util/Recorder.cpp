@@ -1,4 +1,4 @@
-#if SAC_LINUX && ! SAC_EMSCRIPTEN
+#if SAC_LINUX && SAC_DESKTOP
 #include "Recorder.h"
 #include <iostream>
 #include <sstream>

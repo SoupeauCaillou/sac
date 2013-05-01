@@ -8,7 +8,7 @@
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
 #include "../systems/CameraSystem.h"
-#include <GL/glfw.h>
+#include <SDL/SDL.h>
 #include <AntTweakBar.h>
 #include <mutex>
 #include <set>
@@ -181,12 +181,6 @@ LevelEditor::LevelEditor() {
 
     TwInit(TW_OPENGL, NULL);
 
-    glfwSetMouseButtonCallback((GLFWmousebuttonfun) _TwEventMouseButtonGLFW);
-    glfwSetMousePosCallback((GLFWmouseposfun) _TwEventMousePosGLFW);
-    glfwSetMouseWheelCallback((GLFWmousewheelfun) _TwEventMouseWheelGLFW);
-    glfwSetKeyCallback((GLFWkeyfun) _TwEventKeyGLFW);
-    glfwSetCharCallback((GLFWcharfun) _TwEventCharGLFW);
-
     DebugConsole::Instance().init();
 
     logBar = TwNewBar("Log_Control");
@@ -282,8 +276,8 @@ void LevelEditor::tick(float dt) {
     int wheelDiff = wheel - prevWheel;
     prevWheel = wheel;
 
-    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE &&
-        glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
+    if (! SDL_GetMouseState(0, 0) & SDL_BUTTON(1) &&
+        ! SDL_GetMouseState(0, 0) & SDL_BUTTON(3)) {
         datas->lastMouseOverPosition = position;
     }
 

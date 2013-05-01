@@ -18,106 +18,47 @@
 #include "MouseNativeTouchState.h"
 
 #if SAC_EMSCRIPTEN
-#include <SDL/SDL.h>
 #include <emscripten/emscripten.h>
-#else
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GL/glfw.h>
 #endif
 
 #include <base/Log.h>
 
 bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) const {
-#if SAC_EMSCRIPTEN
-     static bool down = false;
-     static glm::vec2 position;
-      SDL_Event event;
-      while (SDL_PollEvent(&event)) {
-        switch(event.type) {
+    static bool down = false;
+    static glm::vec2 position;
+    for (auto event : events) {
+        int x, y;
+        Uint8 buttonType = SDL_GetMouseState(&x, &y);
 
-        //mouse motion
-        case SDL_MOUSEMOTION: {
-            SDL_MouseMotionEvent *m = (SDL_MouseMotionEvent*)&event;
-            int x,y;
-            SDL_GetMouseState(&x, &y);
-            position.x = x;
-            position.y = y;
-            break;
-          }
-          //mouse button clicked
-          case SDL_MOUSEBUTTONDOWN: {
-            // SDL_GetMouseState(&x, &y);
-            SDL_MouseButtonEvent *m = (SDL_MouseButtonEvent*)&event;
-            if (m->button == SDL_BUTTON_LEFT) {
-                // windowCoords->X = m->x;
-                // windowCoords->Y = m->y;
-                down = true;
-                LOGI("Mouse down " << windowCoords->x << ", " << windowCoords->y)
-            }
-            break;
-          }
-          //mouse button released
-          case SDL_MOUSEBUTTONUP: {
-            SDL_MouseButtonEvent *m = (SDL_MouseButtonEvent*)&event;
-            if (m->button == SDL_BUTTON_LEFT) {
-                down = false;
-                LOGI("Mouse up");
-            }
-            break;
-          }
-          //key pressed
-          case SDL_KEYDOWN: {
-            /*
-            if (globalFTW == 0)
+        switch (index) {
+            case 0:
+                down = buttonType & SDL_BUTTON(1);
                 break;
-
-            if (TEXT_RENDERING(globalFTW)->show) {
-                char c;
-                switch (event.key.keysym.sym) {
-                    case SDLK_BACKSPACE:
-                        if (TEXT_RENDERING(nameInput->nameEdit)->show) {
-                            std::string& text = TEXT_RENDERING(nameInput->nameEdit)->text;
-                            if (text.length() > 0) {
-                                text.resize(text.length() - 1);
-                            }
-                        }
-                        break;
-                    case SDLK_RETURN:
-                        if (TEXT_RENDERING(nameInput->nameEdit)->show) {
-                            nameInput->textIsReady = true;
-                        }
-                        break;
-                    default:
-                        c = event.key.keysym.sym;
-                }
-
-                if (isalnum(c) || c == ' ') {
-                    if (TEXT_RENDERING(globalFTW)->text.length() > 10)
-                        break;
-                    // filter out all unsupported keystrokes
-                    TEXT_RENDERING(globalFTW)->text.push_back((char)c);
-                }
-            }*/
-            break;
-          }
+            case 1:
+                down = buttonType & SDL_BUTTON(3);
+                break;
+            default:
+                down = false;
         }
-       }
-       *windowCoords = position;
-    return down;
-#else
-    int x,y;
-    glfwGetMousePos(&x, &y);
-    windowCoords->x = x;
-    windowCoords->y = y;
-    switch (index) {
-        case 0:
-            return glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
-        case 1:
-            return glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_PRESS;
-        default:
-            return false;
-    }
 
-#endif
+        switch(event.type) {
+            //mouse motion
+            case SDL_MOUSEMOTION: {
+                position.x = x;
+                position.y = y;
+                break;
+            }
+            //mouse button clicked
+            case SDL_MOUSEBUTTONDOWN: {
+                break;
+            }
+              //mouse button released
+            case SDL_MOUSEBUTTONUP: {
+                down = !down;
+                break;
+            }
+        }
+    }
+    *windowCoords = position;
+    return down;
 }

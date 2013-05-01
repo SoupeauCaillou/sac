@@ -8,7 +8,6 @@
 #include <condition_variable>
 #include <mutex>
 
-
 #include "opengl/OpenglHelper.h"
 #include "opengl/TextureLibrary.h"
 #include "opengl/EffectLibrary.h"

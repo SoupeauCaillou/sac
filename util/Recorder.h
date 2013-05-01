@@ -1,8 +1,14 @@
 #pragma once
 
-#if SAC_LINUX && ! SAC_EMSCRIPTEN
-#include <GL/glew.h>
-#include <GL/glfw.h>
+#if ! (SAC_LINUX && SAC_DESKTOP)
+class Recorder {
+    public:
+        start() {}
+        stop() {}
+        record() {}
+};
+#else
+
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
@@ -14,6 +20,8 @@
 
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>
+
+#include <GL/glew.h>
 
 class Recorder {
     public:

@@ -8,7 +8,7 @@
 #include "base/EntityManager.h"
 #include "base/Log.h"
 
-#include <GL/glfw.h>
+#include <SDL/SDL.h>
 
 KeyboardInputHandlerAPIGLFWImpl::KeyboardInputHandlerAPIGLFWImpl() : textIsReady(true) {}
 
@@ -27,40 +27,43 @@ bool KeyboardInputHandlerAPIGLFWImpl::done(std::string & final) {
     return false;
 }
 
-void KeyboardInputHandlerAPIGLFWImpl::keyRelease(KeyCode code, int value) {
-    if (textIsReady)
-        return;
+void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(int value, std::function<void()> f) {
+    key2callback[value] = f;
+}
 
-    switch (code) {
-        case BACKSPACE:
+int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const SDL_Event* event) {
+    int key = event->key.keysym.sym;
+    if (event->type == SDL_KEYUP) {
+        if (textIsReady)
+            return 0;
+
+        if (key == SDLK_BACKSPACE) {
             //remove last char
             if (currentText.size() > 0) {
                 currentText.erase(currentText.end() - 1);
             }
-            break;
-        case ENTER:
+        } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
             if (currentText.size() > 0) {
                 textIsReady = true;
             }
-            break;
-        case SPACE:
-        case ALPHANUM:
+        } else if ((key == ' ') || isalnum(key)) {
             if ((int)currentText.size() < maxSize) {
-                currentText.append(1u, (char)value);
+                currentText.append(1u, key);
             }
-            break;
-    }
-    LOGI("current text: " << currentText);
-}
+        } else {
+            return 0;
+        }
 
-void KeyboardInputHandlerAPIGLFWImpl::checkKeyPress() {
-    for (auto it : key2callback) {
-        if (glfwGetKey(it.first)) {
-            it.second();
+        LOGI("current text: " << currentText);
+        return 1;
+
+    } else if (event->type == SDL_KEYDOWN) {
+        for (auto it : key2callback) {
+            if (it.first == key) {
+                it.second();
+                return 1;
+            }
         }
     }
-}
-
-void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(int value, std::function<void()> f) {
-    key2callback[value] = f;
+    return 0;
 }

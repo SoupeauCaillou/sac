@@ -200,7 +200,7 @@ if (NETWORK_BUILD)
 endif()
 
 if (DESKTOP_BUILD)
-    check_and_link_libs("sac" GLEW GLFW OpenAL Sqlite3 VorbisFile Vorbis ZLIB
+    check_and_link_libs("sac" GLEW SDL OpenAL Sqlite3 VorbisFile Vorbis ZLIB
         AntTweakBar Ogg Tinyxml2)
 elseif (MOBILE_BUILD)
      ########## build sqlite3 lib ###########

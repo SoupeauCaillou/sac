@@ -28,17 +28,17 @@
 #include "util/DataFileParser.h"
 #include <sstream>
 
-#include "api/KeyboardInputHandlerAPI.h"
+#include <SDL/SDL.h>
 
-#if ! SAC_EMSCRIPTEN
-KeyboardInputHandlerAPI * Game::_thisKeyboardAPI = 0;
-#endif
+#include "api/KeyboardInputHandlerAPI.h"
 
 Game::Game() {
 #if SAC_INGAME_EDITORS
     gameType = GameType::Default;
 #endif
     targetDT = 1.0f / 60.0f;
+
+    isFinished = false;
 
     TimeUtil::Init();
 
@@ -111,38 +111,60 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
 }
 
-#if ! SAC_EMSCRIPTEN
-void GLFWCALL Game::sacKeyboardInputCallback( int key, int action ) {
-    if (action != GLFW_RELEASE)
-        return;
+void Game::eventsHandler() {
+    SDL_Event event;
+    int handled = 0;
 
-
-    LOGI("key released: " << key);
+    while( SDL_PollEvent(&event) )
+    {
 #if SAC_INGAME_EDITORS
-    //if we use the editor; we need to handle some keys for it
-    if (key == GLFW_KEY_F3)
-        theDebuggingSystem.toggle();
+        // Send event to AntTweakBar
+        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
 #endif
 
+        //or try keyboardAPI
+        if (!handled && wantsAPI(ContextAPI::KeyboardInputHandler)) {
+            handled = gameThreadContext->keyboardInputHandlerAPI->eventSDL(&event);
+        }
 
-    if (_thisKeyboardAPI != 0) {
-        KeyboardInputHandlerAPI::KeyCode kc;
+        // If event has not been handled by AntTweakBar, process it
+        if( !handled )
+        {
+            switch( event.type )
+            {
+                case SDL_MOUSEMOTION:
+                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP:
+                    LOGT("mouse handler");
+                    //TheMouseNativeTouchState.events.push_front(&event);
+                    break;
 
-        if (key == GLFW_KEY_BACKSPACE)
-            kc = KeyboardInputHandlerAPI::BACKSPACE;
-        else if (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER)
-            kc = KeyboardInputHandlerAPI::ENTER;
-        else if (key == ' ')
-            kc = KeyboardInputHandlerAPI::SPACE;
-        else if (isalnum(key))
-            kc = KeyboardInputHandlerAPI::ALPHANUM;
-        else
-            return;
+                case SDL_QUIT: {
+                    isFinished = true;
+                    break;
+                }
 
-        _thisKeyboardAPI->keyRelease(kc, key);
+                case SDL_KEYUP: {
+                    int key = event.key.keysym.sym;
+                    LOGI("key released: " << key);
+
+                    switch (key) {
+                        case (SDLK_ESCAPE):
+                            isFinished = true;
+                            break;
+
+#if SAC_INGAME_EDITORS
+                        //if we use the editor; we need to handle some keys for it
+                        case (SDLK_F3):
+                            theDebuggingSystem.toggle();
+                            break;
+#endif
+                    }
+                }
+            }
+        }
     }
 }
-#endif
 
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".font");
@@ -193,14 +215,7 @@ void Game::sacInit(int windowW, int windowH) {
     PlacementHelper::GimpWidth = 800.0f;
     PlacementHelper::GimpHeight = 1280.0f;
 
-#if ! SAC_EMSCRIPTEN
-    //handle keys
-    glfwEnable( GLFW_KEY_REPEAT );
-    glfwSetKeyCallback(sacKeyboardInputCallback);
-    if (wantsAPI(ContextAPI::KeyboardInputHandler)) {
-        Game::_thisKeyboardAPI = gameThreadContext->keyboardInputHandlerAPI;
-    }
-#endif
+    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
 	theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
 	theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));
@@ -253,16 +268,14 @@ void Game::step() {
     theEntityManager.entityTemplateLibrary.update();
     theEntityManager.entityTemplateLibrary.updateReload();
 
-#if ! SAC_EMSCRIPTEN
-    Game::_thisKeyboardAPI->checkKeyPress();
-#endif
-
     // update game state
 #if SAC_INGAME_EDITORS
     static float speedFactor = 1.0f;
-    if (glfwGetKey(GLFW_KEY_F1))
+
+    Uint8 *keystate = SDL_GetKeyState(NULL);
+    if (keystate[SDLK_F1])
         gameType = GameType::Default;
-    else if (glfwGetKey(GLFW_KEY_F2))
+    else if (keystate[SDLK_F2])
         gameType = GameType::LevelEditor;
     switch (gameType) {
         case GameType::LevelEditor:
@@ -270,11 +283,11 @@ void Game::step() {
             delta = 0;
             break;
         default:
-            if (/*glfwGetKey(GLFW_KEY_KP_ADD) ||*/ glfwGetKey(GLFW_KEY_F6)) {
+            if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
                 speedFactor += 1 * delta;
-            } else if (/*glfwGetKey(GLFW_KEY_KP_SUBTRACT) ||*/ glfwGetKey(GLFW_KEY_F5)) {
+            } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
                 speedFactor = glm::max(speedFactor - 1 * delta, 0.0f);
-            } else if (glfwGetKey(GLFW_KEY_KP_ENTER)) {
+            } else if (keystate[SDLK_KP_ENTER]) {
                 speedFactor = 1;
             }
             delta *= speedFactor;
@@ -347,7 +360,7 @@ void Game::render() {
         if (dt < fpsStats.minDt) {
             fpsStats.minDt = dt;
         }
-        count++;
+        ++count;
         if (count == 1000) {
             LOGV(LogVerbosity::VERBOSE1, "FPS avg/min/max : " <<
                 (1000.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt))

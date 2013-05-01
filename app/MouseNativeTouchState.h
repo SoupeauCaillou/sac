@@ -19,6 +19,8 @@
 
 #include "base/TouchInputManager.h"
 #include <glm/glm.hpp>
+#include <list>
+#include <SDL/SDL.h>
 
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {
@@ -28,4 +30,7 @@ class MouseNativeTouchState: public NativeTouchState {
         int maxTouchingCount() {
             return 2;
         }
+    public:
+        //all mouse events which have to be handled by MouseNativeTouchState
+        std::list<SDL_Event> events;
 };

@@ -1,12 +1,11 @@
 #include <UnitTest++.h>
 #undef CHECK
 #define GLEW_STATIC
-#include <GL/glew.h>
-#include <GL/glfw.h>
+#include <SDL/SDL.h>
 #include <base/EntityManager.h>
 
 int main(int argc, char **) {
-    glfwInit();
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	EntityManager::CreateInstance();
     if (argc == 1)
         logLevel = LogVerbosity::FATAL;

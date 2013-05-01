@@ -18,13 +18,10 @@
 #include "base/Game.h"
 #include "base/GameContext.h"
 
-#if SAC_EMSCRIPTEN
 #include <SDL/SDL.h>
+
+#if SAC_EMSCRIPTEN
 #include <emscripten/emscripten.h>
-#else
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GL/glfw.h>
 #endif
 
 #include <sstream>
@@ -72,74 +69,28 @@
 
 #include "MouseNativeTouchState.h"
 
-#define DT 1/60.
-#define MAGICKEYTIME 0.15
-
 Game* game = 0;
+Recorder *record; //only on linux
 
-#if SAC_LINUX && ! SAC_EMSCRIPTEN
-Recorder *record;
-#endif
-
-#if ! SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
+static void updateAndRender() {
+    LOGV(1, "gameloop - events handle");
+    game->eventsHandler();
+    LOGV(1, "gameloop - step");
+    game->step();
+    LOGV(1, "gameloop - render");
+    game->render();
+}
+#else
 std::mutex m;
 
-/*
-void GLFWCALL myCharCallback( int c, int action ) {
-    if (globalFTW == 0) {
-
-    } else {
-        if (TEXT_RENDERING(globalFTW)->show) {
-            if (action == GLFW_PRESS && (isalnum(c) || c == ' ')) {
-                if (TEXT_RENDERING(globalFTW)->text.length() > 10)
-                    return;
-                // filter out all unsupported keystrokes
-                TEXT_RENDERING(globalFTW)->text.push_back((char)c);
-            }
-        }
-    }
-}
-
-void GLFWCALL myKeyCallback( int key, int action ) {
-    if (action != GLFW_RELEASE)
-        return;
-    if (key == GLFW_KEY_BACKSPACE) {
-        if (TEXT_RENDERING(nameInput->nameEdit)->show) {
-            std::string& text = TEXT_RENDERING(nameInput->nameEdit)->text;
-            if (text.length() > 0) {
-                text.resize(text.length() - 1);
-            }
-        } else {
-            game->backPressed();
-        }
-    }
-    else if (key == GLFW_KEY_F12) {
-        game->togglePause(true);
-        uint8_t* out;
-        int size = game->saveState(&out);
-        if (size) {
-            std::ofstream file("/tmp/rr.bin", std::ios_base::binary);
-            file.write((const char*)out, size);
-            LOGI("Save state: " << size << " bytes written");
-        }
-        exit(0);
-    }
-    else if (key == GLFW_KEY_SPACE ) {// || !focus) {
-        if (game->willConsumeBackEvent()) {
-            game->backPressed();
-        }
-    }
-}*/
-
 static void updateAndRenderLoop() {
-    bool running = true;
+    while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
+        game->eventsHandler();
 
-    while(running) {
         game->step();
 
-        running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
-
-        bool focus = (glfwGetWindowParam(GLFW_ACTIVE) != 0);
+        bool focus = (SDL_GetAppState() & SDL_APPINPUTFOCUS);
         if (focus) {
             theMusicSystem.toggleMute(theSoundSystem.mute);
         } else {
@@ -147,24 +98,16 @@ static void updateAndRenderLoop() {
         }
         //pause ?
 
-#if SAC_LINUX && SAC_DESKTOP
         // recording
-        if (glfwGetKey( GLFW_KEY_F10)){
+        if (SDL_GetKeyState(NULL)[SDLK_F10]) {
             record->stop();
         }
-        if (glfwGetKey( GLFW_KEY_F9)){
+        if (SDL_GetKeyState(NULL)[SDLK_F9]) {
             record->start();
         }
-#endif
-/*        //user entered his name?
-        if (nameInput && glfwGetKey( GLFW_KEY_ENTER )) {
-            if (!TEXT_RENDERING(nameInput->nameEdit)->show) {
-                nameInput->textIsReady = true;
-            }
-        }*/
     }
     theRenderingSystem.disableRendering();
-    glfwTerminate();
+    SDL_Quit();
 }
 
 static void* callback_thread(){
@@ -173,17 +116,6 @@ static void* callback_thread(){
     m.unlock();
     return NULL;
 }
-
-#else
-static void updateAndRender() {
-    LOGV(1, "gameloop - Pump events");
-    SDL_PumpEvents();
-    LOGV(1, "gameloop - step");
-    game->step();
-    LOGV(1, "gameloop - render");
-    game->render();
-}
-
 #endif
 
 glm::vec2 resolution;
@@ -192,22 +124,13 @@ int initGame(const std::string& title, const glm::ivec2& res) {
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
-#if SAC_EMSCRIPTEN
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
+    SDL_WM_SetCaption(title.c_str(), 0);
 
-    SDL_Surface *ecran = SDL_SetVideoMode(resolution.x, resolution.y, 16, SDL_OPENGL ); /* Double Buffering */
-#else
-    if (!glfwInit())
-        return 1;
-    glfwOpenWindowHint( GLFW_WINDOW_NO_RESIZE, GL_TRUE );
-    if( !(int)glfwOpenWindow(resolution.x, resolution.y, 8,8,8,8,8,8, GLFW_WINDOW ) )
-        return 1;
-    glfwSetWindowTitle(title.c_str());
-    glfwSwapInterval(1);
-    glewInit();
-#endif
+    // Double Buffering
+    SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL );
     return 0;
 }
 
@@ -219,6 +142,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     // Handle --restore cmd line switch
     uint8_t* state = 0;
     int size = 0;
+
+    //emscripten doesn't handle restore functionnality
 #if ! SAC_EMSCRIPTEN
     bool restore = false;
     for (int i=1; i<argc; i++) {
@@ -299,24 +224,21 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
-#if ! SAC_EMSCRIPTEN
-    setlocale( LC_ALL, "" );
-    // breaks editor -> glfwSetCharCallback(myCharCallback);
-    // breaks editor -> glfwSetKeyCallback(myKeyCallback);
-#endif
-
+    record = new Recorder(resolution.x, resolution.y);
 
     LOGV(1, "Run game loop");
 #if SAC_EMSCRIPTEN
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #else
-    // record = new Recorder(resolution.x, resolution.y);
+
+    //used for text translation, if needed
+    setlocale( LC_ALL, "" );
 
     std::thread th1(callback_thread);
     do {
         game->render();
-        glfwSwapBuffers();
-        // record->record();
+        SDL_GL_SwapBuffers();
+        record->record();
     } while (!m.try_lock());
     th1.join();
 
