@@ -6,6 +6,10 @@
 
 //to handle vec2 operator<<
 #include <glm/glm.hpp>
+inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
+    return stream << v.x << ", " << v.y;
+}
+
 
 namespace LogVerbosity {
 	enum Enum {
@@ -24,6 +28,7 @@ extern std::map<std::string, bool> verboseFilenameFilters;
 
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
+
 
 
 #include <cassert>
