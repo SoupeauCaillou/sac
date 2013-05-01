@@ -3,6 +3,10 @@
 #undef ERROR
 #include <ostream>
 #include <map>
+
+//to handle vec2 operator<<
+#include <glm/glm.hpp>
+
 namespace LogVerbosity {
 	enum Enum {
 		FATAL = 0,
