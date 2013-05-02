@@ -26,6 +26,7 @@
 #include <condition_variable>
 #include "Log.h"
 #include "util/ResourceHotReload.h"
+#include "util/MurmurHash.h"
 
 #if SAC_ANDROID
 // #undef USE_COND_SIGNALING
@@ -38,9 +39,9 @@ class AssetAPI;
 
 template <typename T, typename TRef, typename SourceDataType>
 class NamedAssetLibrary : public ResourceHotReload {
-#define InvalidRef -1
+#define InvalidRef 0
     public:
-        NamedAssetLibrary() : nextValidRef(1), assetAPI(0), useDeferredLoading(true) {
+        NamedAssetLibrary() : assetAPI(0), useDeferredLoading(true) {
         }
 
         virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true) {
@@ -53,21 +54,32 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         TRef load(const std::string& name) {
             TRef result = InvalidRef;
-            mutex.lock();
+            if (useDeferredLoading)
+                mutex.lock();
             typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
             if (it == nameToRef.end()) {
-                delayed.loads.insert(name);
-                result = nextValidRef++;
-                LOGV(1, "Put asset '" << name << "' on delayed load queue. Ref value: " << result)
+                result = MurmurHash::compute(name.c_str(), name.size());
+                DEBUG_LOGF_IF(ref2asset.find(result) != ref2asset.end(), "Hash collision: '" << result << "' - change resource : '" << name << "' name")
+
                 nameToRef.insert(std::make_pair(name, result));
+
+                if (useDeferredLoading) {
+                    delayed.loads.insert(name);
+                    LOGV(1, "Put asset '" << name << "' (" << name.size() << ") on delayed load queue. Ref value: " << result << ". NameToRef size: " << nameToRef.size())
+                } else {
+                    T asset;
+                    doLoad(name, asset, result);
+                    ref2asset.insert(std::make_pair(result, asset));
+                }
 #if SAC_LINUX && SAC_DESKTOP
                 registerNewAsset(name);
 #endif
             } else {
                 result = it->second;
             }
-            mutex.unlock();
-            if (!useDeferredLoading) update();
+            if (useDeferredLoading)
+                mutex.unlock();
+
             return result;
         }
 
@@ -131,7 +143,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                 mutex.unlock();
             }
 
-            LOGV_IF(1, !delayed.unloads.empty(), "Process delayed reloads")
+            LOGV_IF(1, !delayed.reloads.empty(), "Process delayed reloads")
             for (std::set<std::string>::iterator it=delayed.reloads.begin();
                 it!=delayed.reloads.end();
                 ++it) {
@@ -188,11 +200,6 @@ class NamedAssetLibrary : public ResourceHotReload {
         }
 
     protected:
-        void setNextValidRef(TRef r) {
-            nextValidRef = r;
-        }
-
-    protected:
         virtual bool doLoad(const std::string& name, T& out, const TRef& ref) = 0;
         virtual void doUnload(const std::string& name, const T& in) = 0;
         virtual void doReload(const std::string& name, const TRef& ref) = 0;
@@ -202,7 +209,6 @@ class NamedAssetLibrary : public ResourceHotReload {
 #if USE_COND_SIGNALING
         std::condition_variable cond;
 #endif
-        TRef nextValidRef;
         AssetAPI* assetAPI;
         bool useDeferredLoading;
 

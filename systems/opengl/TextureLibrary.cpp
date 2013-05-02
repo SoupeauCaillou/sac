@@ -106,7 +106,7 @@ void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
 
 void TextureLibrary::add(const std::string& name, const TextureInfo& info) {
     mutex.lock();
-    TextureRef ref = nextValidRef++;
+    TextureRef ref = MurmurHash::compute(name.c_str(), name.length());
     nameToRef.insert(std::make_pair(name, ref));
     ref2asset.insert(std::make_pair(ref, info));
     mutex.unlock();
