@@ -87,8 +87,8 @@ void PhysicsSystem::DoUpdate(float dt) {
 
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	// add 2 opposed forces
-	pc->forces.push_back(std::make_pair(Force(glm::vec2(0, m * 0.5), glm::vec2(1, 0)), 0.016));
-	pc->forces.push_back(std::make_pair(Force(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0)), 0.016));
+	pc->addForce(glm::vec2(0, m * 0.5), glm::vec2(1, 0), 0.016);
+	pc->addForce(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0), 0.016);
 }
 
 #if SAC_INGAME_EDITORS
