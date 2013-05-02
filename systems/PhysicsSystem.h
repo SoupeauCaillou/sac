@@ -27,7 +27,7 @@ struct PhysicsComponent {
     //set it to (0, 0) to disable the gravity
     glm::vec2 gravity;
 
-    //a force must be applied for a fixed duration: good value would be 'dt' ~= 1/60.f
+    //a force must be applied for a fixed duration: good value for "singular" force would be ~= 1/60.f
     void addForce(const Force & f, float duration) { forces.push_back(std::pair<Force, float>(f, duration)); }
     void addForce(const glm::vec2 & vector, const glm::vec2 & point, float duration) { forces.push_back(std::pair<Force, float>(Force(vector, point), duration)); }
 
