@@ -7,6 +7,7 @@
 #include "base/Entity.h"
 #include "systems/RenderingSystem.h"
 #include "systems/opengl/EntityTemplateLibrary.h"
+#include "systems/TransformationSystem.h"
 
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
@@ -237,7 +238,7 @@ int ComponentFactory::build(
     return propMap.size();
 }
 
-void ComponentFactory::applyTemplate(void* component, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties) {
+void ComponentFactory::applyTemplate(Entity entity, void* component, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties) {
     #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + prop->offset)
     #define ASSIGN(_type_) { \
         Interval< _type_ > itv; \
@@ -286,6 +287,7 @@ void ComponentFactory::applyTemplate(void* component, const PropertyNameValueMap
                     theEntityManager.DeleteEntity(*e);
                 }
                 *e = theEntityManager.CreateEntity("sub", EntityType::Volatile, r);
+                TRANSFORM(*e)->parent = entity;
                 break;
             }
             default:

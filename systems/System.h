@@ -257,7 +257,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     // crash here
                     if (failIfNotfound) {
                         DEBUG_LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << theEntityManager.entityName(entity) << ") has no component of type '" << getName() << "'")
+                            << "' (" << entity << ") has no component of type '" << getName() << "'")
                     }
     				return 0;
     			}
@@ -295,7 +295,7 @@ class ComponentSystemImpl: public ComponentSystem {
 
         void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) {
             T* comp = Get(entity);
-            ComponentFactory::applyTemplate(comp, propMap, componentSerializer.getProperties());
+            ComponentFactory::applyTemplate(entity, comp, propMap, componentSerializer.getProperties());
         }
 
 		int deserialize(Entity entity, uint8_t* in, int size) {
