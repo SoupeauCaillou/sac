@@ -14,5 +14,5 @@ class MurmurHash {
         #define staticHash(s,v) (v)
 #endif
 
-        static unsigned int compute( const void * key, int len, unsigned int seed );
+        static unsigned int compute( const void * key, int len, unsigned int seed = 0x12345678);
 };
