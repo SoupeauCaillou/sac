@@ -48,7 +48,10 @@ bool DataFileParser::load(const FileBuffer& fb) {
     data = new DataFileParserData();
 
     Section* currentSection = &data->global;
-    std::stringstream f(std::string((const char*)fb.data, fb.size), std::ios_base::in);
+    int size = fb.size;
+    if (fb.data[size-1] == '\0') size--;
+
+    std::stringstream f(std::string((const char*)fb.data, size), std::ios_base::in);
 
     std::string s;
     while (getline(f, s)) {
@@ -67,14 +70,15 @@ bool DataFileParser::load(const FileBuffer& fb) {
         } else {
             // first '='
             int sep = s.find('=');
-            int st = 0, len = sep - st;
+            int st = 0, len = sep - st, end = s.size() - 1;
             while (s[st] == ' ' || s[st] == '\t') { st++; len--; }
             while (s[st + len - 1] == ' ' || s[st + len - 1] == '\t') len--;
             sep++;
             while (s[sep] == ' ' || s[sep] == '\t') sep++;
+            while (s[end] == ' ' || s[end] == '\t') end--;
 
-            std::string key = s.substr(st, len);
-            std::string value = s.substr(sep);
+            std::string key(s.substr(st, len));
+            std::string value(s.substr(sep, end));
             currentSection->insert(std::make_pair(key, value));
         }
     }
