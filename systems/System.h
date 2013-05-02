@@ -128,7 +128,6 @@ class ComponentSystem {
 
 		virtual const std::string& getName() const { return name; }
 		virtual void Add(Entity entity) = 0;
-        virtual void UpdateEntity(Entity entity, const DataFileParser* dfp) = 0;
 		virtual void Delete(Entity entity) = 0;
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
@@ -210,14 +209,6 @@ class ComponentSystemImpl: public ComponentSystem {
 			components.insert(std::make_pair(entity, comp));
 #endif
 		}
-
-        void UpdateEntity(Entity entity, const DataFileParser* dfp = 0) {
-            T* comp = Get(entity, false);
-            if (dfp && comp) {
-                int count = ComponentFactory::build(*dfp, name, componentSerializer.getProperties(), comp);
-                LOGV(2, "Updated " << name << ": " << count << " properties read")
-            }
-        }
 
 #if SAC_DEBUG
 		virtual void preDeletionCheck(Entity) { };
