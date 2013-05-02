@@ -25,12 +25,20 @@
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {
     public:
-        bool isTouching(int, glm::vec2* windowCoords);
+        MouseNativeTouchState();
+
+        bool isTouching(int index, glm::vec2* windowCoords);
 
         int maxTouchingCount() {
             return 2;
         }
     public:
         //all mouse events which have to be handled by MouseNativeTouchState
-        std::list<SDL_Event> events;
+        //return 1 if event is handled, 0 else
+        int eventSDL(SDL_Event* event);
+
+    private:
+        //in order : left / right / middle
+        bool isButtonDown[3];
+        glm::vec2 lastPosition;
 };

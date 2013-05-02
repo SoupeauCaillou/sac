@@ -23,47 +23,57 @@
 
 #include <base/Log.h>
 
+MouseNativeTouchState::MouseNativeTouchState() {
+    isButtonDown[0] =
+    isButtonDown[1] =
+    isButtonDown[2] = false;
+}
+
 bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) {
-    static bool downLeft = false;
-    static bool downRight = false;
-    static glm::vec2 position;
-    for (auto event : events) {
-        int x, y;
-        Uint8 buttonType = SDL_GetMouseState(&x, &y);
+    *windowCoords = lastPosition;
+    return isButtonDown[index];
+}
 
-        switch (index) {
-            case 0:
-                downLeft = buttonType & SDL_BUTTON(1);
-                break;
-            case 1:
-                downRight = buttonType & SDL_BUTTON(3);
-                break;
-            default:
-                downLeft = downRight = false;
+int MouseNativeTouchState::eventSDL(SDL_Event* event) {
+    bool isDownEvent;
+
+    lastPosition.x = event->motion.x;
+    lastPosition.y = event->motion.y;
+
+    switch(event->type) {
+        case SDL_MOUSEMOTION: {
+            return 1;
+        }
+        //mouse button clicked
+        case SDL_MOUSEBUTTONDOWN: {
+            isDownEvent = true;
+
+            break;
+        }
+          //mouse button released
+        case SDL_MOUSEBUTTONUP: {
+            isDownEvent = false;
+            break;
         }
 
-        switch(event.type) {
-            //mouse motion
-            case SDL_MOUSEMOTION: {
-                position.x = x;
-                position.y = y;
-                break;
-            }
-            //mouse button clicked
-            case SDL_MOUSEBUTTONDOWN: {
-                //LOGI("down! index=" << index << " down=" << ((index == 0) ? downLeft : downRight));
-                break;
-            }
-              //mouse button released
-            case SDL_MOUSEBUTTONUP: {
-                (index == 0) ? downLeft = !downLeft : downRight = ! downRight;
-                //LOGI("up! down=" << ((index == 0) ? downLeft : downRight));
-                break;
-            }
-        }
+        //unrecognized event, dont handle it
+        default:
+            return 0;
     }
-    events.clear();
 
-    *windowCoords = position;
-    return (index == 0) ? downLeft : downRight;
+
+    switch (event->button.button) {
+        //left btn
+        case 1:
+            isButtonDown[0] = isDownEvent;
+            break;
+        case 2:
+            isButtonDown[2] = isDownEvent;
+            break;
+        case 3:
+            isButtonDown[1] = isDownEvent;
+            break;
+    }
+    //LOGI("/!\\SDL ID " << (int)event->button.button << " is " << (isDownEvent ? "down!" : "up!"));
+    return 1;
 }

@@ -135,18 +135,16 @@ void Game::eventsHandler() {
             handled = gameThreadContext->keyboardInputHandlerAPI->eventSDL(&event);
         }
 
-        // If event has not been handled by AntTweakBar, process it
+        //or try mouse
+        if (!handled && mouseNativeTouchState) {
+            handled = mouseNativeTouchState->eventSDL(&event);
+        }
+
+        // If event has not been handled by anyone, treat it
         if( !handled )
         {
             switch( event.type )
             {
-                case SDL_MOUSEMOTION:
-                case SDL_MOUSEBUTTONDOWN:
-                case SDL_MOUSEBUTTONUP:
-                    if (mouseNativeTouchState)
-                        mouseNativeTouchState->events.push_front(event);
-                    break;
-
                 case SDL_QUIT: {
                     isFinished = true;
                     break;
