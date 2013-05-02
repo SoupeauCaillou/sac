@@ -15,7 +15,7 @@ TEST (TestValueSplitting)
     size_t index[4];
     DataFileParser dfp;
     std::string str = "a, b,   c, d";
-    CHECK(dfp.determineSubStringIndexes(str, 4, index));
+    CHECK(dfp.determineSubStringIndexes(str, 4, index, true));
     CHECK_EQUAL((unsigned)0, index[0]);
     CHECK_EQUAL((unsigned)3, index[1]);
     CHECK_EQUAL((unsigned)8, index[2]);
@@ -26,7 +26,7 @@ TEST (TestGlobalSection)
 {
     DataFileParser dfp;
     const char* str= "plop=a, b,   c, d";
-    CHECK(dfp.load(FB(str)));
+    CHECK(dfp.load(FB(str), __FUNCTION__));
     CHECK_EQUAL((unsigned)1, dfp.sectionSize(DataFileParser::GlobalSection));
     std::string res[] = {"a", "b", "c", "d"};
     std::string out[4];
@@ -41,7 +41,7 @@ TEST (TestGetByIndex)
     DataFileParser dfp;
     const char* str= "plop=4\n" \
         "entry2=23";
-    CHECK(dfp.load(FB(str)));
+    CHECK(dfp.load(FB(str), __FUNCTION__));
     CHECK_EQUAL((unsigned)2, dfp.sectionSize(DataFileParser::GlobalSection));
     std::string name[2];
     int value[2];
@@ -59,7 +59,7 @@ TEST (TestParseString)
     DataFileParser dfp;
     const char* simple = "[section]\n" \
         "var=stringvalue";
-    CHECK(dfp.load(FB(simple)));
+    CHECK(dfp.load(FB(simple), __FUNCTION__));
     std::string out;
     CHECK(dfp.get("section", "var", &out));
     CHECK_EQUAL("stringvalue", out);
@@ -70,7 +70,7 @@ TEST (TestParse2String)
     DataFileParser dfp;
     const char* simple = "[section]\n" \
         "var=string1,string2";
-    CHECK(dfp.load(FB(simple)));
+    CHECK(dfp.load(FB(simple), __FUNCTION__));
     std::string out[2];
     CHECK(dfp.get("section", "var", out, 2));
     CHECK_EQUAL("string1", out[0]);
@@ -82,7 +82,7 @@ TEST (TestParse2Float)
     DataFileParser dfp;
     const char* simple = "[section]\n" \
         "var=1.23,  -5.6";
-    CHECK(dfp.load(FB(simple)));
+    CHECK(dfp.load(FB(simple), __FUNCTION__));
     float out[2];
     CHECK(dfp.get("section", "var", out, 2));
     CHECK_CLOSE(1.23, out[0], 0.001);
@@ -93,7 +93,7 @@ TEST (TestVariables)
 {
     DataFileParser dfp;
     const char* str= "plop=$a, b,   $c, d";
-    CHECK(dfp.load(FB(str)));
+    CHECK(dfp.load(FB(str), __FUNCTION__));
     dfp.defineVariable("a", "truc");
     dfp.defineVariable("c", "machin");
     std::string out[4];

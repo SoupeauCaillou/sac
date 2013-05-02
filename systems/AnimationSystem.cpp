@@ -91,10 +91,11 @@ void AnimationSystem::DoUpdate(float dt) {
 }
 
 void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& filename, std::string* variables, int varcount) {
-    FileBuffer file = assetAPI->loadAsset("anim/" + filename + ".anim");
+    const std::string fileN("anim/" + filename + ".anim");
+    FileBuffer file = assetAPI->loadAsset(filename);
     if (file.size) {
         AnimDescriptor* desc = new AnimDescriptor;
-        if (desc->load(file, variables, varcount)) {
+        if (desc->load(fileN, file, variables, varcount)) {
             animations.insert(std::make_pair(name, desc));
         } else {
             LOGE("Invalid animation file: " << filename << ".anim")

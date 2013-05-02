@@ -178,7 +178,7 @@ void Game::eventsHandler() {
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".font");
     DataFileParser dfp;
-    if (!dfp.load(file)) {
+    if (!dfp.load(file, name + ".font")) {
         LOGE("Invalid font description file: " << name)
         return;
     }

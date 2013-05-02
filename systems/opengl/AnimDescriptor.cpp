@@ -3,9 +3,9 @@
 #include "util/DataFileParser.h"
 #include "systems/RenderingSystem.h"
 
-bool AnimDescriptor::load(const FileBuffer& fb, std::string* variables, int varcount) {
+bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::string* variables, int varcount) {
     DataFileParser dfp;
-    if (!dfp.load(fb)) {
+    if (!dfp.load(fb, ctx)) {
         return false;
     }
     for (int i=0; i<varcount; i++) {

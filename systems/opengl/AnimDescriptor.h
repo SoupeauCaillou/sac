@@ -9,7 +9,7 @@ struct FileBuffer;
 
 class AnimDescriptor {
     public:
-        bool load(const FileBuffer& fb, std::string* variables = 0, int varcount = 0);
+        bool load(const std::string& ctx, const FileBuffer& fb, std::string* variables = 0, int varcount = 0);
 
     public:
         struct AnimFrame {
@@ -20,7 +20,7 @@ class AnimDescriptor {
             };
             std::vector<Transform> transforms;
         };
-        
+
     public:
         std::vector<AnimFrame> frames;
         float playbackSpeed;

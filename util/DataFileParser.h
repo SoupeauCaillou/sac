@@ -12,7 +12,7 @@ class DataFileParser {
         DataFileParser();
         ~DataFileParser();
 
-        bool load(const FileBuffer& fb);
+        bool load(const FileBuffer& fb, const std::string& context);
         void unload();
 
         template <class T>
@@ -31,26 +31,27 @@ class DataFileParser {
         bool indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const;
 
         template <class T>
-        bool parse(const std::string& value, T* out, const int count = 1) const;
+        bool parse(const std::string& value, T* out, const int count = 1, bool warnIfNotFound = true) const;
 
     public:
-        bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes) const;
+        bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool warnIfNotFound) const;
         std::string replaceVariables(const std::string& str) const;
 
     private:
         struct DataFileParserData;
         DataFileParserData* data;
+        std::string context;
 };
 
 #define MAX_ELEMENTS 10
 
 template <class T>
-bool DataFileParser::parse(const std::string& value, T* out, const int count) const {
+bool DataFileParser::parse(const std::string& value, T* out, const int count, bool warnIfNotFound) const {
 	LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported")
 
 	size_t endIndexes[MAX_ELEMENTS];
 
-	if (!determineSubStringIndexes(value, count, endIndexes))
+	if (!determineSubStringIndexes(value, count, endIndexes, warnIfNotFound))
         return false;
 
     size_t startIndex = 0;
@@ -75,7 +76,7 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
     if (!keyValue(section, var, warnIfNotFound, val))
         return false;
 
-    return parse(val, out, count);
+    return parse(val, out, count, warnIfNotFound);
 }
 
 template <class T>
@@ -85,5 +86,5 @@ bool DataFileParser::get(const std::string& section, unsigned index, std::string
     if (!indexValue(section, index, varName, val))
         return false;
 
-    return parse(val, out, count);
+    return parse(val, out, count, true);
 }

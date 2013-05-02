@@ -16,7 +16,7 @@ TEST(LoadSimpleAnimDescriptor)
     const char* content = "[meta]\n" \
         "speed=5.3";
     AnimDescriptor desc;
-    CHECK(desc.load(FB(content)));
+    CHECK(desc.load(__FUNCTION__, FB(content)));
     CHECK_CLOSE(5.3, desc.playbackSpeed, 0.001);
 }
 
@@ -28,7 +28,7 @@ TEST(LoadMetaInfo)
         "next_anim=animation2\n" \
         "wait_before_next_anim=0,4.5\n";
     AnimDescriptor desc;
-    CHECK(desc.load(FB(content)));
+    CHECK(desc.load(__FUNCTION__, FB(content)));
     CHECK_CLOSE(2.1, desc.playbackSpeed, 0.001);
     CHECK_EQUAL(2, desc.loopCount.t1);
     CHECK_EQUAL(4, desc.loopCount.t2);
@@ -49,7 +49,7 @@ TEST(LoadFramesTexture)
         "[frame2]\n" \
         "texture=plop\n";
     AnimDescriptor desc;
-    CHECK(desc.load(FB(content)));
+    CHECK(desc.load(__FUNCTION__, FB(content)));
     CHECK_EQUAL((unsigned)3, desc.frames.size());
     CHECK_EQUAL(desc.frames[0].texture, desc.frames[2].texture);
     RenderingSystem::DestroyInstance();
@@ -68,7 +68,7 @@ TEST(LoadFramesTransforms)
         "entity_transform_0=4,-5.3, 10, 20, 3.1\n" \
         "entity_transform_1=8,-5.3, 10, 20, 3.1\n";
     AnimDescriptor desc;
-    CHECK(desc.load(FB(content)));
+    CHECK(desc.load(__FUNCTION__, FB(content)));
     CHECK_EQUAL((unsigned)2, desc.frames.size());
     CHECK_EQUAL((unsigned)1, desc.frames[0].transforms.size());
     CHECK_EQUAL((unsigned)2, desc.frames[1].transforms.size());

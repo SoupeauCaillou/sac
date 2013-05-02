@@ -14,7 +14,6 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
 
         if (dfp.hasSection(section)) {
             std::vector<std::string> subEntities;
-            LOGI(section)
             propCount += ComponentFactory::build(
                 context, dfp, section, it->second->getSerializer().getProperties(), out, subEntities);
 
@@ -46,7 +45,7 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         LOGE("Unable to load '" << asset2File(name) << "'")
         return false;
     }
-    if (!dfp.load(fb)) {
+    if (!dfp.load(fb, asset2File(name))) {
         LOGE("Unable to parse '" << asset2File(name) << "'")
         delete[] fb.data;
         return false;

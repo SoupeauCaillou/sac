@@ -57,7 +57,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 		return;
 	}
     DataFileParser dfp;
-    if (!dfp.load(file)) {
+    if (!dfp.load(file, atlasDesc)) {
         LOGE("Unable to parse '" << atlasDesc << "'")
         delete[] file.data;
         return;
