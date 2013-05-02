@@ -8,9 +8,9 @@ class IProperty;
 
 class ComponentFactory {
     public:
-    	static int build(const DataFileParser& data,
+    	/*static int build(const DataFileParser& data,
     		const std::string& section,
-    		const std::vector<IProperty*>& properties, void* component);
+    		const std::vector<IProperty*>& properties, void* component);*/
 
         static int build(const DataFileParser& dfp,
             const std::string& section,

@@ -5,131 +5,115 @@
 #include "systems/AnimationSystem.h"
 #include "systems/ParticuleSystem.h"
 #include "base/PlacementHelper.h"
+#include "base/EntityManager.h"
 
-static FileBuffer FB(const char* str) {
-    FileBuffer fb;
-    fb.data = (uint8_t*) str;
-    fb.size = strlen(str);
-    return fb;
+struct TestSetup {
+    TestSetup() {
+        TransformationSystem::CreateInstance();
+        ParticuleSystem::CreateInstance();
+        AnimationSystem::CreateInstance();
+        RenderingSystem::CreateInstance();
+    }
+    ~TestSetup() {
+        theEntityManager.entityTemplateLibrary.unload("test");
+        TransformationSystem::DestroyInstance();
+        ParticuleSystem::DestroyInstance();
+        AnimationSystem::DestroyInstance();
+        RenderingSystem::DestroyInstance();
+    }
+};
+
+struct StubAssetAPI : public AssetAPI {
+    std::string data;
+    StubAssetAPI(const std::string& pData) : data(pData) {}
+
+    FileBuffer loadAsset(const std::string& ) {
+        FileBuffer fb;
+        fb.size = data.length() + 1;
+        fb.data = new uint8_t[fb.size];
+        memcpy(fb.data, data.c_str(), data.length());
+        fb.data[fb.size - 1] = '\0';
+
+        return fb;
+    }
+    std::list<std::string> listContent(const std::string& , const std::string& ) {
+        return std::list<std::string>();
+    }
+    const std::string & getWritableAppDatasPath() {
+        return "";
+    }
+};
+
+static Entity doTest(std::string s) {
+    StubAssetAPI a(s);
+    theEntityManager.entityTemplateLibrary.init(&a, false);
+    return theEntityManager.CreateEntity("test", EntityType::Volatile,
+        theEntityManager.entityTemplateLibrary.load("test"));
 }
 
-TEST(TestFloatProperty)
+TEST_FIXTURE(TestSetup, TestFloatProperty)
 {
-	TransformationSystem::CreateInstance();
-	FileBuffer fb = FB("rotation=1.2");
-	DataFileParser dfp;
-	dfp.load(fb);
-	TransformationComponent comp;
-
-	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theTransformationSystem.getSerializer().getProperties(), &comp));
-
-	CHECK_CLOSE(1.2, comp.rotation, 0.001);
-	TransformationSystem::DestroyInstance();
+    Entity e = doTest("[Transformation]\nrotation=1.2");
+	CHECK_CLOSE(1.2, TRANSFORM(e)->rotation, 0.001);
 }
 
-TEST(TestFloatFromInterval)
+TEST_FIXTURE(TestSetup, TestFloatFromInterval)
 {
-	TransformationSystem::CreateInstance();
-	FileBuffer fb = FB("rotation=1.2, 3.5");
-	DataFileParser dfp;
-	dfp.load(fb);
-	TransformationComponent comp;
+    Entity e = doTest("[Transformation]\nrotation=1.2, 3.5");
 
-	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theTransformationSystem.getSerializer().getProperties(), &comp));
-	CHECK(1.2 <= comp.rotation && comp.rotation <= 3.5);
-	TransformationSystem::DestroyInstance();
+    CHECK(1.2 <= TRANSFORM(e)->rotation && TRANSFORM(e)->rotation <= 3.5);
 }
 
-TEST(TestFloatIntervalProperty)
+TEST_FIXTURE(TestSetup, TestFloatIntervalProperty)
 {
-    ParticuleSystem::CreateInstance();
-    FileBuffer fb = FB("lifetime=1.2, 3.5");
-    DataFileParser dfp;
-    dfp.load(fb);
-    ParticuleComponent comp;
+    Entity e = doTest("[Particule]\nlifetime=1.2, 3.5");
 
-    CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theParticuleSystem.getSerializer().getProperties(), &comp));
-    CHECK_CLOSE(1.2, comp.lifetime.t1, 0.001);
-    CHECK_CLOSE(3.5, comp.lifetime.t2, 0.001);
-    ParticuleSystem::DestroyInstance();
+    CHECK_CLOSE(1.2, PARTICULE(e)->lifetime.t1, 0.001);
+    CHECK_CLOSE(3.5, PARTICULE(e)->lifetime.t2, 0.001);
 }
 
-TEST(TestSingleVec2Property)
+TEST_FIXTURE(TestSetup, TestSingleVec2Property)
 {
-	TransformationSystem::CreateInstance();
-	FileBuffer fb = FB("size=2, 4");
-	DataFileParser dfp;
-	dfp.load(fb);
-	TransformationComponent comp;
+    Entity e = doTest("[Transformation]\nsize=2, 4");
 
-	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theTransformationSystem.getSerializer().getProperties(), &comp));
 
-	CHECK_CLOSE(2, comp.size.x, 0.001);
-	CHECK_CLOSE(4, comp.size.y, 0.001);
-	TransformationSystem::DestroyInstance();
+    CHECK_CLOSE(2, TRANSFORM(e)->size.x, 0.001);
+    CHECK_CLOSE(4, TRANSFORM(e)->size.y, 0.001);
 }
 
-TEST(TestStringProperty)
+TEST_FIXTURE(TestSetup, TestStringProperty)
 {
-	AnimationSystem::CreateInstance();
-	FileBuffer fb = FB("name=super_animation");
-	DataFileParser dfp;
-	dfp.load(fb);
-	AnimationComponent comp;
+    Entity e = doTest("[Animation]\nname=super_animation");
 
-	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theAnimationSystem.getSerializer().getProperties(), &comp));
-
-	CHECK_EQUAL("super_animation", comp.name);
-	AnimationSystem::DestroyInstance();
+    CHECK_EQUAL("super_animation", ANIMATION(e)->name);
 }
 
-TEST(TestTextureProperty)
+TEST_FIXTURE(TestSetup, TestTextureProperty)
 {
-	RenderingSystem::CreateInstance();
-	FileBuffer fb = FB("texture=my_texture");
-	DataFileParser dfp;
-	dfp.load(fb);
-	RenderingComponent comp;
+    Entity e = doTest("[Rendering]\ntexture=my_texture");
 
-	CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theRenderingSystem.getSerializer().getProperties(), &comp));
-
-	CHECK_EQUAL(theRenderingSystem.loadTextureFile("my_texture"), comp.texture);
-	RenderingSystem::DestroyInstance();
+    CHECK_EQUAL(theRenderingSystem.loadTextureFile("my_texture"), RENDERING(e)->texture);
 }
 
-TEST(TestTransformPercentProperty)
+TEST_FIXTURE(TestSetup, TestTransformPercentProperty)
 {
     PlacementHelper::ScreenWidth = 100;
     PlacementHelper::ScreenHeight = 50;
-    TransformationSystem::CreateInstance();
-    FileBuffer fb = FB("size%screen=0.3, 0.2\nposition%screen_w=0.5,0.8");
-    DataFileParser dfp;
-    dfp.load(fb);
-    TransformationComponent comp;
+    Entity e = doTest("[Transformation]\nsize%screen=0.3, 0.2\nposition%screen_w=0.5,0.8");
 
-    CHECK_EQUAL(2, ComponentFactory::build(dfp, "", theTransformationSystem.getSerializer().getProperties(), &comp));
+    CHECK_CLOSE(0.3 * PlacementHelper::ScreenWidth, TRANSFORM(e)->size.x, 0.001);
+    CHECK_CLOSE(0.2 *  PlacementHelper::ScreenHeight, TRANSFORM(e)->size.y, 0.001);
 
-    CHECK_CLOSE(0.3 * PlacementHelper::ScreenWidth, comp.size.x, 0.001);
-    CHECK_CLOSE(0.2 *  PlacementHelper::ScreenHeight, comp.size.y, 0.001);
-
-    CHECK_CLOSE(0.5 * PlacementHelper::ScreenWidth, comp.position.x, 0.001);
-    CHECK_CLOSE(0.8 *  PlacementHelper::ScreenWidth, comp.position.y, 0.001);
-    TransformationSystem::DestroyInstance();
+    CHECK_CLOSE(0.5 * PlacementHelper::ScreenWidth, TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(0.8 *  PlacementHelper::ScreenWidth, TRANSFORM(e)->position.y, 0.001);
 }
 
-TEST(TestColorProperty)
+TEST_FIXTURE(TestSetup, TestColorProperty)
 {
-    RenderingSystem::CreateInstance();
-    FileBuffer fb = FB("color=1.0, 0.5, 0.25, 1");
-    DataFileParser dfp;
-    dfp.load(fb);
-    RenderingComponent comp;
+    Entity e = doTest("[Rendering]\ncolor=1.0, 0.5, 0.25, 1");
 
-    CHECK_EQUAL(1, ComponentFactory::build(dfp, "", theRenderingSystem.getSerializer().getProperties(), &comp));
-
-    CHECK_CLOSE(1.0, comp.color.r, 0.001);
-    CHECK_CLOSE(0.5, comp.color.g, 0.001);
-    CHECK_CLOSE(0.25, comp.color.b, 0.001);
-    CHECK_CLOSE(1, comp.color.a, 0.001);
-    RenderingSystem::DestroyInstance();
+    CHECK_CLOSE(1.0, RENDERING(e)->color.r, 0.001);
+    CHECK_CLOSE(0.5, RENDERING(e)->color.g, 0.001);
+    CHECK_CLOSE(0.25, RENDERING(e)->color.b, 0.001);
+    CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
 }

@@ -145,6 +145,7 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
     }
 }
 
+/*
 int ComponentFactory::build(const DataFileParser& dfp,
 		const std::string& section,
 		const std::vector<IProperty*>& properties, void* component) {
@@ -199,6 +200,7 @@ int ComponentFactory::build(const DataFileParser& dfp,
 	return count;
     #undef TYPE_2_PTR
 }
+*/
 
 int ComponentFactory::build(const DataFileParser& dfp,
         const std::string& section,
@@ -273,7 +275,10 @@ void ComponentFactory::applyTemplate(void* component, const PropertyNameValueMap
     #define ASSIGN(_type_) { \
         Interval< _type_ > itv; \
         memcpy(&itv, (*it).second, sizeof(itv)); \
-        *(TYPE_2_PTR(_type_)) = itv.random(); }
+        if (prop->isInterval()) \
+            *(TYPE_2_PTR(Interval < _type_ > )) = itv; \
+        else \
+            *(TYPE_2_PTR(_type_)) = itv.random(); }
 
     for (IProperty* prop : properties) {
         auto it = propValueMap.find(prop->getName());
