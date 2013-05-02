@@ -31,7 +31,7 @@ int IProperty::deserialize(uint8_t* in, void* object) const {
     return _size;
 }
 
-EntityProperty::EntityProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Unsupported, false, offset, sizeof(Entity)) {
+EntityProperty::EntityProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Entity, false, offset, sizeof(Entity)) {
 
 }
 

@@ -15,6 +15,7 @@ namespace PropertyType {
         Float,
         Color,
         Texture,
+        Entity,
         Unsupported
     };
 }

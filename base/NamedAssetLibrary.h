@@ -90,10 +90,14 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (!useDeferredLoading) update();
         }
         void reload(const std::string& name) {
-            mutex.lock();
-            delayed.reloads.insert(name);
-            mutex.unlock();
-            if (!useDeferredLoading) update();
+            if (useDeferredLoading) {
+                mutex.lock();
+                delayed.reloads.insert(name);
+                mutex.unlock();
+            } else {
+                TRef ref = nameToRef[name];
+                doReload(name, ref);
+            }
         }
 
         void unload(const TRef& ref) {
@@ -197,6 +201,14 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (dataSource.find(r) != dataSource.end())
                 LOGW("Asset " << r << " already have one data source registered")
             dataSource.insert(std::make_pair(r, type));
+        }
+
+        void add(const std::string& name, const T& info) {
+            if (useDeferredLoading) mutex.lock();
+            TRef ref = MurmurHash::compute(name.c_str(), name.length());
+            nameToRef.insert(std::make_pair(name, ref));
+            ref2asset.insert(std::make_pair(ref, info));
+            if (useDeferredLoading) mutex.unlock();
         }
 
     protected:

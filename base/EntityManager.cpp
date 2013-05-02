@@ -57,10 +57,6 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
     if (tmpl != InvalidEntityTemplateRef) {
         // add component
         const EntityTemplate& templ = *entityTemplateLibrary.get(tmpl, false);
-        for (auto it: templ) {
-            ComponentSystem* s = it.first;
-            AddComponent(e, s);
-        }
         entityTemplateLibrary.applyEntityTemplate(e, tmpl);
     }
 	return e;
@@ -89,7 +85,12 @@ void EntityManager::DeleteEntity(Entity e) {
     entity2name.erase(e);
 }
 
-void EntityManager::AddComponent(Entity e, ComponentSystem* system) {
+void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas) {
+    if (!failIfAlreadyHas) {
+        const auto it = entityComponents[e];
+        if (std::find(it.begin(), it.end(), system) != it.end())
+            return;
+    }
 	system->Add(e);
 	entityComponents[e].push_back(system);
 }

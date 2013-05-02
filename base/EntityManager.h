@@ -39,7 +39,7 @@ class EntityManager {
             EntityTemplateRef tmpl = InvalidEntityTemplateRef);
 
     	void DeleteEntity(Entity e);
-		void AddComponent(Entity e, ComponentSystem* system);
+		void AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas = true);
 		void deleteAllEntities();
 		std::vector<Entity> allEntities();
 

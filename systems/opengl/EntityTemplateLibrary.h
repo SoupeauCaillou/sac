@@ -28,6 +28,7 @@ struct Void {};
 #include <map>
 #include <set>
 #include <string>
+class DataFileParser;
 class ComponentSystem;
 typedef std::map<std::string, uint8_t*> PropertyNameValueMap;
 typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
@@ -45,11 +46,19 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
 
         void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
 
+        void defineParent(EntityTemplateRef child, EntityTemplateRef parent);
+
 #if SAC_LINUX && SAC_DESKTOP
         void remove(Entity e);
 #endif
     private:
         #if SAC_LINUX && SAC_DESKTOP
         std::map<EntityTemplateRef, std::set<Entity> > template2entities;
+        std::map<EntityTemplateRef, std::set<EntityTemplateRef> > template2children;
         #endif
+        std::map<EntityTemplateRef, EntityTemplateRef> template2parent;
+
+        void applyTemplateToAll(const EntityTemplateRef& ref);
+
+        int loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef r, EntityTemplate& out);
 };

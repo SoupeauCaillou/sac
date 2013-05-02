@@ -3,6 +3,8 @@
 #include "Serializer.h"
 #include "base/PlacementHelper.h"
 #include "base/Interval.h"
+#include "base/EntityManager.h"
+#include "base/Entity.h"
 #include "systems/RenderingSystem.h"
 #include "systems/opengl/EntityTemplateLibrary.h"
 
@@ -145,66 +147,12 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
     }
 }
 
-/*
-int ComponentFactory::build(const DataFileParser& dfp,
-		const std::string& section,
-		const std::vector<IProperty*>& properties, void* component) {
-    #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + (*it)->offset)
-    #define LOAD_SINGLE(_type_) { \
-        _type_ vvv; \
-        if (load(dfp, section, name, IntervalAsRandom, &vvv)) {\
-            *TYPE_2_PTR(_type_) = vvv; count++; }\
-        }
-    #define LOAD_INTERVAL(_type_) { \
-        Interval<_type_> itv; \
-        bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
-        success &= load(dfp, section, name, IntervalValue2, &itv.t2); \
-        count += success; if (success) *TYPE_2_PTR(Interval<_type_>) = itv;}
-    #define LOAD(_type_) { if ((*it)->isInterval()) LOAD_INTERVAL(_type_) else LOAD_SINGLE(_type_) }
-
-    int count = 0;
-
-	// Browse properties
-    for (auto it = properties.begin(); it!=properties.end(); ++it) {
-        // Retrieve property name
-        const std::string& name = (*it)->getName();
-
-        switch ((*it)->getType()) {
-            case PropertyType::Float:
-                LOAD(float)
-                break;
-            case PropertyType::Int:
-                LOAD(int)
-                break;
-            case PropertyType::Vec2:
-                LOAD(glm::vec2)
-                break;
-            case PropertyType::String:
-                LOAD_SINGLE(std::string)
-                break;
-            case PropertyType::Color:
-                LOAD(Color);
-                break;
-            case PropertyType::Texture: {
-                std::string textureName;
-                if (load(dfp, section, name, IntervalAsRandom,&textureName)) {
-                    count++;
-                    *((TextureRef*)((uint8_t*)component + (*it)->offset)) = theRenderingSystem.loadTextureFile(textureName);
-                }
-                break;
-            }
-            default:
-                break;
-        }
-    }
-	return count;
-    #undef TYPE_2_PTR
-}
-*/
-
-int ComponentFactory::build(const DataFileParser& dfp,
+int ComponentFactory::build(
+        const std::string& context,
+        const DataFileParser& dfp,
         const std::string& section,
-        const std::vector<IProperty*>& properties, EntityTemplate& templ) {
+        const std::vector<IProperty*>& properties, EntityTemplate& templ,
+        std::vector<std::string>& subEntities) {
     #define LOAD_INTERVAL_TEMPL(_type_) { \
         Interval<_type_> itv; \
         bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
@@ -215,7 +163,11 @@ int ComponentFactory::build(const DataFileParser& dfp,
         memcpy(arr, &itv, sizeof(itv));\
         propMap.insert(std::make_pair(name, arr)); }}
 
-    ComponentSystem* systm = ComponentSystem::Named(section);
+    std::string realSystemName(section);
+    if (realSystemName.rfind('#') != std::string::npos) {
+        realSystemName = realSystemName.substr(realSystemName.rfind('#') + 1);
+    }
+    ComponentSystem* systm = ComponentSystem::Named(realSystemName);
     LOGE_IF(!systm, "Missing system: '" << section << "'")
     if (!systm)
         return 0;
@@ -228,8 +180,8 @@ int ComponentFactory::build(const DataFileParser& dfp,
     for (auto it = properties.begin(); it!=properties.end(); ++it) {
         // Retrieve property name
         const std::string& name = (*it)->getName();
-
-        switch ((*it)->getType()) {
+        const auto type = (*it)->getType();
+        switch (type) {
             case PropertyType::Float:
                 LOAD_INTERVAL_TEMPL(float);
                 break;
@@ -250,6 +202,20 @@ int ComponentFactory::build(const DataFileParser& dfp,
                 }
                 break;
             }
+            case PropertyType::Entity: {
+                std::string s;
+                if (load(dfp, section, name + "%template", IntervalAsRandom, &s)) {
+                    std::string subEntityName(context + std::string("#") + name);
+                    EntityTemplateRef r = MurmurHash::compute(subEntityName.c_str(), subEntityName.length());
+                    uint8_t* arr = new uint8_t[sizeof(r)];
+                    memcpy(arr, &r, sizeof(r));
+                    propMap.insert(std::make_pair(name, arr));
+                    subEntities.push_back(name);
+                    theEntityManager.entityTemplateLibrary.defineParent(r,
+                        theEntityManager.entityTemplateLibrary.load(s));
+                }
+                break;
+            }
             case PropertyType::Color:
                 LOAD_INTERVAL_TEMPL(Color);
                 break;
@@ -263,6 +229,7 @@ int ComponentFactory::build(const DataFileParser& dfp,
                 break;
             }
             default:
+                LOGW("Unhandled property type: " << (*it)->getType() << " for '" << (*it)->getName() << "'")
                 break;
         }
     }
@@ -309,6 +276,16 @@ void ComponentFactory::applyTemplate(void* component, const PropertyNameValueMap
                 break;
             case PropertyType::Texture: {
                 memcpy((uint8_t*)component + prop->offset, (*it).second, sizeof(TextureRef));
+                break;
+            }
+            case PropertyType::Entity: {
+                EntityTemplateRef r;
+                memcpy(&r, (*it).second, sizeof(r));
+                Entity* e = TYPE_2_PTR(Entity);
+                if (*e) {
+                    theEntityManager.DeleteEntity(*e);
+                }
+                *e = theEntityManager.CreateEntity("sub", EntityType::Volatile, r);
                 break;
             }
             default:
