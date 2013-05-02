@@ -44,7 +44,7 @@ void ZSQDSystem::DoUpdate(float dt) {
                 weight = 1.;
 
             //update the direction with ponderated directions
-            zc->currentDirection = newDir * weight + zc->currentDirection * (1 - weight);
+            zc->currentDirection += newDir * weight * dt;// + zc->currentDirection * (1 - weight);
 
             //currentDirection norm must be <= 1
             if (glm::length(zc->currentDirection) > 1.f)
