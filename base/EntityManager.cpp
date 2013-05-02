@@ -56,7 +56,6 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 
     if (tmpl != InvalidEntityTemplateRef) {
         // add component
-        const EntityTemplate& templ = *entityTemplateLibrary.get(tmpl, false);
         entityTemplateLibrary.applyEntityTemplate(e, tmpl);
     }
 	return e;

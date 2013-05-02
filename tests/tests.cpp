@@ -7,7 +7,7 @@
 int main(int argc, char **) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	EntityManager::CreateInstance();
-    if (argc == 0)
+    if (argc == 1)
         logLevel = LogVerbosity::FATAL;
     else
         logLevel = LogVerbosity::VERBOSE2;
