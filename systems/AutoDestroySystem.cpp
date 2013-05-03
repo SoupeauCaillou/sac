@@ -10,7 +10,16 @@
 INSTANCE_IMPL(AutoDestroySystem);
 
 AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponent>("AutoDestroy") {
-    /* nothing saved */
+    AutoDestroyComponent ac;
+    componentSerializer.add(new Property<int>("type", OFFSET(type, ac), 0));
+    componentSerializer.add(new Property<float>("params.area.x", OFFSET(params.area.x, ac), 0.001f));
+    componentSerializer.add(new Property<float>("params.area.y", OFFSET(params.area.y, ac), 0.001f));
+    componentSerializer.add(new Property<float>("params.area.w", OFFSET(params.area.w, ac), 0.001f));
+    componentSerializer.add(new Property<float>("params.area.h", OFFSET(params.area.h, ac), 0.001f));
+    componentSerializer.add(new Property<float>("params.lifetime.value", OFFSET(params.lifetime.value, ac), 0.001f));
+    componentSerializer.add(new Property<float>("params.lifetime.accum", OFFSET(params.lifetime.accum, ac), 0.001f));
+    componentSerializer.add(new Property<bool>("params.lifetime.map2AlphaRendering", OFFSET(params.lifetime.map2AlphaRendering, ac), false));
+    componentSerializer.add(new Property<bool>("params.lifetime.map2AlphaTextRendering", OFFSET(params.lifetime.map2AlphaTextRendering, ac), false));
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {
