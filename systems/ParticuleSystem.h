@@ -11,15 +11,15 @@
 
 
 struct ParticuleComponent {
-	ParticuleComponent() : emissionRate(0), duration(-1), texture(InvalidTextureRef), spawnLeftOver(0) {
-        lifetime.t1 = lifetime.t2 = 0;
-        initialSize.t1 = initialSize.t2 = 
-        finalSize.t1 = finalSize.t2 = 
-        forceDirection.t1 = forceDirection.t2 = 
-        forceAmplitude.t1 = forceAmplitude.t2 = 
+	ParticuleComponent() : emissionRate(10), duration(10), texture(InvalidTextureRef), spawnLeftOver(0) {
+        lifetime.t1 = lifetime.t2 = 1;
+        initialSize.t1 = initialSize.t2 = 1;
+        finalSize.t1 = finalSize.t2 =
+        forceDirection.t1 = forceDirection.t2 =
+        forceAmplitude.t1 = forceAmplitude.t2 =
         moment.t1 = moment.t2 = spawnLeftOver =
         mass = 0.0f;
-        gravity = glm::vec2(0, -10);
+        gravity = glm::vec2(0, 0);
     }
     float emissionRate, duration;
     TextureRef texture;

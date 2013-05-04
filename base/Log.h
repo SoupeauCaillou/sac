@@ -77,6 +77,13 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
     } \
 }
 
+#define LOGI_EVERY_N(n, x) {\
+    static unsigned __log_count = 0;\
+    if ((++__log_count % n) == 0) {\
+        LOGI(x) \
+    } \
+}
+
 #if SAC_DEBUG
 
 #define DEBUG_LOGF(x) LOGF(x)

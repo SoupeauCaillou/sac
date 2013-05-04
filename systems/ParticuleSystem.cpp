@@ -37,7 +37,6 @@ void ParticuleSystem::DoUpdate(float dt) {
  // return;
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         TransformationComponent* ptc = TRANSFORM(a);
-
         if (pc->duration >= 0) {
         	pc->duration -= dt;
         	if (pc->duration <= 0) {
