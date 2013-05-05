@@ -5,7 +5,7 @@
 #include "base/EntityManager.h"
 
 
-int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef r, EntityTemplate& out) {
+int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
     // browse system
     const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();

@@ -40,7 +40,8 @@ struct StubAssetAPI : public AssetAPI {
         return std::list<std::string>();
     }
     const std::string & getWritableAppDatasPath() {
-        return "";
+        static std::string empty("");
+        return empty;
     }
 };
 
