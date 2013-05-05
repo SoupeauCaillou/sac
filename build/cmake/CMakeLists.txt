@@ -202,7 +202,7 @@ endif()
 if (DESKTOP_BUILD)
     check_and_link_libs("sac" GLEW SDL OpenAL Sqlite3 VorbisFile Vorbis ZLIB
         AntTweakBar Ogg Tinyxml2)
-elseif (MOBILE_BUILD)
+elseif (MOBILE_BUILD OR WEB_BUILD)
      ########## build sqlite3 lib ###########
     set (sqlite3_base ${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
     file(

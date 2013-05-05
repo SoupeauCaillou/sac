@@ -3,9 +3,10 @@
 #if ! (SAC_LINUX && SAC_DESKTOP)
 class Recorder {
     public:
-        start() {}
-        stop() {}
-        record() {}
+        Recorder(int, int) {}
+        void start() {}
+        void stop() {}
+        void record() {}
 };
 #else
 
