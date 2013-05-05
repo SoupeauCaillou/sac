@@ -289,7 +289,7 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-            DEBUG_LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
+            LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
 
     		RenderCommand c;
     		c.z = tc->worldZ;

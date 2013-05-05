@@ -61,6 +61,7 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 	return e;
 }
 
+#if SAC_DEBUG
 const std::string& EntityManager::entityName(Entity e) const {
     static const std::string u("unknown");
     auto it = entity2name.find(e);
@@ -69,6 +70,7 @@ const std::string& EntityManager::entityName(Entity e) const {
     else
         return u;
 }
+#endif
 
 void EntityManager::DeleteEntity(Entity e) {
 	std::list<ComponentSystem*>& l = entityComponents[e];

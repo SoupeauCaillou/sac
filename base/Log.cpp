@@ -1,4 +1,7 @@
+#if SAC_ENABLE_LOG
+
 #include "Log.h"
+
 #include "TimeUtil.h"
 #include <iomanip>
 
@@ -57,3 +60,5 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";
 	return stream;
 }
+
+#endif

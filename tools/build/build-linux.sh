@@ -70,7 +70,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
                 ;;
             "--debug")
                 TARGETS=$TARGETS"n"
-                CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=release"
+                CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=debug"
                 ;;
             -*)
                 echo "unknown option: " $1
@@ -87,12 +87,12 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
 # retrieve build target
     cmakebuildtarget="linux"
 
-    if [ ! -z $(grep -i -- '-DTARGET=' <<< "$CMAKE_CONFIG" ) ]; then
+    if [ ! -z "$(grep -i -- '-DTARGET=' <<< "$CMAKE_CONFIG" )" ]; then
         cmakebuildtarget=$(echo $CMAKE_CONFIG | sed 's/-DTARGET=/~/' | cut -d '~' -f2 | cut -d ' ' -f1)
     fi
 # retrieve build type
     cmakebuildtype="debug"
-    if [ ! -z $(grep -i -- '-DCMAKE_BUILD_TYPE=' <<< "$CMAKE_CONFIG") ]; then
+    if [ ! -z "$(grep -i -- '-DCMAKE_BUILD_TYPE=' <<< "$CMAKE_CONFIG")" ]; then
         cmakebuildtype=$(echo $CMAKE_CONFIG | sed 's/-DCMAKE_BUILD_TYPE=/~/' | cut -d '~' -f2 | cut -d ' ' -f1)
     fi
 
@@ -105,16 +105,16 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
 ######### 4 : Execute query. #########
 	gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
-	if [ ! -z $(echo $TARGETS | grep R) ]; then
+	if [ ! -z "$(echo $TARGETS | grep R)" ]; then
 		reset
 	fi
 
-	if [ ! -z $(echo $TARGETS | grep C) ]; then
+	if [ ! -z "$(echo $TARGETS | grep C)" ]; then
 		info "Cleaning.."
 		rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
 	fi
 
-	if [ ! -z $(echo $TARGETS | grep -e n -e r -e d) ]; then
+	if [ ! -z "$(echo $TARGETS | grep -e n -e r -e d)" ]; then
 		info "Compiling.."
 		if (!(cmake $rootPath $CMAKE_CONFIG)); then
 			error_and_quit "Error in cmake. Maybe should run with C option?"
@@ -125,14 +125,14 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
 
 	executable=./$gameName $RUN_ARGS
 	#debug required
-	if [ ! -z $(echo $TARGETS | grep d) ]; then
+	if [ ! -z "$(echo $TARGETS | grep d)" ]; then
 		info "A bug? Cgdb on the way!"
         #(echo r; cat) | gdb $executable
         cgdb $executable
 	#launch required
-	elif [ ! -z $(echo $TARGETS | grep r) ]; then
+	elif [ ! -z "$(echo $TARGETS | grep r)" ]; then
 		#verbose required
-		if [ ! -z $(echo $TARGETS | grep l) ]; then
+		if [ ! -z "$(echo $TARGETS | grep l)" ]; then
 			info "Launch with colored log."
 
             #coloredlogs shouldn't be empty

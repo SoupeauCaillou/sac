@@ -15,9 +15,8 @@
 #include "util/Serializer.h"
 #include "util/DataFileParser.h"
 #include "util/ComponentFactory.h"
-#if SAC_DEBUG
 #include "base/EntityManager.h"
-#endif
+
 #if SAC_INGAME_EDITORS
 #include "AntTweakBar.h"
 #endif
@@ -203,7 +202,7 @@ class ComponentSystemImpl: public ComponentSystem {
              }
             LOGF_IF(components.size() != entityWithComponent.size(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
 #else
-            DEBUG_LOGF_IF(components.find(entity) != components.end(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
+            LOGF_IF(components.find(entity) != components.end(), "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
             T* comp = CreateComponent();
 
 			components.insert(std::make_pair(entity, comp));
@@ -248,7 +247,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #if SAC_USE_VECTOR_STORAGE
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
-                    DEBUGLOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type '" << getName() << "'")
+                    LOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type '" << getName() << "'")
                 }
                 previousComp = &components[it->second];
 #else
@@ -256,7 +255,7 @@ class ComponentSystemImpl: public ComponentSystem {
     			if (it == components.end()) {
                     // crash here
                     if (failIfNotfound) {
-                        DEBUG_LOGF("Entity '" << theEntityManager.entityName(entity)
+                        LOGF("Entity '" << theEntityManager.entityName(entity)
                             << "' (" << entity << ") has no component of type '" << getName() << "'")
                     }
     				return 0;

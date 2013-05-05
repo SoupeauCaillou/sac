@@ -59,7 +59,7 @@ class NamedAssetLibrary : public ResourceHotReload {
             typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
             if (it == nameToRef.end()) {
                 result = MurmurHash::compute(name.c_str(), name.size());
-                DEBUG_LOGF_IF(ref2asset.find(result) != ref2asset.end(), "Hash collision: '" << result << "' - change resource : '" << name << "' name")
+                LOGF_IF(ref2asset.find(result) != ref2asset.end(), "Hash collision: '" << result << "' - change resource : '" << name << "' name")
 
                 nameToRef.insert(std::make_pair(name, result));
 

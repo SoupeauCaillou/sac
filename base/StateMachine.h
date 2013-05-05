@@ -84,7 +84,7 @@ class StateMachine {
 	private:
 		T currentState, overrideNextState;
 		std::map<T, StateHandler<T>*> state2handler;
-        #ifdef SAC_ENABLE_LOG
+        #if SAC_ENABLE_LOG
         std::map<T, std::string> state2Name;
         #endif
 		struct {

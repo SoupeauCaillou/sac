@@ -2,8 +2,6 @@
 
 #include "base/Log.h"
 
-#include <GL/glew.h>
-
 INSTANCE_IMPL(ZSQDSystem);
 
 ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
@@ -19,7 +17,7 @@ void ZSQDSystem::DoUpdate(float dt) {
         zc->currentSpeed = glm::max(zc->currentSpeed - zc->frictionCoeff * zc->maxSpeed * dt, 0.f);
         //if someone added some new directions, update speed and direction
         if (zc->directions.size() > 0) {
-            //DEBUG_LOGI(zc->directions.size() << " more directions");
+            //LOGI(zc->directions.size() << " more directions");
 
             //calculate the average new direction from the whole new inputs
             glm::vec2 newDir(0, 0);
@@ -33,7 +31,7 @@ void ZSQDSystem::DoUpdate(float dt) {
             if (newDir != glm::vec2(0.f, 0.f))
                 newDir = glm::normalize(newDir);
 
-            //DEBUG_LOGI("current dir: " << zc->currentDirection << " at speed " << zc->currentSpeed
+            //LOGI("current dir: " << zc->currentDirection << " at speed " << zc->currentSpeed
             //    << "\nAnd new direction is: " << newDir << " at speed " << zc->maxSpeed);
 
             //calculate the weight of the new direction

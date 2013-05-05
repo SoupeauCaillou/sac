@@ -33,7 +33,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                     glm::vec2(adc->params.area.x, adc->params.area.y), glm::vec2(adc->params.area.w, adc->params.area.h), 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
 
-                    DEBUG_LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed")
+                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed")
                 }
                 break;
             }
@@ -41,7 +41,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 adc->params.lifetime.accum += dt;
                 if (adc->params.lifetime.accum >= adc->params.lifetime.value) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
-                    DEBUG_LOGV(1, "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed")
+                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed")
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.accum / adc->params.lifetime.value;
