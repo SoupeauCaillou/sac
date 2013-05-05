@@ -87,9 +87,9 @@
 
 #if SAC_USE_VECTOR_STORAGE
     #define FOR_EACH_ENTITY(ent) \
-        for(std::vector<EntityNextFree>::iterator it=entityWithComponent.begin(); it!=entityWithComponent.end();) { \
-            Entity ent = *it;\
-            ++it; \
+        for(std::vector<EntityNextFree>::iterator __it##__LINE__##type##__=entityWithComponent.begin(); __it##__LINE__##type##__!=entityWithComponent.end();) { \
+            Entity ent = *__it##__LINE__##type##__;\
+            ++__it##__LINE__##type##__; \
             if (ent == 0) continue;
 
     #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
@@ -99,20 +99,20 @@
             type##Component* comp = &components[___i]; \
             ++___i;
 #else
-
+    //'it' variable uses '__LINE__' macro def to ensure it will be unique within a loop
+    //(eg FOR_EACH_ENTITY loop in another FOR_EACH_ENTITY loop)
     #define FOR_EACH_ENTITY(type, ent) \
-         for(auto __it__ : the##type##System.getAllComponents()) { \
-        LOGI("the#type##System");\
-            Entity ent = __it__.first;
+         for(auto __it##__LINE__##type##__ : the##type##System.getAllComponents()) { \
+            Entity ent = __it##__LINE__##type##__.first;
 
     #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
-         for(auto __it__ : the##type##System.getAllComponents()) { \
-            Entity ent = __it__.first;\
-            type##Component* comp = __it__.second;
+         for(auto __it##__LINE__##type##__ : the##type##System.getAllComponents()) { \
+            Entity ent = __it##__LINE__##type##__.first;\
+            type##Component* comp = __it##__LINE__##type##__.second;
 
     #define FOR_EACH_COMPONENT(type, comp) \
-         for(auto __it__ : the##type##System.getAllComponents()) { \
-            type##Component* comp = __it__.second;
+         for(auto __it##__LINE__##type##__ : the##type##System.getAllComponents()) { \
+            type##Component* comp = __it##__LINE__##type##__.second;
 
 #endif
 
