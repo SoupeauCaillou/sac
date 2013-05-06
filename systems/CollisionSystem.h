@@ -22,9 +22,10 @@
 #include <functional>
 
 struct CollisionComponent {
+    int group;
+    int collideWith;
+
     glm::vec2 previousPosition;
-    float previousRotation;
-    std::map<Entity, std::function<void(Entity, Entity, glm::vec2, glm::vec2)> > collisionCallback;
 };
 
 #define theCollisionSystem CollisionSystem::GetInstance()
