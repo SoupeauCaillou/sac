@@ -10,6 +10,9 @@ INSTANCE_IMPL(ButtonSystem);
 ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     /* nothing saved */
     vibrateAPI = 0;
+
+    ButtonComponent bc;
+    componentSerializer.add(new Property<bool>("enabled", OFFSET(enabled, bc)));
 }
 
 void ButtonSystem::DoUpdate(float) {
