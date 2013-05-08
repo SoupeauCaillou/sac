@@ -1,41 +1,40 @@
 #!/bin/bash
 
 #how to use the script
-export USAGE="$0 pathOfGame OldName NewName [--preview]"
+export USAGE="$0 pathOfGame NewName [--preview]"
 export OPTIONS="--preview : don't apply changes."
-export EXAMPLE="$0 /tmp/heriswap Heriswap Prototype"
+export EXAMPLE="$0 /tmp/heriswap Prototype"
 #where the script is
-whereAmI=`cd "$(dirname "$0")" && pwd`
+whereAmI=$(cd "$(dirname "$0")" && pwd)
 #import cool stuff
 source $whereAmI/coolStuff.sh
 
 ######### 0 : Check arguments. #########
    #check arg count
-   if [ "$#" -lt 3 ]; then
-      error_and_usage_and_quit "Need 3+ args [and NOT '$#']."
+   if [ "$#" -lt 2 ]; then
+      error_and_usage_and_quit "Need 2+ args [and NOT '$#']."
    fi
 
    #check that the gamepath does exist
    gamePath="$1"
    if [ ! -e "$gamePath" ]; then
-      error_and_usage_and_quit "The game path '$gamePath' doesn't exist ! Abort."
+      error_and_usage_and_quit "The game path '$gamePath' doesn't exist! Abort."
    fi
 
    # Remove potentials spaces in names and make lower / upper case.
-   oldNameLower=`echo $2 | tr -d " " | sed 's/^./\l&/'`
-   newNameLower=`echo $3 | tr -d " " | sed 's/^./\l&/'`
-
-   oldNameUpper=`echo $2 | tr -d " " | sed 's/^./\u&/'`
-   newNameUpper=`echo $3 | tr -d " " | sed 's/^./\u&/'`
+   oldNameUpper=$(cat $gamePath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+   oldNameLower=$(echo $oldNameUpper | sed 's/^./\l&/')
+   newNameLower=$(echo $2 | tr -d " " | sed 's/^./\l&/')
+   newNameUpper=$(echo $2 | tr -d " " | sed 's/^./\u&/')
 
    #check that the new gamepath does NOT exist
    newGamePath=$(cd $gamePath/.. && pwd)"/$newNameLower"
    if [ -e "$newGamePath" ]; then
-      error_and_usage_and_quit "$newGamePath already exist ! Please delete it to continue! Abort."
+      error_and_usage_and_quit "$newGamePath already exist! Please delete it to continue! Abort."
    fi
 
    #look if we have to apply change
-   if [ $# = 4 ] && [ $4 = "--preview" ]; then
+   if [ $# = 3 ] && [ $3 = "--preview" ]; then
       applyChanges=""
       info "Changes won't be applied"
    else
@@ -74,16 +73,16 @@ source $whereAmI/coolStuff.sh
    #now go to the gamePath
    cd $gamePath
    #make it absolute
-   gamePath=$PWD
+   gamePath=$(pwd)
 
 ######### 3 : Rename files and dir #########
-   #add dir to ignore here. Ex :my-dir-to-ignore/
+   #add dir to ignore here.
    IGNOREDIR=".git build bin sac gen libs obj"
 
 
    IGNOREDIR=$(echo $IGNOREDIR | sed 's| |/ -e /|g')
    IGNOREDIR=" -v -e /$IGNOREDIR/"
-   #IGNOREDIR looks like "-v -e /.git/ -e /build/ -e /bin/ -e /sac/ -e /gen/ -e /libs/" now
+   #IGNOREDIR now looks like "-v -e /.git/ -e /build/ -e /bin/ -e /sac/ -e /gen/ -e /libs/"
 
    #1) directory in reverse order (rename protype/ before prototype/prototype.cpp )
    directories=$(find . -type d -iname "*$oldNameLower*" | grep $IGNOREDIR)
@@ -130,7 +129,7 @@ source $whereAmI/coolStuff.sh
    info "Want to clean build directory ? (y/N)" $blue
    read confirm
    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-      info "rm -rf build && cp -r sac/tools/build ."
+      info "rm -rf build && mkdir build"
       if [ ! -z $applyChanges ]; then
          rm -rf build
       fi
