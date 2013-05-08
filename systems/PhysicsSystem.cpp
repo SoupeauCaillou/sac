@@ -39,7 +39,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 				linearAccel += force.vector;
 
 		        if (force.point != glm::vec2(0.0f, 0.0f)) {
-			        angAccel += glm::dot(glm::perp(force.point, force.point), force.vector);
+			        angAccel += glm::dot(glm::vec2(- force.point.y, force.point.x), force.vector);
 		        }
 
 				durationLeft -= dt;
