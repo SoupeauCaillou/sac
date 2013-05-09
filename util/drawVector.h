@@ -20,6 +20,7 @@ Entity drawVector(const glm::vec2& position, const glm::vec2& size) {
     TRANSFORM(vector)->position = position + glm::vec2(x, y) / 2.f;
     //LOGV(1, "Vector " << vector << ": " << TRANSFORM(vector)->position.x << "," << TRANSFORM(vector)->position.y << " : " << TRANSFORM(vector)->size.x << "," << TRANSFORM(vector)->size.y << " : " << TRANSFORM(vector)->rotation);
     TRANSFORM(vector)->z = 1;
+    RENDERING(vector)->texture = theRenderingSystem.loadTextureFile("fleche");
     RENDERING(vector)->show = true;
 
     return vector;
