@@ -13,7 +13,6 @@ UPDATABLE_SYSTEM(Debugging)
 
     public:
         void toggle();
-        void drawVector(glm::vec2 position, glm::vec2 size);
     private:
         bool enable;
         std::map<std::string, Entity> debugEntities;
@@ -21,6 +20,4 @@ UPDATABLE_SYSTEM(Debugging)
 
         Entity fps, entityCount, systems;
         Entity fpsLabel, entityCountLabel;
-
-        std::list<Entity> vectorList;
 };
