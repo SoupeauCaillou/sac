@@ -99,7 +99,19 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         LOG_SUCCESS_ << *out << "'")
         return 1;
     }
-    //uint32_t html;
+    std::string html;
+    if (dfp.get(section, name + colormodifiers[1], &html, 1, false)) {
+        int32_t h;
+        std::istringstream iss(html);
+        iss >> std::hex >> h;
+        *out = Color(((h >> 16) & 0xff) / 255.0
+            , ((h >> 8) & 0xff) / 255.0
+            , ((h >> 0) & 0xff) / 255.0
+            , 1);
+        LOG_SUCCESS_ << *out << "'")
+        return 1;
+    }
+    //;
     // 0xffffffff variant
     // ....todo
     //uint8_t rgba[4];

@@ -118,3 +118,13 @@ TEST_FIXTURE(TestSetup, TestColorProperty)
     CHECK_CLOSE(0.25, RENDERING(e)->color.b, 0.001);
     CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
 }
+
+TEST_FIXTURE(TestSetup, TestColorHtmlProperty)
+{
+    Entity e = doTest("[Rendering]\ncolor%html= 81cadc");
+
+    CHECK_CLOSE(129.0/255, RENDERING(e)->color.r, 0.001);
+    CHECK_CLOSE(202.0/255, RENDERING(e)->color.g, 0.001);
+    CHECK_CLOSE(220.0/255, RENDERING(e)->color.b, 0.001);
+    CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
+}
