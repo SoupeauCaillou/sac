@@ -343,6 +343,27 @@ void DebuggingSystem::DoUpdate(float dt) {
 }
 #endif
 
+#include <glm/gtx/vector_angle.hpp>
+
+void DebuggingSystem::drawVector(glm::vec2 position, glm::vec2 size){
+    Entity vector = theEntityManager.CreateEntity("vector");
+    ADD_COMPONENT(vector, Transformation);
+    ADD_COMPONENT(vector, Rendering);
+
+    
+    TRANSFORM(vector)->size = glm::vec2(glm::abs(glm::length(size)), 0.1f);
+    theTransformationSystem.setPosition(TRANSFORM(vector), position, TransformationSystem::W);
+    TRANSFORM(vector)->rotation = glm::radians(glm::angle(glm::vec2(1.f, 0.f), glm::normalize(size)));
+    
+    //TRANSFORM(vector)->position = position + TRANSFORM(vector)->size / 2.f;
+    LOGW("Vector : " << TRANSFORM(vector)->position.x << "," << TRANSFORM(vector)->position.y << " : " << TRANSFORM(vector)->size.x << "," << TRANSFORM(vector)->size.y << " : " << TRANSFORM(vector)->rotation);
+    TRANSFORM(vector)->z = 1;
+    RENDERING(vector)->show = true;
+
+    vectorList.push_back(vector);
+}
+
+
 #if SAC_INGAME_EDITORS
 void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
 
