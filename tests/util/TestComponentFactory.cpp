@@ -77,9 +77,18 @@ TEST_FIXTURE(TestSetup, TestSingleVec2Property)
 {
     Entity e = doTest("[Transformation]\nsize=2, 4");
 
-
     CHECK_CLOSE(2, TRANSFORM(e)->size.x, 0.001);
     CHECK_CLOSE(4, TRANSFORM(e)->size.y, 0.001);
+}
+
+TEST_FIXTURE(TestSetup, TestVec2PositionProperty)
+{
+    Entity e = doTest("[Transformation]\n" \
+        "positionSE=2, 4\n" \
+        "size=2,2");
+
+    CHECK_CLOSE(1, TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(5, TRANSFORM(e)->position.y, 0.001);
 }
 
 TEST_FIXTURE(TestSetup, TestStringProperty)

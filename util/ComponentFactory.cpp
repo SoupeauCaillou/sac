@@ -160,21 +160,20 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
     }
 }
 
+static bool loadSingleProperty(const std::string& context,
+        const DataFileParser& dfp,
+        const std::string& section,
+        const std::string& name,
+        PropertyType::Enum type,
+        PropertyNameValueMap& propMap,
+        std::vector<std::string>& subEntities);
+
 int ComponentFactory::build(
         const std::string& context,
         const DataFileParser& dfp,
         const std::string& section,
         const std::vector<IProperty*>& properties, EntityTemplate& templ,
         std::vector<std::string>& subEntities) {
-    #define LOAD_INTERVAL_TEMPL(_type_) { \
-        Interval<_type_> itv; \
-        bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
-        if(success) load(dfp, section, name, IntervalValue2, &itv.t2);\
-        else { success = load(dfp, section, name, IntervalAsRandom, &itv.t1); itv.t2 = itv.t1; } \
-        if (success) {\
-        uint8_t* arr = new uint8_t[sizeof(itv)];\
-        memcpy(arr, &itv, sizeof(itv));\
-        propMap.insert(std::make_pair(name, arr)); }}
 
     std::string realSystemName(section);
     if (realSystemName.rfind('#') != std::string::npos) {
@@ -194,56 +193,17 @@ int ComponentFactory::build(
         // Retrieve property name
         const std::string& name = (*it)->getName();
         const auto type = (*it)->getType();
-        switch (type) {
-            case PropertyType::Float:
-                LOAD_INTERVAL_TEMPL(float);
-                break;
-            case PropertyType::Int:
-                LOAD_INTERVAL_TEMPL(int);
-                break;
-            case PropertyType::Vec2:
-                LOAD_INTERVAL_TEMPL(glm::vec2);
-                break;
-            case PropertyType::String: {
-                std::string s;
-                if (load(dfp, section, name, IntervalAsRandom, &s)) {
-                    unsigned l = s.length();
-                    uint8_t* arr = new uint8_t[sizeof(int) + l];
-                    memcpy(arr, &l, sizeof(int));
-                    memcpy(&arr[sizeof(int)], s.c_str(), l);
-                    propMap.insert(std::make_pair(name, arr));
+
+        bool success = loadSingleProperty(context, dfp, section, name, type, propMap, subEntities);
+
+        // special testing case
+        if (!success && name == "position") {
+            const std::string v[] = { "NE", "N", "NW", "E", "W", "SW", "S", "SE"};
+            for (unsigned i=0; i<8; i++) {
+                if (loadSingleProperty(context, dfp, section, name + v[i], type, propMap, subEntities)) {
+                    break;
                 }
-                break;
             }
-            case PropertyType::Entity: {
-                std::string s;
-                if (load(dfp, section, name + "%template", IntervalAsRandom, &s)) {
-                    std::string subEntityName(context + std::string("#") + name);
-                    EntityTemplateRef r = MurmurHash::compute(subEntityName.c_str(), subEntityName.length());
-                    uint8_t* arr = new uint8_t[sizeof(r)];
-                    memcpy(arr, &r, sizeof(r));
-                    propMap.insert(std::make_pair(name, arr));
-                    subEntities.push_back(name);
-                    theEntityManager.entityTemplateLibrary.defineParent(r,
-                        theEntityManager.entityTemplateLibrary.load(s));
-                }
-                break;
-            }
-            case PropertyType::Color:
-                LOAD_INTERVAL_TEMPL(Color);
-                break;
-            case PropertyType::Texture: {
-                std::string textureName;
-                if (load(dfp, section, name, IntervalAsRandom,&textureName)) {
-                    uint8_t* arr = new uint8_t[sizeof(TextureRef)];
-                    *((TextureRef*)arr) = theRenderingSystem.loadTextureFile(textureName);
-                    propMap.insert(std::make_pair(name, arr));
-                }
-                break;
-            }
-            default:
-                LOGW("Unhandled property type: " << (*it)->getType() << " for '" << (*it)->getName() << "'")
-                break;
         }
     }
 
@@ -260,10 +220,26 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         else \
             *(TYPE_2_PTR(_type_)) = itv.random(); }
 
+    int transformationPositionHackIndex = -1;
     for (IProperty* prop : properties) {
-        auto it = propValueMap.find(prop->getName());
-        if (it == propValueMap.end())
-            continue;
+        const std::string& name = prop->getName();
+        auto it = propValueMap.find(name);
+        if (it == propValueMap.end()) {
+            if (name == "position") {
+                // special testing case
+                const std::string v[] = { "NW", "N", "NE", "W", "_", "E", "SW", "S", "SE"};
+                for (unsigned i=0; i<9; i++) {
+                    it = propValueMap.find(name + v[i]);
+                    if (it != propValueMap.end()) {
+                        transformationPositionHackIndex = i;
+                        break;
+                    }
+                }
+            }
+            if (it == propValueMap.end())
+                continue;
+        }
+
         switch (prop->getType()) {
            case PropertyType::Float:
                 ASSIGN(float);
@@ -306,4 +282,81 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 break;
         }
     }
+
+    if (transformationPositionHackIndex >= 0) {
+        TransformationComponent* tc = static_cast<TransformationComponent*>(component);
+        TransformationSystem::setPosition(tc, tc->position, (TransformationSystem::PositionReference) (TransformationSystem::NW + transformationPositionHackIndex));
+    }
+}
+
+static bool loadSingleProperty(const std::string& context,
+        const DataFileParser& dfp,
+        const std::string& section,
+        const std::string& name,
+        PropertyType::Enum type,
+        PropertyNameValueMap& propMap,
+        std::vector<std::string>& subEntities) {
+    #define LOAD_INTERVAL_TEMPL(_type_) { \
+        Interval<_type_> itv; \
+        bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
+        if(success) load(dfp, section, name, IntervalValue2, &itv.t2);\
+        else { success = load(dfp, section, name, IntervalAsRandom, &itv.t1); itv.t2 = itv.t1; } \
+        if (success) {\
+        uint8_t* arr = new uint8_t[sizeof(itv)];\
+        memcpy(arr, &itv, sizeof(itv));\
+        propMap.insert(std::make_pair(name, arr)); return true; }}
+
+    switch (type) {
+        case PropertyType::Float:
+            LOAD_INTERVAL_TEMPL(float);
+            break;
+        case PropertyType::Int:
+            LOAD_INTERVAL_TEMPL(int);
+            break;
+        case PropertyType::Vec2:
+            LOAD_INTERVAL_TEMPL(glm::vec2);
+            break;
+        case PropertyType::String: {
+            std::string s;
+            if (load(dfp, section, name, IntervalAsRandom, &s)) {
+                unsigned l = s.length();
+                uint8_t* arr = new uint8_t[sizeof(int) + l];
+                memcpy(arr, &l, sizeof(int));
+                memcpy(&arr[sizeof(int)], s.c_str(), l);
+                propMap.insert(std::make_pair(name, arr));
+            }
+            break;
+        }
+        case PropertyType::Entity: {
+            std::string s;
+            if (load(dfp, section, name + "%template", IntervalAsRandom, &s)) {
+                std::string subEntityName(context + std::string("#") + name);
+                EntityTemplateRef r = MurmurHash::compute(subEntityName.c_str(), subEntityName.length());
+                uint8_t* arr = new uint8_t[sizeof(r)];
+                memcpy(arr, &r, sizeof(r));
+                propMap.insert(std::make_pair(name, arr));
+                subEntities.push_back(name);
+                theEntityManager.entityTemplateLibrary.defineParent(r,
+                    theEntityManager.entityTemplateLibrary.load(s));
+            }
+            break;
+        }
+        case PropertyType::Color:
+            LOAD_INTERVAL_TEMPL(Color);
+            break;
+        case PropertyType::Texture: {
+            std::string textureName;
+            if (load(dfp, section, name, IntervalAsRandom,&textureName)) {
+                uint8_t* arr = new uint8_t[sizeof(TextureRef)];
+                *((TextureRef*)arr) = theRenderingSystem.loadTextureFile(textureName);
+                propMap.insert(std::make_pair(name, arr));
+            }
+            break;
+        }
+        default:
+            LOGW("Unhandled property type: " << type << " for '" << name << "'")
+            break;
+    }
+    #undef LOAD_INTERVAL_TEMPL
+    return false;
 }
