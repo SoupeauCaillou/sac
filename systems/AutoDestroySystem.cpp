@@ -31,7 +31,8 @@ void AutoDestroySystem::DoUpdate(float dt) {
                     adc->params.area.position, adc->params.area.size, 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
 
-                    LOGI("Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed")
+                    LOGI("Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
+                        << tc->worldPosition << " not in " << adc->params.area.position << " x " << adc->params.area.position * adc->params.area.size)
                 }
                 break;
             }
