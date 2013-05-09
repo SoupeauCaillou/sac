@@ -27,6 +27,7 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Co
 }
 
 void CollisionSystem::DoUpdate(float) {
+    /*
     #define CELL_SIZE 1.0f
     struct Cell {
         std::vector<CollisionComponent*> collisions;
@@ -40,11 +41,12 @@ void CollisionSystem::DoUpdate(float) {
         int cellRow = glm::floor(tc->worldPosition.x / CELL_SIZE);
         int cellCol = glm::floor(tc->worldPosition.y / CELL_SIZE);
     }
+    */
 }
 
 
 #if SAC_INGAME_EDITORS
-void CollisionSystem::addEntityPropertiesToBar(Entity entity, TwBar*) {
+void CollisionSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     CollisionComponent* tc = Get(entity, false);
     if (!tc) return;
     TwAddVarRW(bar, "group", TW_TYPE_INT32, &tc->group, "group=Collision");
