@@ -55,6 +55,12 @@ void AutoDestroySystem::DoUpdate(float dt) {
     }
     for (unsigned i=0; i<toRemove.size(); i++) {
         const std::pair<Entity, bool>& p = toRemove[i];
+
+        if (AUTO_DESTROY(p.first)->onDeletionCall) {
+            LOGI("Calling onDeletionCall function for " << theEntityManager.entityName(p.first));
+            AUTO_DESTROY(p.first)->onDeletionCall(p.first);
+        }
+
         if (p.second) {
             theEntityManager.DeleteEntity(p.first);
         } else {

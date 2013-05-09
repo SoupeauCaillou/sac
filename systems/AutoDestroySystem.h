@@ -5,16 +5,14 @@
 #include "base/Frequency.h"
 
 struct AutoDestroyComponent {
-    AutoDestroyComponent() {
-//        memset(&params, 0, sizeof(params));
-        hasTextRendering = false;
-    }
-    ~AutoDestroyComponent() {
-    }
+    AutoDestroyComponent() : hasTextRendering(false) { }
+
     enum {
         OUT_OF_AREA,
         LIFETIME
     } type;
+
+    std::function<void(Entity)> onDeletionCall;
 
     union _params {
         _params() {
