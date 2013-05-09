@@ -12,6 +12,14 @@
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
 
+const std::string vec2singlefloatmodifiers[] = {
+    "%texture_ratio,screen_w",
+    "%texture_ratio,screen_h",
+    "%screen_w,texture_ratio",
+    "%screen_h,texture_ratio",
+    "%texture_ratio,abs",
+    "%abs,texture_ratio",
+};
 const std::string colormodifiers[] =
     { "", "%html", "%255" };
 
@@ -76,6 +84,45 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             return 1;
         }
     }
+
+    // Try 6 variants with 1 float
+    for (int i=0; i<6; i++) {
+        if (dfp.get(section, name + vec2singlefloatmodifiers[i], parsed, 1, false)) {
+            // hum oh
+            std::string textureName;
+            if (dfp.get("Rendering", "texture", &textureName, 1, false)) {
+                const glm::vec2& s = theRenderingSystem.getTextureSize(textureName);
+                switch (i) {
+                    case 0:
+                        out->y = parsed[0] * PlacementHelper::ScreenWidth;
+                        out->x = out->y * s.x / s.y;
+                        break;
+                    case 1:
+                        out->y = parsed[0] * PlacementHelper::ScreenHeight;
+                        out->x = out->y * s.x / s.y;
+                        break;
+                    case 2:
+                        out->x = parsed[0] * PlacementHelper::ScreenWidth;
+                        out->y = out->x * s.y / s.x;
+                        break;
+                    case 3:
+                        out->x = parsed[0] * PlacementHelper::ScreenHeight;
+                        out->y = out->x * s.y / s.x;
+                        break;
+                    case 4:
+                        out->y = parsed[0];
+                        out->x = out->y * s.x / s.y;
+                        break;
+                    case 5:
+                        out->x = parsed[0];
+                        out->y = out->x * s.y / s.x;
+                        break;
+                }
+                return 1;
+            }
+        }
+    }
+
     return 0;
 }
 

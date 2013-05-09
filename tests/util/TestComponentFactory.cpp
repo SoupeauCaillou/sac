@@ -137,3 +137,20 @@ TEST_FIXTURE(TestSetup, TestColorHtmlProperty)
     CHECK_CLOSE(220.0/255, RENDERING(e)->color.b, 0.001);
     CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
 }
+
+TEST_FIXTURE(TestSetup, TestSizeBasedOnTextureRatio)
+{
+    // define dumb texture
+    TextureInfo info;
+    info.originalSize = glm::vec2(100, 80);
+    theRenderingSystem.textureLibrary.add("plop", info);
+
+    PlacementHelper::ScreenHeight = 100;
+    Entity e = doTest("[Transformation]\n" \
+        "size%screen_h,texture_ratio=0.1\n" \
+        "[Rendering]\n" \
+        "texture=plop");
+
+    CHECK_CLOSE(10, TRANSFORM(e)->size.x, 0.001);
+    CHECK_CLOSE(8, TRANSFORM(e)->size.y, 0.001);
+}
