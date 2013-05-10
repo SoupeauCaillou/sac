@@ -304,6 +304,7 @@ void RenderingSystem::DoUpdate(float) {
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
             if (rc->zPrePass) {
+                rc->opaqueType = RenderingComponent::FULL_OPAQUE;
                 c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
                 c.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
@@ -694,6 +695,7 @@ void RenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     if (!tc) return;
     TwAddVarRW(bar, "color", TW_TYPE_COLOR4F, &tc->color, "group=Rendering");
     TwAddVarRW(bar, "show", TW_TYPE_BOOLCPP, &tc->show, "group=Rendering");
+    TwAddVarRW(bar, "z_pre_pass", TW_TYPE_BOOLCPP, &tc->zPrePass, "group=Rendering");
     TwEnumVal opa[] = { {RenderingComponent::NON_OPAQUE, "NonOpaque"}, {RenderingComponent::FULL_OPAQUE, "Opaque"} };
     TwType op = TwDefineEnum("OpaqueType", opa, 2);
     TwAddVarRW(bar, "opaque", op, &tc->opaqueType, "group=Rendering");
