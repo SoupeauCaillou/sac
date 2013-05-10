@@ -13,7 +13,7 @@ class ResourceHotReload {
 
         virtual std::string asset2File(const std::string& assetName) const = 0;
 
-        void registerNewAsset(const std::string & assetName);
+        void registerNewAsset(const std::string & assetName, const std::string & override = "");
 
 #if SAC_LINUX && SAC_DESKTOP
     private:

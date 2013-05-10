@@ -41,12 +41,11 @@ DataFileParser::~DataFileParser() {
 }
 
 bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
-    if (data)
-        return false;
     if (fb.size == 0)
         return false;
     context = pContext;
-    data = new DataFileParserData();
+    if (!data)
+        data = new DataFileParserData();
 
     Section* currentSection = &data->global;
     int size = fb.size;
@@ -64,9 +63,13 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
         if (s[0] == '[') {
             // start new section
             std::string section = s.substr(1, s.find(']') - 1);
-            currentSection = new Section;
-            if (!data->sections.insert(std::make_pair(section, currentSection)).second) {
-                LOGW(context << ": duplicate section found: '" << section << "'. This is not supported")
+
+            auto it = data->sections.find(section);
+            if (it == data->sections.end()) {
+                currentSection = new Section;
+                data->sections.insert(std::make_pair(section, currentSection));
+            } else {
+                currentSection = it->second;
             }
         } else {
             // first '='

@@ -51,6 +51,19 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         return false;
     }
 
+    // Handle 'extends' attributes
+    std::string extends;
+    if (dfp.get("", "extends", &extends, 1, false)) {
+        FileBuffer fb2 = assetAPI->loadAsset(asset2File(extends));
+        if (!fb2.size) {
+            LOGE("Unable to load 'extends' file: '" << extends << "'")
+        } else if (!dfp.load(fb2, asset2File(extends))) {
+            LOGE("Unable to parse 'extends' file '" << extends << "'")
+        }
+        registerNewAsset(name, extends);
+        delete[] fb2.data;
+    }
+
     int propCount = loadTemplate(name, "", dfp, r, out);
     LOGI( "Loaded entity template: '" << name << "' (" << propCount << " properties)")
 
