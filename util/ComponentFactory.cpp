@@ -321,7 +321,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 if (*e) {
                     theEntityManager.DeleteEntity(*e);
                 }
-                *e = theEntityManager.CreateEntity("sub", EntityType::Volatile, r);
+                *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
                 TRANSFORM(*e)->parent = entity;
                 break;
             }
