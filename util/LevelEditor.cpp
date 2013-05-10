@@ -229,7 +229,6 @@ void LevelEditor::tick(float dt) {
         return;
     }
 
-    LOGT("What is this for?")
     const glm::vec2 position = TRANSFORM(camera)->worldPosition;
     int wheelDiff = 0;
     /*int x, y;
