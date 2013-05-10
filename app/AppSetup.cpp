@@ -107,7 +107,6 @@ static void updateAndRenderLoop() {
         }
     }
     theRenderingSystem.disableRendering();
-    SDL_Quit();
 }
 
 static void* callback_thread(){
@@ -251,6 +250,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     delete ctx;
     delete game;
  //   delete record;
+    SDL_Quit();
 #endif
     return 0;
 }
