@@ -149,7 +149,6 @@ void Game::eventsHandler() {
                     isFinished = true;
                     break;
                 }
-
                 case SDL_KEYUP: {
                     int key = event.key.keysym.sym;
                     LOGI("key released: " << key);

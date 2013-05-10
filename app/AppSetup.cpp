@@ -84,9 +84,9 @@ static void updateAndRender() {
 #else
 std::mutex m;
 
-static void updateAndRenderLoop() {
+static void updateLoop() {
     while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
-        game->eventsHandler();
+        // game->eventsHandler();
 
         game->step();
 
@@ -111,7 +111,7 @@ static void updateAndRenderLoop() {
 
 static void* callback_thread(){
     m.lock();
-    updateAndRenderLoop();
+    updateLoop();
     m.unlock();
     return NULL;
 }
@@ -241,6 +241,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     std::thread th1(callback_thread);
     do {
+        game->eventsHandler();
         game->render();
         SDL_GL_SwapBuffers();
         record->record();
