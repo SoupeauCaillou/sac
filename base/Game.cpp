@@ -279,6 +279,7 @@ void Game::step() {
     // update game state
 #if SAC_INGAME_EDITORS
     static float speedFactor = 1.0f;
+    static bool oneStepEnabled = false;
 
     Uint8 *keystate = SDL_GetKeyState(NULL);
     if (keystate[SDLK_F1])
@@ -296,8 +297,8 @@ void Game::step() {
             } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
                 speedFactor += 1 * delta;
             } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F7]) {
-                speedFactor = 0.;
-                tick(delta);
+                oneStepEnabled = true;
+                speedFactor = 1;
             } else if (keystate[SDLK_KP_ENTER]) {
                 speedFactor = 1;
             }
@@ -340,6 +341,12 @@ void Game::step() {
     } else {
         theTransformationSystem.Update(delta);
     }
+    if (oneStepEnabled) {
+        LOGI("one more step")
+        oneStepEnabled = false;
+        speedFactor = 0.;
+    }
+
 #endif
     LOGV(2, "Produce rendering frame")
     // produce 1 new frame
