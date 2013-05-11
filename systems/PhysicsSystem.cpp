@@ -1,6 +1,10 @@
 #include "PhysicsSystem.h"
 #include "TransformationSystem.h"
+#include "RenderingSystem.h"
 #include <glm/gtx/perpendicular.hpp>
+#include <glm/gtx/norm.hpp>
+
+#include "util/drawVector.h"
 
 INSTANCE_IMPL(PhysicsSystem);
 
@@ -9,11 +13,44 @@ PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics"
     componentSerializer.add(new Property<glm::vec2>("linear_velocity", OFFSET(linearVelocity, tc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<float>("angular_velocity", OFFSET(angularVelocity, tc), 0.001));
     componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc), 0.001));
+    componentSerializer.add(new Property<float>("frottement", OFFSET(frottement, tc), 0.001));
     componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
 }
 
+#if SAC_DEBUG
+void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2 & size) {
+    float norm2 = glm::length2(size);
+    if (norm2 < 0.00001f)
+        return;
+
+    norm2Max = glm::max(norm2Max, norm2);
+   // LOGI(size << " " << norm2 << " " << norm2Max)
+
+    if (currentDraw == drawForceVectors.size()) {
+        std::pair<Entity, glm::vec2[2]> pair;
+
+        pair.first = drawVector(pos, size);
+        pair.second[0] = pos;
+        pair.second[1] = size;
+        drawForceVectors.push_back(pair);
+    } else {
+        drawForceVectors[currentDraw].second[0] = pos;
+        drawForceVectors[currentDraw].second[1] = size;
+    }
+
+    ++currentDraw;
+}
+#else
+#define addDebugOnlyDrawForce(a,b,c,d) {}
+#endif
+
 void PhysicsSystem::DoUpdate(float dt) {
-	//update orphans first
+#if SAC_DEBUG
+    currentDraw = 0;
+    norm2Max = 0.f;
+#endif
+
+    //update orphans first
     FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
 		TransformationComponent* tc = TRANSFORM(a);
 		if (!tc || tc->parent == 0) {
@@ -24,11 +61,20 @@ void PhysicsSystem::DoUpdate(float dt) {
 
 			// linear accel
 			glm::vec2 linearAccel(pc->gravity * pc->mass);
+
+            addDebugOnlyDrawForce(tc->worldPosition, pc->gravity * pc->mass);
+
 			// angular accel
 			float angAccel = 0;
 
+            if (pc->frottement != 0.f) {
+                pc->addForce(- pc->frottement * pc->linearVelocity, glm::vec2(0.f), dt);
+            }
+
 			for (unsigned int i=0; i<pc->forces.size(); i++) {
 				Force force(pc->forces[i].first);
+
+                addDebugOnlyDrawForce(tc->worldPosition + force.point, force.vector);
 
 				float& durationLeft = pc->forces[i].second;
 
@@ -48,6 +94,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 					i--;
 				}
 			}
+
 			linearAccel /= pc->mass;
 			angAccel /= pc->momentOfInertia;
 
@@ -61,6 +108,7 @@ void PhysicsSystem::DoUpdate(float dt) {
             pc->angularVelocity = nextAngularVelocity;
 	    }
 	}
+
     //copy parent property to its sons
     FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
 		if (!TRANSFORM(a))
@@ -82,6 +130,20 @@ void PhysicsSystem::DoUpdate(float dt) {
             }
 		}
     }
+
+#if SAC_DEBUG
+    for (unsigned i = 0; i < currentDraw; ++i) {
+        glm::vec2 pos = drawForceVectors[i].second[0];
+        glm::vec2 size = drawForceVectors[i].second[1];
+
+        size /= glm::sqrt(norm2Max);
+        drawVector(pos, size, drawForceVectors[i].first);
+    }
+
+    for (unsigned i = currentDraw; i < drawForceVectors.size(); ++i) {
+        RENDERING(drawForceVectors[i].first)->show = false;
+    }
+#endif
 }
 
 

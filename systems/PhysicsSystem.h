@@ -14,7 +14,8 @@ struct Force {
 };
 
 struct PhysicsComponent {
-    PhysicsComponent() : linearVelocity(0.0f, 0.0f), angularVelocity(0.0f), mass(0.0f), gravity(0.0f, 0.0f) {}
+    PhysicsComponent() : linearVelocity(0.0f, 0.0f), angularVelocity(0.0f), mass(0.0f),
+    gravity(0.0f, 0.0f), frottement(0.f) {}
 
     //current velocity
     glm::vec2 linearVelocity;
@@ -27,6 +28,9 @@ struct PhysicsComponent {
     //set it to (0, 0) to disable the gravity
     glm::vec2 gravity;
 
+    //opposed to velocity force, coeff in R
+    float frottement;
+
     //a force must be applied for a fixed duration: good value for "singular" force would be ~= 1/60.f
     void addForce(const Force & f, float duration) { forces.push_back(std::pair<Force, float>(f, duration)); }
     void addForce(const glm::vec2 & vector, const glm::vec2 & point, float duration) { forces.push_back(std::pair<Force, float>(Force(vector, point), duration)); }
@@ -34,7 +38,7 @@ struct PhysicsComponent {
     //don't modify this directly, use 'addForce' instead
     std::vector<std::pair<Force, float> > forces;
 
-    //physics stuff related to rotation :-). It depends of the shape of the object
+    //physics stuff related to rotation :-). It depends on the shape of the object
     float momentOfInertia;
 };
 
@@ -44,4 +48,12 @@ UPDATABLE_SYSTEM(Physics)
 
 public:
 	static void addMoment(PhysicsComponent* pc, float m);
+
+#if SAC_DEBUG
+private:
+    void addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2 & size);
+    std::vector<std::pair<Entity,glm::vec2[2]>> drawForceVectors;
+    unsigned currentDraw;
+    float norm2Max;
+#endif
 };
