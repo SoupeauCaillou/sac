@@ -291,10 +291,13 @@ void Game::step() {
             delta = 0;
             break;
         default:
-            if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
-                speedFactor += 1 * delta;
-            } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
+            if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
                 speedFactor = glm::max(speedFactor - 1 * delta, 0.0f);
+            } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
+                speedFactor += 1 * delta;
+            } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F7]) {
+                speedFactor = 0.;
+                tick(delta);
             } else if (keystate[SDLK_KP_ENTER]) {
                 speedFactor = 1;
             }
