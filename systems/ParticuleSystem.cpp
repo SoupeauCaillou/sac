@@ -86,7 +86,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                     ppc->gravity = pc->gravity;
                     ppc->mass = pc->mass;
                     float angle = ptc->worldRotation + pc->forceDirection.random();
-                    ppc->addForce(glm::vec2(glm::cos(angle), glm::sin(angle)) * pc->forceAmplitude.random(), tc->size * glm::linearRand(0.0f, 1.0f), 0.016);
+                    ppc->addForce(tc->size * glm::linearRand(0.0f, 1.0f), glm::vec2(glm::cos(angle), glm::sin(angle)) * pc->forceAmplitude.random(), 0.016);
                     PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }
                 internal.color = Interval<Color> (rc->color, pc->finalColor.random());

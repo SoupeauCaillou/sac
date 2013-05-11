@@ -50,7 +50,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 		float norm = glm::length(force);
         force = glm::normalize(force);
 
-		PHYSICS(e)->addForce(force * glm::min(norm, agent->maxForce), glm::vec2(0.0f, 0.0f), dt);
+		PHYSICS(e)->addForce(glm::vec2(0.f), force * glm::min(norm, agent->maxForce), dt);
 	}
 }
 

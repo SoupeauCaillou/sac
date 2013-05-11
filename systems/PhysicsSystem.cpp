@@ -68,7 +68,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 			float angAccel = 0;
 
             if (pc->frottement != 0.f) {
-                pc->addForce(- pc->frottement * pc->linearVelocity, glm::vec2(0.f), dt);
+                pc->addForce(glm::vec2(0.f), - pc->frottement * pc->linearVelocity, dt);
             }
 
 			for (unsigned int i=0; i<pc->forces.size(); i++) {
@@ -149,8 +149,9 @@ void PhysicsSystem::DoUpdate(float dt) {
 
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	// add 2 opposed forces
-	pc->addForce(glm::vec2(0, m * 0.5), glm::vec2(1, 0), 0.016);
-	pc->addForce(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0), 0.016);
+    //WARNING: shouldn't be +size,0 and -size,0 instead of 1,0 / -1, 0?
+	pc->addForce(glm::vec2(1, 0), glm::vec2(0, m * 0.5), 0.016);
+	pc->addForce(glm::vec2(-1, 0), glm::vec2(0, -m * 0.5), 0.016);
 }
 
 #if SAC_INGAME_EDITORS
