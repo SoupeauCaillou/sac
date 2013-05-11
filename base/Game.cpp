@@ -298,6 +298,7 @@ void Game::step() {
                 speedFactor += 1 * delta;
             } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F7]) {
                 oneStepEnabled = true;
+                levelEditor->tick(delta);
                 speedFactor = 1;
             } else if (keystate[SDLK_KP_ENTER]) {
                 speedFactor = 1;
