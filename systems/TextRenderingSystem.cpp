@@ -59,7 +59,13 @@ static float computeStartX(TextRenderingComponent* trc, float charHeight, const 
 INSTANCE_IMPL(TextRenderingSystem);
 
 TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
-    /* nothing saved */
+    TextRenderingComponent tc;
+    componentSerializer.add(new StringProperty("text", OFFSET(text, tc)));
+    componentSerializer.add(new StringProperty("font_name", OFFSET(fontName, tc)));
+    componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
+    componentSerializer.add(new Property<float>("char_height", OFFSET(charHeight, tc), 0.001));
+    componentSerializer.add(new Property<float>("positioning", OFFSET(positioning, tc), 0.001));
+    componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
 }
 
 void TextRenderingSystem::DoUpdate(float dt) {
