@@ -13,7 +13,8 @@ class MouseNativeTouchState;
 namespace GameType {
     enum Enum {
         Default,
-        LevelEditor
+        LevelEditor,
+        SingleStep
     };
 }
 #endif

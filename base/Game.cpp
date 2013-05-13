@@ -160,7 +160,7 @@ void Game::eventsHandler() {
 
 #if SAC_INGAME_EDITORS
                         //if we use the editor; we need to handle some keys for it
-                        case (SDLK_F3):
+                        case (SDLK_F4):
                             theDebuggingSystem.toggle();
                             break;
 #endif
@@ -282,15 +282,25 @@ void Game::step() {
     static bool oneStepEnabled = false;
 
     Uint8 *keystate = SDL_GetKeyState(NULL);
+    // Always tick levelEditor (manages AntTweakBar stuff)
+    levelEditor->tick(delta);
+
     if (keystate[SDLK_F1])
         gameType = GameType::Default;
     else if (keystate[SDLK_F2])
         gameType = GameType::LevelEditor;
+    else if (keystate[SDLK_F3])
+        gameType = GameType::SingleStep;
+
     switch (gameType) {
         case GameType::LevelEditor:
-            levelEditor->tick(delta);
             delta = 0;
             break;
+        case GameType::SingleStep:
+            delta = 1.0/60;
+            LOGI("Single stepping the game (delta: " << delta << " ms)")
+            tick(delta);
+            gameType = GameType::LevelEditor;
         default:
             if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
                 speedFactor = glm::max(speedFactor - 1 * delta, 0.0f);
