@@ -72,6 +72,11 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
                 TARGETS=$TARGETS"n"
                 CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=debug"
                 ;;
+             "--target")
+                shift
+                TARGETS=$TARGETS"n"
+                CMAKE_CONFIG=$CMAKE_CONFIG" -DTARGET=$1"
+                ;;
             -*)
                 echo "unknown option: " $1
                 ;;
