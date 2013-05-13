@@ -6,6 +6,8 @@
 
 #include "util/drawVector.h"
 
+#include <utility>
+
 INSTANCE_IMPL(PhysicsSystem);
 
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
@@ -27,12 +29,12 @@ void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2
 
 
     if (currentDraw == drawForceVectors.size()) {
-        std::pair<Entity, glm::vec2[2]> couple;
+        std::pair<Entity, std::vector<glm::vec2>> couple;
 
         couple.first = drawVector(pos, size);
-        couple.second[0] = pos;
-        couple.second[1] = size;
-        //drawForceVectors.push_back(couple);
+        couple.second.push_back(pos);
+        couple.second.push_back(size);
+        drawForceVectors.push_back(couple);
     } else {
         drawForceVectors[currentDraw].second[0] = pos;
         drawForceVectors[currentDraw].second[1] = size;
