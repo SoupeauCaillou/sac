@@ -101,17 +101,19 @@
     //'it' variable uses '__LINE__' macro def to ensure it will be unique within a loop
     //(eg FOR_EACH_ENTITY loop in another FOR_EACH_ENTITY loop)
     #define FOR_EACH_ENTITY(type, ent) \
-         for(auto __it##__LINE__##type##__ : the##type##System.getAllComponents()) { \
-            Entity ent = __it##__LINE__##type##__.first;
+        for(auto __it##__LINE__##type##__=the##type##System.getAllComponents().begin(); __it##__LINE__##type##__!=the##type##System.getAllComponents().end();) { \
+            Entity ent = __it##__LINE__##type##__->first; ++__it##__LINE__##type##__;
 
     #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
-         for(auto __it##__LINE__##type##__ : the##type##System.getAllComponents()) { \
-            Entity ent = __it##__LINE__##type##__.first;\
-            type##Component* comp = __it##__LINE__##type##__.second;
+         for(auto __it##__LINE__##type##__=the##type##System.getAllComponents().begin(); __it##__LINE__##type##__!=the##type##System.getAllComponents().end();) { \
+            Entity ent = __it##__LINE__##type##__->first;\
+            type##Component* comp = __it##__LINE__##type##__->second; \
+            ++__it##__LINE__##type##__;
 
     #define FOR_EACH_COMPONENT(type, comp) \
-         for(auto __it##__LINE__##type##__ : the##type##System.getAllComponents()) { \
-            type##Component* comp = __it##__LINE__##type##__.second;
+         for(auto __it##__LINE__##type##__=the##type##System.getAllComponents().begin(); __it##__LINE__##type##__!=the##type##System.getAllComponents().end();) { \
+            type##Component* comp = __it##__LINE__##type##__->second; \
+            ++__it##__LINE__##type##__;
 
 #endif
 

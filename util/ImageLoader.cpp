@@ -112,7 +112,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	png_read_update_info(PNG_reader, PNG_info);
 
 	int rowbytes = png_get_rowbytes(PNG_reader, PNG_info);
-	png_byte* PNG_image_buffer = (png_byte*) malloc(rowbytes * result.height);
+	png_byte* PNG_image_buffer = new png_byte[rowbytes * result.height];
 
 	png_byte** PNG_rows = (png_byte**)malloc(result.height * sizeof(png_byte*));
 
@@ -136,7 +136,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 				memcpy(&PNG_image_buffer2[newrow * row + i * result.channels], &PNG_image_buffer[rowbytes * row + i * actual], result.channels);
 			}
 		}
-		free (PNG_image_buffer);
+		delete[] PNG_image_buffer;
 		PNG_image_buffer = PNG_image_buffer2;
 	}
 
