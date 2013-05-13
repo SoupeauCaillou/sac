@@ -238,7 +238,7 @@ class ComponentSystemImpl: public ComponentSystem {
             }
 		}
 
-        std::map<Entity, T*> getAllComponents() {
+        const std::map<Entity, T*>& getAllComponents() const {
             return components;
         }
 
