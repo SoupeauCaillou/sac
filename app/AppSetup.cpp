@@ -132,8 +132,10 @@ int initGame(const std::string& title, const glm::ivec2& res) {
     if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
         return 1;
 
+#if ! SAC_EMSCRIPTEN
     if (glewInit() != GLEW_OK)
         return 1;
+#endif
 
     return 0;
 }

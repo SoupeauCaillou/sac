@@ -41,7 +41,7 @@ void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2
     ++currentDraw;
 }
 #else
-#define addDebugOnlyDrawForce(a,b,c,d) {}
+#define addDebugOnlyDrawForce(a,b) {}
 #endif
 
 void PhysicsSystem::DoUpdate(float dt) {
