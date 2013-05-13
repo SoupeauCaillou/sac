@@ -187,6 +187,12 @@ static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
 void LevelEditor::tick(float dt) {
     // update entity list every sec
     static float accum = 1;
+
+    int barVisible = 0;
+    TwGetParam(entityListBar, NULL, "visible", TW_PARAM_INT32, 1, &barVisible);
+    if (!barVisible)
+        return;
+
     accum += dt;
     if (accum > 1) {
         lock();
@@ -215,6 +221,7 @@ void LevelEditor::tick(float dt) {
         }
         unlock();
     }
+    return;
 
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     Entity camera = 0;
