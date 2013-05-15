@@ -51,6 +51,7 @@
 #include "systems/TextRenderingSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/TransformationSystem.h"
+#include "systems/NetworkSystem.h"
 
 #include "api/AdAPI.h"
 #include "api/linux/AssetAPILinuxImpl.h"
@@ -192,7 +193,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (game->wantsAPI(ContextAPI::Music))
         ctx->musicAPI = new MusicAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Network))
-        ctx->networkAPI = new NetworkAPILinuxImpl();
+        theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Sound))
         ctx->soundAPI = new SoundAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Storage))
