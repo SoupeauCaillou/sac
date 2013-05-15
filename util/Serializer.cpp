@@ -36,20 +36,36 @@ EntityProperty::EntityProperty(const std::string& name, unsigned long offset) : 
 }
 
 unsigned EntityProperty::size(void*) const {
+#if SAC_NETWORK
+    return sizeof(unsigned int);
+#else
     return sizeof(Entity);
+#endif
 }
 
 int EntityProperty::serialize(uint8_t* out, void* object) const {
     Entity* e = (Entity*) PTR_OFFSET_2_PTR(object, offset);
-    // unsigned int guid = theNetworkSystem.entityToGuid(*e);
+#if SAC_NETWORK
+    if (NetworkSystem::GetInstancePointer()) {
+        unsigned int guid = theNetworkSystem.entityToGuid(*e);
+        memcpy(out, &guid, sizeof(guid));
+        return sizeof(unsigned int);
+    }
+#endif
     memcpy(out, e, sizeof(Entity));
     return sizeof(Entity);
 }
 
 int EntityProperty::deserialize(uint8_t* in, void* object) const {
-    /*unsigned int guid;
-    memcpy(&guid, in, sizeof(guid));
-    Entity e = theNetworkSystem.guidToEntity(guid);*/
+#if SAC_NETWORK
+    if (NetworkSystem::GetInstancePointer()) {
+        unsigned int guid;
+        memcpy(&guid, in, sizeof(guid));
+        Entity e = theNetworkSystem.guidToEntity(guid);
+        memcpy(PTR_OFFSET_2_PTR(object, offset), &e, sizeof(Entity));
+        return sizeof(unsigned int);
+    }
+#endif
     memcpy(PTR_OFFSET_2_PTR(object, offset), in, sizeof(Entity));
     return sizeof(Entity);
 }
