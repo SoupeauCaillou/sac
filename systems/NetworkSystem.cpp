@@ -59,7 +59,7 @@ INSTANCE_IMPL(NetworkSystem);
  bool hsDone;
 NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"), networkAPI(0) {
     /* nothing saved (?!) */
-    nextGuid = 0;
+    nextGuid = 2;
     hsDone = false;
     myNonce = glm::linearRand(0.0f, 65000.0f);
 
@@ -114,7 +114,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::UpdateEntity: {
-                    LOGI("Received UPDATE_ENTITY msg (guid: " << header->entityGuid << ")")
+                    LOGV(1, "Received UPDATE_ENTITY msg (guid: " << header->entityGuid << ")")
                     NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
                     if (nc) {
                         nc->packetToProcess.push(pkt);
@@ -210,7 +210,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         pkt.size = sizeof(NetworkMessageHeader);
         pkt.data = temp;
         SEND(pkt);
-        LOGV(1, "NOTIFY create : " << e << "/" << nc->guid)
+        LOGI("NOTIFY create : " << e << "/" << nc->guid)
     }
     StatusCache& cache = statusCache[e];
 
@@ -231,7 +231,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         CacheIt c = cache.components.find(name);
         if (c == cache.components.end()) {
             // cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
-            LOGW("Entity : " << nc->guid << ": no cache found for component: " << name)
+            // LOGW("Entity : " << nc->guid << ": no cache found for component: " << name)
         } else {
             cacheEntry = c->second;
         }
@@ -244,10 +244,9 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
             temp[pkt.size++] = nameLength;
             memcpy(&temp[pkt.size], name.c_str(), nameLength);
             pkt.size += nameLength;
-
+            memcpy(&temp[pkt.size], &size, 4);
+            pkt.size += 4;
             if (size > 0) {
-                memcpy(&temp[pkt.size], &size, 4);
-                pkt.size += 4;
                 memcpy(&temp[pkt.size], out, size);
                 pkt.size += size;
 
@@ -300,6 +299,8 @@ NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
 }
 
 Entity NetworkSystem::guidToEntity(unsigned int guid) {
+    if (guid == 0)
+        return 0;
     FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
         NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (nc->guid == guid)
@@ -322,6 +323,8 @@ void NetworkSystem::deleteAllNonLocalEntities() {
 }
 
 unsigned int NetworkSystem::entityToGuid(Entity e) {
+    if (e <= 0)
+        return 0;
     NetworkComponent* ncc = Get(e, false);
     if (ncc == 0) {
         LOGF("Entity " << e << " has no network component")
