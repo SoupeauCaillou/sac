@@ -27,7 +27,7 @@ namespace LogVerbosity {
 
 extern LogVerbosity::Enum logLevel;
 extern std::map<std::string, bool> verboseFilenameFilters;
-
+extern bool AssertOnFatal;
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
@@ -51,7 +51,7 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define __LOG(level, x) { if ((int)logLevel >= (int)level) { SAC_LOG_PRE logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__) << x << std::endl; SAC_LOG_POST } }
 
 
-#define LOGF(x) { __LOG(LogVerbosity::FATAL, x) assert(false); }
+#define LOGF(x) { __LOG(LogVerbosity::FATAL, x) assert(!AssertOnFatal); }
 #define LOGE(x) __LOG(LogVerbosity::ERROR, x)
 #define LOGT(x) __LOG(LogVerbosity::TODO, "<--TODO-->" << x)
 #define LOGW(x) __LOG(LogVerbosity::WARNING, x)

@@ -5,6 +5,8 @@
 #include "TimeUtil.h"
 #include <iomanip>
 
+bool AssertOnFatal = true;
+
 LogVerbosity::Enum logLevel =
 #ifdef SAC_ANDROID
     LogVerbosity::INFO;
