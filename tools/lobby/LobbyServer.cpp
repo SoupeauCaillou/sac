@@ -1,6 +1,7 @@
 #include <enet/enet.h>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <map>
 #include <cstring>
 #include <list>
