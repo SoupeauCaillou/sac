@@ -19,7 +19,6 @@ struct NetworkComponentPriv : NetworkComponent {
     NetworkComponentPriv() : NetworkComponent(), guid(0), entityExistsGlobally(false), ownedLocally(true) {}
     unsigned int guid; // global unique id
     bool entityExistsGlobally, ownedLocally;
-    std::map<std::string, float> lastUpdateAccum;
     std::queue<NetworkPacket> packetToProcess;
 };
 
@@ -58,25 +57,27 @@ INSTANCE_IMPL(NetworkSystem);
 
  unsigned myNonce;
  bool hsDone;
-NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("network"), networkAPI(0) {
+NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"), networkAPI(0) {
     /* nothing saved (?!) */
     nextGuid = 0;
     hsDone = false;
     myNonce = glm::linearRand(0.0f, 65000.0f);
 
     NetworkComponentPriv nc;
-    componentSerializer.add(new MapProperty<std::string, float>("system_update_periods", OFFSET(systemUpdatePeriod, nc)));
+    componentSerializer.add(new VectorProperty<std::string>("sync", OFFSET(sync, nc)));
 }
 
 
 void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
         return;
+
     if (!networkAPI->isConnectedToAnotherPlayer()) {
         counterTime = TimeUtil::GetTime();
         bytesSent = bytesReceived = bytesSentLastSec = bytesReceivedLastSec = 0;
         return;
     }
+
     // Pull packets from networkAPI
     {
         NetworkPacket pkt;
@@ -85,7 +86,7 @@ void NetworkSystem::DoUpdate(float dt) {
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
             switch (header->type) {
                 case NetworkMessageHeader::HandShake: {
-                    LOGV(1, "Received HANDSHAKE msg / " << header->HANDSHAKE.nonce)
+                    LOGI("Received HANDSHAKE msg / " << header->HANDSHAKE.nonce)
                     if (header->HANDSHAKE.nonce == myNonce) {
                         LOGI("Handshake done")
                         hsDone = true;
@@ -95,17 +96,17 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::CreateEntity: {
-                    LOGV(1, "Received CREATE_ENTITY msg")
                     Entity e = theEntityManager.CreateEntity();
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
+                    LOGI("Received CREATE_ENTITY msg (guid: " << header->entityGuid << ")")
                     nc->guid = header->entityGuid;
                     nc->ownedLocally = false;
-                    LOGV(1, "Create entity :" << e << " / " << nc->guid)
+                    LOGI("Create entity :" << e << " / " << nc->guid)
                     break;
                 }
                 case NetworkMessageHeader::DeleteEntity: {
-                    LOGV(1, "Received DELETE_ENTITY msg")
+                    LOGI("Received DELETE_ENTITY msg (guid: " << header->entityGuid << ")")
                     Entity e = guidToEntity(header->entityGuid);
                     if (e) {
                         theEntityManager.DeleteEntity(e);
@@ -113,7 +114,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::UpdateEntity: {
-                    LOGV(2, "Received UPDATE_ENTITY msg")
+                    LOGI("Received UPDATE_ENTITY msg (guid: " << header->entityGuid << ")")
                     NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
                     if (nc) {
                         nc->packetToProcess.push(pkt);
@@ -121,7 +122,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::ChangeEntityOwner: {
-                    LOGV(1, "Received CHANGE_OWNER msg")
+                    LOGI("Received CHANGE_OWNER msg")
                     NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
                     if (nc) {
                         if (networkAPI->amIGameMaster()) {
@@ -130,7 +131,7 @@ void NetworkSystem::DoUpdate(float dt) {
                             nc->ownedLocally = (header->CHANGE_OWNERSHIP.newOwner == 1);
                         }
                         nc->entityExistsGlobally = true;
-                        LOGV(1, "guid " << header->entityGuid << " changed owner : " << header->CHANGE_OWNERSHIP.newOwner << " (isLocal: " << nc->ownedLocally << ")")
+                        LOGI("guid " << header->entityGuid << " changed owner : " << header->CHANGE_OWNERSHIP.newOwner << " (isLocal: " << nc->ownedLocally << ")")
                     }
                     break;
                 }
@@ -193,7 +194,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
     static uint8_t temp[1024];
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (comp);
 
-    if (!nc->ownedLocally || nc->systemUpdatePeriod.empty())
+    if (!nc->ownedLocally || nc->sync.empty())
         return;
 
     if (!nc->entityExistsGlobally) {
@@ -221,33 +222,30 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
     pkt.size = sizeof(NetworkMessageHeader);
 
     // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
-    for (std::map<std::string, float>::iterator jt = nc->systemUpdatePeriod.begin(); jt!=nc->systemUpdatePeriod.end(); ++jt) {
-        float& accum = nc->lastUpdateAccum[jt->first];
-
-        if (accum >= 0)
-            accum += dt;
+    for (auto& name : nc->sync) {
         // time to update
-        if (accum >= jt->second || !nc->entityExistsGlobally) {
-            ComponentSystem* system = ComponentSystem::Named(jt->first);
-            // find cache entry, if any
-            uint8_t* cacheEntry = 0;
+        ComponentSystem* system = ComponentSystem::Named(name);
+        // find cache entry, if any
+        uint8_t* cacheEntry = 0;
 #if 1
-            CacheIt c = cache.components.find(jt->first);
-            if (c == cache.components.end()) {
-                // cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
-                LOGW("No cache found for component: " << jt->first)
-            } else {
-                cacheEntry = c->second;
-            }
+        CacheIt c = cache.components.find(name);
+        if (c == cache.components.end()) {
+            // cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
+            LOGW("Entity : " << nc->guid << ": no cache found for component: " << name)
+        } else {
+            cacheEntry = c->second;
+        }
 #endif
-            uint8_t* out;
-            int size = system->serialize(e, &out, cacheEntry);
+        uint8_t* out;
+        int size = system->serialize(e, &out, cacheEntry);
+        if (size > 0 || !nc->entityExistsGlobally) {
+            //LOG_EVERY_N(INFO, 250) << jt->first << " size: " << size;
+            uint8_t nameLength = strlen(name.c_str());
+            temp[pkt.size++] = nameLength;
+            memcpy(&temp[pkt.size], name.c_str(), nameLength);
+            pkt.size += nameLength;
+
             if (size > 0) {
-                //LOG_EVERY_N(INFO, 250) << jt->first << " size: " << size;
-                uint8_t nameLength = strlen(jt->first.c_str());
-                temp[pkt.size++] = nameLength;
-                memcpy(&temp[pkt.size], jt->first.c_str(), nameLength);
-                pkt.size += nameLength;
                 memcpy(&temp[pkt.size], &size, 4);
                 pkt.size += 4;
                 memcpy(&temp[pkt.size], out, size);
@@ -255,15 +253,10 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
 
                 cacheEntry = system->saveComponent(e, cacheEntry);
                 if (c == cache.components.end()) {
-                    cache.components.insert(std::make_pair(jt->first, cacheEntry));
+                    cache.components.insert(std::make_pair(name, cacheEntry));
                 }
                 delete[] out;
             }
-            accum = 0;
-        }
-        // if peridocity <= 0 => update only once
-        if (jt->second <= 0) {
-            accum = -1;
         }
     }
     // LOG_EVERY_N(INFO, 500) << pkt.size << " b for entity " << theEntityManager.entityName(e);

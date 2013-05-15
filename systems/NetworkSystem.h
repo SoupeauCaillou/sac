@@ -6,9 +6,9 @@ struct NetworkComponentPriv;
 
 struct NetworkComponent {
     NetworkComponent() : newOwnerShipRequest(-1) {
-        systemUpdatePeriod["network"] = 0;
+
     }
-    std::map<std::string, float> systemUpdatePeriod;
+    std::vector<std::string> sync;
     int newOwnerShipRequest;
 };
 
