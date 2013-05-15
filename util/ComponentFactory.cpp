@@ -212,6 +212,7 @@ static bool loadSingleProperty(const std::string& context,
         const std::string& section,
         const std::string& name,
         PropertyType::Enum type,
+        PropertyAttribute::Enum attr,
         PropertyNameValueMap& propMap,
         std::vector<std::string>& subEntities);
 
@@ -222,6 +223,7 @@ int ComponentFactory::build(
         const std::vector<IProperty*>& properties, EntityTemplate& templ,
         std::vector<std::string>& subEntities) {
 
+    // lookup ComponentSystem by its name
     std::string realSystemName(section);
     if (realSystemName.rfind('#') != std::string::npos) {
         realSystemName = realSystemName.substr(realSystemName.rfind('#') + 1);
@@ -230,24 +232,27 @@ int ComponentFactory::build(
     LOGE_IF(!systm, "Missing system: '" << section << "'")
     if (!systm)
         return 0;
+
     PropertyNameValueMap& propMap = templ[systm];
+    // Cleanup current values
     for (auto it : propMap) {
         delete it.second;
     }
 
-    // Browse properties
+    // Browse properties for the given system
     for (auto it = properties.begin(); it!=properties.end(); ++it) {
         // Retrieve property name
         const std::string& name = (*it)->getName();
         const auto type = (*it)->getType();
 
-        bool success = loadSingleProperty(context, dfp, section, name, type, propMap, subEntities);
+        // Try to load property from data
+        bool success = loadSingleProperty(context, dfp, section, name, type, (*it)->getAttribute(), propMap, subEntities);
 
         // special testing case
         if (!success && name == "position") {
             const std::string v[] = { "NE", "N", "NW", "E", "W", "SW", "S", "SE"};
             for (unsigned i=0; i<8; i++) {
-                if (loadSingleProperty(context, dfp, section, name + v[i], type, propMap, subEntities)) {
+                if (loadSingleProperty(context, dfp, section, name + v[i], type, (*it)->getAttribute(), propMap, subEntities)) {
                     break;
                 }
             }
@@ -262,7 +267,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
     #define ASSIGN(_type_) { \
         Interval< _type_ > itv; \
         memcpy(&itv, (*it).second, sizeof(itv)); \
-        if (prop->isInterval()) \
+        if (prop->getAttribute() == PropertyAttribute::Interval) \
             *(TYPE_2_PTR(Interval < _type_ > )) = itv; \
         else \
             *(TYPE_2_PTR(_type_)) = itv.random(); }
@@ -298,13 +303,19 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 ASSIGN(glm::vec2);
                 break;
             case PropertyType::String: {
-                char tmp[1024];
-                unsigned l;
-                memcpy(&l, (*it).second, sizeof(int));
-                memcpy(tmp, (*it).second + sizeof(int), l);
-                tmp[l] = '\0';
-                std::string* s = TYPE_2_PTR(std::string);
-                *s = tmp;
+                if (prop->getAttribute() == PropertyAttribute::Vector) {
+                    std::vector<std::string>* out = TYPE_2_PTR(std::vector<std::string>);
+                    VectorProperty<std::string> vp("dummy", 0);
+                    vp.deserialize((*it).second, out);
+                } else {
+                    char tmp[1024];
+                    unsigned l;
+                    memcpy(&l, (*it).second, sizeof(int));
+                    memcpy(tmp, (*it).second + sizeof(int), l);
+                    tmp[l] = '\0';
+                    std::string* s = TYPE_2_PTR(std::string);
+                    *s = tmp;
+                }
                 break;
             }
             case PropertyType::Color:
@@ -341,8 +352,10 @@ static bool loadSingleProperty(const std::string& context,
         const std::string& section,
         const std::string& name,
         PropertyType::Enum type,
+        PropertyAttribute::Enum attr,
         PropertyNameValueMap& propMap,
         std::vector<std::string>& subEntities) {
+
     #define LOAD_INTERVAL_TEMPL(_type_) { \
         Interval<_type_> itv; \
         bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
@@ -365,12 +378,32 @@ static bool loadSingleProperty(const std::string& context,
             break;
         case PropertyType::String: {
             std::string s;
-            if (load(dfp, section, name, IntervalAsRandom, &s)) {
-                unsigned l = s.length();
-                uint8_t* arr = new uint8_t[sizeof(int) + l];
-                memcpy(arr, &l, sizeof(int));
-                memcpy(&arr[sizeof(int)], s.c_str(), l);
-                propMap.insert(std::make_pair(name, arr));
+            // let's try something simple here
+            if (attr == PropertyAttribute::Vector) {
+                int splits = dfp.getSubStringCount(section, name);
+                if (splits > 0) {
+                    std::string* all = new std::string[splits];
+                    if (dfp.get(section, name, all, splits, true)) {
+                        std::vector<std::string> a;
+                        for (int i=0; i<splits; i++)
+                            a.push_back(all[i]);
+
+                        VectorProperty<std::string> vp("dummy", 0);
+                        unsigned size = vp.size(&a);
+                        uint8_t* arr = new uint8_t[size];
+                        vp.serialize(arr, &a);
+                        propMap.insert(std::make_pair(name, arr));
+                    }
+                    delete[] all;
+                }
+            } else {
+                if (load(dfp, section, name, IntervalAsRandom, &s)) {
+                    unsigned l = s.length();
+                    uint8_t* arr = new uint8_t[sizeof(int) + l];
+                    memcpy(arr, &l, sizeof(int));
+                    memcpy(&arr[sizeof(int)], s.c_str(), l);
+                    propMap.insert(std::make_pair(name, arr));
+                }
             }
             break;
         }

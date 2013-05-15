@@ -1,5 +1,6 @@
 #include "DataFileParser.h"
 #include <map>
+#include <algorithm>
 
 const std::string DataFileParser::GlobalSection = "";
 
@@ -176,6 +177,18 @@ bool DataFileParser::determineSubStringIndexes(const std::string& str, int count
     }
     LOGV(2, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')')
     return true;
+}
+
+int DataFileParser::getSubStringCount(const std::string& section, const std::string& var) const {
+    std::string s;
+    if (keyValue(section, var, false, s)) {
+        // let's count ','
+        int splits = 1;
+        std::for_each(s.begin(), s.end(), [&splits](char c) -> void { if (c ==',') splits++;});
+        return splits;
+    } else {
+        return -1;
+    }
 }
 
 void DataFileParser::defineVariable(const std::string& name, const std::string& value) {

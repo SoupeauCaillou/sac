@@ -9,7 +9,7 @@
 
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 
-IProperty::IProperty(const std::string& pName, PropertyType::Enum pType, bool isInterval, unsigned long pOffset, unsigned pSize) : offset(pOffset), _size(pSize), name(pName), type(pType), interval(isInterval) {
+IProperty::IProperty(const std::string& pName, PropertyType::Enum pType, PropertyAttribute::Enum attr, unsigned long pOffset, unsigned pSize) : offset(pOffset), _size(pSize), name(pName), type(pType), attribute(attr) {
 
 }
 
@@ -31,7 +31,7 @@ int IProperty::deserialize(uint8_t* in, void* object) const {
     return _size;
 }
 
-EntityProperty::EntityProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Entity, false, offset, sizeof(Entity)) {
+EntityProperty::EntityProperty(const std::string& name, unsigned long offset) : IProperty(name, PropertyType::Entity, PropertyAttribute::None, offset, sizeof(Entity)) {
 
 }
 
@@ -54,7 +54,7 @@ int EntityProperty::deserialize(uint8_t* in, void* object) const {
     return sizeof(Entity);
 }
 
-StringProperty::StringProperty(const std::string& name, unsigned long pOffset) : IProperty(name, PropertyType::String, false, pOffset, 0) {}
+StringProperty::StringProperty(const std::string& name, unsigned long pOffset) : IProperty(name, PropertyType::String, PropertyAttribute::None, pOffset, 0) {}
 
 unsigned StringProperty::size(void* object) const {
    std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);

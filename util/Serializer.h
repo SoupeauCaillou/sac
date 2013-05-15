@@ -20,9 +20,17 @@ namespace PropertyType {
     };
 }
 
+namespace PropertyAttribute {
+    enum Enum {
+        None,
+        Interval,
+        Vector
+    };
+}
+
 class IProperty {
     protected:
-        IProperty(const std::string& name, PropertyType::Enum type, bool isInterval, unsigned long offset, unsigned size);
+        IProperty(const std::string& name, PropertyType::Enum type, PropertyAttribute::Enum attribute, unsigned long offset, unsigned size);
     public:
         virtual ~IProperty() {}
         virtual unsigned size(void* object) const;
@@ -32,14 +40,14 @@ class IProperty {
 
         const std::string& getName() const { return name; }
         PropertyType::Enum getType() const {return type;}
-        bool isInterval() const { return interval; }
+        PropertyAttribute::Enum getAttribute() const { return attribute; }
     public:
         unsigned long offset;
         unsigned _size;
     private:
         std::string name;
         PropertyType::Enum type;
-        bool interval;
+        PropertyAttribute::Enum attribute;
 
 };
 

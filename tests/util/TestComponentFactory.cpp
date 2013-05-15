@@ -4,6 +4,7 @@
 #include "systems/TransformationSystem.h"
 #include "systems/AnimationSystem.h"
 #include "systems/ParticuleSystem.h"
+#include "systems/NetworkSystem.h"
 #include "base/PlacementHelper.h"
 #include "base/EntityManager.h"
 
@@ -13,6 +14,7 @@ struct TestSetup {
         ParticuleSystem::CreateInstance();
         AnimationSystem::CreateInstance();
         RenderingSystem::CreateInstance();
+        NetworkSystem::CreateInstance();
     }
     ~TestSetup() {
         theEntityManager.entityTemplateLibrary.unload("test");
@@ -20,6 +22,7 @@ struct TestSetup {
         ParticuleSystem::DestroyInstance();
         AnimationSystem::DestroyInstance();
         RenderingSystem::DestroyInstance();
+        NetworkSystem::DestroyInstance();
     }
 };
 
@@ -154,3 +157,15 @@ TEST_FIXTURE(TestSetup, TestSizeBasedOnTextureRatio)
     CHECK_CLOSE(10, TRANSFORM(e)->size.x, 0.001);
     CHECK_CLOSE(8, TRANSFORM(e)->size.y, 0.001);
 }
+
+
+TEST_FIXTURE(TestSetup, TestStringVector)
+{
+    Entity e = doTest("[Network]\nsync = abc, defg, z");
+
+    CHECK_EQUAL(3lu, NETWORK(e)->sync.size());
+    CHECK_EQUAL("abc", NETWORK(e)->sync[0]);
+    CHECK_EQUAL("defg", NETWORK(e)->sync[1]);
+    CHECK_EQUAL("z", NETWORK(e)->sync[2]);
+}
+

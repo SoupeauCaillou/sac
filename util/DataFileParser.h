@@ -25,6 +25,7 @@ class DataFileParser {
         bool hasSection(const std::string& section) const;
 
         void defineVariable(const std::string& name, const std::string& value);
+        int getSubStringCount(const std::string& section, const std::string& var) const;
 
     private:
         bool keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& value) const;
