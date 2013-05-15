@@ -123,7 +123,9 @@ class ComponentSystem {
 #if SAC_DEBUG
             , updateDuration(0)
 #endif
-         { bool inserted = registry.insert(std::make_pair(name, this)).second; LOGF_IF(!inserted, "System with name '" << name << "' already exists") }
+         { bool inserted = registry.insert(std::make_pair(name, this)).second; \
+            LOGF_IF(!inserted, "System with name '" << name << "' already exists") \
+        }
 
         virtual ~ComponentSystem() { registry.erase(name); }
 
