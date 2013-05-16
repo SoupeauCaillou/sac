@@ -12,10 +12,10 @@ ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("Co
 static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, TransformationComponent* tc) {
 	if (tc->size == glm::vec2(0.0f))
 		return;
-	minX = glm::min(minX, tc->worldPosition.x - tc->size.x * 0.5f);
-	minY = glm::min(minY, tc->worldPosition.y - tc->size.y * 0.5f);
-	maxX = glm::max(maxX, tc->worldPosition.x + tc->size.x * 0.5f);
-	maxY = glm::max(maxY, tc->worldPosition.y + tc->size.y * 0.5f);
+	minX = glm::min(minX, tc->position.x - tc->size.x * 0.5f);
+	minY = glm::min(minY, tc->position.y - tc->size.y * 0.5f);
+	maxX = glm::max(maxX, tc->position.x + tc->size.x * 0.5f);
+	maxY = glm::max(maxY, tc->position.y + tc->size.y * 0.5f);
 }
 
 void ContainerSystem::DoUpdate(float) {
@@ -46,6 +46,8 @@ void ContainerSystem::DoUpdate(float) {
 			updateMinMax(minX, minY, maxX, maxY, tc);
 
 			if (bc->includeChildren) {
+                LOGW_EVERY_N(60, "TODO")
+                #if 0
 				// arg
 				for(std::vector<Entity>::const_iterator kt=allEntities.begin(); kt!=allEntities.end(); ++kt) {
 					TransformationComponent* ttc = TRANSFORM(*kt);
@@ -53,6 +55,7 @@ void ContainerSystem::DoUpdate(float) {
 						updateMinMax(minX, minY, maxX, maxY, ttc);
 					}
 				}
+                #endif
 			}
 		}
 

@@ -27,12 +27,12 @@ void AutoDestroySystem::DoUpdate(float dt) {
             case AutoDestroyComponent::OUT_OF_AREA: {
                 LOGW_IF(adc->params.area.size.x <= 0 || adc->params.area.size.y <= 0, "Invalid area size: " << adc->params.area.size.x << "x" << adc->params.area.size.y)
                 const TransformationComponent* tc = TRANSFORM(a);
-                if (!IntersectionUtil::rectangleRectangle(tc->worldPosition, tc->size, tc->worldRotation,
+                if (!IntersectionUtil::rectangleRectangle(tc->position, tc->size, tc->rotation,
                     adc->params.area.position, adc->params.area.size, 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
 
                     LOGI("Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
-                        << tc->worldPosition << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size)
+                        << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size)
                 }
                 break;
             }

@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include "base/EntityManager.h"
 
+#include "AnchorSystem.h"
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
 
@@ -207,9 +208,10 @@ void TextRenderingSystem::DoUpdate(float dt) {
             const Entity e = renderingEntitiesPool[letterCount];
             RenderingComponent* rc = RENDERING(e);
             TransformationComponent* tc = TRANSFORM(e);
-            tc->parent = entity;
-            tc->z = 0.001; // put text in front
-            tc->worldPosition = trans->worldPosition;
+            AnchorComponent* ac = ANCHOR(e);
+            ac->parent = entity;
+            ac->z = 0.001; // put text in front
+            ac->position = trans->position;
             rc->show = trc->show;
             rc->cameraBitMask = trc->cameraBitMask;
 
@@ -248,8 +250,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
             // Advance position
             letterCount++;
 			x += tc->size.x * 0.5;
-			tc->position.x = x;
-            tc->position.y = y + (inlineImage ? tc->size.x * 0.25 : 0);
+			ac->position.x = x;
+            ac->position.y = y + (inlineImage ? tc->size.x * 0.25 : 0);
 			x += tc->size.x * 0.5;
             unicode = 0;
 
@@ -277,7 +279,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
     }
     for (unsigned i=letterCount; i<renderingEntitiesPool.size(); i++) {
         const Entity e = renderingEntitiesPool[i];
-        TRANSFORM(e)->parent = 0;
+        ANCHOR(e)->parent = 0;
         RENDERING(e)->show = false;
     }
 }
@@ -351,6 +353,7 @@ static Entity createRenderingEntity() {
     Entity e = theEntityManager.CreateEntity("__text_letter");
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
+    ADD_COMPONENT(e, Anchor);
     return e;
 }
 

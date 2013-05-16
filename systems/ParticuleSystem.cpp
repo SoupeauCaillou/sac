@@ -68,9 +68,10 @@ void ParticuleSystem::DoUpdate(float dt) {
 #endif
                 ADD_COMPONENT(e, Transformation);
                 TransformationComponent* tc = TRANSFORM(e);
-                tc->position = tc->worldPosition = ptc->worldPosition + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->worldRotation);
+                tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
+                tc->rotation = ptc->rotation;
                 tc->size.x = tc->size.y = pc->initialSize.random();
-                tc->z = tc->worldZ = ptc->worldZ;
+                tc->z = ptc->z;
 
                 ADD_COMPONENT(e, Rendering);
                 RenderingComponent* rc = RENDERING(e);
@@ -85,7 +86,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                     PhysicsComponent* ppc = PHYSICS(e);
                     ppc->gravity = pc->gravity;
                     ppc->mass = pc->mass;
-                    float angle = ptc->worldRotation + pc->forceDirection.random();
+                    float angle = ptc->rotation + pc->forceDirection.random();
                     ppc->addForce(tc->size * glm::linearRand(0.0f, 1.0f), glm::vec2(glm::cos(angle), glm::sin(angle)) * pc->forceAmplitude.random(), 0.016);
                     PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }

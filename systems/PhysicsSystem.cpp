@@ -1,4 +1,5 @@
 #include "PhysicsSystem.h"
+#include "AnchorSystem.h"
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
 #include <glm/gtx/perpendicular.hpp>
@@ -21,6 +22,7 @@ PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics"
 
 #if SAC_DEBUG
 void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2 & size) {
+    return;
     float norm2 = glm::length2(size);
     if (norm2 < 0.00001f)
         return;
@@ -52,86 +54,75 @@ void PhysicsSystem::DoUpdate(float dt) {
     norm2Max = 0.f;
 #endif
 
-    //update orphans first
     FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
+        // no mass -> no physics
+        if (pc->mass <= 0)
+            continue;
+
+#if SAC_DEBUG
+        auto anchor = theAnchorSystem.Get(a, false);
+        if (anchor && anchor->parent) {
+            LOGW("Entity '"
+                << theEntityManager.entityName(a)
+                << "' tried to do physics while being anchored to '"
+                << theEntityManager.entityName(anchor->parent)
+                << "'")
+            continue;
+        }
+#endif
+
 		TransformationComponent* tc = TRANSFORM(a);
-		if (!tc || tc->parent == 0) {
-			if (pc->mass <= 0)
-				continue;
 
-			pc->momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6;
+		pc->momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6;
 
-			// linear accel
-			glm::vec2 linearAccel(pc->gravity * pc->mass);
+		// linear accel
+		glm::vec2 linearAccel(pc->gravity * pc->mass);
 
-            addDebugOnlyDrawForce(tc->position, pc->gravity * pc->mass);
+        addDebugOnlyDrawForce(tc->position, pc->gravity * pc->mass);
 
-			// angular accel
-			float angAccel = 0;
+		// angular accel
+		float angAccel = 0;
 
-            if (pc->frottement != 0.f) {
-                pc->addForce(glm::vec2(0.f), - pc->frottement * pc->linearVelocity, dt);
-            }
+        if (pc->frottement != 0.f) {
+            pc->addForce(glm::vec2(0.f), - pc->frottement * pc->linearVelocity, dt);
+        }
 
-			for (unsigned int i=0; i<pc->forces.size(); i++) {
-				Force force(pc->forces[i].first);
+		for (unsigned int i=0; i<pc->forces.size(); i++) {
+			Force force(pc->forces[i].first);
 
-                addDebugOnlyDrawForce(tc->position + force.point, force.vector);
+            addDebugOnlyDrawForce(tc->position + force.point, force.vector);
 
-				float& durationLeft = pc->forces[i].second;
+			float& durationLeft = pc->forces[i].second;
 
-				if (durationLeft < dt) {
-					force.vector *= durationLeft / dt;
-				}
-
-				linearAccel += force.vector;
-
-		        if (force.point != glm::vec2(0.0f, 0.0f)) {
-			        angAccel += glm::dot(glm::vec2(- force.point.y, force.point.x), force.vector);
-		        }
-
-				durationLeft -= dt;
-				if (durationLeft < 0) {
-					pc->forces.erase(pc->forces.begin() + i);
-					i--;
-				}
+			if (durationLeft < dt) {
+				force.vector *= durationLeft / dt;
 			}
 
-			linearAccel /= pc->mass;
-			angAccel /= pc->momentOfInertia;
+			linearAccel += force.vector;
 
-			// acceleration is constant over dt: use basic Euler integration for velocity
-            const glm::vec2 nextVelocity(pc->linearVelocity + linearAccel * dt);
-            tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5f;
-            // velocity varies over dt: use Verlet integration for position
-            pc->linearVelocity = nextVelocity;
-			const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
-			tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5;
-            pc->angularVelocity = nextAngularVelocity;
-	    }
-	}
+	        if (force.point != glm::vec2(0.0f, 0.0f)) {
+		        angAccel += glm::dot(glm::vec2(- force.point.y, force.point.x), force.vector);
+	        }
 
-    //copy parent property to its sons
-    FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
-		if (!TRANSFORM(a))
-			continue;
-
-		Entity parent = TRANSFORM(a)->parent;
-		if (parent) {
-			while (TRANSFORM(parent)->parent) {
-				parent = TRANSFORM(parent)->parent;
+			durationLeft -= dt;
+			if (durationLeft < 0) {
+				pc->forces.erase(pc->forces.begin() + i);
+				i--;
 			}
-
-            PhysicsComponent* ppc = thePhysicsSystem.Get(parent, false);
-            if (ppc) {
-    			pc->linearVelocity = ppc->linearVelocity;
-    			pc->angularVelocity = ppc->angularVelocity;
-            } else {
-                pc->linearVelocity = glm::vec2(0.0f, 0.0f);
-                pc->angularVelocity = 0;
-            }
 		}
-    }
+
+		linearAccel /= pc->mass;
+		angAccel /= pc->momentOfInertia;
+
+		// acceleration is constant over dt: use basic Euler integration for velocity
+        const glm::vec2 nextVelocity(pc->linearVelocity + linearAccel * dt);
+        tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5f;
+        // velocity varies over dt: use Verlet integration for position
+        pc->linearVelocity = nextVelocity;
+		const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
+		tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5;
+        pc->angularVelocity = nextAngularVelocity;
+	}
 
 #if SAC_DEBUG
     const float sizeForMaxForce = 2.f;

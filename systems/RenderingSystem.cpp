@@ -203,8 +203,8 @@ static void modifyR(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPo
 
 static bool cull(const TransformationComponent* camera, RenderingSystem::RenderCommand& c) {
     if (c.rotation == 0 && c.halfSize.x > 0) {
-        const float camLeft = camera->worldPosition.x - camera->size.x * .5f;
-        const float camRight = camera->worldPosition.x + camera->size.x * .5f;
+        const float camLeft = camera->position.x - camera->size.x * .5f;
+        const float camRight = camera->position.x + camera->size.x * .5f;
 
         const float invWidth = 1.0f / (2 * c.halfSize.x);
         // left culling !
@@ -289,16 +289,16 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-            LOGW_IF(tc->worldZ <= 0 || tc->worldZ > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->worldZ << ". Will not be drawn")
+            // LOGW_IF(tc->z <= 0 || tc->z > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->z << ". Will not be drawn")
 
     		RenderCommand c;
-    		c.z = tc->worldZ;
+    		c.z = tc->z;
     		c.texture = rc->texture;
     		c.effectRef = rc->effectRef;
     		c.halfSize = tc->size * 0.5f;
     		c.color = rc->color;
-    		c.position = tc->worldPosition;
-    		c.rotation = tc->worldRotation;
+    		c.position = tc->position;
+    		c.rotation = tc->rotation;
     		c.uv[0] = glm::vec2(0.0f);
     		c.uv[1] = glm::vec2(1.0f);
             c.mirrorH = rc->mirrorH;
@@ -508,7 +508,7 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc) const {
         return false;
     }
     const Camera& camera = cameras[cameraIndex];
-	const Vector2 pos(tc->worldPosition - camera.worldPosition);
+	const Vector2 pos(tc->position - camera.position);
     const Vector2 camHalfSize(camera.worldSize * .5);
 
     const float biggestHalfEdge = MathUtil::Max(tc->size.X * 0.5, tc->size.Y * 0.5);
@@ -669,9 +669,9 @@ void packCameraAttributes(
     const TransformationComponent* cameraTrans,
     const CameraComponent* cameraComp,
     RenderingSystem::RenderCommand& out) {
-    out.uv[0] = cameraTrans->worldPosition;
+    out.uv[0] = cameraTrans->position;
     out.uv[1] = cameraTrans->size;
-    out.z = cameraTrans->worldRotation;
+    out.z = cameraTrans->rotation;
 
     out.rotateUV = cameraComp->fb;
     out.color = cameraComp->clearColor;
@@ -681,9 +681,9 @@ void unpackCameraAttributes(
     const RenderingSystem::RenderCommand& in,
     TransformationComponent* camera,
     CameraComponent* ccc) {
-    camera->worldPosition = in.uv[0];
+    camera->position = in.uv[0];
     camera->size = in.uv[1];
-    camera->worldRotation = in.z;
+    camera->rotation = in.z;
 
     ccc->fb = in.rotateUV;
     ccc->clearColor = in.color;

@@ -30,14 +30,14 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
 		if (agent->seekTarget && agent->seekWeight > 0) {
 			if (agent->arriveDeceleration > 0) {
-				force += SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->worldPosition, agent->maxSpeed, agent->arriveDeceleration) * agent->arriveWeight;
+				force += SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration) * agent->arriveWeight;
 			} else {
-				force += SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->worldPosition, agent->maxSpeed) * agent->seekWeight;
+				force += SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->maxSpeed) * agent->seekWeight;
 			}
 		}
 		if (agent->fleeTarget && agent->fleeWeight > 0) {
-			if (glm::distance(TRANSFORM(e)->worldPosition, TRANSFORM(agent->fleeTarget)->worldPosition) < agent->fleeRadius) {
-				force += SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->worldPosition, agent->maxSpeed) * agent->fleeWeight;
+			if (glm::distance(TRANSFORM(e)->position, TRANSFORM(agent->fleeTarget)->position) < agent->fleeRadius) {
+				force += SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->maxSpeed) * agent->fleeWeight;
 			}
 		}
 

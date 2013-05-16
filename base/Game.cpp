@@ -1,6 +1,7 @@
 #include "Game.h"
 
 #include <base/EntityManager.h>
+#include "systems/AnchorSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/RenderingSystem.h"
 #include "systems/ButtonSystem.h"
@@ -49,6 +50,7 @@ Game::Game() {
 	EntityManager::CreateInstance();
 
 	/* create systems singleton */
+    AnchorSystem::CreateInstance();
 	TransformationSystem::CreateInstance();
 	RenderingSystem::CreateInstance();
 	SoundSystem::CreateInstance();
@@ -82,6 +84,7 @@ Game::Game() {
 
 Game::~Game() {
     EntityManager::DestroyInstance();
+    AnchorSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
     RenderingSystem::DestroyInstance();
     SoundSystem::DestroyInstance();
@@ -339,9 +342,10 @@ void Game::step() {
     thePhysicsSystem.Update(delta);
     theScrollingSystem.Update(delta);
     theZSQDSystem.Update(delta);
-   theSoundSystem.Update(delta);
+    theSoundSystem.Update(delta);
     theMusicSystem.Update(delta);
     theTextRenderingSystem.Update(delta);
+    theAnchorSystem.Update(delta);
     theTransformationSystem.Update(delta);
     theParticuleSystem.Update(delta);
     theContainerSystem.Update(delta);
@@ -350,7 +354,7 @@ void Game::step() {
     theGraphSystem.Update(delta);
 #if SAC_INGAME_EDITORS
     } else {
-        theTransformationSystem.Update(delta);
+        theAnchorSystem.Update(delta);
     }
     if (oneStepEnabled) {
         LOGI("one more step")

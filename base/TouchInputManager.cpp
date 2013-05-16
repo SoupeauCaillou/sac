@@ -56,5 +56,5 @@ glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const 
         - cameraTrans->size.x * 0.5f;
 	camLocal.y = ((theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH) * cameraTrans->size.y
         - cameraTrans->size.y * 0.5f;
-	return cameraTrans->worldPosition + glm::rotate(camLocal, cameraTrans->worldRotation);
+	return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
 }

@@ -124,6 +124,6 @@ bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::
 
 bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1, const TransformationComponent* tc2) {
     return rectangleRectangle(
-        tc1->worldPosition, tc1->size, tc1->worldRotation,
-        tc2->worldPosition, tc2->size, tc2->worldRotation);
+        tc1->position, tc1->size, tc1->rotation,
+        tc2->position, tc2->size, tc2->rotation);
 }

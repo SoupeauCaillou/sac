@@ -114,11 +114,6 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
     _lock();
     showTweakBarForEntity(e);
     _unlock();
-    TRANSFORM(selectionDisplay)->parent = e;
-    TRANSFORM(selectionDisplay)->size = TRANSFORM(e)->size + glm::vec2(0.1f);
-    RENDERING(selectionDisplay)->show = true;
-    originalColor = RENDERING(e)->color;
-    // RENDERING(selectionDisplay)->color = Color(1, 0, 0, 0.7);
 }
 
 void LevelEditor::LevelEditorDatas::deselect(Entity) {
@@ -220,59 +215,6 @@ void LevelEditor::tick(float dt) {
             }
         }
         unlock();
-    }
-    return;
-
-    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
-    Entity camera = 0;
-    for (unsigned i=0; i<cameras.size(); i++) {
-        if (CAMERA(cameras[i])->fb == DefaultFrameBufferRef) {
-            camera = cameras[i];
-            break;
-        }
-    }
-    if (!camera) {
-        LOGE("No active camera")
-        return;
-    }
-
-    const glm::vec2 position = TRANSFORM(camera)->worldPosition;
-    int wheelDiff = 0;
-    /*int x, y;
-    glfwGetMousePos(&x, &y);
-    glm::vec2 windowPos(x / (float)PlacementHelper::WindowWidth - 0.5f, 0.5f - y / (float)PlacementHelper::WindowHeight);
-    const glm::vec2 position = TRANSFORM(camera)->worldPosition + glm::rotate(windowPos * TRANSFORM(camera)->size, TRANSFORM(camera)->worldRotation);
-
-
-    static int prevWheel = 0;
-    int wheel = glfwGetMouseWheel();
-    int wheelDiff = wheel - prevWheel;
-    prevWheel = wheel;
-
-    if (! SDL_GetMouseState(0, 0) & SDL_BUTTON(1) &&
-        ! SDL_GetMouseState(0, 0) & SDL_BUTTON(3)) {
-        datas->lastMouseOverPosition = position;
-    }*/
-
-    Color& selectedColor = RENDERING(datas->selectionDisplay)->color;
-    selectedColor.a += datas->selectionColorChangeSpeed * dt;
-    if (selectedColor.a < 0.5) {
-        selectedColor.a = 0.5;
-        datas->selectionColorChangeSpeed *= -1;
-    } else if (selectedColor.a > 1) {
-        selectedColor.a = 1;
-        datas->selectionColorChangeSpeed *= -1;
-    }
-    RENDERING(datas->overDisplay)->color.a = selectedColor.a;
-
-
-    switch (datas->mode) {
-        case EditorMode::Selection:
-            datas->updateModeSelection(dt, position, wheelDiff);
-            break;
-        case EditorMode::Gallery:
-            datas->updateModeGallery(dt, position, wheelDiff);
-            break;
     }
 }
 

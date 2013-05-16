@@ -34,7 +34,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
     if (!touching)
         comp->touchStartOutside = false;
 
-	const glm::vec2& pos = TRANSFORM(entity)->worldPosition;
+	const glm::vec2& pos = TRANSFORM(entity)->position;
 	const glm::vec2& size = TRANSFORM(entity)->size;
 
 	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);

@@ -14,7 +14,7 @@ struct ZSQDComponent {
     //use this when you are using a vector, eg not dependent from the point position
     void addDirectionVector(glm::vec2 v) { directions.push_front(v); }
     //use this when the position vector is the target point
-    void addDirectionPoint(Entity e, glm::vec2 pos) { directions.push_front(pos - TRANSFORM(e)->worldPosition); }
+    void addDirectionPoint(Entity e, glm::vec2 pos) { directions.push_front(pos - TRANSFORM(e)->position); }
 
     //currentDirection of the entity, should not be changed
     glm::vec2 currentDirection;

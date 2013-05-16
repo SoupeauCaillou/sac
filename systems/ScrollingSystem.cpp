@@ -1,4 +1,6 @@
 #include "ScrollingSystem.h"
+
+#include "AnchorSystem.h"
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
 
@@ -37,7 +39,7 @@ void ScrollingSystem::DoUpdate(float dt) {
         }
 
         LOGF_IF(sc->speed < 0, "Scrolling component '" << sc << "' has a speed < 0");
-	    
+
 	    ScrollingElement& se = iter->second;
 	    for (int i=0; i<2; i++) {
 	    	RENDERING(se.e[i])->show = true;
@@ -74,9 +76,10 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 
 		ADD_COMPONENT(se.e[i], Transformation);
 		ADD_COMPONENT(se.e[i], Rendering);
+        ADD_COMPONENT(se.e[i], Anchor);
 
 		TransformationComponent* tc = TRANSFORM(se.e[i]);
-		tc->parent = e;
+		ANCHOR(se.e[i])->parent = e;
 		tc->size = sc->displaySize;
 		tc->position = -glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y) * (float)i;
 		tc->z = i * 0.001;

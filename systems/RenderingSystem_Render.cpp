@@ -186,7 +186,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             firstCall = true;
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
-            LOGV(2, "   camera: pos=" << camera.worldPos.worldPosition.x << ',' << camera.worldPos.worldPosition.y
+            LOGV(2, "   camera: pos=" << camera.worldPos.position.x << ',' << camera.worldPos.position.y
                 << "size=" << camera.worldPos.size.x << ',' << camera.worldPos.size.y
                 << " fb=" << camera.cameraAttr.fb)
 
@@ -206,9 +206,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     -camera.worldPos.size.y * 0.5f, camera.worldPos.size.y * 0.5f,
                     0.0f, 1.0f) *
                 glm::rotate( glm::mat4(1.0f),
-                    -camera.worldPos.worldRotation, glm::vec3(0, 0, 1) ) *
+                    -camera.worldPos.rotation, glm::vec3(0, 0, 1) ) *
                 glm::translate( glm::mat4(1.0f),
-                    glm::vec3(-camera.worldPos.worldPosition, 0.0f));
+                    glm::vec3(-camera.worldPos.position, 0.0f));
 
             // setup initial GL state
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);

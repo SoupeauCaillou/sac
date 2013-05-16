@@ -8,6 +8,7 @@
 #include "systems/RenderingSystem.h"
 #include "systems/opengl/EntityTemplateLibrary.h"
 #include "systems/TransformationSystem.h"
+#include "systems/AnchorSystem.h"
 
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
@@ -279,8 +280,8 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         if (it == propValueMap.end()) {
             if (name == "position") {
                 // special testing case
-                const std::string v[] = { "NW", "N", "NE", "W", "_", "E", "SW", "S", "SE"};
-                for (unsigned i=0; i<9; i++) {
+                const std::string v[] = { "NW", "N", "NE", "W", "E", "SW", "S", "SE"};
+                for (unsigned i=0; i<8; i++) {
                     it = propValueMap.find(name + v[i]);
                     if (it != propValueMap.end()) {
                         transformationPositionHackIndex = i;
@@ -333,7 +334,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     theEntityManager.DeleteEntity(*e);
                 }
                 *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
-                TRANSFORM(*e)->parent = entity;
+                ANCHOR(*e)->parent = entity;
                 break;
             }
             default:
@@ -342,8 +343,15 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
     }
 
     if (transformationPositionHackIndex >= 0) {
+        // const std::string v[] = { "NW", "N", "NE", "W", "E", "SW", "S", "SE"};
+        const glm::vec2 coeff[] = {
+            glm::vec2(-0.5, 0.5) , glm::vec2(0, 0.5) , glm::vec2(0.5, 0.5),
+            glm::vec2(-0.5, 0.0)                     , glm::vec2(0.5, 0.0),
+            glm::vec2(-0.5, -0.5), glm::vec2(0, -0.5), glm::vec2(0.5, -0.5),
+        };
         TransformationComponent* tc = static_cast<TransformationComponent*>(component);
-        TransformationSystem::setPosition(tc, tc->position, (TransformationSystem::PositionReference) (TransformationSystem::NW + transformationPositionHackIndex));
+        tc->position =
+            AnchorSystem::adjustPositionWithAnchor(tc->position, tc->size * coeff[transformationPositionHackIndex]);
     }
 }
 

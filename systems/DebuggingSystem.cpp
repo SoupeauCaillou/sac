@@ -1,6 +1,7 @@
 #include "DebuggingSystem.h"
 #include "CameraSystem.h"
 #include "TransformationSystem.h"
+#include "AnchorSystem.h"
 #include "RenderingSystem.h"
 #include "GraphSystem.h"
 #include "TextRenderingSystem.h"
@@ -39,10 +40,11 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     fps = theEntityManager.CreateEntity("__debug_fps");
     ADD_COMPONENT(fps, Transformation);
-    TRANSFORM(fps)->parent = camera;
     TRANSFORM(fps)->size = cameraSize * glm::vec2(0.3f, 0.2f);
-    TRANSFORM(fps)->position = cameraSize * glm::vec2(-0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.5f, -0.5f);
-    TRANSFORM(fps)->z = 1 - TRANSFORM(camera)->z;
+    ADD_COMPONENT(fps, Anchor);
+    ANCHOR(fps)->parent = camera;
+    ANCHOR(fps)->position = cameraSize * glm::vec2(-0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.5f, -0.5f);
+    ANCHOR(fps)->z = 1 - TRANSFORM(camera)->z;
     ADD_COMPONENT(fps, Rendering);
     RENDERING(fps)->texture = theRenderingSystem.loadTextureFile(FpsTextureName);
     RENDERING(fps)->show = true;
@@ -53,9 +55,10 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     fpsLabel = theEntityManager.CreateEntity("__debug_label_fps");
     ADD_COMPONENT(fpsLabel, Transformation);
-    TRANSFORM(fpsLabel)->parent = fps;
-    TRANSFORM(fpsLabel)->z = -0.002;
     TRANSFORM(fpsLabel)->size = TRANSFORM(fps)->size;
+    ADD_COMPONENT(fpsLabel, Anchor);
+    ANCHOR(fpsLabel)->parent = fps;
+    ANCHOR(fpsLabel)->z = -0.002;
 
     ADD_COMPONENT(fpsLabel, TextRendering);
     TEXT_RENDERING(fpsLabel)->positioning = TextRenderingComponent::LEFT;
@@ -65,10 +68,11 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     entityCount = theEntityManager.CreateEntity("__debug_entityCount");
     ADD_COMPONENT(entityCount, Transformation);
-    TRANSFORM(entityCount)->parent = camera;
     TRANSFORM(entityCount)->size = cameraSize * glm::vec2(0.3f, 0.2f);
-    TRANSFORM(entityCount)->position = cameraSize * glm::vec2(0.0f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.0f, -0.5f);
-    TRANSFORM(entityCount)->z = 1 - TRANSFORM(camera)->z;
+    ADD_COMPONENT(entityCount, Anchor);
+    ANCHOR(entityCount)->parent = camera;
+    ANCHOR(entityCount)->position = cameraSize * glm::vec2(0.0f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(0.0f, -0.5f);
+    ANCHOR(entityCount)->z = 1 - TRANSFORM(camera)->z;
     ADD_COMPONENT(entityCount, Rendering);
     RENDERING(entityCount)->texture = theRenderingSystem.loadTextureFile(EntitiesTextureName);
     RENDERING(entityCount)->show = true;
@@ -77,9 +81,10 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     entityCountLabel = theEntityManager.CreateEntity("__debug_label_entityCount");
     ADD_COMPONENT(entityCountLabel, Transformation);
-    TRANSFORM(entityCountLabel)->parent = entityCount;
-    TRANSFORM(entityCountLabel)->z = -0.002;
     TRANSFORM(entityCountLabel)->size = TRANSFORM(entityCount)->size;
+    ADD_COMPONENT(entityCountLabel, Anchor);
+    ANCHOR(entityCountLabel)->parent = entityCount;
+    ANCHOR(entityCountLabel)->z = -0.002;
 
     ADD_COMPONENT(entityCountLabel, TextRendering);
     TEXT_RENDERING(entityCountLabel)->positioning = TextRenderingComponent::LEFT;
@@ -89,10 +94,11 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     systems = theEntityManager.CreateEntity("__debug_systems");
     ADD_COMPONENT(systems, Transformation);
-    TRANSFORM(systems)->parent = camera;
     TRANSFORM(systems)->size = cameraSize * glm::vec2(0.3f, 0.2f);
-    TRANSFORM(systems)->position = cameraSize * glm::vec2(0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(-0.5f, -0.5f);
-    TRANSFORM(systems)->z = 1 - TRANSFORM(camera)->z;
+    ADD_COMPONENT(systems, Anchor);
+    ANCHOR(systems)->parent = camera;
+    ANCHOR(systems)->position = cameraSize * glm::vec2(0.5f, 0.5f) + TRANSFORM(fps)->size * glm::vec2(-0.5f, -0.5f);
+    ANCHOR(systems)->z = 1 - TRANSFORM(camera)->z;
     ADD_COMPONENT(systems, Rendering);
     RENDERING(systems)->texture = theRenderingSystem.loadTextureFile(SystemsTextureName);
     RENDERING(systems)->show = true;
@@ -103,10 +109,11 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     color.a = 1;
     Entity e = theEntityManager.CreateEntity(std::string("__debug_") + name);
     ADD_COMPONENT(e, Transformation);
-    TRANSFORM(e)->parent = parent;
-    TRANSFORM(e)->z = -0.002;
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
-    TRANSFORM(e)->position = TRANSFORM(parent)->size * (-0.5f) - glm::vec2(0.0f, (index + 1) * 0.6f);
+    ADD_COMPONENT(e, Anchor);
+    ANCHOR(e)->parent = parent;
+    ANCHOR(e)->z = -0.002;
+    ANCHOR(e)->position = TRANSFORM(parent)->size * (-0.5f) - glm::vec2(0.0f, (index + 1) * 0.6f);
 
     ADD_COMPONENT(e, TextRendering);
     TEXT_RENDERING(e)->color = color;
