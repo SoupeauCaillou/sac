@@ -9,9 +9,11 @@ int main(int argc, char **) {
 	EntityManager::CreateInstance();
     AssertOnFatal = false;
 
+#if SAC_ENABLE_LOG
     if (argc == 1)
         logLevel = LogVerbosity::FATAL;
     else
         logLevel = LogVerbosity::VERBOSE2;
+#endif
 	return UnitTest::RunAllTests();
 }

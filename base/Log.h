@@ -89,7 +89,7 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 
 #else
 
-#define LOGF(x) {}
+#define LOGF(x) { assert(!AssertOnFatal); }
 #define LOGE(x) {}
 #define LOGT(x) {}
 #define LOGW(x) {}

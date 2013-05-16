@@ -25,6 +25,7 @@ You can also specify arguments:
 \t-c|--cmakeconfig \"arguments for cmake\": see cmake for options. Some useful:
 \t\t-DCMAKE_BUILD_TYPE=release or debug
 \t\t-DTARGET=linux or android or emscripten or windows or darwin
+\t--target target_name: specify the target name
 \t-h|--help: show this help
 \t-l|--log \"arguments for coloredlog script\": options for this script. See it for arguments availables
 \t-r|--run \"arguments for game\": arguments handled by the game (--restore, --verbose, ..., whatever you did!)"

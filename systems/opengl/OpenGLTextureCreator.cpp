@@ -26,7 +26,7 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
 }
 
 static GLenum channelCountToGLFormat(int channelCount) {
-    GLenum format;
+    GLenum format = 0;
     switch (channelCount) {
         case 1:
             format = GL_ALPHA;

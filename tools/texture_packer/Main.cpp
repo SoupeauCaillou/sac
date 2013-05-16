@@ -8,7 +8,7 @@ static char* loadPng(const char* assetName, int* width, int* height);
 
 int main(int argc, char** argv) {
 	if (argc <= 1) {
-		std::cerr << "Usage: texture_packer file1.png file2.png ... fileN.png" << std::endl;
+		LOGE( "Usage: texture_packer file1.png file2.png ... fileN.png" );
 		return -1;
 	}
 
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 		int width, height;
 		char* img = loadPng(argv[i], &width, &height);
 		if (!img) {
-			std::cerr << "Unable to load '" << argv[i] << "'" << std::endl;
+			LOGE ("Unable to load '" << argv[i] << "'" );
 			return -1;
 		}
 		tp->addTexture(width, height);
@@ -30,12 +30,12 @@ int main(int argc, char** argv) {
 	#endif
 	tp->packTextures(finalW, finalH,true,true);
 
-	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
+	LOGI( "Atlas size:" << finalW << "," << finalH )
 
 	for (int i=1; i<argc; i++) {
 		int x, y, wid, hit;
 		bool rotated = tp->getTextureLocation(i-1, x, y, wid, hit);
-		std::cout << argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated << std::endl;
+		LOGI( argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated );
 	}
 
 	TEXTURE_PACKER::releaseTexturePacker(tp);

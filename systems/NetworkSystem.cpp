@@ -206,7 +206,7 @@ void NetworkSystem::DoUpdate(float dt) {
     }
 }
 
-void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
+void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
     static uint8_t temp[1024];
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (comp);
 

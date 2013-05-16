@@ -63,7 +63,10 @@ struct LevelEditor::LevelEditorDatas {
 
     Entity gallery;
     std::vector<Entity> galleryItems;
+
+#if SAC_ENABLE_LOG
     std::set<std::string> logControlFiles;
+#endif
 
     void changeMode(EditorMode::Enum newMode);
     void buildGallery();
@@ -142,9 +145,10 @@ LevelEditor::LevelEditor() {
 
     DebugConsole::Instance().init();
 
-    logBar = TwNewBar("Log_Control");
     entityListBar = TwNewBar("EntityList");
 
+#if SAC_ENABLE_LOGL
+    logBar = TwNewBar("Log_Control");
     TwDefine(" Log_Control iconified=true ");
     TwDefine(" EntityList iconified=true ");
     // add default choice for log control
@@ -160,12 +164,14 @@ LevelEditor::LevelEditor() {
     TwType type = TwDefineEnum("Verbosity", modes, sizeof(modes)/sizeof(TwEnumVal));
     TwAddVarRW(logBar, "Verbosity", type, &logLevel, "");
     TwAddSeparator(logBar, "File control", "");
+#endif
 }
 
 LevelEditor::~LevelEditor() {
     delete datas;
 }
 
+#if SAC_ENABLE_LOG
 static void TW_CALL LogControlSetCallback(const void *value, void *clientData) {
     const bool* l = static_cast<const bool*>(value);
     const char* s = static_cast<const char*>(clientData);
@@ -178,6 +184,7 @@ static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
     const char* s = static_cast<const char*>(clientData);
     *l = verboseFilenameFilters[s];
 }
+#endif
 
 void LevelEditor::tick(float dt) {
     // update entity list every sec
@@ -207,6 +214,7 @@ void LevelEditor::tick(float dt) {
         }
         accum = 0;
 
+#if SAC_ENABLE_LOG
         // update log buttons too
         for (auto it = verboseFilenameFilters.begin(); it!=verboseFilenameFilters.end(); ++it) {
             if (datas->logControlFiles.find(it->first) == datas->logControlFiles.end()) {
@@ -214,6 +222,7 @@ void LevelEditor::tick(float dt) {
                 datas->logControlFiles.insert(it->first);
             }
         }
+#endif
         unlock();
     }
 }

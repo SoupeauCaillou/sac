@@ -3,10 +3,10 @@ ADD_DEFINITIONS(-DSAC_WEB=1 -DSAC_USE_VBO=1)
 set(CMAKE_C_COMPILER emcc)
 set(CMAKE_CXX_COMPILER emcc)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -O0 -m32")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -O0")
 set(C_FLAGS_DEBUG "-g")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -std=c++0x -O0 -m32")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -std=c++0x -O0")
 set(CXX_FLAGS_DEBUG "-g")
 
 add_definitions(-D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 -D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 -D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 -D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8)
