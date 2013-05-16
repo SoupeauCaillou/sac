@@ -128,7 +128,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
 		fi
 	fi
 
-	executable=./$gameName $RUN_ARGS
+	executable="./$gameName $RUN_ARGS"
 	#debug required
 	if [ ! -z "$(echo $TARGETS | grep d)" ]; then
 		info "A bug? Cgdb on the way!"
