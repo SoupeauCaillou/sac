@@ -213,15 +213,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #endif
 		}
 
-#if SAC_DEBUG
-		virtual void preDeletionCheck(Entity) { };
-#endif
-
-		void Delete(Entity entity) {
-#if SAC_DEBUG
-		    preDeletionCheck(entity);
-#endif
-
+		virtual void Delete(Entity entity) {
 #if SAC_USE_VECTOR_STORAGE
             std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
             unsigned idx = it->second;
@@ -303,18 +295,11 @@ class ComponentSystemImpl: public ComponentSystem {
 
 		int deserialize(Entity entity, uint8_t* in, int size) {
 			T* component = Get(entity, false);
-            if (!component)
-#if SAC_USE_VECTOR_STORAGE
-                { Add(entity); component = Get(entity); }
-#else
-                component = new T();
-#endif
+            if (!component) {
+                theEntityManager.AddComponent(entity, this, true);
+                component = Get(entity);
+            }
             int s = componentSerializer.deserializeObject(in, size, component);
-#if SAC_USE_VECTOR_STORAGE
-
-#else
-			components[entity] = component;
-#endif
             return s;
 		}
 

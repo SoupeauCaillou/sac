@@ -89,6 +89,17 @@ void TransformationSystem::setPosition(TransformationComponent* tc, const glm::v
 	}
 }
 
+void TransformationSystem::Delete(Entity e) {
+    #if SAC_DEBUG
+    FOR_EACH_ENTITY_COMPONENT(Transformation, child, bc)
+        if (bc->parent == e) {
+            LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')')
+        }
+    }
+    #endif
+    ComponentSystemImpl<TransformationComponent>::Delete(e);
+}
+
 #if SAC_INGAME_EDITORS
 void TransformationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
     TransformationComponent* tc = Get(entity, false);
