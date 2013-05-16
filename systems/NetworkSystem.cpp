@@ -110,6 +110,8 @@ void NetworkSystem::DoUpdate(float dt) {
                     Entity e = guidToEntity(header->entityGuid);
                     if (e) {
                         theEntityManager.DeleteEntity(e);
+                    } else {
+                        LOGE("Unable to find entity to delete")
                     }
                     break;
                 }
@@ -177,6 +179,20 @@ void NetworkSystem::DoUpdate(float dt) {
             updateEntity(e, nc, dt);
         }
     }
+
+    // Forward entity deletion
+    LOGI_IF(!deletedEntities.empty(), "Dispatch " << deletedEntities.size() << " deletion")
+    std::for_each(deletedEntities.begin(), deletedEntities.end(), [this] (unsigned int guid) -> void {
+        uint8_t temp[1024];
+        NetworkPacket pkt;
+        NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
+        header->type = NetworkMessageHeader::DeleteEntity;
+        header->entityGuid = guid;
+        pkt.size = sizeof(NetworkMessageHeader);
+        pkt.data = temp;
+        SEND(pkt);
+    });
+    deletedEntities.clear();
 
     float diff = TimeUtil::GetTime() - counterTime;
     if (diff >= 1.0) {
@@ -282,6 +298,19 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float dt) {
         nc->newOwnerShipRequest = -1;
         LOGV(1, "Send change ownrship request for entity " << e << "/" << nc->guid << " :" << header->CHANGE_OWNERSHIP.newOwner << "(is local: " << nc->ownedLocally << ")")
     }
+}
+
+
+void NetworkSystem::Delete(Entity e) {
+    // mark the entity as deleted
+    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (NETWORK(e));
+
+    if (nc->ownedLocally) {
+        deletedEntities.push_back(nc->guid);
+    }
+
+    // delete it here
+    ComponentSystemImpl<NetworkComponent>::Delete(e);
 }
 
 NetworkComponent* NetworkSystem::CreateComponent() {

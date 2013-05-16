@@ -1,6 +1,7 @@
 #pragma once
 
 #include "System.h"
+#include <list>
 class NetworkAPI;
 struct NetworkComponentPriv;
 
@@ -21,6 +22,8 @@ public:
     void deleteAllNonLocalEntities();
     unsigned int entityToGuid(Entity e);
     Entity guidToEntity(unsigned int guid);
+
+    void Delete(Entity e) override;
 public:
     NetworkAPI* networkAPI;
     unsigned bytesSent, bytesReceived;
@@ -32,4 +35,5 @@ private:
     NetworkComponentPriv* guidToComponent(unsigned int guid);
     void updateEntity(Entity e, NetworkComponent* c, float dt);
     unsigned int nextGuid;
+    std::list<unsigned int> deletedEntities;
 };
