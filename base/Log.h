@@ -1,5 +1,7 @@
 #pragma once
 
+extern bool AssertOnFatal;
+
 #if SAC_ENABLE_LOG
 
 #undef ERROR
@@ -27,7 +29,6 @@ namespace LogVerbosity {
 
 extern LogVerbosity::Enum logLevel;
 extern std::map<std::string, bool> verboseFilenameFilters;
-extern bool AssertOnFatal;
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
@@ -100,9 +101,11 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #define LOGE_IF(cond, x) {}
 #define LOGT_IF(cond, x) {}
 #define LOGW_IF(cond, x) {}
+#define LOGI_IF(cond, x) {}
 #define LOGV_IF(verbosity, cond, x) {}
 
 #define LOGE_EVERY_N(n, x) {}
 #define LOGW_EVERY_N(n, x) {}
+#define LOGI_EVERY_N(n, x) {}
 
 #endif
