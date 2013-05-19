@@ -28,28 +28,36 @@ bool KeyboardInputHandlerAPIGLFWImpl::done(std::string & final) {
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::update() {
+    //each dt, if the key is pressed, call the function
     for (auto it : key2callback) {
         if (it.second.first) {
-            it.second.second();
+            if (it.second.second != 0) {
+                it.second.second();
+            }
         }
     }
 }
 
-void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPressPerScancode(int value, std::function<void()> f) {
+void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(int value, std::function<void()> f) {
     key2callback[value] = std::pair<bool, std::function<void()>> (false, f);
 }
 
+bool KeyboardInputHandlerAPIGLFWImpl::isKeyPressed(int key) {
+    return (key2callback[key].first == true);
+}
+
+
 int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const SDL_Event* event) {
     int key = event->key.keysym.sym;
-    int scancode = event->key.keysym.scancode;
     if (event->type == SDL_KEYUP) {
         //if we don't want some text, then check the map, maybe the key was registered
         if (textIsReady) {
+            // LOGI("key released: " << key);
             //unfortunately auto doesn't work here (maybe does it create a const iterator ? anyway, with auto, that won't modify the key at all :(
             //for (auto it : key2callback) {
             std::map<int, std::pair<bool, std::function<void()>>>::iterator it;
             for (it = key2callback.begin(); it != key2callback.end(); ++it) {
-                if (it->first == scancode) {
+                if (it->first == key) {
                     it->second.first = false;
                     return 1;
                 }
@@ -77,11 +85,12 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const SDL_Event* event) {
         return 1;
 
     } else if (event->type == SDL_KEYDOWN) {
+        // LOGI("key pressed: " << key);
         //unfortunately auto doesn't work here (maybe does it create a const iterator ? anyway, with auto, that won't modify the key at all :(
         //for (auto it : key2callback) {
         std::map<int, std::pair<bool, std::function<void()>>>::iterator it;
         for (it = key2callback.begin(); it != key2callback.end(); ++it) {
-            if (it->first == scancode) {
+            if (it->first == key) {
                 it->second.first = true;
                 return 1;
             }

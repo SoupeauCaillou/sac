@@ -12,11 +12,13 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         void getUserInput(const int imaxSize);
         bool done(std::string & final);
 
-        void registerToKeyPressPerScancode(int value, std::function<void()> f);
+        void registerToKeyPress(int value, std::function<void()> f);
 
         void update();
 
         int eventSDL(const SDL_Event* event);
+
+        bool isKeyPressed(int key);
 
     private:
         bool textIsReady;
