@@ -30,12 +30,14 @@ int main(int argc, char** argv) {
 	#endif
 	tp->packTextures(finalW, finalH,true,true);
 
-	LOGI( "Atlas size:" << finalW << "," << finalH )
+	// GAUTIER BORDEL, LAISSE LES std::cout :p
+	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;
 
 	for (int i=1; i<argc; i++) {
 		int x, y, wid, hit;
 		bool rotated = tp->getTextureLocation(i-1, x, y, wid, hit);
-		LOGI( argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated );
+		// MEME REMARQUE :p
+		std::cout << argv[i] << "," << x << "," << y << "," << wid << "," << hit << "," << rotated << std::endl;
 	}
 
 	TEXTURE_PACKER::releaseTexturePacker(tp);
