@@ -70,6 +70,11 @@ TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingCo
 }
 
 void TextRenderingSystem::DoUpdate(float dt) {
+    if (!components.empty() && fontRegistry.empty()) {
+        LOGW("Trying to use TextRendering, with no font defined");
+        return;
+    }
+
     CacheKey key;
     unsigned letterCount = 0;
 
