@@ -19,7 +19,7 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
 
             // if section define a subentity -> load it as template too
             if (!subEntities.empty())
-                LOGI("Entity '" << context << "' has " << subEntities.size() << " sub entities")
+                LOGI("Entity '" << context << "' has " << subEntities.size() << " sub entities");
             for (auto subName : subEntities) {
                 std::string fullName (context + std::string("#") + subName);
                 EntityTemplateRef subRef = MurmurHash::compute(fullName.c_str(), fullName.length());
@@ -42,11 +42,11 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     DataFileParser dfp;
     FileBuffer fb = assetAPI->loadAsset(asset2File(name));
     if (!fb.size) {
-        LOGE("Unable to load '" << asset2File(name) << "'")
+        LOGE("Unable to load '" << asset2File(name) << "'");
         return false;
     }
     if (!dfp.load(fb, asset2File(name))) {
-        LOGE("Unable to parse '" << asset2File(name) << "'")
+        LOGE("Unable to parse '" << asset2File(name) << "'");
         delete[] fb.data;
         return false;
     }
@@ -56,23 +56,23 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     if (dfp.get("", "extends", &extends, 1, false)) {
         FileBuffer fb2 = assetAPI->loadAsset(asset2File(extends));
         if (!fb2.size) {
-            LOGE("Unable to load 'extends' file: '" << extends << "'")
+            LOGE("Unable to load 'extends' file: '" << extends << "'");
         } else if (!dfp.load(fb2, asset2File(extends))) {
-            LOGE("Unable to parse 'extends' file '" << extends << "'")
+            LOGE("Unable to parse 'extends' file '" << extends << "'");
         }
         registerNewAsset(name, extends);
         delete[] fb2.data;
     }
 
     int propCount = loadTemplate(name, "", dfp, r, out);
-    LOGI( "Loaded entity template: '" << name << "' (" << propCount << " properties)")
+    LOGI( "Loaded entity template: '" << name << "' (" << propCount << " properties)");
 
     delete[] fb.data;
     return true;
 }
 
 void EntityTemplateLibrary::doUnload(const std::string&, const EntityTemplate&) {
-	LOGE("TODO")
+	LOGE("TODO");
 }
 
 #if SAC_LINUX && SAC_DESKTOP
@@ -80,7 +80,7 @@ void EntityTemplateLibrary::applyTemplateToAll(const EntityTemplateRef& ref) {
     auto it = template2entities.find(ref);
     if (it != template2entities.end()) {
         for (auto ent: (*it).second) {
-            LOGV(2, "apply template to '" << theEntityManager.entityName(ent) << "'")
+            LOGV(2, "apply template to '" << theEntityManager.entityName(ent) << "'");
             applyEntityTemplate(ent, ref);
         }
     }
@@ -94,7 +94,7 @@ void EntityTemplateLibrary::applyTemplateToAll(const EntityTemplateRef& ref) {
 #endif
 
 void EntityTemplateLibrary::doReload(const std::string& name, const EntityTemplateRef& ref) {
-    LOGE("RELOAD: " << name)
+    LOGE("RELOAD: " << name);
     EntityTemplate newTempl;
     if (doLoad(name, newTempl, ref)) {
         ref2asset[ref] = newTempl;
@@ -102,22 +102,22 @@ void EntityTemplateLibrary::doReload(const std::string& name, const EntityTempla
         applyTemplateToAll(ref);
 #endif
     } else {
-        LOGW("Unable to reload '" << name << "'")
+        LOGW("Unable to reload '" << name << "'");
     }
 }
 
 void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRef& templRef) {
-    LOGV(2, "apply template " << templRef << " to '" << theEntityManager.entityName(e) << "'")
+    LOGV(2, "apply template " << templRef << " to '" << theEntityManager.entityName(e) << "'");
 
     auto parentIt = template2parent.find(templRef);
     if (parentIt != template2parent.end()) {
-        LOGV(1, "apply parent first")
+        LOGV(1, "apply parent first");
         applyEntityTemplate(e, parentIt->second);
     }
     // typedef std::map<std::string, uint8_t*> PropertyNameValueMap;
     // typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
     const auto tIt = ref2asset.find(templRef);
-    LOGF_IF(tIt == ref2asset.end(), "Unknown entity template ref ! " << templRef);
+    LOGF_IF(tIt == ref2asset.end(), "Unknown entity template ref ! " << templRef);;
     const EntityTemplate& templ = tIt->second;
     for (auto it: templ) {
         ComponentSystem* s = it.first;

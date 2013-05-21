@@ -79,7 +79,7 @@ void AnchorSystem::DoUpdate(float) {
 void AnchorSystem::Delete(Entity e) {
     FOR_EACH_ENTITY_COMPONENT(Anchor, child, bc)
         if (bc->parent == e) {
-            LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')')
+            LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')');
         }
     }
     ComponentSystemImpl<AnchorComponent>::Delete(e);

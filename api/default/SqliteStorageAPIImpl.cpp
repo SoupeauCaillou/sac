@@ -83,7 +83,7 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
     bool r = request("", 0, 0);
 
     if (r) {
-        LOGI("initializing database...")
+        LOGI("initializing database...");
 
         createTable("info", "opt varchar2(10) primary key, value varchar2(10)");
     }
@@ -110,7 +110,7 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     int rc = sqlite3_open(_dbPath.c_str(), &db);
     if( rc ){
         sqlite3_close(db);
-        LOGF("Can't open database " << _dbPath << " : " << sqlite3_errmsg(db))
+        LOGF("Can't open database " << _dbPath << " : " << sqlite3_errmsg(db));
         return false;
     }
 
@@ -123,7 +123,7 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     }
 
     if (rc != SQLITE_OK) {
-        LOGE("SQL error: " << zErrMsg << "(asked = " << statement << ')')
+        LOGE("SQL error: " << zErrMsg << "(asked = " << statement << ')');
         sqlite3_free(zErrMsg);
         sqlite3_close(db);
         return false;

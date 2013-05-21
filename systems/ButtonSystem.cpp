@@ -50,7 +50,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 						comp->lastClick = t;
 						comp->clicked = true;
 
-                         LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked")
+                         LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked");
 
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);

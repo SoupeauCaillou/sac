@@ -25,14 +25,14 @@ void AutoDestroySystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(AutoDestroy, a, adc)
         switch (adc->type) {
             case AutoDestroyComponent::OUT_OF_AREA: {
-                LOGW_IF(adc->params.area.size.x <= 0 || adc->params.area.size.y <= 0, "Invalid area size: " << adc->params.area.size.x << "x" << adc->params.area.size.y)
+                LOGW_IF(adc->params.area.size.x <= 0 || adc->params.area.size.y <= 0, "Invalid area size: " << adc->params.area.size.x << "x" << adc->params.area.size.y);
                 const TransformationComponent* tc = TRANSFORM(a);
                 if (!IntersectionUtil::rectangleRectangle(tc->position, tc->size, tc->rotation,
                     adc->params.area.position, adc->params.area.size, 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
 
                     LOGI("Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
-                        << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size)
+                        << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size);
                 }
                 break;
             }
@@ -40,7 +40,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 adc->params.lifetime.freq.accum += dt;
                 if (adc->params.lifetime.freq.accum >= adc->params.lifetime.freq.value) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
-                    LOGI("Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed")
+                    LOGI("Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed");
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.freq.accum / adc->params.lifetime.freq.value;

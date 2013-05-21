@@ -181,31 +181,31 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
 	FileBuffer file = asset->loadAsset(name + ".font");
     DataFileParser dfp;
     if (!dfp.load(file, name + ".font")) {
-        LOGE("Invalid font description file: " << name)
+        LOGE("Invalid font description file: " << name);
         return;
     }
 
     unsigned defCount = dfp.sectionSize(DataFileParser::GlobalSection);
-    LOGW_IF(defCount == 0, "Font definition '" << name << "' has no entry")
+    LOGW_IF(defCount == 0, "Font definition '" << name << "' has no entry");
     std::map<uint32_t, float> h2wratio;
     std::string charUnicode;
     for (unsigned i=0; i<defCount; i++) {
         int w_h[2];
         if (!dfp.get(DataFileParser::GlobalSection, i, charUnicode, w_h, 2)) {
-            LOGE("Unable to parse entry #" << i << " of " << name)
+            LOGE("Unable to parse entry #" << i << " of " << name);
         }
         std::stringstream ss;
         ss << std::hex << charUnicode;
         uint32_t cId;
         ss >> cId;
         h2wratio[cId] = (float)w_h[0] / w_h[1];
-        LOGV(2, "Font entry: " << cId << ": " << h2wratio[cId])
+        LOGV(2, "Font entry: " << cId << ": " << h2wratio[cId]);
     }
 	delete[] file.data;
 	// h2wratio[' '] = h2wratio['r'];
 	// h2wratio[0x97] = 1;
 	theTextRenderingSystem.registerFont(name, h2wratio);
-    LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries")
+    LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
 }
 
 void Game::sacInit(int windowW, int windowH) {
@@ -268,8 +268,8 @@ void Game::step() {
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
 
-    LOGV(2, "dt = " << delta)
-    LOGV(2, "Update input")
+    LOGV(2, "dt = " << delta);
+    LOGV(2, "Update input");
     theTouchInputManager.Update(delta);
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
@@ -301,7 +301,7 @@ void Game::step() {
             break;
         case GameType::SingleStep:
             delta = 1.0/60;
-            LOGI("Single stepping the game (delta: " << delta << " ms)")
+            LOGI("Single stepping the game (delta: " << delta << " ms)");
             tick(delta);
             gameType = GameType::LevelEditor;
         default:
@@ -320,7 +320,7 @@ void Game::step() {
             tick(delta);
     }
 #else
-    LOGV(1, "Update game")
+    LOGV(1, "Update game");
     tick(delta);
 #endif
 
@@ -357,13 +357,13 @@ void Game::step() {
         theAnchorSystem.Update(delta);
     }
     if (oneStepEnabled) {
-        LOGI("one more step")
+        LOGI("one more step");
         oneStepEnabled = false;
         speedFactor = 0.;
     }
 
 #endif
-    LOGV(2, "Produce rendering frame")
+    LOGV(2, "Produce rendering frame");
     // produce 1 new frame
     theRenderingSystem.Update(0);
 
@@ -396,7 +396,7 @@ void Game::render() {
         ++count;
         if (count == 1000) {
             LOGV(LogVerbosity::VERBOSE1, "FPS avg/min/max : " <<
-                (1000.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt))
+                (1000.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt));
             count = 0;
             fpsStats.reset(t);
         }

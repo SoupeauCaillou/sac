@@ -9,7 +9,7 @@
 
 ResourceHotReload::InotifyDatas::InotifyDatas(const std::string & file, const std::string & asset)
 	: _filename(file), _assetname(asset) {
-	LOGI("New asset to monitor: " << _assetname << " from file " << _filename)
+	LOGI("New asset to monitor: " << _assetname << " from file " << _filename);
 
 	inotifyFd = inotify_init();
 	wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_CLOSE_WRITE);
@@ -55,13 +55,13 @@ void ResourceHotReload::registerNewAsset(const std::string & asset, const std::s
         const std::string assetsDirectory = "assets/";
         size_t idx = full.find(assetsDirectory);
         if (idx == std::string::npos) {
-            LOGW("File " << asset2File(filename) << " does not exist! Can't monitore it")
+            LOGW("File " << asset2File(filename) << " does not exist! Can't monitore it");
             return;
         }
         full.replace(idx, assetsDirectory.length(), "assetspc/");
         ifile.open(full, std::ifstream::in);
         if (!ifile) {
-            LOGW("File " << asset2File(filename) << " does not exist! Can't monitore it")
+            LOGW("File " << asset2File(filename) << " does not exist! Can't monitore it");
             return;
         }
     }

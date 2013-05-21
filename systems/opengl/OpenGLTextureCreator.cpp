@@ -30,22 +30,22 @@ static GLenum channelCountToGLFormat(int channelCount) {
     switch (channelCount) {
         case 1:
             format = GL_ALPHA;
-            LOGV(2,  channelCount << " -> GL_ALPHA")
+            LOGV(2,  channelCount << " -> GL_ALPHA");
             break;
         case 2:
             format = GL_LUMINANCE_ALPHA;
-            LOGV(2, channelCount << " -> GL_LUMINANCE_ALPHA")
+            LOGV(2, channelCount << " -> GL_LUMINANCE_ALPHA");
             break;
         case 3:
             format = GL_RGB;
-            LOGV(2, channelCount << " -> GL_RGB")
+            LOGV(2, channelCount << " -> GL_RGB");
             break;
         case 4:
             format = GL_RGBA;
-            LOGV(2, channelCount << " -> GL_RGBA")
+            LOGV(2, channelCount << " -> GL_RGBA");
             break;
         default:
-            LOGF("Invalid channel count: " << channelCount)
+            LOGF("Invalid channel count: " << channelCount);
     }
     return format;
 }
@@ -96,7 +96,7 @@ InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std
     result.color = loadSplittedFromFile(assetAPI, name, COLOR, outSize, imgChannelCount);
 #if ! SAC_EMSCRIPTEN
     if (result.color && imgChannelCount == 4) {
-        LOGV(1, name << " texture has 4 channels. Use it for alpha as well")
+        LOGV(1, name << " texture has 4 channels. Use it for alpha as well");
         result.alpha = loadSplittedFromFile(assetAPI, name, ALPHA_MASK, outSize, imgChannelCount);
     } else
 #endif
@@ -113,21 +113,21 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     // First, try PVR compression, then PKM (ETC1)
     if (type == COLOR) {
         if (pvrFormatSupported) {
-            LOGV(2, "Using PVR version")
+            LOGV(2, "Using PVR version");
             file = assetAPI->loadAsset(name + ".pvr");
         } else if (pkmFormatSupported) {
-            LOGV(2, "Using PKM version")
+            LOGV(2, "Using PKM version");
             file = assetAPI->loadAsset(name + ".pkm");
         } else {
-            LOGV(1, "PVM nor ETC1 supported, falling back on PNG format")
+            LOGV(1, "PVM nor ETC1 supported, falling back on PNG format");
         }
     }
 
     if (!file.data) {
-        LOGV(2, "Using PNG version")
+        LOGV(2, "Using PNG version");
         file = assetAPI->loadAsset(name + ".png");
         if (!file.data) {
-            LOGE("Image not found '" << name << ".png'")
+            LOGE("Image not found '" << name << ".png'");
             return 0;
         }
         png = true;
@@ -137,7 +137,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     ImageDesc image = parseImageContent(name, file, png);
     delete[] file.data;
     if (!image.datas) {
-        LOGE("Could not read image, aborting")
+        LOGE("Could not read image, aborting");
         return 0;
     }
     #if SAC_EMSCRIPTEN
@@ -168,7 +168,7 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
         case OpenGLTextureCreator::COLOR_ALPHA:
             return GL_RGBA;
         default:
-            LOGF("Unhandled typeToFormat value: " << type)
+            LOGF("Unhandled typeToFormat value: " << type);
      }
      return GL_INVALID_VALUE;
 }
@@ -189,7 +189,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
     GLenum format = channelCountToGLFormat(image.channels);
 
     if (image.type == ImageDesc::RAW) {
-        LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height)
+        LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height);
 #if SAC_EMSCRIPTEN
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
 #else
@@ -198,10 +198,10 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
 #if SAC_ANDROID
-        LOGW("Fix PVR detection")
+        LOGW("Fix PVR detection");
         bool pvrSupported = false;
         char* ptr = image.datas;
-        LOGV(2, "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)")
+        LOGV(2, "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
         for (int level=0; level<=image.mipmap; level++) {
             int width = std::max(1, image.width >> level);
             int height = std::max(1, image.height >> level);
@@ -210,12 +210,12 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
                 imgSize =( std::max(width, 8) * std::max(height, 8) * 4 + 7) / 8;
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
-            LOGV(3, "\t- mipmap " << level << " : " << width << 'x' << height)
+            LOGV(3, "\t- mipmap " << level << " : " << width << 'x' << height);
             GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
             ptr += imgSize;
         }
 #else
-        LOGF("ETC compression not supported")
+        LOGF("ETC compression not supported");
         return;
 #endif
     }
@@ -223,7 +223,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 #if SAC_ANDROID || SAC_EMSCRIPTEN
 #else
     if (image.mipmap == 0 && enableMipMapping) {
-        LOGV(1, "Generating mipmaps")
+        LOGV(1, "Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 #endif
@@ -259,10 +259,10 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
     std::string aa = a.str();
     SDL_Surface* s = IMG_Load(aa.c_str());
     if (s == 0) {
-        LOGW("Failed to load '" << a.str() << "'")
+        LOGW("Failed to load '" << a.str() << "'");
         return image;
     }
-    LOGI("Image : " << basename << " format: " << s->w << 'x' << s->h << ' ' << (int)s->format->BitsPerPixel << " bpp")
+    LOGI("Image : " << basename << " format: " << s->w << 'x' << s->h << ' ' << (int)s->format->BitsPerPixel << " bpp");
     image.channels = s->format->BitsPerPixel / 8;
 
     image.type = ImageDesc::RAW;

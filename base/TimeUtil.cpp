@@ -64,7 +64,7 @@ float TimeUtil::GetTime() {
 #if SAC_LINUX || SAC_ANDROID
 		struct timespec tv;
 		if (clock_gettime(CLOCK_MONOTONIC, &tv) != 0) {
-        LOGF("clock_gettime failure")
+        LOGF("clock_gettime failure");
 		}
 		sub(tv, startup_time);
 #elif SAC_EMSCRIPTEN || SAC_DARWIN

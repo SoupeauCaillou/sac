@@ -47,8 +47,8 @@ class CommunicationAPILinuxImpl : public CommunicationAPI {
             LOGV(1, "buttonClicked not handled on this platform.");
         }
 
-		void shareFacebook() { LOGV(1, "facebook share") }
-		void shareTwitter() { LOGV(1, "twitter share") }
+		void shareFacebook() { LOGV(1, "facebook share"); }
+		void shareTwitter() { LOGV(1, "twitter share"); }
 
 		bool mustShowRateDialog() { LOGV(1, "always true"); return true; }
 		void rateItNow() { LOGV(1, "not handled"); }

@@ -24,7 +24,7 @@ struct DataFileParser::DataFileParserData {
         } else {
             std::map<std::string, Section*>::const_iterator it = sections.find(name);
             if (it == sections.end()) {
-                LOGE("Cannot find section '" << name << "'")
+                LOGE("Cannot find section '" << name << "'");
                 return false;
             }
             *sectPtr = it->second;
@@ -99,7 +99,7 @@ void DataFileParser::unload() {
 
 bool DataFileParser::keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& out) const {
     if (!data) {
-        LOGE("No data loaded before requesting key value : " << section << '/' << var)
+        LOGE("No data loaded before requesting key value : " << section << '/' << var);
         return false;
     }
     const Section* sectPtr = 0;
@@ -108,7 +108,7 @@ bool DataFileParser::keyValue(const std::string& section, const std::string& var
     }
     std::map<std::string, std::string>::const_iterator jt = sectPtr->find(var);
     if (jt == sectPtr->end()) {
-        LOGE_IF(warnIfNotFound, context << ": cannot find var '" << var << "' in section '" << section << "'")
+        LOGE_IF(warnIfNotFound, context << ": cannot find var '" << var << "' in section '" << section << "'");
         return false;
     }
     out = jt->second;
@@ -117,7 +117,7 @@ bool DataFileParser::keyValue(const std::string& section, const std::string& var
 
 bool DataFileParser::indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const {
     if (!data) {
-        LOGE("No data loaded before requesting section " << section << " index " << index)
+        LOGE("No data loaded before requesting section " << section << " index " << index);
         return false;
     }
     const Section* sectPtr = 0;
@@ -125,7 +125,7 @@ bool DataFileParser::indexValue(const std::string& section, unsigned index, std:
         return false;
     }
     if (sectPtr->size() <= index) {
-        LOGE(context << ": requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements")
+        LOGE(context << ": requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements");
         return false;
     }
     Section::const_iterator jt = sectPtr->begin();
@@ -137,7 +137,7 @@ bool DataFileParser::indexValue(const std::string& section, unsigned index, std:
 
 bool DataFileParser::hasSection(const std::string& section) const {
     if (!data) {
-        LOGE("No data loaded before requesting section size : " << section)
+        LOGE("No data loaded before requesting section size : " << section);
         return false;
     }
     if (section == GlobalSection)
@@ -147,14 +147,14 @@ bool DataFileParser::hasSection(const std::string& section) const {
 
 unsigned DataFileParser::sectionSize(const std::string& section) const {
     if (!data) {
-        LOGE("No data loaded before requesting section size : " << section)
+        LOGE("No data loaded before requesting section size : " << section);
         return 0;
     }
     if (section == GlobalSection)
         return data->global.size();
     std::map<std::string, Section*>::const_iterator it = data->sections.find(section);
     if (it == data->sections.end()) {
-        LOGE(context << ": cannot find section '" << section << "'")
+        LOGE(context << ": cannot find section '" << section << "'");
         return 0;
     }
     return it->second->size();
@@ -167,15 +167,15 @@ bool DataFileParser::determineSubStringIndexes(const std::string& str, int count
     for (int i=0; i<count-1; i++) {
         index = str.find(',', index);
         if (index == std::string::npos) {
-            LOGE_IF(warnIfNotFound, context << ": entry '" << str << "' does not contain '" << count << "' values")
+            LOGE_IF(warnIfNotFound, context << ": entry '" << str << "' does not contain '" << count << "' values");
             return false;
         } else {
             outIndexes[i] = index - 1;
-            LOGV(2, i << " = " << outIndexes[i])
+            LOGV(2, i << " = " << outIndexes[i]);
             index += 2;
         }
     }
-    LOGV(2, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')')
+    LOGV(2, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')');
     return true;
 }
 
@@ -193,7 +193,7 @@ int DataFileParser::getSubStringCount(const std::string& section, const std::str
 
 void DataFileParser::defineVariable(const std::string& name, const std::string& value) {
     if (!data) {
-        LOGE("No data loaded before setting variable")
+        LOGE("No data loaded before setting variable");
     } else {
         std::stringstream v;
         v << '$' << name;

@@ -37,16 +37,16 @@
             static type##System& GetInstance() { return (*_instance); } \
             static void CreateInstance() {\
                 if (_instance != NULL) {\
-                    LOGW("Creating another instance of type##System")\
+                    LOGW("Creating another instance of type##System");\
                 }\
                 _instance = new type##System();\
-                LOGI(#type "System new instance created: "<<  _instance)\
+                LOGI(#type "System new instance created: "<<  _instance);\
             }\
             static void DestroyInstance() { \
                 if (_instance) {\
                     delete _instance;\
                 }\
-                LOGI(#type << "System instance destroyed was: " <<  _instance)\
+                LOGI(#type << "System instance destroyed was: " <<  _instance);\
                 _instance = NULL;\
             } \
             void DoUpdate(float dt); \
@@ -65,15 +65,15 @@
 			static type##System& GetInstance() { return (*_instance); } \
 			static void CreateInstance() { \
 			    if (_instance != NULL) { \
-				    LOGW("Creating another instance of type##System")\
+				    LOGW("Creating another instance of type##System");\
 			    }\
 			    _instance = new type##System();\
-			    LOGI(#type "System new instance created: " <<  _instance)\
+			    LOGI(#type "System new instance created: " <<  _instance);\
 			} \
 			static void DestroyInstance() {\
 			    if (_instance)\
 				    delete _instance;\
-			    LOGI(#type "System instance destroyed, was:" << _instance)\
+			    LOGI(#type "System instance destroyed, was:" << _instance);\
 			    _instance = NULL;\
 			} \
 			void DoUpdate(float dt); \
@@ -123,8 +123,9 @@ class ComponentSystem {
 #if SAC_DEBUG
             , updateDuration(0)
 #endif
-         { bool inserted = registry.insert(std::make_pair(name, this)).second; \
-            LOGF_IF(!inserted, "System with name '" << name << "' already exists") \
+         {
+            bool inserted = registry.insert(std::make_pair(name, this)).second;
+            LOGF_IF(!inserted, "System with name '" << name << "' already exists");
         }
 
         virtual ~ComponentSystem() { registry.erase(name); }
@@ -252,7 +253,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     // crash here
                     if (failIfNotfound) {
                         LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << entity << ") has no component of type '" << getName() << "'")
+                            << "' (" << entity << ") has no component of type '" << getName() << "'");
                     }
     				return 0;
     			}

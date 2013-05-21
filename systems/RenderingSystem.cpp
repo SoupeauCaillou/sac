@@ -74,7 +74,7 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 }
 
 void RenderingSystem::init() {
-    LOGF_IF(!assetAPI, "AssetAPI must be set before init is called")
+    LOGF_IF(!assetAPI, "AssetAPI must be set before init is called");
     OpenGLTextureCreator::detectSupportedTextureFormat();
     textureLibrary.init(assetAPI);
     effectLibrary.init(assetAPI);
@@ -259,7 +259,7 @@ void RenderingSystem::DoUpdate(float) {
     static unsigned int cccc = 0;
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
-    LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')')
+    LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
 
     // retrieve all cameras
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
@@ -319,7 +319,7 @@ void RenderingSystem::DoUpdate(float) {
                     // If atlas texture is not loaded yet, load it
                     if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
                         atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
-                        LOGI("Requested effective load of atlas '" << atlas[atlasIdx].name << "' -> ref=" << atlas[atlasIdx].ref)
+                        LOGI("Requested effective load of atlas '" << atlas[atlasIdx].name << "' -> ref=" << atlas[atlasIdx].ref);
                     }
 
                     // Only display the required area of the texture
@@ -397,7 +397,7 @@ void RenderingSystem::DoUpdate(float) {
     	         	opaqueCommands.push_back(c);
     	         	break;
                  default:
-                    LOGW("Entity will not be drawn")
+                    LOGW("Entity will not be drawn");
                     break;
             }
         }
@@ -522,7 +522,7 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc) const {
 
 int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
 	int size = 0;
-    LOGW("TODO")
+    LOGT("");
 #if 0
     for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
         size += (*it).first.length() + 1;
@@ -543,7 +543,7 @@ int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) {
-    LOGW("TODO")
+    LOGT("");
 #if 0
 	assetTextures.clear();
 	textures.clear();
@@ -594,7 +594,7 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
 #if ! SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
-    LOGI("Set rendering queue writable= " << b << " and flush queues")
+    LOGI("Set rendering queue writable= " << b << " and flush queues");
     // Change writable state
     frameQueueWritable = b;
     // Flush queues
@@ -646,7 +646,7 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     // check FBO status
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
-        LOGF("FBO not complete: " << status)
+        LOGF("FBO not complete: " << status);
 
     // switch back to window-system-provided framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

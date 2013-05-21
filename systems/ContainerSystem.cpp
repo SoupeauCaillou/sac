@@ -46,7 +46,7 @@ void ContainerSystem::DoUpdate(float) {
 			updateMinMax(minX, minY, maxX, maxY, tc);
 
 			if (bc->includeChildren) {
-                LOGW_EVERY_N(60, "TODO")
+                LOGT_EVERY_N(60, "Container size depending on children");
                 #if 0
 				// arg
 				for(std::vector<Entity>::const_iterator kt=allEntities.begin(); kt!=allEntities.end(); ++kt) {

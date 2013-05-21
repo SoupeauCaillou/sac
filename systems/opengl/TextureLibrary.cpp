@@ -56,18 +56,18 @@ TextureInfo::TextureInfo (const InternalTexture& ref,
 }
 
 bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, const TextureRef& ref) {
-    LOGF_IF(assetAPI == 0,"Unitialized assetAPI member")
+    LOGF_IF(assetAPI == 0,"Unitialized assetAPI member");
 
     std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
-        LOGV(1, "loadTexture: '" << assetName << "' from file")
+        LOGV(1, "loadTexture: '" << assetName << "' from file");
         out.glref = OpenGLTextureCreator::loadFromFile(assetAPI, assetName, out.originalSize);
         #if SAC_LINUX && SAC_DESKTOP
         registerNewAsset(assetName + "_alpha");
         #endif
     } else {
         const ImageDesc& imageDesc = it->second;
-        LOGV(1, "loadTexture: '" << assetName << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')')
+        LOGV(1, "loadTexture: '" << assetName << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')');
         out.glref.color =
             out.glref.alpha =
                 OpenGLTextureCreator::loadFromImageDesc(imageDesc, assetName, OpenGLTextureCreator::COLOR_ALPHA, out.originalSize);
@@ -85,7 +85,7 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
 }
 
 void TextureLibrary::doUnload(const std::string& /*name*/, const TextureInfo& /*in*/) {
-    LOGW("TODO")
+    LOGT("Texture unloading");
 }
 
 void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
@@ -96,10 +96,10 @@ void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
     return;
     std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
     if (it == dataSource.end()) {
-        LOGW("TextureLibrary::doReload (" << name << ") -> TODO")
+        LOGW("TextureLibrary::doReload (" << name << ") -> TODO");
     } else {
         const ImageDesc& imageDesc = it->second;
-        LOGV(1, "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')')
+        LOGV(1, "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')');
         OpenGLTextureCreator::updateFromImageDesc(imageDesc, info.glref.color, OpenGLTextureCreator::COLOR_ALPHA);
     }
 }

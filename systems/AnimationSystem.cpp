@@ -7,7 +7,7 @@ static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, con
 
     // hum..RENDERING(e)->show = (frame.texture != InvalidTextureRef);
     RENDERING(e)->texture = frame.texture;
-    LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size())
+    LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size());
     for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
         TransformationComponent* tc = TRANSFORM(animComp->subPart[i]);
         const AnimDescriptor::AnimFrame::Transform& trans = frame.transforms[i];
@@ -38,7 +38,7 @@ void AnimationSystem::DoUpdate(float dt) {
             continue;
         AnimIt jt = animations.find(bc->name);
         if (jt == animations.end() || bc->playbackSpeed <= 0) {
-            LOGW_IF(jt == animations.end(), "Animation '" << bc->name << "' not found")
+            LOGW_IF(jt == animations.end(), "Animation '" << bc->name << "' not found");
             continue;
         }
         AnimDescriptor* anim = jt->second;
@@ -98,11 +98,11 @@ void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, cons
         if (desc->load(fileN, file, variables, varcount)) {
             animations.insert(std::make_pair(name, desc));
         } else {
-            LOGE("Invalid animation file: " << filename << ".anim")
+            LOGE("Invalid animation file: " << filename << ".anim");
             delete desc;
         }
     } else {
-        LOGE("Empty animation file: " << filename << ".anim")
+        LOGE("Empty animation file: " << filename << ".anim");
     }
     delete[] file.data;
 }

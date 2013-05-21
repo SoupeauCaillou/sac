@@ -175,7 +175,7 @@ LevelEditor::~LevelEditor() {
 static void TW_CALL LogControlSetCallback(const void *value, void *clientData) {
     const bool* l = static_cast<const bool*>(value);
     const char* s = static_cast<const char*>(clientData);
-    LOGI("Change verbosity for '" << s << "' -> '" << *l << "'")
+    LOGI("Change verbosity for '" << s << "' -> '" << *l << "'");
     verboseFilenameFilters[s] = *l;
 }
 

@@ -33,7 +33,7 @@ void StateMachine<T>::registerState(T id, StateHandler<T>* hdl, const std::strin
     #else
     #endif
     ) {
-    LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered")
+    LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered");
 	state2handler.insert(std::make_pair(id, hdl));
     #ifdef SAC_ENABLE_LOG
     state2Name.insert(std::make_pair(id, stateDebugName));
@@ -45,21 +45,21 @@ void StateMachine<T>::update(float dt) {
 	// Override next state if requested
 	if (override) {
         if (overrideNextState == currentState)
-            LOGW("overrideNextState == currentState == " << currentState)
+            LOGW("overrideNextState == currentState == " << currentState);
         changeState(currentState, overrideNextState);
         override = transitionning = false;
     }
 
     // Update active state
     if (!transitionning) {
-    	LOGF_IF(state2handler.find(currentState) == state2handler.end(), "Current state #" << currentState << " has no handler")
+    	LOGF_IF(state2handler.find(currentState) == state2handler.end(), "Current state #" << currentState << " has no handler");
 
         // Update state
         T newState = state2handler[currentState]->update(dt);
 
         // New state requested ?
         if (newState != currentState) {
-            LOGV(2, "Transition begins: " << state2Name[newState] << " -> " << state2Name[currentState])
+            LOGV(2, "Transition begins: " << state2Name[newState] << " -> " << state2Name[currentState]);
         	// init transition
         	transition.fromState = currentState;
         	transition.toState = newState;
@@ -77,7 +77,7 @@ void StateMachine<T>::update(float dt) {
 
     	// If both states are ready, change state
     	if (transition.readyExit && transition.readyEnter) {
-            LOGV(2, "Transition complete. New state: " << state2Name[transition.toState])
+            LOGV(2, "Transition complete. New state: " << state2Name[transition.toState]);
             changeState(transition.fromState, transition.toState);
             transitionning = false;
     	}
@@ -86,7 +86,7 @@ void StateMachine<T>::update(float dt) {
 
 template<typename T>
 void StateMachine<T>::forceNewState(T state) {
-    LOGV(1, "Force new state: " << state)
+    LOGV(1, "Force new state: " << state);
     overrideNextState = state;
     override = true;
 }
@@ -99,7 +99,7 @@ T StateMachine<T>::getCurrentState() const {
 template<typename T>
 void StateMachine<T>::changeState(T oldState, T newState) {
     if (oldState == newState) {
-        LOGW("Cannot change state : old state = new state ( = " << oldState << ")")
+        LOGW("Cannot change state : old state = new state ( = " << oldState << ")");
         return;
     }
     state2handler[oldState]->onExit(newState);

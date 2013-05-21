@@ -150,7 +150,7 @@ std::string createLabel(const std::string& title, const std::list<std::pair<T, U
 
 void DebuggingSystem::toggle() {
     enable = !enable;
-    LOGI("Debugging " << (enable ? "enabled" : "disabled"))
+    LOGI("Debugging " << (enable ? "enabled" : "disabled"));
     for (auto it: debugEntities)
         TEXT_RENDERING(it.second)->show = enable;
     for (auto it: renderStatsEntities)
@@ -191,7 +191,7 @@ void DebuggingSystem::DoUpdate(float dt) {
         renderStatsEntities.push_back(createSystemGraphEntity("opaque_area", fps, 4, FpsTextureName));
         renderStatsEntities.push_back(createSystemGraphEntity("nonopaque_area", fps, 5, FpsTextureName));
         renderStatsEntities.push_back(createSystemGraphEntity("zprepass_area", fps, 6, FpsTextureName));
-        LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems)
+        LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems);
     }
     const glm::vec2 firstLabelOffset(TRANSFORM(activeCamera)->size * glm::vec2(0.3, 0.2) * (-0.5f) - glm::vec2(0, (0.6) * 0.6f));
     const glm::vec2 labelsSpacing(0, -0.6);

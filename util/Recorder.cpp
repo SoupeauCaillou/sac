@@ -61,7 +61,7 @@ static void write_ivf_frame_header(FILE *outfile,
     vpx_codec_pts_t  pts;
 
     if(pkt->kind != VPX_CODEC_CX_FRAME_PKT){
-        LOGE("Error")
+        LOGE("Error");
         return;
     }
 
@@ -160,7 +160,7 @@ bool Recorder::initVP8 (){
     /* Populate encoder configuration */
     vpx_codec_err_t res = vpx_codec_enc_config_default(interface, &cfg, 0);
     if (res) {
-        LOGE("Failed to get config: " << vpx_codec_err_to_string(res))
+        LOGE("Failed to get config: " << vpx_codec_err_to_string(res));
         return false;
     }
     /* Update the default configuration with our settings */
@@ -176,7 +176,7 @@ bool Recorder::initVP8 (){
     cfg.g_threads = 2;
 
     if (vpx_codec_enc_init(&codec, interface, &cfg, 0)){
-        LOGE("Failed to initialize encoder")
+        LOGE("Failed to initialize encoder");
         return false;
     }
 
@@ -186,14 +186,14 @@ bool Recorder::initVP8 (){
 
     if (cfg.g_threads > 1) {
         if (vpx_codec_control(&codec, VP8E_SET_TOKEN_PARTITIONS, (vp8e_token_partitions) cfg.g_threads) != VPX_CODEC_OK) {
-            LOGE("VP8: failed to set multiple token partition")
+            LOGE("VP8: failed to set multiple token partition");
         } else {
             //- LOGE("VP8: multiple token partitions used")
         }
     }
 
     if (!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1)){
-        LOGE("Failed to allocate image")
+        LOGE("Failed to allocate image");
         return false;
     }
 
@@ -206,7 +206,7 @@ bool Recorder::initSound (){
 
 void Recorder::start(){
     if (outfile == NULL && !recording && !th1.joinable()){
-        LOGE("Recording start")
+        LOGE("Recording start");
 
         //new file : time
         char tmp[256];
@@ -214,7 +214,7 @@ void Recorder::start(){
         strftime(tmp, sizeof(tmp), "videos/rr_%d%m%Y_%X.webm", localtime(&H));
 
         if(!(outfile = fopen(tmp, "wb"))){
-            LOGE("Failed to open '" << tmp << "' for writing")
+            LOGE("Failed to open '" << tmp << "' for writing");
             outfile = NULL;
             return;
         }
@@ -225,14 +225,14 @@ void Recorder::start(){
         // on lance le thread pour l'encodage
         th1 = std::thread(videoEncoder_Callback, (void*) this);
         if (!th1.joinable()) {
-            LOGE("thread creating error")
+            LOGE("thread creating error");
         }
     }
 }
 
 void Recorder::stop(){
     if (outfile != NULL && recording == true){
-        LOGI("Recording stop")
+        LOGI("Recording stop");
         mutex_buf.lock();
         cond.notify_all();
         buf.push(NULL);
@@ -312,7 +312,7 @@ void Recorder::thread_video_encode(){
 
         outfile = NULL;
 
-        LOGI("Recording is available")
+        LOGI("Recording is available");
     }
 }
 

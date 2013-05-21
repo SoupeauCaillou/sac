@@ -132,7 +132,7 @@ int Serializer::serializeObject(uint8_t** out, void* object, void* refObject) {
         if (!refObject || properties[i]->different(object, refObject)) {
             unsigned propSize = properties[i]->size(object);
             s += 1 + propSize;
-            LOGE_IF (s < 0, "Invalid size")
+            LOGE_IF (s < 0, "Invalid size");
         }
     }
     if (s == 0)

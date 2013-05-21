@@ -53,12 +53,12 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 	FileBuffer file = assetAPI->loadAsset(atlasDesc);
 	if (!file.data) {
-		LOGF("Unable to load atlas description file '" << atlasDesc << "'")
+		LOGF("Unable to load atlas description file '" << atlasDesc << "'");
 		return;
 	}
     DataFileParser dfp;
     if (!dfp.load(file, atlasDesc)) {
-        LOGE("Unable to parse '" << atlasDesc << "'")
+        LOGE("Unable to parse '" << atlasDesc << "'");
         delete[] file.data;
         return;
     }
@@ -77,10 +77,10 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
     glm::vec2 atlasSize;
     if (!dfp.get("", "atlas_size", &atlasSize.x, 2)) {
-        LOGE("Missing 'atlas_size' attribute in '" << atlasDesc << "'");
+        LOGE("Missing 'atlas_size' attribute in '" << atlasDesc << "'");;
         goto cleanup;
     }
-	LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex)
+	LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex);
 	do {
         std::stringstream sectionB;
         sectionB << "image" << count;
@@ -91,37 +91,37 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
 
 		std::string assetName;
         if (!dfp.get(section, "name", &assetName, 1)) {
-            LOGE(atlasDesc << ": missing 'name' in section '" << section << "'")
+            LOGE(atlasDesc << ": missing 'name' in section '" << section << "'");
             goto cleanup;
         }
         glm::vec2 originalSize;
         if (!dfp.get(section, "original_size", &originalSize.x, 2)) {
-            LOGE(atlasDesc << '/' << assetName << ": missing 'original_size' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'original_size' in section '" << section << "'");
             goto cleanup;
         }
         glm::vec2 posInAtlas;
         if (!dfp.get(section, "position_in_atlas", &posInAtlas.x, 2)) {
-            LOGE(atlasDesc << '/' << assetName << ": missing 'position_in_atlas' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'position_in_atlas' in section '" << section << "'");
             goto cleanup;
         }
         glm::vec2 sizeInAtlas;
         if (!dfp.get(section, "size_in_atlas", &sizeInAtlas.x, 2)) {
-            LOGE(atlasDesc << '/' << assetName << ": missing 'size_in_atlas' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'size_in_atlas' in section '" << section << "'");
             goto cleanup;
         }
         glm::vec2 reduxOffset;
         if (!dfp.get(section, "crop_offset", &reduxOffset.x, 2)) {
-            LOGE(atlasDesc << '/' << assetName << ": missing 'crop_offset' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'crop_offset' in section '" << section << "'");
             goto cleanup;
         }
         int rotate;
         if (!dfp.get(section, "rotated", &rotate, 1)) {
-            LOGE(atlasDesc << '/' << assetName << ": missing 'rotated' in section '" << section << "'")
+            LOGE(atlasDesc << '/' << assetName << ": missing 'rotated' in section '" << section << "'");
             goto cleanup;
         }
         glm::vec4 opaqueRect;
         if (!dfp.get(section, "opaque_rect", &opaqueRect.x, 4, false)) {
-            LOGV(1, "No 'opaque_rect' in section '" << section << "' for image " << assetName)
+            LOGV(1, "No 'opaque_rect' in section '" << section << "' for image " << assetName);
             opaqueRect = glm::vec4(0.0f);
         }
         glm::vec2 start(opaqueRect.swizzle(glm::X, glm::Y));
@@ -131,14 +131,14 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
         count++;
 	} while (true);
 
-	LOGV(1, "Atlas '" << atlasName << "' loaded " << count << " images")
+	LOGV(1, "Atlas '" << atlasName << "' loaded " << count << " images");
 cleanup:
     delete[] file.data;
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
 	for (unsigned atlasIdx=0; atlasIdx<atlas.size(); atlasIdx++) {
-        LOGI("Invalidate atlas: #" << atlasIdx << ": ref='" << atlas[atlasIdx].ref << "', name='" << atlas[atlasIdx].name << "'")
+        LOGI("Invalidate atlas: #" << atlasIdx << ": ref='" << atlas[atlasIdx].ref << "', name='" << atlas[atlasIdx].name << "'");
         textureLibrary.reload(atlas[atlasIdx].name);
 	}
 }
@@ -187,12 +187,12 @@ void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 		const TextureInfo* info = textureLibrary.get(ref, true);
         if (info) {
     		if (info->atlasIndex >= 0 && !allowUnloadAtlas) {
-                LOGE("Cannot delete texture '" << ref << "' (is an atlas)")
+                LOGE("Cannot delete texture '" << ref << "' (is an atlas)");
     	    } else {
                 textureLibrary.unload(ref);
             }
         }
 	} else {
-		LOGE("Tried to delete an InvalidTextureRef")
+		LOGE("Tried to delete an InvalidTextureRef");
 	}
 }

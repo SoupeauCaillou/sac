@@ -47,7 +47,7 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
     }
 }
 
-#define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << name << " property: '" << *out << "'")
+#define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << name << " property: '" << *out << "'");
 #define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << name << " property: '"
 
 enum IntervalMode {
@@ -75,12 +75,12 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
                 case IntervalValue2: *out = itv.t2; break;
             }
             applyVec2Modifiers(i, out);
-            LOG_SUCCESS_ << out->x << ", " << out->y << "'")
+            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
             return 1;
         } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[i], parsed, 2, false)) {
             // we got a single value
             *out = glm::vec2(parsed[0], parsed[1]);
-            LOG_SUCCESS_ << out->x << ", " << out->y << "'")
+            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
             applyVec2Modifiers(i, out);
             return 1;
         }
@@ -139,12 +139,12 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             case IntervalValue1: *out = itv.t1; break;
             case IntervalValue2: *out = itv.t2; break;
         }
-        LOG_SUCCESS_ << *out << "'")
+        LOG_SUCCESS_ << *out << "'");
         return 1;
     } else if (mode == IntervalAsRandom && dfp.get(section, name, p, 4, false)) {
         // we got a single value
         *out = Color(&p[0], 0xffffffff);
-        LOG_SUCCESS_ << *out << "'")
+        LOG_SUCCESS_ << *out << "'");
         return 1;
     }
     std::string html;
@@ -156,7 +156,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             , ((h >> 8) & 0xff) / 255.0
             , ((h >> 0) & 0xff) / 255.0
             , 1);
-        LOG_SUCCESS_ << *out << "'")
+        LOG_SUCCESS_ << *out << "'");
         return 1;
     }
     //;
@@ -230,7 +230,7 @@ int ComponentFactory::build(
         realSystemName = realSystemName.substr(realSystemName.rfind('#') + 1);
     }
     ComponentSystem* systm = ComponentSystem::Named(realSystemName);
-    LOGE_IF(!systm, "Missing system: '" << section << "'")
+    LOGE_IF(!systm, "Missing system: '" << section << "'");
     if (!systm)
         return 0;
 
@@ -442,7 +442,7 @@ static bool loadSingleProperty(const std::string& context,
             break;
         }
         default:
-            LOGW("Unhandled property type: " << type << " for '" << name << "'")
+            LOGW("Unhandled property type: " << type << " for '" << name << "'");
             break;
     }
     #undef LOAD_INTERVAL_TEMPL

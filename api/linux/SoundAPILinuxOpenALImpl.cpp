@@ -46,7 +46,7 @@ void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI, bool openALAlreadyInit) 
         ALCdevice* device = alcOpenDevice(0);
         ALCcontext* context = alcCreateContext(device, 0);
         if (!(device && context && alcMakeContextCurrent(context)))
-            LOGW("probleme initialisation du son")
+            LOGW("probleme initialisation du son");
     }
     soundSources = new ALuint[16];
     // open al init is done earlier by MusicAPI
@@ -63,7 +63,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 #if ! SAC_EMSCRIPTEN
     FileBufferWithCursor fbc(assetAPI->loadAsset(asset));
     if (fbc.size == 0) {
-        LOGW("Cannot read sound file: '" << asset << "'")
+        LOGW("Cannot read sound file: '" << asset << "'");
         return 0;
     }
     ov_callbacks cb;
@@ -73,7 +73,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     cb.tell_func = &FileBufferWithCursor::tell_func;
     OggVorbis_File vf;
     if (ov_open_callbacks(&fbc, &vf, 0, 0, cb)) {
-        LOGW("Failed loading sound file: '" << asset << "'")
+        LOGW("Failed loading sound file: '" << asset << "'");
         delete[] fbc.data;
         return 0;
     }
@@ -92,7 +92,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
             break;
         readCount += n;
     } while (true);
-    LOGW_IF(readCount != sizeInBytes, "Weird byte count read: " << readCount << '/' << sizeInBytes)
+    LOGW_IF(readCount != sizeInBytes, "Weird byte count read: " << readCount << '/' << sizeInBytes);
 
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
     AL_OPERATION(alGenBuffers(1, &out->buffer))
@@ -113,7 +113,7 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
 	OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
 	out->sample = Mix_LoadWAV(a.str().c_str());
 	if (out->sample == 0) {
-		LOGW("Cannot load " << a.str())
+		LOGW("Cannot load " << a.str());
 	}
 #endif
     return out;
@@ -145,11 +145,11 @@ static void check_AL_errors(const char* context) {
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOGW("OpenAL error during '" << context << "' -> " << errToString(error))
+        LOGW("OpenAL error during '" << context << "' -> " << errToString(error));
         maxIterations--;
         err = true;
     }
-    LOGF_IF(err, "OpenAL error")
+    LOGF_IF(err, "OpenAL error");
 }
 
 static const char* errToString(ALenum err) {

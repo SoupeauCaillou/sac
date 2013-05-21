@@ -116,7 +116,7 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
         int st = stat(ss.str().c_str(), &statFolder);
         if (st || (statFolder.st_mode & S_IFMT) != S_IFDIR) {
             if (mkdir(ss.str().c_str(), S_IRWXU | S_IWGRP | S_IROTH)) {
-                LOGF("Failed to create : '" << ss.str() << "'")
+                LOGF("Failed to create : '" << ss.str() << "'");
             }
         }
 

@@ -167,7 +167,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // matrices
     glm::mat4 camViewPerspMatrix;
 
-    LOGV(2, "Begin frame rendering: " << commands.count)
+    LOGV(2, "Begin frame rendering: " << commands.count);
 
 	EffectRef currentEffect = InvalidTextureRef;
     const unsigned count = commands.count;
@@ -188,7 +188,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
             LOGV(2, "   camera: pos=" << camera.worldPos.position.x << ',' << camera.worldPos.position.y
                 << "size=" << camera.worldPos.size.x << ',' << camera.worldPos.size.y
-                << " fb=" << camera.cameraAttr.fb)
+                << " fb=" << camera.cameraAttr.fb);
 
             FramebufferRef fboRef = camera.cameraAttr.fb;
             if (fboRef == DefaultFrameBufferRef) {
@@ -267,12 +267,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.texture != InvalidTextureRef) {
             if (!rc.fbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
-                LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found")
+                LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found");
                 if (info->atlasIndex >= 0) {
-                    LOGF_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size())
+                    LOGF_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size());
                     const TextureInfo* atlasInfo = textureLibrary.get(atlas[info->atlasIndex].ref, false);
                     LOGF_IF(!atlasInfo, "TextureInfo for atlas index: "
-                        << info->atlasIndex << " not found (ref=" << atlas[info->atlasIndex].ref << ", name='" << atlas[info->atlasIndex].name << "')")
+                        << info->atlasIndex << " not found (ref=" << atlas[info->atlasIndex].ref << ", name='" << atlas[info->atlasIndex].name << "')");
                     rc.glref = atlasInfo->glref;
                 } else {
                     rc.glref = info->glref;
@@ -349,7 +349,7 @@ void RenderingSystem::render() {
     int readQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = false;
     if (!frameQueueWritable) {
-        LOGI("Rendering disabled")
+        LOGI("Rendering disabled");
         renderQueue[readQueue].count = 0;
 #if ! SAC_EMSCRIPTEN
         lock.unlock();
@@ -368,14 +368,14 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", EndEvent);
 #if ! SAC_EMSCRIPTEN
     if (!mutexes[L_RENDER].try_lock()) {
-        LOGV(1, "HMM Busy render lock")
+        LOGV(1, "HMM Busy render lock");
         mutexes[L_RENDER].lock();
     }
 #endif
 
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
-        LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')')
+        LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')');
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);

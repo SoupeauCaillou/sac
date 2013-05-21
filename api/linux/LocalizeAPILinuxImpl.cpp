@@ -50,7 +50,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
         filename += lang.c_str();
     }
     filename += "/strings.xml";
-    LOGI("[INIT]Found language:" << lang << " -> " << filename)
+    LOGI("[INIT]Found language:" << lang << " -> " << filename);
 
     //first, clean the map
     _idToMessage.clear();
@@ -78,9 +78,9 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
             s = s.substr(1, s.length() - 2);
         }
         _idToMessage[pElem->Attribute("name")] = s;
-        LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'")
+        LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'");
     }
-    LOGI("[INIT]Localize strings count: " << _idToMessage.size())
+    LOGI("[INIT]Localize strings count: " << _idToMessage.size());
 
     return 0;
 }
@@ -88,9 +88,9 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
 
 std::string LocalizeAPILinuxImpl::text(const std::string& s) {
     auto it = _idToMessage.find(s);
-    LOGV(2, "Request localisation for: '" << s << "'")
+    LOGV(2, "Request localisation for: '" << s << "'");
     if (it == _idToMessage.end()) {
-        LOGE_EVERY_N(60, "'" << s << "' is not a valid localizable ID")
+        LOGE_EVERY_N(60, "'" << s << "' is not a valid localizable ID");
         return "INVALID-" + s + "-ID";
     } else {
         return (*it).second;

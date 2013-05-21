@@ -46,12 +46,12 @@ int main() {
     while (enet_host_service(server, &event, 1000) >= 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
-                LOGI("Client connection: @" << event.peer->address.host << ":" << event.peer->address.port)
+                LOGI("Client connection: @" << event.peer->address.host << ":" << event.peer->address.port);
                 peer2Name.erase(event.peer);
                 break;
             }
             case ENET_EVENT_TYPE_DISCONNECT: {
-                LOGI("Client disconnection: @" << event.peer->address.host << ":" << event.peer->address.port)
+                LOGI("Client disconnection: @" << event.peer->address.host << ":" << event.peer->address.port);
                 peer2Name.erase(event.peer);
                 break;
             }
@@ -66,7 +66,7 @@ int main() {
 
                     for (unsigned i = 0; i < inProgress.size(); i++) {
                         if (inProgress[i].clientModePeer == event.peer) {
-                            LOGI("Received client mode local port (" << port << ")")
+                            LOGI("Received client mode local port (" << port << ")");
                             // create packet for player2
                             ENetPacket* p2 = peerAndNickToPacket(
                                 inProgress[i].clientModePeer,
@@ -85,11 +85,11 @@ int main() {
                     char tmp[256];
                     memcpy(tmp, &packet->data[2], length);
                     tmp[length] = 0;
-                    LOGI("Client name: '" << tmp << "'")
+                    LOGI("Client name: '" << tmp << "'");
                     peer2Name[event.peer] = tmp;
                     break;
                 } else {
-                    LOGW("Ingored packet type : " << (int)type)
+                    LOGW("Ingored packet type : " << (int)type);
                 }
                 enet_packet_destroy (event.packet);
             }
@@ -99,7 +99,7 @@ int main() {
         }
         // if we have 2 players with a name : connect them
         if (peerWaiting.size() >= 2) {
-            LOGI("Matchmaking in progress !")
+            LOGI("Matchmaking in progress !");
             int portA = glm::linearRand(55000.0f, 56000.0f);
             // *** int portB = MathUtil::RandomIntInRange(55000, 56000);
             MatchMaking match;
@@ -123,7 +123,7 @@ int main() {
             ss << peer2Name[match.clientModePeer] << "'";
             LOGI(ss.str());
 
-            LOGI("Send connection info to client")
+            LOGI("Send connection info to client");
             enet_peer_send(match.clientModePeer, 0, p);
 
             enet_host_flush(server);

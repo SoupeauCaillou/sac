@@ -36,7 +36,7 @@ void MusicAPILinuxOpenALImpl::init() {
     ALCdevice* device = alcOpenDevice(0);
     ALCcontext* context = alcCreateContext(device, 0);
     if (!(device && context && alcMakeContextCurrent(context)))
-        LOGW("probleme initialisation du son")
+        LOGW("probleme initialisation du son");
 #endif
 }
 
@@ -165,11 +165,11 @@ static void check_AL_errors(const char* context) {
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOGW("OpenAL error during '" << context << "' -> " << errToString(error))
+        LOGW("OpenAL error during '" << context << "' -> " << errToString(error));
         maxIterations--;
         err = true;
     }
-    LOGF_IF(err, "OpenAL error")
+    LOGF_IF(err, "OpenAL error");
 }
 
 static const char* errToString(ALenum err) {

@@ -66,7 +66,7 @@ void PhysicsSystem::DoUpdate(float dt) {
                 << theEntityManager.entityName(a)
                 << "' tried to do physics while being anchored to '"
                 << theEntityManager.entityName(anchor->parent)
-                << "'")
+                << "'");
             continue;
         }
 #endif

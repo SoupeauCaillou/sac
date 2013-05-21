@@ -127,7 +127,7 @@ inline int VectorProperty<std::string>::deserialize(uint8_t* in, void* object) c
         unsigned s;
         memcpy(&s, &in[idx], sizeof(unsigned));
         idx += sizeof(unsigned);
-        LOGF_IF(s >= 1024, "Static tmp buffer to small to store: '" << s << "' bytes")
+        LOGF_IF(s >= 1024, "Static tmp buffer to small to store: '" << s << "' bytes");
         memcpy(tmp, &in[idx], s);
         tmp[s] = '\0';
         v->push_back(std::string(tmp));

@@ -73,7 +73,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
     CacheKey key;
     unsigned letterCount = 0;
 
-    LOGW_EVERY_N(6000, "TODO: textrendering cache")
+    LOGT_EVERY_N(6000, "TODO: textrendering cache");
 
     FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
         // compute cache entry
@@ -87,7 +87,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
             }
             cache[entity] = hash;
         }
-        LOGV(3, "Text: '" << trc->text << "'")
+        LOGV(3, "Text: '" << trc->text << "'");
 
 		// early quit if hidden
 		if (!trc->show) {
@@ -127,7 +127,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
         // Lookup font description
         std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
         if (fontIt == fontRegistry.end()) {
-            LOGE("TextRendering component uses undefined font: '" << trc->fontName << "'")
+            LOGE("TextRendering component uses undefined font: '" << trc->fontName << "'");
             continue;
         }
 
@@ -194,7 +194,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
             int skip = -1;
 
             if (letter >= 0xC2) {
-                LOGW_IF(unicode != 0, "3+ bytes support for UTF8 not complete")
+                LOGW_IF(unicode != 0, "3+ bytes support for UTF8 not complete");
                 unicode = (letter - 0xC2) * 0x40;
                 continue;
             } else {
@@ -220,8 +220,8 @@ void TextRenderingSystem::DoUpdate(float dt) {
             bool inlineImage = false;
             if (unicode == 0x00D7) {
                 size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
-                LOGV(3, "Inline image '" << trc->text.substr(i, next - i + 1) << "'")
-                LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'")
+                LOGV(3, "Inline image '" << trc->text.substr(i, next - i + 1) << "'");
+                LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'");
                 std::string texture;
                 parseInlineImageString(
                     trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.x, &tc->size.y);
@@ -234,7 +234,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 skip = next + 1;
             } else {
                 if (unicode > fontDesc.highestUnicode) {
-                    LOGW("Missing unicode char: " << unicode << "(highest one: " << fontDesc.highestUnicode << ')')
+                    LOGW("Missing unicode char: " << unicode << "(highest one: " << fontDesc.highestUnicode << ')');
                     unicode = 0;
                 }
                 const CharInfo& info = fontDesc.entries[unicode];
@@ -309,7 +309,7 @@ void TextRenderingSystem::registerFont(const std::string& fontName, const std::m
         ss << std::hex << std::setw(2) << it->first << '_' << fontName;
         info.texture = theRenderingSystem.loadTextureFile(ss.str());
         if (info.texture == InvalidTextureRef) {
-            LOGW("Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'")
+            LOGW("Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'");
         }
     }
     font.entries[(unsigned)' '].h2wRatio = font.entries[(unsigned)'r'].h2wRatio;
@@ -320,7 +320,7 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
     // Lookup font description
     std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
     if (fontIt == fontRegistry.end()) {
-        LOGE("TextRendering component uses undefined font: '" << trc->fontName << "'")
+        LOGE("TextRendering component uses undefined font: '" << trc->fontName << "'");
         return 0;
     }
     return computeStringWidth(trc, trc->charHeight, fontIt->second);
@@ -379,14 +379,14 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
     for (unsigned int i=from; i<toInc; i++) {
         unsigned char letter = (unsigned char)trc->text[i];
         if (letter >= 0xC2) {
-            LOGW_IF(unicode != 0, "3+ bytes support for UTF8 not complete")
+            LOGW_IF(unicode != 0, "3+ bytes support for UTF8 not complete");
             unicode = (letter - 0xC2) * 0x40;
             continue;
         }
         unicode += letter;
         if (unicode == 0x00D7) {
             size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
-            LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'")
+            LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'");
             float w = 0;
             parseInlineImageString(
                 trc->text.substr(i+1, next - 1 - (i+1) + 1), 0, &w, 0);
@@ -404,7 +404,7 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
 
 static float computeStringWidth(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
     float width = computePartialStringWidth(trc, 0, trc->text.length(), charHeight, fontDesc);
-    LOGV(2, "String width: '" << trc->text << "' = " << width)
+    LOGV(2, "String width: '" << trc->text << "' = " << width);
     return width;
 }
 

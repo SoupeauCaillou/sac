@@ -22,7 +22,7 @@ EntityManager* EntityManager::instance = 0;
 EntityManager::EntityManager() : nextEntity(1) {
 	EntityTypeMask = 1;
 	EntityTypeMask <<= (sizeof(Entity) * 8 - 1);
-	LOGV(1, "EntityTypeMask: " << EntityTypeMask << " (sizeof Entity: " << sizeof(Entity) << ", " <<  (sizeof(Entity) * 8 - 1))
+	LOGV(1, "EntityTypeMask: " << EntityTypeMask << " (sizeof Entity: " << sizeof(Entity) << ", " <<  (sizeof(Entity) * 8 - 1));
 }
 
 EntityManager* EntityManager::Instance() {
@@ -30,7 +30,7 @@ EntityManager* EntityManager::Instance() {
 }
 
 void EntityManager::CreateInstance() {
-	LOGW_IF(instance != 0, "Recreating EntityManager")
+	LOGW_IF(instance != 0, "Recreating EntityManager");
 	instance = new EntityManager;
 }
 
@@ -51,7 +51,7 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 			break;
 	}
 	// maybe hide the TypeBit from the rest of the world...
-    LOGF_IF(entity2name.find(e) != entity2name.end(), "Incoherent entity2name state")
+    LOGF_IF(entity2name.find(e) != entity2name.end(), "Incoherent entity2name state");
     entity2name[e] = name;
 
     if (tmpl != InvalidEntityTemplateRef) {
@@ -74,7 +74,7 @@ const std::string& EntityManager::entityName(Entity e) const {
 
 void EntityManager::DeleteEntity(Entity e) {
     auto i = entityComponents.find(e);
-    LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity '" << e << "'")
+    LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity '" << e << "'");
 	std::list<ComponentSystem*>& l = i->second;
 
 	for (std::list<ComponentSystem*>::iterator it=l.begin(); it!=l.end(); ++it) {
@@ -103,7 +103,7 @@ void EntityManager::deleteAllEntities() {
     for (auto it=entities.rbegin(); it!=entities.rend(); ++it)
 		DeleteEntity(*it);
 	nextEntity = 1;
-    LOGF_IF (entityComponents.size() != 0, "entityComponents not empty after deleting all entities")
+    LOGF_IF (entityComponents.size() != 0, "entityComponents not empty after deleting all entities");
 }
 
 std::vector<Entity> EntityManager::allEntities() {
@@ -178,7 +178,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		memcpy(&e, &in[index], sizeof(e)); index += sizeof(e);
 
 		if (!(e & EntityTypeMask)) {
-			LOGW("EntityManager deserializing a non-persistent entity")
+			LOGW("EntityManager deserializing a non-persistent entity");
 		}
 
 		int cCount = 0;
@@ -194,7 +194,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			}
 			ComponentSystem* system = ComponentSystem::Named(tmp);
 			if (system == 0) {
-				LOGE("Failed to properly restore state: index=" << index << '/' << length << " i=" << i << "/" << cCount << ", entity=" << (e & ~EntityTypeMask))
+				LOGE("Failed to properly restore state: index=" << index << '/' << length << " i=" << i << "/" << cCount << ", entity=" << (e & ~EntityTypeMask));
 			}
 			int size = 0;
 			memcpy(&size, &in[index], sizeof(int)); index += sizeof(int);
@@ -206,7 +206,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			l.push_back(system);
 		}
 		entityComponents[e] = l;
-        LOGV(1, " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components")
+        LOGV(1, " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components");
 		nextEntity = glm::max(nextEntity, e + 1);
 	}
 }

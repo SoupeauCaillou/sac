@@ -12,7 +12,7 @@ Color Color::random() {
 }
 
 void Color::nameColor(const Color& c, const std::string& name) {
-    LOGV(1, "Add color " << name << " = " << c)
+    LOGV(1, "Add color " << name << " = " << c);
 	name2Color.insert(std::make_pair(name, c));
 }
 
@@ -21,7 +21,7 @@ Color::Color(float _r, float _g, float _b, float _a):
 }
 
 Color::Color(float* pRgba, uint32_t) {
-    LOGW("Color mask ignored")
+    LOGW("Color mask ignored");
     memcpy(rgba, pRgba, 4 * sizeof(float));
 }
 
