@@ -233,6 +233,27 @@ void Game::sacInit(int windowW, int windowH) {
 
 	theRenderingSystem.init();
     theRenderingSystem.enableRendering();
+
+    // Auto-load all atlas
+    {
+        std::list<std::string> atlas = renderThreadContext->assetAPI->listContent(
+            ".atlas");
+        LOGI("Autoloading " << atlas.size() << " atlas");
+        std::for_each(atlas.begin(), atlas.end(), [] (const std::string& a) -> void {
+            theRenderingSystem.loadAtlas(a);
+        });
+    }
+
+    // Auto-load all fonts
+    {
+        std::list<std::string> fonts = renderThreadContext->assetAPI->listContent(
+            ".font");
+        LOGI("Autoloading " << fonts.size() << " fonts");
+        std::for_each(fonts.begin(), fonts.end(), [this] (const std::string& typo) -> void {
+            loadFont(renderThreadContext->assetAPI, typo);
+        });
+
+    }
 }
 
 void Game::backPressed() {
