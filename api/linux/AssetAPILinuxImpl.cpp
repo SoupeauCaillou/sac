@@ -63,7 +63,7 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
 #endif
 
     std::list<std::string> content;
-#if SAC_WINDOWS || SAC_EMSCRIPTEN
+#if SAC_WINDOWS
         // TODO
 #else
         // TODO : Use scandir ?
@@ -83,7 +83,11 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
                         content.push_back(std::string(file->d_name) + '/' + i);
                     }
                 }
+#if SAC_EMSCRIPTEN
+            } else if (file->d_type == 8) {
+#else
             } else if (file->d_type == DT_REG) {
+#endif
                 std::string s = file->d_name;
                 size_t pos;
                 // We're looking for file with good extension
