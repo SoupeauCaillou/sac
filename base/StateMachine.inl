@@ -59,6 +59,7 @@ void StateMachine<T>::update(float dt) {
 
         // New state requested ?
         if (newState != currentState) {
+            LOGE_IF(state2Name.find(newState) == state2Name.end(), "No state handler defined for state: " << newState);
             LOGV(2, "Transition begins: " << state2Name[newState] << " -> " << state2Name[currentState]);
         	// init transition
         	transition.fromState = currentState;
