@@ -142,6 +142,7 @@ LevelEditor::LevelEditor() {
     RENDERING(datas->overDisplay)->color = Color(0, 0, 1, 0.7);
 
     TwInit(TW_OPENGL, NULL);
+    TwDefine(" GLOBAL fontsize=3 "); // use large font
 
     DebugConsole::Instance().init();
 
