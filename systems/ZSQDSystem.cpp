@@ -63,15 +63,3 @@ void ZSQDSystem::DoUpdate(float dt) {
         }
     }
 }
-
-#if SAC_INGAME_EDITORS
-void ZSQDSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    ZSQDComponent* zc = Get(entity, false);
-    if (!zc) return;
-
-    TwAddVarRW(bar, "frictionCoeff", TW_TYPE_FLOAT, &zc->frictionCoeff, "group=ZSQD precision=2 step=0,1");
-    TwAddVarRW(bar, "maxSpeed", TW_TYPE_FLOAT, &zc->maxSpeed, "group=ZSQD precision=2 step=0,1");
-    TwAddVarRW(bar, "newDirectionCoeff", TW_TYPE_FLOAT, &zc->newDirectionCoeff, "group=ZSQD precision=2 step=0,1");
-
-}
-#endif

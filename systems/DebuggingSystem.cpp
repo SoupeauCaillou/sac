@@ -349,12 +349,3 @@ void DebuggingSystem::DoUpdate(float dt) {
 #endif
 }
 #endif
-
-
-#if SAC_INGAME_EDITORS
-void DebuggingSystem::addEntityPropertiesToBar(Entity entity, TwBar* /*bar*/) {
-
-    DebuggingComponent* dc = Get(entity, false);
-    if (!dc) return;
-}
-#endif

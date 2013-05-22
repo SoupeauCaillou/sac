@@ -53,7 +53,6 @@
             void updateEntityComponent(float dt, Entity e, type##Component* t); \
         \
             type##System(); \
-            void addEntityPropertiesToBar(Entity , TwBar* ); \
         private:    \
             static type##System* _instance;
 
@@ -137,6 +136,7 @@ class ComponentSystem {
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
         virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) = 0;
+        virtual void* componentAsVoidPtr(Entity e) = 0;
 
 		void Update(float dt) {
             PROFILE("SystemUpdate", name, BeginEvent);
@@ -163,7 +163,7 @@ class ComponentSystem {
         static const std::map<std::string, ComponentSystem*>& registeredSystems();
 
 #if SAC_INGAME_EDITORS
-        virtual void addEntityPropertiesToBar(Entity , TwBar* ) {}
+        void addEntityPropertiesToBar(Entity e, TwBar* bar);
 #endif
 
 	protected:
@@ -237,6 +237,10 @@ class ComponentSystemImpl: public ComponentSystem {
 
         const std::map<Entity, T*>& getAllComponents() const {
             return components;
+        }
+
+        void* componentAsVoidPtr(Entity e) {
+            return Get(e, false);
         }
 
 		T* Get(Entity entity, bool failIfNotfound = true) {

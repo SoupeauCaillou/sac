@@ -161,16 +161,3 @@ void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	pc->addForce(glm::vec2(1, 0), glm::vec2(0, m * 0.5), 0.016);
 	pc->addForce(glm::vec2(-1, 0), glm::vec2(0, -m * 0.5), 0.016);
 }
-
-#if SAC_INGAME_EDITORS
-void PhysicsSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    PhysicsComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwAddVarRW(bar, "velocity.X", TW_TYPE_FLOAT, &tc->linearVelocity.x, "group=Physics precision=2 step=0,01");
-    TwAddVarRW(bar, "velocity.Y", TW_TYPE_FLOAT, &tc->linearVelocity.y, "group=Physics precision=2 step=0,01");
-    TwAddVarRW(bar, "angularVelocity", TW_TYPE_FLOAT, &tc->angularVelocity, "group=Physics step=0,01 precision=2");
-    TwAddVarRW(bar, "mass", TW_TYPE_FLOAT, &tc->mass, "group=Physics precision=1");
-    TwAddVarRW(bar, "gravity.X", TW_TYPE_FLOAT, &tc->gravity.x, "group=Physics precision=2 step=0,01");
-    TwAddVarRW(bar, "gravity.Y", TW_TYPE_FLOAT, &tc->gravity.y, "group=Physics precision=2 step=0,01");
-}
-#endif

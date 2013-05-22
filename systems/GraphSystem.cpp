@@ -291,19 +291,3 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
         }
     }
 }
-
-#if SAC_INGAME_EDITORS
-void GraphSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    GraphComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwAddVarRO(bar, "textureName", TW_TYPE_STDSTRING, &tc->textureName, "group=Graph");
-    TwAddVarRW(bar, "lineWidth", TW_TYPE_FLOAT, &tc->lineWidth, "group=Graph step=0,001");
-    TwAddVarRW(bar, "maxY", TW_TYPE_FLOAT, &tc->maxY, "group=Graph");
-    TwAddVarRW(bar, "maxX", TW_TYPE_FLOAT, &tc->maxX, "group=Graph");
-    TwAddVarRW(bar, "minY", TW_TYPE_FLOAT, &tc->minY, "group=Graph");
-    TwAddVarRW(bar, "minX", TW_TYPE_FLOAT, &tc->minX, "group=Graph");
-    TwAddVarRW(bar, "setFixedScaleMinMaxX", TW_TYPE_BOOLCPP, &tc->setFixedScaleMinMaxX, "group=Graph");
-    TwAddVarRW(bar, "setFixedScaleMinMaxY", TW_TYPE_BOOLCPP, &tc->setFixedScaleMinMaxY, "group=Graph");
-    TwAddVarRW(bar, "lineColor", TW_TYPE_COLOR4F, &tc->lineColor, "group=Graph");
-}
-#endif

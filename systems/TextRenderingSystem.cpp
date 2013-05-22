@@ -331,29 +331,6 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
     return computeStringWidth(trc, trc->charHeight, fontIt->second);
 }
 
-#if SAC_INGAME_EDITORS
-void TextRenderingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    TextRenderingComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwAddVarRW(bar, "text", TW_TYPE_STDSTRING, &tc->text, "group=TextRendering");
-    TwAddVarRW(bar, "text_color", TW_TYPE_COLOR4F, &tc->color, "group=TextRendering");
-    TwAddVarRW(bar, "text_show", TW_TYPE_BOOLCPP, &tc->show, "group=TextRendering");
-    TwAddVarRW(bar, "text_height", TW_TYPE_FLOAT, &tc->charHeight, "group=TextRendering step=0,01");
-    TwAddVarRW(bar, "text_fontName", TW_TYPE_STDSTRING, &tc->fontName, "group=TextRendering");
-    TwAddVarRW(bar, "positioning", TW_TYPE_FLOAT, &tc->positioning, "group=TextRendering step=0,01");
-    TwAddVarRW(bar, "text_flags", TW_TYPE_INT32, &tc->flags, "group=TextRendering");
-    TwAddVarRW(bar, "blink_offDuration", TW_TYPE_FLOAT, &tc->blink.offDuration, "group=Blinking step=0,01");
-    TwAddVarRW(bar, "blink_onDuration", TW_TYPE_FLOAT, &tc->blink.onDuration, "group=Blinking step=0,01");
-    TwAddVarRW(bar, "blink_accum", TW_TYPE_FLOAT, &tc->blink.accum, "group=Blinking step=0,01");
-    TwAddVarRW(bar, "caret_show", TW_TYPE_BOOLCPP, &tc->caret.show, "group=Caret");
-    TwAddVarRW(bar, "caret_speed", TW_TYPE_FLOAT, &tc->caret.speed, "group=Caret");
-    TwAddVarRW(bar, "caret_dt", TW_TYPE_FLOAT, &tc->caret.dt, "group=Caret");
-    std::stringstream groups;
-    groups << TwGetBarName(bar) << '/' << "Blinking group=TextRendering\t\n" << TwGetBarName(bar) << '/' << "Caret group=TextRendering";
-    TwDefine(groups.str().c_str());
-}
-#endif
-
 static Entity createRenderingEntity() {
     Entity e = theEntityManager.CreateEntity("__text_letter");
     ADD_COMPONENT(e, Transformation);

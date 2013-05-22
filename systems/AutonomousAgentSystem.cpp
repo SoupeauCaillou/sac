@@ -53,9 +53,3 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 		PHYSICS(e)->addForce(glm::vec2(0.f), force * glm::min(norm, agent->maxForce), dt);
 	}
 }
-
-#if SAC_INGAME_EDITORS
-void AutonomousAgentSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
-}
-#endif

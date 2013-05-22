@@ -43,13 +43,3 @@ void CollisionSystem::DoUpdate(float) {
     }
     */
 }
-
-
-#if SAC_INGAME_EDITORS
-void CollisionSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    CollisionComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwAddVarRW(bar, "group", TW_TYPE_INT32, &tc->group, "group=Collision");
-    TwAddVarRW(bar, "collideWith", TW_TYPE_INT32, &tc->collideWith, "group=Collision");
-}
-#endif

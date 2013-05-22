@@ -85,16 +85,3 @@ void AnchorSystem::Delete(Entity e) {
     ComponentSystemImpl<AnchorComponent>::Delete(e);
 }
 #endif
-
-#if SAC_INGAME_EDITORS
-void AnchorSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    AnchorComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwAddVarRW(bar, "position.X", TW_TYPE_FLOAT, &tc->position.x, "group=Anchor precision=3 step=0,01");
-    TwAddVarRW(bar, "position.Y", TW_TYPE_FLOAT, &tc->position.y, "group=Anchor precision=3 step=0,01");
-    TwAddVarRW(bar, "anchor.X", TW_TYPE_FLOAT, &tc->anchor.x, "group=Anchor precision=3 step=0,01");
-    TwAddVarRW(bar, "anchor.Y", TW_TYPE_FLOAT, &tc->anchor.y, "group=Anchor precision=3 step=0,01");
-    TwAddVarRW(bar, "rotation", TW_TYPE_FLOAT, &tc->rotation, "group=Anchor step=0,01 precision=3");
-    TwAddVarRW(bar, "Z", TW_TYPE_FLOAT, &tc->z, "group=Anchor precision=3 step=0,01");
-}
-#endif

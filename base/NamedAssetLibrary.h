@@ -211,6 +211,16 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (useDeferredLoading) mutex.unlock();
         }
 
+        #if SAC_INGAME_EDITORS
+        std::string reverse(TRef ref) const {
+            for (auto p: nameToRef) {
+                if (p.second == ref)
+                    return p.first;
+            }
+            return "";
+        }
+        #endif
+
     protected:
         virtual bool doLoad(const std::string& name, T& out, const TRef& ref) = 0;
         virtual void doUnload(const std::string& name, const T& in) = 0;

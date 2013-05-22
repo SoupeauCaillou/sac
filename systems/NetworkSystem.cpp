@@ -374,9 +374,3 @@ static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
     pkt.data = temp;
     SEND(pkt);
 }
-
-#if SAC_INGAME_EDITORS
-void NetworkSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
-}
-#endif

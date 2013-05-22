@@ -44,9 +44,3 @@ void MorphingSystem::clear(MorphingComponent* mc) {
 	}
 	mc->elements.clear();
 }
-
-#if SAC_INGAME_EDITORS
-void MorphingSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
-}
-#endif

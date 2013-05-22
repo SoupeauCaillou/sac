@@ -31,7 +31,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                     adc->params.area.position, adc->params.area.size, 0)) {
                     toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
 
-                    LOGI("Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
+                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
                         << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size);
                 }
                 break;
@@ -68,24 +68,3 @@ void AutoDestroySystem::DoUpdate(float dt) {
         }
     }
 }
-
-#if SAC_INGAME_EDITORS
-void AutoDestroySystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    AutoDestroyComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwEnumVal modes[] = { {AutoDestroyComponent::OUT_OF_AREA, "Out of area"}, {AutoDestroyComponent::LIFETIME, "Lifetime"} };
-    TwType type = TwDefineEnum("Type", modes, 2);
-    TwAddVarRW(bar, "type", type, &tc->type, "group=AutoDestroy");
-    TwAddVarRW(bar, "area position X", TW_TYPE_FLOAT, &tc->params.area.position.x, "group=area");
-    TwAddVarRW(bar, "area position Y", TW_TYPE_FLOAT, &tc->params.area.position.y, "group=area");
-    TwAddVarRW(bar, "area width", TW_TYPE_FLOAT, &tc->params.area.size.x, "group=area min=0");
-    TwAddVarRW(bar, "area height", TW_TYPE_FLOAT, &tc->params.area.size.y, "group=area min=0");
-    TwAddVarRW(bar, "ad_value", TW_TYPE_FLOAT, &tc->params.lifetime.freq.value, "group=lifetime min=0");
-    TwAddVarRO(bar, "ad_accum", TW_TYPE_FLOAT, &tc->params.lifetime.freq.accum, "group=lifetime");
-    TwAddVarRW(bar, "map2AlphaRendering", TW_TYPE_BOOLCPP, &tc->params.lifetime.map2AlphaRendering, "group=lifetime");
-    TwAddVarRW(bar, "map2AlphaTextRendering", TW_TYPE_BOOLCPP, &tc->params.lifetime.map2AlphaTextRendering, "group=lifetime");
-    std::stringstream groups;
-    groups << TwGetBarName(bar) << '/' << "lifetime group=AutoDestroy\t\n" << TwGetBarName(bar) << '/' << "area group=AutoDestroy\t\n";
-    TwDefine(groups.str().c_str());
-}
-#endif

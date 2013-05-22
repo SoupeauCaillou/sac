@@ -93,29 +93,3 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 	}
 	elements[e] = se;
 }
-
-#if SAC_INGAME_EDITORS
-void ScrollingSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-	ScrollingComponent* sc = Get(entity, false);
-    if (!sc) return;
-    int size = sc->images.size();
-    int i = 0;
-    TwEnumVal imageName[size];
-    for (auto name: sc->images) {
-		imageName[i].Value = i;
-		imageName[i].Label = name.c_str();
-    	++i;
-   	}
-   	TwType imageType = TwDefineEnum("imageType", imageName, size);
-    static char x;
-    TwAddVarRW(bar, "Images", imageType, &x, "group=Scrolling");
-
-    TwAddVarRW(bar, "Direction X", TW_TYPE_FLOAT, &sc->direction.x, "group=Scrolling");
-    TwAddVarRW(bar, "Direction Y", TW_TYPE_FLOAT, &sc->direction.y, "group=Scrolling");
-    TwAddVarRW(bar, "Speed", TW_TYPE_FLOAT, &sc->speed, "group=Scrolling min=0.1");
-    TwAddVarRW(bar, "Display Size X", TW_TYPE_FLOAT, &sc->displaySize.x, "group=Scrolling");
-    TwAddVarRW(bar, "Display Size Y", TW_TYPE_FLOAT, &sc->displaySize.y, "group=Scrolling");
-    TwAddVarRW(bar, "Show", TW_TYPE_BOOLCPP, &sc->show, "group=Scrolling");
-    TwAddVarRW(bar, "Opacity", TW_TYPE_BOOLCPP, &sc->opaqueType, "group=Scrolling");
-}
-#endif

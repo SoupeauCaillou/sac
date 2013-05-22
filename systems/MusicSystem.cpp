@@ -637,9 +637,3 @@ int MusicSystem::decompressNextChunk(OggVorbis_File* file, int8_t* data, int chu
     return chunkSize;
 }
 #endif
-
-#if SAC_INGAME_EDITORS
-void MusicSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
-}
-#endif

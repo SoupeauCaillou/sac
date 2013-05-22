@@ -64,9 +64,3 @@ void ContainerSystem::DoUpdate(float) {
 		tc->size = glm::vec2(maxX - minX, maxY - minY);
 	}
 }
-
-#if SAC_INGAME_EDITORS
-void ContainerSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
-}
-#endif

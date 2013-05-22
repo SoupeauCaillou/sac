@@ -106,17 +106,3 @@ void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, cons
     }
     delete[] file.data;
 }
-
-#if SAC_INGAME_EDITORS
-void AnimationSystem::addEntityPropertiesToBar(Entity entity, TwBar* bar) {
-    AnimationComponent* tc = Get(entity, false);
-    if (!tc) return;
-    TwAddVarRW(bar, "name", TW_TYPE_STDSTRING, &tc->name, "group=Animation");
-    TwAddVarRO(bar, "previousName", TW_TYPE_STDSTRING, &tc->previousName, "group=Animation");
-    TwAddVarRO(bar, "accum", TW_TYPE_FLOAT, &tc->accum, "group=Animation");
-    TwAddVarRW(bar, "playbackSpeed", TW_TYPE_FLOAT, &tc->playbackSpeed, "group=Animation");
-    TwAddVarRW(bar, "loopCount", TW_TYPE_INT32, &tc->loopCount, "group=Animation");
-    TwAddVarRO(bar, "textureIndex", TW_TYPE_INT32, &tc->frameIndex, "group=Animation");
-    TwAddVarRO(bar, "waitAccum", TW_TYPE_FLOAT, &tc->waitAccum, "group=Animation");
-}
-#endif

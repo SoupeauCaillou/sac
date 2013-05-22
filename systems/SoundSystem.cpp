@@ -66,9 +66,3 @@ void SoundSystem::DoUpdate(float) {
         }
     }
 }
-
-#if SAC_INGAME_EDITORS
-void SoundSystem::addEntityPropertiesToBar(Entity, TwBar*) {
-
-}
-#endif
