@@ -6,7 +6,7 @@
 #include <list>
 
 struct ZSQDComponent {
-    ZSQDComponent() : currentSpeed(0.f), maxSpeed(1.f), frictionCoeff(0.1f), newDirectionCoeff(0.01f) {}
+    ZSQDComponent() : currentSpeed(0.f), maxSpeed(1.f), frictionCoeff(0.1f), newDirectionCoeff(0.01f), lateralMove(true), rotationSpeed(5) {}
 
     //new directions are added in this list
     std::list<glm::vec2> directions;
@@ -31,6 +31,10 @@ struct ZSQDComponent {
     //how much the new direction will influences the direction (0: don't influence at all, 1: it's the new direction)
     //in range [0, 1]
     float newDirectionCoeff;
+
+    bool lateralMove;
+
+    float rotationSpeed;
 };
 
 #define theZSQDSystem ZSQDSystem::GetInstance()
