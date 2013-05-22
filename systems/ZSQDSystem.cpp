@@ -3,6 +3,7 @@
 #include "base/Log.h"
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 INSTANCE_IMPL(ZSQDSystem);
 
@@ -12,6 +13,7 @@ ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
     componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, zc), 0.0001f));
     componentSerializer.add(new Property<float>("new_direction_coeff", OFFSET(newDirectionCoeff, zc), 0.0001f));
     componentSerializer.add(new Property<float>("rotation_speed", OFFSET(rotationSpeed, zc), 0.0001f));
+    componentSerializer.add(new Property<float>("rotation_speed_stopped", OFFSET(rotationSpeedStopped, zc), 0.0001f));
 }
 
 void ZSQDSystem::DoUpdate(float dt) {
@@ -29,15 +31,18 @@ void ZSQDSystem::DoUpdate(float dt) {
                     newDir += it;
                 }
 
-                zc->currentSpeed = zc->maxSpeed;
-
                 if (!zc->lateralMove) {
-                    if (glm::abs(newDir.x) > 0.001)
-                        TRANSFORM(a)->rotation -= glm::sign(newDir.x) * zc->rotationSpeed * dt;
-                    if (glm::abs(newDir.y) > 0.001)
+                    if (glm::abs(newDir.y) > 0.001) {
+                        zc->currentSpeed = zc->maxSpeed;
                         TRANSFORM(a)->position += glm::rotate(glm::vec2(0, newDir.y * zc->currentSpeed * dt), TRANSFORM(a)->rotation);
+                    }
+                    if (glm::abs(newDir.x) > 0.001) {
+                        float rotSpeed = glm::lerp(zc->rotationSpeedStopped, zc->rotationSpeed, zc->currentSpeed / zc->maxSpeed);
+                        TRANSFORM(a)->rotation -= glm::sign(newDir.x) * rotSpeed * dt;
+                    }
                 } else {
                     if (glm::length2(newDir) > 0.0001) {
+                        zc->currentSpeed = zc->maxSpeed;
                         TRANSFORM(a)->position += glm::rotate(glm::normalize(newDir) * zc->currentSpeed * dt, TRANSFORM(a)->rotation);
                     }
                 }
