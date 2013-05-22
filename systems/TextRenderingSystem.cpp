@@ -65,6 +65,7 @@ TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingCo
     componentSerializer.add(new StringProperty("font_name", OFFSET(fontName, tc)));
     componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
     componentSerializer.add(new Property<float>("char_height", OFFSET(charHeight, tc), 0.001));
+    componentSerializer.add(new Property<int>("flags", OFFSET(flags, tc), 0));
     componentSerializer.add(new Property<float>("positioning", OFFSET(positioning, tc), 0.001));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
 }
