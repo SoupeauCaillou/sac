@@ -9,6 +9,8 @@ class NetworkAPILinuxImpl : public NetworkAPI {
         void connectToLobby(const std::string& nickName, const char* addr);
         bool isConnectedToAnotherPlayer();
 
+        NetworkStatus::Enum getStatus() const;
+
         NetworkPacket pullReceivedPacket();
         void sendPacket(NetworkPacket packet);
 

@@ -15,6 +15,7 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
     NetworkAPILinuxImplDatas() {
         lobby.client = match.host = 0;
         lobby.peer = match.peer = 0;
+        status = NetworkStatus::None;
     }
 
     struct {
@@ -30,6 +31,8 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
         ENetPeer* peer;
         bool connected, masterMode;
     } match;
+
+    NetworkStatus::Enum status;
 
 
 };
@@ -58,6 +61,10 @@ static void* startLobbyThread(void* p) {
     return 0;
 }
 
+NetworkStatus::Enum NetworkAPILinuxImpl::getStatus() const {
+    return datas->status;
+}
+
 void NetworkAPILinuxImpl::runLobbyThread() {
     datas->match.connected = datas->match.masterMode = false;
     datas->lobby.client = enet_host_create (NULL /* create a client host */,
@@ -67,12 +74,14 @@ void NetworkAPILinuxImpl::runLobbyThread() {
         14400 / 8 /* 56K modem with 14 Kbps upstream bandwidth */);
     if (datas->lobby.client == 0) {
         LOGF("Failed to create lobby client");
+        datas->status = NetworkStatus::ConnectionToLobbyFailed;
         return;
     }
     ENetAddress address;
     ENetEvent event;
     enet_address_set_host (&address, datas->lobby.server.c_str());
     address.port = 50000;
+    datas->status = NetworkStatus::ConnectingToLobby;
 
     LOGI("Trying to connect to loby server: " << datas->lobby.server << ':' << address.port);
     datas->lobby.peer = enet_host_connect (datas->lobby.client, &address, 2, 0);
@@ -82,6 +91,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
         LOGI("Connection to lobby failed");
         enet_host_destroy(datas->lobby.client);
         datas->lobby.client = 0;
+        datas->status = NetworkStatus::ConnectionToLobbyFailed;
         return;
     }
 
@@ -91,7 +101,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     enet_peer_send(datas->lobby.peer, 0, convertPacket(createNickNamePacket(datas->lobby.nickName), ENET_PACKET_FLAG_RELIABLE));
     enet_host_flush(datas->lobby.client);
 
-
+    datas->status = NetworkStatus::ConnectedToLobby;
     std::string remoteName, remoteAddr;
     uint16_t localPort, remotePort;
     bool serverMode;
@@ -130,6 +140,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     }
 
     if (!failure && gotP2PInfo) {
+        datas->status = NetworkStatus::ConnectingToServer;
         LOGI("Lobby phase was successfull, trying to reach player");
         if (serverMode) {
             enet_host_destroy(datas->lobby.client);
@@ -142,9 +153,14 @@ void NetworkAPILinuxImpl::runLobbyThread() {
             datas->match.connected = connectToOtherPlayerClientMode(remoteAddr.c_str(), remotePort);
             datas->match.masterMode = false;
         }
+        if (datas->match.connected)
+            datas->status = NetworkStatus::ConnectedToServer;
+        else
+            datas->status = NetworkStatus::ConnectionToServerFailed;
     } else {
         enet_host_destroy(datas->lobby.client);
         datas->lobby.client = 0;
+        datas->status = NetworkStatus::ConnectionToLobbyFailed;
     }
 
 }
