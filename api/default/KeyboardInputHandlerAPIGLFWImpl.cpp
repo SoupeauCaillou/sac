@@ -12,9 +12,9 @@
 
 KeyboardInputHandlerAPIGLFWImpl::KeyboardInputHandlerAPIGLFWImpl() : textIsReady(true) {}
 
-void KeyboardInputHandlerAPIGLFWImpl::getUserInput(const int imaxSize) {
+void KeyboardInputHandlerAPIGLFWImpl::getUserInput(const std::string& initialText, const int imaxSize) {
     LOGI("Please enter something...");
-    currentText.clear();
+    currentText = initialText;
     textIsReady = false;
     maxSize = imaxSize;
 }

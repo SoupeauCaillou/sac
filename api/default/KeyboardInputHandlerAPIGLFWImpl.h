@@ -9,7 +9,7 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
     public:
         KeyboardInputHandlerAPIGLFWImpl();
 
-        void getUserInput(const int imaxSize);
+        void getUserInput(const std::string& initial, const int imaxSize);
         bool done(std::string & final);
 
         void registerToKeyPress(int value, std::function<void()> f);

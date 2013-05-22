@@ -7,7 +7,7 @@
 
 class KeyboardInputHandlerAPI {
     public:
-        virtual void getUserInput(const int imaxSize = 150) = 0;
+        virtual void getUserInput(const std::string& initial = "", const int imaxSize = 150) = 0;
         virtual bool done(std::string & final) = 0;
 
         virtual void registerToKeyPress(int key, std::function<void()>) = 0;
