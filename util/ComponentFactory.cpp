@@ -300,6 +300,9 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
             case PropertyType::Int:
                 ASSIGN(int);
                 break;
+            case PropertyType::Bool:
+                ASSIGN(bool);
+                break;
             case PropertyType::Vec2:
                 ASSIGN(glm::vec2);
                 break;
@@ -380,6 +383,9 @@ static bool loadSingleProperty(const std::string& context,
             break;
         case PropertyType::Int:
             LOAD_INTERVAL_TEMPL(int);
+            break;
+        case PropertyType::Bool:
+            LOAD_INTERVAL_TEMPL(bool);
             break;
         case PropertyType::Vec2:
             LOAD_INTERVAL_TEMPL(glm::vec2);

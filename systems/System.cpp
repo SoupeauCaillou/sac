@@ -63,6 +63,8 @@ static TwType PropertyTypeToType(PropertyType::Enum e) {
             return TW_TYPE_INT32;
         case PropertyType::Color:
             return TW_TYPE_COLOR4F;
+        case PropertyType::Bool:
+            return TW_TYPE_BOOLCPP;
         default:
             return TW_TYPE_INT32;
     }
@@ -90,6 +92,7 @@ void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
         switch (prop->getType()) {
             case PropertyType::String:
             case PropertyType::Int:
+            case PropertyType::Bool:
             case PropertyType::Color:
                 TwAddVarRW(bar, varName(name, vname).c_str(),
                     PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname).c_str());

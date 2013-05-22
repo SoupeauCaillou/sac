@@ -11,7 +11,7 @@ template <>
 inline Property<int>::Property(const std::string& name, unsigned long offset, int pEpsilon) : IProperty(name, PropertyType::Int, PropertyAttribute::None, offset, sizeof(int)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<bool>::Property(const std::string& name, unsigned long offset, bool pEpsilon) : IProperty(name, PropertyType::Int, PropertyAttribute::None, offset, sizeof(bool)), epsilon(pEpsilon) {}
+inline Property<bool>::Property(const std::string& name, unsigned long offset, bool pEpsilon) : IProperty(name, PropertyType::Bool, PropertyAttribute::None, offset, sizeof(bool)), epsilon(pEpsilon) {}
 
 template <>
 inline Property<Color>::Property(const std::string& name, unsigned long offset, Color pEpsilon) :

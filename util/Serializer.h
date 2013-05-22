@@ -16,6 +16,7 @@ namespace PropertyType {
         Color,
         Texture,
         Entity,
+        Bool,
         Unsupported
     };
 }
