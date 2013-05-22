@@ -12,11 +12,16 @@
 
 KeyboardInputHandlerAPIGLFWImpl::KeyboardInputHandlerAPIGLFWImpl() : textIsReady(true) {}
 
-void KeyboardInputHandlerAPIGLFWImpl::getUserInput(const std::string& initialText, const int imaxSize) {
+void KeyboardInputHandlerAPIGLFWImpl::askUserInput(const std::string& initialText, const int imaxSize) {
     LOGI("Please enter something...");
     currentText = initialText;
     textIsReady = false;
     maxSize = imaxSize;
+}
+
+void KeyboardInputHandlerAPIGLFWImpl::cancelUserInput() {
+    textIsReady = true;
+    currentText.clear();
 }
 
 bool KeyboardInputHandlerAPIGLFWImpl::done(std::string & final) {
@@ -85,7 +90,7 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const SDL_Event* event) {
         return 1;
 
     } else if (event->type == SDL_KEYDOWN) {
-        // LOGI("key pressed: " << key);
+        LOGV(2, "key pressed: " << key);
         //unfortunately auto doesn't work here (maybe does it create a const iterator ? anyway, with auto, that won't modify the key at all :(
         //for (auto it : key2callback) {
         std::map<int, std::pair<bool, std::function<void()>>>::iterator it;
