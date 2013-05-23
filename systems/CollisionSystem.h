@@ -26,6 +26,7 @@ struct CollisionComponent {
     int collideWith;
 
     glm::vec2 previousPosition;
+    float previousRotation;
 };
 
 #define theCollisionSystem CollisionSystem::GetInstance()
@@ -33,4 +34,8 @@ struct CollisionComponent {
 
 UPDATABLE_SYSTEM(Collision)
 
+    public:
+        glm::vec2 worldSize;
+    private:
+        std::vector<Entity> debug;
 };
