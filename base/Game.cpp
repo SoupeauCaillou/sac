@@ -9,6 +9,7 @@
 #include "systems/TextRenderingSystem.h"
 #include "systems/SoundSystem.h"
 #include "systems/MusicSystem.h"
+#include "systems/CollisionSystem.h"
 #include "systems/ContainerSystem.h"
 #include "systems/PhysicsSystem.h"
 #include "systems/ParticuleSystem.h"
@@ -51,6 +52,7 @@ Game::Game() {
 
 	/* create systems singleton */
     AnchorSystem::CreateInstance();
+    CollisionSystem::CreateInstance();
 	TransformationSystem::CreateInstance();
 	RenderingSystem::CreateInstance();
 	SoundSystem::CreateInstance();
@@ -85,6 +87,7 @@ Game::Game() {
 Game::~Game() {
     EntityManager::DestroyInstance();
     AnchorSystem::DestroyInstance();
+    CollisionSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
     RenderingSystem::DestroyInstance();
     SoundSystem::DestroyInstance();
@@ -129,8 +132,10 @@ void Game::eventsHandler() {
     while( SDL_PollEvent(&event) )
     {
 #if SAC_INGAME_EDITORS
+        levelEditor->lock();
         // Send event to AntTweakBar
         handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        levelEditor->unlock();
 #endif
 
         //or try keyboardAPI
@@ -363,6 +368,7 @@ void Game::step() {
     thePhysicsSystem.Update(delta);
     theScrollingSystem.Update(delta);
     theZSQDSystem.Update(delta);
+    theCollisionSystem.Update(delta);
     theSoundSystem.Update(delta);
     theMusicSystem.Update(delta);
     theTextRenderingSystem.Update(delta);
