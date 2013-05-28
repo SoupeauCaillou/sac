@@ -49,17 +49,21 @@ static const std::vector<glm::vec2> rectanglePoints(const TransformationComponen
 TEST(TransformationTestCentralRotation90Degrees) {
     AnchorSystem::CreateInstance();
     TransformationSystem::CreateInstance();
-    Entity e = 1;
+    Entity e = 1, f = 2;
+    theTransformationSystem.Add(f);
     theTransformationSystem.Add(e);
     theAnchorSystem.Add(e);
 
-    TRANSFORM(e)->position = glm::vec2(1, 0);
     TRANSFORM(e)->size = glm::vec2(2, 1);
 
-    ANCHOR(e)->parent = e;
+    ANCHOR(e)->position = glm::vec2(1, 0);
+    ANCHOR(e)->parent = f;
     ANCHOR(e)->rotation = 0.5f * glm::pi<float>();
-    theTransformationSystem.Update(1.0f);
+
     theAnchorSystem.Update(1.0f);
+
+    CHECK_CLOSE(1, TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(0, TRANSFORM(e)->position.y, 0.001);
 
     glm::vec2 expected[4] = { glm::vec2(.5,-1), glm::vec2(.5, 1),
                               glm::vec2(1.5, -1), glm::vec2(1.5, 1) };
@@ -71,7 +75,6 @@ TEST(TransformationTestCentralRotation90Degrees) {
        CHECK_CLOSE(expected[i].y, values[i].y, 0.0001);
     }
 
-
     AnchorSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
 }
@@ -79,30 +82,22 @@ TEST(TransformationTestCentralRotation90Degrees) {
 TEST(TransformationTestNorthWestRotation90Degrees) {
     TransformationSystem::CreateInstance();
     AnchorSystem::CreateInstance();
-    Entity e = 1;
+    Entity e = 1, f = 2;
+    theTransformationSystem.Add(f);
     theTransformationSystem.Add(e);
     theAnchorSystem.Add(e);
 
-    TRANSFORM(e)->position = glm::vec2(1, 0);
     TRANSFORM(e)->size = glm::vec2(2, 1);
 
-    ANCHOR(e)->parent = e;
-    ANCHOR(e)->position = glm::vec2(-1, .5);
+    ANCHOR(e)->position = glm::vec2(1, 0);
+    ANCHOR(e)->anchor = glm::vec2(-1, .5);
+    ANCHOR(e)->parent = f;
     ANCHOR(e)->rotation = .5f * glm::pi<float>();
 
-    theTransformationSystem.Update(1.0f);
     theAnchorSystem.Update(1.0f);
 
-    glm::vec2 expected[4] = { glm::vec2(0, .5), glm::vec2(0, 2.5),
-                              glm::vec2(1, 0.5), glm::vec2(1, 2.5) };
-
-    auto values = rectanglePoints(TRANSFORM(e));
-
-    for (int i = 0; i < 4; ++i) {
-       CHECK_CLOSE(expected[i].x, values[i].x, 0.0001);
-       CHECK_CLOSE(expected[i].y, values[i].y, 0.0001);
-    }
-
+    CHECK_CLOSE(0.5, TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(1.5, TRANSFORM(e)->position.y, 0.001);
 
     AnchorSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
@@ -111,18 +106,18 @@ TEST(TransformationTestNorthWestRotation90Degrees) {
 TEST(TransformationTestSouthRotation45Degrees) {
     AnchorSystem::CreateInstance();
     TransformationSystem::CreateInstance();
-    Entity e = 1;
+    Entity e = 1, f = 2;
     theTransformationSystem.Add(e);
+    theTransformationSystem.Add(f);
     theAnchorSystem.Add(e);
 
-    TRANSFORM(e)->position = glm::vec2(1, 0);
     TRANSFORM(e)->size = glm::vec2(2, 1);
 
-    ANCHOR(e)->parent = e;
-    ANCHOR(e)->position = glm::vec2(0, -0.5);
+    ANCHOR(e)->position = glm::vec2(1, 0);
+    ANCHOR(e)->anchor = glm::vec2(0, -0.5);
     ANCHOR(e)->rotation = .25f * glm::pi<float>();
+    ANCHOR(e)->parent = f;
 
-    theTransformationSystem.Update(1.0f);
     theAnchorSystem.Update(1.0f);
 
     glm::vec2 expected[4] = { glm::vec2(-.41, -.5), glm::vec2(1, 0.91),

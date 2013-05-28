@@ -67,7 +67,7 @@ void AnchorSystem::DoUpdate(float) {
             tc->rotation = pTc->rotation + anchor->rotation;
             // then position
             tc->position = pTc->position
-                + glm::rotate(anchor->position, pTc->rotation)
+                + glm::rotate(anchor->position + anchor->anchor, pTc->rotation)
                 - glm::rotate(anchor->anchor, tc->rotation);
             // and z
             tc->z = pTc->z + anchor->z;
