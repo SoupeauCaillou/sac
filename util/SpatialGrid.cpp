@@ -22,18 +22,21 @@ struct SpatialGrid::SpatialGridData {
 	std::map<uint64_t, Cell> cells;
 
 	SpatialGridData(int pW, int pH) : w(pW), h(pH) {
-		LOGF_IF(w % 2 == 0, "Please use even sized grid. Invalid width: " << w);
-		LOGF_IF(h % 2 == 0, "Please use even sized grid. Invalid height: " << h);
-		for (int i=-w/2; i<=w/2; i++) {
-			for (int j=-h/2; j<=h/2; j++) {
-				cells.insert(std::make_pair(Hash(GridPos(i, j)), Cell()));
+		// varies on z (r) first
+        int qStart = 0;
+		for (int z=0; z<=h; z++) {
+			// then, compute q
+			for (int q=0; q<=w; q++) {
+				cells.insert(std::make_pair(Hash(GridPos(q - (qStart >> 1), z)), Cell()));
 			}
+            qStart++;
 		}
 	}
 
 	bool isPosValid(const GridPos& pos) const {
-		return glm::abs(pos.q) <= (int)(w/2) &&
-			glm::abs(pos.r) <= (int)(h/2);
+        int qStart = (int)(pos.r * -0.5);
+        return (pos.r >= 0 && pos.r <= h) &&
+            pos.q >= qStart && pos.q <= (qStart + w);
 	}
 
 };
@@ -54,7 +57,7 @@ std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos) const {
 		0, 1
 	};
 	for (int i=0; i<6; i++) {
-		GridPos p(pos.q + offsets[2 * i], pos.r +offsets[2 * i + 1]); 
+		GridPos p(pos.q + offsets[2 * i], pos.r +offsets[2 * i + 1]);
 		if (datas->isPosValid(p)) {
 			n.push_back(p);
 		}
