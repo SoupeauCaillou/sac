@@ -50,6 +50,13 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     initDone = true;
 
     renderQueue = new RenderQueue[2];
+
+    // simple square
+    shapes[0].points.push_back(glm::vec2(-0.5, -0.5));
+    shapes[0].points.push_back(glm::vec2(0.5, -0.5));
+    shapes[0].points.push_back(glm::vec2(-0.5, 0.5));
+    shapes[0].points.push_back(glm::vec2(0.5, 0.5));
+    shapes[0].supportUV = true;
 }
 
 RenderingSystem::~RenderingSystem() {

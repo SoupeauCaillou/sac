@@ -161,4 +161,11 @@ private:
     //reload on runtime .fs files when modified
     void updateReload();
 #endif
+
+public:
+    struct Shape {
+        std::vector<glm::vec2> points;
+        bool supportUV;
+    };
+    Shape shapes[1];
 };

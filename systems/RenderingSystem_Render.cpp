@@ -11,8 +11,10 @@
 #endif
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
-static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out);
+
+static void computeVerticesScreenPos(const RenderingSystem::Shape& shape, const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out);
 
 bool firstCall;
 
@@ -109,10 +111,10 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
     rc.rotateUV = info.rotateUV;
 }
 
-static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs) {
+static inline void addRenderCommandToBatch(const RenderingSystem::Shape& shape, const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs) {
     // fill batch
-    glm::vec2 onScreenVertices[4];
-    computeVerticesScreenPos(rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
+    glm::vec2 onScreenVertices[shape.points.size()];
+    computeVerticesScreenPos(shape, rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
 
     const int baseIdx = 4 * batchSize;
     for (int i=0; i<4; i++) {
@@ -313,7 +315,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // ADD TO BATCH
-        addRenderCommandToBatch(rc, batchSize, vertices, uvs);
+        addRenderCommandToBatch(shapes[0], rc, batchSize, vertices, uvs);
 		batchSize++;
 
 		if (batchSize == MAX_BATCH_SIZE) {
@@ -393,23 +395,17 @@ void RenderingSystem::render() {
 #endif
 }
 
-static void computeVerticesScreenPos(const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out) {
-	const float cr = cos(rotation);
-	const float sr = -sin(rotation);
+static void computeVerticesScreenPos(const RenderingSystem::Shape& shape, const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out) {
+    int i = 0;
+    for (const auto& p: shape.points) {
+        out[i++] = position + glm::rotate(p * (2.0f * hSize), rotation);
+    }
 
-	const float crX = cr * hSize.x;
-	const float crY = cr * hSize.y;
-	const float srX = sr * hSize.x;
-	const float srY = sr * hSize.y;
-
-	// -x -y
-	out[rotateUV ? 2 : 0] = glm::vec2(-crX - srY + position.x,  -(-srX) - crY + position.y);
-	// +x -y
-	out[rotateUV ? 0 : 1] = glm::vec2(crX - srY + position.x, -srX - crY + position.y);
-	// -x +y
-	out[rotateUV ? 3 : 2] = glm::vec2(-crX + srY + position.x, -(-srX) + crY + position.y);
-	// +x +y
-	out[rotateUV ? 1 : 3] = glm::vec2(crX + srY + position.x, -srX + crY + position.y);
+    if (shape.supportUV && rotateUV) {
+        std::swap(out[1], out[0]); // 0 is correct, 1 holds 0
+        std::swap(out[1], out[2]); // 2 is correct, 1 holds 2
+        std::swap(out[1], out[3]);
+    }
 }
 
 const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
