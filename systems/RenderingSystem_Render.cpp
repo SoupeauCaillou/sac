@@ -14,7 +14,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 
-static void computeVerticesScreenPos(const RenderingSystem::Shape& shape, const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out);
+
+static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, int rotateUV, glm::vec3* out);
 
 bool firstCall;
 
@@ -27,10 +28,15 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
     }
 }
 
-#define DRAW(texture, vert, uv, batchSize, reverseUV) drawBatchES2(texture, vert, uv, batchSize)
-static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const GLfloat* vertices, const GLfloat* uvs, int batchSize) {
-    if (batchSize > 0)
-    {
+static int drawBatchES2(
+    const RenderingSystem::ColorAlphaTextures glref,
+    const glm::vec3* vertices,
+    const glm::vec2* uvs,
+    const unsigned short* indices,
+    int batchVertexCount,
+    int batchTriangleCount) {
+
+    if (batchTriangleCount > 0) {
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
     	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
     	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
@@ -68,9 +74,11 @@ static int drawBatchES2(const RenderingSystem::ColorAlphaTextures glref, const G
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
 
-    	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[0]))
+    	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
+        GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
+            batchTriangleCount * 3 * sizeof(unsigned short), indices))
 
-        GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, 0))
+        GL_OPERATION(glDrawElements(GL_TRIANGLES, batchTriangleCount * 3, GL_UNSIGNED_SHORT, 0))
 #endif
     }
     return 0;
@@ -111,26 +119,36 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
     rc.rotateUV = info.rotateUV;
 }
 
-static inline void addRenderCommandToBatch(const RenderingSystem::Shape& shape, const RenderingSystem::RenderCommand& rc, int batchSize, GLfloat* vertices, GLfloat* uvs) {
-    // fill batch
-    glm::vec2 onScreenVertices[shape.points.size()];
-    computeVerticesScreenPos(shape, rc.position, rc.halfSize, rc.rotation, rc.rotateUV, onScreenVertices);
+static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc,
+    glm::vec3* outVertices,
+    glm::vec2* outUvs,
+    unsigned short* outIndices,
+    unsigned* verticesCount,
+    unsigned* triangleCount) {
 
-    const int baseIdx = 4 * batchSize;
-    for (int i=0; i<4; i++) {
-        vertices[(baseIdx + i) * 3 + 0] = onScreenVertices[i].x;
-        vertices[(baseIdx + i) * 3 + 1] = onScreenVertices[i].y;
-        vertices[(baseIdx + i) * 3 + 2] = -rc.z;
+    // lookup shape
+    const Polygon& polygon = theRenderingSystem.shapes[rc.shapeType];
+
+    // vertices
+    const std::vector<glm::vec2>& vert =
+        (rc.vertices == DefaultVerticesRef) ? polygon.vertices : theRenderingSystem.dynamicVertices[rc.vertices];
+
+    // perform world -> screen position transformation
+    computeVerticesScreenPos(vert, rc.position, rc.halfSize, rc.rotation, -rc.z, (rc.shapeType == Shape::Square) & rc.rotateUV, outVertices);
+
+    // copy indices
+    for(const auto& i: polygon.indices) {
+        *outIndices++ = *verticesCount + i;
     }
 
-    uvs[baseIdx * 2 + 0] = rc.uv[0].x;
-    uvs[baseIdx * 2 + 1] = 1-rc.uv[0].y;
-    uvs[baseIdx * 2 + 2] = rc.uv[1].x;
-    uvs[baseIdx * 2 + 3] = 1-rc.uv[0].y;
-    uvs[baseIdx * 2 + 4] = rc.uv[0].x;
-    uvs[baseIdx * 2 + 5] = 1-rc.uv[1].y;
-    uvs[baseIdx * 2 + 6] = rc.uv[1].x;
-    uvs[baseIdx * 2 + 7] = 1-rc.uv[1].y;
+    // copy uvs
+    *outUvs++ = glm::vec2(rc.uv[0].x, 1 - rc.uv[0].y);
+    *outUvs++ = glm::vec2(rc.uv[1].x, 1 - rc.uv[0].y);
+    *outUvs++ = glm::vec2(rc.uv[0].x, 1 - rc.uv[1].y);
+    *outUvs++ = glm::vec2(rc.uv[1].x, 1 - rc.uv[1].y);
+
+    *verticesCount += polygon.vertices.size();
+    *triangleCount += polygon.indices.size() / 3;
 }
 
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
@@ -148,43 +166,53 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, c
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
-	static GLfloat vertices[MAX_BATCH_SIZE * 4 * 3];
-	static GLfloat uvs[MAX_BATCH_SIZE * 4 * 2];
+    // Worst case scenario: 3 vertices per triangle (no shared vertices)
+	static glm::vec3 vertices[MAX_BATCH_TRIANGLE_COUNT * 3];
+	static glm::vec2 uvs[MAX_BATCH_TRIANGLE_COUNT * 3];
+    static unsigned short indices[MAX_BATCH_TRIANGLE_COUNT * 3];
+
+    // Rendering state
     struct {
         TransformationComponent worldPos;
         CameraComponent cameraAttr;
     } camera;
-	int batchSize = 0;
-    GL_OPERATION(glDepthMask(true))
-
-    GL_OPERATION(glEnable(GL_DEPTH_TEST))
-	InternalTexture boundTexture = InternalTexture::Invalid;
+    InternalTexture boundTexture = InternalTexture::Invalid;
     FramebufferRef fboRef = DefaultFrameBufferRef;
-	Color currentColor(1,1,1,1);
-    GL_OPERATION(glActiveTexture(GL_TEXTURE1))
-    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+    EffectRef currentEffect = InvalidTextureRef;
+    Color currentColor(1,1,1,1);
     int currentFlags = 0;
     bool useFbo = false;
+
+    // Batch variable
+	unsigned int batchVertexCount = 0, batchTriangleCount = 0;
 
     // matrices
     glm::mat4 camViewPerspMatrix;
 
     LOGV(2, "Begin frame rendering: " << commands.count);
 
-	EffectRef currentEffect = InvalidTextureRef;
+    // Setup initial GL state
+    GL_OPERATION(glDepthMask(true))
+    GL_OPERATION(glEnable(GL_DEPTH_TEST))
+    GL_OPERATION(glActiveTexture(GL_TEXTURE1))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+
+    #define TEX chooseTextures(boundTexture, fboRef, useFbo)
+
+    // The idea here is to browse through the list of _ordered_ list of
+    // render command to execute. We try to group (batch) them in single
+    // GL commands. When a GL state change is required (new color, new
+    // texture, etc), we flush (execute) the active batch, and start
+    // building a new one.
     const unsigned count = commands.count;
     for (unsigned i=0; i<count; i++) {
 		RenderCommand& rc = commands.commands[i];
 
-        // HANDLE BEGIN/END FRAME MARKERS
+        // HANDLE BEGIN/END FRAME MARKERS (new frame OR new camera)
         if (rc.texture == BeginFrameMarker) {
-            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
+            batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
 
-#if SAC_ENABLE_PROFILING
-            std::stringstream framename;
-            framename << "render-frame-" << (unsigned int)rc.rotateUV;
-            PROFILE("Render", framename.str(), InstantEvent);
-#endif
+            PROFILE("Render", "begin-render-frame", InstantEvent);
 
             firstCall = true;
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
@@ -228,7 +256,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
             // flush batch before changing state
-            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
+            batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             if (rc.flags & EnableZWriteBit) {
                 GL_OPERATION(glDepthMask(true))
             } else if (rc.flags & DisableZWriteBit) {
@@ -261,8 +289,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // EFFECT HAS CHANGED ?
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
-			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
-			currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
+			batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
+            currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING
@@ -299,7 +327,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // TEXTURE OR COLOR HAS CHANGED ?
 		if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
             // flush before changing texture/color
-			batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
+			batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             if (rc.fbo) {
                 fboRef = rc.framebuffer;
                 boundTexture = InternalTexture::Invalid;
@@ -315,14 +343,19 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		}
 
         // ADD TO BATCH
-        addRenderCommandToBatch(shapes[0], rc, batchSize, vertices, uvs);
-		batchSize++;
+        addRenderCommandToBatch(rc,
+            vertices + batchVertexCount,
+            uvs + batchVertexCount,
+            indices + (batchTriangleCount * 3),
+            &batchVertexCount, &batchTriangleCount);
 
-		if (batchSize == MAX_BATCH_SIZE) {
-            batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, rc.rotateUV);
-		}
+        if (batchTriangleCount >= MAX_BATCH_TRIANGLE_COUNT) {
+            batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
+        }
 	}
-    batchSize = DRAW(chooseTextures(boundTexture, fboRef, useFbo), vertices, uvs, batchSize, false);
+    drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
+
+    #undef TEX
 }
 #include <errno.h>
 
@@ -395,16 +428,16 @@ void RenderingSystem::render() {
 #endif
 }
 
-static void computeVerticesScreenPos(const RenderingSystem::Shape& shape, const glm::vec2& position, const glm::vec2& hSize, float rotation, int rotateUV, glm::vec2* out) {
-    int i = 0;
-    for (const auto& p: shape.points) {
-        out[i++] = position + glm::rotate(p * (2.0f * hSize), rotation);
+static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, int rotateUV, glm::vec3* out) {
+    const auto b = out;
+    for (const auto& p: points) {
+        *out++ = glm::vec3(position + glm::rotate(p * (2.0f * hSize), rotation), z);
     }
 
-    if (shape.supportUV && rotateUV) {
-        std::swap(out[1], out[0]); // 0 is correct, 1 holds 0
-        std::swap(out[1], out[2]); // 2 is correct, 1 holds 2
-        std::swap(out[1], out[3]);
+    if (/*shape.supportUV &&*/ rotateUV) {
+        std::swap(*(b + 1), *(b + 0)); // 0 is correct, 1 holds 0
+        std::swap(*(b + 1), *(b + 2)); // 2 is correct, 1 holds 2
+        std::swap(*(b + 1), *(b + 3));
     }
 }
 

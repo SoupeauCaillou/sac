@@ -37,7 +37,7 @@ struct RenderingSystem::RenderCommand {
     Color color;
     glm::vec2 position;
     float rotation;
-    int flags;
+    int flags, shapeType, vertices;
     bool mirrorH, fbo;
 };
 
@@ -54,7 +54,7 @@ void unpackCameraAttributes(
     CameraComponent* cameraComp);
 
 #if SAC_USE_VBO
-#define MAX_BATCH_SIZE 128
+#define MAX_BATCH_TRIANGLE_COUNT 128
 #else
-#define MAX_BATCH_SIZE 128
+#define MAX_BATCH_TRIANGLE_COUNT 2
 #endif

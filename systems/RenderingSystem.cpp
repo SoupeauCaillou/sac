@@ -52,11 +52,18 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     renderQueue = new RenderQueue[2];
 
     // simple square
+    #if 0
     shapes[0].points.push_back(glm::vec2(-0.5, -0.5));
     shapes[0].points.push_back(glm::vec2(0.5, -0.5));
     shapes[0].points.push_back(glm::vec2(-0.5, 0.5));
     shapes[0].points.push_back(glm::vec2(0.5, 0.5));
     shapes[0].supportUV = true;
+    shapes[0].verticesCount = 6;
+    unsigned short baseSquare[] = {0, 1, 2, 1, 3, 2};
+    #endif
+    for (unsigned i=0; i<Shape::Count; i++) {
+        shapes[i] = Polygon::create((Shape::Enum)i);
+    }
 }
 
 RenderingSystem::~RenderingSystem() {
@@ -115,35 +122,25 @@ void RenderingSystem::init() {
 	GL_OPERATION(glDepthMask(false))
 
 #if SAC_USE_VBO
-	GL_OPERATION(glGenBuffers(3, squareBuffers))
+	GL_OPERATION(glGenBuffers(3, shapes[0].glBuffers))
 #else
-    GL_OPERATION(glGenBuffers(1, squareBuffers))
+    GL_OPERATION(glGenBuffers(1, glBuffers))
 #endif
 
-    // create a static VBO for indices
-    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareBuffers[0]))
-    unsigned short indices[MAX_BATCH_SIZE * 6];
-    for (unsigned c = 0; c < MAX_BATCH_SIZE; c++) {
-        const int baseIdx = 4 * c;
-        indices[c * 6 + 0] = baseIdx + 0;
-        indices[c * 6 + 1] = baseIdx + 1;
-        indices[c * 6 + 2] = baseIdx + 2;
-        indices[c * 6 + 3] = baseIdx + 1;
-        indices[c * 6 + 4] = baseIdx + 3;
-        indices[c * 6 + 5] = baseIdx + 2;
-    }
+    // create a VBO for indices
+    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
     GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(indices), indices, GL_STATIC_DRAW))
+        sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_DYNAMIC_DRAW))
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0))
 
 #if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[1]))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, shapes[0].glBuffers[1]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-        MAX_BATCH_SIZE * 4 * 3 * sizeof(float), 0, GL_STATIC_DRAW))
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, squareBuffers[2]))
+        MAX_BATCH_SIZE * 4 * 3 * sizeof(float), 0, GL_DYNAMIC_DRAW))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, shapes[0].glBuffers[2]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-        MAX_BATCH_SIZE * 4 * 2 * sizeof(float), 0, GL_STATIC_DRAW))
+        MAX_BATCH_SIZE * 4 * 2 * sizeof(float), 0, GL_DYNAMIC_DRAW))
 #endif
 }
 
@@ -304,6 +301,8 @@ void RenderingSystem::DoUpdate(float) {
     		c.effectRef = rc->effectRef;
     		c.halfSize = tc->size * 0.5f;
     		c.color = rc->color;
+            c.shapeType = (int)rc->shape;
+            c.vertices = rc->dynamicVertices;
     		c.position = tc->position;
     		c.rotation = tc->rotation;
     		c.uv[0] = glm::vec2(0.0f);

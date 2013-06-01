@@ -21,15 +21,28 @@
 #include "../api/AssetAPI.h"
 
 #include "System.h"
+#include "opengl/Polygon.h"
 
 typedef int FramebufferRef;
 #define DefaultFrameBufferRef -1
 
+typedef int VerticesRef;
+// Default represents 'unit' shape (1 unit-length square for instance)
+#define DefaultVerticesRef -1
+
 struct TransformationComponent;
 
 struct RenderingComponent {
-	RenderingComponent() : texture(InvalidTextureRef), effectRef(DefaultEffectRef), color(Color()), show(false),
-    mirrorH(false), zPrePass(false), fastCulling(false), opaqueType(NON_OPAQUE), cameraBitMask(~0u) {
+	RenderingComponent() :
+        texture(InvalidTextureRef),
+        effectRef(DefaultEffectRef),
+        color(Color()),
+        shape(Shape::Square),
+        dynamicVertices(DefaultVerticesRef),
+        show(false), mirrorH(false), zPrePass(false), fastCulling(false),
+        opaqueType(NON_OPAQUE),
+        cameraBitMask(~0u)
+        {
         fbo = false;
     }
 
@@ -39,6 +52,8 @@ struct RenderingComponent {
     };
 	EffectRef effectRef;
 	Color color;
+    Shape::Enum shape;
+    VerticesRef dynamicVertices;
 	bool show, mirrorH, zPrePass, fastCulling, fbo;
 	enum Opacity {
 		NON_OPAQUE = 0,
@@ -136,11 +151,6 @@ public:
     TextureLibrary textureLibrary;
     EffectLibrary effectLibrary;
 
-#if SAC_USE_VBO
-    GLuint squareBuffers[3];
-#else
-    GLuint squareBuffers[1];
-#endif
 private:
 
 void setFrameQueueWritable(bool b);
@@ -161,11 +171,8 @@ private:
     //reload on runtime .fs files when modified
     void updateReload();
 #endif
-
 public:
-    struct Shape {
-        std::vector<glm::vec2> points;
-        bool supportUV;
-    };
-    Shape shapes[1];
+    GLuint glBuffers[1];
+    std::vector<std::vector<glm::vec2> > dynamicVertices;
+    Polygon shapes[Shape::Count];
 };
