@@ -45,6 +45,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new Property<bool>("fast_culling", OFFSET(fastCulling, tc)));
     componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
     componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<int>("shape", OFFSET(shape, tc)));
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;

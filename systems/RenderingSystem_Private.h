@@ -56,5 +56,5 @@ void unpackCameraAttributes(
 #if SAC_USE_VBO
 #define MAX_BATCH_TRIANGLE_COUNT 128
 #else
-#define MAX_BATCH_TRIANGLE_COUNT 2
+#define MAX_BATCH_TRIANGLE_COUNT 128
 #endif

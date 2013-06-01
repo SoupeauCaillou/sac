@@ -28,20 +28,20 @@ Polygon Polygon::create(Shape::Enum e) {
 			// 1 triangle -> 1 vertices
 			p.vertices.push_back(glm::vec2(-0.5, -0.5));
 			p.vertices.push_back(glm::vec2(0.5, -0.5));
-			p.vertices.push_back(glm::vec2(0, 1));
+			p.vertices.push_back(glm::vec2(0, 0.5));
 			break;
 		case Shape::Hexagon:
 			// 6 triangles -> 18 indices
-			for (int i = 0; i < 6; ++i) {
+			for (int i = 1; i <= 6; ++i) {
 				p.indices.push_back(0);
 				p.indices.push_back(i);
-				p.indices.push_back((i + 1) % 7);
+				p.indices.push_back((i < 6) ? (i + 1) : 1);
 			}
 			// 6 triangles -> 7 vertices
 			p.vertices.push_back(glm::vec2(0));
 			for (int i = 0; i<6; ++i) {
 				p.vertices.push_back(glm::rotate(glm::vec2(0, 0.5),
-					glm::half_pi<float>() + glm::pi<float>() / 6.0f));
+					i * glm::pi<float>() / 3.0f));
 			}
 			break;
 		default:
