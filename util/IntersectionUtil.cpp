@@ -10,7 +10,8 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& r
 }
 
 // from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint) {
+bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& qA,
+    const glm::vec2& qB, glm::vec2* intersectionPoint) {
 	float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
                       ((qB.x - qA.x)*(pB.y - pA.y));
 
@@ -32,18 +33,38 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const 
     float ua = nume_a / denom;
     float ub = nume_b / denom;
 
-    if(ua >= 0.0f && ua <= 1.0f && ub >= 0.0f && ub <= 1.0f)
-    {
-    	if (intersectionPoint) {
-            // Get the intersection point.
-            intersectionPoint->x = pA.x + ua*(pB.x - pA.x);
-            intersectionPoint->y = pA.y + ua*(pB.y - pA.y);
-        }
-
-        return true;
+    const float eps = 0.0001;
+    if (ua < -eps || ua > 1.f + eps || ub < -eps || ub > 1.f + eps) {
+        return false;
     }
 
-    return false;
+	if (intersectionPoint) {
+        // Get the intersection point.
+        intersectionPoint->x = pA.x + ua*(pB.x - pA.x);
+        intersectionPoint->y = pA.y + ua*(pB.y - pA.y);
+    }
+
+    return true;
+}
+
+//should be enhanced
+bool IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
+            const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot, glm::vec2* intersectionPoint) {
+
+    //NW
+    glm::vec2 rectBNWPoint = rectBPos + glm::rotate(glm::vec2(- rectBSize.x, rectBSize.y) * .5f, rectBRot);
+    //NE
+    glm::vec2 rectBNEPoint = rectBPos + glm::rotate(glm::vec2(rectBSize.x, rectBSize.y) * .5f, rectBRot);
+    //SW
+    glm::vec2 rectBSWPoint = rectBPos + glm::rotate(glm::vec2(- rectBSize.x, - rectBSize.y) * .5f, rectBRot);
+    //SE
+    glm::vec2 rectBSEPoint = rectBPos + glm::rotate(glm::vec2(rectBSize.x, - rectBSize.y) * .5f, rectBRot);
+
+    //try the 4 lines of the rectangle!
+    return (lineLine(pA1, pA2, rectBNWPoint, rectBNEPoint, intersectionPoint)
+            || lineLine(pA1, pA2, rectBNWPoint, rectBSWPoint, intersectionPoint)
+            || lineLine(pA1, pA2, rectBNEPoint, rectBSEPoint, intersectionPoint)
+            || lineLine(pA1, pA2, rectBSWPoint, rectBSEPoint, intersectionPoint));
 }
 
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
