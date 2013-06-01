@@ -22,8 +22,9 @@ struct TextRenderingComponent {
 	const static int AdjustHeightToFillWidthBit = 1 << 1;
 	const static int MultiLineBit = 1 << 2;
 
-	TextRenderingComponent() : text(""), fontName("typo"),
-	positioning(CENTER), show(false), flags(0), cameraBitMask(~0U) {
+	TextRenderingComponent() : text("Text"), color(Color(1.f)), localizableID(""),
+    charHeight(1.), fontName("typo"), positioning(CENTER), show(false),
+    flags(0), cameraBitMask(~0U) {
 		caret.show = false;
 		caret.speed = caret.dt = 0;
 		blink.offDuration =
