@@ -15,6 +15,7 @@ struct NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
     NetworkAPILinuxImplDatas() {
         lobby.client = match.host = 0;
         lobby.peer = match.peer = 0;
+        match.connected = match.masterMode = false;
         status = NetworkStatus::None;
     }
 
