@@ -1,8 +1,27 @@
 #include "IntersectionUtil.h"
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include "../systems/TransformationSystem.h"
 #include <cmath>
+
+bool IntersectionUtil::pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB) {
+    const float norm2 = glm::length2(qB - qA);
+
+    // if qA = qB, this is not a segment!
+    if (norm2 < 0.0001f) {
+        return (point == qA);
+    } else {
+
+        const float t = glm::dot (point - qA, qB - qA) / norm2;
+        const float eps = 0.0001;
+LOGI("t equals: " << t);
+        if (t >= -eps && t <= 1.f + eps) {
+            return (glm::length2(point - (qA + t * (qB - qA))) < eps);
+        }
+    }
+    return false;
+}
 
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize) {
 	return (glm::abs(rectPos.x - point.x) < rectSize.x * 0.5 &&
