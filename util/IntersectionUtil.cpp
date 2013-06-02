@@ -5,17 +5,18 @@
 #include "../systems/TransformationSystem.h"
 #include <cmath>
 
+const float eps = 0.00001;
+
 bool IntersectionUtil::pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB) {
     const float norm2 = glm::length2(qB - qA);
 
     // if qA = qB, this is not a segment!
-    if (norm2 < 0.0001f) {
+    if (norm2 < eps) {
         return (point == qA);
     } else {
 
         const float t = glm::dot (point - qA, qB - qA) / norm2;
-        const float eps = 0.0001;
-LOGI("t equals: " << t);
+
         if (t >= -eps && t <= 1.f + eps) {
             return (glm::length2(point - (qA + t * (qB - qA))) < eps);
         }
@@ -51,8 +52,8 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const 
 
     float ua = nume_a / denom;
     float ub = nume_b / denom;
+LOGI(ua << " and " << ub);
 
-    const float eps = 0.0001;
     if (ua < -eps || ua > 1.f + eps || ub < -eps || ub > 1.f + eps) {
         return false;
     }
