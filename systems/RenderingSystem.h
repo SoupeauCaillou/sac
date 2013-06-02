@@ -172,7 +172,11 @@ private:
     void updateReload();
 #endif
 public:
+#if SAC_USE_VBO
+    GLuint glBuffers[3];
+#else
     GLuint glBuffers[1];
+#endif
     std::vector<std::vector<glm::vec2> > dynamicVertices;
     Polygon shapes[Shape::Count];
 };

@@ -123,7 +123,7 @@ void RenderingSystem::init() {
 	GL_OPERATION(glDepthMask(false))
 
 #if SAC_USE_VBO
-	GL_OPERATION(glGenBuffers(3, shapes[0].glBuffers))
+	GL_OPERATION(glGenBuffers(3, glBuffers))
 #else
     GL_OPERATION(glGenBuffers(1, glBuffers))
 #endif
@@ -136,12 +136,12 @@ void RenderingSystem::init() {
 
 #if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, shapes[0].glBuffers[1]))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[1]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-        MAX_BATCH_SIZE * 4 * 3 * sizeof(float), 0, GL_DYNAMIC_DRAW))
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, shapes[0].glBuffers[2]))
+        MAX_BATCH_TRIANGLE_COUNT * 3 * 3 * sizeof(float), 0, GL_DYNAMIC_DRAW))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[2]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-        MAX_BATCH_SIZE * 4 * 2 * sizeof(float), 0, GL_DYNAMIC_DRAW))
+        MAX_BATCH_TRIANGLE_COUNT * 3 * 2 * sizeof(float), 0, GL_DYNAMIC_DRAW))
 #endif
 }
 

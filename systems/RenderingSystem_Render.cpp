@@ -51,35 +51,30 @@ static int drawBatchES2(
 
 #if SAC_USE_VBO
         // update vertex buffer
-    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[1]))
+    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
-            batchSize * 4 * 3 * sizeof(float), vertices))
+            batchVertexCount * 3 * sizeof(float), vertices))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 3 * sizeof(float), 0))
 
         // update uv buffer
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.squareBuffers[2]))
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[2]))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
-            batchSize * 4 * 2 * sizeof(float), uvs))
+            batchVertexCount * 2 * sizeof(float), uvs))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 2 * sizeof(float), 0))
-
-        // indices buffer
-        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.squareBuffers[0]))
-
-    	GL_OPERATION(glDrawElements(GL_TRIANGLES, batchSize * 6, GL_UNSIGNED_SHORT, 0))
 #else
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
     	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
     	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+#endif
 
     	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
             batchTriangleCount * 3 * sizeof(unsigned short), indices))
 
         GL_OPERATION(glDrawElements(GL_TRIANGLES, batchTriangleCount * 3, GL_UNSIGNED_SHORT, 0))
-#endif
     }
     return 0;
 }
