@@ -5,6 +5,7 @@
 
 #include <map>
 #include <list>
+#include <sstream>
 #include <vector>
 #if SAC_DEBUG
 #include <string>
@@ -49,7 +50,11 @@ class EntityManager {
 #ifdef SAC_DEBUG
         const std::string& entityName(Entity e) const;
 #else
-        const inline Entity entityName(Entity e) const { return e; }
+        const inline std::string entityName(Entity e) const {
+            static std::stringstream ss;
+            ss << e;
+            return ss.str();
+        }
 #endif
         int getNumberofEntity() {return entityComponents.size();}
 
