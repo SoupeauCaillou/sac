@@ -1,7 +1,8 @@
 #include "SpatialGrid.h"
 #include "base/Log.h"
 #include <map>
-
+#include <list>
+#include "base/Entity.h"
 
 static uint64_t Hash(const GridPos& p) {
 	uint64_t h = p.q;
@@ -10,7 +11,7 @@ static uint64_t Hash(const GridPos& p) {
 }
 
 struct Cell {
-
+    std::list<Entity> entities; // <- GRID()
 };
 
 GridPos::GridPos(int32_t pQ, int32_t pR) : q(pQ), r(pR) {
