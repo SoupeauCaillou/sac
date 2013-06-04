@@ -697,10 +697,14 @@ void unpackCameraAttributes(
 }
 
 void RenderingSystem::defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v) {
+#if !SAC_EMSCRIPTEN
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
+#endif
     if (dynamicVertices.size() <= idx) {
         dynamicVertices.resize(idx + 1);
     }
     dynamicVertices[idx] = v;
+#if !SAC_EMSCRIPTEN
     lock.unlock();
+#endif
 }
