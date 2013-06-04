@@ -695,3 +695,12 @@ void unpackCameraAttributes(
     ccc->fb = in.rotateUV;
     ccc->clearColor = in.color;
 }
+
+void RenderingSystem::defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v) {
+    std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
+    if (dynamicVertices.size() <= idx) {
+        dynamicVertices.resize(idx + 1);
+    }
+    dynamicVertices[idx] = v;
+    lock.unlock();
+}

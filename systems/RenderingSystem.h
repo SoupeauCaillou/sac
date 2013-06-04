@@ -179,4 +179,6 @@ public:
 #endif
     std::vector<std::vector<glm::vec2> > dynamicVertices;
     Polygon shapes[Shape::Count];
+
+    void defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v);
 };
