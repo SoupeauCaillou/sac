@@ -344,7 +344,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             indices + (batchTriangleCount * 3),
             &batchVertexCount, &batchTriangleCount);
 
-        if (batchTriangleCount >= MAX_BATCH_TRIANGLE_COUNT) {
+        if ((batchTriangleCount + 6) >= MAX_BATCH_TRIANGLE_COUNT) {
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
         }
 	}
