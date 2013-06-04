@@ -28,14 +28,14 @@ void StateMachine<T>::setup(T initState) {
 
 template<typename T>
 void StateMachine<T>::registerState(T id, StateHandler<T>* hdl, const std::string&
-    #ifdef SAC_ENABLE_LOG
+    #if SAC_ENABLE_LOG
     stateDebugName
     #else
     #endif
     ) {
     LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered");
 	state2handler.insert(std::make_pair(id, hdl));
-    #ifdef SAC_ENABLE_LOG
+    #if SAC_ENABLE_LOG
     state2Name.insert(std::make_pair(id, stateDebugName));
     #endif
 }

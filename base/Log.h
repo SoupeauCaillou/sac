@@ -2,17 +2,18 @@
 
 extern bool AssertOnFatal;
 
-#if SAC_ENABLE_LOG
-
-#undef ERROR
-#include <ostream>
-#include <map>
-
 //to handle vec2 operator<<
+#include <ostream>
 #include <glm/glm.hpp>
 inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
     return stream << v.x << ", " << v.y;
 }
+
+#if SAC_ENABLE_LOG
+
+#undef ERROR
+#include <map>
+
 
 
 namespace LogVerbosity {
@@ -126,21 +127,22 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #else
 
 #define LOGF(x) { assert(!AssertOnFatal); }
-#define LOGE(x) {}
-#define LOGT(x) {}
-#define LOGW(x) {}
-#define LOGI(x) {}
-#define LOGV(verbosity, x) {}
+#define LOGE(x) do {} while(false)
+#define LOGT(x) do {} while(false)
+#define LOGW(x) do {} while(false)
+#define LOGI(x) do {} while(false)
+#define LOGV(verbosity, x) do {} while(false)
 
-#define LOGF_IF(cond, x) {}
-#define LOGE_IF(cond, x) {}
-#define LOGT_IF(cond, x) {}
-#define LOGW_IF(cond, x) {}
-#define LOGI_IF(cond, x) {}
-#define LOGV_IF(verbosity, cond, x) {}
+#define LOGF_IF(cond, x) do {} while(false)
+#define LOGE_IF(cond, x) do {} while(false)
+#define LOGT_IF(cond, x) do {} while(false)
+#define LOGW_IF(cond, x) do {} while(false)
+#define LOGI_IF(cond, x) do {} while(false)
+#define LOGV_IF(verbosity, cond, x) do {} while(false)
 
-#define LOGE_EVERY_N(n, x) {}
-#define LOGW_EVERY_N(n, x) {}
-#define LOGI_EVERY_N(n, x) {}
+#define LOGE_EVERY_N(n, x) do {} while(false)
+#define LOGW_EVERY_N(n, x) do {} while(false)
+#define LOGI_EVERY_N(n, x) do {} while(false)
+#define LOGT_EVERY_N(n, x) do {} while(false)
 
 #endif
