@@ -196,7 +196,7 @@ std::map<int, std::vector<GridPos> >& SpatialGrid::movementRange(GridPos& p, int
             for (auto npos: neighbors) {
                 bool isBlocked = false;
                 for (auto e: datas->cells[npos].entities) {
-                    if (GRID(e)->blocksPath) {
+                    if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
                         isBlocked = true;
                         break;
                     }
