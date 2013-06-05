@@ -24,9 +24,11 @@ bool IntersectionUtil::pointLine(const glm::vec2& point, const glm::vec2& qA, co
     return false;
 }
 
-bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize) {
-	return (glm::abs(rectPos.x - point.x) < rectSize.x * 0.5 &&
-		glm::abs(rectPos.y - point.y) < rectSize.y * 0.5);
+bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
+    glm::vec2 p(glm::rotate(point, -rectRotation));
+
+	return (glm::abs(rectPos.x - p.x) < rectSize.x * 0.5 &&
+		glm::abs(rectPos.y - p.y) < rectSize.y * 0.5);
 }
 
 // from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/

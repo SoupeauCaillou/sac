@@ -7,7 +7,7 @@ class IntersectionUtil {
 	public:
         static bool pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB);
 
-        static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize);
+        static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation = 0);
 
         static bool lineLine(const glm::vec2& pA, const glm::vec2& pB,
             const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint);
