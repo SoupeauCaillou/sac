@@ -4,7 +4,8 @@
 #include <list>
 #include "base/Entity.h"
 #include "base/EntityManager.h"
-
+#include "util/IntersectionUtil.h"
+#include "systems/TransformationSystem.h"
 
 static GridPos cubeCoordinateRounding(float x, float y, float z);
 static GridPos positionSizeToGridPos(const glm::vec2& pos, float size);
@@ -123,10 +124,27 @@ void SpatialGrid::doForEachCell(std::function<void(const GridPos&)> fnct) {
 
 void SpatialGrid::addEntityAt(Entity e, const GridPos& p) {
     auto it = datas->cells.find(p);
-    if (it == datas->cells.end()) {
-        LOGE("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
-    } else {
-        it->second.entities.push_back(e);
+    if (it == datas->cells.end())
+        LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
+    
+    it->second.entities.push_back(e);
+}
+
+std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
+    auto it = datas->cells.find(p);
+    if (it == datas->cells.end())
+        LOGF("Tried to get entities at invalid pos: '" << p.q << "," << p.r << "'");
+    
+    return it->second.entities;
+}
+void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
+    for (auto e: entities) {
+        doForEachCell([this, e] (const GridPos& p) -> void {
+            if (IntersectionUtil::pointRectangle(gridPosToPosition(p), TRANSFORM(e)->position, TRANSFORM(e)->size)) {
+                this->addEntityAt(e, p);
+            }
+        });
+        
     }
 }
 

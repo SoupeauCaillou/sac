@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include "base/Entity.h"
 
+#include <list>
 // let's start with a dumb position data structure
 class GridPos {
 	friend class SpatialGrid;
@@ -30,6 +31,10 @@ class SpatialGrid {
         void doForEachCell(std::function<void(const GridPos& )> f);
 
         void addEntityAt(Entity e, const GridPos& p);
+
+        std::list<Entity>& getEntitiesAt(const GridPos& p);
+
+        void autoAssignEntitiesToCell(std::list<Entity> entities);
 
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);
