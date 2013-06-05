@@ -54,7 +54,6 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const 
 
     float ua = nume_a / denom;
     float ub = nume_b / denom;
-LOGI(ua << " and " << ub);
 
     if (ua < -eps || ua > 1.f + eps || ub < -eps || ub > 1.f + eps) {
         return false;
