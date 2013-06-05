@@ -5,7 +5,9 @@
 #include "base/Entity.h"
 #include "base/EntityManager.h"
 #include "util/IntersectionUtil.h"
+#include "systems/GridSystem.h"
 #include "systems/TransformationSystem.h"
+
 
 static GridPos cubeCoordinateRounding(float x, float y, float z);
 static GridPos positionSizeToGridPos(const glm::vec2& pos, float size);
@@ -20,7 +22,10 @@ static uint64_t Hash(const GridPos& p) {
 bool GridPos::operator<(const GridPos& p) const {
     return Hash(p) < Hash(*this);
 }
-
+bool GridPos::operator==(const GridPos& p) const {
+    return Hash(p) == Hash(*this);
+}
+ 
 
 /*
 static GridPos DeHash(uint64_t p) {
@@ -146,6 +151,48 @@ void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
         });
         
     }
+}
+
+std::map<int, std::vector<GridPos> >& SpatialGrid::movementRange(GridPos& p, int movement) {
+    static std::map<int, std::vector<GridPos> > range;
+    range.clear();
+    auto it = datas->cells.find(p);
+    if (it == datas->cells.end())
+        LOGF("Tried to find movement range at invalid position: '" << p.q << "," << p.r <<"'");
+    std::vector<GridPos> visited;
+    visited.push_back(p);
+    range[0].push_back(p);
+    for(int i=1; i<movement+1; ++i) {
+        for (auto pos : range[i-1]) {
+            std::vector<GridPos> neighbors = getNeighbors(pos);
+            for (auto npos: neighbors) {
+                bool isBlocked = false;
+                for (auto e: datas->cells[npos].entities) {
+                    if (GRID(e)->blocksPath) {
+                        isBlocked = true;
+                        break;
+                    }
+                }
+                if (isBlocked) {
+                    continue;
+                }
+                bool isVisited = false;
+                for (auto v: visited){
+                    if (v == npos) {// and not blocked
+                        isVisited = true;
+                        break;
+                    }
+                }
+                if (!isVisited) {
+                    visited.push_back(npos);
+                    range[i].push_back(npos);
+                }
+            }
+        }
+        LOGI("size SG =" << range[i].size());
+    }
+
+    return range;
 }
 
 static GridPos cubeCoordinateRounding(float x, float y, float z) {

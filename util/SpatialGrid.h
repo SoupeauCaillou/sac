@@ -1,12 +1,14 @@
 #pragma once
 
 #include <stdint.h>
-#include <vector>
 #include <functional>
 #include <glm/glm.hpp>
 #include "base/Entity.h"
 
 #include <list>
+#include <map>
+#include <vector>
+
 // let's start with a dumb position data structure
 class GridPos {
 	friend class SpatialGrid;
@@ -14,8 +16,9 @@ public:
 	GridPos(int32_t q = 0, int32_t r = 0);
 
     bool operator<(const GridPos& p) const;
-
+	bool operator==(const GridPos& p) const;
 	int32_t q, r;
+
 };
 
 class SpatialGrid {
@@ -35,6 +38,8 @@ class SpatialGrid {
         std::list<Entity>& getEntitiesAt(const GridPos& p);
 
         void autoAssignEntitiesToCell(std::list<Entity> entities);
+
+        std::map<int, std::vector<GridPos> >& movementRange(GridPos& p, int movement);
 
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);

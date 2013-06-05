@@ -11,7 +11,7 @@ struct GridComponent {
 };
 
 #define theGridSystem GridSystem::GetInstance()
-#define TRANSFORM(e) theGridSystem.Get(e)
+#define GRID(e) theGridSystem.Get(e)
 
 UPDATABLE_SYSTEM(Grid)
 };

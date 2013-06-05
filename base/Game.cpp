@@ -1,39 +1,44 @@
 #include "Game.h"
 
-#include <base/EntityManager.h>
-#include "systems/AnchorSystem.h"
-#include "systems/TransformationSystem.h"
-#include "systems/RenderingSystem.h"
-#include "systems/ButtonSystem.h"
+#include "app/MouseNativeTouchState.h"
+
+#include "api/AssetAPI.h"
+#include "api/KeyboardInputHandlerAPI.h"
+
+#include "base/EntityManager.h"
+#include "base/PlacementHelper.h"
+#include "base/Profiler.h"
+#include "base/TouchInputManager.h"
+
 #include "systems/ADSRSystem.h"
-#include "systems/TextRenderingSystem.h"
-#include "systems/SoundSystem.h"
-#include "systems/MusicSystem.h"
+#include "systems/AnchorSystem.h"
+#include "systems/AnimationSystem.h"
+#include "systems/AutoDestroySystem.h"
+#include "systems/AutonomousAgentSystem.h"
+#include "systems/ButtonSystem.h"
+#include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
 #include "systems/ContainerSystem.h"
-#include "systems/PhysicsSystem.h"
-#include "systems/ParticuleSystem.h"
-#include "systems/ZSQDSystem.h"
-#include "systems/ScrollingSystem.h"
-#include "systems/MorphingSystem.h"
-#include "systems/AutonomousAgentSystem.h"
-#include "systems/AnimationSystem.h"
-#include "systems/NetworkSystem.h"
-#include "systems/AutoDestroySystem.h"
-#include "systems/CameraSystem.h"
-#include "systems/GraphSystem.h"
 #include "systems/DebuggingSystem.h"
-#include "api/AssetAPI.h"
-#include "base/PlacementHelper.h"
-#include "base/TouchInputManager.h"
-#include "base/Profiler.h"
+#include "systems/GraphSystem.h"
+#include "systems/GridSystem.h"
+#include "systems/MorphingSystem.h"
+#include "systems/MusicSystem.h"
+#include "systems/NetworkSystem.h"
+#include "systems/ParticuleSystem.h"
+#include "systems/PhysicsSystem.h"
+#include "systems/RenderingSystem.h"
+#include "systems/ScrollingSystem.h"
+#include "systems/SoundSystem.h"
+#include "systems/TextRenderingSystem.h"
+#include "systems/TransformationSystem.h"
+#include "systems/ZSQDSystem.h"
+
 #include "util/DataFileParser.h"
-#include <sstream>
 
 #include <SDL/SDL.h>
 
-#include "api/KeyboardInputHandlerAPI.h"
-#include "app/MouseNativeTouchState.h"
+#include <sstream>
 
 Game::Game() {
 #if SAC_INGAME_EDITORS
@@ -51,27 +56,28 @@ Game::Game() {
 	EntityManager::CreateInstance();
 
 	/* create systems singleton */
+    ADSRSystem::CreateInstance();
     AnchorSystem::CreateInstance();
-    CollisionSystem::CreateInstance();
-	TransformationSystem::CreateInstance();
-	RenderingSystem::CreateInstance();
-	SoundSystem::CreateInstance();
-    MusicSystem::CreateInstance();
-	ADSRSystem::CreateInstance();
-	ButtonSystem::CreateInstance();
-	TextRenderingSystem::CreateInstance();
-	ContainerSystem::CreateInstance();
-    PhysicsSystem::CreateInstance();
-    ZSQDSystem::CreateInstance();
-    ParticuleSystem::CreateInstance();
-    ScrollingSystem::CreateInstance();
-    MorphingSystem::CreateInstance();
-    AutonomousAgentSystem::CreateInstance();
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
+    AutonomousAgentSystem::CreateInstance();
+    ButtonSystem::CreateInstance();
     CameraSystem::CreateInstance();
-    GraphSystem::CreateInstance();
+    CollisionSystem::CreateInstance();
+    ContainerSystem::CreateInstance();
     DebuggingSystem::CreateInstance();
+    GraphSystem::CreateInstance();
+    GridSystem::CreateInstance();
+    MorphingSystem::CreateInstance();
+    MusicSystem::CreateInstance();
+    ParticuleSystem::CreateInstance();
+    PhysicsSystem::CreateInstance();
+    RenderingSystem::CreateInstance();
+    ScrollingSystem::CreateInstance();
+    SoundSystem::CreateInstance();
+    TextRenderingSystem::CreateInstance();
+    TransformationSystem::CreateInstance();
+    ZSQDSystem::CreateInstance();
 
 #if SAC_NETWORK
     NetworkSystem::CreateInstance();
@@ -86,27 +92,29 @@ Game::Game() {
 
 Game::~Game() {
     EntityManager::DestroyInstance();
-    AnchorSystem::DestroyInstance();
-    CollisionSystem::DestroyInstance();
-    TransformationSystem::DestroyInstance();
-    RenderingSystem::DestroyInstance();
-    SoundSystem::DestroyInstance();
-    MusicSystem::DestroyInstance();
+    
     ADSRSystem::DestroyInstance();
-    ButtonSystem::DestroyInstance();
-    TextRenderingSystem::DestroyInstance();
-    ContainerSystem::DestroyInstance();
-    ZSQDSystem::DestroyInstance();
-    PhysicsSystem::DestroyInstance();
-    ParticuleSystem::DestroyInstance();
-    ScrollingSystem::DestroyInstance();
-    MorphingSystem::DestroyInstance();
-    AutonomousAgentSystem::DestroyInstance();
+    AnchorSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
+    AutonomousAgentSystem::DestroyInstance();
+    ButtonSystem::DestroyInstance();
     CameraSystem::DestroyInstance();
+    CollisionSystem::DestroyInstance();
+    ContainerSystem::DestroyInstance();
+    DebuggingSystem::DestroyInstance();
     GraphSystem::DestroyInstance();
-	DebuggingSystem::DestroyInstance();
+    GridSystem::DestroyInstance();
+    MorphingSystem::DestroyInstance();
+    MusicSystem::DestroyInstance();
+    ParticuleSystem::DestroyInstance();
+    PhysicsSystem::DestroyInstance();
+    RenderingSystem::DestroyInstance();
+    ScrollingSystem::DestroyInstance();
+    SoundSystem::DestroyInstance();
+    TextRenderingSystem::DestroyInstance();
+    TransformationSystem::DestroyInstance();
+    ZSQDSystem::DestroyInstance();
 
 #if SAC_NETWORK
     NetworkSystem::DestroyInstance();
@@ -361,24 +369,25 @@ void Game::step() {
     LOGV(2, "Update systems");
     theCameraSystem.Update(delta);
     theADSRSystem.Update(delta);
-    theAnimationSystem.Update(delta);
-    theButtonSystem.Update(delta);
-    theAutonomousAgentSystem.Update(delta);
-    theMorphingSystem.Update(delta);
-    thePhysicsSystem.Update(delta);
-    theScrollingSystem.Update(delta);
-    theZSQDSystem.Update(delta);
-    theCollisionSystem.Update(delta);
-    theSoundSystem.Update(delta);
-    theMusicSystem.Update(delta);
-    theTextRenderingSystem.Update(delta);
     theAnchorSystem.Update(delta);
-    theTransformationSystem.Update(delta);
-    theParticuleSystem.Update(delta);
-    theContainerSystem.Update(delta);
+    theAnimationSystem.Update(delta);
     theAutoDestroySystem.Update(delta);
+    theAutonomousAgentSystem.Update(delta);
+    theButtonSystem.Update(delta);
+    theCollisionSystem.Update(delta);
+    theContainerSystem.Update(delta);
     theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
+    theGridSystem.Update(delta);
+    theMorphingSystem.Update(delta);
+    theMusicSystem.Update(delta);
+    theParticuleSystem.Update(delta);
+    thePhysicsSystem.Update(delta);
+    theScrollingSystem.Update(delta);
+    theSoundSystem.Update(delta);
+    theTextRenderingSystem.Update(delta);
+    theTransformationSystem.Update(delta);
+    theZSQDSystem.Update(delta);
 #if SAC_INGAME_EDITORS
     } else {
         theAnchorSystem.Update(delta);
