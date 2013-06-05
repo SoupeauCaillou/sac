@@ -31,6 +31,20 @@ struct DataFileParser::DataFileParserData {
         }
         return true;
     }
+
+    bool selectSectionByName(const std::string& name, Section** sectPtr) {
+        if (name == GlobalSection) {
+            *sectPtr = &global;
+        } else {
+            std::map<std::string, Section*>::iterator it = sections.find(name);
+            if (it == sections.end()) {
+                LOGE("Cannot find section '" << name << "'");
+                return false;
+            }
+            *sectPtr = it->second;
+        }
+        return true;
+    }
 };
 
 DataFileParser::DataFileParser() : data(0) {
@@ -112,6 +126,24 @@ bool DataFileParser::keyValue(const std::string& section, const std::string& var
         return false;
     }
     out = jt->second;
+    return true;
+}
+
+bool DataFileParser::remove(const std::string& section, const std::string& var) {
+    if (!data) {
+        LOGE("No data loaded before requesting removal of key value : " << section << '/' << var);
+        return false;
+    }
+    Section* sectPtr = 0;
+    if (!data->selectSectionByName(section, &sectPtr)) {
+        return false;
+    }
+    auto it = sectPtr->find(var);
+    if (it == sectPtr->end()) {
+        LOGE(context << ": cannot find var to remove '" << var << "' in section '" << section << "'");
+        return false;
+    }
+    sectPtr->erase(it);
     return true;
 }
 

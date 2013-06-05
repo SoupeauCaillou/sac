@@ -21,6 +21,8 @@ class DataFileParser {
         template <class T>
         bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1) const;
 
+        bool remove(const std::string& section, const std::string& var);
+
         unsigned sectionSize(const std::string& section) const;
         bool hasSection(const std::string& section) const;
 

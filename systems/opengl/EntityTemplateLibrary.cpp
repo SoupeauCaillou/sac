@@ -51,9 +51,13 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         return false;
     }
 
-    // Handle 'extends' attributes
+    // Handle recursive 'extends' attributes
     std::string extends;
-    if (dfp.get("", "extends", &extends, 1, false)) {
+    while (dfp.get("", "extends", &extends, 1, false)) {
+        LOGI(name << " extends: " << extends);
+        // remove extends key
+        dfp.remove("", "extends");
+
         FileBuffer fb2 = assetAPI->loadAsset(asset2File(extends));
         if (!fb2.size) {
             LOGE("Unable to load 'extends' file: '" << extends << "'");
