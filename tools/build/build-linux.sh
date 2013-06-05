@@ -14,7 +14,8 @@ source ../coolStuff.sh
 
 #how to use the script
 export USAGE="$0 [scripts_options] -[specifics_options] [and their values]"
-export OPTIONS="n: simply compile
+export OPTIONS="\
+n: simply compile
 \tC: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)
 \tR: reset the terminal screen before compiling
 \tr: run the app\t\t\t\t\t(options available, see below)
@@ -47,13 +48,13 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
     COLOREDLOGS_ARGS=""
     while [ "$1" != "" ]; do
         case $1 in
+            "-h" | "--help")
+                usage_and_quit
+                ;;
             "-c" | "--cmakeconfig")
                 shift
                 TARGETS=$TARGETS"n"
                 CMAKE_CONFIG=$CMAKE_CONFIG" $1"
-                ;;
-            "-h" | "--help")
-                usage_and_quit
                 ;;
             "-l" | "--log")
                 shift
@@ -79,7 +80,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
                 CMAKE_CONFIG=$CMAKE_CONFIG" -DTARGET=$1"
                 ;;
             -*)
-                echo "unknown option: " $1
+                echo "Unknown option: $1"
                 ;;
             *)
                 TARGETS=$TARGETS$1
@@ -87,8 +88,8 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
         shift
     done
 
-######### 2 : Create build dir. #########
 	rootPath=$whereAmI"/../../.."
+######### 2 : Create build dir. #########
 
 # retrieve build target
     cmakebuildtarget="linux"
