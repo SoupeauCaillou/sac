@@ -7,6 +7,7 @@
 #include "util/IntersectionUtil.h"
 #include "systems/GridSystem.h"
 #include "systems/TransformationSystem.h"
+#include "systems/opengl/Polygon.h"
 
 
 static GridPos cubeCoordinateRounding(float x, float y, float z);
@@ -25,7 +26,7 @@ bool GridPos::operator<(const GridPos& p) const {
 bool GridPos::operator==(const GridPos& p) const {
     return Hash(p) == Hash(*this);
 }
- 
+
 
 /*
 static GridPos DeHash(uint64_t p) {
@@ -74,7 +75,7 @@ struct SpatialGrid::SpatialGridData {
                 qStart--;
             }
 		}
-        LOGF_IF((endCell.q != -firstCell.q) || (endCell.r != -firstCell.r), "Incoherent first/last cell");
+        LOGE_IF((endCell.q != -firstCell.q) || (endCell.r != -firstCell.r), "Incoherent first/last cell");
 	}
 
 	bool isPosValid(const GridPos& pos) const {
@@ -131,7 +132,7 @@ void SpatialGrid::addEntityAt(Entity e, const GridPos& p) {
     auto it = datas->cells.find(p);
     if (it == datas->cells.end())
         LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
-    
+
     it->second.entities.push_back(e);
 }
 
@@ -139,17 +140,44 @@ std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
     auto it = datas->cells.find(p);
     if (it == datas->cells.end())
         LOGF("Tried to get entities at invalid pos: '" << p.q << "," << p.r << "'");
-    
+
     return it->second.entities;
 }
+
 void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
+    const Polygon hexagon = Polygon::create(Shape::Hexagon);
+
     for (auto e: entities) {
-        doForEachCell([this, e] (const GridPos& p) -> void {
-            if (IntersectionUtil::pointRectangle(gridPosToPosition(p), TRANSFORM(e)->position, TRANSFORM(e)->size)) {
-                this->addEntityAt(e, p);
+        doForEachCell([this, e, hexagon] (const GridPos& p) -> void {
+            const glm::vec2 center = gridPosToPosition(p);
+            auto trans = TRANSFORM(e);
+            auto g = theGridSystem.Get(e, false);
+
+            // If the center of the cell is in the entity -> entity is inside
+            bool isInside =
+                IntersectionUtil::pointRectangle(center, trans->position, trans->size, trans->rotation);
+
+            // If entity covers more than 2 vertices -> inside
+            if (!isInside) {
+                int count = 0;
+                for (int i=1; i<=6 && count < 2; i++) {
+                    if (IntersectionUtil::pointRectangle(center + hexagon.vertices[i] * datas->size, trans->position, trans->size, trans->rotation)) {
+                        count++;
+                    }
+                }
+                isInside = (count >= 2);
             }
+
+            if (isInside) {
+                this->addEntityAt(e, p);
+                // snap position
+                if (g && !g->canBeOnMultipleCells) {
+                    trans->position = center;
+                }
+            }
+
         });
-        
+
     }
 }
 
