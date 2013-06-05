@@ -4,10 +4,10 @@
 
 
 struct GridComponent {
-	GridComponent(): blocksVision(false), blocksPath(false) {}
+	GridComponent(): blocksVision(false), blocksPath(false), canBeOnMultipleCells(false) {}
 
 	bool blocksVision, blocksPath;
-
+    bool canBeOnMultipleCells;
 };
 
 #define theGridSystem GridSystem::GetInstance()
