@@ -192,8 +192,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->localizeAPI = new LocalizeAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Music))
         ctx->musicAPI = new MusicAPILinuxOpenALImpl();
+#if SAC_NETWORK
     if (game->wantsAPI(ContextAPI::Network))
         theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
+#endif
     if (game->wantsAPI(ContextAPI::Sound))
         ctx->soundAPI = new SoundAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Storage))
