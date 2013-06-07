@@ -104,6 +104,15 @@ struct SpatialGrid::SpatialGridData {
         }
         return false;
     }
+    bool isVisibilityBlockedAt(const GridPos& npos) const {
+        LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
+        for (const auto e: (cells.find(npos)->second).entities) {
+            if (theGridSystem.Get(e, false) && GRID(e)->blocksVision) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 };
 
@@ -241,8 +250,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
         for (auto pos : range[i-1]) {
             std::vector<GridPos> neighbors = getNeighbors(pos);
             for (auto npos: neighbors) {
-                bool isBlocked = datas->isPathBlockedAt(npos);
-                if (isBlocked) {
+                if (datas->isPathBlockedAt(npos)) {
                     continue;
                 }
                 bool isVisited = false;
@@ -267,7 +275,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
 std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
     static std::vector<GridPos> range;
     range.clear();
-    
+
     std::vector<GridPos> borderLine = ringFinder(position, size, true);
     // We draw line between position and all border point to make "ray casting"
     for (auto point: borderLine) {
@@ -286,17 +294,11 @@ std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
             }
             // If not, we check if it's block
             if (!isVisited) {
-                for (auto e: datas->cells[r].entities) {
-                    if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
-                        isBlocked = true;
-                        break;
-                    }
+                if (datas->isVisibilityBlockedAt(r)) {
+                    break;
+                } else {
+                    range.push_back(r);
                 }
-            }
-            if (!isBlocked) {
-                range.push_back(r);
-            } else {
-                break;
             }
         }
     }
@@ -333,7 +335,7 @@ std::vector<GridPos> SpatialGrid::ringFinder(GridPos& pos, int range, bool enabl
     if (it == datas->cells.end())
         LOGF("Tried to find movement range at invalid position: '" << pos.q << "," << pos.r <<"'");
     GridPos p(pos.q-range, pos.r+range);
-    
+
     for(int i=0; i<6; ++i) {
         for (int j=0; j<range; ++j) {
             if (enableInvalidPos || datas->isPosValid(p))
