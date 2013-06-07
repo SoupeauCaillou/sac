@@ -1,4 +1,7 @@
-#!/bin/bash -x
+#!/bin/bash
+
+#where we are right now
+whereUserIs=$(pwd)
 
 #where the script is
 whereAmI=$(cd "$(dirname "$0")" && pwd)
@@ -45,7 +48,7 @@ on server, with format {gameName}-{date}"
                 ;;
     	    "-d")
         		shift
-        		DIRECTORY=$1
+        		DIRECTORY=${whereUserIs}/${1}
         		;;
             "-p")
                 LAUNCH_ON_END=1
@@ -66,6 +69,8 @@ on server, with format {gameName}-{date}"
     rootPath=$whereAmI"/../../.."
 
 ######### 2 : Configure variables #########
+    info "Setting variables..."
+
     gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
     if (!( grep -q '@' <<< "$USER_SERVER" )); then
@@ -83,6 +88,7 @@ on server, with format {gameName}-{date}"
     DIRECTORY_FORMATTED=$(echo $USER_SERVER | cut -d '/' -f2-)/$(echo $gameName-$GIT_BRANCH-$GIT_COMMIT-$DATE)
 
 ######### 4 :  check if the necessary files are in folder.. #########
+    info "Checking if $DIRECTORY contains a .html file and a .data file..."
     HTML_FILE=$(find $DIRECTORY -maxdepth 1 -name '*.html' -printf "%f\n")
     if [ -z "$HTML_FILE" ]; then
         error_and_quit "Could not locate any .html file in $DIRECTORY"
@@ -92,7 +98,7 @@ on server, with format {gameName}-{date}"
         error_and_quit "Could not locate any .data file in $DIRECTORY"
     fi
 ######### 5 : Push content on website. #########
-    info "User is '$USER' on server '$SERVER'. The directory name will be '$DIRECTORY_FORMATTED'. Asking for ftp password."
+    info "User is '$USER' on server '$SERVER'. The directory name will be '$DIRECTORY_FORMATTED'. Asking for ftp password..."
 
     TMP_DIR=/tmp/$PPID
     mkdir $TMP_DIR
@@ -102,5 +108,7 @@ on server, with format {gameName}-{date}"
 ######### 6 : (optional) Open navigator. #########
     if [ "$LAUNCH_ON_END" = "1" ]; then
         info "Launching iceweasel for page $SERVER/$DIRECTORY_FORMATTED/$HTML_FILE..."
-        iceweasel $SERVER/$DIRECTORY_FORMATTED/$HTML_FILE
+        iceweasel $SERVER/$DIRECTORY_FORMATTED/$HTML_FILE &
     fi
+
+info "Good bye, Lord!"
