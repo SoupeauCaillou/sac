@@ -24,6 +24,10 @@ bool IntersectionUtil::pointLine(const glm::vec2& point, const glm::vec2& qA, co
     return false;
 }
 
+bool IntersectionUtil::pointRectangle(const glm::vec2& point, const TransformationComponent* tc2 ) {
+    return pointRectangle(point, tc2->position, tc2->size, tc2->rotation);
+}
+
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
     glm::vec2 p(glm::rotate(point - rectPos, -rectRotation));
 
