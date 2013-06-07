@@ -389,7 +389,7 @@ void RenderingSystem::DoUpdate(float) {
             }
 
 #if 1
-             if (!rc->fastCulling) {
+             if (!rc->fastCulling && rc->shape == Shape::Square) {
                 if (!cull(camTrans, c)) {
                     continue;
                 }
