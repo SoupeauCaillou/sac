@@ -273,7 +273,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
 }
 
 std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) const {
-    std::vector<GridPos> range;
+    std::vector<GridPos> range, visibleButBlocking;
 
     std::vector<GridPos> borderLine = ringFinder(position, size, true);
     // We draw line between position and all border point to make "ray casting"
@@ -294,6 +294,9 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
             // If not, we check if it's block
             if (!isVisited) {
                 if (datas->isVisibilityBlockedAt(r)) {
+                    if (datas->isPathBlockedAt(r)) {
+                        visibleButBlocking.push_back(r);
+                    }
                     break;
                 } else {
                     range.push_back(r);
@@ -301,6 +304,7 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
             }
         }
     }
+    std::copy(visibleButBlocking.begin(), visibleButBlocking.end(), std::back_inserter(range));
     return std::move(range);
 }
 
