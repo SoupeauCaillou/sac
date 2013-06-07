@@ -39,5 +39,7 @@ TEST(RingAt2OfCenter)
 	GridPos p = grid.positionToGridPos(glm::vec2(0, 0));
 	std::vector<GridPos> i = grid.ringFinder(p, 2, false);
 	CHECK_EQUAL(12, (int)i.size());
-
+	for (auto j: i) {
+		CHECK_EQUAL(2, (int)grid.ComputeDistance(p, j));
+	}
 }
