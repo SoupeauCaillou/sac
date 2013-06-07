@@ -17,6 +17,7 @@ public:
 
     bool operator<(const GridPos& p) const;
 	bool operator==(const GridPos& p) const;
+	bool operator!=(const GridPos& p) const;
 	int32_t q, r;
 
 };
@@ -26,7 +27,7 @@ class SpatialGrid {
 		SpatialGrid(int w, int h, float hexagonWidth = 1);
 
 	public:
-		std::vector<GridPos> getNeighbors(const GridPos& pos) const;
+		std::vector<GridPos> getNeighbors(const GridPos& pos, bool enableInvalidPos) const;
 
         GridPos positionToGridPos(const glm::vec2& pos) const;
         glm::vec2 gridPosToPosition(const GridPos& gp) const;
@@ -39,7 +40,10 @@ class SpatialGrid {
 
         void autoAssignEntitiesToCell(std::list<Entity> entities);
 
-        std::map<int, std::vector<GridPos> >& movementRange(GridPos& p, int movement);
+        std::map<int, std::vector<GridPos> > movementRange(GridPos& p, int movement);
+        std::vector<GridPos> viewRange(GridPos& p, int size);
+        std::vector<GridPos> ringFinder(GridPos& p, int range, bool enableInvalidPos);
+        std::vector<GridPos> lineDrawer(GridPos& p1, GridPos& p2);
 
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);

@@ -1,14 +1,18 @@
 #include "SpatialGrid.h"
-#include "base/Log.h"
-#include <map>
-#include <list>
+
 #include "base/Entity.h"
 #include "base/EntityManager.h"
-#include "util/IntersectionUtil.h"
-#include "systems/GridSystem.h"
-#include "systems/TransformationSystem.h"
-#include "systems/opengl/Polygon.h"
+#include "base/Log.h"
 
+#include "systems/GridSystem.h"
+#include "systems/opengl/Polygon.h"
+#include "systems/TransformationSystem.h"
+
+#include "util/IntersectionUtil.h"
+
+#include <list>
+#include <map>
+#include <utility>
 
 static GridPos cubeCoordinateRounding(float x, float y, float z);
 static GridPos positionSizeToGridPos(const glm::vec2& pos, float size);
@@ -25,6 +29,9 @@ bool GridPos::operator<(const GridPos& p) const {
 }
 bool GridPos::operator==(const GridPos& p) const {
     return Hash(p) == Hash(*this);
+}
+bool GridPos::operator!=(const GridPos& p) const {
+    return Hash(p) != Hash(*this);
 }
 
 
@@ -98,7 +105,7 @@ GridPos SpatialGrid::positionToGridPos(const glm::vec2& pos) const {
     return positionSizeToGridPos(pos, datas->size);
 }
 
-std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos) const {
+std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos, bool enableInvalidPos = false) const {
 	std::vector<GridPos> n;
 	int offsets[] = {
 		1, 0,
@@ -110,7 +117,7 @@ std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos) const {
 	};
 	for (int i=0; i<6; i++) {
 		GridPos p(pos.q + offsets[2 * i], pos.r +offsets[2 * i + 1]);
-		if (datas->isPosValid(p)) {
+		if (enableInvalidPos || datas->isPosValid(p)) {
 			n.push_back(p);
 		}
 	}
@@ -175,13 +182,11 @@ void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
                     trans->position = center;
                 }
             }
-
         });
-
     }
 }
 
-std::map<int, std::vector<GridPos> >& SpatialGrid::movementRange(GridPos& p, int movement) {
+std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int movement) {
     static std::map<int, std::vector<GridPos> > range;
     range.clear();
     auto it = datas->cells.find(p);
@@ -220,7 +225,90 @@ std::map<int, std::vector<GridPos> >& SpatialGrid::movementRange(GridPos& p, int
         LOGI("size SG =" << range[i].size());
     }
 
-    return range;
+    return std::move(range);
+}
+
+std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
+    static std::vector<GridPos> range;
+    range.clear();
+    
+    std::vector<GridPos> borderLine = ringFinder(position, size, true);
+    // We draw line between position and all border point to make "ray casting"
+    for (auto point: borderLine) {
+        std::vector<GridPos> ray = lineDrawer(point, position);
+        for (auto r: ray) {
+            // if the point is out of grid we pass this point. We can probably break the loop here
+            if (!datas->isPosValid(r))
+                continue;
+            bool isVisited = false, isBlocked = false;
+            //Check if the point is already in the output vector
+            for (auto v: range){
+                if (r == v){
+                    isVisited = true;
+                    break;
+                }
+            }
+            // If not, we check if it's block
+            if (!isVisited) {
+                for (auto e: datas->cells[r].entities) {
+                    if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
+                        isBlocked = true;
+                        break;
+                    }
+                }
+            }
+            if (!isBlocked) {
+                range.push_back(r);
+            } else {
+                break;
+            }
+        }
+    }
+    return std::move(range);
+}
+
+std::vector<GridPos> SpatialGrid::lineDrawer(GridPos& p1, GridPos& p2) {
+    static std::vector<GridPos> line;
+    line.clear();
+
+    float dx = p2.q - p1.q;
+    float dy = (p1.q + p1.r) - (p2.q + p2.r);
+    float dz = p2.r - p1.r;
+
+    float N = glm::max(glm::max(glm::abs(dx-dy), glm::abs(dy-dz)), glm::abs(dz-dx));
+
+    GridPos prev(99,99);
+    for (int i=0; i<=N; ++i) {
+        GridPos p = cubeCoordinateRounding(p1.q*i/N + p2.q*(1-i/N), -(p1.q + p1.r)*i/N - (p2.q + p2.r)*(1-i/N), p1.r*i/N + p2.r*(1-i/N));
+        if (p != prev) {
+            line.push_back(p);
+            prev = p;
+        }
+    }
+
+    return std::move(line);
+}
+
+std::vector<GridPos> SpatialGrid::ringFinder(GridPos& pos, int range, bool enableInvalidPos = false) {
+    std::vector<GridPos> ring;
+    ring.clear();
+
+    auto it = datas->cells.find(pos);
+    if (it == datas->cells.end())
+        LOGF("Tried to find movement range at invalid position: '" << pos.q << "," << pos.r <<"'");
+    GridPos p(pos.q-range, pos.r+range);
+    
+    for(int i=0; i<6; ++i) {
+        for (int j=0; j<range; ++j) {
+            if (enableInvalidPos || datas->isPosValid(p))
+                ring.push_back(p);
+            else
+                LOGI("Invalid position : '"<< p.q << "," << p.r << "'");
+            p = getNeighbors(p, true)[i];
+        }
+    }
+    LOGI("size SG =" << ring.size());
+    return std::move(ring);
 }
 
 static GridPos cubeCoordinateRounding(float x, float y, float z) {
