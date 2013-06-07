@@ -8,6 +8,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <ostream>
 
 // let's start with a dumb position data structure
 class GridPos {
@@ -20,7 +21,10 @@ public:
 	bool operator!=(const GridPos& p) const;
 	int32_t q, r;
 
+    friend std::ostream& operator<<(std::ostream& str, const GridPos& gp);
 };
+
+
 
 class SpatialGrid {
 	public:
@@ -35,6 +39,7 @@ class SpatialGrid {
         void doForEachCell(std::function<void(const GridPos& )> f);
 
         void addEntityAt(Entity e, const GridPos& p);
+        void removeEntityFrom(Entity e, const GridPos& p);
 
         std::list<Entity>& getEntitiesAt(const GridPos& p);
 
@@ -44,6 +49,8 @@ class SpatialGrid {
         std::vector<GridPos> viewRange(GridPos& p, int size);
         std::vector<GridPos> ringFinder(GridPos& p, int range, bool enableInvalidPos);
         std::vector<GridPos> lineDrawer(GridPos& p1, GridPos& p2);
+
+        std::vector<GridPos> findPath(const GridPos& from, const GridPos& to) const;
 
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);

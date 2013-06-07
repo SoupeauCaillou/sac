@@ -34,6 +34,11 @@ bool GridPos::operator!=(const GridPos& p) const {
     return Hash(p) != Hash(*this);
 }
 
+std::ostream& operator<<(std::ostream& str, const GridPos& gp) {
+    str << '{' << gp.q <<',' << gp.r << '}';
+    return str;
+}
+
 
 /*
 static GridPos DeHash(uint64_t p) {
@@ -56,6 +61,7 @@ struct SpatialGrid::SpatialGridData {
 	int w, h;
     float size;
 	std::map<GridPos, Cell> cells;
+    std::map<Entity, std::list<GridPos>> entityToGridPos; // only for single place
 
 	SpatialGridData(int pW, int pH, float hexagonWidth) : w(pW), h(pH) {
         LOGF_IF((h % 2) == 0, "Must use odd height");
@@ -88,6 +94,16 @@ struct SpatialGrid::SpatialGridData {
 	bool isPosValid(const GridPos& pos) const {
         return cells.find(pos) != cells.end();
 	}
+
+    bool isPathBlockedAt(const GridPos& npos) const {
+        LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
+        for (const auto e: (cells.find(npos)->second).entities) {
+            if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 };
 
@@ -141,6 +157,15 @@ void SpatialGrid::addEntityAt(Entity e, const GridPos& p) {
         LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
 
     it->second.entities.push_back(e);
+    datas->entityToGridPos[e].push_back(p);
+}
+
+void SpatialGrid::removeEntityFrom(Entity e, const GridPos& p) {
+    auto it = datas->cells.find(p);
+    if (it == datas->cells.end())
+        LOGF("Tried to remove entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
+    it->second.entities.remove(e);
+    datas->entityToGridPos[e].remove(p);
 }
 
 std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
@@ -148,13 +173,30 @@ std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
     if (it == datas->cells.end())
         LOGF("Tried to get entities at invalid pos: '" << p.q << "," << p.r << "'");
 
-    return it->second.entities;
+    std::list<Entity>& result = it->second.entities;
+#if SAC_DEBUG
+    for (Entity e: result) {
+        auto a = datas->entityToGridPos.find(e);
+        LOGF_IF(a == datas->entityToGridPos.end(), "Entity '" << e << "' not in map");
+        LOGF_IF(std::find(a->second.begin(), a->second.end(), p) == a->second.end(), "Entity/Gridpos inconsistent '" << e << "' / " << p);
+    }
+#endif
+    return result;
 }
 
 void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
     const Polygon hexagon = Polygon::create(Shape::Hexagon);
 
     for (auto e: entities) {
+        // Clear current position(s)
+        auto currentPos = datas->entityToGridPos.find(e);
+        if (currentPos != datas->entityToGridPos.end()) {
+            auto positions = currentPos->second;
+            for (auto p: positions) {
+                removeEntityFrom(e, p);
+            }
+        }
+
         doForEachCell([this, e, hexagon] (const GridPos& p) -> void {
             const glm::vec2 center = gridPosToPosition(p);
             auto trans = TRANSFORM(e);
@@ -199,13 +241,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
         for (auto pos : range[i-1]) {
             std::vector<GridPos> neighbors = getNeighbors(pos);
             for (auto npos: neighbors) {
-                bool isBlocked = false;
-                for (auto e: datas->cells[npos].entities) {
-                    if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
-                        isBlocked = true;
-                        break;
-                    }
-                }
+                bool isBlocked = datas->isPathBlockedAt(npos);
                 if (isBlocked) {
                     continue;
                 }
@@ -309,6 +345,101 @@ std::vector<GridPos> SpatialGrid::ringFinder(GridPos& pos, int range, bool enabl
     }
     LOGI("size SG =" << ring.size());
     return std::move(ring);
+}
+
+std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& to) const {
+    struct Node {
+        int rank, cost;
+        GridPos pos;
+        std::list<Node>::iterator parent;
+
+        Node(GridPos _pos, int _rank = 0, int _cost = 0)
+            : rank(_rank), cost(_cost), pos(_pos) { }
+    };
+
+    std::list<Node> open, closed;
+    std::list<Node>::iterator success = open.end();
+
+    // Initialize with 'from' position
+    Node root(from, 0, 0);
+    root.parent = closed.end();
+    open.push_back(root);
+    do {
+        // Pick best open node
+        int min = 10000;
+        std::list<Node>::iterator best = open.end();
+        for (auto it = open.begin(); it!=open.end(); ++it) {
+            if ((*it).rank < min) {
+                min = (*it).rank;
+                best = it;
+            }
+        }
+        LOGF_IF(best == open.end(), "No open node found");
+
+        // Is it the goal ?
+        if ((*best).pos == to) {
+            success = best;
+            break;
+        } else {
+            Node current = *best;
+
+            LOGV(2, "Current: " << current.pos << ", " << current.rank << ", " << current.cost);
+            LOGV(2, "Open: " << open.size() << ", closed: " << closed.size());
+            // Remove from open
+            open.erase(best);
+            // Add to closed
+            auto pIt = closed.insert(closed.begin(), current);
+
+            // Browse neighbors
+            std::vector<GridPos> neighbors = getNeighbors(current.pos);
+            for (GridPos& n: neighbors) {
+                if (datas->isPathBlockedAt(n))
+                    continue;
+                int cost = current.cost + 1;
+
+                // Is n already in closed ?
+                auto jt = std::find_if(closed.begin(), closed.end(), [n] (const Node& node) -> bool {
+                    return node.pos == n;
+                });
+                if (jt != closed.end()) {
+                    LOGT("Compare cost, and keep node if it can be improved");
+                    continue;
+                }
+
+                // Is n already in open ?
+                jt = std::find_if(open.begin(), open.end(), [n] (const Node& node) -> bool {
+                    return node.pos == n;
+                });
+                // If node is in open && new cost >= existing cost -> skip node
+                if ((jt != open.end()) && (cost >= (*jt).cost)) {
+                    continue;
+                }
+                // Else insert/replace node
+                if (jt == open.end()) {
+                    jt = open.insert(open.begin(), Node(0, 0));
+                }
+                (*jt).pos = n;
+                (*jt).cost = cost;
+                (*jt).rank = cost + ComputeDistance(n, to);
+                (*jt).parent = pIt;
+            }
+        }
+    } while (!open.empty());
+
+    LOGE_IF(success == open.end(), "Couldn't find a path: " << from << " -> " << to);
+
+    LOGV(1, "Found path: " << from << " -> " << to << ':');
+    std::vector<GridPos> result;
+    do {
+        result.push_back((*success).pos);
+        success = (*success).parent;
+    } while (success != closed.end());
+    std::reverse(result.begin(), result.end());
+    for (const auto& gp: result) {
+        LOGV(1, "   - " << gp);
+    }
+
+    return result;
 }
 
 static GridPos cubeCoordinateRounding(float x, float y, float z) {
