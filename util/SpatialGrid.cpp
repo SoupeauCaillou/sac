@@ -238,8 +238,8 @@ void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
 }
 
 std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int movement) {
-    static std::map<int, std::vector<GridPos> > range;
-    range.clear();
+    std::map<int, std::vector<GridPos> > range;
+
     auto it = datas->cells.find(p);
     if (it == datas->cells.end())
         LOGF("Tried to find movement range at invalid position: '" << p.q << "," << p.r <<"'");
@@ -273,8 +273,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
 }
 
 std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
-    static std::vector<GridPos> range;
-    range.clear();
+    std::vector<GridPos> range;
 
     std::vector<GridPos> borderLine = ringFinder(position, size, true);
     // We draw line between position and all border point to make "ray casting"
@@ -284,7 +283,7 @@ std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
             // if the point is out of grid we pass this point. We can probably break the loop here
             if (!datas->isPosValid(r))
                 continue;
-            bool isVisited = false, isBlocked = false;
+            bool isVisited = false;
             //Check if the point is already in the output vector
             for (auto v: range){
                 if (r == v){
@@ -306,8 +305,7 @@ std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
 }
 
 std::vector<GridPos> SpatialGrid::lineDrawer(GridPos& p1, GridPos& p2) {
-    static std::vector<GridPos> line;
-    line.clear();
+    std::vector<GridPos> line;
 
     float dx = p2.q - p1.q;
     float dy = (p1.q + p1.r) - (p2.q + p2.r);
@@ -329,7 +327,6 @@ std::vector<GridPos> SpatialGrid::lineDrawer(GridPos& p1, GridPos& p2) {
 
 std::vector<GridPos> SpatialGrid::ringFinder(GridPos& pos, int range, bool enableInvalidPos = false) {
     std::vector<GridPos> ring;
-    ring.clear();
 
     auto it = datas->cells.find(pos);
     if (it == datas->cells.end())
