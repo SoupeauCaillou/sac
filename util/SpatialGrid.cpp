@@ -237,7 +237,7 @@ void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
     }
 }
 
-std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int movement) {
+std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int movement) const {
     std::map<int, std::vector<GridPos> > range;
 
     auto it = datas->cells.find(p);
@@ -272,7 +272,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
     return std::move(range);
 }
 
-std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
+std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) const {
     std::vector<GridPos> range;
 
     std::vector<GridPos> borderLine = ringFinder(position, size, true);
@@ -304,7 +304,7 @@ std::vector<GridPos> SpatialGrid::viewRange(GridPos& position, int size) {
     return std::move(range);
 }
 
-std::vector<GridPos> SpatialGrid::lineDrawer(GridPos& p1, GridPos& p2) {
+std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& p1, const GridPos& p2) const {
     std::vector<GridPos> line;
 
     float dx = p2.q - p1.q;
@@ -325,7 +325,7 @@ std::vector<GridPos> SpatialGrid::lineDrawer(GridPos& p1, GridPos& p2) {
     return std::move(line);
 }
 
-std::vector<GridPos> SpatialGrid::ringFinder(GridPos& pos, int range, bool enableInvalidPos = false) {
+std::vector<GridPos> SpatialGrid::ringFinder(const GridPos& pos, int range, bool enableInvalidPos = false) const {
     std::vector<GridPos> ring;
 
     auto it = datas->cells.find(pos);

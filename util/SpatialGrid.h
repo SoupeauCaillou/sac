@@ -45,10 +45,10 @@ class SpatialGrid {
 
         void autoAssignEntitiesToCell(std::list<Entity> entities);
 
-        std::map<int, std::vector<GridPos> > movementRange(GridPos& p, int movement);
-        std::vector<GridPos> viewRange(GridPos& p, int size);
-        std::vector<GridPos> ringFinder(GridPos& p, int range, bool enableInvalidPos);
-        std::vector<GridPos> lineDrawer(GridPos& p1, GridPos& p2);
+        std::map<int, std::vector<GridPos> > movementRange(GridPos& p, int movement) const;
+        std::vector<GridPos> viewRange(const GridPos& p, int size) const;
+        std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
+        std::vector<GridPos> lineDrawer(const GridPos& p1, const GridPos& p2) const;
 
         std::vector<GridPos> findPath(const GridPos& from, const GridPos& to) const;
 
