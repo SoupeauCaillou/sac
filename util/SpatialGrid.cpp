@@ -266,7 +266,6 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int 
                 }
             }
         }
-        LOGI("size SG =" << range[i].size());
     }
 
     return std::move(range);
@@ -346,7 +345,6 @@ std::vector<GridPos> SpatialGrid::ringFinder(const GridPos& pos, int range, bool
             p = getNeighbors(p, true)[i];
         }
     }
-    LOGI("size SG =" << ring.size());
     return std::move(ring);
 }
 
