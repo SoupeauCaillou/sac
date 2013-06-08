@@ -1,10 +1,8 @@
 #include "SqliteStorageAPIImpl.h"
-#include <string>
-#include <sstream>
-
-#include <sqlite3.h>
 
 #include "base/Log.h"
+#if !SAC_EMSCRIPTEN
+#include <sqlite3.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -14,6 +12,8 @@
 
 //for cerr
 #include <iostream>
+#include <string>
+#include <sstream>
 
 //for strcmp
 #include <string.h>
@@ -62,13 +62,16 @@
         }
         return 0;
     }
-
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////End of callbacks////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databaseName) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     LOGF_IF(_initialized, "The database has already been initialized!");
 
     _initialized = true;
@@ -87,17 +90,25 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
 
         createTable("info", "opt varchar2(10) primary key, value varchar2(10)");
     }
+    #endif
 }
 
 void SqliteStorageAPIImpl::createTable(const std::string & tableName, const std::string & statement) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     std::string res;
     request("SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "'", &res, 0);
     if (res.empty()) {
         request("create table " + tableName + "(" + statement + ")", 0, 0);
     }
+    #endif
 }
 
 bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     LOGF_IF(!_initialized, "The database hasn't been initialized before first request!");
 
 #ifdef SAC_ENABLE_LOG
@@ -130,10 +141,14 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     }
 
     sqlite3_close(db);
+    #endif
     return true;
 }
 
 void SqliteStorageAPIImpl::setOption(const std::string & name, const std::string & valueIfExisting, const std::string & valueIfNotExisting) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     std::string lookFor = "select opt from info where opt like '" + name + "'";
     std::string res;
     request(lookFor, &res, 0);
@@ -147,13 +162,17 @@ void SqliteStorageAPIImpl::setOption(const std::string & name, const std::string
         lookFor = "update info set value='" + valueIfExisting + "' where opt='" + name + "'";
         request(lookFor, 0, 0);
     }
+    #endif
 }
 
 std::string SqliteStorageAPIImpl::getOption(const std::string & name) {
-    std::string lookFor = "select value from info where opt like '" + name + "'";
     std::string res;
-
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
+    std::string lookFor = "select value from info where opt like '" + name + "'";
     request(lookFor, &res, 0);
+    #endif
     return res;
 }
 bool SqliteStorageAPIImpl::isOption(const std::string & name, const std::string & compareValue) {
@@ -161,6 +180,9 @@ bool SqliteStorageAPIImpl::isOption(const std::string & name, const std::string 
 }
 
 void SqliteStorageAPIImpl::createTable(IStorageProxy * pproxy) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     std::stringstream ss;
     char separator = ' ';
 
@@ -172,9 +194,13 @@ void SqliteStorageAPIImpl::createTable(IStorageProxy * pproxy) {
         }
     }
     createTable(pproxy->getTableName(), ss.str());
+    #endif
 }
 
 void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     if (pproxy->isEmpty())
         return;
 
@@ -204,14 +230,23 @@ void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
 
         pproxy->popAnElement();
     } while (!pproxy->isEmpty());
+    #endif
 }
 
 void SqliteStorageAPIImpl::loadEntries(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
     request("select " +  selectArg + " from " + pproxy->getTableName() + " " + options, pproxy, callbackProxyConversion);
+    #endif
 }
 
 
 int SqliteStorageAPIImpl::count(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    return 0;
+    #else
     //because callbacks are C still, we must create a temp string variable because we cannot pass iss.str() to the callback
     std::string res;
 
@@ -225,9 +260,14 @@ int SqliteStorageAPIImpl::count(IStorageProxy * pproxy, const std::string & sele
     iss >> finalRes;
 
     return finalRes;
+    #endif
 }
 
 float SqliteStorageAPIImpl::sum(IStorageProxy * pproxy, const std::string & selectArg, const std::string & options) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    return 0;
+    #else
     //because callbacks are C still, we must create a temp string variable because we cannot pass iss.str() to the callback
     std::string res;
     //'ifnull' is needed if there is no score, it will return '0' instead of a null string
@@ -239,5 +279,6 @@ float SqliteStorageAPIImpl::sum(IStorageProxy * pproxy, const std::string & sele
     iss >> finalRes;
 
     return finalRes;
+    #endif
 }
 

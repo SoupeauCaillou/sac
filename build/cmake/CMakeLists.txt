@@ -204,16 +204,21 @@ if (DESKTOP_BUILD)
         AntTweakBar Ogg Tinyxml2)
 endif()
 if (MOBILE_BUILD OR WEB_BUILD)
-     ########## build sqlite3 lib ###########
-    set (sqlite3_base ${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
-    file(
-        GLOB_RECURSE sqlite3_sources
-        ${sqlite3_base}/sqlite3.c
-    )
+    if (MOBILE_BUILD)
+        ########## build sqlite3 lib ###########
+        set (sqlite3_base ${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
+        file(
+            GLOB_RECURSE sqlite3_sources
+            ${sqlite3_base}/sqlite3.c
+        )
 
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
-    add_library("sqlite3" STATIC ${sqlite3_sources})
-    target_link_libraries("sac" GLESv2 z ogg log sqlite3)
+        include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
+        add_library("sqlite3" STATIC ${sqlite3_sources})
+
+        target_link_libraries("sac" GLESv2 z ogg log sqlite3)
+    else ()
+        target_link_libraries("sac" GLESv2 z ogg log)
+    endif()
 endif()
 
 if(MOBILE_BUILD)
