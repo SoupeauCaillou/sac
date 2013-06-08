@@ -445,7 +445,7 @@ std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& t
     do {
         result.push_back((*success).pos);
         success = (*success).parent;
-    } while (success != closed.end());
+    } while ((*success).parent != closed.end());
     std::reverse(result.begin(), result.end());
     for (const auto& gp: result) {
         LOGV(1, "   - " << gp);
