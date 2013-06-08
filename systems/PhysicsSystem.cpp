@@ -5,7 +5,7 @@
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/norm.hpp>
 
-#include "util/drawVector.h"
+#include "util/DrawSomething.h"
 
 #include <utility>
 
@@ -33,7 +33,7 @@ void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2
     if (currentDraw == drawForceVectors.size()) {
         std::pair<Entity, std::vector<glm::vec2>> couple;
 
-        couple.first = drawVector(pos, size);
+        couple.first = Draw::DrawVec2("PhysicsDebug", pos, size, true);
         couple.second.push_back(pos);
         couple.second.push_back(size);
         drawForceVectors.push_back(couple);
@@ -145,7 +145,7 @@ void PhysicsSystem::DoUpdate(float dt) {
         }
 
 
-        drawVector(pos, size, drawForceVectors[i].first);
+        Draw::DrawVec2("PhysicsDebug", pos, size, true, "force", drawForceVectors[i].first);
     }
 
     for (unsigned i = currentDraw; i < drawForceVectors.size(); ++i) {
