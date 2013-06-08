@@ -36,8 +36,8 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& r
 }
 
 // from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& qA,
-    const glm::vec2& qB, glm::vec2* intersectionPoint) {
+bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
+            const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint, bool pIsStraigth, bool qIsStraigth) {
 	float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
                       ((qB.x - qA.x)*(pB.y - pA.y));
 
@@ -59,7 +59,10 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB, const 
     float ua = nume_a / denom;
     float ub = nume_b / denom;
 
-    if (ua < -eps || ua > 1.f + eps || ub < -eps || ub > 1.f + eps) {
+    if (!pIsStraigth && (ua < -eps || ua > 1.f + eps)) {
+        return false;
+    }
+    if (!qIsStraigth && (ub < -eps || ub > 1.f + eps)) {
         return false;
     }
 
