@@ -28,7 +28,7 @@ function (postbuild_specific_actions)
     )
     add_custom_command(
         TARGET ${EXECUTABLE_NAME} POST_BUILD
-        COMMAND EMCC_DEBUG=1 emcc --llvm-lto 1 -O2 -s WARN_ON_UNDEFINED_SYMBOLS=1 -s ASM_JS=0 -s ALLOW_MEMORY_GROWTH=1
+        COMMAND EMCC_DEBUG=1 emcc --llvm-lto 1 -O2 -s TOTAL_MEMORY=67108864 -s VERBOSE=1 -s WARN_ON_UNDEFINED_SYMBOLS=1
         ${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME} -o ${PROJECT_NAME}.html
          --preload-file assets
 
