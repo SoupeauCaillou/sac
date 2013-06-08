@@ -140,8 +140,6 @@ Entity Draw::DrawTriangle(const std::string& groupID, const glm::vec2& firstPoin
             vector = firstUnused->first;
         }
     }
-    LOGI(vector << " " << dynamicVertices<< " and " << instance.drawTriangleList.size());
-
     TRANSFORM(vector)->position = glm::vec2(0.);
     TRANSFORM(vector)->size = glm::vec2(1.f);
     RENDERING(vector)->shape = Shape::Triangle;
