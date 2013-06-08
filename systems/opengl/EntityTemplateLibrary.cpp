@@ -3,7 +3,7 @@
 #include "util/ComponentFactory.h"
 #include "systems/System.h"
 #include "base/EntityManager.h"
-
+#include "systems/TransformationSystem.h"
 
 int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
@@ -38,11 +38,10 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
 }
 
 bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef& r) {
-
     DataFileParser dfp;
     FileBuffer fb = assetAPI->loadAsset(asset2File(name));
     if (!fb.size) {
-        LOGE("Unable to load '" << asset2File(name) << "'");
+        LOGF("Unable to load '" << asset2File(name) << "'");
         return false;
     }
     if (!dfp.load(fb, asset2File(name))) {
@@ -123,8 +122,17 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
     const auto tIt = ref2asset.find(templRef);
     LOGF_IF(tIt == ref2asset.end(), "Unknown entity template ref ! " << templRef);;
     const EntityTemplate& templ = tIt->second;
+    // Small hack, always load Transformation first
+    auto transfS = TransformationSystem::GetInstancePointer();
+    auto hack = templ.find(transfS);
+    if (hack != templ.end()) {
+        theEntityManager.AddComponent(e, transfS, false);
+        transfS->applyEntityTemplate(e, (*hack).second);
+    }
     for (auto it: templ) {
         ComponentSystem* s = it.first;
+        if (s == transfS) continue;
+
         theEntityManager.AddComponent(e, s, false);
         s->applyEntityTemplate(e, it.second);
     }

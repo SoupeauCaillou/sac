@@ -273,7 +273,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         else \
             *(TYPE_2_PTR(_type_)) = itv.random(); }
 
-    int transformationPositionHackIndex = -1;
+    int positionHackIndex = -1;
     for (IProperty* prop : properties) {
         const std::string& name = prop->getName();
         auto it = propValueMap.find(name);
@@ -284,7 +284,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 for (unsigned i=0; i<8; i++) {
                     it = propValueMap.find(name + v[i]);
                     if (it != propValueMap.end()) {
-                        transformationPositionHackIndex = i;
+                        positionHackIndex = i;
                         break;
                     }
                 }
@@ -345,16 +345,23 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         }
     }
 
-    if (transformationPositionHackIndex >= 0) {
+    if (positionHackIndex >= 0) {
         // const std::string v[] = { "NW", "N", "NE", "W", "E", "SW", "S", "SE"};
         const glm::vec2 coeff[] = {
             glm::vec2(-0.5, 0.5) , glm::vec2(0, 0.5) , glm::vec2(0.5, 0.5),
             glm::vec2(-0.5, 0.0)                     , glm::vec2(0.5, 0.0),
             glm::vec2(-0.5, -0.5), glm::vec2(0, -0.5), glm::vec2(0.5, -0.5),
         };
-        TransformationComponent* tc = static_cast<TransformationComponent*>(component);
-        tc->position =
-            AnchorSystem::adjustPositionWithAnchor(tc->position, tc->size * coeff[transformationPositionHackIndex]);
+        // find position
+        for (IProperty* prop : properties) {
+            const std::string& name = prop->getName();
+            if (name == "position") {
+                glm::vec2* position = TYPE_2_PTR(glm::vec2);
+                *position =
+                    AnchorSystem::adjustPositionWithAnchor(*position, TRANSFORM(entity)->size * coeff[positionHackIndex]);
+                break;
+            }
+        }
     }
 }
 
