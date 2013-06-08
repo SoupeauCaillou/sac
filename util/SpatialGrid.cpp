@@ -237,7 +237,7 @@ void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
     }
 }
 
-std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(GridPos& p, int movement) const {
+std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p, int movement) const {
     std::map<int, std::vector<GridPos> > range;
 
     auto it = datas->cells.find(p);
@@ -326,6 +326,17 @@ std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& p1, const GridPos& p
     }
 
     return std::move(line);
+}
+
+bool SpatialGrid::canDrawLine(const GridPos& p1, const GridPos& p2) const {
+    auto line = lineDrawer(p1, p2);
+
+    for (auto& gp: line) {
+        if (!(gp == p2 || gp == p1) && datas->isPathBlockedAt(gp)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::vector<GridPos> SpatialGrid::ringFinder(const GridPos& pos, int range, bool enableInvalidPos = false) const {
