@@ -12,6 +12,7 @@ AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>("Anchor") {
     componentSerializer.add(new Property<glm::vec2>("position", OFFSET(position, tc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<glm::vec2>("anchor", OFFSET(anchor, tc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<float>("rotation", OFFSET(rotation, tc), 0.001));
+    componentSerializer.add(new Property<float>("z", OFFSET(z, tc), 0.001));
 }
 
 struct CompareParentChain {
