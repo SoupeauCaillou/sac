@@ -62,7 +62,7 @@
 #include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
-#include "api/default/KeyboardInputHandlerAPIGLFWImpl.h"
+#include "api/default/KeyboardInputHandlerAPISDLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/SuccessAPI.h"
 
@@ -128,6 +128,7 @@ int initGame(const std::string& title, const glm::ivec2& res) {
         return 1;
     }
     SDL_WM_SetCaption(title.c_str(), 0);
+    SDL_EnableUNICODE(1);
 
     // Double Buffering
     if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)

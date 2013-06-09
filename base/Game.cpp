@@ -92,7 +92,7 @@ Game::Game() {
 
 Game::~Game() {
     EntityManager::DestroyInstance();
-    
+
     ADSRSystem::DestroyInstance();
     AnchorSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
@@ -167,7 +167,7 @@ void Game::eventsHandler() {
                 }
                 case SDL_KEYUP: {
                     int key = event.key.keysym.sym;
-                    LOGI("key released: " << key);
+                    LOGI("key released: " << key << " unicode value: " << event.key.keysym.unicode);
 
                     switch (key) {
                         case (SDLK_ESCAPE):
