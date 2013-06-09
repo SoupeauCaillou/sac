@@ -38,7 +38,13 @@ void AnimationSystem::DoUpdate(float dt) {
             continue;
         AnimIt jt = animations.find(bc->name);
         if (jt == animations.end() || bc->playbackSpeed <= 0) {
-            LOGW_IF(jt == animations.end(), "Animation '" << bc->name << "' not found");
+            if (jt == animations.end()) {
+                LOGW("Animation '" << bc->name << "' not found. " << animations.size() << " defined animation(s):");
+                for (auto an: animations) {
+                    LOGW("   '" << an.first << "' - " << an.second->frames.size() << " frames");
+                }
+                LOGF_IF(animations.empty(), "Weird, no animations loaded");
+            }
             continue;
         }
         AnimDescriptor* anim = jt->second;
@@ -92,7 +98,7 @@ void AnimationSystem::DoUpdate(float dt) {
 
 void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& filename, std::string* variables, int varcount) {
     const std::string fileN("anim/" + filename + ".anim");
-    FileBuffer file = assetAPI->loadAsset(filename);
+    FileBuffer file = assetAPI->loadAsset(fileN);
     if (file.size) {
         AnimDescriptor* desc = new AnimDescriptor;
         if (desc->load(fileN, file, variables, varcount)) {
