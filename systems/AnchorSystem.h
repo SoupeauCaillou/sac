@@ -4,6 +4,13 @@
 
 #include "System.h"
 
+namespace Cardinal {
+    enum Enum {
+        NW, N, NE,
+        W,  C, E,
+        SW, S, SE
+    };
+}
 
 struct AnchorComponent {
 	AnchorComponent(): parent(0), position(0.0f), anchor(0.0f), rotation(0.0f), z(0) {}
@@ -27,6 +34,7 @@ UPDATABLE_SYSTEM(Anchor)
 
 public:
     static glm::vec2 adjustPositionWithAnchor(const glm::vec2& position, const glm::vec2& anchor);
+    static glm::vec2 adjustPositionWithCardinal(const glm::vec2& position, const glm::vec2& size, Cardinal::Enum cardinal);
 
 #if SAC_DEBUG
     void Delete(Entity e) override;

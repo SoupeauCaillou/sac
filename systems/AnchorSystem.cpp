@@ -51,6 +51,16 @@ glm::vec2 AnchorSystem::adjustPositionWithAnchor(const glm::vec2& position, cons
     return position - anchor;
 }
 
+
+glm::vec2 AnchorSystem::adjustPositionWithCardinal(const glm::vec2& position, const glm::vec2& size, Cardinal::Enum cardinal) {
+    const glm::vec2 modifiers[] = {
+        glm::vec2(-0.5, 0.5) , glm::vec2(0, 0.5) , glm::vec2(0.5, 0.5),
+        glm::vec2(-0.5, 0.0) , glm::vec2(0, 0)   , glm::vec2(0.5, 0),
+        glm::vec2(-0.5, -0.5), glm::vec2(0, -0.5), glm::vec2(0.5, -0.5)
+    };
+    return adjustPositionWithAnchor(position, size * modifiers[(int)cardinal]);
+}
+
 void AnchorSystem::DoUpdate(float) {
     std::set<std::pair<Entity, AnchorComponent*> , CompareParentChain> cp;
 
