@@ -38,6 +38,13 @@ static std::string entityToTwName(Entity e) {
     return s.str();
 }
 
+//see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twcopystdstringtoclientfunc
+static void TW_CALL CopyStdStringToClient(std::string& destinationClientString, const std::string& sourceLibraryString)
+{
+  // Copy the content of souceString handled by the AntTweakBar library to destinationClientString handled by your application
+  destinationClientString = sourceLibraryString;
+}
+
 void LevelEditor::lock() {
     _lock();
 }
@@ -144,7 +151,10 @@ LevelEditor::LevelEditor() {
     TwInit(TW_OPENGL, NULL);
     TwDefine(" GLOBAL fontsize=3 "); // use large font
 
-    DebugConsole::Instance().init();
+    //to copy std string
+    TwCopyStdStringToClientFunc(CopyStdStringToClient);
+
+    DebugConsole::Instance().initTW();
 
     entityListBar = TwNewBar("EntityList");
 

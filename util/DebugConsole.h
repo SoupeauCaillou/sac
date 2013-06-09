@@ -21,14 +21,21 @@
 
 class DebugConsole {
     public:
+        //called in LevelEditor
+        void initTW();
+
         static DebugConsole & Instance();
 
+        //there is no argument
+        static void registerMethodWithoutArg(const std::string & name, void (*callback)(void*));
+
+        //user can choose the argument in a enum list
         static void registerMethodWithOneArg(const std::string & name, const std::string & argumentName,
             void (*callback)(void*), TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace);
 
-        static void registerMethodWithoutArg(const std::string & name, void (*callback)(void*));
-
-        void init();
+        //user can choose the argument value of the specified type (see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twtype for the whole list)
+        static void registerMethodWithOneArg(const std::string & name, const std::string & argumentName,
+            void (*callback)(void*), void* storingPlace, TwType type);
 
     private:
         DebugConsole() {}

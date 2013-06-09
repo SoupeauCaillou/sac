@@ -11,6 +11,21 @@ DebugConsole & DebugConsole::Instance() {
     return _instance;
 }
 
+void DebugConsole::initTW() {
+    bar = TwNewBar("Debug_Console");
+    TwDefine(" Debug_Console size='400 200' iconified=true ");
+}
+
+void DebugConsole::registerMethodWithoutArg(const std::string & name, void (*callback)(void*)) {
+    LOGF_IF(Instance().name2callback.find(name) != Instance().name2callback.end(), "function " << name << " already registered!");
+
+    Instance().name2callback[name] = callback;
+
+    LOGE("New entry for debug console: " << name);
+
+    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, 0, "");
+}
+
 void DebugConsole::registerMethodWithOneArg(const std::string & name, const std::string & argumentName, void (*callback)(void*), TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace) {
     LOGF_IF(Instance().name2callback.find(name) != Instance().name2callback.end(), "function " << name << " already registered!");
 
@@ -24,19 +39,16 @@ void DebugConsole::registerMethodWithOneArg(const std::string & name, const std:
     TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "");
 }
 
-void DebugConsole::registerMethodWithoutArg(const std::string & name, void (*callback)(void*)) {
+void DebugConsole::registerMethodWithOneArg(const std::string & name, const std::string & argumentName, void (*callback)(void*), void* storingPlace, TwType type) {
     LOGF_IF(Instance().name2callback.find(name) != Instance().name2callback.end(), "function " << name << " already registered!");
 
     Instance().name2callback[name] = callback;
 
-    LOGE("New entry for debug console: " << name);
+    LOGI("New entry for debug console: " << name);
 
-    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, 0, "");
+    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "");
+    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "");
 }
 
-void DebugConsole::init() {
-    bar = TwNewBar("Debug_Console");
-    TwDefine(" Debug_Console size='400 200' iconified=true ");
-}
 #endif
 

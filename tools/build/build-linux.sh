@@ -106,7 +106,7 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
     builddir=$rootPath/build/$cmakebuildtarget-$cmakebuildtype
 	mkdir -p $builddir
 
-######### 3 : Go into build/emscripten #########
+######### 3 : Go into build directory #########
 	cd $builddir
 
 ######### 4 : Execute query. #########
