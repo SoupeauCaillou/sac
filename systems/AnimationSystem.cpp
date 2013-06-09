@@ -23,7 +23,10 @@ AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("An
     AnimationComponent tc;
     componentSerializer.add(new StringProperty("name", OFFSET(name, tc)));
     componentSerializer.add(new Property<float>("playback_speed", OFFSET(playbackSpeed, tc), 0.001f));
+    componentSerializer.add(new Property<float>("accum", OFFSET(accum, tc), 0.001f));
+    componentSerializer.add(new Property<float>("wait_accum", OFFSET(waitAccum, tc), 0.001f));
     componentSerializer.add(new Property<int>("loop_count", OFFSET(loopCount, tc)));
+    componentSerializer.add(new Property<int>("frame_index", OFFSET(frameIndex, tc)));
 }
 
 AnimationSystem::~AnimationSystem() {
@@ -73,10 +76,10 @@ void AnimationSystem::DoUpdate(float dt) {
                         bc->frameIndex = 0;
                         bc->loopCount--;
 
-                        if (bc->loopCount == 0) {
+                        /*if (bc->loopCount == 0) {
                             bc->name = bc->previousName = "";
                             break;
-                        }
+                        }*/
                     } else if (!anim->nextAnim.empty()) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
                             RENDERING(a)->show = false;
