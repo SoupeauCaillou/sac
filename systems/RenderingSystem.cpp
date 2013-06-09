@@ -311,7 +311,7 @@ void RenderingSystem::DoUpdate(float) {
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
             if (rc->zPrePass) {
-                rc->opaqueType = RenderingComponent::FULL_OPAQUE;
+                // rc->opaqueType = RenderingComponent::FULL_OPAQUE;
                 c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
                 c.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
