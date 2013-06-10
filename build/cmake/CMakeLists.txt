@@ -68,12 +68,13 @@ endfunction()
 #######################################################################
 ##########Build headers files for .vs and .fs files####################
 #######################################################################
-execute_process(COMMAND ls
+execute_process(COMMAND "ls"
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
     OUTPUT_VARIABLE FILES)
 
 #set it into a list
 string(REPLACE "\n" ";" FILES_LIST ${FILES})
+message(${FILES_LIST})
 foreach (FILE ${FILES_LIST})
     # REGEX every file ending ('$' means end') by vs or fs
     if (${FILE} MATCHES "[fv]s$")
@@ -81,14 +82,28 @@ foreach (FILE ${FILES_LIST})
         STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
         message ("Add rule to build shader: ${FILE} -> ${Output}.h")
 
+        SET_SOURCE_FILES_PROPERTIES(${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${Output}.h
+            PROPERTIES GENERATED TRUE)
+
         add_custom_command(
             OUTPUT ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${Output}.h
-            COMMAND xxd -i ${FILE} ${Output}.h
+            COMMAND xxd -i ${FILE} | sed s/}/,0x00}/ > ${Output}.h
             DEPENDS ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${FILE}
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders)
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
+            COMMENT "Building shader ${FILE}"
+        )
     endif()
 endforeach()
 
+string(REGEX REPLACE "\\." "_" FILES ${FILES})
+string(REGEX REPLACE "s\n" "s.h\n" SHADER_FILES ${FILES})
+string(REGEX REPLACE "([^\n]+)\n" "${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/\\1\n" SHADER_FILES ${SHADER_FILES})
+foreach (FILE ${SHADER_FILES})
+    message ("Is it : ${FILE}")
+endforeach()
+string(REPLACE "\n" ";" SHADER_FILES ${SHADER_FILES})
+
+add_custom_target(generate_shaders DEPENDS ${SHADER_FILES})
 #######################################################################
 ##################Make assets (from unprepared_assets##################
 #######################################################################
@@ -173,7 +188,7 @@ else()
 endif()
 
 add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files})
-
+add_dependencies( sac generate_shaders )
 
 #######################################################################
 ##########Build and link libraries per target##########################
