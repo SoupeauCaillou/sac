@@ -68,42 +68,37 @@ endfunction()
 #######################################################################
 ##########Build headers files for .vs and .fs files####################
 #######################################################################
-execute_process(COMMAND "ls"
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
-    OUTPUT_VARIABLE FILES)
+file (
+    GLOB_RECURSE
+    SHADER_SOURCE_FILES
+    ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/*.[vf]s
+)
 
-#set it into a list
-string(REPLACE "\n" ";" FILES_LIST ${FILES})
-message(${FILES_LIST})
-foreach (FILE ${FILES_LIST})
-    # REGEX every file ending ('$' means end') by vs or fs
-    if (${FILE} MATCHES "[fv]s$")
-        #output format: foo.vs -> foo_vs.h
-        STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
-        message ("Add rule to build shader: ${FILE} -> ${Output}.h")
+foreach (FILE ${SHADER_SOURCE_FILES})
+    file(RELATIVE_PATH
+        REL_FILE
+        ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
+        ${FILE})
 
-        SET_SOURCE_FILES_PROPERTIES(${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${Output}.h
-            PROPERTIES GENERATED TRUE)
+    #output format: foo.vs -> foo_vs.h
+    STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
+    message ("Add rule to build shader: ${REL_FILE} -> ${Output}.h")
 
-        add_custom_command(
-            OUTPUT ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${Output}.h
-            COMMAND xxd -i ${FILE} | sed s/}/,0x00}/ > ${Output}.h
-            DEPENDS ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/${FILE}
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
-            COMMENT "Building shader ${FILE}"
-        )
-    endif()
+    SET_SOURCE_FILES_PROPERTIES(${Output}.h
+        PROPERTIES GENERATED TRUE)
+
+    add_custom_command(
+        OUTPUT ${Output}.h
+        COMMAND xxd -i ${REL_FILE} | sed s/}/,0x00}/ > ${Output}.h
+        DEPENDS ${FILE}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
+        COMMENT "Building shader ${REL_FILE}"
+    )
 endforeach()
 
-string(REGEX REPLACE "\\." "_" FILES ${FILES})
-string(REGEX REPLACE "s\n" "s.h\n" SHADER_FILES ${FILES})
-string(REGEX REPLACE "([^\n]+)\n" "${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/\\1\n" SHADER_FILES ${SHADER_FILES})
-foreach (FILE ${SHADER_FILES})
-    message ("Is it : ${FILE}")
-endforeach()
-string(REPLACE "\n" ";" SHADER_FILES ${SHADER_FILES})
+string(REGEX REPLACE "\\.([vf]s)" "_\\1.h;" SHADER_HEADER_FILES ${SHADER_SOURCE_FILES})
 
-add_custom_target(generate_shaders DEPENDS ${SHADER_FILES})
+add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #######################################################################
 ##################Make assets (from unprepared_assets##################
 #######################################################################
