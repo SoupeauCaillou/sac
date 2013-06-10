@@ -332,6 +332,16 @@ float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingCompo
     return computeStringWidth(trc, trc->charHeight, fontIt->second);
 }
 
+void TextRenderingSystem::Delete(Entity e) {
+    for (Entity subE: renderingEntitiesPool) {
+        if (ANCHOR(subE)->parent == e) {
+            ANCHOR(subE)->parent = 0;
+            RENDERING(subE)->show = false;
+        }
+    }
+    ComponentSystemImpl<TextRenderingComponent>::Delete(e);
+}
+
 static Entity createRenderingEntity() {
     Entity e = theEntityManager.CreateEntity("__text_letter");
     ADD_COMPONENT(e, Transformation);

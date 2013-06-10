@@ -66,6 +66,7 @@ struct TextRenderingComponent {
 UPDATABLE_SYSTEM(TextRendering)
 
 public :
+    void Delete(Entity e) override;
 	void registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio);
 
 	float computeTextRenderingComponentWidth(TextRenderingComponent* trc) const;
