@@ -47,12 +47,49 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
     float nume_b = ((pB.x - pA.x)*(pA.y - qA.y)) -
                    ((pB.y - pA.y)*(pA.x - qA.x));
 
+    //line are parallels - need to check if they are coincidents or not
     if(denom == 0.0f)
     {
-        if(nume_a == 0.0f && nume_b == 0.0f)
-        {
-            return false;
+        // they are coincidents if qA is in [pA, pB] or if qB is in [pA, pB]
+        const float pDeltaX = pB.x - pA.x;
+        const float pDeltaY = pB.y - pA.y;
+
+        //if the line is not totally VERTICALE, use the normal approach
+        if (pDeltaX != 0.0f) {
+            const float ua = (qA.x - pA.x) / pDeltaX;
+            const float ub = (qB.x - pA.x) / pDeltaX;
+
+            //is qA in segment?
+            if ((pIsStraigth || (ua >= 0.f && ua <= 1.f)) && qA.y == pA.y + ua * pDeltaY) {
+                if (intersectionPoint != 0) {
+                    *intersectionPoint = qA;
+                }
+                return true;
+            // or qB?
+            } else if ((pIsStraigth || (ub >= 0.f && ub <= 1.f)) && qB.y == pA.y + ub * pDeltaY) {
+                if (intersectionPoint != 0) {
+                    *intersectionPoint = qB;
+                }
+                return true;
+            }
+        //vertical line, special case. Just need to check if they are on the same X
+        } else if (qA.x == pA.x) {
+            const float ua = (qA.y - pA.y) / pDeltaY;
+            const float ub = (qB.y - pA.y) / pDeltaY;
+
+            if (pIsStraigth || (ua >= 0.f && ua <= 1.f)) {
+                if (intersectionPoint != 0) {
+                    *intersectionPoint = qA;
+                }
+                return true;
+            } else if (pIsStraigth || (ub >= 0.f && ub <= 1.f)) {
+                if (intersectionPoint != 0) {
+                    *intersectionPoint = qB;
+                }
+                return true;
+            }
         }
+
         return false;
     }
 

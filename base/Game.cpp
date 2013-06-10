@@ -167,7 +167,7 @@ void Game::eventsHandler() {
                 }
                 case SDL_KEYUP: {
                     int key = event.key.keysym.sym;
-                    LOGI("key released: " << key << " unicode value: " << event.key.keysym.unicode);
+                    LOGI("key released: " << key);
 
                     switch (key) {
                         case (SDLK_ESCAPE):
