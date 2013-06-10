@@ -54,7 +54,6 @@ class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
         enum {
             ATTRIB_VERTEX = 0,
             ATTRIB_UV,
-            ATTRIB_POS_ROT,
             ATTRIB_SCALE,
             NUM_ATTRIBS
         };

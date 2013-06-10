@@ -19,7 +19,7 @@ static GLuint compileShader(const std::string&, GLuint type, const FileBuffer& f
     if (logLength > 1) {
         char *log = new char[logLength];
         GL_OPERATION(glGetShaderInfoLog(shader, logLength, &logLength, log))
-        LOGF("GL shader error: " << log);
+        LOGW("GL shader error: " << log);
         delete[] log;
     }
 
@@ -47,7 +47,6 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
     LOGV(2, "Binding GLSL attribs");
     GL_OPERATION(glBindAttribLocation(out.program, EffectLibrary::ATTRIB_VERTEX, "aPosition"))
     GL_OPERATION(glBindAttribLocation(out.program, EffectLibrary::ATTRIB_UV, "aTexCoord"))
-    GL_OPERATION(glBindAttribLocation(out.program, EffectLibrary::ATTRIB_POS_ROT, "aPosRot"))
 
     LOGV(2, "Linking GLSL program");
     GL_OPERATION(glLinkProgram(out.program))
@@ -57,7 +56,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
     if (logLength > 1) {
         char *log = new char[logLength];
         glGetProgramInfoLog(out.program, logLength, &logLength, log);
-        LOGF("GL shader program error: '" << log << "'");
+        LOGW("GL shader (vs='" << vsName << "' program error: '" << log << "'");
 
         delete[] log;
     }
@@ -80,7 +79,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
 }
 
 static Shader buildShaderFromAsset(AssetAPI* assetAPI, const std::string& vsName, const std::string& fsName) {
-    LOGV(1, "Compiling shaders: " << vsName << '/' << fsName);
+    LOGI("Compiling shaders: " << vsName << '/' << fsName);
     FileBuffer fragmentFb = assetAPI->loadAsset(fsName);
     Shader shader = buildShaderFromFileBuffer(vsName, fragmentFb);
     delete[] fragmentFb.data;
@@ -110,7 +109,7 @@ bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const Effe
         out = buildShaderFromAsset(assetAPI, "default.vs", assetName);
     } else {
         const FileBuffer& fb = it->second;
-        LOGV(1, "loadShader: '" << assetName << "' from InMemoryShader (" << fb.size << ')');
+        LOGI("loadShader: '" << assetName << "' from InMemoryShader (" << fb.size << ')');
         out = buildShaderFromFileBuffer("default.vs", fb);
     }
 
