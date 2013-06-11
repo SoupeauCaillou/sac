@@ -26,7 +26,9 @@ namespace VarType {
     enum Enum {
         NORMAL,
         VEC2_X,
-        VEC2_Y
+        VEC2_Y,
+        INTERVAL_1,
+        INTERVAL_2, // TODO: vec2 interval
     };
 }
 
@@ -34,12 +36,17 @@ static std::string varLabel(const std::string& name, VarType::Enum t) {
     switch (t) {
         case VarType::NORMAL:
             return name;
+        case VarType::INTERVAL_1:
+            return name + ".1";
+        case VarType::INTERVAL_2:
+            return name + ".2";
         case VarType::VEC2_X:
             return name + ".x";
         case VarType::VEC2_Y:
             return name + ".y";
         default:
             LOGF("Unhandled");
+            return "";
     }
 }
 static std::string varName(const std::string& group, const std::string& name, VarType::Enum t = VarType::NORMAL) {
@@ -83,23 +90,43 @@ void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
     for(IProperty* prop: componentSerializer.getProperties()) {
         const std::string& propName = prop->getName();
 
-        if (prop->getAttribute() != PropertyAttribute::None) {
-            LOGT("Unhandled property attributes");
+        if (prop->getAttribute() == PropertyAttribute::Vector) {
+            LOGT("PropertyAttribute::Vector unhandled");
             continue;
         }
 
         const std::string& vname = prop->getName();
+        const bool itv = (prop->getAttribute() == PropertyAttribute::Interval);
+        VarType::Enum vt = itv ? VarType::INTERVAL_1 : VarType::NORMAL;
         switch (prop->getType()) {
             case PropertyType::String:
             case PropertyType::Int:
             case PropertyType::Bool:
             case PropertyType::Color:
-                TwAddVarRW(bar, varName(name, vname).c_str(),
-                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname).c_str());
+                TwAddVarRW(bar, varName(name, vname, vt).c_str(),
+                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt).c_str());
+
+                if (itv) {
+                    int size = 0;
+                    switch (prop->getType()) {
+                        case PropertyType::Int: size = sizeof(int); break;
+                        case PropertyType::Bool: size = sizeof(bool); break;
+                        case PropertyType::Color: size = 4 * sizeof(float); break;
+                        default: size = 0;
+                    }
+                    if (size > 0) {
+                        TwAddVarRW(bar, varName(name, vname, VarType::INTERVAL_2).c_str(),
+                            PropertyTypeToType(prop->getType()), comp + prop->offset + size, varParams(group, vname, VarType::INTERVAL_2).c_str());
+                    }
+                }
                 break;
             case PropertyType::Float:
-                TwAddVarRW(bar, varName(name, vname).c_str(),
-                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, VarType::NORMAL, FLOAT_PROPERTIES).c_str());
+                TwAddVarRW(bar, varName(name, vname, vt).c_str(),
+                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt, FLOAT_PROPERTIES).c_str());
+                if (itv) {
+                    TwAddVarRW(bar, varName(name, vname, vt).c_str(),
+                        PropertyTypeToType(prop->getType()), comp + prop->offset + sizeof(float), varParams(group, vname, VarType::INTERVAL_2, FLOAT_PROPERTIES).c_str());
+                }
                 break;
             case PropertyType::Vec2:
                 // x component
