@@ -130,7 +130,7 @@ void LevelEditor::LevelEditorDatas::deselect(Entity) {
     RENDERING(selectionDisplay)->show = false;
 }
 
-TwBar* entityListBar, *debugConsoleBar, *logBar;
+TwBar* entityListBar, *debugConsoleBar, *logBar, *dumpEntities;
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
@@ -157,11 +157,14 @@ LevelEditor::LevelEditor() {
     DebugConsole::Instance().initTW();
 
     entityListBar = TwNewBar("EntityList");
+    dumpEntities = TwNewBar("DumpEntities");
 
-#if SAC_ENABLE_LOGL
+    TwDefine(" EntityList iconified=true ");
+    TwDefine(" DumpEntities iconified=true ");
+
+#if SAC_ENABLE_LOG
     logBar = TwNewBar("Log_Control");
     TwDefine(" Log_Control iconified=true ");
-    TwDefine(" EntityList iconified=true ");
     // add default choice for log control
     TwEnumVal modes[] = {
         {LogVerbosity::FATAL, "Fatal"},
@@ -176,6 +179,7 @@ LevelEditor::LevelEditor() {
     TwAddVarRW(logBar, "Verbosity", type, &logLevel, "");
     TwAddSeparator(logBar, "File control", "");
 #endif
+
 }
 
 LevelEditor::~LevelEditor() {
@@ -196,6 +200,26 @@ static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
     *l = verboseFilenameFilters[s];
 }
 #endif
+
+static void TW_CALL DumpSystemEntities(void *clientData) {
+    std::string name((char*) clientData);
+
+    ComponentSystem* s = ComponentSystem::Named(name);
+
+    LOGW(name << " system dump");
+    LOGW("##########################################################");
+    s->forEachEntityDo([] (Entity e) -> void {
+        LOGW("   " << theEntityManager.entityName(e));
+    });
+    LOGW("##########################################################");
+}
+
+void LevelEditor::init() {
+    // init system button
+    for (auto it : ComponentSystem::registeredSystems()) {
+        TwAddButton(dumpEntities, it.first.c_str(), DumpSystemEntities, strdup(it.first.c_str()), "");
+    }
+}
 
 void LevelEditor::tick(float dt) {
     // update entity list every sec

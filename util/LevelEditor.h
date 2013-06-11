@@ -4,6 +4,7 @@ class LevelEditor {
     public:
         LevelEditor();
         ~LevelEditor();
+        void init();
         void tick(float dt);
 
         static void lock();

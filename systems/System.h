@@ -138,6 +138,7 @@ class ComponentSystem {
         virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) = 0;
         virtual void* componentAsVoidPtr(Entity e) = 0;
         virtual unsigned entityCount() const = 0;
+        virtual void forEachEntityDo(std::function<void(Entity)> func) = 0;
 
 		void Update(float dt) {
             PROFILE("SystemUpdate", name, BeginEvent);
@@ -285,7 +286,13 @@ class ComponentSystemImpl: public ComponentSystem {
 			return result;
 		}
 
-        void forEachEntityDo(std::function<void(Entity, T*)> func) {
+        void forEachEntityDo(std::function<void(Entity)> func) {
+            for (auto p : components) {
+                func(p.first);
+            }
+        }
+
+        void forEachECDo(std::function<void(Entity, T*)> func) {
             for (auto p : components) {
                 func(p.first, p.second);
             }

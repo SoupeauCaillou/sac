@@ -267,6 +267,10 @@ void Game::sacInit(int windowW, int windowH) {
         });
 
     }
+
+#if SAC_INGAME_EDITORS
+    levelEditor->init();
+#endif
 }
 
 void Game::backPressed() {
