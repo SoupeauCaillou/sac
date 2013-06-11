@@ -17,6 +17,10 @@ function (others_specific_executables)
 endfunction()
 
 function (postbuild_specific_actions)
+    execute_process(COMMAND date OUTPUT_VARIABLE DATE_VAR)
+    STRING(REGEX REPLACE "\n" "" DATE_VAR ${DATE_VAR} )
+    execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE COMMIT_VAR)
+    STRING(REGEX REPLACE "\n" "" COMMIT_VAR ${COMMIT_VAR} )
     add_custom_command(
         TARGET ${EXECUTABLE_NAME} PRE_LINK
         COMMAND rm -rf assets
@@ -31,9 +35,10 @@ function (postbuild_specific_actions)
         COMMAND EMCC_DEBUG=1 emcc --llvm-lto 1 -O2 -s TOTAL_MEMORY=67108864 -s VERBOSE=1 -s WARN_ON_UNDEFINED_SYMBOLS=1
         ${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME} -o ${PROJECT_NAME}.html
          --preload-file assets
-
+        COMMAND sed -i "s/Emscripten-Generated\ Code/${PROJECT_NAME} - ${DATE_VAR} - ${COMMIT_VAR}/" ${PROJECT_NAME}.html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Building emscripten HTML"
+        VERBATIM
     )
 endfunction()
 
