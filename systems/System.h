@@ -280,6 +280,12 @@ class ComponentSystemImpl: public ComponentSystem {
 			return result;
 		}
 
+        void forEachEntityDo(std::function<void(Entity, T*)> func) {
+            for (auto p : components) {
+                func(p.first, p.second);
+            }
+        }
+
         uint8_t* saveComponent(Entity entity, uint8_t* out) {
             if (!out) {
                 out = new uint8_t[sizeof(T)];
