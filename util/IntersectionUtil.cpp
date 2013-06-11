@@ -48,43 +48,43 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
                    ((pB.y - pA.y)*(pA.x - qA.x));
 
     //line are parallels - need to check if they are coincidents or not
-    if(denom == 0.0f)
+    if(glm::abs(denom) < eps)
     {
         // they are coincidents if qA is in [pA, pB] or if qB is in [pA, pB]
         const float pDeltaX = pB.x - pA.x;
         const float pDeltaY = pB.y - pA.y;
 
         //if the line is not totally VERTICALE, use the normal approach
-        if (pDeltaX != 0.0f) {
+        if (glm::abs(pDeltaX) > eps) {
             const float ua = (qA.x - pA.x) / pDeltaX;
             const float ub = (qB.x - pA.x) / pDeltaX;
 
             //is qA in segment?
-            if ((pIsStraigth || (ua >= 0.f && ua <= 1.f)) && qA.y == pA.y + ua * pDeltaY) {
+            if ((pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) && qA.y == pA.y + ua * pDeltaY) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = qA;
+                    *intersectionPoint = pA + (pB - pA) * ua;
                 }
                 return true;
             // or qB?
-            } else if ((pIsStraigth || (ub >= 0.f && ub <= 1.f)) && qB.y == pA.y + ub * pDeltaY) {
+            } else if ((pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) && qB.y == pA.y + ub * pDeltaY) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = qB;
+                    *intersectionPoint = pA + (pB - pA) * ub;
                 }
                 return true;
             }
         //vertical line, special case. Just need to check if they are on the same X
-        } else if (qA.x == pA.x) {
+        } else if (glm::abs(qA.x - pA.x) < eps) {
             const float ua = (qA.y - pA.y) / pDeltaY;
             const float ub = (qB.y - pA.y) / pDeltaY;
 
-            if (pIsStraigth || (ua >= 0.f && ua <= 1.f)) {
+            if (pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = qA;
+                    *intersectionPoint = pA + (pB - pA) * ua;
                 }
                 return true;
-            } else if (pIsStraigth || (ub >= 0.f && ub <= 1.f)) {
+            } else if (pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = qB;
+                    *intersectionPoint = pA + (pB - pA) * ub;
                 }
                 return true;
             }
