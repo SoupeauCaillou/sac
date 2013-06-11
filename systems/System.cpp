@@ -124,7 +124,7 @@ void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                 TwAddVarRW(bar, varName(name, vname, vt).c_str(),
                     PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt, FLOAT_PROPERTIES).c_str());
                 if (itv) {
-                    TwAddVarRW(bar, varName(name, vname, vt).c_str(),
+                    TwAddVarRW(bar, varName(name, vname, VarType::INTERVAL_2).c_str(),
                         PropertyTypeToType(prop->getType()), comp + prop->offset + sizeof(float), varParams(group, vname, VarType::INTERVAL_2, FLOAT_PROPERTIES).c_str());
                 }
                 break;
