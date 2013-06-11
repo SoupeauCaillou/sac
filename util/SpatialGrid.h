@@ -53,6 +53,8 @@ class SpatialGrid {
 
         std::vector<GridPos> findPath(const GridPos& from, const GridPos& to) const;
 
+        unsigned computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const;
+
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);
 

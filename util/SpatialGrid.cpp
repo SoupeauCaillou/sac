@@ -454,6 +454,10 @@ std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& t
     return result;
 }
 
+unsigned SpatialGrid::computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const {
+    return SpatialGrid::ComputeDistance(positionToGridPos(p1), positionToGridPos(p2));
+}
+
 static GridPos cubeCoordinateRounding(float x, float y, float z) {
     float rx = glm::round(x);
     float ry = glm::round(y);
