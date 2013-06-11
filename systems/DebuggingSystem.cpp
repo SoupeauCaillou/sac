@@ -133,7 +133,7 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
 }
 
 template <class T, class U>
-std::string createLabel(const std::string& title, const std::list<std::pair<T, U> > pointsList, float scale, const std::string& unit) {
+std::string createLabel(const std::string& title, const std::list<std::pair<T, U> > pointsList, float scale, const std::string& unit, int optionalCount = -1) {
     U minDt, maxDt, avg = 0;
     minDt = maxDt = pointsList.front().second;
     std::for_each(pointsList.begin(), pointsList.end(), [&minDt, &maxDt, &avg] (std::pair<T, U> pt) -> void {
@@ -145,6 +145,10 @@ std::string createLabel(const std::string& title, const std::list<std::pair<T, U
     avg /= pointsList.size();
     std::stringstream ss;
     ss << title <<": " << std::fixed << std::setprecision(1) << scale * avg << ' ' << scale * minDt << ' ' << scale * maxDt << ' ' << unit;
+
+    if (optionalCount >= 0) {
+        ss << " (" << optionalCount << ')';
+    }
     return ss.str();
 }
 
@@ -259,7 +263,7 @@ void DebuggingSystem::DoUpdate(float dt) {
             if (system->updateDuration < 0.0001) {
                 TEXT_RENDERING(e)->show = false;
             } else {
-                TEXT_RENDERING(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms");
+                TEXT_RENDERING(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms", system->entityCount());
                 TEXT_RENDERING(e)->show = true;
                 TRANSFORM(e)->position = firstLabelOffset + labelsSpacing * (float)i;
             }

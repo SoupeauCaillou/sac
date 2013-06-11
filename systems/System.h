@@ -137,6 +137,7 @@ class ComponentSystem {
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
         virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) = 0;
         virtual void* componentAsVoidPtr(Entity e) = 0;
+        virtual unsigned entityCount() const = 0;
 
 		void Update(float dt) {
             PROFILE("SystemUpdate", name, BeginEvent);
@@ -237,6 +238,10 @@ class ComponentSystemImpl: public ComponentSystem {
 
         const std::map<Entity, T*>& getAllComponents() const {
             return components;
+        }
+
+        unsigned entityCount() const {
+            return components.size();
         }
 
         void* componentAsVoidPtr(Entity e) {
