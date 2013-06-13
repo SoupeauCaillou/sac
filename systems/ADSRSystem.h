@@ -9,19 +9,34 @@ enum Mode {
 
 
 struct ADSRComponent {
-	ADSRComponent() : active(false), value(0), activationTime(0), attackMode(Linear), decayMode(Linear), releaseMode(Linear) {}
-	bool active;
+	ADSRComponent() : value(0), activationTime(0), active(false), idleValue(0.), attackValue(1.), attackTiming(1.), decayTiming(1.),
+    sustainValue(2.), releaseTiming(1.), attackMode(Linear), decayMode(Linear), releaseMode(Linear) {}
 
+////// READ ONLY variables
+    //Current value. When 'active' is set to true, it start at 'idleValue' and goes to 'attackValue' in 'attackTiming' duration.
+    //Then it goes to 'sustainValue' in 'decayTiming' duration.
+    //It stays here until 'active' is reset to false, where  it goes back to 'idleValue' in 'releaseTiming' duration.
 	float value;
+    //represents our position in the phases. When 'active' is set to true, we move forward (trying to go in Sustain mode),
+    //and when 'active' is false, we are going back to Release mode
 	float activationTime;
+////// END OF READ ONLY variables
 
+
+////// READ/WRITE variables
+    // if false, value = idle value, else see above
+    bool active;
+////// END OF READ/WRITE variables
+
+////// WRITE ONLY variables
 	float idleValue;
 	float attackValue;
 	float attackTiming;
-	float sustainValue;
 	float decayTiming;
+    float sustainValue;
 	float releaseTiming;
 	Mode attackMode, decayMode, releaseMode;
+////// END OF WRITE ONLY variables
 };
 
 #define theADSRSystem ADSRSystem::GetInstance()
