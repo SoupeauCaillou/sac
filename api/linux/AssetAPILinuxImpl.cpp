@@ -23,24 +23,16 @@ void AssetAPILinuxImpl::init() {
 
 }
 
-FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
+FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
     FileBuffer fb;
     fb.data = 0;
-#ifdef SAC_ASSETS_DIR
-	std::string full = SAC_ASSETS_DIR + asset;
-#else
-    std::string full = "assets/" + asset;
-#endif
+
     FILE* file = fopen(full.c_str(), "rb");
-    if (!file) {
-        // try in pc specific folder
-        full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
-        file = fopen(full.c_str(), "rb");
-        if (!file) {
-            LOGE("Error opening file '" << asset << "'");
-            return fb;
-        }
+
+    if (! file) {
+        return fb;
     }
+
     fseek(file, 0, SEEK_END);
     fb.size = ftell(file);
     rewind(file);
@@ -52,6 +44,26 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
 
     fclose(file);
     fb.data[fb.size] = 0;
+    return fb;
+}
+
+FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
+    FileBuffer fb;
+#ifdef SAC_ASSETS_DIR
+	std::string full = SAC_ASSETS_DIR + asset;
+#else
+    std::string full = "assets/" + asset;
+#endif
+    fb = loadFile(full);
+    if (fb.data == 0) {
+        // try in pc specific folder
+        full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
+        fb = loadFile(full);
+
+        if (fb.data == 0) {
+            LOGE("Error opening file '" << asset << "'");
+        }
+    }
     return fb;
 }
 
@@ -100,11 +112,13 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
 #endif
     return content;
 }
- const std::string &  AssetAPILinuxImpl::getWritableAppDatasPath() {
+
+ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
     static std::string path;
 
     if (path.empty()) {
-        std::stringstream ss;
+        std::stringstream ss("not-handled-os");
+#if SAC_LINUX
         char * pPath = getenv ("XDG_DATA_HOME");
         if (pPath) {
             ss << pPath;
@@ -124,7 +138,22 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
             }
         }
 
+#elif SAC_EMSCRIPTEN
+        ss << "/sac_temp/";
+        // create folder if needed
+
+#endif
+
         path = ss.str();
     }
     return path;
  }
+
+void AssetAPILinuxImpl::synchronize() {
+#if SAC_EMSCRIPTEN
+    const char* script = "" \
+        "localStorage[\"sac_root\"] = window.JSON.stringify(FS.root.contents['sac_temp']);" \
+        "localStorage[\"sac_nextInode\"] = window.JSON.stringify(FS.nextInode);";
+    emscripten_run_script(script);
+#endif
+}

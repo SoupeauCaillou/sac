@@ -30,7 +30,7 @@ struct StubAssetAPI : public AssetAPI {
     std::string data;
     StubAssetAPI(const std::string& pData) : data(pData) {}
 
-    FileBuffer loadAsset(const std::string& ) {
+    FileBuffer loadFile(const std::string& ) {
         FileBuffer fb;
         fb.size = data.length() + 1;
         fb.data = new uint8_t[fb.size];
@@ -39,6 +39,11 @@ struct StubAssetAPI : public AssetAPI {
 
         return fb;
     }
+
+    FileBuffer loadAsset(const std::string& ) {
+        return loadFile("");
+    }
+
     std::list<std::string> listContent(const std::string& , const std::string& ) {
         return std::list<std::string>();
     }
@@ -46,6 +51,8 @@ struct StubAssetAPI : public AssetAPI {
         static std::string empty("");
         return empty;
     }
+
+    void synchronize() {}
 };
 
 static Entity doTest(std::string s) {
