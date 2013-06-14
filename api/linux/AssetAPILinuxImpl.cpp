@@ -12,6 +12,9 @@
 //for getenv
 #include <cstdlib>
 
+#if SAC_EMSCRIPTEN
+#include <emscripten.h>
+#endif
 
 #if SAC_WINDOWS
 
@@ -26,7 +29,6 @@ void AssetAPILinuxImpl::init() {
 FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
     FileBuffer fb;
     fb.data = 0;
-
     FILE* file = fopen(full.c_str(), "rb");
 
     if (! file) {
@@ -67,19 +69,14 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     return fb;
 }
 
-std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extension, const std::string& subfolder) {
-#ifdef SAC_ASSETS_DIR
-        std::string directory = SAC_ASSETS_DIR + subfolder;
-#else
-        std::string directory = "assets/" + subfolder;
-#endif
-
+std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& directory, const std::string& extension, const std::string& subfolder) {
     std::list<std::string> content;
+    const std::string realDirectory = directory +  "/" + subfolder;
 #if SAC_WINDOWS
         // TODO
 #else
         // TODO : Use scandir ?
-        DIR* dir = opendir(directory.c_str());
+        DIR* dir = opendir(realDirectory.c_str());
         if (dir == NULL)
             return content;
         dirent* file;
@@ -90,7 +87,7 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
                 if (std::strcmp (file->d_name, "..") != 0 &&
                     std::strcmp (file->d_name, ".") != 0) {
                     std::list<std::string> tmp;
-                    tmp = listContent(extension, subfolder + '/' + file->d_name);
+                    tmp = listContent(realDirectory, extension, subfolder + '/' + file->d_name);
                     for (auto i: tmp) {
                         content.push_back(std::string(file->d_name) + '/' + i);
                     }
@@ -113,7 +110,16 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
     return content;
 }
 
- const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
+std::list<std::string> AssetAPILinuxImpl::listAssetContent(const std::string& extension, const std::string& subfolder) {
+#ifdef SAC_ASSETS_DIR
+        std::string directory = SAC_ASSETS_DIR;
+#else
+        std::string directory = "assets/";
+#endif
+        return listContent(directory, extension, subfolder);
+}
+
+const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
     static std::string path;
 
     if (path.empty()) {
@@ -140,8 +146,6 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& extensi
 
 #elif SAC_EMSCRIPTEN
         ss << "/sac_temp/";
-        // create folder if needed
-
 #endif
 
         path = ss.str();

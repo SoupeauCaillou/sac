@@ -18,8 +18,10 @@ class AssetAPI {
         virtual FileBuffer loadFile(const std::string& fullpath) = 0;
         //open a file bundled with the game, in assets/ or assetspc/
         virtual FileBuffer loadAsset(const std::string& asset) = 0;
-        //get the list of filenames in assets directory, containing "extension" in their name
-        virtual std::list<std::string> listContent(const std::string& extension, const std::string& subfolder = "") = 0;
+        //get the list of filenames in directory containing "extension" in their name
+        virtual std::list<std::string> listContent(const std::string& directory, const std::string& extension, const std::string& subfolder = "") = 0;
+        //get the list of filenames in assets directory containing "extension" in their name
+        virtual std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder = "") = 0;
         //get the writable directory for the game, it is platform dependent
         virtual const std::string & getWritableAppDatasPath() = 0;
         //write file in filesystem (emscripten only)

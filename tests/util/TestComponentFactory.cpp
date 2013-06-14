@@ -44,9 +44,13 @@ struct StubAssetAPI : public AssetAPI {
         return loadFile("");
     }
 
-    std::list<std::string> listContent(const std::string& , const std::string& ) {
+    std::list<std::string> listContent(const std::string& , const std::string& , const std::string& ) {
         return std::list<std::string>();
     }
+    std::list<std::string> listAssetContent(const std::string& , const std::string& ) {
+        return std::list<std::string>();
+    }
+
     const std::string & getWritableAppDatasPath() {
         static std::string empty("");
         return empty;

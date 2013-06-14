@@ -249,7 +249,7 @@ void Game::sacInit(int windowW, int windowH) {
 
     // Auto-load all atlas
     {
-        std::list<std::string> atlas = renderThreadContext->assetAPI->listContent(
+        std::list<std::string> atlas = renderThreadContext->assetAPI->listAssetContent(
             ".atlas");
         LOGI("Autoloading " << atlas.size() << " atlas");
         std::for_each(atlas.begin(), atlas.end(), [] (const std::string& a) -> void {
@@ -259,7 +259,7 @@ void Game::sacInit(int windowW, int windowH) {
 
     // Auto-load all fonts
     {
-        std::list<std::string> fonts = renderThreadContext->assetAPI->listContent(
+        std::list<std::string> fonts = renderThreadContext->assetAPI->listAssetContent(
             ".font");
         LOGI("Autoloading " << fonts.size() << " fonts");
         std::for_each(fonts.begin(), fonts.end(), [this] (const std::string& typo) -> void {
