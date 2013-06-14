@@ -117,6 +117,8 @@ export EXAMPLE="${green}'$0 RCl -c \"-DCMAKE_BUILD_TYPE=DEBUG\" --run \"--restor
 	fi
 
 	if [ ! -z "$(echo $TARGETS | grep C)" ]; then
+        info "Are you sure you want to clean current build('build/$cmakebuildtarget-$cmakebuildtype') directory? Press enter to confirm..." $yellow
+        read aaarandomav
 		info "Cleaning.."
 		rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
 	fi
