@@ -270,7 +270,6 @@ void LevelEditor::tick(float dt) {
             if (groups[displayName(e)].size() > 1) {
                 define = "group=" + displayName(e);
             }
-            LOGI("Add: " << n.str());
             TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], define.c_str());
 
             bool added = datas->barVar.insert(std::make_pair(e, n.str())).second;
