@@ -152,7 +152,18 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     int size = 0;
 
     //emscripten doesn't handle restore functionnality
-#if ! SAC_EMSCRIPTEN
+#if SAC_EMSCRIPTEN
+    const char* script = ""\
+        "var r = localStorage.getItem(\"sac_root\");" \
+        "if (r != null) { Module.print('Restoring root');"\
+        "   FS.root.contents['sac_temp'] = window.JSON.parse(r); Module.print('Restoring nextItem');"\
+        "   FS.nextInode = window.JSON.parse(localStorage.getItem(\"sac_nextItem\"));"\
+        " } else { "\
+        "Module['FS_createFolder']('/', 'sac_temp', true, true);" \
+        "}";
+    emscripten_run_script(script);
+
+#else
     bool restore = false;
     for (int i=1; i<argc; i++) {
         restore |= !strcmp(argv[i], "-restore");
