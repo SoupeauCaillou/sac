@@ -71,6 +71,8 @@ struct LevelEditor::LevelEditorDatas {
     Entity gallery;
     std::vector<Entity> galleryItems;
 
+    std::map<Entity, std::string> barVar;
+
 #if SAC_ENABLE_LOG
     std::set<std::string> logControlFiles;
 #endif
@@ -221,6 +223,15 @@ void LevelEditor::init() {
     }
 }
 
+static std::string displayName(Entity e) {
+    std::string name (theEntityManager.entityName(e));
+
+    if (name.find("__debug") == 0) name = "__debug";
+    if (name.find("__text") == 0) name = "__text";
+
+    return name;
+}
+
 void LevelEditor::tick(float dt) {
     // update entity list every sec
     static float accum = 1;
@@ -235,18 +246,48 @@ void LevelEditor::tick(float dt) {
         lock();
 
         std::vector<Entity> entities = theEntityManager.allEntities();
-        TwRemoveAllVars(entityListBar);
+        const auto existing = entities;
+
+        // simple
+        auto newEnd = std::remove_if(entities.begin(), entities.end(), [this] (Entity e) -> bool {
+            return datas->barVar.find(e) != datas->barVar.end();
+        });
+        entities.resize(newEnd - entities.begin());
+
+        std::map<std::string, std::vector<Entity> > groups;
+
         for (unsigned i=0; i<entities.size(); i++) {
-            if (entities[i] == datas->selectionDisplay || entities[i] == datas->overDisplay)
-                continue;
-            std::stringstream n;
-            n << entityToTwName(entities[i]);
-
-            if (n.str().find("__debug") == 0 || n.str().find("__text") == 0)
-                continue;
-
-            TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], "");
+            groups[displayName(entities[i])].push_back(entities[i]);
         }
+
+        for (unsigned i=0; i<entities.size(); i++) {
+            Entity e = entities[i];
+
+            std::stringstream n;
+            n << entityToTwName(e);
+
+            std::string define = "";
+            if (groups[displayName(e)].size() > 1) {
+                define = "group=" + displayName(e);
+            }
+            LOGI("Add: " << n.str());
+            TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], define.c_str());
+
+            bool added = datas->barVar.insert(std::make_pair(e, n.str())).second;
+            LOGF_IF(!added, "Added is false: " << e << '/' << n.str());
+
+        }
+
+        for (auto it=datas->barVar.begin(); it!=datas->barVar.end(); ) {
+            if (std::find(existing.begin(), existing.end(), it->first) == existing.end()) {
+                TwRemoveVar(entityListBar, it->second.c_str());
+                datas->barVar.erase(it++);
+            } else {
+                ++it;
+            }
+        }
+
+        LOGF_IF(datas->barVar.size() != existing.size(), "Incoherent var count: " << datas->barVar.size() << " != " << existing.size());
         accum = 0;
 
 #if SAC_ENABLE_LOG
