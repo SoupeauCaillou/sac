@@ -43,7 +43,7 @@ class SpatialGrid {
 
         std::list<Entity>& getEntitiesAt(const GridPos& p);
 
-        void autoAssignEntitiesToCell(std::list<Entity> entities);
+        void autoAssignEntitiesToCell(const std::vector<Entity>& entities);
 
         std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
         std::vector<GridPos> viewRange(const GridPos& p, int size) const;

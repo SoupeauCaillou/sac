@@ -193,7 +193,7 @@ std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
     return result;
 }
 
-void SpatialGrid::autoAssignEntitiesToCell(std::list<Entity> entities) {
+void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) {
     const Polygon hexagon = Polygon::create(Shape::Hexagon);
 
     for (auto e: entities) {
