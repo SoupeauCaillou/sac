@@ -40,13 +40,13 @@
                     LOGW("Creating another instance of type##System");\
                 }\
                 _instance = new type##System();\
-                LOGI(#type "System new instance created: "<<  _instance);\
+                LOGV(1, #type "System new instance created: "<<  _instance);\
             }\
             static void DestroyInstance() { \
                 if (_instance) {\
                     delete _instance;\
                 }\
-                LOGI(#type << "System instance destroyed was: " <<  _instance);\
+                LOGV(1, #type << "System instance destroyed was: " <<  _instance);\
                 _instance = NULL;\
             } \
             void DoUpdate(float dt); \
@@ -67,12 +67,12 @@
 				    LOGW("Creating another instance of type##System");\
 			    }\
 			    _instance = new type##System();\
-			    LOGI(#type "System new instance created: " <<  _instance);\
+			    LOGV(1, #type "System new instance created: " <<  _instance);\
 			} \
 			static void DestroyInstance() {\
 			    if (_instance)\
 				    delete _instance;\
-			    LOGI(#type "System instance destroyed, was:" << _instance);\
+			    LOGV(1, #type "System instance destroyed, was:" << _instance);\
 			    _instance = NULL;\
 			} \
 			void DoUpdate(float dt); \

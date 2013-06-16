@@ -88,7 +88,6 @@ void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
     const std::string& group = name;
     // Browse properties, and add them to the TwBar
     for(IProperty* prop: componentSerializer.getProperties()) {
-        const std::string& propName = prop->getName();
 
         if (prop->getAttribute() == PropertyAttribute::Vector) {
             LOGT("PropertyAttribute::Vector unhandled");
@@ -144,14 +143,8 @@ void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                 TwAddVarCB(bar, varName(name, vname).c_str(),
                     TW_TYPE_STDSTRING, 0, entityGetCB, comp + prop->offset, varParams(group, vname).c_str());
                 break;
-                /*
-        Vec2,
-        Int,
-        Float,
-        Color,
-        Texture,
-        Entity,
-        */
+            default:
+                break;
         }
     }
 }
