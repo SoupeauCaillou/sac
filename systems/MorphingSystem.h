@@ -3,8 +3,8 @@
 #include "System.h"
 
 struct MorphElement {
-	MorphElement() : ended(false), coeff(1) {};
-	virtual ~MorphElement() {}
+    MorphElement() : ended(false), coeff(1) {};
+    virtual ~MorphElement() {}
     virtual void lerp(float t)=0;
     virtual void reverse() = 0;
     bool ended;
@@ -22,21 +22,21 @@ struct TypedMorphElement : public MorphElement{
     }
 
     void reverse() {
-	    T c = to;
-	    to = from;
-	    from = c;
+        T c = to;
+        to = from;
+        from = c;
     }
 };
 
 struct MorphingComponent {
-	MorphingComponent() : active(false), value(0), activationTime(0), timing(0) {}
-	bool active;
+    MorphingComponent() : active(false), value(0), activationTime(0), timing(0) {}
+    bool active;
 
-	std::vector<MorphElement*> elements;
+    std::vector<MorphElement*> elements;
 
     float value;
-	float activationTime;
-	float timing;
+    float activationTime;
+    float timing;
 };
 
 #define theMorphingSystem MorphingSystem::GetInstance()
@@ -45,6 +45,6 @@ struct MorphingComponent {
 UPDATABLE_SYSTEM(Morphing)
 
 public:
-	void reverse(MorphingComponent* mc);
-	void clear(MorphingComponent* mc);
+    void reverse(MorphingComponent* mc);
+    void clear(MorphingComponent* mc);
 };

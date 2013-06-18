@@ -29,6 +29,23 @@ INSTANCE_IMPL(MusicSystem);
 
 MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), muted(true), assetAPI(0) {
     /* nothing saved */
+    MusicComponent sc;
+
+    componentSerializer.add(new Property<int>("music", OFFSET(music, sc)));
+    componentSerializer.add(new Property<int>("loop_next", OFFSET(loopNext, sc)));
+    componentSerializer.add(new Property<int>("previous_ending", OFFSET(previousEnding, sc)));
+
+    componentSerializer.add(new Property<float>("loop_at", OFFSET(loopAt, sc), 0.001));
+    componentSerializer.add(new Property<int>("position_i", OFFSET(positionI, sc)));
+#if SAC_MUSIC_VISU
+    componentSerializer.add(new Property<float>("position_f", OFFSET(positionF, sc), 0.001));
+#endif
+    componentSerializer.add(new Property<float>("fade_out", OFFSET(fadeOut, sc), 0.001));
+    componentSerializer.add(new Property<float>("fade_in", OFFSET(fadeIn, sc), 0.001));
+    componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001));
+    componentSerializer.add(new Property<bool>("looped", OFFSET(looped, sc)));
+    componentSerializer.add(new Property<bool>("paused", OFFSET(paused, sc)));
+    componentSerializer.add(new Property<int>("control", OFFSET(control, sc)));
 }
 
 MusicSystem::~MusicSystem() {
@@ -89,13 +106,13 @@ void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
     mutex.unlock();
     cond.notify_all();
 #else
-	Mix_FreeChunk(musics[ref]);
-	musics.erase(ref);
+    Mix_FreeChunk(musics[ref]);
+    musics.erase(ref);
 #endif
 }
 
 void MusicSystem::unloadMusic(MusicRef ref) {
-	clearAndRemoveInfo(ref);
+    clearAndRemoveInfo(ref);
 }
 
 void MusicSystem::stopMusic(MusicComponent* m) {
@@ -111,13 +128,13 @@ void MusicSystem::stopMusic(MusicComponent* m) {
         }
     }
     if (m->music != InvalidMusicRef)
-		clearAndRemoveInfo(m->music);
-	if (m->loopNext != InvalidMusicRef)
-		clearAndRemoveInfo(m->loopNext);
-	if (m->previousEnding != InvalidMusicRef)
-		clearAndRemoveInfo(m->previousEnding);
-	m->music = m->loopNext = m->previousEnding = InvalidMusicRef;
-	m->currentVolume = 0;
+        clearAndRemoveInfo(m->music);
+    if (m->loopNext != InvalidMusicRef)
+        clearAndRemoveInfo(m->loopNext);
+    if (m->previousEnding != InvalidMusicRef)
+        clearAndRemoveInfo(m->previousEnding);
+    m->music = m->loopNext = m->previousEnding = InvalidMusicRef;
+    m->currentVolume = 0;
 }
 
 void MusicSystem::DoUpdate(float dt) {
@@ -129,31 +146,31 @@ void MusicSystem::DoUpdate(float dt) {
     }
 
     FOR_EACH_COMPONENT(Music, m)
-		m->looped = false;
+        m->looped = false;
 
-		// Music is not started and is startable => launch opaque[0] player
+        // Music is not started and is startable => launch opaque[0] player
         if (m->control == MusicControl::Play && m->music != InvalidMusicRef && !m->opaque[0]) {
             // start
             m->opaque[0] = startOpaque(m, m->music, m->master, 0);
             if (m->opaque[1]) {
-	            musicAPI->stopPlayer(m->opaque[1]);
-				musicAPI->deletePlayer(m->opaque[1]);
-				clearAndRemoveInfo(m->loopNext);
-				clearAndRemoveInfo(m->previousEnding);
-				m->loopNext = m->previousEnding = InvalidMusicRef;
+                musicAPI->stopPlayer(m->opaque[1]);
+                musicAPI->deletePlayer(m->opaque[1]);
+                clearAndRemoveInfo(m->loopNext);
+                clearAndRemoveInfo(m->previousEnding);
+                m->loopNext = m->previousEnding = InvalidMusicRef;
             }
             m->opaque[1] = 0;
         } else if (m->control == MusicControl::Stop && m->opaque[0]) {
-	        if (m->fadeOut > 0) {
-		        const float step = dt / m->fadeOut;
-		        if (m->volume > step) {
-		        	m->volume -= step;
-		        } else {
-					stopMusic(m);
-		        }
-	        } else {
-		        stopMusic(m);
-	        }
+            if (m->fadeOut > 0) {
+                const float step = dt / m->fadeOut;
+                if (m->volume > step) {
+                    m->volume -= step;
+                } else {
+                    stopMusic(m);
+                }
+            } else {
+                stopMusic(m);
+            }
 
         } else if (m->control == MusicControl::Pause && m->opaque[0]) {
             musicAPI->pausePlayer(m->opaque[0]);
@@ -169,18 +186,18 @@ void MusicSystem::DoUpdate(float dt) {
             if (m->paused && m->control == MusicControl::Play) {
                 musicAPI->startPlaying(m->opaque[0], 0, 0);
             }
-	        if (m->fadeIn > 0 && m->currentVolume < m->volume) {
-		        const float step = dt / m->fadeIn;
-		        m->currentVolume += step;
-		        m->currentVolume = glm::min(m->currentVolume, m->volume);
-		        musicAPI->setVolume(m->opaque[0], m->currentVolume);
-	        } else {
-	        	m->fadeIn = 0;
-	        	if (m->currentVolume != m->volume) {
-		      		// LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
-	            	musicAPI->setVolume(m->opaque[0], m->volume);
-	            	m->currentVolume = m->volume;
-	        	}
+            if (m->fadeIn > 0 && m->currentVolume < m->volume) {
+                const float step = dt / m->fadeIn;
+                m->currentVolume += step;
+                m->currentVolume = glm::min(m->currentVolume, m->volume);
+                musicAPI->setVolume(m->opaque[0], m->currentVolume);
+            } else {
+                m->fadeIn = 0;
+                if (m->currentVolume != m->volume) {
+                    // LOGW("clear fade in ? %.2f - current: %.2f - volume: %.2f", m->fadeIn, m->currentVolume, m->volume);
+                    musicAPI->setVolume(m->opaque[0], m->volume);
+                    m->currentVolume = m->volume;
+                }
             }
             // need to queue more data ?
 #if ! SAC_EMSCRIPTEN
@@ -193,9 +210,9 @@ void MusicSystem::DoUpdate(float dt) {
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
 #else
-	        if (!musicAPI->isPlaying(m->opaque[0])) {
-	        #endif
-	            LOGV(1, "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music);
+            if (!musicAPI->isPlaying(m->opaque[0])) {
+            #endif
+                LOGV(1, "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music);
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
@@ -204,7 +221,7 @@ void MusicSystem::DoUpdate(float dt) {
                 m->music = InvalidMusicRef;
             }
 
-			// if [0] is valid, and [1] not, and [0] can loop
+            // if [0] is valid, and [1] not, and [0] can loop
             if (m->opaque[0] && !m->opaque[1] && m->loopNext != InvalidMusicRef) {
                 bool loop = false;
                 if (m->master) {
@@ -425,20 +442,20 @@ void MusicSystem::oggDecompRunLoop() {
             unsigned int chunkSize = info.pcmBufferSize; //info.buffer->getBufferSize() * 0.5;
 
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
-             	// LOGW("%d] decompress %d bytes", it->first, chunkSize);
+                // LOGW("%d] decompress %d bytes", it->first, chunkSize);
                 decompressNextChunk(info.ovf, tempBuffer, chunkSize);
                 // LOGW("decomp done");
                 info.buffer->write(tempBuffer, chunkSize);
             }
             if (info.buffer->writeSpaceAvailable() >= chunkSize) {
-            	roomForImprovement = true;
+                roomForImprovement = true;
             }
         }
         PROFILE("Music", "DecompressMusic", EndEvent);
         // release mutex while waiting
         if (!roomForImprovement) {
-        	cond.wait(lock);
-        	// mutex is auto acquired on wake up
+            cond.wait(lock);
+            // mutex is auto acquired on wake up
         } else {
             lock.unlock();
             lock.lock();

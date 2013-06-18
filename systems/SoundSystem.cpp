@@ -5,6 +5,10 @@ INSTANCE_IMPL(SoundSystem);
 
 SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextValidRef(1), mute(false) {
     /* nothing saved */
+    SoundComponent sc;
+
+    componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001));
+    componentSerializer.add(new Property<int>("sound", OFFSET(sound, sc)));
 }
 
 SoundSystem::~SoundSystem() {

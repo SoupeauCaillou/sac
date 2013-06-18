@@ -28,11 +28,11 @@ namespace MusicControl {
 }
 
 struct MusicComponent {
-	MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(MusicControl::Stop) {
-		opaque[0] = opaque[1] = 0;
-		fadeOut = fadeIn = 0;
+    MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(MusicControl::Stop) {
+        opaque[0] = opaque[1] = 0;
+        fadeOut = fadeIn = 0;
         paused = false;
-	}
+    }
 
     MusicRef music, loopNext;
     MusicRef previousEnding;
