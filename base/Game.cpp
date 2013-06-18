@@ -21,7 +21,7 @@
 #include "systems/ContainerSystem.h"
 #include "systems/DebuggingSystem.h"
 #include "systems/GraphSystem.h"
-#include "systems/GridSystem.h"
+// #include "systems/GridSystem.h"
 #include "systems/MorphingSystem.h"
 #include "systems/MusicSystem.h"
 #include "systems/NetworkSystem.h"
@@ -52,10 +52,10 @@ Game::Game() {
 
     TimeUtil::Init();
 
-	/* create EntityManager */
-	EntityManager::CreateInstance();
+    /* create EntityManager */
+    EntityManager::CreateInstance();
 
-	/* create systems singleton */
+    /* create systems singleton */
     ADSRSystem::CreateInstance();
     AnchorSystem::CreateInstance();
     AnimationSystem::CreateInstance();
@@ -67,7 +67,7 @@ Game::Game() {
     ContainerSystem::CreateInstance();
     DebuggingSystem::CreateInstance();
     GraphSystem::CreateInstance();
-    GridSystem::CreateInstance();
+    // GridSystem::CreateInstance();
     MorphingSystem::CreateInstance();
     MusicSystem::CreateInstance();
     ParticuleSystem::CreateInstance();
@@ -104,7 +104,7 @@ Game::~Game() {
     ContainerSystem::DestroyInstance();
     DebuggingSystem::DestroyInstance();
     GraphSystem::DestroyInstance();
-    GridSystem::DestroyInstance();
+    // GridSystem::DestroyInstance();
     MorphingSystem::DestroyInstance();
     MusicSystem::DestroyInstance();
     ParticuleSystem::DestroyInstance();
@@ -191,7 +191,7 @@ void Game::eventsHandler() {
 }
 
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
-	FileBuffer file = asset->loadAsset(name + ".font");
+    FileBuffer file = asset->loadAsset(name + ".font");
     DataFileParser dfp;
     if (!dfp.load(file, name + ".font")) {
         LOGE("Invalid font description file: " << name);
@@ -214,20 +214,20 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
         h2wratio[cId] = (float)w_h[0] / w_h[1];
         LOGV(2, "Font entry: " << cId << ": " << h2wratio[cId]);
     }
-	delete[] file.data;
-	// h2wratio[' '] = h2wratio['r'];
-	// h2wratio[0x97] = 1;
-	theTextRenderingSystem.registerFont(name, h2wratio);
+    delete[] file.data;
+    // h2wratio[' '] = h2wratio['r'];
+    // h2wratio[0x97] = 1;
+    theTextRenderingSystem.registerFont(name, h2wratio);
     LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
 }
 
 void Game::sacInit(int windowW, int windowH) {
 #if SAC_ENABLE_PROFILING
-	initProfiler();
+    initProfiler();
 #endif
 
     if (windowW < windowH) {
-    	    PlacementHelper::ScreenHeight = 10;
+            PlacementHelper::ScreenHeight = 10;
         PlacementHelper::ScreenWidth = PlacementHelper::ScreenHeight * windowW / (float)windowH;
     } else {
         PlacementHelper::ScreenWidth = 20;
@@ -241,10 +241,10 @@ void Game::sacInit(int windowW, int windowH) {
 
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
-	theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
-	theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));
+    theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
+    theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));
 
-	theRenderingSystem.init();
+    theRenderingSystem.init();
     theRenderingSystem.enableRendering();
 
     // Auto-load all atlas
@@ -275,25 +275,25 @@ void Game::sacInit(int windowW, int windowH) {
 
 void Game::backPressed() {
 #if SAC_ENABLE_PROFILING
-	static int profStarted = 0;
-	if ((profStarted % 2) == 0) {
-		startProfiler();
-	} else {
-		std::stringstream a;
+    static int profStarted = 0;
+    if ((profStarted % 2) == 0) {
+        startProfiler();
+    } else {
+        std::stringstream a;
 #if SAC_ANDROID
-		a << "/sdcard/";
+        a << "/sdcard/";
 #else
-		a << "/tmp/";
+        a << "/tmp/";
 #endif
-		a << "sac_prof_" << (int)(profStarted / 2) << ".json";
-		stopProfiler(a.str());
-	}
-	profStarted++;
+        a << "sac_prof_" << (int)(profStarted / 2) << ".json";
+        stopProfiler(a.str());
+    }
+    profStarted++;
 #endif
 }
 
 int Game::saveState(uint8_t**) {
-	return 0;
+    return 0;
 }
 
 const float DDD = 1.0/60.f;
@@ -382,7 +382,7 @@ void Game::step() {
     theContainerSystem.Update(delta);
     theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
-    theGridSystem.Update(delta);
+    // theGridSystem.Update(delta);
     theMorphingSystem.Update(delta);
     theMusicSystem.Update(delta);
     theParticuleSystem.Update(delta);
@@ -392,6 +392,7 @@ void Game::step() {
     theTextRenderingSystem.Update(delta);
     theTransformationSystem.Update(delta);
     theZSQDSystem.Update(delta);
+
 #if SAC_INGAME_EDITORS
     } else {
         theAnchorSystem.Update(delta);

@@ -5,6 +5,7 @@
 #include "base/Interval.h"
 #include "base/EntityManager.h"
 #include "base/Entity.h"
+#include "base/Log.h"
 #include "systems/RenderingSystem.h"
 #include "systems/opengl/EntityTemplateLibrary.h"
 #include "systems/TransformationSystem.h"
@@ -22,7 +23,7 @@ const std::string vec2singlefloatmodifiers[] = {
     "%abs,texture_ratio",
 };
 const std::string colormodifiers[] =
-    { "", "%html", "%255" };
+    { "", "%html", "%255", "%name" };
 
 static void applyVec2Modifiers(int idx, glm::vec2* out) {
     switch (idx) {
@@ -156,6 +157,12 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             , ((h >> 8) & 0xff) / 255.0
             , ((h >> 0) & 0xff) / 255.0
             , 1);
+        LOG_SUCCESS_ << *out << "'");
+        return 1;
+    }
+    std::string tmp;
+    if (dfp.get(section, name + colormodifiers[3], &tmp, 1, false)) {
+        *out = Color(tmp);
         LOG_SUCCESS_ << *out << "'");
         return 1;
     }
