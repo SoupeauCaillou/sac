@@ -77,6 +77,8 @@ class StateMachine {
 
         T getCurrentState() const;
 
+        unsigned getStateCount() const { return state2handler.size(); }
+
         const std::map<T, StateHandler<T>*>& getHandlers() const;
 
         StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
