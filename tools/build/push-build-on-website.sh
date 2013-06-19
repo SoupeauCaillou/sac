@@ -110,7 +110,7 @@ on server, with format {gameName}-{date}"
     if [ "$CREATE_INDEX" = "1" ]; then
         TMP_FILE=$(mktemp)
         echo "<html><head><title>Redirection...</title>
-        <meta http-equiv=\"refresh\" content=\"0; URL=$(echo $DIRECTORY_FORMATTED | cut -d"/" -f2-)/$HTML_FILE\">
+        <meta http-equiv=\"refresh\" content=\"0; URL=$(echo $gameName-$GIT_BRANCH-$GIT_COMMIT-$DATE)/$HTML_FILE\">
         </head><body></body></html>" > $TMP_FILE
     fi
 
