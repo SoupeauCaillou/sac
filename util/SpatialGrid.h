@@ -51,7 +51,7 @@ class SpatialGrid {
         std::vector<GridPos> lineDrawer(const GridPos& p1, const GridPos& p2) const;
         bool canDrawLine(const GridPos& p1, const GridPos& p2) const;
 
-        std::vector<GridPos> findPath(const GridPos& from, const GridPos& to) const;
+        std::vector<GridPos> findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;
 
         unsigned computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const;
 

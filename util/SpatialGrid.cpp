@@ -359,7 +359,7 @@ std::vector<GridPos> SpatialGrid::ringFinder(const GridPos& pos, int range, bool
     return std::move(ring);
 }
 
-std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& to) const {
+std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath) const {
     struct Node {
         int rank, cost;
         GridPos pos;
@@ -405,7 +405,7 @@ std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& t
             // Browse neighbors
             std::vector<GridPos> neighbors = getNeighbors(current.pos);
             for (GridPos& n: neighbors) {
-                if (datas->isPathBlockedAt(n))
+                if (datas->isPathBlockedAt(n) && !(ignoreBlockedEndPath && n == to))
                     continue;
                 int cost = current.cost + 1;
 
