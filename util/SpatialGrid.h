@@ -32,6 +32,7 @@ class SpatialGrid {
 
 	public:
 		std::vector<GridPos> getNeighbors(const GridPos& pos, bool enableInvalidPos) const;
+        bool isPathBlockedAt(const GridPos& npos) const;
 
         GridPos positionToGridPos(const glm::vec2& pos) const;
         glm::vec2 gridPosToPosition(const GridPos& gp) const;
@@ -49,7 +50,7 @@ class SpatialGrid {
         std::vector<GridPos> viewRange(const GridPos& p, int size) const;
         std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
         std::vector<GridPos> lineDrawer(const GridPos& p1, const GridPos& p2) const;
-        bool canDrawLine(const GridPos& p1, const GridPos& p2) const;
+        int canDrawLine(const GridPos& p1, const GridPos& p2) const;
 
         std::vector<GridPos> findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;
 

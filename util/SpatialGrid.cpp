@@ -130,6 +130,10 @@ GridPos SpatialGrid::positionToGridPos(const glm::vec2& pos) const {
     return positionSizeToGridPos(pos, datas->size);
 }
 
+bool SpatialGrid::isPathBlockedAt(const GridPos& npos) const {
+    return datas->isPathBlockedAt(npos);
+}
+
 std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos, bool enableInvalidPos = false) const {
 	std::vector<GridPos> n;
 	int offsets[] = {
@@ -328,15 +332,15 @@ std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& p1, const GridPos& p
     return std::move(line);
 }
 
-bool SpatialGrid::canDrawLine(const GridPos& p1, const GridPos& p2) const {
+int SpatialGrid::canDrawLine(const GridPos& p1, const GridPos& p2) const {
     auto line = lineDrawer(p1, p2);
 
     for (auto& gp: line) {
         if (!(gp == p2 || gp == p1) && datas->isPathBlockedAt(gp)) {
-            return false;
+            return -1;
         }
     }
-    return true;
+    return line.size();
 }
 
 std::vector<GridPos> SpatialGrid::ringFinder(const GridPos& pos, int range, bool enableInvalidPos = false) const {
