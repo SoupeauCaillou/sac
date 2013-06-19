@@ -21,7 +21,7 @@
 #include "systems/ContainerSystem.h"
 #include "systems/DebuggingSystem.h"
 #include "systems/GraphSystem.h"
-// #include "systems/GridSystem.h"
+#include "systems/GridSystem.h"
 #include "systems/MorphingSystem.h"
 #include "systems/MusicSystem.h"
 #include "systems/NetworkSystem.h"
@@ -67,7 +67,7 @@ Game::Game() {
     ContainerSystem::CreateInstance();
     DebuggingSystem::CreateInstance();
     GraphSystem::CreateInstance();
-    // GridSystem::CreateInstance();
+    GridSystem::CreateInstance();
     MorphingSystem::CreateInstance();
     MusicSystem::CreateInstance();
     ParticuleSystem::CreateInstance();
@@ -104,7 +104,7 @@ Game::~Game() {
     ContainerSystem::DestroyInstance();
     DebuggingSystem::DestroyInstance();
     GraphSystem::DestroyInstance();
-    // GridSystem::DestroyInstance();
+    GridSystem::DestroyInstance();
     MorphingSystem::DestroyInstance();
     MusicSystem::DestroyInstance();
     ParticuleSystem::DestroyInstance();
@@ -382,7 +382,7 @@ void Game::step() {
     theContainerSystem.Update(delta);
     theDebuggingSystem.Update(delta);
     theGraphSystem.Update(delta);
-    // theGridSystem.Update(delta);
+    theGridSystem.Update(delta);
     theMorphingSystem.Update(delta);
     theMusicSystem.Update(delta);
     theParticuleSystem.Update(delta);
