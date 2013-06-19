@@ -1,4 +1,4 @@
-#include "NameInputAPIAndroidImpl.h"
+/*#include "NameInputAPIAndroidImpl.h"
 #include "base/Log.h"
 #include <iostream>
 
@@ -26,3 +26,4 @@ bool NameInputAPIAndroidImpl::done(std::string& name) {
 void NameInputAPIAndroidImpl::hide() {
 
 }
+*/

@@ -36,7 +36,9 @@
 
 #include "util/DataFileParser.h"
 
+#if ! SAC_ANDROID
 #include <SDL/SDL.h>
+#endif
 
 #include <sstream>
 
@@ -128,7 +130,9 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
 }
 
+
 void Game::eventsHandler() {
+#if ! SAC_ANDROID
     SDL_Event event;
     int handled = 0;
 
@@ -188,6 +192,7 @@ void Game::eventsHandler() {
     if (wantsAPI(ContextAPI::KeyboardInputHandler)) {
         gameThreadContext->keyboardInputHandlerAPI->update();
     }
+#endif
 }
 
 void Game::loadFont(AssetAPI* asset, const std::string& name) {
@@ -238,8 +243,6 @@ void Game::sacInit(int windowW, int windowH) {
     PlacementHelper::WindowHeight = windowH;
     PlacementHelper::GimpWidth = 800.0f;
     PlacementHelper::GimpHeight = 1280.0f;
-
-    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
     theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
     theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));

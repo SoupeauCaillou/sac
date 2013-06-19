@@ -62,7 +62,7 @@
 #include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
-#include "api/default/KeyboardInputHandlerAPISDLImpl.h"
+#include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/SuccessAPI.h"
 
@@ -249,9 +249,14 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     record = new Recorder(resolution.x, resolution.y);
 
     LOGV(1, "Run game loop");
+
+    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+
 #if SAC_EMSCRIPTEN
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #else
+
+
 
     //used for text translation, if needed
     setlocale( LC_ALL, "" );

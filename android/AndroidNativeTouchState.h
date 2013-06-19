@@ -10,5 +10,7 @@ struct AndroidNativeTouchState : public NativeTouchState {
 
     int maxTouchingCount();
 
-	bool isTouching (int index, glm::vec2* windowCoords) const;
+	bool isTouching (int index, glm::vec2* windowCoords);
+
+    int eventSDL(void*) { return 0; }
 };

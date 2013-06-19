@@ -20,7 +20,6 @@
 #include "base/TouchInputManager.h"
 #include <glm/glm.hpp>
 #include <list>
-#include <SDL/SDL.h>
 
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {
@@ -35,7 +34,7 @@ class MouseNativeTouchState: public NativeTouchState {
     public:
         //all mouse events which have to be handled by MouseNativeTouchState
         //return 1 if event is handled, 0 else
-        int eventSDL(SDL_Event* event);
+        int eventSDL(void* event);
 
     private:
         //in order : left / right / middle

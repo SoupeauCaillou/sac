@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 #include "../NameInputAPI.h"
 #include "JNIWrapper.h"
 
@@ -17,4 +17,4 @@ class NameInputAPIAndroidImpl : public NameInputAPI, public JNIWrapper<jni_name_
         void show();
         bool done(std::string& name);
         void hide();
-};
+};*/

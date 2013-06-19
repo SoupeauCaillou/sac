@@ -34,7 +34,15 @@ bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) {
     return isButtonDown[index];
 }
 
+#if SAC_ANDROID
 int MouseNativeTouchState::eventSDL(SDL_Event* event) {
+    return 0;
+}
+#else
+#include <SDL/SDL.h>
+int MouseNativeTouchState::eventSDL(void* inEvent) {
+    auto event = (SDL_Event*)inEvent;
+
     bool isDownEvent;
 
     lastPosition.x = event->motion.x;
@@ -77,3 +85,4 @@ int MouseNativeTouchState::eventSDL(SDL_Event* event) {
     //LOGI("/!\\SDL ID " << (int)event->button.button << " is " << (isDownEvent ? "down!" : "up!"));
     return 1;
 }
+#endif

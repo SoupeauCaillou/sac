@@ -27,7 +27,7 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<j
 
         void init(JNIEnv* env);
 
-        void init(ScoreHandler* scoreHandler) {}
+        void init() {}
 
         bool isGameCenterLoggedIn();
         bool openGameCenter();

@@ -18,12 +18,12 @@ class JNIWrapper {
 		JNIWrapper(const std::string& pClassName, bool pHasInstance) : className(pClassName), hasInstance(pHasInstance) {}
 
 		void declareMethod(T t, const std::string& name, const std::string& signature) {
-			LOGE_IF(methodNamesSignatures.find(t) != methodNamesSignatures.end(), "Method with id '" << t << "' already declared (class=" << className << ", signature=" << signature << ")")
+			LOGE_IF(methodNamesSignatures.find(t) != methodNamesSignatures.end(), "Method with id '" << t << "' already declared (class=" << className << ", signature=" << signature << ")");
 			methodNamesSignatures.insert(std::make_pair(t, std::make_pair(name, signature)));
 		}
 
 		void init(JNIEnv* pEnv) {
-			LOGV(1, "Initialisation JNI class wrapper: " << className)
+			LOGV(1, "Initialisation JNI class wrapper: " << className);
 			// store JNIEnv
 			env = pEnv;
 			// store class
@@ -38,7 +38,7 @@ class JNIWrapper {
 					LOGF("Could not retrieve '" << className << "' instance");
 				}
 			}
-			LOGV(1, "JNI method count " << methodNamesSignatures.size())
+			LOGV(1, "JNI method count " << methodNamesSignatures.size());
 			// lookup methods
 			for (typename std::map<T, std::pair<std::string, std::string> >::const_iterator it= methodNamesSignatures.begin(); it!=methodNamesSignatures.end(); ++it) {
 				const std::string& name = it->second.first;

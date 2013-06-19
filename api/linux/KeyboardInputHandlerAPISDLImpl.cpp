@@ -52,7 +52,8 @@ bool KeyboardInputHandlerAPIGLFWImpl::isKeyPressed(int key) {
 }
 
 
-int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const SDL_Event* event) {
+int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
+    auto event = (SDL_Event*)inEvent;
     int key = event->key.keysym.sym;
     auto unicode = (char)event->key.keysym.unicode;
 

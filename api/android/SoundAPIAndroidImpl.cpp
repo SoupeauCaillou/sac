@@ -10,7 +10,7 @@ SoundAPIAndroidImpl::SoundAPIAndroidImpl() : JNIWrapper<jni_sound_api::Enum>("ne
 }
 
 OpaqueSoundPtr* SoundAPIAndroidImpl::loadSound(const std::string& asset) {
-    LOGI("loadSound: '" << asset << "'")
+    LOGI("loadSound: '" << asset << "'");
     jstring jasset = env->NewStringUTF(asset.c_str());
     AndroidSoundOpaquePtr* out = new AndroidSoundOpaquePtr();
     out->soundID = env->CallIntMethod(instance, methods[jni_sound_api::LoadSound], jasset);

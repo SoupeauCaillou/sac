@@ -17,7 +17,7 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
 
         void update();
 
-        int eventSDL(const SDL_Event* event);
+        int eventSDL(const void* event);
 
         bool isKeyPressed(int key);
 

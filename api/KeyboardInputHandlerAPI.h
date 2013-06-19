@@ -3,8 +3,6 @@
 #include <string>
 #include <functional>
 
-#include <SDL/SDL.h>
-
 class KeyboardInputHandlerAPI {
     public:
         virtual void askUserInput(const std::string& initial = "", const int imaxSize = 150) = 0;
@@ -17,7 +15,7 @@ class KeyboardInputHandlerAPI {
 
         virtual void update() = 0;
 
-        virtual int eventSDL(const SDL_Event* event) = 0;
+        virtual int eventSDL(const void* event) = 0;
 
         virtual bool isKeyPressed(int key) = 0;
 };
