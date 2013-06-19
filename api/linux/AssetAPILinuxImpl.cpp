@@ -123,7 +123,7 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
     static std::string path;
 
     if (path.empty()) {
-        std::stringstream ss("not-handled-os");
+        std::stringstream ss;
 #if SAC_LINUX
         char * pPath = getenv ("XDG_DATA_HOME");
         if (pPath) {
@@ -146,6 +146,8 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 
 #elif SAC_EMSCRIPTEN
         ss << "/sac_temp/";
+#else
+        ss << "not-handled-os";
 #endif
 
         path = ss.str();
