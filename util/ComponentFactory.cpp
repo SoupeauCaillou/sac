@@ -11,6 +11,9 @@
 #include "systems/TransformationSystem.h"
 #include "systems/AnchorSystem.h"
 
+const std::string floatmodifiers[] =
+    { "", "%screen_w", "%screen_h"};
+
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
 
@@ -45,6 +48,21 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
             out->x *= PlacementHelper::ScreenHeight;
             out->y *= PlacementHelper::ScreenHeight;
             break;
+    }
+}
+
+static void applyFloatModifiers(int idx, float* out, int count) {
+    for (int i=0; i<count; i++) {
+        switch (idx) {
+            case 0:
+                break;
+            case 1:
+                out[i] *= PlacementHelper::ScreenWidth;
+                break;
+            case 2:
+                out[i] *= PlacementHelper::ScreenHeight;
+                break;
+        }
     }
 }
 
@@ -188,6 +206,33 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         // fail
         return 0;
     }
+}
+
+template <>
+inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, float* out) {
+    float parsed[2];
+
+    for (int i=0; i<3; i++) {
+        if (dfp.get(section, name + floatmodifiers[i], parsed, 2, false)) {
+            applyFloatModifiers(i, parsed, 2);
+            // we got an interval
+            Interval<float> itv(parsed[0], parsed[1]);
+            switch (mode) {
+                case IntervalAsRandom: *out = itv.random(); break;
+                case IntervalValue1: *out = itv.t1; break;
+                case IntervalValue2: *out = itv.t2; break;
+            }
+            LOG_SUCCESS
+            return 1;
+        } else if (mode == IntervalAsRandom && dfp.get(section, name + floatmodifiers[i], parsed, 1, false)) {
+            applyFloatModifiers(i, parsed, 1);
+            // we got a single value
+            *out = parsed[0];
+            LOG_SUCCESS
+            return 1;
+        }
+    }
+    return 0;
 }
 
 template <class T>
