@@ -7,6 +7,7 @@
 	green="[1m[32m"
 	yellow="[1m[33m"
 	blue="[1m[34m"
+    default_color="$yellow"
 
 	#show logs in colors
 	info() {
@@ -20,12 +21,12 @@
 ######### FUNCTIONS #########
 	#show how to use the script
 	usage_and_quit() {
-		info "Usage:\n\t$USAGE" $yellow
-		if [ ! -z "$OPTIONS" ]; then
-		info "Options:\n\t$OPTIONS" $yellow
+		info "Usage:\n\t$SAC_USAGE" $yellow
+		if [ ! -z "$SAC_OPTIONS" ]; then
+		info "Options:\n\t$SAC_OPTIONS" $yellow
 		fi
-		if [ ! -z "$EXAMPLE" ]; then
-			info "Example:\n\t$EXAMPLE" $yellow
+		if [ ! -z "$$SAC_EXAMPLE" ]; then
+			info "$SAC_EXAMPLE:\n\t$$SAC_EXAMPLE" $yellow
 		fi
 		info "Bybye everybody!"
 		exit 1

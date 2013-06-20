@@ -1,64 +1,76 @@
-#!/bin/bash
-
 #how to use the script
-export USAGE="$0 [options]"
-export OPTIONS="n: simply compile
-\tC: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)
-\tr: reset the terminal screen before compiling"
-export EXAMPLE="'$0 n-C' will clean cached files then compile."
+export PLATFORM_OPTIONS="\
+-p [parameters]: use push-build-on-website script with 'parameters' to push on a distant server a build"
 
-#where the script is
-whereAmI=$(cd "$(dirname "$0")" && pwd)
-cd $whereAmI
-#if we executed a linked script; go to the real one
-if [  -h $0 ]; then
-	whereAmI=$(dirname $(readlink $0))
-	cd $whereAmI
-fi
+parse_arguments() {
+    :
+    PUSH_ARGS=""
+    while [ "$1" != "" ]; do
+        case $1 in
+            "-p")
+                shift
+                PUSH_ARGS=$1
+                ;;
+        esac
+        shift
+    done
+}
 
-#import cool stuff
-source ../coolStuff.sh
+check_necessary() {
+    :
+}
 
-######### 0 : Check requirements. #########
-	check_package "emcc"
-	if [ -z "$(pwd | grep /sac/tools/build)" ]; then
-		error_and_quit "The script must be in sac/tools/build !"
-	fi
+compilation_before() {
+    :
+}
 
-######### 1 : Check arguments. #########
-	if [ $# != 1 ] || [ $(echo $1 | grep -- -h) ]; then
-		usage_and_quit
-	fi
+compilation_after() {
+    :
+}
+
+launch_the_application() {
+    #push on site required
+    if [ ! -z "$(echo $TARGETS | grep p)" ]; then
+        info "Pushing content on site..."
+        ../../sac/tools/build/push-build-on-website.sh -d . $PUSH_ARGS
+    fi
+
+    #launch required
+    if [ ! -z "$(echo $TARGETS | grep r)" ]; then
+        info "Finding a navigator..."
+        #find a navigator...
+        navigator=""
+        if ( type iceweasel 1>2 &2>/dev/null ); then
+            info "iceweasel will be used"
+            navigator="iceweasel"
+        elif (type chromium 1>2 &2>/dev/null ) ;then
+            info "iceweasel will be used"
+            navigator="iceweasel"
+        else
+            info "can't find any navigator to view the result!" $red
+        fi
+
+        if [ ! -z $navigator ]; then
+            info "Launch game in ${navigator}."
+            $navigator $gameName.html
+        fi
+    fi
+}
 
 
 
-######### 2 : Create build dir. #########
-	rootPath=$whereAmI/../../..
-
-	mkdir -p $rootPath/build/emscripten
 
 
-######### 3 : Go into build/emscripten #########
-	cd $rootPath/build/emscripten
 
-######### 4 : Execute query. #########
-	if [ ! -z $(echo $1 | grep r) ]; then
-		reset
-	fi
 
-	if [ ! -z $(echo $1 | grep C) ]; then
-		info "Cleaning.."
-		rm -r CMakeCache.txt CMakeFiles 2>/dev/null
-	fi
 
-	if [ ! -z $(echo $1 | grep n) ]; then
-		info "Compiling.."
-		echo $PWD
-		echo $rootPath
-		if (!(cmake -DCMAKE_TOOLCHAIN_FILE=$rootPath/emscripten.cmake $rootPath)); then
-			error_and_quit "Error in cmake"
-		elif (!(make -j4)); then
-			error_and_quit "Error in make"
-		fi
-	fi
+
+
+
+
+
+
+
+
+
 

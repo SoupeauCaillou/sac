@@ -21,12 +21,12 @@ Copy an emscripten build (game.html and game.data) on a distant server, will the
 \t$0 -d build-directory -[specifics_options] [and their values]"
 export OPTIONS="\
 -h|--help: show this help
-\t-d: ${red}[REQUIRED]${yellow}specify the build directory to copy.
+\t-d: ${red}[REQUIRED]${default_color}specify the build directory to copy.
 \t-i: create an empty index.html file at the server root directory. ${red}[Warning: will overwrite any existing index.html!]${yellow}
 \t-p: view the result in iceweasel.
 \t-s: specify user/server address. Default value is 'soupeaucaillou@soupeaucaillou.com/prototypes'"
 export EXAMPLE="\
-${green}'$0 ../../../build/emscripten-release'${yellow} will copy the directory \
+${green}'$0 ../../../build/emscripten-release'${default_color} will copy the directory \
 on server, with format {gameName}-{date}"
 
 ######### 0 : Check requirements. #########
