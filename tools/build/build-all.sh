@@ -84,7 +84,6 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
                 ;;
              "--target")
                 shift
-                CMAKE_CONFIG=$CMAKE_CONFIG" -DTARGET=$1"
                 CMAKE_BUILD_TARGET=$1
                 ;;
             -*)
@@ -117,7 +116,8 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
     fi
     #convert to lowercase
     CMAKE_BUILD_TARGET=$(echo $CMAKE_BUILD_TARGET | tr '[:upper:]' '[:lower:]')
-
+    #save for cmake
+    CMAKE_CONFIG=$CMAKE_CONFIG" -DTARGET=$CMAKE_BUILD_TARGET"
     #import the script
     source build-$CMAKE_BUILD_TARGET.sh
 
@@ -156,11 +156,12 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         compilation_before
 
         if (!(cmake $CMAKE_CONFIG $rootPath)); then
-            compilation_cleanup
+            compilation_after
             error_and_quit "Error in cmake. Maybe should run with C option?"
         fi
 
         if (!(make -j4)); then
+            compilation_after
             error_and_quit "Error in make"
         fi
 

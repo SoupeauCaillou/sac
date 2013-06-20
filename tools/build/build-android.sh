@@ -17,8 +17,7 @@ check_necessary() {
 
 compilation_before() {
 	info "Building tremor lib..."
-	cd sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd -
-
+	cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
     CMAKE_CONFIG=$CMAKE_CONFIG" -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.7\
     -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
@@ -27,7 +26,7 @@ compilation_before() {
 
 compilation_after() {
     info "Cleaning tremor directory..."
-    cd $rootPath/sac/libs/tremor; git checkout *; cd -
+    cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
     #android update project -p . -t "android-8" -n $nameUpper --subprojects
     #ant debug
