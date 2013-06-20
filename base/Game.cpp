@@ -4,6 +4,7 @@
 
 #include "api/AssetAPI.h"
 #include "api/KeyboardInputHandlerAPI.h"
+#include "api/StringInputAPI.h"
 
 #include "base/EntityManager.h"
 #include "base/PlacementHelper.h"
@@ -150,6 +151,10 @@ void Game::eventsHandler() {
         levelEditor->unlock();
 #endif
 
+        //or try stringInputAPI
+        if (!handled && wantsAPI(ContextAPI::StringInput)) {
+            handled = gameThreadContext->stringInputAPI->eventSDL(&event);
+        }
         //or try keyboardAPI
         if (!handled && wantsAPI(ContextAPI::KeyboardInputHandler)) {
             handled = gameThreadContext->keyboardInputHandlerAPI->eventSDL(&event);
