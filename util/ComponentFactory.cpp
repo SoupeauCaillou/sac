@@ -165,6 +165,12 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         *out = Color(&p[0], 0xffffffff);
         LOG_SUCCESS_ << *out << "'");
         return 1;
+    } else if (mode == IntervalAsRandom && dfp.get(section, name, p, 3, false)) {
+        // we got a single value
+        *out = Color(&p[0], 0xffffffff);
+        out->a = 1;
+        LOG_SUCCESS_ << *out << "'");
+        return 1;
     }
     std::string html;
     if (dfp.get(section, name + colormodifiers[1], &html, 1, false)) {
