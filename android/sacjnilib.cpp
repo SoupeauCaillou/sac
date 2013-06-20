@@ -22,7 +22,7 @@
 #include "api/android/MusicAPIAndroidImpl.h"
 #include "api/android/SoundAPIAndroidImpl.h"
 #include "api/android/LocalizeAPIAndroidImpl.h"
-#include "api/android/NameInputAPIAndroidImpl.h"
+#include "api/android/StringInputAPIAndroidImpl.h"
 #include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/ExitAPIAndroidImpl.h"
 #include "api/android/SuccessAPIAndroidImpl.h"
@@ -74,12 +74,12 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
             gCtx->localizeAPI = new LocalizeAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Music))
             gCtx->musicAPI = new MusicAPIAndroidImpl();
-//        if (game->wantsAPI(ContextAPI::NameInput))
- //           gCtx->nameInputAPI = new NameInputAPIAndroidImpl();
         //if (game->wantsAPI(ContextAPI::Network))
             gCtx->networkAPI = 0;
         if (game->wantsAPI(ContextAPI::Sound))
             gCtx->soundAPI = new SoundAPIAndroidImpl();
+       if (game->wantsAPI(ContextAPI::StringInput))
+           gCtx->stringInputAPI = new StringInputAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Success))
             gCtx->successAPI = new SuccessAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Vibrate))
@@ -128,7 +128,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
     // init JNI env
     myGameHolder->gameEnv = env;
 	INIT_1(assetAPI, game, AssetAPIAndroidImpl)
-//    INIT_1(nameInputAPI, game, NameInputAPIAndroidImpl)
+    INIT_1(stringInputAPI, game, StringInputAPIAndroidImpl)
     INIT_1(localizeAPI, game, LocalizeAPIAndroidImpl)
     INIT_1(adAPI, game, AdAPIAndroidImpl)
     INIT_1(exitAPI, game, ExitAPIAndroidImpl)

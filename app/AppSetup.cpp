@@ -61,6 +61,7 @@
 #include "api/linux/MusicAPILinuxOpenALImpl.h"
 #include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
+#include "api/linux/StringInputAPISDLImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
@@ -212,6 +213,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->soundAPI = new SoundAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Storage))
         ctx->storageAPI = new SqliteStorageAPIImpl();
+    if (game->wantsAPI(ContextAPI::StringInput))
+        ctx->stringInputAPI = new StringInputAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Success))
         ctx->successAPI = new SuccessAPI();
     if (game->wantsAPI(ContextAPI::Vibrate))

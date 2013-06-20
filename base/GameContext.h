@@ -27,6 +27,7 @@ class KeyboardInputHandlerAPI;
 class NetworkAPI;
 class SoundAPI;
 class StorageAPI;
+class StringInputAPI;
 class SuccessAPI;
 class VibrateAPI;
 
@@ -42,6 +43,7 @@ namespace ContextAPI {
         Network,
         Sound,
         Storage,
+        StringInput,
         Success,
         Vibrate
     };
@@ -53,7 +55,7 @@ struct GameContext {
         exitAPI(0), keyboardInputHandlerAPI(0),
         localizeAPI(0), musicAPI(0),
         networkAPI(0), soundAPI(0),
-        storageAPI(0),
+        storageAPI(0), stringInputAPI(0),
         successAPI(0), vibrateAPI(0) {}
     AdAPI* adAPI;
     AssetAPI* assetAPI;
@@ -65,6 +67,7 @@ struct GameContext {
     NetworkAPI* networkAPI;
     SoundAPI* soundAPI;
     StorageAPI* storageAPI;
+    StringInputAPI* stringInputAPI;
     SuccessAPI* successAPI;
     VibrateAPI* vibrateAPI;
 };

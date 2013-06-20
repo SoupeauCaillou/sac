@@ -6,16 +6,16 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class NameInputAPI {
-	private static NameInputAPI instance = null;
+public class StringInputAPI {
+	private static StringInputAPI instance = null;
 
-	public synchronized static NameInputAPI Instance() {
+	public synchronized static StringInputAPI Instance() {
 		if (instance == null) {
-			instance = new NameInputAPI();
+			instance = new StringInputAPI();
 		}
 		return instance;
 	}
-	
+
 	private boolean nameReady;
 	private String playerName;
 	private Button nameButton;
@@ -28,7 +28,7 @@ public class NameInputAPI {
 		return n.replaceAll("[^a-zA-Z0-9 ]", " ").substring(0,
 				Math.min(11, n.length()));
 	}
-	
+
 	void init(Button nameInputButton, EditText text, View playerNameInputView, InputMethodManager inputMethodManager) {
 		this.nameButton = nameInputButton;
 		this.nameEdit = text;
@@ -37,9 +37,9 @@ public class NameInputAPI {
 	}
 
 	// -------------------------------------------------------------------------
-	// NameInputAPI
+	// StringInputAPI
 	// -------------------------------------------------------------------------
-	public void showPlayerNameUi() {
+	public void showPlayerKeyboardUI() {
 		nameReady = false;
 		playerName = "";
 
@@ -76,7 +76,7 @@ public class NameInputAPI {
 		}
 	}
 
-	public String queryPlayerName() {
+	public String askUserInput() {
 		if (nameReady) {
 			SacActivity.LogI("queryPlayerName successful: " + playerName);
 			return playerName;
@@ -84,4 +84,11 @@ public class NameInputAPI {
 			return null;
 		}
 	}
+
+    public void closePlayerKeyboardUI() {
+        SacActivity.LogI("Not implemented yet!");
+        //nameReady = true;
+        //playerName = null;
+    }
+
 }
