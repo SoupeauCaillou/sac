@@ -235,6 +235,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 rc->color = Color();
                 tc->size.x *= charHeight;
                 tc->size.y *= charHeight;
+                tc->size = theRenderingSystem.getTextureSize(texture);
+                tc->size.x *= charHeight / tc->size.y;
+                tc->size.y = charHeight;
                 inlineImage = true;
                 // skip inline image letters
                 skip = next + 1;
