@@ -14,6 +14,7 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     ButtonComponent bc;
     componentSerializer.add(new Property<bool>("enabled", OFFSET(enabled, bc)));
     componentSerializer.add(new Property<float>("over_size", OFFSET(overSize, bc), 0.001));
+    componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, bc), 0.001));
 }
 
 void ButtonSystem::DoUpdate(float) {

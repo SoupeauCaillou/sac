@@ -5,13 +5,27 @@
 class VibrateAPI;
 
 struct ButtonComponent {
-	ButtonComponent() : enabled(false), mouseOver(false), clicked(false), overSize(1.f) , vibration(0.035f), lastClick(0.f) { }
+	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false), overSize(1.f) , vibration(0.035f) { }
 
-	bool enabled;
-	bool mouseOver;
-	bool clicked, touchStartOutside;
-    float overSize, vibration;
+    ////// READ ONLY variables
+    // States of button
+    bool mouseOver;
+    bool clicked, touchStartOutside;
+    // Last time when entity was clicked (anti-bounced variable)
     float lastClick;
+	////// END OF READ ONLY variables
+
+	////// READ/WRITE variables
+    // if true, entity is clickable
+    bool enabled;
+	////// END OF READ/WRITE variables
+
+	////// WRITE ONLY variables
+	// To make easier to click on the button
+	float overSize;
+	// Vibration on clicked
+	float vibration;
+	////// END OF WRITE ONLY variables
 };
 
 #define theButtonSystem ButtonSystem::GetInstance()
