@@ -1,6 +1,10 @@
 #include "ContainerSystem.h"
-#include <glm/glm.hpp>
+
+#include "AnchorSystem.h"
 #include "TransformationSystem.h"
+
+#include <glm/glm.hpp>
+
 #include <limits>
 
 INSTANCE_IMPL(ContainerSystem);
@@ -44,21 +48,15 @@ void ContainerSystem::DoUpdate(float) {
         //~ TODO
         float minX = std::numeric_limits<float>().max(), minY = std::numeric_limits<float>().max();
         float maxX = std::numeric_limits<float>().min(), maxY = std::numeric_limits<float>().min();
-        for(std::vector<Entity>::iterator jt=bc->entities.begin(); jt!=bc->entities.end(); ++jt) {
-            TransformationComponent* tc = TRANSFORM(*jt);
+        for(auto jt : bc->entities) {
+            TransformationComponent* tc = TRANSFORM(jt);
             updateMinMax(minX, minY, maxX, maxY, tc);
 
             if (bc->includeChildren) {
-                LOGT_EVERY_N(60, "Container size depending on children");
-                #if 0
-                // arg
-                for(std::vector<Entity>::const_iterator kt=allEntities.begin(); kt!=allEntities.end(); ++kt) {
-                    TransformationComponent* ttc = TRANSFORM(*kt);
-                    if (ttc->parent == *jt) {
-                        updateMinMax(minX, minY, maxX, maxY, ttc);
-                    }
-                }
-                #endif
+                theAnchorSystem.forEachECDo([jt, &minX, &minY, &maxX, &maxY] (Entity e, AnchorComponent *ac) -> void {
+                    if (ac->parent == jt)
+                        updateMinMax(minX, minY, maxX, maxY, TRANSFORM(e));
+                });
             }
         }
 
