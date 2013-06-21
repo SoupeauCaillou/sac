@@ -51,17 +51,20 @@ void ScrollingSystem::DoUpdate(float dt) {
         for (int i=0; i<2; i++) {
             RENDERING(se.e[i])->show = true;
 
-            TransformationComponent* tc = TRANSFORM(se.e[i]);
-            TransformationComponent* ptc = TRANSFORM(a);
+            AnchorComponent* tc = ANCHOR(se.e[i]);
             tc->position += sc->direction * (sc->speed * dt);
 
-            bool isVisible = theRenderingSystem.isVisible(tc);
+            bool isVisible = theRenderingSystem.isVisible(se.e[i]);
             if (!se.hasBeenVisible[i] && isVisible) {
                 se.hasBeenVisible[i] = true;
             } else if (se.hasBeenVisible[i] && !isVisible) {
                 se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();
-                RENDERING(se.e[i])->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
-                tc->position = TRANSFORM(se.e[(i+1)%2])->position - glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y);
+                RENDERING(se.e[i])->texture =
+                    theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
+                const auto* ptc = TRANSFORM(a);
+                tc->position =
+                    ANCHOR(se.e[(i+1)%2])->position -
+                    glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y);
                 tc->z = ptc->z - 0.005;
                 se.hasBeenVisible[i] = false;
             }
@@ -85,9 +88,9 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
         ADD_COMPONENT(se.e[i], Rendering);
         ADD_COMPONENT(se.e[i], Anchor);
 
-        TransformationComponent* tc = TRANSFORM(se.e[i]);
-        ANCHOR(se.e[i])->parent = e;
-        tc->size = sc->displaySize;
+        TRANSFORM(se.e[i])->size = sc->displaySize;
+        auto* tc = ANCHOR(se.e[i]);
+        tc->parent = e;
         tc->position = -glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y) * (float)i;
         tc->z = i * 0.001;
 
