@@ -37,7 +37,7 @@ n: simply compile
 You can also specify arguments:
 \t-h|--help: show this help
 \t--release|--debug: build type specifying
-\t--target target_name: specify the target name
+\t-t|--target target_name: specify the target name
 \t-c|--cmakeconfig \"arguments for cmake\": see cmake for options."
 
 
@@ -82,7 +82,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
             "--debug")
                 CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=debug"
                 ;;
-             "--target")
+             "-t" | "--target")
                 shift
                 CMAKE_BUILD_TARGET=$1
                 ;;
