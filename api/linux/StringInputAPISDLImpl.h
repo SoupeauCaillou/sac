@@ -6,7 +6,7 @@ class StringInputAPISDLImpl : public StringInputAPI {
     public:
         StringInputAPISDLImpl() : textIsReady(true) {}
 
-        void askUserInput(const std::string& initial = "", const int imaxSize = 150);
+        void askUserInput(const std::string& initial, const int imaxSize);
         void cancelUserInput();
         bool done(std::string & entry);
 
