@@ -381,7 +381,6 @@ void Game::step() {
     LOGV(2, "Update systems");
     theCameraSystem.Update(delta);
     theADSRSystem.Update(delta);
-    theAnchorSystem.Update(delta);
     theAnimationSystem.Update(delta);
     theAutoDestroySystem.Update(delta);
     theAutonomousAgentSystem.Update(delta);
@@ -398,6 +397,7 @@ void Game::step() {
     theScrollingSystem.Update(delta);
     theSoundSystem.Update(delta);
     theTextRenderingSystem.Update(delta);
+    theAnchorSystem.Update(delta);
     theTransformationSystem.Update(delta);
     theZSQDSystem.Update(delta);
 
