@@ -5,7 +5,8 @@
 #include "../systems/TransformationSystem.h"
 #include <cmath>
 
-const float eps = 0.00001;
+//never trust floats, they're evils
+const float eps = 0.0001;
 
 bool IntersectionUtil::pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB) {
     const float norm2 = glm::length2(qB - qA);
@@ -60,13 +61,13 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
             const float ub = (qB.x - pA.x) / pDeltaX;
 
             //is qA in segment?
-            if ((pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) && qA.y == pA.y + ua * pDeltaY) {
+            if ((pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) && glm::abs(qA.y - (pA.y + ua * pDeltaY)) < eps) {
                 if (intersectionPoint != 0) {
                     *intersectionPoint = pA + (pB - pA) * ua;
                 }
                 return true;
             // or qB?
-            } else if ((pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) && qB.y == pA.y + ub * pDeltaY) {
+            } else if ((pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) && glm::abs(qB.y - (pA.y + ub * pDeltaY)) < eps) {
                 if (intersectionPoint != 0) {
                     *intersectionPoint = pA + (pB - pA) * ub;
                 }
