@@ -28,6 +28,8 @@ TEST(DrawVector)
 	CHECK_CLOSE(1.4142, TRANSFORM(e)->size.x, 0.0001);
 	CHECK_CLOSE(2.3562, TRANSFORM(e)->rotation, 0.0001);
 
+    Draw::Clear();
+
 	RenderingSystem::DestroyInstance();
 	TransformationSystem::DestroyInstance();
 }

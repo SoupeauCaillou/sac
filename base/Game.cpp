@@ -36,6 +36,7 @@
 #include "systems/ZSQDSystem.h"
 
 #include "util/DataFileParser.h"
+#include "util/DrawSomething.h"
 
 #if ! SAC_ANDROID
 #include <SDL/SDL.h>
@@ -94,6 +95,8 @@ Game::Game() {
 }
 
 Game::~Game() {
+    Draw::Clear();
+
     EntityManager::DestroyInstance();
 
     ADSRSystem::DestroyInstance();

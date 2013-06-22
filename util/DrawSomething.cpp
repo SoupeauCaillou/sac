@@ -10,6 +10,23 @@
 
 Draw Draw::instance;
 
+void Draw::Clear() {
+    for (auto item : instance.drawPointList) {
+        theEntityManager.DeleteEntity(item.first);
+    }
+    instance.drawPointList.clear();
+
+    for (auto item : instance.drawVec2List) {
+        theEntityManager.DeleteEntity(item.first);
+    }
+    instance.drawVec2List.clear();
+
+    for (auto item : instance.drawTriangleList) {
+        theEntityManager.DeleteEntity(item.first);
+    }
+    instance.drawTriangleList.clear();
+}
+
 Entity Draw::DrawPoint(const std::string& groupID, const glm::vec2& position,
  const Color & color, const std::string name, Entity vector) {
     if (vector == 0) {

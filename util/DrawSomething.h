@@ -24,9 +24,10 @@ class Draw {
             const Color & color = Color(), const std::string name = "triangle", Entity vector = 0, int dynamicVertices = 0);
         static void DrawTriangleRestart(const std::string & groupID);
 
+        static void Clear();
     private:
         static Draw instance;
-        Draw() {}
+        Draw() { drawPointList.clear(); drawVec2List.clear(); drawTriangleList.clear(); }
 
         std::vector<std::pair<Entity, std::string>> drawPointList;
         std::vector<std::pair<Entity, std::string>> drawVec2List;
