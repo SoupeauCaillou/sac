@@ -16,16 +16,16 @@ fi
 source ../coolStuff.sh
 
 #how to use the script
-export USAGE="\
+export SAC_USAGE="\
 Copy an emscripten build (game.html and game.data) on a distant server, will the following syntax: gameName-branchName-commitId-currentDate
 \t$0 -d build-directory -[specifics_options] [and their values]"
-export OPTIONS="\
--h|--help: show this help
+export SAC_OPTIONS="\
+-h|-help: show this help
 \t-d: ${red}[REQUIRED]${default_color}specify the build directory to copy.
-\t-i: create an empty index.html file at the server root directory. ${red}[Warning: will overwrite any existing index.html!]${yellow}
+\t-c: create an empty index.html file at the server root directory. ${red}[Warning: will overwrite any existing index.html!]${yellow}
 \t-p: view the result in iceweasel.
 \t-s: specify user/server address. Default value is 'soupeaucaillou@soupeaucaillou.com/prototypes'"
-export EXAMPLE="\
+export SAC_EXAMPLE="\
 ${green}'$0 ../../../build/emscripten-release'${default_color} will copy the directory \
 on server, with format {gameName}-{date}"
 
@@ -43,6 +43,7 @@ on server, with format {gameName}-{date}"
     DIRECTORY=''
     LAUNCH_ON_END=0
     CREATE_INDEX=0
+    INTERACTIVE_MODE=0
     while [ "$1" != "" ]; do
         case $1 in
             "-h" | "--help")
@@ -52,8 +53,11 @@ on server, with format {gameName}-{date}"
         		shift
         		DIRECTORY=${whereUserIs}/${1}
         		;;
-            "-i")
+            "-c")
                 CREATE_INDEX=1
+                ;;
+            "-i")
+                INTERACTIVE_MODE=1
                 ;;
             "-p")
                 LAUNCH_ON_END=1
@@ -73,6 +77,10 @@ on server, with format {gameName}-{date}"
 
     rootPath=$whereAmI"/../../.."
 
+    if [ $INTERACTIVE_MODE = 1 ]; then
+        info "INTERACTIVE_MODE not yet available. Abort" $red
+        exit
+    fi
 ######### 2 : Configure variables #########
     info "Setting variables..."
 
@@ -95,11 +103,11 @@ on server, with format {gameName}-{date}"
     info "Checking if $DIRECTORY contains a .html file and a .data file..."
     HTML_FILE=$(find $DIRECTORY -maxdepth 1 -name '*.html' -printf "%f\n")
     if [ -z "$HTML_FILE" ]; then
-        error_and_quit "Could not locate any .html file in $DIRECTORY"
+        error_and_quit "Could not locate any .html file in $DIRECTORY. Are you sure you've done a build?"
     fi
     DATA_FILE=$(find $DIRECTORY -maxdepth 1 -name '*.data' -printf "%f\n")
     if [ -z "$DATA_FILE" ]; then
-        error_and_quit "Could not locate any .data file in $DIRECTORY"
+        error_and_quit "Could not locate any .data file in $DIRECTORY. Are you sure you've done a build?"
     fi
 
 ######### 5 : Prepare the datas #########

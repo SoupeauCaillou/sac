@@ -4,8 +4,9 @@
 ###################################################
 ###################################################
 echo "[1m[31mSTILL TO DO:\
-- parser les arguments pour les architectures too
-- voir quelles options sont à dispo partout / pas partout[0m
+- refaire le script android
+- mode interactif
+[0m
 "
 ###################################################
 ###################################################
@@ -26,19 +27,19 @@ source ../coolStuff.sh
 
 #get the list of available targets (need to be displayed in OPTIONS help
 TARGETS_LIST=$(grep -m 1 SUPPORTED_TARGETS ../../build/cmake/CMakeLists.txt | cut -d " " -f 2- | tr -d ')')
+
 #how to use the script
-export SAC_USAGE="$0 --target \$target [options]
-\t${red}[REQUIRED]${default_color}\$target: Must be a name in the following list: '$TARGETS_LIST'"
+export SAC_USAGE="$0 [options]"
 export SAC_OPTIONS="\
 n: simply compile
 \tC: remove all cache files (rm -r rm CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null)
 \tR: reset the terminal screen before compiling
 \tr: start the app
 You can also specify arguments:
-\t-h|--help: show this help
-\t--release|--debug: build type specifying
-\t-t|--target target_name: specify the target name
-\t-c|--cmakeconfig \"arguments for cmake\": see cmake for options."
+\t-h|-help: show this help
+\t-release|-debug: build type specifying
+\t--t|--target target_name: specify the target name (in the following list: '$TARGETS_LIST')
+\t--c|--cmakeconfig \"arguments for cmake\": see cmake for options."
 
 
 export SAC_EXAMPLE="${green}TODO${default_color}"
@@ -55,39 +56,31 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
     COLOREDLOGS_ARGS=""
     CMAKE_BUILD_TARGET=""
     SHOULD_QUIT_AFTER_READ=0
+    ARGS=$@
     while [ "$1" != "" ]; do
         case $1 in
-            "-h" | "--help")
+            "-h" | "-help")
                 SHOULD_QUIT_AFTER_READ=1
                 ;;
-            "-c" | "--cmakeconfig")
+            "--c" | "--cmakeconfig")
                 shift
                 TARGETS=$TARGETS"n"
                 CMAKE_CONFIG=$CMAKE_CONFIG" $1"
                 ;;
-            "-l" | "--log")
-                shift
-                TARGETS=$TARGETS"r"
-                TARGETS=$TARGETS"l"
-                COLOREDLOGS_ARGS=$1
-                ;;
-            "-r" | "--run")
-                shift
-                TARGETS=$TARGETS"r"
-                RUN_ARGS=$1
-                ;;
-            "--release")
+            "-release")
                 CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=release"
                 ;;
-            "--debug")
+            "-debug")
                 CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_BUILD_TYPE=debug"
                 ;;
-             "-t" | "--target")
+             "--t" | "--target")
                 shift
                 CMAKE_BUILD_TARGET=$1
                 ;;
+            --*)
+                shift
+                ;;
             -*)
-                echo "Unknown option: $1"
                 ;;
             *)
                 TARGETS=$TARGETS$1
@@ -95,31 +88,39 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         shift
 
     done
-    if [ $SHOULD_QUIT_AFTER_READ = 1 ]; then
+
+    #if we didn't ask for help, get the target config
+    if [ $SHOULD_QUIT_AFTER_READ = 0 ]; then
+        # if build target is empty, ask user for it
+        if [ -z "$CMAKE_BUILD_TARGET" ]; then
+            info "You haven't choosen any target with --target option. Please select one in the list:"
+            select CMAKE_BUILD_TARGET in $TARGETS_LIST
+            do
+                echo $result
+                break
+            done
+        fi
+        #convert to lowercase
+        CMAKE_BUILD_TARGET=$(echo $CMAKE_BUILD_TARGET | tr '[:upper:]' '[:lower:]')
+        #save for cmake
+        CMAKE_CONFIG=$CMAKE_CONFIG" -DTARGET=$CMAKE_BUILD_TARGET"
+        #import the script
+        source build-$CMAKE_BUILD_TARGET.sh
+
+        #let him parse the args if necessary
+        parse_arguments $ARGS
+    fi
+
+    #if there is no target or help was asked
+    if [ -z "$TARGETS" ] || [ $SHOULD_QUIT_AFTER_READ = 1 ]; then
         if [ ! -z "$CMAKE_BUILD_TARGET" ]; then
-            echo source build-$CMAKE_BUILD_TARGET.sh
             source build-$CMAKE_BUILD_TARGET.sh
-            SAC_OPTIONS=$SAC_OPTIONS"\nFor platform $CMAKE_BUILD_TARGET, you have the following options:\n\
+            SAC_OPTIONS=$SAC_OPTIONS"\nFor $CMAKE_BUILD_TARGET platform, you have the following options:\n\
             $PLATFORM_OPTIONS"
         fi
         usage_and_quit
     fi
 
-    # if build target is empty, ask user for it
-    if [ -z "$CMAKE_BUILD_TARGET" ]; then
-        info "You haven't choosen any target with --target option. Please select one in the list:"
-        select CMAKE_BUILD_TARGET in $TARGETS_LIST
-        do
-            echo $result
-            break
-        done
-    fi
-    #convert to lowercase
-    CMAKE_BUILD_TARGET=$(echo $CMAKE_BUILD_TARGET | tr '[:upper:]' '[:lower:]')
-    #save for cmake
-    CMAKE_CONFIG=$CMAKE_CONFIG" -DTARGET=$CMAKE_BUILD_TARGET"
-    #import the script
-    source build-$CMAKE_BUILD_TARGET.sh
 
     # retrieve build type
     CMAKE_BUILD_TYPE="debug"

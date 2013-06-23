@@ -1,15 +1,33 @@
 #how to use the script
 export PLATFORM_OPTIONS="\
--p [parameters]: use push-build-on-website script with 'parameters' to push on a distant server a build"
+-p|-push: call push-build-on-website script to push on a distant server a build"
 
 parse_arguments() {
-    :
-    PUSH_ARGS=""
+    SHOULD_PUSH=""
     while [ "$1" != "" ]; do
         case $1 in
-            "-p")
+            #ignore higher level commands
+            "-h" | "-help" | "-release" | "-debug")
+                # info "Ignoring '$1' (low lvl)"
+                ;;
+            #ignore higher level commands
+            "--c" | "--cmakeconfig" | "--t" | "--target")
+                # info "Ignoring '$1' and its arg '$2' (low lvl)"
                 shift
-                PUSH_ARGS=$1
+                ;;
+
+            "-p" | "-push")
+                # cheating - but we don't want TARGETS to be empty (else it will display the help)
+                TARGETS=$TARGETS" "
+                SHOULD_PUSH="y"
+                ;;
+
+            --*)
+                info "Unknown option '$1', ignoring it and its arg '$2'" $red
+                shift
+                ;;
+            -*)
+                info "Unknown option '$1', ignoring it" $red
                 ;;
         esac
         shift
@@ -30,9 +48,9 @@ compilation_after() {
 
 launch_the_application() {
     #push on site required
-    if [ ! -z "$(echo $TARGETS | grep p)" ]; then
+    if [ ! -z "$SHOULD_PUSH" ]; then
         info "Pushing content on site..."
-        ../../sac/tools/build/push-build-on-website.sh -d . $PUSH_ARGS
+        ../../sac/tools/build/push-build-on-website.sh -d . -i
     fi
 
     #launch required
@@ -52,7 +70,7 @@ launch_the_application() {
 
         if [ ! -z $navigator ]; then
             info "Launch game in ${navigator}."
-            $navigator $gameName.html
+            $navigator $(pwd)/$gameName.html
         fi
     fi
 }

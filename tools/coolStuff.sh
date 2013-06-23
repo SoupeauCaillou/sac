@@ -21,13 +21,13 @@
 ######### FUNCTIONS #########
 	#show how to use the script
 	usage_and_quit() {
-		info "Usage:\n\t$SAC_USAGE" $yellow
+		info "Usage:\n\t$SAC_USAGE" $default_color
 		if [ ! -z "$SAC_OPTIONS" ]; then
-		info "Options:\n\t$SAC_OPTIONS" $yellow
+		info "Options:\n\t$SAC_OPTIONS" $default_color
 		fi
-		if [ ! -z "$$SAC_EXAMPLE" ]; then
-			info "$SAC_EXAMPLE:\n\t$$SAC_EXAMPLE" $yellow
-		fi
+		if [ ! -z "$SAC_EXAMPLE" ]; then
+			info "Example:\n\t$SAC_EXAMPLE" $default_color
+        fi
 		info "Bybye everybody!"
 		exit 1
 	}
