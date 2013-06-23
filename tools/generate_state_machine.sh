@@ -44,7 +44,7 @@ export SAC_EXAMPLE="\
 ######### 2 :
     temp_file=$(mktemp)
     statesDirectory=$rootPath"/sources/states"
-    states=$(cd $statesDirectory && echo * | sed -e 's/.cpp//g' -e 's/Scenes.h//' -e 's/Scene / /g')
+    states=$(cd $statesDirectory && echo * | sed -e 's/.cpp//g' -e 's/Scenes.h//' -e 's/Scene$/ /g' -e 's/Scene / /g')
     echo "States are: $states"
 
     for state in $states; do
@@ -52,7 +52,7 @@ export SAC_EXAMPLE="\
         file=$statesDirectory/${state}Scene.cpp
         next_states_line=$(grep -n 'return Scene::' $file | cut -f1 -d:)
         for next_state_line in $next_states_line; do
-            next_state=$(sed -n "${next_state_line}p" $file | sed -e 's/return Scene:://' | tr -d '; ')
+            next_state=$(sed -n "${next_state_line}p" $file | sed -e 's/.*return Scene:://' | tr -d ';  \t')
             echo "$state -> $next_state" >> $temp_file
             #todo: chercher le 'if' au dessus du return, afin de le mettre en condition de l'automate...
         done
