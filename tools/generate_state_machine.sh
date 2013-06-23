@@ -67,7 +67,7 @@ get_return_within_method() {
         # echo "still in doupdate:" $line $opening_brace_count $closing_brace_count
 
         if (grep 'return ' -q <<< $line); then
-            next_state=$(echo $line | sed -e 's/.*return //g' -e 's/Scene:://g')
+            next_state=$(echo $line | sed -e 's/.*return //g' -e 's/Scene:://g' | tr -d ';')
 
             #if we are using return like 'return nextState(some params);', we have to check the nextState function!
             if (grep '(' -q <<< $next_state); then
@@ -104,6 +104,11 @@ get_return_within_method() {
     OLD_IFS=$IFS
     IFS=$'\n'
     for fade_state in $(grep 'registerState' $rootPath/sources/${gameName}Game.cpp | grep 'Scene::CreateFadeSceneHandler'); do
+        if $(echo $fade_state | cut -d '.' -f1 | grep '//' -q); then
+            echo "this is a commented state! $fade_state"
+            continue
+        fi
+
         fade_state_name=$(echo $fade_state | sed 's/.*(Scene:://' | cut -d ',' -f1)
         fade_state_next_state=$(echo $fade_state | cut -d ',' -f5 | cut -d ')' -f1 | sed 's/.*Scene:://')
         echo "$fade_state_name -> $fade_state_next_state" >> $temp_file
