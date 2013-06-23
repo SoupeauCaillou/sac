@@ -115,7 +115,7 @@ get_return_within_method() {
     #just for debug
     # cat $temp_file | sort -u
 
-    output_file=/tmp/sac_graphfiz.png
+    output_file=/tmp/$gameName-state-machine.png
 
     #generate the graph using graphviz
     if (echo "digraph G { $(cat $temp_file | sort -u) }" | dot -Tpng > $output_file); then
