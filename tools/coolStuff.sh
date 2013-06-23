@@ -45,10 +45,20 @@
 	}
 
 	#ensure that a package ($1, first arg) is installed (optionnaly in $2)
+    check_package_in_PATH() {
+        msg="Please ensure you have installed AND added '$1' to your PATH variable"
+        if [ $# = 2 ]; then
+            msg+="(PATH should be '$2')"
+        fi
+
+        type $1 >/dev/null 2>&1 || { info "$msg" $red; exit 3; }
+    }
 	check_package() {
-		msg="Please ensure you have installed AND added '$1' to your PATH variable"
+		msg="Program '$1' is missing. Please ensure you have installed "
 		if [ $# = 2 ]; then
-			msg+="(PATH should be '$2')"
+			msg+="'$2'."
+        else
+            msg+="it."
 		fi
 
 		type $1 >/dev/null 2>&1 || { info "$msg" $red; exit 3; }

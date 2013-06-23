@@ -140,4 +140,4 @@ on server, with format {gameName}-{date}"
         iceweasel $SERVER/$DIRECTORY_FORMATTED/$HTML_FILE &
     fi
 
-info "Good bye, Lord!"
+info "Good bye, my Lord!"

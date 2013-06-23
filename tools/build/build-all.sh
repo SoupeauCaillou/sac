@@ -173,7 +173,4 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 #Launching
     launch_the_application $TARGETS $RUN_ARGS
 
-
-
-
-
+info "Good bye, my Lord!"

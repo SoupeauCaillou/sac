@@ -9,10 +9,10 @@ export PLATFORM_OPTIONS="\
 
 check_necessary() {
     #test that the path contains android SDK and android NDK as required
-	check_package "android" "android-sdk/tools"
-	check_package "ndk-build" "android-ndk"
-	check_package "adb" "android-sdk/platform-tools"
-	check_package "ant" "ant"
+	check_package_in_PATH "android" "android-sdk/tools"
+	check_package_in_PATH "ndk-build" "android-ndk"
+	check_package_in_PATH "adb" "android-sdk/platform-tools"
+	check_package "ant"
 }
 
 compilation_before() {
