@@ -117,7 +117,7 @@ get_return_within_method() {
     #for each state, get its DoUpdate function; and particulary all the 'return' inside it
     for state in $states; do
         # echo $state
-        file=$(find $statesDirectory -name "*${state}*")
+        file=$(find $statesDirectory -name "${state}*")
         get_return_within_method 'update' $file $temp_file
     done
 
