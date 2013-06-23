@@ -57,11 +57,11 @@ export SAC_EXAMPLE="\
             #todo: chercher le 'if' au dessus du return, afin de le mettre en condition de l'automate...
         done
     done
-    cat $temp_file | uniq
+    cat $temp_file | sort -u
 
     output_file=/tmp/sac_graphfiz.png
 
-    if (echo "digraph G { $(cat $temp_file | uniq) }" | dot -Tpng > $output_file); then
+    if (echo "digraph G { $(cat $temp_file | sort -u) }" | dot -Tpng > $output_file); then
         info "Successfully created $output_file"
         eog $output_file
     else
