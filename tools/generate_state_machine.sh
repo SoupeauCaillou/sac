@@ -117,10 +117,13 @@ get_return_within_method() {
     statesDirectory=$rootPath"/sources/states"
 
     #get the list of states
-    initial_state=$(grep 'sceneStateMachine.setup(' $rootPath/sources/${gameName}Game.cpp | cut -d ':' -f3 | cut -d ')' -f1)
-    echo "$initial_state [ fillcolor=$initial_state_color];" >> $temp_file
+    initial_states=$(grep 'sceneStateMachine.setup(' $rootPath/sources/${gameName}Game.cpp | cut -d ':' -f3 | cut -d ')' -f1)
+    for initial_state in $initial_states; do
+        echo "$initial_state [ fillcolor=$initial_state_color];" >> $temp_file
+    done
+
     states=$(cd $statesDirectory && echo * | tr ' ' '\n' | sed -e 's/Scenes.h//' -e 's/\(.*\)\..*/\1/g' -e 's/Scene$/ /g' -e 's/Scene / /g' | tr '\n' ' ' | tr -s ' ')
-    echo "States are: $states. Initial state is '$initial_state'"
+    echo "States are: $states. Initial state(s) is(are) '"$initial_states"'"
 
     fade_states=""
     #there are some specifics states more: the fade out/in states. There are registered in sources/#GameName#Game.cpp
