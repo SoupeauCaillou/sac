@@ -276,6 +276,9 @@ void LevelEditor::tick(float dt) {
             LOGF_IF(!added, "Added is false: " << e << '/' << n.str());
 
         }
+        for (const auto gp: groups) {
+            TwDefine(std::string("EntityList/" + gp.first + " opened=false").c_str());
+        }
 
         for (auto it=datas->barVar.begin(); it!=datas->barVar.end(); ) {
             if (std::find(existing.begin(), existing.end(), it->first) == existing.end()) {
