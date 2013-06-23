@@ -95,8 +95,7 @@ get_return_within_method() {
     statesDirectory=$rootPath"/sources/states"
 
     #get the list of tates
-    states=$(cd $statesDirectory && echo * | sed -e 's/.cpp//g' -e 's/Scenes.h//' -e 's/Scene$/ /g' -e 's/Scene / /g')
-    echo "States are: $states"
+    states=$(cd $statesDirectory && echo * | tr ' ' '\n' | sed -e 's/Scenes.h//' -e 's/\(.*\)\..*/\1/g' -e 's/Scene$/ /g' -e 's/Scene / /g' | tr '\n' ' ' | tr -s ' ')
 
     #there are some specifics states more: the fade out/in states. There are registered in sources/#GameName#Game.cpp
     gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
@@ -118,7 +117,7 @@ get_return_within_method() {
     #for each state, get its DoUpdate function; and particulary all the 'return' inside it
     for state in $states; do
         # echo $state
-        file=$statesDirectory/${state}Scene.cpp
+        file=$(find $statesDirectory -name "*${state}*")
         get_return_within_method 'update' $file $temp_file
     done
 
