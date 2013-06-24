@@ -108,10 +108,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 				trc->caret.dt = 0;
 				trc->caret.show = !trc->caret.show;
 			}
-            if (trc->caret.show) {
-			    caretInserted = true;
-			    trc->text.push_back('_');
-            }
+
+			caretInserted = true;
+			trc->text.push_back('_');
 		}
         // text blinking
         if (trc->blink.onDuration > 0) {
@@ -140,7 +139,12 @@ void TextRenderingSystem::DoUpdate(float dt) {
         // Cache various attributes
         const FontDesc& fontDesc = fontIt->second;
         const TransformationComponent* trans = TRANSFORM(entity);
-		const unsigned int length = trc->text.length();
+		unsigned int length = trc->text.length();
+        // caret is always inserted for string length calculation,
+        // but is not supposed to be always displayed
+        if (caretInserted && !trc->caret.show) {
+            length--;
+        }
 
         // Determine font size (character height)
 		float charHeight = trc->charHeight;
