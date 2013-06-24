@@ -76,7 +76,7 @@ void startProfiler() {
 	mutex.lock();
 	if (started)
 		return;
-	LOGI("Start profiler")
+	LOGI("Start profiler");
 	root->clear();
 	started = true;
 	mutex.unlock();
@@ -86,7 +86,7 @@ void stopProfiler(const std::string& filename) {
 	mutex.lock();
 	if (!started)
 		return;
-    LOGI("Stop profiler, saving to: " << filename)
+    LOGI("Stop profiler, saving to: " << filename);
 	std::ofstream out(filename.c_str());
 	out << *root;
 	started = false;

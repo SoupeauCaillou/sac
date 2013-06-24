@@ -20,8 +20,8 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 
 
 #if SAC_ENABLE_PROFILING
-#define PROFILE(cat, name, phase) addProfilePoint(cat, name, phase);
+#define PROFILE(cat, name, phase) do { addProfilePoint(cat, name, phase); } while(false)
 #else
-#define PROFILE(cat, name, phase) 
+#define PROFILE(cat, name, phase)
 #endif
-	
+

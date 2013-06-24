@@ -134,6 +134,9 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
 }
 
+#if SAC_ENABLE_PROFILING
+static bool profilerEnabled = false;
+#endif
 
 void Game::eventsHandler() {
 #if ! SAC_ANDROID
@@ -185,6 +188,17 @@ void Game::eventsHandler() {
                         case (SDLK_ESCAPE):
                             isFinished = true;
                             break;
+#if SAC_ENABLE_PROFILING
+                        case SDLK_F11:
+                            if (profilerEnabled)
+                                stopProfiler(
+                                    std::string(gameThreadContext->assetAPI->getWritableAppDatasPath() +
+                                    "sac_prof.json").c_str());
+                            else
+                                startProfiler();
+                            profilerEnabled = !profilerEnabled;
+                            break;
+#endif
 
 #if SAC_INGAME_EDITORS
                         //if we use the editor; we need to handle some keys for it
@@ -291,12 +305,9 @@ void Game::backPressed() {
         startProfiler();
     } else {
         std::stringstream a;
-#if SAC_ANDROID
-        a << "/sdcard/";
-#else
-        a << "/tmp/";
-#endif
-        a << "sac_prof_" << (int)(profStarted / 2) << ".json";
+        a <<
+            gameThreadContext->assetAPI->getWritableAppDatasPath() <<
+            "sac_prof_" << (int)(profStarted / 2) << ".json";
         stopProfiler(a.str());
     }
     profStarted++;
@@ -335,7 +346,9 @@ void Game::step() {
 
     Uint8 *keystate = SDL_GetKeyState(NULL);
     // Always tick levelEditor (manages AntTweakBar stuff)
+    PROFILE("Game", "AntTweakBar", BeginEvent);
     levelEditor->tick(delta);
+    PROFILE("Game", "AntTweakBar", EndEvent);
 
     if (keystate[SDLK_F1])
         gameType = GameType::Default;

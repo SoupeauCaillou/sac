@@ -1,4 +1,5 @@
 #include "StateMachine.h"
+#include "Profiler.h"
 
 template<typename T>
 StateMachine<T>::StateMachine() : override(false), transitionning(false) {
@@ -28,14 +29,14 @@ void StateMachine<T>::setup(T initState) {
 
 template<typename T>
 void StateMachine<T>::registerState(T id, StateHandler<T>* hdl, const std::string&
-    #if SAC_ENABLE_LOG
+    #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
     stateDebugName
     #else
     #endif
     ) {
     LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered");
 	state2handler.insert(std::make_pair(id, hdl));
-    #if SAC_ENABLE_LOG
+    #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
     state2Name.insert(std::make_pair(id, stateDebugName));
     #endif
 }
@@ -55,13 +56,16 @@ void StateMachine<T>::update(float dt) {
     	LOGF_IF(state2handler.find(currentState) == state2handler.end(), "Current state #" << currentState << " has no handler");
 
         // Update state
+        PROFILE("MachineStateUpdate", state2Name[currentState], BeginEvent);
         T newState = state2handler[currentState]->update(dt);
+        PROFILE("MachineStateUpdate", state2Name[currentState], EndEvent);
 
         // New state requested ?
         if (newState != currentState) {
             LOGE_IF(state2Name.find(newState) == state2Name.end(), "No state handler defined for state: " << newState);
             LOGV(2, "Transition begins: " << state2Name[newState] << " -> " << state2Name[currentState]);
         	// init transition
+            PROFILE("MachineStateTransitionStart", state2Name[currentState] + "->" + state2Name[newState], InstantEvent);
         	transition.fromState = currentState;
         	transition.toState = newState;
         	transition.readyExit = transition.readyEnter = false;
@@ -79,6 +83,7 @@ void StateMachine<T>::update(float dt) {
     	// If both states are ready, change state
     	if (transition.readyExit && transition.readyEnter) {
             LOGV(2, "Transition complete. New state: " << state2Name[transition.toState]);
+            PROFILE("MachineStateTransitionEnd", state2Name[transition.fromState] + "->" + state2Name[transition.toState], InstantEvent);
             changeState(transition.fromState, transition.toState);
             transitionning = false;
     	}

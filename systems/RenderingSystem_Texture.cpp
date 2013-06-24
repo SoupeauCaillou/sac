@@ -174,6 +174,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 #ifndef SAC_EMSCRIPTEN
     mutexes[L_QUEUE].unlock();
 #endif
+    PROFILE("Texture", "loadTextureFile", EndEvent);
     return result;
 }
 

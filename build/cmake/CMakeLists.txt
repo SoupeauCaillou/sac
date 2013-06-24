@@ -210,8 +210,18 @@ if (NETWORK_BUILD)
 endif()
 
 if (DESKTOP_BUILD)
+    file(
+        GLOB_RECURSE jsoncpp_sources
+        ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp
+    )
+    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
+    add_library("jsoncpp" STATIC ${jsoncpp_sources})
+    target_link_libraries("sac" jsoncpp)
+
     check_and_link_libs("sac" GLEW SDL OpenAL Sqlite3 VorbisFile Vorbis ZLIB
         AntTweakBar Ogg Tinyxml2)
+
+
 endif()
 if (MOBILE_BUILD OR WEB_BUILD)
     if (MOBILE_BUILD)
