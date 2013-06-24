@@ -1,3 +1,5 @@
+bool AssertOnFatal = true;
+
 #if SAC_ENABLE_LOG
 
 #include "Log.h"
@@ -5,7 +7,6 @@
 #include "TimeUtil.h"
 #include <iomanip>
 
-bool AssertOnFatal = true;
 
 LogVerbosity::Enum logLevel =
 #ifdef SAC_ANDROID

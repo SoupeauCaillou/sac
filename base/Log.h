@@ -126,14 +126,14 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 
 #else
 
-#define LOGF(x) { assert(!AssertOnFatal); }
+#define LOGF(x) do { assert(!AssertOnFatal); } while (false)
 #define LOGE(x) do {} while(false)
 #define LOGT(x) do {} while(false)
 #define LOGW(x) do {} while(false)
 #define LOGI(x) do {} while(false)
 #define LOGV(verbosity, x) do {} while(false)
 
-#define LOGF_IF(cond, x) do {} while(false)
+#define LOGF_IF(cond, x) do { if (cond) assert(!AssertOnFatal); } while (false)
 #define LOGE_IF(cond, x) do {} while(false)
 #define LOGT_IF(cond, x) do {} while(false)
 #define LOGW_IF(cond, x) do {} while(false)
