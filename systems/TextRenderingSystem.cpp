@@ -100,6 +100,11 @@ void TextRenderingSystem::DoUpdate(float dt) {
 			continue;
 		}
 
+#if SAC_DEBUG
+        const std::string invalidChar ("00_" + trc->fontName);
+        const TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);
+#endif
+
         // append a caret if needed
 		bool caretInserted = false;
 		if (trc->caret.speed > 0) {
@@ -164,6 +169,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		bool newWord = true;
         uint16_t unicode = 0; // limited to short
 
+#if SAC_DEBUG
+        int lastValidCharIndex = -1;
+#endif
         // Setup rendering for each individual letter
 		for(unsigned int i=0; i<length; i++) {
             // If it's a multiline text, we must compute words/lines boundaries
@@ -209,6 +217,9 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 continue;
             } else {
                 unicode += letter;
+#if SAC_DEBUG
+                lastValidCharIndex++;
+#endif
             }
 
             // Add rendering entity if needed
@@ -254,11 +265,21 @@ void TextRenderingSystem::DoUpdate(float dt) {
                     unicode = 0;
                 }
                 const CharInfo& info = fontDesc.entries[unicode];
+
                 tc->size = glm::vec2(charHeight * info.h2wRatio, charHeight);
                 // if letter is space, hide it
                 if (unicode == 0x20) {
                     rc->show = false;
                 } else {
+#if SAC_DEBUG
+                    if (info.texture == invalidCharTexture) {
+                        LOGW("Missing character in string: '" << trc->text << "', entity: '"
+                            << theEntityManager.entityName(entity) << "'. Unicode: " << unicode);
+                        std::string s;
+                        s.resize(strlen("Missing character in string: '") + lastValidCharIndex, ' ');
+                        LOGW(s << '^');
+                    }
+#endif
                     rc->texture = info.texture;
                     rc->color = trc->color;
                 }
