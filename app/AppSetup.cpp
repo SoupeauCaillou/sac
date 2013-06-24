@@ -119,6 +119,8 @@ static void* callback_thread(){
 }
 #endif
 
+// hum hum
+extern bool profilerEnabled;
 glm::vec2 resolution;
 int initGame(const std::string& title, const glm::ivec2& res) {
     resolution = res;
@@ -166,8 +168,14 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
 #else
     bool restore = false;
+#if SAC_ENABLE_PROFILING
+    profilerEnabled = false;
+#endif
     for (int i=1; i<argc; i++) {
         restore |= !strcmp(argv[i], "-restore");
+#if SAC_ENABLE_PROFILING
+        profilerEnabled |= !strcmp("-profile", argv[i]);
+#endif
     }
 
     if (restore) {
@@ -258,6 +266,11 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #if SAC_EMSCRIPTEN
     emscripten_set_main_loop(updateAndRender, 60, 0);
 #else
+
+#if SAC_ENABLE_PROFILING
+    if (profilerEnabled)
+        startProfiler();
+#endif
 
 
 

@@ -135,7 +135,8 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
 }
 
 #if SAC_ENABLE_PROFILING
-static bool profilerEnabled = false;
+// hum :)
+bool profilerEnabled = false;
 #endif
 
 void Game::eventsHandler() {

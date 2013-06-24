@@ -67,30 +67,27 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	sample["ph"] = phaseEnum2String(ph);
 	sample["args"] = Json::Value(Json::arrayValue);
 
-	mutex.lock();
+	std::unique_lock<std::mutex> lck(mutex);
 	(*root)["traceEvents"].append(sample);
-	mutex.unlock();
 }
 
 void startProfiler() {
-	mutex.lock();
+	std::unique_lock<std::mutex> lck(mutex);
 	if (started)
 		return;
 	LOGI("Start profiler");
-	root->clear();
+	// root->clear();
 	started = true;
-	mutex.unlock();
 }
 
 void stopProfiler(const std::string& filename) {
-	mutex.lock();
+	std::unique_lock<std::mutex> lck(mutex);
 	if (!started)
 		return;
     LOGI("Stop profiler, saving to: " << filename);
 	std::ofstream out(filename.c_str());
 	out << *root;
 	started = false;
-	mutex.unlock();
 }
 #endif
 #endif
