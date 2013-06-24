@@ -22,7 +22,7 @@ struct TextRenderingComponent {
 	const static int AdjustHeightToFillWidthBit = 1 << 1;
 	const static int MultiLineBit = 1 << 2;
 
-	TextRenderingComponent() : text("Text"), color(Color(1.f)), localizableID(""),
+	TextRenderingComponent() : text(""), color(Color(1.f)), localizableID(""),
     charHeight(1.), fontName("typo"), positioning(CENTER), show(false),
     flags(0), cameraBitMask(~0U) {
 		caret.show = false;

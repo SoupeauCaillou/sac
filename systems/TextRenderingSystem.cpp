@@ -243,7 +243,10 @@ void TextRenderingSystem::DoUpdate(float dt) {
                 skip = next + 1;
             } else {
                 if (unicode > fontDesc.highestUnicode) {
-                    LOGW("Missing unicode char: " << unicode << "(highest one: " << fontDesc.highestUnicode << ')');
+                    LOGW("Missing unicode char: "
+                        << unicode << "(highest one: " << fontDesc.highestUnicode
+                            << ") for string '" << trc->text << "', entity: '"
+                    << theEntityManager.entityName(entity) << "'");
                     unicode = 0;
                 }
                 const CharInfo& info = fontDesc.entries[unicode];
