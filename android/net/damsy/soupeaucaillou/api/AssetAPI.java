@@ -23,7 +23,7 @@ public class AssetAPI {
 	
 	public void init(Activity act, AssetManager mgr) {
 		this.assetManager = mgr;
-		appWritablePath = "/data/data/" + act.getPackageName() + "/files";
+		appWritablePath = "/data/data/" + act.getPackageName() + "/";
 	}
 	
 	// -------------------------------------------------------------------------
