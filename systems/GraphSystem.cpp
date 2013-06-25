@@ -3,7 +3,7 @@
 #include "base/EntityManager.h"
 
 #include "systems/RenderingSystem.h"
-#include "systems/TextRenderingSystem.h"
+#include "systems/TextSystem.h"
 
 #include <algorithm>
 #include <cstdint>

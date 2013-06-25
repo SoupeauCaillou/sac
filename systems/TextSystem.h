@@ -13,7 +13,7 @@
 
 #include <vector>
 
-struct TextRenderingComponent {
+struct TextComponent {
 	const static float LEFT;
 	const static float CENTER;
 	const static float RIGHT;
@@ -22,7 +22,7 @@ struct TextRenderingComponent {
 	const static int AdjustHeightToFillWidthBit = 1 << 1;
 	const static int MultiLineBit = 1 << 2;
 
-	TextRenderingComponent() : text(""), color(Color(1.f)), localizableID(""),
+	TextComponent() : text(""), color(Color(1.f)), localizableID(""),
     charHeight(1.), fontName("typo"), positioning(CENTER), show(false),
     flags(0), cameraBitMask(~0U) {
 		caret.show = false;
@@ -60,16 +60,16 @@ struct TextRenderingComponent {
 	unsigned cameraBitMask;
 };
 
-#define theTextRenderingSystem TextRenderingSystem::GetInstance()
-#define TEXT_RENDERING(e) theTextRenderingSystem.Get(e)
+#define theTextSystem TextSystem::GetInstance()
+#define TEXT(e) theTextSystem.Get(e)
 
-UPDATABLE_SYSTEM(TextRendering)
+UPDATABLE_SYSTEM(Text)
 
 public :
     void Delete(Entity e) override;
 	void registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio);
 
-	float computeTextRenderingComponentWidth(TextRenderingComponent* trc) const;
+	float computeTextComponentWidth(TextComponent* trc) const;
 
     struct CharInfo {
         float h2wRatio;

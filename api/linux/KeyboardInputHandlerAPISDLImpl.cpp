@@ -1,6 +1,6 @@
 #include "KeyboardInputHandlerAPISDLImpl.h"
 
-#include "systems/TextRenderingSystem.h"
+#include "systems/TextSystem.h"
 #include "systems/RenderingSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/TransformationSystem.h"

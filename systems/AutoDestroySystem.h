@@ -5,7 +5,7 @@
 #include "base/Frequency.h"
 
 struct AutoDestroyComponent {
-    AutoDestroyComponent() : hasTextRendering(false) { }
+    AutoDestroyComponent() : hasText(false) { }
 
     enum {
         OUT_OF_AREA,
@@ -25,11 +25,11 @@ struct AutoDestroyComponent {
         } area;
         struct _lifetime {
             Frequency<float> freq;
-            bool map2AlphaRendering, map2AlphaTextRendering;
+            bool map2AlphaRendering, map2AlphaText;
         } lifetime;
     } params;
     // ARG TODO
-    bool hasTextRendering;
+    bool hasText;
 };
 
 #define theAutoDestroySystem AutoDestroySystem::GetInstance()

@@ -4,7 +4,7 @@
 #include "AnchorSystem.h"
 #include "RenderingSystem.h"
 #include "GraphSystem.h"
-#include "TextRenderingSystem.h"
+#include "TextSystem.h"
 #include <iomanip>
 
 #include <base/EntityManager.h>
@@ -60,11 +60,11 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     ANCHOR(fpsLabel)->parent = fps;
     ANCHOR(fpsLabel)->z = -0.002;
 
-    ADD_COMPONENT(fpsLabel, TextRendering);
-    TEXT_RENDERING(fpsLabel)->positioning = TextRenderingComponent::LEFT;
-    // TEXT_RENDERING(fpsLabel)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
-    TEXT_RENDERING(fpsLabel)->maxCharHeight = 0.4;
-    TEXT_RENDERING(fpsLabel)->show = true;
+    ADD_COMPONENT(fpsLabel, Text);
+    TEXT(fpsLabel)->positioning = TextComponent::LEFT;
+    // TEXT(fpsLabel)->flags = TextComponent::AdjustHeightToFillWidthBit;
+    TEXT(fpsLabel)->maxCharHeight = 0.4;
+    TEXT(fpsLabel)->show = true;
 
     entityCount = theEntityManager.CreateEntity("__debug_entityCount");
     ADD_COMPONENT(entityCount, Transformation);
@@ -86,11 +86,11 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     ANCHOR(entityCountLabel)->parent = entityCount;
     ANCHOR(entityCountLabel)->z = -0.002;
 
-    ADD_COMPONENT(entityCountLabel, TextRendering);
-    TEXT_RENDERING(entityCountLabel)->positioning = TextRenderingComponent::LEFT;
-    // TEXT_RENDERING(entityCountLabel)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
-    TEXT_RENDERING(entityCountLabel)->maxCharHeight = 0.4;
-    TEXT_RENDERING(entityCountLabel)->show = true;
+    ADD_COMPONENT(entityCountLabel, Text);
+    TEXT(entityCountLabel)->positioning = TextComponent::LEFT;
+    // TEXT(entityCountLabel)->flags = TextComponent::AdjustHeightToFillWidthBit;
+    TEXT(entityCountLabel)->maxCharHeight = 0.4;
+    TEXT(entityCountLabel)->show = true;
 
     systems = theEntityManager.CreateEntity("__debug_systems");
     ADD_COMPONENT(systems, Transformation);
@@ -115,13 +115,13 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     ANCHOR(e)->z = -0.002;
     ANCHOR(e)->position = TRANSFORM(parent)->size * (-0.5f) - glm::vec2(0.0f, (index + 1) * 0.6f);
 
-    ADD_COMPONENT(e, TextRendering);
-    TEXT_RENDERING(e)->color = color;
-    TEXT_RENDERING(e)->positioning = TextRenderingComponent::LEFT;
-    // TEXT_RENDERING(e)->flags = TextRenderingComponent::AdjustHeightToFillWidthBit;
-    TEXT_RENDERING(e)->maxCharHeight = 0.4;
-    TEXT_RENDERING(e)->text = name;
-    TEXT_RENDERING(e)->show = true;
+    ADD_COMPONENT(e, Text);
+    TEXT(e)->color = color;
+    TEXT(e)->positioning = TextComponent::LEFT;
+    // TEXT(e)->flags = TextComponent::AdjustHeightToFillWidthBit;
+    TEXT(e)->maxCharHeight = 0.4;
+    TEXT(e)->text = name;
+    TEXT(e)->show = true;
 
     ADD_COMPONENT(e, Graph);
     GRAPH(e)->textureName = textureName;
@@ -156,15 +156,15 @@ void DebuggingSystem::toggle() {
     enable = !enable;
     LOGI("Debugging " << (enable ? "enabled" : "disabled"));
     for (auto it: debugEntities)
-        TEXT_RENDERING(it.second)->show = enable;
+        TEXT(it.second)->show = enable;
     for (auto it: renderStatsEntities)
-        TEXT_RENDERING(it)->show = enable;
+        TEXT(it)->show = enable;
 
     if (fps) RENDERING(fps)->show = enable;
     if (entityCount) RENDERING(entityCount)->show = enable;
     if (systems) RENDERING(systems)->show = enable;
-    if (fpsLabel) TEXT_RENDERING(fpsLabel)->show = enable;
-    if (entityCountLabel) TEXT_RENDERING(entityCountLabel)->show = enable;
+    if (fpsLabel) TEXT(fpsLabel)->show = enable;
+    if (entityCountLabel) TEXT(entityCountLabel)->show = enable;
 }
 void DebuggingSystem::DoUpdate(float dt) {
     if (!enable) {
@@ -223,15 +223,15 @@ void DebuggingSystem::DoUpdate(float dt) {
     }
 
     if (reloadTextures) {
-        TEXT_RENDERING(fpsLabel)->text = createLabel("FPS", GRAPH(fps)->pointsList, 1, "fps");
-        TEXT_RENDERING(renderStatsEntities[0])->text = createLabel("Opaque", GRAPH(renderStatsEntities[0])->pointsList, 1, " drawn");
-        TEXT_RENDERING(renderStatsEntities[1])->text = createLabel("NonOpaque", GRAPH(renderStatsEntities[1])->pointsList, 1, " drawn");
-        TEXT_RENDERING(renderStatsEntities[2])->text = createLabel("Zprepass", GRAPH(renderStatsEntities[2])->pointsList, 1, " drawn");
-        TEXT_RENDERING(renderStatsEntities[3])->text = createLabel("OpSurf", GRAPH(renderStatsEntities[3])->pointsList, 1, " pct");
-        TEXT_RENDERING(renderStatsEntities[4])->text = createLabel("NonOpSurf", GRAPH(renderStatsEntities[4])->pointsList, 1, " pct");
-        TEXT_RENDERING(renderStatsEntities[5])->text = createLabel("ZppSurf", GRAPH(renderStatsEntities[5])->pointsList, 1, " pct");
+        TEXT(fpsLabel)->text = createLabel("FPS", GRAPH(fps)->pointsList, 1, "fps");
+        TEXT(renderStatsEntities[0])->text = createLabel("Opaque", GRAPH(renderStatsEntities[0])->pointsList, 1, " drawn");
+        TEXT(renderStatsEntities[1])->text = createLabel("NonOpaque", GRAPH(renderStatsEntities[1])->pointsList, 1, " drawn");
+        TEXT(renderStatsEntities[2])->text = createLabel("Zprepass", GRAPH(renderStatsEntities[2])->pointsList, 1, " drawn");
+        TEXT(renderStatsEntities[3])->text = createLabel("OpSurf", GRAPH(renderStatsEntities[3])->pointsList, 1, " pct");
+        TEXT(renderStatsEntities[4])->text = createLabel("NonOpSurf", GRAPH(renderStatsEntities[4])->pointsList, 1, " pct");
+        TEXT(renderStatsEntities[5])->text = createLabel("ZppSurf", GRAPH(renderStatsEntities[5])->pointsList, 1, " pct");
         TRANSFORM(fpsLabel)->position = firstLabelOffset;
-        TEXT_RENDERING(entityCountLabel)->text = createLabel("Total", GRAPH(entityCount)->pointsList, 1, "entities");
+        TEXT(entityCountLabel)->text = createLabel("Total", GRAPH(entityCount)->pointsList, 1, "entities");
         TRANSFORM(entityCountLabel)->position = firstLabelOffset;
     }
 
@@ -261,10 +261,10 @@ void DebuggingSystem::DoUpdate(float dt) {
         // only display system which takes >= .1 ms to update
         if (reloadTextures) {
             if (system->updateDuration < 0.0001) {
-                TEXT_RENDERING(e)->show = false;
+                TEXT(e)->show = false;
             } else {
-                TEXT_RENDERING(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms", system->entityCount());
-                TEXT_RENDERING(e)->show = true;
+                TEXT(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms", system->entityCount());
+                TEXT(e)->show = true;
                 TRANSFORM(e)->position = firstLabelOffset + labelsSpacing * (float)i;
             }
         }
@@ -294,10 +294,10 @@ void DebuggingSystem::DoUpdate(float dt) {
         TRANSFORM(c)->size = glm::vec2(10, 1);
         TRANSFORM(c)->position = glm::vec2(0, -1);
 
-        ADD_COMPONENT(c, TextRendering);
-        TEXT_RENDERING(c)->fontName = "typo";
-        TEXT_RENDERING(c)->show = false;
-        TEXT_RENDERING(c)->charHeight = 1;
+        ADD_COMPONENT(c, Text);
+        TEXT(c)->fontName = "typo";
+        TEXT(c)->show = false;
+        TEXT(c)->charHeight = 1;
         captionGraph.push_back(c);
     }
 
@@ -333,9 +333,9 @@ void DebuggingSystem::DoUpdate(float dt) {
                     TRANSFORM(*it)->z = -0.1;
                     TRANSFORM(*it)->parent = activeCamera;
                 }
-                TEXT_RENDERING(*it)->show = true;
-                TEXT_RENDERING(*it)->text = a.str();
-                TEXT_RENDERING(*it)->color = GRAPH(debugEntity.second)->lineColor;
+                TEXT(*it)->show = true;
+                TEXT(*it)->text = a.str();
+                TEXT(*it)->color = GRAPH(debugEntity.second)->lineColor;
 
                 pit = it;
                 ++it;
@@ -346,7 +346,7 @@ void DebuggingSystem::DoUpdate(float dt) {
     if (reloadFrequency > 0.5f) {
         reloadFrequency = 0;
         while (it != captionGraph.end()) {
-            TEXT_RENDERING(*it)->show = false;
+            TEXT(*it)->show = false;
             ++it;
         }
     }

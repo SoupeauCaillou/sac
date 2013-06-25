@@ -31,7 +31,7 @@
 #include "systems/RenderingSystem.h"
 #include "systems/ScrollingSystem.h"
 #include "systems/SoundSystem.h"
-#include "systems/TextRenderingSystem.h"
+#include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/ZSQDSystem.h"
 
@@ -79,7 +79,7 @@ Game::Game() {
     RenderingSystem::CreateInstance();
     ScrollingSystem::CreateInstance();
     SoundSystem::CreateInstance();
-    TextRenderingSystem::CreateInstance();
+    TextSystem::CreateInstance();
     TransformationSystem::CreateInstance();
     ZSQDSystem::CreateInstance();
 
@@ -118,7 +118,7 @@ Game::~Game() {
     RenderingSystem::DestroyInstance();
     ScrollingSystem::DestroyInstance();
     SoundSystem::DestroyInstance();
-    TextRenderingSystem::DestroyInstance();
+    TextSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
     ZSQDSystem::DestroyInstance();
 
@@ -245,7 +245,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
     delete[] file.data;
     // h2wratio[' '] = h2wratio['r'];
     // h2wratio[0x97] = 1;
-    theTextRenderingSystem.registerFont(name, h2wratio);
+    theTextSystem.registerFont(name, h2wratio);
     LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
 }
 
@@ -409,7 +409,7 @@ void Game::step() {
     thePhysicsSystem.Update(delta);
     theScrollingSystem.Update(delta);
     theSoundSystem.Update(delta);
-    theTextRenderingSystem.Update(delta);
+    theTextSystem.Update(delta);
     theAnchorSystem.Update(delta);
     theTransformationSystem.Update(delta);
     theZSQDSystem.Update(delta);

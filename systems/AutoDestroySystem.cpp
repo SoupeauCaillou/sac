@@ -4,7 +4,7 @@
 
 #include "systems/TransformationSystem.h"
 #include "systems/RenderingSystem.h"
-#include "systems/TextRenderingSystem.h"
+#include "systems/TextSystem.h"
 #include "util/IntersectionUtil.h"
 
 INSTANCE_IMPL(AutoDestroySystem);
@@ -17,7 +17,7 @@ AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponen
     componentSerializer.add(new Property<float>("lifetime/value", OFFSET(params.lifetime.freq.value, ac), 0.001f));
     componentSerializer.add(new Property<float>("lifetime/accum", OFFSET(params.lifetime.freq.accum, ac), 0.001f));
     componentSerializer.add(new Property<bool>("lifetime/map2AlphaRendering", OFFSET(params.lifetime.map2AlphaRendering, ac), false));
-    componentSerializer.add(new Property<bool>("lifetime/map2AlphaTextRendering", OFFSET(params.lifetime.map2AlphaTextRendering, ac), false));
+    componentSerializer.add(new Property<bool>("lifetime/map2AlphaText", OFFSET(params.lifetime.map2AlphaText, ac), false));
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {
@@ -29,7 +29,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 const TransformationComponent* tc = TRANSFORM(a);
                 if (!IntersectionUtil::rectangleRectangle(tc->position, tc->size, tc->rotation,
                     adc->params.area.position, adc->params.area.size, 0)) {
-                    toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
+                    toRemove.push_back(std::make_pair(a, adc->hasText));
 
                     LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
                         << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size);
@@ -39,14 +39,14 @@ void AutoDestroySystem::DoUpdate(float dt) {
             case AutoDestroyComponent::LIFETIME: {
                 adc->params.lifetime.freq.accum += dt;
                 if (adc->params.lifetime.freq.accum >= adc->params.lifetime.freq.value) {
-                    toRemove.push_back(std::make_pair(a, adc->hasTextRendering));
+                    toRemove.push_back(std::make_pair(a, adc->hasText));
                     LOGI("Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed");
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.freq.accum / adc->params.lifetime.freq.value;
                     }
-                    if (adc->params.lifetime.map2AlphaTextRendering) {
-                        TEXT_RENDERING(a)->color.a = 1 - adc->params.lifetime.freq.accum / adc->params.lifetime.freq.value;
+                    if (adc->params.lifetime.map2AlphaText) {
+                        TEXT(a)->color.a = 1 - adc->params.lifetime.freq.accum / adc->params.lifetime.freq.value;
                     }
                 }
                 break;

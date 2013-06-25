@@ -1,4 +1,4 @@
-#include "TextRenderingSystem.h"
+#include "TextSystem.h"
 #include <ctype.h>
 #include <sstream>
 #include <iomanip>
@@ -26,7 +26,7 @@ struct CacheKey {
     unsigned cameraBitMask;
     char textFont[2048];
 
-    unsigned populate(TextRenderingComponent* tc) {
+    unsigned populate(TextComponent* tc) {
         color = tc->color;
         charHeight = tc->charHeight;
         positioning = tc->positioning;
@@ -43,24 +43,24 @@ struct CacheKey {
     }
 };
 
-const float TextRenderingComponent::LEFT = 0.0f;
-const float TextRenderingComponent::CENTER = 0.5f;
-const float TextRenderingComponent::RIGHT = 1.0f;
+const float TextComponent::LEFT = 0.0f;
+const float TextComponent::CENTER = 0.5f;
+const float TextComponent::RIGHT = 1.0f;
 
 const char InlineImageDelimiter[] = {(char)0xC3, (char)0x97};
 
 // Utility functions
 static Entity createRenderingEntity();
 static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h);
-static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t to, float charHeight, const TextRenderingSystem::FontDesc& fontDesc);
-static float computeStringWidth(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc);
-static float computeStartX(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc);
+static float computePartialStringWidth(TextComponent* trc, size_t from, size_t to, float charHeight, const TextSystem::FontDesc& fontDesc);
+static float computeStringWidth(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc);
+static float computeStartX(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc);
 
 // System implementation
-INSTANCE_IMPL(TextRenderingSystem);
+INSTANCE_IMPL(TextSystem);
 
-TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingComponent>("TextRendering") {
-    TextRenderingComponent tc;
+TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
+    TextComponent tc;
     componentSerializer.add(new StringProperty("text", OFFSET(text, tc)));
     componentSerializer.add(new StringProperty("font_name", OFFSET(fontName, tc)));
     componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
@@ -70,9 +70,9 @@ TextRenderingSystem::TextRenderingSystem() : ComponentSystemImpl<TextRenderingCo
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
 }
 
-void TextRenderingSystem::DoUpdate(float dt) {
+void TextSystem::DoUpdate(float dt) {
     if (!components.empty() && fontRegistry.empty()) {
-        LOGW("Trying to use TextRendering, with no font defined");
+        LOGW("Trying to use Text, with no font defined");
         return;
     }
 
@@ -81,7 +81,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
     LOGT_EVERY_N(6000, "TODO: textrendering cache");
 
-    FOR_EACH_ENTITY_COMPONENT(TextRendering, entity, trc)
+    FOR_EACH_ENTITY_COMPONENT(Text, entity, trc)
         // compute cache entry
         if (0 && trc->blink.onDuration == 0) {
             unsigned keySize = key.populate(trc);
@@ -137,7 +137,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
         // Lookup font description
         std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
         if (fontIt == fontRegistry.end()) {
-            LOGE("TextRendering component uses undefined font: '" << trc->fontName << "'");
+            LOGE("Text component uses undefined font: '" << trc->fontName << "'");
             continue;
         }
 
@@ -153,7 +153,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 
         // Determine font size (character height)
 		float charHeight = trc->charHeight;
-		if (trc->flags & TextRenderingComponent::AdjustHeightToFillWidthBit) {
+		if (trc->flags & TextComponent::AdjustHeightToFillWidthBit) {
 			const float targetWidth = trans->size.x;
 			charHeight = targetWidth / computeStringWidth(trc, 1, fontDesc);
             // Limit to maxCharHeight if defined
@@ -163,7 +163,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
 		}
 
         // Variables
-		const float startX = (trc->flags & TextRenderingComponent::MultiLineBit) ?
+		const float startX = (trc->flags & TextComponent::MultiLineBit) ?
 			(trans->size.x * -0.5) : computeStartX(trc, charHeight, fontDesc);
 		float x = startX, y = 0;
 		bool newWord = true;
@@ -175,7 +175,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
         // Setup rendering for each individual letter
 		for(unsigned int i=0; i<length; i++) {
             // If it's a multiline text, we must compute words/lines boundaries
-			if (trc->flags & TextRenderingComponent::MultiLineBit) {
+			if (trc->flags & TextComponent::MultiLineBit) {
 				size_t wordEnd = trc->text.find_first_of(" ,:.", i);
 				size_t lineEnd = trc->text.find_first_of("\n", i);
 				bool newLine = false;
@@ -293,7 +293,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
             unicode = 0;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
- 			if (trc->flags & TextRenderingComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
+ 			if (trc->flags & TextComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
 				x += fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
 			}
 
@@ -321,7 +321,7 @@ void TextRenderingSystem::DoUpdate(float dt) {
     }
 }
 
-void TextRenderingSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
+void TextSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
     uint32_t highestUnicode = 0;
     std::for_each(charH2Wratio.begin(), charH2Wratio.end(),
         [&highestUnicode] (std::pair<uint32_t, float> a) { if (a.first > highestUnicode) highestUnicode = a.first; });
@@ -353,24 +353,24 @@ void TextRenderingSystem::registerFont(const std::string& fontName, const std::m
     fontRegistry[fontName] = font;
 }
 
-float TextRenderingSystem::computeTextRenderingComponentWidth(TextRenderingComponent* trc) const {
+float TextSystem::computeTextComponentWidth(TextComponent* trc) const {
     // Lookup font description
     std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
     if (fontIt == fontRegistry.end()) {
-        LOGE("TextRendering component uses undefined font: '" << trc->fontName << "'");
+        LOGE("Text component uses undefined font: '" << trc->fontName << "'");
         return 0;
     }
     return computeStringWidth(trc, trc->charHeight, fontIt->second);
 }
 
-void TextRenderingSystem::Delete(Entity e) {
+void TextSystem::Delete(Entity e) {
     for (Entity subE: renderingEntitiesPool) {
         if (ANCHOR(subE)->parent == e) {
             ANCHOR(subE)->parent = 0;
             RENDERING(subE)->show = false;
         }
     }
-    ComponentSystemImpl<TextRenderingComponent>::Delete(e);
+    ComponentSystemImpl<TextComponent>::Delete(e);
 }
 
 static Entity createRenderingEntity() {
@@ -392,10 +392,10 @@ static void parseInlineImageString(const std::string& s, std::string* image, flo
         *h = atof(s.substr(idx1 + 1, s.length() - idx1).c_str());
 }
 
-static float computePartialStringWidth(TextRenderingComponent* trc, size_t from, size_t toInc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
+static float computePartialStringWidth(TextComponent* trc, size_t from, size_t toInc, float charHeight, const TextSystem::FontDesc& fontDesc) {
     float width = 0;
     // If it's a number, pre-add grouping spacing
-    if (trc->flags & TextRenderingComponent::IsANumberBit) {
+    if (trc->flags & TextComponent::IsANumberBit) {
         float spaceW = fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
         width += ((int) (from - toInc) / 3) * spaceW;
     }
@@ -426,13 +426,13 @@ static float computePartialStringWidth(TextRenderingComponent* trc, size_t from,
     return width;
 }
 
-static float computeStringWidth(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
+static float computeStringWidth(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc) {
     float width = computePartialStringWidth(trc, 0, trc->text.length(), charHeight, fontDesc);
     LOGV(2, "String width: '" << trc->text << "' = " << width);
     return width;
 }
 
-static float computeStartX(TextRenderingComponent* trc, float charHeight, const TextRenderingSystem::FontDesc& fontDesc) {
+static float computeStartX(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc) {
     const float result = -computeStringWidth(trc, charHeight, fontDesc) * trc->positioning;
     return result;
 }

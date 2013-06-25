@@ -20,7 +20,7 @@
 #include "TransformationSystem.h"
 #if SAC_DEBUG
 #include "RenderingSystem.h"
-#include "TextRenderingSystem.h"
+#include "TextSystem.h"
 #endif
 #include "util/IntersectionUtil.h"
 #include <glm/gtx/rotate_vector.hpp>
@@ -62,10 +62,10 @@ void CollisionSystem::DoUpdate(float) {
                 float c = ((i+j) % 2) ? 0.1:0.3;
                 RENDERING(d)->color = Color(c, c, c, 0.3);
                 RENDERING(d)->show = 1;
-                ADD_COMPONENT(d, TextRendering);
-                TEXT_RENDERING(d)->fontName = "typo";
-                TEXT_RENDERING(d)->charHeight = CELL_SIZE * 0.2;
-                TEXT_RENDERING(d)->show = 1;
+                ADD_COMPONENT(d, Text);
+                TEXT(d)->fontName = "typo";
+                TEXT(d)->charHeight = CELL_SIZE * 0.2;
+                TEXT(d)->show = 1;
                 debug.push_back(d);
             }
         }
@@ -131,7 +131,7 @@ void CollisionSystem::DoUpdate(float) {
             << cell.collidingGroupsInside << "), "
             << cell.colliderEtities.size() << '('
             << cell.colliderGroupsInside << ')';
-        TEXT_RENDERING(debug[i])->text = ss.str();
+        TEXT(debug[i])->text = ss.str();
         #endif
 
         // Browse colliding entities in this cell
@@ -241,7 +241,7 @@ void CollisionSystem::DoUpdate(float) {
         }
         #if SAC_DEBUG
         else if (cell.colliderEtities.empty()) {
-            TEXT_RENDERING(debug[i])->text.clear();
+            TEXT(debug[i])->text.clear();
         }
         #endif
     }

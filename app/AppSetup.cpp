@@ -48,7 +48,7 @@
 #include "systems/RenderingSystem.h"
 #include "systems/SoundSystem.h"
 #include "systems/MusicSystem.h"
-#include "systems/TextRenderingSystem.h"
+#include "systems/TextSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/NetworkSystem.h"

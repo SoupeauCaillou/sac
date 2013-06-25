@@ -1,7 +1,7 @@
 #include <UnitTest++.h>
 
 #include <glm/glm.hpp>
-#include "systems/TextRenderingSystem.h"
+#include "systems/TextSystem.h"
 #include <map>
 
 #if 0
