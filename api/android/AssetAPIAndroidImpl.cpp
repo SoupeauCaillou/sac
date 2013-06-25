@@ -3,7 +3,7 @@
 
 AssetAPIAndroidImpl::AssetAPIAndroidImpl() : JNIWrapper<jni_asset_api::Enum>("net/damsy/soupeaucaillou/api/AssetAPI", true) {
     declareMethod(jni_asset_api::LoadAsset, "assetToByteArray", "(Ljava/lang/String;)[B");
-    declareMethod(jni_asset_api::GetWritableAppDatasPath, "getWritableAppDatasPath", "()Ljava/lang/String");
+    declareMethod(jni_asset_api::GetWritableAppDatasPath, "getWritableAppDatasPath", "()Ljava/lang/String;");
 }
 
 static uint8_t* loadAssetFromJava(JNIEnv *env, const std::string& assetName, int* length, jobject instance, jmethodID mid) {
@@ -47,3 +47,10 @@ const std::string &  AssetAPIAndroidImpl::getWritableAppDatasPath() {
     return path;
  }
 
+FileBuffer AssetAPIAndroidImpl::loadFile(const std::string& fullPath) {
+    LOGT("Extract Linux impl as static method and use it here");
+}
+
+std::list<std::string> AssetAPIAndroidImpl::listContent(const std::string&, const std::string&, const std::string&) {
+    LOGT("Extract Linux impl as static method and use it here");
+}

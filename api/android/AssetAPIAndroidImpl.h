@@ -22,11 +22,10 @@ class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::En
 
         const std::string & getWritableAppDatasPath();
 
-        FileBuffer loadFile(const std::string&) { return FileBuffer(); }
+        FileBuffer loadFile(const std::string&);
 
         std::list<std::string> listContent(const std::string&, const std::string&,
-            const std::string&) {
-            return std::list<std::string>();
-        }
+            const std::string&);
+
         void synchronize() {}
 };

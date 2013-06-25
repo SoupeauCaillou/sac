@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import net.damsy.soupeaucaillou.SacActivity;
 
+import android.app.Activity;
 import android.content.res.AssetManager;
 
 public class AssetAPI {
@@ -18,9 +19,11 @@ public class AssetAPI {
 	}
 	
 	private AssetManager assetManager;
+	private String appWritablePath;
 	
-	public void init(AssetManager mgr) {
+	public void init(Activity act, AssetManager mgr) {
 		this.assetManager = mgr;
+		appWritablePath = "/data/data/" + act.getPackageName() + "/files";
 	}
 	
 	// -------------------------------------------------------------------------
@@ -88,5 +91,9 @@ public class AssetAPI {
 			}	
 		}
 		return data;
+	}
+	
+	public String getWritableAppDatasPath() {
+		return appWritablePath;
 	}
 }
