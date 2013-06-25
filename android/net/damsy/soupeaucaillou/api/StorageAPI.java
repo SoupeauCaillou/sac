@@ -14,7 +14,7 @@ public class StorageAPI {
 	
 	private String databasePath;
 	
-	void init(Context c) {
+	public void init(Context c) {
 		databasePath = c.getExternalFilesDir(null).getName();
 	}
 	

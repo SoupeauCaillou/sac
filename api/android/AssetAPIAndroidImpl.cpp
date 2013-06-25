@@ -2,8 +2,10 @@
 #include "base/Log.h"
 
 AssetAPIAndroidImpl::AssetAPIAndroidImpl() : JNIWrapper<jni_asset_api::Enum>("net/damsy/soupeaucaillou/api/AssetAPI", true) {
-    declareMethod(jni_asset_api::LoadAsset, "assetToByteArray", "(Ljava/lang/String;)[B");
-    declareMethod(jni_asset_api::GetWritableAppDatasPath, "getWritableAppDatasPath", "()Ljava/lang/String;");
+    declareMethod(jni_asset_api::LoadAsset,
+        "assetToByteArray", "(Ljava/lang/String;)[B");
+    declareMethod(jni_asset_api::GetWritableAppDatasPath,
+        "getWritableAppDatasPath", "()Ljava/lang/String;");
 }
 
 static uint8_t* loadAssetFromJava(JNIEnv *env, const std::string& assetName, int* length, jobject instance, jmethodID mid) {
