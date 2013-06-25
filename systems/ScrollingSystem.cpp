@@ -65,7 +65,6 @@ void ScrollingSystem::DoUpdate(float dt) {
                 tc->position =
                     ANCHOR(se.e[(i+1)%2])->position -
                     glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y);
-                tc->z = ptc->z - 0.005;
                 se.hasBeenVisible[i] = false;
             }
         }
