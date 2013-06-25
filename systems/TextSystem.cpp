@@ -351,7 +351,7 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
         }
     }
     unsigned space = 0x20;
-    unsigned r = 0x72;
+    unsigned r = glm::min((unsigned)0x72, highestUnicode);
     font.entries[space].h2wRatio = font.entries[r].h2wRatio;
     fontRegistry[fontName] = font;
 }
