@@ -49,7 +49,7 @@ public abstract class SacActivity extends Activity {
 	 */
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
-		Log(W, "-> onCreate [" + savedInstanceState);
+		Log(W, "ActivityLifeCycle --> onCreate [" + savedInstanceState + "]");
         super.onCreate(savedInstanceState);
         
         initRequiredAPI();
@@ -119,16 +119,16 @@ public abstract class SacActivity extends Activity {
 
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
-
         /////////////////////////// PREVENT PHONE SLEEP
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        Log(W, "ActivityLifeCycle <-- onCreate");
     }
 
     @Override
     protected void onPause() {
+    	Log(W, "ActivityLifeCycle --> onPause");
     	super.onPause();
-    	Log(W, "Activity LifeCycle ##### ON PAUSE");
     	// Notify game thread
         gameThread.postEvent(Event.Pause);
 
@@ -156,11 +156,12 @@ public abstract class SacActivity extends Activity {
         	wl.release();
 	    
         CommunicationAPI.Instance().onActivityPaused(this);
+        Log(W, "ActivityLifeCycle <-- onPause");
     }
 
     @Override
     protected void onResume() {
-    	Log(W, "Activity LifeCycle ##### onResume");
+    	Log(W, "ActivityLifeCycle --> onResume");
         super.onResume();
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN);
         
@@ -188,11 +189,12 @@ public abstract class SacActivity extends Activity {
     	}
 
     	CommunicationAPI.Instance().onActivityResumed(this);
+    	Log(W, "ActivityLifeCycle <-- onResume");
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-    	Log(W, "Activity LifeCycle ##### ON SAVE INSTANCE");
+    	Log(W, "ActivityLifeCycle --> onSaveInstanceState");
 
     	/* save current state; we'll be used only if app get killed */
     		Log(I, "Save state!");
@@ -204,6 +206,7 @@ public abstract class SacActivity extends Activity {
 	    		Log(I, "No state saved");
 	    	}
     	super.onSaveInstanceState(outState);
+    	Log(W, "ActivityLifeCycle <-- onSaveInstanceState");
     }
 
     List<Integer> activePointersId = new ArrayList<Integer>();
@@ -237,12 +240,13 @@ public abstract class SacActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-    	Log(W, "Activity LifeCycle ##### ON DESTROY");
+    	Log(W, "ActivityLifeCycle --> onDestroy");
     	super.onDestroy();
     	// This activity is being terminated.
     	// Kill gameThread! (because, next wake up will occur
     	// in a fresh new activity's onCreate method)
     	gameThread.postEvent(Event.Kill);
+    	Log(W, "ActivityLifeCycle <-- onDestroy");
     }
 
     @Override
@@ -266,14 +270,18 @@ public abstract class SacActivity extends Activity {
     
     @Override
     protected void onStart() {
+    	Log(W, "ActivityLifeCycle --> onStart");
     	super.onStart();
-    	AdAPI.Instance().onActivityStarted(this);    
+    	AdAPI.Instance().onActivityStarted(this);
+    	Log(W, "ActivityLifeCycle <-- onStart");
     }
 
     @Override
     protected void onStop() {
+    	Log(W, "ActivityLifeCycle --> onStop");
     	super.onStop();
     	AdAPI.Instance().onActivityStopped(this);
+    	Log(W, "ActivityLifeCycle <-- onStop");
     }
 
     final static public int V = android.util.Log.VERBOSE;
