@@ -23,13 +23,8 @@
 
 // #define SAC_USE_VECTOR_STORAGE 1
 
-#define PERSISTENT_PROP
-#define RUNTIME_PROP
-
-#define INSTANCE_DECL(T) static T* _instance;
 #define INSTANCE_IMPL(T) T* T::_instance = 0;
 
-#if SAC_INGAME_EDITORS
 #define UPDATABLE_SYSTEM(type) \
     class type##System : public ComponentSystemImpl<type##Component> {  \
         public: \
@@ -55,33 +50,6 @@
             type##System(); \
         private:    \
             static type##System* _instance;
-
-#else
-#define UPDATABLE_SYSTEM(type) \
-    class type##System : public ComponentSystemImpl<type##Component> {  \
-        public: \
-            static type##System* GetInstancePointer() { return _instance; } \
-			static type##System& GetInstance() { return (*_instance); } \
-			static void CreateInstance() { \
-			    if (_instance != NULL) { \
-				    LOGW("Creating another instance of type##System");\
-			    }\
-			    _instance = new type##System();\
-			    LOGV(1, #type "System new instance created: " <<  _instance);\
-			} \
-			static void DestroyInstance() {\
-			    if (_instance)\
-				    delete _instance;\
-			    LOGV(1, #type "System instance destroyed, was:" << _instance);\
-			    _instance = NULL;\
-			} \
-			void DoUpdate(float dt); \
-			void updateEntityComponent(float dt, Entity e, type##Component* t); \
-		private: \
-			type##System();	\
-			static type##System* _instance;
-
-#endif
 
 #if SAC_USE_VECTOR_STORAGE
     #define FOR_EACH_ENTITY(ent) \
