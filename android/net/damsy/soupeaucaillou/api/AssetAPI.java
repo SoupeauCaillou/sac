@@ -96,4 +96,16 @@ public class AssetAPI {
 	public String getWritableAppDatasPath() {
 		return appWritablePath;
 	}
+	
+	public String[] listAssetContent(final String extension, final String subfolder) {
+		try {
+			String[] rawResult = assetManager.list(subfolder);
+			// filter rawResult, using extension
+			// todo
+			// return filtered result
+			return rawResult;
+		} catch (IOException exc) {
+			return null;
+		}
+	}
 }
