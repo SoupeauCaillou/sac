@@ -5,6 +5,18 @@
 #include "base/EntityManager.h"
 #include "systems/TransformationSystem.h"
 
+EntityTemplateLibrary::~EntityTemplateLibrary() {
+    for (auto r2a: ref2asset) {
+        EntityTemplate& tmp = r2a.second;
+        for (auto it: tmp) {
+            for (auto jt: it.second) {
+                delete[] jt.second;
+            }
+        }
+    }
+    ref2asset.clear();
+}
+
 int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
     // browse system

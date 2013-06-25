@@ -48,6 +48,8 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
 
         void defineParent(EntityTemplateRef child, EntityTemplateRef parent);
 
+        ~EntityTemplateLibrary();
+
 #if SAC_LINUX && SAC_DESKTOP
         void remove(Entity e);
 #endif

@@ -287,10 +287,17 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     th1.join();
 
     delete ctx;
+
+    theEntityManager.deleteAllEntities();
+
     delete game;
  //   delete record;
     SDL_Quit();
+
+    TwTerminate();
 #endif
+
+
     return 0;
 }
 

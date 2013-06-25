@@ -350,7 +350,9 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
             LOGW("Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'");
         }
     }
-    font.entries[(unsigned)' '].h2wRatio = font.entries[(unsigned)'r'].h2wRatio;
+    unsigned space = 0x20;
+    unsigned r = 0x72;
+    font.entries[space].h2wRatio = font.entries[r].h2wRatio;
     fontRegistry[fontName] = font;
 }
 
@@ -366,8 +368,11 @@ float TextSystem::computeTextComponentWidth(TextComponent* trc) const {
 
 void TextSystem::Delete(Entity e) {
     for (Entity subE: renderingEntitiesPool) {
-        if (ANCHOR(subE)->parent == e) {
-            ANCHOR(subE)->parent = 0;
+        // if we're deleting all entities, subE could have
+        // already been destroyed, without Text system noticing
+        auto* ac = theAnchorSystem.Get(subE, false);
+        if (ac && ac->parent == e) {
+            ac->parent = 0;
             RENDERING(subE)->show = false;
         }
     }
