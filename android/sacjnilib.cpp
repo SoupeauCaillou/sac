@@ -27,6 +27,7 @@
 #include "api/android/ExitAPIAndroidImpl.h"
 #include "api/android/SuccessAPIAndroidImpl.h"
 #include "api/android/VibrateAPIAndroidImpl.h"
+#include "api/default/SqliteStorageAPIImpl.h"
 
 #include <png.h>
 #include <algorithm>
@@ -74,6 +75,8 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
             gCtx->localizeAPI = new LocalizeAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Music))
             gCtx->musicAPI = new MusicAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::Storage))
+            gCtx->storageAPI = new SqliteStorageAPIImpl();
         //if (game->wantsAPI(ContextAPI::Network))
             gCtx->networkAPI = 0;
         if (game->wantsAPI(ContextAPI::Sound))
