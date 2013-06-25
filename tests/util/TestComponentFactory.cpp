@@ -121,15 +121,15 @@ TEST_FIXTURE(TestSetup, TestTextureProperty)
 
 TEST_FIXTURE(TestSetup, TestTransformPercentProperty)
 {
-    PlacementHelper::ScreenWidth = 100;
-    PlacementHelper::ScreenHeight = 50;
+    PlacementHelper::ScreenSize.x = 100;
+    PlacementHelper::ScreenSize.y = 50;
     Entity e = doTest("[Transformation]\nsize%screen=0.3, 0.2\nposition%screen_w=0.5,0.8");
 
-    CHECK_CLOSE(0.3 * PlacementHelper::ScreenWidth, TRANSFORM(e)->size.x, 0.001);
-    CHECK_CLOSE(0.2 *  PlacementHelper::ScreenHeight, TRANSFORM(e)->size.y, 0.001);
+    CHECK_CLOSE(0.3 * PlacementHelper::ScreenSize.x, TRANSFORM(e)->size.x, 0.001);
+    CHECK_CLOSE(0.2 *  PlacementHelper::ScreenSize.y, TRANSFORM(e)->size.y, 0.001);
 
-    CHECK_CLOSE(0.5 * PlacementHelper::ScreenWidth, TRANSFORM(e)->position.x, 0.001);
-    CHECK_CLOSE(0.8 *  PlacementHelper::ScreenWidth, TRANSFORM(e)->position.y, 0.001);
+    CHECK_CLOSE(0.5 * PlacementHelper::ScreenSize.x, TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(0.8 *  PlacementHelper::ScreenSize.x, TRANSFORM(e)->position.y, 0.001);
 }
 
 TEST_FIXTURE(TestSetup, TestColorProperty)
@@ -159,7 +159,7 @@ TEST_FIXTURE(TestSetup, TestSizeBasedOnTextureRatio)
     info.originalSize = glm::vec2(100, 80);
     theRenderingSystem.textureLibrary.add("plop", info);
 
-    PlacementHelper::ScreenHeight = 100;
+    PlacementHelper::ScreenSize.y = 100;
     Entity e = doTest("[Transformation]\n" \
         "size%screen_h,texture_ratio=0.1\n" \
         "[Rendering]\n" \

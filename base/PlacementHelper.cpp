@@ -1,55 +1,49 @@
 #include "PlacementHelper.h"
 
-float PlacementHelper::ScreenWidth = 0;
-float PlacementHelper::ScreenHeight = 0;
+glm::vec2 PlacementHelper::ScreenSize(0.f);
 
-int PlacementHelper::WindowWidth = 0;
-int PlacementHelper::WindowHeight = 0;
+glm::vec2 PlacementHelper::WindowSize(0);
 
-float PlacementHelper::GimpWidth = 0;
-float PlacementHelper::GimpHeight = 0;
+glm::vec2 PlacementHelper::GimpSize(0.f);
 
-// #define GIMP_WIDTH  800.0f
-// #define GIMP_HEIGHT 1280.0f
-
-#define REF_RATIO (GimpWidth/GimpHeight)
+#define REF_RATIO (GimpSize.x/GimpSize.y)
 
 #define HEIGHT_IS_REF (REF_RATIO < 1)
-//(PlacementHelper::ScreenHeight / PlacementHelper::ScreenWidth <= REF_RATIO)
+//(PlacementHelper::ScreenSize.y / PlacementHelper::ScreenSize.x <= REF_RATIO)
 
-#define WIDTH_RATIO_TO_SCREEN_WIDTH(r) ((r) * ScreenHeight * GimpWidth/GimpHeight)
-#define HEIGHT_RATIO_TO_SCREEN_HEIGHT(r) ((r) * ScreenWidth * GimpHeight/GimpWidth)
+#define WIDTH_RATIO_TO_SCREEN_WIDTH(r) ((r) * ScreenSize.y * GimpSize.x/GimpSize.y)
+#define HEIGHT_RATIO_TO_SCREEN_HEIGHT(r) ((r) * ScreenSize.x * GimpSize.y/GimpSize.x)
 
 
 float PlacementHelper::GimpWidthToScreen(int width) {
 	if (HEIGHT_IS_REF) {
-    	return WIDTH_RATIO_TO_SCREEN_WIDTH(width / GimpWidth);
+    	return WIDTH_RATIO_TO_SCREEN_WIDTH(width / GimpSize.x);
     } else {
-    	return (ScreenWidth * width) / GimpWidth;
+    	return (ScreenSize.x * width) / GimpSize.x;
     }
 }
 
 float PlacementHelper::GimpHeightToScreen(int height) {
 	if (HEIGHT_IS_REF) {
-    	return (ScreenHeight * height) / GimpHeight;
+    	return (ScreenSize.y * height) / GimpSize.y;
     } else {
-    	return HEIGHT_RATIO_TO_SCREEN_HEIGHT(height / GimpHeight);
+    	return HEIGHT_RATIO_TO_SCREEN_HEIGHT(height / GimpSize.y);
     }
 }
 
 float PlacementHelper::GimpYToScreen(int y) {
 	if (HEIGHT_IS_REF) {
-    	return - ScreenHeight * (y - GimpHeight * 0.5f) / GimpHeight;
+    	return - ScreenSize.y * (y - GimpSize.y * 0.5f) / GimpSize.y;
     } else {
-    	return - HEIGHT_RATIO_TO_SCREEN_HEIGHT((y - GimpHeight * 0.5f) / GimpHeight);
+    	return - HEIGHT_RATIO_TO_SCREEN_HEIGHT((y - GimpSize.y * 0.5f) / GimpSize.y);
     }
 }
 
 float PlacementHelper::GimpXToScreen(int x) {
 	if (HEIGHT_IS_REF) {
-    	return WIDTH_RATIO_TO_SCREEN_WIDTH((x - GimpWidth * 0.5f) / GimpWidth);
+    	return WIDTH_RATIO_TO_SCREEN_WIDTH((x - GimpSize.x * 0.5f) / GimpSize.x);
     } else {
-    	return (ScreenWidth * (x - GimpWidth * 0.5f)) / GimpWidth;
+    	return (ScreenSize.x * (x - GimpSize.x * 0.5f)) / GimpSize.x;
     }
 }
 

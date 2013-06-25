@@ -88,6 +88,17 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
 #endif
 }
 
+void RenderingSystem::setWindowSize(const glm::vec2& windowSize, const glm::vec2& screenSize) {
+    windowW = windowSize.x;
+    windowH = windowSize.y;
+    screenW = screenSize.x;
+    screenH = screenSize.y;
+    GL_OPERATION(glViewport(0, 0, windowW, windowH))
+#if SAC_INGAME_EDITORS
+    TwWindowSize(windowW, windowH);
+#endif
+}
+
 void RenderingSystem::init() {
     LOGF_IF(!assetAPI, "AssetAPI must be set before init is called");
     OpenGLTextureCreator::detectSupportedTextureFormat();

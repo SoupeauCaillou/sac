@@ -255,20 +255,16 @@ void Game::sacInit(int windowW, int windowH) {
 #endif
 
     if (windowW < windowH) {
-            PlacementHelper::ScreenHeight = 10;
-        PlacementHelper::ScreenWidth = PlacementHelper::ScreenHeight * windowW / (float)windowH;
+        PlacementHelper::ScreenSize = glm::vec2(10.f * windowW / (float)windowH, 10.f);
     } else {
-        PlacementHelper::ScreenWidth = 20;
-        PlacementHelper::ScreenHeight = PlacementHelper::ScreenWidth * windowH / (float)windowW;
+        PlacementHelper::ScreenSize = glm::vec2(20.f, 20.f * windowH / (float)windowW);
     }
 
-    PlacementHelper::WindowWidth = windowW;
-    PlacementHelper::WindowHeight = windowH;
-    PlacementHelper::GimpWidth = 800.0f;
-    PlacementHelper::GimpHeight = 1280.0f;
+    PlacementHelper::WindowSize = glm::vec2(windowW, windowH);
+    PlacementHelper::GimpSize = glm::vec2(800.0f, 1280.0f);
 
-    theRenderingSystem.setWindowSize(windowW, windowH, PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight);
-    theTouchInputManager.init(glm::vec2(PlacementHelper::ScreenWidth, PlacementHelper::ScreenHeight), glm::vec2(windowW, windowH));
+    theRenderingSystem.setWindowSize(PlacementHelper::WindowSize, PlacementHelper::ScreenSize);
+    theTouchInputManager.init(PlacementHelper::ScreenSize, PlacementHelper::WindowSize);
 
     theRenderingSystem.init();
     theRenderingSystem.enableRendering();

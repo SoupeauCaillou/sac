@@ -101,6 +101,7 @@ public:
 
     void init();
     void setWindowSize(int w, int h, float sW, float sH);
+    void setWindowSize(const glm::vec2& windowSize, const glm::vec2& screenSize);
 
     void loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading = false);
     void unloadAtlas(const std::string& atlasName);

@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 
 struct PlacementHelper {
-    static float ScreenWidth, ScreenHeight;
-    static int WindowWidth, WindowHeight;
-    static float GimpWidth, GimpHeight;
+    static glm::vec2 ScreenSize;
+    static glm::vec2 WindowSize;
+    static glm::vec2 GimpSize;
 
     static float GimpWidthToScreen(int width);
     static float GimpHeightToScreen(int height);

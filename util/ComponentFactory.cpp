@@ -33,20 +33,19 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
         case 0:
             break;
         case 1:
-            out->x *= PlacementHelper::ScreenWidth;
-            out->y *= PlacementHelper::ScreenHeight;
+            *out *= PlacementHelper::ScreenSize;
             break;
         case 2:
-            out->y *= PlacementHelper::ScreenWidth;
-            out->x *= PlacementHelper::ScreenHeight;
+            out->y *= PlacementHelper::ScreenSize.x;
+            out->x *= PlacementHelper::ScreenSize.y;
             break;
         case 3:
-            out->x *= PlacementHelper::ScreenWidth;
-            out->y *= PlacementHelper::ScreenWidth;
+            out->x *= PlacementHelper::ScreenSize.x;
+            out->y *= PlacementHelper::ScreenSize.x;
             break;
         case 4:
-            out->x *= PlacementHelper::ScreenHeight;
-            out->y *= PlacementHelper::ScreenHeight;
+            out->x *= PlacementHelper::ScreenSize.y;
+            out->y *= PlacementHelper::ScreenSize.y;
             break;
     }
 }
@@ -57,10 +56,10 @@ static void applyFloatModifiers(int idx, float* out, int count) {
             case 0:
                 break;
             case 1:
-                out[i] *= PlacementHelper::ScreenWidth;
+                out[i] *= PlacementHelper::ScreenSize.x;
                 break;
             case 2:
-                out[i] *= PlacementHelper::ScreenHeight;
+                out[i] *= PlacementHelper::ScreenSize.y;
                 break;
         }
     }
@@ -114,19 +113,19 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
                 const glm::vec2& s = theRenderingSystem.getTextureSize(textureName);
                 switch (i) {
                     case 0:
-                        out->y = parsed[0] * PlacementHelper::ScreenWidth;
+                        out->y = parsed[0] * PlacementHelper::ScreenSize.x;
                         out->x = out->y * s.x / s.y;
                         break;
                     case 1:
-                        out->y = parsed[0] * PlacementHelper::ScreenHeight;
+                        out->y = parsed[0] * PlacementHelper::ScreenSize.y;
                         out->x = out->y * s.x / s.y;
                         break;
                     case 2:
-                        out->x = parsed[0] * PlacementHelper::ScreenWidth;
+                        out->x = parsed[0] * PlacementHelper::ScreenSize.x;
                         out->y = out->x * s.y / s.x;
                         break;
                     case 3:
-                        out->x = parsed[0] * PlacementHelper::ScreenHeight;
+                        out->x = parsed[0] * PlacementHelper::ScreenSize.y;
                         out->y = out->x * s.y / s.x;
                         break;
                     case 4:
