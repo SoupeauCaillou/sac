@@ -4,7 +4,12 @@
 #include "RenderingSystem.h"
 
 struct ScrollingComponent {
-	ScrollingComponent() : opaqueType(RenderingComponent::NON_OPAQUE) {}
+	ScrollingComponent() :
+        direction(0),
+        speed(0),
+        displaySize(0),
+        show(false),
+        opaqueType(RenderingComponent::NON_OPAQUE) {}
     std::vector<std::string> images;
     glm::vec2 direction;
     float speed;
