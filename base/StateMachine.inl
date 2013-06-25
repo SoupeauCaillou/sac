@@ -63,7 +63,7 @@ void StateMachine<T>::update(float dt) {
         // New state requested ?
         if (newState != currentState) {
             LOGE_IF(state2Name.find(newState) == state2Name.end(), "No state handler defined for state: " << newState);
-            LOGV(2, "Transition begins: " << state2Name[newState] << " -> " << state2Name[currentState]);
+            LOGV(2, "Transition begins: " << state2Name[currentState] << " -> " << state2Name[newState]);
         	// init transition
             PROFILE("MachineStateTransitionStart", state2Name[currentState] + "->" + state2Name[newState], InstantEvent);
         	transition.fromState = currentState;
@@ -71,6 +71,7 @@ void StateMachine<T>::update(float dt) {
         	transition.readyExit = transition.readyEnter = false;
             state2handler[currentState]->onPreExit(newState);
             state2handler[newState]->onPreEnter(currentState);
+            LOGV(2, "Transition preExit/Enter done");
 
             transitionning = true;
         }
