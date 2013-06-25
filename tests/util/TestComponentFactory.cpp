@@ -180,3 +180,16 @@ TEST_FIXTURE(TestSetup, TestStringVector)
     CHECK_EQUAL("z", NETWORK(e)->sync[2]);
 }
 
+TEST_FIXTURE(TestSetup, TestGimpVec2Modifier)
+{
+    PlacementHelper::ScreenSize = glm::vec2(10, 20);
+    PlacementHelper::WindowSize = glm::vec2(435, 700);
+    PlacementHelper::GimpSize = glm::vec2(800, 1280);
+
+    Entity e = doTest("[Transformation]\nposition%gimp = 10, 20\nsize%gimp = 10, 20");
+
+    CHECK_CLOSE(PlacementHelper::GimpWidthToScreen(10), TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpHeightToScreen(20), TRANSFORM(e)->position.y, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpXToScreen(10), TRANSFORM(e)->size.x, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpYToScreen(20), TRANSFORM(e)->size.y, 0.001);
+}

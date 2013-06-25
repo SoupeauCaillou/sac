@@ -15,7 +15,7 @@ const std::string floatmodifiers[] =
     { "", "%screen_w", "%screen_h"};
 
 const std::string vec2modifiers[] =
-    { "", "%screen", "%screen_rev", "%screen_w", "%screen_h" };
+    { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp", };
 
 const std::string vec2singlefloatmodifiers[] = {
     "%texture_ratio,screen_w",
@@ -46,6 +46,14 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
         case 4:
             out->x *= PlacementHelper::ScreenSize.y;
             out->y *= PlacementHelper::ScreenSize.y;
+            break;
+        case 5:
+            out->x = PlacementHelper::GimpWidthToScreen(out->x);
+            out->y = PlacementHelper::GimpHeightToScreen(out->y);
+            break;
+        case 51:
+            out->x = PlacementHelper::GimpXToScreen(out->x);
+            out->y = PlacementHelper::GimpYToScreen(out->y);
             break;
     }
 }
@@ -100,6 +108,35 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             *out = glm::vec2(parsed[0], parsed[1]);
             LOG_SUCCESS_ << out->x << ", " << out->y << "'");
             applyVec2Modifiers(i, out);
+            return 1;
+        }
+    }
+    int res1 = name.compare("size");
+    int res2 = name.compare("position");
+    if (res1 == 0 || res2 == 0) {
+        if (dfp.get(section, name + vec2modifiers[5], parsed, 4, false)) {
+            // we got an interval
+            Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
+            switch (mode) {
+                case IntervalAsRandom: *out = itv.random(); break;
+                case IntervalValue1: *out = itv.t1; break;
+                case IntervalValue2: *out = itv.t2; break;
+            }
+            if (res2 == 0) // name == position
+                applyVec2Modifiers(5, out);
+            if (res1 == 0) // name == size
+                applyVec2Modifiers(51, out);
+
+            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
+            return 1;
+        } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[5], parsed, 2, false)) {
+            // we got a single value
+            *out = glm::vec2(parsed[0], parsed[1]);
+            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
+            if (res1 == 0) // name == size
+                applyVec2Modifiers(51, out);
+            else if (res2 == 0) // name == position
+                applyVec2Modifiers(5, out);
             return 1;
         }
     }
