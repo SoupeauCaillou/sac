@@ -2,6 +2,8 @@ package net.damsy.soupeaucaillou.api;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.damsy.soupeaucaillou.SacActivity;
 
@@ -24,7 +26,7 @@ public class AssetAPI {
 	public void init(Activity act, AssetManager mgr) {
 		this.assetManager = mgr;
 		appWritablePath = "/data/data/" + act.getPackageName() + "/";
-	}
+	} 
 	
 	// -------------------------------------------------------------------------
 	// AssetAPI
@@ -101,9 +103,18 @@ public class AssetAPI {
 		try {
 			String[] rawResult = assetManager.list(subfolder);
 			// filter rawResult, using extension
-			// todo
+			List<String> filtered = new ArrayList<String>(rawResult.length);
+			
+			for (String s: rawResult) {
+				if (s.endsWith(extension)) {
+					// call expect the filename to _not_ have the extension
+					filtered.add(s.substring(0, s.length() - extension.length()));
+				}
+			}
+			
 			// return filtered result
-			return rawResult;
+			String[] result = new String[filtered.size()];
+			return filtered.toArray(result);
 		} catch (IOException exc) {
 			return null;
 		}

@@ -7,7 +7,7 @@
 namespace jni_asset_api {
     enum Enum {
         LoadAsset,
-        ListContent,
+        ListAssetContent,
         GetWritableAppDatasPath,
     };
 }
@@ -16,7 +16,7 @@ class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::En
 	public:
 		AssetAPIAndroidImpl();
 
-        std::list<std::string > listAssetContent(const std::string&, const std::string&);
+        std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder);
 
     	FileBuffer loadAsset(const std::string& asset);
 

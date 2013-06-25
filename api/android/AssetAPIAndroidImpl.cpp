@@ -6,6 +6,8 @@ AssetAPIAndroidImpl::AssetAPIAndroidImpl() : JNIWrapper<jni_asset_api::Enum>("ne
         "assetToByteArray", "(Ljava/lang/String;)[B");
     declareMethod(jni_asset_api::GetWritableAppDatasPath,
         "getWritableAppDatasPath", "()Ljava/lang/String;");
+    declareMethod(jni_asset_api::ListAssetContent,
+        "listAssetContent", "(Ljava/lang/String;Ljava/lang/String;)[Ljava/lang/String;");
 }
 
 static uint8_t* loadAssetFromJava(JNIEnv *env, const std::string& assetName, int* length, jobject instance, jmethodID mid) {
@@ -33,9 +35,30 @@ FileBuffer AssetAPIAndroidImpl::loadAsset(const std::string& asset) {
     return fb;
 }
 
-std::list<std::string> AssetAPIAndroidImpl::listAssetContent(const std::string&, const std::string&) {
-    LOGW("TODO");
-    return std::list<std::string>();
+std::list<std::string> AssetAPIAndroidImpl::listAssetContent(const std::string& extension, const std::string& path) {
+    // Build 2 java strings from args
+    jstring jExt = env->NewStringUTF(extension.c_str());
+    jstring jPath = env->NewStringUTF(path.c_str());
+
+    // Call Java method
+    jobjectArray result = (jobjectArray)env->CallObjectMethod(instance, methods[jni_asset_api::ListAssetContent], jExt, jPath);
+
+    std::list<std::string> r;
+    // Parse result
+    if (!result) {
+        LOGW("ListAssetContent returned null array");
+        return r;
+    } else {
+        int stringCount = env->GetArrayLength(result);
+
+        for (int i=0; i<stringCount; i++) {
+            jstring string = (jstring) env->GetObjectArrayElement(result, i);
+            const char *rawString = env->GetStringUTFChars(string, 0);
+            r.push_back(std::string(rawString));
+            env->ReleaseStringUTFChars(string, rawString);
+        }
+    }
+    return r;
 }
 
 const std::string &  AssetAPIAndroidImpl::getWritableAppDatasPath() {
