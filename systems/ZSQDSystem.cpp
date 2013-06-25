@@ -94,5 +94,5 @@ void ZSQDSystem::DoUpdate(float dt) {
             }
         }
         zc->directions.clear();
-    }
+    END_FOR_EACH()
 }

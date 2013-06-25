@@ -92,7 +92,7 @@ void AnchorSystem::Delete(Entity e) {
         if (bc->parent == e) {
             LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')');
         }
-    }
+    END_FOR_EACH()
     ComponentSystemImpl<AnchorComponent>::Delete(e);
 }
 #endif

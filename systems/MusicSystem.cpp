@@ -141,7 +141,7 @@ void MusicSystem::DoUpdate(float dt) {
     if (muted) {
         FOR_EACH_COMPONENT(Music, m)
             stopMusic(m);
-        }
+        END_FOR_EACH()
         return;
     }
 
@@ -311,7 +311,7 @@ void MusicSystem::DoUpdate(float dt) {
             m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
 #endif
-    }
+    END_FOR_EACH()
 
 #if SAC_MUSIC_VISU
     int idx = 0;
@@ -398,7 +398,7 @@ void MusicSystem::DoUpdate(float dt) {
             RENDERING(e)->color = RENDERING(f)->color = Color(0.9, 0.9, 0, 0.5);
         }
         idx++;
-    }
+    END_FOR_EACH()
 #endif
 }
 
@@ -546,7 +546,7 @@ void MusicSystem::toggleMute(bool enable) {
         muted = true;
         FOR_EACH_COMPONENT(Music, m)
             stopMusic(m);
-        }
+        END_FOR_EACH()
     } else if (!enable && muted) {
         muted = false;
     }

@@ -100,7 +100,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.size = Interval<float> (tc->size.x, pc->finalSize.random());
             }
         }
-    }
+    END_FOR_EACH()
 
     // update emitted particules
     for (std::list<InternalParticule>::iterator it=particules.begin(); it!=particules.end(); ) {

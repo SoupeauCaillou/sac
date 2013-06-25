@@ -49,9 +49,9 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
 
 void SoundSystem::DoUpdate(float) {
 	if (mute) {
-		FOR_EACH_COMPONENT(Sound, rc)
+        FOR_EACH_COMPONENT(Sound, rc)
             rc->sound = InvalidSoundRef;
-        }
+        END_FOR_EACH()
         return;
     }
 
@@ -68,5 +68,5 @@ void SoundSystem::DoUpdate(float) {
 				rc->sound = InvalidSoundRef;
 			}
         }
-    }
+    END_FOR_EACH()
 }

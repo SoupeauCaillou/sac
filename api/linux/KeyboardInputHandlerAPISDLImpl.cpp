@@ -45,7 +45,7 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
         }
         return 0;
     } else if (event->type == SDL_KEYDOWN) {
-        LOGV(2, "key pressed: " << key << " unicode value: " << event->key.keysym.unicode);
+        LOGV(2, "key pressed: " << key << " unicode value: " << unicode);
         for (auto & it : key2callback) {
             if (it.first == key) {
                 it.second.first = true;

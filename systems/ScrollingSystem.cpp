@@ -68,7 +68,7 @@ void ScrollingSystem::DoUpdate(float dt) {
                 se.hasBeenVisible[i] = false;
             }
         }
-    }
+    END_FOR_EACH()
 }
 
 void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {

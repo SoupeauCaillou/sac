@@ -96,7 +96,7 @@ void AnimationSystem::DoUpdate(float dt) {
                 bc->accum -= 1;
             }
         }
-    }
+    END_FOR_EACH()
 }
 
 void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& filename, std::string* variables, int varcount) {

@@ -20,5 +20,5 @@ void TaskAISystem::DoUpdate(float dt) {
 				tc->taskToPerform.erase(tc->taskToPerform.begin());
 			}
 		}
-    }
+    END_FOR_EACH()
 }

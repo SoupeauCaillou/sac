@@ -170,14 +170,14 @@ void NetworkSystem::DoUpdate(float dt) {
                 }
                  nc->packetToProcess.pop();
             }
-        }
+        END_FOR_EACH()
     }
 
     // Process local entities : send required update to others
     {
         FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
             updateEntity(e, nc, dt);
-        }
+        END_FOR_EACH()
     }
 
     // Forward entity deletion
@@ -322,7 +322,7 @@ NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
         NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (nc->guid == guid)
             return nc;
-    }
+    END_FOR_EACH()
     //LOGE("Did not find entity with guid: %u", guid);
     return 0;
 }
@@ -334,7 +334,7 @@ Entity NetworkSystem::guidToEntity(unsigned int guid) {
         NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
         if (nc->guid == guid)
             return e;
-    }
+    END_FOR_EACH()
     LOGE("Did not find entity with guid: " << guid);
     return 0;
 }
@@ -347,7 +347,7 @@ void NetworkSystem::deleteAllNonLocalEntities() {
             theEntityManager.DeleteEntity(e);
             count++;
         }
-    }
+    END_FOR_EACH()
     LOGI("Removed " << count << " non local entities");
 }
 

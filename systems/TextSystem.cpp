@@ -307,7 +307,8 @@ void TextSystem::DoUpdate(float dt) {
 		if (caretInserted) {
 			trc->text.resize(trc->text.length() - 1);
 		}
-	}
+	END_FOR_EACH()
+
     if (renderingEntitiesPool.size() > letterCount*2) {
         for (unsigned i=letterCount*2; i<renderingEntitiesPool.size(); i++) {
             theEntityManager.DeleteEntity(renderingEntitiesPool[i]);

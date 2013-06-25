@@ -120,19 +120,19 @@ void CollisionSystem::DoUpdate(float) {
                 }
             }
         }
-    }
+    END_FOR_EACH()
 
     for (unsigned i=0; i<cells.size(); i++) {
         const Cell& cell = cells[i];
 
-        #if SAC_DEBUG
+#if SAC_DEBUG
         std::stringstream ss;
         ss << cell.collidingEntities.size() << '('
             << cell.collidingGroupsInside << "), "
             << cell.colliderEtities.size() << '('
             << cell.colliderGroupsInside << ')';
         TEXT(debug[i])->text = ss.str();
-        #endif
+#endif
 
         // Browse colliding entities in this cell
         if (!cell.collidingEntities.empty()) {
@@ -249,7 +249,7 @@ void CollisionSystem::DoUpdate(float) {
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
         cc->previousPosition = TRANSFORM(entity)->position;
         cc->previousRotation = TRANSFORM(entity)->rotation;
-    }
+    END_FOR_EACH()
 }
 
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame) {

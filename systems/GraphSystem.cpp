@@ -75,7 +75,7 @@ void GraphSystem::DoUpdate(float) {
         	theRenderingSystem.textureLibrary.reload(gc->textureName);
         	gc->reloadTexture = false;
         }
-    }
+    END_FOR_EACH()
 }
 
 void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {

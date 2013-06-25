@@ -73,5 +73,5 @@ void ADSRSystem::DoUpdate(float dt) {
 					adsr->value = adsr->sustainValue + z * z * (adsr->idleValue - adsr->sustainValue);
 			}
 		}
-	}
+	END_FOR_EACH()
 }

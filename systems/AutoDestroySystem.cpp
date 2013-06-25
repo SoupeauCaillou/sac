@@ -52,7 +52,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 break;
             }
         }
-    }
+    END_FOR_EACH()
     for (unsigned i=0; i<toRemove.size(); i++) {
         const std::pair<Entity, bool>& p = toRemove[i];
 

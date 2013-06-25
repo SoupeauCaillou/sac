@@ -418,7 +418,7 @@ void RenderingSystem::DoUpdate(float) {
                     LOGW("Entity will not be drawn");
                     break;
             }
-        }
+        END_FOR_EACH()
 
         unsigned cnt = outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1;
 

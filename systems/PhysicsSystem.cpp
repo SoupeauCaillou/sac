@@ -122,7 +122,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 		const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
 		tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5;
         pc->angularVelocity = nextAngularVelocity;
-	}
+	END_FOR_EACH()
 
 #if SAC_DEBUG
     const float sizeForMaxForce = 2.f;

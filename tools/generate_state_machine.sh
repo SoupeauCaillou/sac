@@ -64,12 +64,6 @@ get_return_within_method() {
             continue
         fi
 
-        #there is a specific case. FOR_EACH macros are using a '{' implicitely, so we need to count them too
-        if (grep -q 'FOR_EACH' <<< $line); then
-            # echo 'there is a foreach, special case opening_brace_count+=1 (assuming there is only once per line)'
-            opening_brace_count=$(expr $opening_brace_count + 1)
-        fi
-
         opening_brace_count=$(expr $opening_brace_count + $(echo $line | tr -c -d '{' | wc -c))
         closing_brace_count=$(expr $closing_brace_count + $(echo $line | tr -c -d '}' | wc -c))
         # echo "still in doupdate:" $line $opening_brace_count $closing_brace_count

@@ -83,6 +83,8 @@
             ++__it##__LINE__##type##__;
 
 #endif
+    //this macro is used to avoid IDE highlighting problems with brace missing...
+    #define END_FOR_EACH() }
 
 class ComponentSystem {
 	public:

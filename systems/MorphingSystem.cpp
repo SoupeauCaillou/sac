@@ -34,7 +34,7 @@ void MorphingSystem::DoUpdate(float dt) {
                 }
             }
         }
-    }
+    END_FOR_EACH()
 }
 
 void MorphingSystem::reverse(MorphingComponent* mc) {

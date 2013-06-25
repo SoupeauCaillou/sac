@@ -22,7 +22,7 @@ void ButtonSystem::DoUpdate(float) {
 	const glm::vec2& pos = theTouchInputManager.getTouchLastPosition(0);
     FOR_EACH_ENTITY_COMPONENT(Button, entity, bt)
 		UpdateButton(entity, bt, touch, pos);
-	}
+	END_FOR_EACH()
 }
 
 void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos) {

@@ -34,7 +34,7 @@ void ContainerSystem::DoUpdate(float) {
         atLeastOneEnabled |= (bc->enable && !bc->entities.empty());
         if (atLeastOneEnabled)
             break;
-    }
+    END_FOR_EACH()
 
     if (!atLeastOneEnabled)
         return;
@@ -63,5 +63,5 @@ void ContainerSystem::DoUpdate(float) {
         TransformationComponent* tc = TRANSFORM(a);
         tc->position = glm::vec2((minX + maxX) * 0.5, (minY + maxY) * 0.5);
         tc->size = glm::vec2(maxX - minX, maxY - minY);
-    }
+    END_FOR_EACH()
 }
