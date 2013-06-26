@@ -1,6 +1,7 @@
 #include <UnitTest++.h>
 #include "util/ComponentFactory.h"
 #include "util/DataFileParser.h"
+#include "systems/ADSRSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/AnimationSystem.h"
 #include "systems/ParticuleSystem.h"
@@ -10,6 +11,7 @@
 
 struct TestSetup {
     TestSetup() {
+        ADSRSystem::CreateInstance();
         TransformationSystem::CreateInstance();
         ParticuleSystem::CreateInstance();
         AnimationSystem::CreateInstance();
@@ -18,6 +20,7 @@ struct TestSetup {
     }
     ~TestSetup() {
         theEntityManager.entityTemplateLibrary.unload("test");
+        ADSRSystem::DestroyInstance();
         TransformationSystem::DestroyInstance();
         ParticuleSystem::DestroyInstance();
         AnimationSystem::DestroyInstance();
@@ -192,4 +195,17 @@ TEST_FIXTURE(TestSetup, TestGimpVec2Modifier)
     CHECK_CLOSE(PlacementHelper::GimpHeightToScreen(20), TRANSFORM(e)->position.y, 0.001);
     CHECK_CLOSE(PlacementHelper::GimpXToScreen(10), TRANSFORM(e)->size.x, 0.001);
     CHECK_CLOSE(PlacementHelper::GimpYToScreen(20), TRANSFORM(e)->size.y, 0.001);
+}
+
+TEST_FIXTURE(TestSetup, TestGimpFloatModifier)
+{
+    PlacementHelper::ScreenSize = glm::vec2(10, 20);
+    PlacementHelper::WindowSize = glm::vec2(435, 700);
+    PlacementHelper::GimpSize = glm::vec2(800, 1280);
+
+    Entity e = doTest("[ADSR]\nidle_value%gimp_w = 10\nattack_value%gimp_h = 10\nattack_timing%gimp_x = 5\ndecay_timing%gimp_y = 2");
+    CHECK_CLOSE(PlacementHelper::GimpWidthToScreen(10), ADSR(e)->idleValue, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpHeightToScreen(10), ADSR(e)->attackValue, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpXToScreen(5), ADSR(e)->attackTiming, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpYToScreen(2), ADSR(e)->decayTiming, 0.001);
 }

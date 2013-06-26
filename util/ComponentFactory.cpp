@@ -12,7 +12,7 @@
 #include "systems/AnchorSystem.h"
 
 const std::string floatmodifiers[] =
-    { "", "%screen_w", "%screen_h"};
+    { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h"};
 
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp", };
@@ -68,6 +68,18 @@ static void applyFloatModifiers(int idx, float* out, int count) {
                 break;
             case 2:
                 out[i] *= PlacementHelper::ScreenSize.y;
+                break;
+            case 3:
+                out[i] = PlacementHelper::GimpXToScreen(out[i]);
+                break;
+            case 4:
+                out[i] = PlacementHelper::GimpYToScreen(out[i]);
+                break;
+            case 5:
+                out[i] = PlacementHelper::GimpWidthToScreen(out[i]);
+                break;
+            case 6:
+                out[i] = PlacementHelper::GimpHeightToScreen(out[i]);
                 break;
         }
     }
@@ -254,7 +266,7 @@ template <>
 inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, float* out) {
     float parsed[2];
 
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<7; i++) {
         if (dfp.get(section, name + floatmodifiers[i], parsed, 2, false)) {
             applyFloatModifiers(i, parsed, 2);
             // we got an interval
