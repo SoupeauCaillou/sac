@@ -58,8 +58,7 @@ get_return_within_method() {
     closing_brace_count=0
     for line in $lines; do
         #if this is a comment line, skip it
-        #Note: if this is a multiline comment (/* */ or #if 0 #endif), that won't work... but nvm
-        if [ "$(echo $line | tr -d ' ' | cut -c1-2)" = "//" ]; then
+        if [ "$(echo $line | tr -d ' \t' | cut -c1-2)" = "//" ]; then
             # echo "this is a comment!" $line
             continue
         fi
@@ -80,7 +79,7 @@ get_return_within_method() {
                 # echo "there is a return other here: next_state is $next_state"
                 if [ "$state" != "$next_state" ]; then
                     echo "$state -> $next_state;" >> $3
-                    if ! [[ $states =~ $next_state ]] && ! [[ $fade_states =~ $next_state ]]; then
+                    if ! [[ $states =~ $next_state ]]; then
                         # echo "$next_state not in states"
                         echo "$next_state [fillcolor=$unknown_state_color] " >> $3
                     fi
@@ -99,7 +98,6 @@ get_return_within_method() {
     info "todo: chercher le 'if' au dessus du return, afin de le mettre en condition de l'automate..." $red
 
     #a list of colors is available here: http://www.graphviz.org/doc/info/colors.html
-    fade_state_color="salmon2"
     unknown_state_color="darkgoldenrod1"
     initial_state_color="chartreuse3"
 
@@ -118,25 +116,6 @@ get_return_within_method() {
 
     states=$(cd $statesDirectory && echo * | tr ' ' '\n' | sed -e 's/Scenes.h//' -e 's/\(.*\)\..*/\1/g' -e 's/Scene$/ /g' -e 's/Scene / /g' | tr '\n' ' ' | tr -s ' ')
     echo "States are: $states. Initial state(s) is(are) '"$initial_states"'"
-
-    fade_states=""
-    #there are some specifics states more: the fade out/in states. There are registered in sources/#GameName#Game.cpp
-    OLD_IFS=$IFS
-    IFS=$'\n'
-    for fade_state in $(grep 'registerState' $rootPath/sources/${gameName}Game.cpp | grep 'Scene::CreateFadeSceneHandler'); do
-        if $(echo $fade_state | cut -d '.' -f1 | grep '//' -q); then
-            echo "this is a commented state! $fade_state"
-            continue
-        fi
-        fade_states+="$fade_state "
-
-        fade_state_name=$(echo $fade_state | sed 's/.*(Scene:://' | cut -d ',' -f1)
-        fade_state_next_state=$(echo $fade_state | cut -d ',' -f5 | cut -d ')' -f1 | sed 's/.*Scene:://')
-
-        echo "$fade_state_name [ fillcolor=$fade_state_color ];" >> $temp_file
-        echo "$fade_state_name -> $fade_state_next_state;" >> $temp_file
-    done
-    IFS=$OLD_IFS
 
     #for each state, get its DoUpdate function; and particulary all the 'return' inside it
     for state in $states; do
