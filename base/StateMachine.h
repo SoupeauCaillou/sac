@@ -92,12 +92,12 @@ class StateMachine {
 		struct {
 			T fromState, toState;
 			bool readyExit, readyEnter;
-
+            bool dumbFrom;
 		} transition;
 		bool override, transitionning;
 
     private:
-        void changeState(T oldState, T newState);
+        void changeState(T oldState, T newState, bool ignoreFromState);
 };
 
 

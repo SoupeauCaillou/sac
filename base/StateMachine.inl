@@ -24,7 +24,12 @@ void StateMachine<T>::setup(T initState) {
     for(auto it=state2handler.begin(); it!=state2handler.end(); ++it) {
         it->second->setup();
     }
-    currentState = initState;
+
+    transitionning = transition.readyExit = transition.dumbFrom = true;
+    transition.toState = initState;
+    transition.readyEnter = false;
+
+    state2handler[initState]->onPreEnter(initState);
 }
 
 template<typename T>
@@ -47,7 +52,7 @@ void StateMachine<T>::update(float dt) {
 	if (override) {
         if (overrideNextState == currentState)
             LOGW("overrideNextState == currentState == " << currentState);
-        changeState(currentState, overrideNextState);
+        changeState(currentState, overrideNextState, false);
         override = transitionning = false;
     }
 
@@ -85,8 +90,8 @@ void StateMachine<T>::update(float dt) {
     	if (transition.readyExit && transition.readyEnter) {
             LOGV(2, "Transition complete. New state: " << state2Name[transition.toState]);
             PROFILE("MachineStateTransitionEnd", state2Name[transition.fromState] + "->" + state2Name[transition.toState], InstantEvent);
-            changeState(transition.fromState, transition.toState);
-            transitionning = false;
+            changeState(transition.fromState, transition.toState, transition.dumbFrom);
+            transitionning = transition.dumbFrom = false;
     	}
     }
 }
@@ -104,12 +109,13 @@ T StateMachine<T>::getCurrentState() const {
 }
 
 template<typename T>
-void StateMachine<T>::changeState(T oldState, T newState) {
-    if (oldState == newState) {
+void StateMachine<T>::changeState(T oldState, T newState, bool ignoreFromState) {
+    if (!ignoreFromState && oldState == newState) {
         LOGW("Cannot change state : old state = new state ( = " << oldState << ")");
         return;
     }
-    state2handler[oldState]->onExit(newState);
+    if (!ignoreFromState)
+        state2handler[oldState]->onExit(newState);
     state2handler[newState]->onEnter(oldState);
     currentState = newState;
 }
