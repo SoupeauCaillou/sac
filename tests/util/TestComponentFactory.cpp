@@ -191,10 +191,10 @@ TEST_FIXTURE(TestSetup, TestGimpVec2Modifier)
 
     Entity e = doTest("[Transformation]\nposition%gimp = 10, 20\nsize%gimp = 10, 20");
 
-    CHECK_CLOSE(PlacementHelper::GimpWidthToScreen(10), TRANSFORM(e)->position.x, 0.001);
-    CHECK_CLOSE(PlacementHelper::GimpHeightToScreen(20), TRANSFORM(e)->position.y, 0.001);
-    CHECK_CLOSE(PlacementHelper::GimpXToScreen(10), TRANSFORM(e)->size.x, 0.001);
-    CHECK_CLOSE(PlacementHelper::GimpYToScreen(20), TRANSFORM(e)->size.y, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpXToScreen(10), TRANSFORM(e)->position.x, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpYToScreen(20), TRANSFORM(e)->position.y, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpWidthToScreen(10), TRANSFORM(e)->size.x, 0.001);
+    CHECK_CLOSE(PlacementHelper::GimpHeightToScreen(20), TRANSFORM(e)->size.y, 0.001);
 }
 
 TEST_FIXTURE(TestSetup, TestGimpFloatModifier)

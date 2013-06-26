@@ -134,9 +134,9 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
                 case IntervalValue1: *out = itv.t1; break;
                 case IntervalValue2: *out = itv.t2; break;
             }
-            if (res2 == 0) // name == position
-                applyVec2Modifiers(5, out);
             if (res1 == 0) // name == size
+                applyVec2Modifiers(5, out);
+            if (res2 == 0) // name == position
                 applyVec2Modifiers(51, out);
 
             LOG_SUCCESS_ << out->x << ", " << out->y << "'");
@@ -146,9 +146,9 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             *out = glm::vec2(parsed[0], parsed[1]);
             LOG_SUCCESS_ << out->x << ", " << out->y << "'");
             if (res1 == 0) // name == size
-                applyVec2Modifiers(51, out);
-            else if (res2 == 0) // name == position
                 applyVec2Modifiers(5, out);
+            else if (res2 == 0) // name == position
+                applyVec2Modifiers(51, out);
             return 1;
         }
     }
