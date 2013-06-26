@@ -11,6 +11,8 @@
 #include "systems/TransformationSystem.h"
 #include "systems/AnchorSystem.h"
 
+#include <string>
+
 const std::string floatmodifiers[] =
     { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h"};
 
@@ -123,8 +125,8 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             return 1;
         }
     }
-    int res1 = name.compare("size");
-    int res2 = name.compare("position");
+    int res1 = name.compare(0, 4, "size");
+    int res2 = name.compare(0, 8, "position");
     if (res1 == 0 || res2 == 0) {
         if (dfp.get(section, name + vec2modifiers[5], parsed, 4, false)) {
             // we got an interval
