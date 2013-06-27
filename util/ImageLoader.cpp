@@ -154,7 +154,9 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 }
 
 ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
-    return loadPvr(context, file);
+    ImageDesc im = loadPvr(context, file);
+    im.type = ImageDesc::ECT1;
+    return im;
 }
 
 #ifndef __SAC_EMSCRIPTEN
@@ -197,7 +199,7 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
     LOGI("dwBBitMask: " << header->dwBBitMask);
     LOGI("dwAlphaBitMask: " << header->dwAlphaBitMask);
     // LOGF_IF(header->dwAlphaBitMask, "Alpha channel not supported in compressed textures");
-
+    result.type = ImageDesc::PVR;
 	int size = file.size - sizeof(PVRTexHeader);
 	result.datas = (char*) malloc(size);
 	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
