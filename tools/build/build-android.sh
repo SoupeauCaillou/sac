@@ -4,13 +4,15 @@
 export PLATFORM_OPTIONS="\
 \t\t-j|java: compile java code (.java)
 \t\t-i|install: install on device
-\t\t-l|-log: run adb logcat"
+\t\t-l|-log: run adb logcat
+\t\t-s|-stacktrace: show latest dump crash trace"
 
 
 parse_arguments() {
     UPDATE_JAVA=0
     INSTALL_ON_DEVICE=0
     RUN_LOGCAT=0
+    STACK_TRACE=0
     while [ "$1" != "" ]; do
         case $1 in
             #ignore higher level commands
@@ -31,6 +33,10 @@ parse_arguments() {
             "-l" | "-log")
                 RUN_LOGCAT=1
                 ;;
+            "-s" | "-stacktrace")
+                TARGETS=$TARGETS" "
+                STACK_TRACE=1
+                ;;
             --*)
                 info "Unknown option '$1', ignoring it and its arg '$2'" $red
                 shift
@@ -46,7 +52,7 @@ parse_arguments() {
 check_necessary() {
     #test that the path contains android SDK and android NDK as required
 	check_package_in_PATH "android" "android-sdk/tools"
-	check_package_in_PATH "ndk-build" "android-ndk"
+    check_package_in_PATH "ndk-build" "android-ndk"
 	check_package_in_PATH "adb" "android-sdk/platform-tools"
 	check_package "ant"
 }
@@ -89,6 +95,12 @@ launch_the_application() {
     if [ $RUN_LOGCAT = 1 ]; then
         info "Launching adb logcat..."
         adb logcat -C | grep sac
+    fi
+
+    if [ $STACK_TRACE = 1 ]; then
+        info "Printing latest dump crashes"
+        check_package_in_PATH "ndk-stack" "android-ndk"
+        adb logcat | ndk-stack -sym $rootPath/obj/local/armeabi-v7a
     fi
 }
 
