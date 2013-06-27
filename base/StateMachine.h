@@ -97,6 +97,7 @@ class StateMachine {
 		bool override, transitionning;
 
     private:
+        void transitionTo(T oldState, T newState);
         void changeState(T oldState, T newState, bool ignoreFromState);
 };
 

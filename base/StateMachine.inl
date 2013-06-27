@@ -47,13 +47,29 @@ void StateMachine<T>::registerState(T id, StateHandler<T>* hdl, const std::strin
 }
 
 template<typename T>
+void StateMachine<T>::transitionTo(T oldState, T newState) {
+    LOGE_IF(state2Name.find(newState) == state2Name.end(), "No state handler defined for state: " << newState);
+    LOGV(2, "Transition begins: " << state2Name[oldState] << " -> " << state2Name[newState]);
+    // init transition
+    PROFILE("MachineStateTransitionStart", state2Name[oldState] + "->" + state2Name[newState], InstantEvent);
+    transition.fromState = oldState;
+    transition.toState = newState;
+    transition.readyExit = transition.readyEnter = false;
+    state2handler[oldState]->onPreExit(newState);
+    state2handler[newState]->onPreEnter(oldState);
+    LOGV(2, "Transition preExit/Enter done");
+
+    transitionning = true;
+}
+
+template<typename T>
 void StateMachine<T>::update(float dt) {
 	// Override next state if requested
 	if (override) {
         if (overrideNextState == currentState)
             LOGW("overrideNextState == currentState == " << currentState);
-        changeState(currentState, overrideNextState, false);
-        override = transitionning = false;
+        transitionTo(currentState, overrideNextState);
+        override = false;
     }
 
     // Update active state
@@ -67,18 +83,7 @@ void StateMachine<T>::update(float dt) {
 
         // New state requested ?
         if (newState != currentState) {
-            LOGE_IF(state2Name.find(newState) == state2Name.end(), "No state handler defined for state: " << newState);
-            LOGV(2, "Transition begins: " << state2Name[currentState] << " -> " << state2Name[newState]);
-        	// init transition
-            PROFILE("MachineStateTransitionStart", state2Name[currentState] + "->" + state2Name[newState], InstantEvent);
-        	transition.fromState = currentState;
-        	transition.toState = newState;
-        	transition.readyExit = transition.readyEnter = false;
-            state2handler[currentState]->onPreExit(newState);
-            state2handler[newState]->onPreEnter(currentState);
-            LOGV(2, "Transition preExit/Enter done");
-
-            transitionning = true;
+            transitionTo(currentState, newState);
         }
     } else {
     	if (!transition.readyExit)
