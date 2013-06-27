@@ -193,12 +193,6 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
 	result.height = header->height;
     result.mipmap = header->dwMipMapCount;
     result.channels = 3;
-    LOGI("dwBitCount: " << header->dwBitCount);
-    LOGI("dwRBitMask: " << header->dwRBitMask);
-    LOGI("dwGBitMask: " << header->dwGBitMask);
-    LOGI("dwBBitMask: " << header->dwBBitMask);
-    LOGI("dwAlphaBitMask: " << header->dwAlphaBitMask);
-    // LOGF_IF(header->dwAlphaBitMask, "Alpha channel not supported in compressed textures");
     result.type = ImageDesc::PVR;
 	int size = file.size - sizeof(PVRTexHeader);
 	result.datas = (char*) malloc(size);
