@@ -23,6 +23,9 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
 #if SAC_ANDROID
     pkmFormatSupported = true;
 #endif
+    LOGI("Supported texture format:");
+    LOGI(" - PVR: " << pvrFormatSupported);
+    LOGI(" - PKM: " << pkmFormatSupported);
 }
 
 static GLenum channelCountToGLFormat(int channelCount) {
@@ -198,20 +201,19 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
 #if SAC_ANDROID
-        LOGW("Fix PVR detection");
-        bool pvrSupported = false;
+        LOGT("Fix PVR detection");
         char* ptr = image.datas;
-        LOGV(2, "Using " << (pvrSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
+        LOGV(2, "Using " << (pvrFormatSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
         for (int level=0; level<=image.mipmap; level++) {
             int width = std::max(1, image.width >> level);
             int height = std::max(1, image.height >> level);
             unsigned imgSize = 0;
-            if (pvrSupported)
+            if (pvrFormatSupported)
                 imgSize =( std::max(width, 8) * std::max(height, 8) * 4 + 7) / 8;
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
             LOGV(3, "\t- mipmap " << level << " : " << width << 'x' << height);
-            GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
+            GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrFormatSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
             ptr += imgSize;
         }
 #else
