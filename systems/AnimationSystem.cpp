@@ -40,14 +40,12 @@ void AnimationSystem::DoUpdate(float dt) {
         if (bc->name.empty())
             continue;
         AnimIt jt = animations.find(bc->name);
-        if (jt == animations.end() || bc->playbackSpeed <= 0) {
-            if (jt == animations.end()) {
-                LOGW("Animation '" << bc->name << "' not found. " << animations.size() << " defined animation(s):");
-                for (auto an: animations) {
-                    LOGW("   '" << an.first << "' - " << an.second->frames.size() << " frames");
-                }
-                LOGF_IF(animations.empty(), "Weird, no animations loaded");
+        if (jt == animations.end()) {
+            LOGW("Animation '" << bc->name << "' not found. " << animations.size() << " defined animation(s):");
+            for (auto an: animations) {
+                LOGW("   '" << an.first << "' - " << an.second->frames.size() << " frames");
             }
+            LOGF_IF(animations.empty(), "Weird, no animations loaded");
             continue;
         }
         AnimDescriptor* anim = jt->second;
@@ -58,7 +56,7 @@ void AnimationSystem::DoUpdate(float dt) {
             bc->accum = 0;
             bc->previousName = bc->name;
             bc->loopCount = anim->loopCount.random();
-        } else {
+        } else if (bc->playbackSpeed > 0) {
             if (bc->waitAccum > 0) {
                 bc->waitAccum -= dt;
                 if (bc->waitAccum <= 0) {
