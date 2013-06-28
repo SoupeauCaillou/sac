@@ -20,7 +20,6 @@
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
 #include <GLES2/gl2.h>
-#include <EGL/egl.h>
 #else
 #include <GL/glew.h>
 #define CHECK_GL_ERROR
