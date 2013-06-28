@@ -63,7 +63,7 @@ source $whereAmI/coolStuff.sh
 
 
 ######### 2 : Wait for confirmation to continue #########
-   info "Contirm ? (y/N)" $blue
+   info "Confirm ? (y/N)" $blue
    read confirm
    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
       info "Aborted" $red
