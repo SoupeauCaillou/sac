@@ -17,6 +17,18 @@ function (others_specific_executables)
 endfunction()
 
 function (postbuild_specific_actions)
+    message("Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)")
+    add_custom_command(
+        TARGET "sac" PRE_LINK
+        COMMAND rm -rf tmplibs/ ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar
+        COMMAND mkdir -p tmplibs/lib
+        COMMAND cp -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a tmplibs/lib
+        COMMAND rm -r tmplibs/lib/armeabi-v7a/*.a
+        COMMAND cd tmplibs && zip -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar lib/*
+        COMMAND rm -rf tmplibs/
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Building 'assets' folder"
+    )
 endfunction()
 
 function (import_specific_libs)
