@@ -21,6 +21,7 @@ if [  -h $0 ]; then
 	cd $whereAmI
 fi
 rootPath=$whereAmI"/../../.."
+gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source ../coolStuff.sh
@@ -129,14 +130,13 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
     fi
 
 ######### 2 : Create build dir. #########
-    builddir=$rootPath/build/$CMAKE_BUILD_TARGET-$CMAKE_BUILD_TYPE
+    builddir=$rootPath/build-$gameName/$CMAKE_BUILD_TARGET-$CMAKE_BUILD_TYPE
 	mkdir -p $builddir
 
 ######### 3 : Go into build directory #########
 	cd $builddir
 
 ######### 4 : Execute query. #########
-	gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #Cleaning
 	if [ ! -z "$(echo $TARGETS | grep R)" ]; then
@@ -144,7 +144,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 	fi
 
 	if [ ! -z "$(echo $TARGETS | grep C)" ]; then
-        info "Are you sure you want to clean current build('build/$CMAKE_BUILD_TARGET-$CMAKE_BUILD_TYPE') directory? Press enter to confirm..." $yellow
+        info "Are you sure you want to clean current build('$builddir') directory? Press enter to confirm..." $yellow
         read aaa${RANDOM}ndomav
 		info "Cleaning.."
 		rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null

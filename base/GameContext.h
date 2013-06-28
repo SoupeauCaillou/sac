@@ -21,14 +21,14 @@ class AdAPI;
 class AssetAPI;
 class CommunicationAPI;
 class ExitAPI;
+class GameCenterAPI;
+class KeyboardInputHandlerAPI;
 class LocalizeAPI;
 class MusicAPI;
-class KeyboardInputHandlerAPI;
 class NetworkAPI;
 class SoundAPI;
 class StorageAPI;
 class StringInputAPI;
-class SuccessAPI;
 class VibrateAPI;
 
 namespace ContextAPI {
@@ -37,6 +37,7 @@ namespace ContextAPI {
         Asset,
         Communication,
         Exit,
+        GameCenter,
         KeyboardInputHandler,
         Localize,
         Music,
@@ -44,23 +45,31 @@ namespace ContextAPI {
         Sound,
         Storage,
         StringInput,
-        Success,
         Vibrate
     };
 }
 
 struct GameContext {
-    GameContext() : adAPI(0),
-        assetAPI(0), communicationAPI(0),
-        exitAPI(0), keyboardInputHandlerAPI(0),
-        localizeAPI(0), musicAPI(0),
-        networkAPI(0), soundAPI(0),
-        storageAPI(0), stringInputAPI(0),
-        successAPI(0), vibrateAPI(0) {}
+    GameContext() :
+        adAPI(0),
+        assetAPI(0),
+        communicationAPI(0),
+        exitAPI(0),
+        gameCenterAPI(0),
+        keyboardInputHandlerAPI(0),
+        localizeAPI(0),
+        musicAPI(0),
+        networkAPI(0),
+        soundAPI(0),
+        storageAPI(0),
+        stringInputAPI(0),
+        vibrateAPI(0) {}
+
     AdAPI* adAPI;
     AssetAPI* assetAPI;
     CommunicationAPI* communicationAPI;
     ExitAPI* exitAPI;
+    GameCenterAPI* gameCenterAPI;
     KeyboardInputHandlerAPI* keyboardInputHandlerAPI;
     LocalizeAPI* localizeAPI;
     MusicAPI* musicAPI;
@@ -68,6 +77,5 @@ struct GameContext {
     SoundAPI* soundAPI;
     StorageAPI* storageAPI;
     StringInputAPI* stringInputAPI;
-    SuccessAPI* successAPI;
     VibrateAPI* vibrateAPI;
 };

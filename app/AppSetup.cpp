@@ -64,8 +64,8 @@
 #include "api/linux/StringInputAPISDLImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
+#include "api/linux/GameCenterAPIDebugImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
-#include "api/SuccessAPI.h"
 
 #include "util/Recorder.h"
 
@@ -207,6 +207,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->communicationAPI = new CommunicationAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Exit))
         ctx->exitAPI = new ExitAPILinuxImpl();
+    if (game->wantsAPI(ContextAPI::GameCenter))
+        ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
         ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPIGLFWImpl();
     if (game->wantsAPI(ContextAPI::Localize))
@@ -223,8 +225,6 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->storageAPI = new SqliteStorageAPIImpl();
     if (game->wantsAPI(ContextAPI::StringInput))
         ctx->stringInputAPI = new StringInputAPISDLImpl();
-    if (game->wantsAPI(ContextAPI::Success))
-        ctx->successAPI = new SuccessAPI();
     if (game->wantsAPI(ContextAPI::Vibrate))
         ctx->vibrateAPI = new VibrateAPILinuxImpl();
 

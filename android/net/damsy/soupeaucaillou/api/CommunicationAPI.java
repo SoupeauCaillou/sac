@@ -9,19 +9,8 @@ import android.net.Uri;
 import com.purplebrain.giftiz.sdk.GiftizSDK;
 import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.ButtonNeedsUpdateDelegate;
 import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.GiftizButtonStatus;
-import com.swarmconnect.Swarm;
 
 public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
-	public class SwarmParam {
-		final public int gameID;
-		final public String gameKey;
-
-		public SwarmParam(final int id, final String key) {
-			this.gameID = id;
-			this.gameKey = key;
-		}
-	}
-
 	public boolean giftizEnabled;
 
 	private static CommunicationAPI instance = null;
@@ -36,22 +25,16 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 	private GiftizSDK.Inner.GiftizButtonStatus buttonStatus;
 	private Activity activity;
 	private SharedPreferences appRaterPreference;
-	private SwarmParam swarmParam;
 
-	public void init(Activity activity, SharedPreferences appRaterPreference,
-			SwarmParam swarmParam, boolean giftizEnabled) {
+	public void init(Activity activity, SharedPreferences appRaterPreference, boolean giftizEnabled) {
 		this.activity = activity;
 		this.appRaterPreference = appRaterPreference;
-		this.swarmParam = swarmParam;
 		this.giftizEnabled = giftizEnabled;
 		this.buttonStatus = GiftizButtonStatus.ButtonInvisible;
 
 		if (this.giftizEnabled) {
 			buttonStatus = GiftizSDK.Inner.getButtonStatus(activity);
 			GiftizSDK.Inner.setButtonNeedsUpdateDelegate(this);
-		}
-		if (this.swarmParam != null) {
-			Swarm.setActive(activity);
 		}
         /////////////////////////// INCREASE LAUNCH_COUNT
         long newValue = appRaterPreference.getLong("launch_count", 0) + 1;
@@ -64,30 +47,6 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 	// -------------------------------------------------------------------------
 	// CommunicationAPI
 	// -------------------------------------------------------------------------
-	public boolean isGameCenterLoggedIn() {
-		if (swarmParam != null) {
-			return Swarm.isLoggedIn();
-		} else {
-			return false;
-		}
-	}
-
-	public void openGameCenter() {
-		if (swarmParam != null) {
-			activity.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					if (!Swarm.isInitialized()) {
-						Swarm.init(activity, swarmParam.gameID,
-								swarmParam.gameKey);
-					} else {
-						Swarm.showLeaderboards();
-					}
-				}
-			});
-		}
-	}
-
 	public void giftizMissionDone() {
 		if (giftizEnabled) {
 			SacActivity.LogI("Mission done!");
@@ -167,33 +126,16 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 	public void buttonNeedsUpdate() {
 		buttonStatus = GiftizSDK.Inner.getButtonStatus(activity);
 	}
-	
+
 	public void onActivityPaused(final Activity act) {
 		if (giftizEnabled) {
 			GiftizSDK.onPauseMainActivity(act);
 		}
-		if (swarmParam != null) {
-			Swarm.setInactive(act);
-		}
 	}
-	
+
 	public void onActivityResumed(final Activity act) {
 		if (giftizEnabled) {
 			GiftizSDK.onResumeMainActivity(act);
-		}
-		if (swarmParam != null) {
-			Swarm.setActive(act);
-			
-	    	//	start swarm if this is the first launch (0 coin) OR it's enabled
-	    	if (swarmParam.gameID != 0 && Swarm.isEnabled()) {
-			    act.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						SacActivity.LogI("Init swarm");
-						Swarm.init(act, swarmParam.gameID, swarmParam.gameKey);
-					}
-				});
-	    	}
 		}
 	}
 }

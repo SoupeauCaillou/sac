@@ -25,7 +25,7 @@
 #include "api/android/StringInputAPIAndroidImpl.h"
 #include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/ExitAPIAndroidImpl.h"
-#include "api/android/SuccessAPIAndroidImpl.h"
+#include "api/android/GameCenterAPIAndroidImpl.h"
 #include "api/android/VibrateAPIAndroidImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 
@@ -71,6 +71,8 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
             gCtx->communicationAPI = new CommunicationAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Exit))
             gCtx->exitAPI = new ExitAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::GameCenter))
+            gCtx->gameCenterAPI = new GameCenterAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Localize))
             gCtx->localizeAPI = new LocalizeAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Music))
@@ -83,8 +85,6 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
             gCtx->soundAPI = new SoundAPIAndroidImpl();
        if (game->wantsAPI(ContextAPI::StringInput))
            gCtx->stringInputAPI = new StringInputAPIAndroidImpl();
-        if (game->wantsAPI(ContextAPI::Success))
-            gCtx->successAPI = new SuccessAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Vibrate))
             gCtx->vibrateAPI = new VibrateAPIAndroidImpl();
 
@@ -135,9 +135,9 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
     INIT_1(localizeAPI, game, LocalizeAPIAndroidImpl)
     INIT_1(adAPI, game, AdAPIAndroidImpl)
     INIT_1(exitAPI, game, ExitAPIAndroidImpl)
+    INIT_1(gameCenterAPI, game, GameCenterAPIAndroidImpl)
     INIT_1(musicAPI, game, MusicAPIAndroidImpl)
     INIT_1(soundAPI, game, SoundAPIAndroidImpl)
-    INIT_1(successAPI, game, SuccessAPIAndroidImpl)
     INIT_1(vibrateAPI, game, VibrateAPIAndroidImpl)
     INIT_1(communicationAPI, game, CommunicationAPIAndroidImpl)
 

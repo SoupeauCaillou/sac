@@ -1,8 +1,6 @@
 #include "CommunicationAPIAndroidImpl.h"
 
 CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl()  : JNIWrapper<jni_comm_api::Enum>("net/damsy/soupeaucaillou/api/CommunicationAPI", true) {
-    declareMethod(jni_comm_api::IsGameCenterLoggedIn, "isGameCenterLoggedIn", "()Z");
-    declareMethod(jni_comm_api::OpenGameCenter, "openGameCenter", "()V");
     declareMethod(jni_comm_api::GiftizMissionDone, "giftizMissionDone", "()V");
     declareMethod(jni_comm_api::GiftizGetButtonState, "giftizGetButtonState", "()I");
     declareMethod(jni_comm_api::GiftizButtonClicked, "giftizButtonClicked", "()V");
@@ -16,15 +14,6 @@ CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl()  : JNIWrapper<jni_com
 
 void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
-}
-
-bool CommunicationAPIAndroidImpl::isGameCenterLoggedIn() {
-   return env->CallBooleanMethod(instance, methods[jni_comm_api::IsGameCenterLoggedIn]);
-}
-
-bool CommunicationAPIAndroidImpl::openGameCenter() {
-   env->CallVoidMethod(instance, methods[jni_comm_api::OpenGameCenter]);
-   return true;
 }
 
 void CommunicationAPIAndroidImpl::giftizMissionDone() {
