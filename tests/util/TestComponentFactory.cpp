@@ -9,6 +9,9 @@
 #include "base/PlacementHelper.h"
 #include "base/EntityManager.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+
 struct TestSetup {
     TestSetup() {
         ADSRSystem::CreateInstance();
@@ -208,4 +211,12 @@ TEST_FIXTURE(TestSetup, TestGimpFloatModifier)
     CHECK_CLOSE(PlacementHelper::GimpHeightToScreen(10), ADSR(e)->attackValue, 0.001);
     CHECK_CLOSE(PlacementHelper::GimpXToScreen(5), ADSR(e)->attackTiming, 0.001);
     CHECK_CLOSE(PlacementHelper::GimpYToScreen(2), ADSR(e)->decayTiming, 0.001);
+}
+
+TEST_FIXTURE(TestSetup, TestDegreeFloatModifier)
+{
+    Entity e = doTest(  "[Transformation]\n"\
+                        "rotation%degrees = 45");
+
+    CHECK_CLOSE(glm::quarter_pi<float>(), TRANSFORM(e)->rotation, 0.001);
 }

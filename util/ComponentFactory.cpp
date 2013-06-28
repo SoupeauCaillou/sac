@@ -11,10 +11,12 @@
 #include "systems/TransformationSystem.h"
 #include "systems/AnchorSystem.h"
 
+#include <glm/glm.hpp>
+
 #include <string>
 
 const std::string floatmodifiers[] =
-    { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h"};
+    { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h", "%degrees"};
 
 const std::string vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp", };
@@ -82,6 +84,9 @@ static void applyFloatModifiers(int idx, float* out, int count) {
                 break;
             case 6:
                 out[i] = PlacementHelper::GimpHeightToScreen(out[i]);
+                break;
+            case 7:
+                out[i] = glm::radians(out[i]);
                 break;
         }
     }
@@ -268,7 +273,7 @@ template <>
 inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, float* out) {
     float parsed[2];
 
-    for (int i=0; i<7; i++) {
+    for (int i=0; i<8; i++) {
         if (dfp.get(section, name + floatmodifiers[i], parsed, 2, false)) {
             applyFloatModifiers(i, parsed, 2);
             // we got an interval
