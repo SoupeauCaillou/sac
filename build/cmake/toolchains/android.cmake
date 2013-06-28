@@ -17,7 +17,6 @@ function (others_specific_executables)
 endfunction()
 
 function (postbuild_specific_actions)
-    message("Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)")
     add_custom_command(
         TARGET "sac" POST_BUILD
         COMMAND rm -rf tmplibs/ ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar
@@ -27,7 +26,7 @@ function (postbuild_specific_actions)
         COMMAND cd tmplibs && zip -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar lib/*
         COMMAND rm -rf tmplibs/
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMENT "Building 'assets' folder"
+        COMMENT "Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)"
     )
 endfunction()
 

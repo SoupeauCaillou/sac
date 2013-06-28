@@ -19,8 +19,6 @@ class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gam
     public:
         GameCenterAPIAndroidImpl();
 
-        void init(JNIEnv* env);
-
         void connectOrRegister();
 
         bool isRegistered();
@@ -32,7 +30,5 @@ class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gam
         void openLeaderboards();
         void openSpecificLeaderboard(int id);
         void openDashboard();
-    public:
-        JNIEnv* env;
 };
 

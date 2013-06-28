@@ -11,10 +11,6 @@ GameCenterAPIAndroidImpl::GameCenterAPIAndroidImpl()  : JNIWrapper<jni_gamecente
     declareMethod(jni_gamecenter_api::openDashboard, "openDashboard", "()V");
 }
 
-void GameCenterAPIAndroidImpl::init(JNIEnv* pEnv) {
-    env = pEnv;
-}
-
 bool GameCenterAPIAndroidImpl::isRegistered() {
    return env->CallBooleanMethod(instance, methods[jni_gamecenter_api::isRegistered]);
 }
