@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #how to use the script
-export USAGE="$0 pathOfGame NewName [--preview]"
-export OPTIONS="--preview : don't apply changes."
-export EXAMPLE="$0 /tmp/heriswap Prototype"
+export SAC_USAGE="$0 pathOfGame NewName [--preview]"
+export SAC_OPTIONS="--preview : don't apply changes."
+export SAC_EXAMPLE="$0 /tmp/heriswap Prototype"
 #where the script is
 whereAmI=$(cd "$(dirname "$0")" && pwd)
 #import cool stuff
