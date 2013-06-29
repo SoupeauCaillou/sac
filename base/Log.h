@@ -4,6 +4,8 @@ extern bool AssertOnFatal;
 
 //to handle vec2 operator<<
 #include <ostream>
+#include <iomanip>
+
 #include <glm/glm.hpp>
 inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
     return stream << v.x << ", " << v.y;

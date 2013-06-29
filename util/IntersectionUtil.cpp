@@ -51,51 +51,66 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
     //line are parallels - need to check if they are coincidents or not
     if(glm::abs(denom) < eps)
     {
-        // they are coincidents if qA is in [pA, pB] or if qB is in [pA, pB]
-        const float pDeltaX = pB.x - pA.x;
-        const float pDeltaY = pB.y - pA.y;
+        // they are coincidents if one of the extremity of the smaller line is contained in the big one
+
+        glm::vec2 smallerA(pA), smallerB(pB);
+        glm::vec2 biggerA(qA), biggerB(qB);
+        if (glm::length2(pB - pA) > glm::length2(qB - qA)) {
+            smallerA = qA;
+            smallerB = qB;
+            biggerA = pA;
+            biggerB = pB;
+        }
+
+        const float pDeltaX = biggerB.x - biggerA.x;
+        const float pDeltaY = biggerB.y - biggerA.y;
 
         //if the line is not totally VERTICALE, use the normal approach
         if (glm::abs(pDeltaX) > eps) {
-            const float ua = (qA.x - pA.x) / pDeltaX;
-            const float ub = (qB.x - pA.x) / pDeltaX;
+            const float ua = (smallerA.x - biggerA.x) / pDeltaX;
+            const float ub = (smallerB.x - biggerA.x) / pDeltaX;
 
-            //is qA in segment?
-            if ((pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) && glm::abs(qA.y - (pA.y + ua * pDeltaY)) < eps) {
+            //is smallerA in segment?
+            if ((pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) && glm::abs(smallerA.y - (biggerA.y + ua * pDeltaY)) < eps) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = pA + (pB - pA) * ua;
+                    *intersectionPoint = biggerA + (biggerB - biggerA) * ua;
                 }
                 return true;
-            // or qB?
-            } else if ((pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) && glm::abs(qB.y - (pA.y + ub * pDeltaY)) < eps) {
+            // or smallerB?
+            } else if ((pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) && glm::abs(smallerB.y - (biggerA.y + ub * pDeltaY)) < eps) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = pA + (pB - pA) * ub;
+                    *intersectionPoint = biggerA + (biggerB - biggerA) * ub;
                 }
                 return true;
             }
+            // LOGI(std::fixed << std::setprecision(5) << "1. " << ua << " " << ub);
         //vertical line, special case. Just need to check if they are on the same X
-        } else if (glm::abs(qA.x - pA.x) < eps) {
-            const float ua = (qA.y - pA.y) / pDeltaY;
-            const float ub = (qB.y - pA.y) / pDeltaY;
+        } else if (glm::abs(smallerA.x - biggerA.x) < eps) {
+            const float ua = (smallerA.y - biggerA.y) / pDeltaY;
+            const float ub = (smallerB.y - biggerA.y) / pDeltaY;
 
             if (pIsStraigth || (ua >= -eps && ua <= 1.f + eps)) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = pA + (pB - pA) * ua;
+                    *intersectionPoint = biggerA + (biggerB - biggerA) * ua;
                 }
                 return true;
             } else if (pIsStraigth || (ub >= -eps && ub <= 1.f + eps)) {
                 if (intersectionPoint != 0) {
-                    *intersectionPoint = pA + (pB - pA) * ub;
+                    *intersectionPoint = biggerA + (biggerB - biggerA) * ub;
                 }
                 return true;
             }
+            // LOGI(std::fixed << std::setprecision(5) << "2. " << ua << " " << ub);
         }
-
+        // LOGI(std::fixed << std::setprecision(5) << denom << " " << nume_a << " " << nume_b << " " << pDeltaX << " " << pDeltaY);
         return false;
     }
 
     float ua = nume_a / denom;
     float ub = nume_b / denom;
+
+    // LOGI(std::fixed << std::setprecision(5) << "3. " << ua << " " << ub);
+    // LOGI(std::fixed << std::setprecision(5) << denom << " " << nume_a << " " << nume_b);
 
     if (!pIsStraigth && (ua < -eps || ua > 1.f + eps)) {
         return false;
