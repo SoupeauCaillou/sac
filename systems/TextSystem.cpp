@@ -5,12 +5,14 @@
 
 #include <glm/glm.hpp>
 #include "base/EntityManager.h"
+#include "base/Log.h"
 
 #include "AnchorSystem.h"
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
 
 #include "util/MurmurHash.h"
+
 
 struct CacheKey {
     Color color;
@@ -171,6 +173,7 @@ void TextSystem::DoUpdate(float dt) {
 
 #if SAC_DEBUG
         int lastValidCharIndex = -1;
+        std::vector<int> invalidLettersTexturePosition;
 #endif
         // Setup rendering for each individual letter
 		for(unsigned int i=0; i<length; i++) {
@@ -258,10 +261,12 @@ void TextSystem::DoUpdate(float dt) {
                 skip = next + 1;
             } else {
                 if (unicode > fontDesc.highestUnicode) {
+#if SAC_DEBUG
                     LOGW("Missing unicode char: "
                         << unicode << "(highest one: " << fontDesc.highestUnicode
                             << ") for string '" << trc->text << "', entity: '"
                     << theEntityManager.entityName(entity) << "'");
+#endif
                     unicode = 0;
                 }
                 const CharInfo& info = fontDesc.entries[unicode];
@@ -273,11 +278,7 @@ void TextSystem::DoUpdate(float dt) {
                 } else {
 #if SAC_DEBUG
                     if (info.texture == invalidCharTexture) {
-                        LOGW("Missing character in string: '" << trc->text << "', entity: '"
-                            << theEntityManager.entityName(entity) << "'. Unicode: " << unicode);
-                        std::string s;
-                        s.resize(strlen("Missing character in string: '") + lastValidCharIndex, ' ');
-                        LOGW(s << '^');
+                        invalidLettersTexturePosition.push_back(lastValidCharIndex);
                     }
 #endif
                     rc->texture = info.texture;
@@ -302,6 +303,23 @@ void TextSystem::DoUpdate(float dt) {
                 i = skip;
             }
 		}
+#if SAC_DEBUG
+        if (invalidLettersTexturePosition.size() > 0) {
+            std::stringstream ss;
+            ss << "Missing character(s) in string: '";
+            const auto offset = ss.str().size();
+            ss << trc->text << "', entity: '"
+                << theEntityManager.entityName(entity) << "'.";
+
+            std::string str(offset + trc->text.size(), ' ');
+
+            for (auto position : invalidLettersTexturePosition) {
+                str[offset + position] = '^';
+            }
+            //finally, show the log!
+            LOGW_EVERY_N(60, ss.str() << std::endl << std::string(LOG_OFFSET(), ' ') << str);
+        }
+#endif
 
         // if we appended a caret, remove it
 		if (caretInserted) {

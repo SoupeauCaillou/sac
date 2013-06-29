@@ -30,6 +30,7 @@ namespace LogVerbosity {
 
 extern LogVerbosity::Enum logLevel;
 extern std::map<std::string, bool> verboseFilenameFilters;
+int logHeaderLength(const char* file, int line);
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
 
@@ -69,6 +70,9 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
     if ((cond)) \
         __LOG(level, x) \
 } while (false)
+
+#define LOG_OFFSET() \
+    logHeaderLength(__FILE__,__LINE__)
 
 #define LOGF(x) __LOG_WHILE(LogVerbosity::FATAL, x)
 #define LOGE(x) __LOG_WHILE(LogVerbosity::ERROR, x)
@@ -126,6 +130,7 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 
 #else
 
+#define LOG_OFFSET() 0
 #define LOGF(x) do { assert(!AssertOnFatal); } while (false)
 #define LOGE(x) do {} while(false)
 #define LOGT(x) do {} while(false)

@@ -6,7 +6,7 @@ bool AssertOnFatal = true;
 
 #include "TimeUtil.h"
 #include <iomanip>
-
+#include <sstream>
 
 LogVerbosity::Enum logLevel =
 #ifdef SAC_ANDROID
@@ -46,6 +46,13 @@ static const char* keepOnlyFilename(const char* fullPath) {
 
 static const char* enum2Name(LogVerbosity::Enum t) {
 	return enumNames[(int)t];
+}
+
+int logHeaderLength(const char* file, int line) {
+    static std::stringstream ss;
+    ss.str("");
+    logToStream(ss, LogVerbosity::INFO, file, line);
+    return ss.str().size();
 }
 
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line) {
