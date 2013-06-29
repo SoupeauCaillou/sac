@@ -294,7 +294,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
  //   delete record;
     SDL_Quit();
 
+#if SAC_INGAME_EDITORS
     TwTerminate();
+#endif
+
 #endif
 
 
