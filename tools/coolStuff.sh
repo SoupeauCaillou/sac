@@ -5,7 +5,8 @@
 	reset="[0m"
 	red="[1m[31m"
 	green="[1m[32m"
-	yellow="[1m[33m"
+    yellow="[1m[33m"
+    orange="[0m[33m"
 	blue="[1m[34m"
     default_color="$yellow"
 
