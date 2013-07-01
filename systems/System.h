@@ -135,7 +135,7 @@ class ComponentSystem {
         static const std::map<std::string, ComponentSystem*>& registeredSystems();
 
 #if SAC_INGAME_EDITORS
-        void addEntityPropertiesToBar(Entity e, TwBar* bar);
+        bool addEntityPropertiesToBar(Entity e, TwBar* bar);
 #endif
 
 	protected:

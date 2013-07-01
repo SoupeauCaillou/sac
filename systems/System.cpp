@@ -81,10 +81,10 @@ static void textureSetCB(const void* valueIn, void* clientData);
 static void textureGetCB(void* valueOut, void* clientData);
 static void entityGetCB(void* valueOut, void* clientData);
 
-void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
-        return;
+        return false;
     const std::string& group = name;
     // Browse properties, and add them to the TwBar
     for(IProperty* prop: componentSerializer.getProperties()) {
@@ -147,6 +147,7 @@ void ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                 break;
         }
     }
+    return true;
 }
 
 static void textureSetCB(const void* valueIn, void* clientData) {
