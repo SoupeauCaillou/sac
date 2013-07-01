@@ -72,6 +72,28 @@ const std::string& EntityManager::entityName(Entity e) const {
 }
 #endif
 
+Entity EntityManager::getEntityByName(const std::string& name) const {
+	Entity byName = 0;
+#if SAC_DEBUG
+	bool found = false;
+#endif
+	for (const auto& p: entity2name) {
+		if (p.second == name) {
+			byName = p.first;
+#if SAC_DEBUG
+			if (found) {
+				LOGW("Requesting entity by name, but multiple entities share the same name: '" << name << "'");
+			}
+			found = true;
+#else
+			break;
+#endif
+		}
+	}
+
+	return byName;
+}
+
 void EntityManager::DeleteEntity(Entity e) {
     auto i = entityComponents.find(e);
     LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity '" << e << "'");

@@ -443,14 +443,20 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 break;
             }
             case PropertyType::Entity: {
-                EntityTemplateRef r;
-                memcpy(&r, (*it).second, sizeof(r));
-                Entity* e = TYPE_2_PTR(Entity);
-                if (*e) {
-                    theEntityManager.DeleteEntity(*e);
+                uint8_t* a = (*it).second;
+                if (a[0] == 0) {
+                    a++;
+                    EntityTemplateRef r;
+                    memcpy(&r, a, sizeof(r));
+                    Entity* e = TYPE_2_PTR(Entity);
+                    if (*e) {
+                        theEntityManager.DeleteEntity(*e);
+                    }
+                    *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
+                    ANCHOR(*e)->parent = entity;
+                } else if (a[0] == 1) {
+                    memcpy(TYPE_2_PTR(Entity), a + 1, sizeof(Entity));
                 }
-                *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
-                ANCHOR(*e)->parent = entity;
                 break;
             }
             default:
@@ -546,12 +552,20 @@ static bool loadSingleProperty(const std::string& context,
             if (load(dfp, section, name + "%template", IntervalAsRandom, &s)) {
                 std::string subEntityName(context + std::string("#") + name);
                 EntityTemplateRef r = MurmurHash::compute(subEntityName.c_str(), subEntityName.length());
-                uint8_t* arr = new uint8_t[sizeof(r)];
-                memcpy(arr, &r, sizeof(r));
+                uint8_t* arr = new uint8_t[sizeof(r) + 1];
+                arr[0] = 0;
+                memcpy(arr + 1, &r, sizeof(r));
                 propMap.insert(std::make_pair(name, arr));
                 subEntities.push_back(name);
                 theEntityManager.entityTemplateLibrary.defineParent(r,
                     theEntityManager.entityTemplateLibrary.load(s));
+            } else if (load(dfp, section, name + "%name", IntervalAsRandom, &s)) {
+                Entity byName = theEntityManager.getEntityByName(s);
+                LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << name << "'");
+                uint8_t* arr = new uint8_t[sizeof(Entity) + 1];
+                arr[0] = 1;
+                memcpy(arr + 1, &byName, sizeof(byName));
+                propMap.insert(std::make_pair(name, arr));
             }
             break;
         }

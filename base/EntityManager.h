@@ -53,6 +53,8 @@ class EntityManager {
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
+		Entity getEntityByName(const std::string& name) const;
+
 #ifdef SAC_DEBUG
         const std::string& entityName(Entity e) const;
 #else
