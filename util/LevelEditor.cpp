@@ -270,17 +270,18 @@ void LevelEditor::tick(float dt) {
 
             std::string define = "";
             if (groups[displayName(e)].size() > 1) {
-                define = "group=" + displayName(e);
+                define = "group='" + displayName(e) + "'";
             }
             TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], define.c_str());
-
             bool added = datas->barVar.insert(std::make_pair(e, n.str())).second;
             LOGF_IF(!added, "Added is false: " << e << '/' << n.str());
 
         }
         for (const auto gp: groups) {
-            if (gp.second.size() > 1)
-                TwDefine(std::string("EntityList/" + gp.first + " opened=false").c_str());
+            if (gp.second.size() > 1) {
+                const std::string d("EntityList/'" + gp.first + "' opened=false");
+                TwDefine(d.c_str());
+            }
         }
 
         for (auto it=datas->barVar.begin(); it!=datas->barVar.end(); ) {
