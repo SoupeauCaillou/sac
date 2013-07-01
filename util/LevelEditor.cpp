@@ -93,10 +93,12 @@ static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
     std::vector<std::string> systems = ComponentSystem::registeredSystemNames();
     for (unsigned i=0; i<systems.size(); i++) {
         ComponentSystem* system = ComponentSystem::Named(systems[i]);
-        system->addEntityPropertiesToBar(e, bar);
-        std::stringstream fold;
-        fold << TwGetBarName(bar) << '/' << systems[i] << " opened=false";
-        TwDefine(fold.str().c_str());
+
+        if (system->addEntityPropertiesToBar(e, bar)) {
+            std::stringstream fold;
+            fold << TwGetBarName(bar) << '/' << systems[i] << " opened=false";
+            TwDefine(fold.str().c_str());
+        }
     }
     return bar;
 }
@@ -277,7 +279,8 @@ void LevelEditor::tick(float dt) {
 
         }
         for (const auto gp: groups) {
-            TwDefine(std::string("EntityList/" + gp.first + " opened=false").c_str());
+            if (gp.second.size() > 1)
+                TwDefine(std::string("EntityList/" + gp.first + " opened=false").c_str());
         }
 
         for (auto it=datas->barVar.begin(); it!=datas->barVar.end(); ) {
