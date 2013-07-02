@@ -55,15 +55,8 @@ class EntityManager {
 
 		Entity getEntityByName(const std::string& name) const;
 
-#ifdef SAC_DEBUG
         const std::string& entityName(Entity e) const;
-#else
-        const inline std::string entityName(Entity e) const {
-            static std::stringstream ss;
-            ss << e;
-            return ss.str();
-        }
-#endif
+
         int getNumberofEntity() {return entityComponents.size();}
 
 	private:
