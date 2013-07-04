@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	os.chdir(script_directory)
 	command = 'gimp -idfs --batch-interpreter python-fu-eval -b '\
 			  '"import sys; sys.path=[\'.\']+sys.path;'\
-			  'import extrate_calc_xcf as e; e.run(\''+directory+'\')" -b "pdb.gimp_quit(1)"'
+			  'import extract_xcf_layers as e; e.run(\''+directory+'\')" -b "pdb.gimp_quit(1)"'
 	os.system(command)
 	os.chdir(directory)
 
