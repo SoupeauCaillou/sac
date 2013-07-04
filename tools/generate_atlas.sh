@@ -78,7 +78,6 @@ convert /tmp/$1.png -alpha extract PNG32:../assets/$1_alpha.png
 # mais pourquoi j'ai fait ca ?convert ../assets/$1_alpha.png -background white -flatten +matte -depth 8 ../assets/$1_alpha.png
 convert /tmp/$1.png -background white -alpha off -type TrueColor PNG24:../assetspc/$1.png
 
-exit 1
 if  $hasPVRTool ; then
     echo "${green}Step #6: create PVR version${reset}"
     PVRTexToolCL -f OGLPVRTC4 -yflip0 -i ../assetspc/$1.png -p -pvrlegacy -m -o /tmp/$1.pvr
