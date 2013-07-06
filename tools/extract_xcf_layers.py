@@ -3,24 +3,27 @@
 
 import os, glob, sys, time
 
+allowedFormat = [".xcf", ".psd"]
+
 def run(directory, rewrite = False):
 	from gimpfu import pdb
 	start = time.time()
 	#for all xcf files in working directory
 	print("Running on directory '{0}'".format(directory))
 	for filename in os.listdir(directory):
-		if ".xcf" in filename[-4:]:
-			print("Found a xcf file : '{0}'".format(filename))
+		if filename[-4:] in allowedFormat:
+			print("Found a file : '{0}'".format(filename))
 			image = pdb.gimp_file_load(directory+filename, directory+filename)
 
 			for layer in image.layers:
-				output = layer.name
-				#check if an existing as already this name
-				while output+".png" in os.listdir(directory) and not rewrite:
-					output += '1'
-				print("Write layer '{0}' in '{1}.png'".format(layer.name, output))
-				# write the new png file
-				pdb.file_png_save(image, layer, directory + output +".png", directory + output + ".png", 0, 9, 0, 0, 0, 0, 0)
+				for c in [layer] + layer.children:
+					output = c.name
+					#check if an existing as already this name
+					while output+".png" in os.listdir(directory) and not rewrite:
+						output += '1'
+					print("Write layer '{0}' in '{1}.png'".format(c.name, output))
+					# write the new png file
+					pdb.file_png_save(image, c, directory + output +".png", directory + output + ".png", 0, 9, 0, 0, 0, 0, 0)
 
 	end = time.time()
 	print("Finished, total processing time : {0:.{1}f}".format(end-start, 2))
