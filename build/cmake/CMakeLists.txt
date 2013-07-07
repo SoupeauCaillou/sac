@@ -218,8 +218,7 @@ if (DESKTOP_BUILD)
     add_library("jsoncpp" STATIC ${jsoncpp_sources})
     target_link_libraries("sac" jsoncpp)
 
-    check_and_link_libs("sac" GLEW SDL OpenAL Sqlite3 VorbisFile Vorbis ZLIB
-        AntTweakBar Ogg Tinyxml2)
+    check_and_link_libs("sac" AntTweakBar GLEW Ogg OpenAL SDL Sqlite3 Tinyxml2 VorbisFile Vorbis ZLIB)
 
 
 endif()

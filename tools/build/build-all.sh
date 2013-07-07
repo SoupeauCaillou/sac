@@ -27,7 +27,7 @@ gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr 
 source ../coolStuff.sh
 
 #get the list of available targets (need to be displayed in OPTIONS help
-TARGETS_LIST=$(grep -m 1 SUPPORTED_TARGETS ../../build/cmake/CMakeLists.txt | cut -d " " -f 2- | tr -d ')')
+TARGETS_LIST=$(grep SUPPORTED_TARGETS ../../build/cmake/CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
 
 #how to use the script
 export SAC_USAGE="$0 [options]"
@@ -87,7 +87,6 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
                 TARGETS=$TARGETS$1
         esac
         shift
-
     done
 
     #if we didn't ask for help, get the target config
@@ -161,6 +160,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
             error_and_quit "Error in cmake. Maybe should run with C option?"
         fi
 
+        check_package "make"
         if (!(make -j4)); then
             compilation_after
             error_and_quit "Error in make"

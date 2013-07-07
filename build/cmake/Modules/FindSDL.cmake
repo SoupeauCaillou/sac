@@ -1,20 +1,20 @@
 #name in uppercase
-set(NAME "TINYXML2")
+set(NAME "SDL")
 
 #names of the 'physic' lib directory
-set(DIR_POSSIBLE_NAMES TINYXML2 tinyxml2)
+set(DIR_POSSIBLE_NAMES sdl SDL)
 
 #headers' directory name
 set(HEADER_DIR include)
 
 #libraries' directory name
-set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64)
+set(LIBRARY_DIR lib lib/x86 lib/x64)
 
 #headers' name (.h)
-set(HEADER_NAMES tinyxml2.h)
+set(HEADER_NAMES SDL.h)
 
 #libraries' name (.lib)
-set(LIBRARY_POSSIBLE_NAMES tinyxml tinyxml2)
+set(LIBRARY_POSSIBLE_NAMES SDL)
 
 ######################### GENERIC PART #################################
 ################### It shouldn't be modified ###########################
