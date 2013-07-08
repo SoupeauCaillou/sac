@@ -5,7 +5,7 @@ set(NAME "SDL")
 set(DIR_POSSIBLE_NAMES sdl SDL)
 
 #headers' directory name
-set(HEADER_DIR include)
+set(HEADER_DIR include include/SDL)
 
 #libraries' directory name
 set(LIBRARY_DIR lib lib/x86 lib/x64)
