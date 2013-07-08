@@ -2,10 +2,12 @@
 
 #include "System.h"
 
+#include "opengl/TextureLibrary.h"
+
 class VibrateAPI;
 
 struct ButtonComponent {
-	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false), overSize(1.f) , vibration(0.035f) { }
+	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false), textureActive(InvalidTextureRef), textureInactive(InvalidTextureRef), overSize(1.f) , vibration(0.035f) { }
 
     ////// READ ONLY variables
     // States of button
@@ -21,6 +23,9 @@ struct ButtonComponent {
 	////// END OF READ/WRITE variables
 
 	////// WRITE ONLY variables
+	// inactive -> all the time
+	// active -> texture when the button is touch
+	TextureRef textureActive, textureInactive;
 	// To make easier to click on the button
 	float overSize;
 	// Vibration on clicked
