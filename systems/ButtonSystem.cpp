@@ -47,7 +47,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	const glm::vec2& pos = TRANSFORM(entity)->position;
 	const glm::vec2& size = TRANSFORM(entity)->size;
 
-	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize);
+	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize, TRANSFORM(entity)->rotation);
 	if (theRenderingSystem.Get(entity, false)) {
 		if (comp->textureActive != InvalidTextureRef) {
 			if (touching && over)

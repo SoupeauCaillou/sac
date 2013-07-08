@@ -8,7 +8,7 @@ class IntersectionUtil {
         static bool pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB);
 
         static bool pointRectangle(const glm::vec2& point, const TransformationComponent* tc2 );
-        static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation = 0);
+        static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation);
 
 
         // Get the intersection point between SEGMENTS p and q. If IsStraigth is set to true, consider the segment as a STRAIGTH LINE: even if the intersection
