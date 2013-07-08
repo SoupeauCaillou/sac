@@ -129,7 +129,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
     fi
 
 ######### 2 : Create build dir. #########
-    builddir=$rootPath/build-$gameName/$CMAKE_BUILD_TARGET-$CMAKE_BUILD_TYPE
+    builddir=$rootPath/build/$CMAKE_BUILD_TARGET-$CMAKE_BUILD_TYPE
 	mkdir -p $builddir
 
 ######### 3 : Go into build directory #########
