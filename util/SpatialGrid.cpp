@@ -120,6 +120,10 @@ SpatialGrid::SpatialGrid(int w, int h, float hexagonWidth) {
 	datas = new SpatialGridData(w, h, hexagonWidth);
 }
 
+SpatialGrid::~SpatialGrid() {
+    delete datas;
+}
+
 glm::vec2 SpatialGrid::gridPosToPosition(const GridPos& gp) const {
     return glm::vec2(
         datas->size * glm::sqrt(3.0f) * (gp.q + gp.r * 0.5),
@@ -154,8 +158,8 @@ std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos, bool enableIn
 }
 
 unsigned SpatialGrid::ComputeDistance(const GridPos& p1, const GridPos& p2) {
-	return (abs(p1.q - p2.q) + abs(p1.r - p2.r)
-          + abs(p1.r + p1.q - p2.q - p2.r)) / 2;
+	return (glm::abs(p1.q - p2.q) + glm::abs(p1.r - p2.r)
+          + glm::abs(p1.r + p1.q - p2.q - p2.r)) / 2;
 }
 
 void SpatialGrid::doForEachCell(std::function<void(const GridPos&)> fnct) {
@@ -187,13 +191,13 @@ std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
         LOGF("Tried to get entities at invalid pos: '" << p.q << "," << p.r << "'");
 
     std::list<Entity>& result = it->second.entities;
-#if SAC_DEBUG
-    for (Entity e: result) {
-        auto a = datas->entityToGridPos.find(e);
-        LOGF_IF(a == datas->entityToGridPos.end(), "Entity '" << e << "' not in map");
-        LOGF_IF(std::find(a->second.begin(), a->second.end(), p) == a->second.end(), "Entity/Gridpos inconsistent '" << e << "' / " << p);
-    }
-#endif
+    #if SAC_DEBUG
+        for (Entity e: result) {
+            auto a = datas->entityToGridPos.find(e);
+            LOGF_IF(a == datas->entityToGridPos.end(), "Entity '" << e << "' not in map");
+            LOGF_IF(std::find(a->second.begin(), a->second.end(), p) == a->second.end(), "Entity/Gridpos inconsistent '" << e << "' / " << p);
+        }
+    #endif
     return result;
 }
 
@@ -245,8 +249,9 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p
     std::map<int, std::vector<GridPos> > range;
 
     auto it = datas->cells.find(p);
-    if (it == datas->cells.end())
-        LOGF("Tried to find movement range at invalid position: '" << p.q << "," << p.r <<"'");
+
+    LOGF_IF(it == datas->cells.end(), "Tried to find movement range at invalid position: '" << p.q << "," << p.r <<"'");
+
     std::vector<GridPos> visited;
     visited.push_back(p);
     range[0].push_back(p);
@@ -281,7 +286,7 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
     std::vector<GridPos> borderLine = ringFinder(position, size, true);
     // We draw line between position and all border point to make "ray casting"
     for (auto point: borderLine) {
-        std::vector<GridPos> ray = lineDrawer(point, position);
+        std::vector<GridPos> ray = lineDrawer(position, point);
         for (auto r: ray) {
             // if the point is out of grid we pass this point. We can probably break the loop here
             if (!datas->isPosValid(r))
@@ -311,18 +316,19 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
     return std::move(range);
 }
 
-std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& p1, const GridPos& p2) const {
+std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos& to) const {
     std::vector<GridPos> line;
 
-    float dx = p2.q - p1.q;
-    float dy = (p1.q + p1.r) - (p2.q + p2.r);
-    float dz = p2.r - p1.r;
+    float dx = from.q - to.q;
+    float dy = (to.q + to.r) - (from.q + from.r);
+    float dz = from.r - to.r;
 
     float N = glm::max(glm::max(glm::abs(dx-dy), glm::abs(dy-dz)), glm::abs(dz-dx));
 
     GridPos prev(99,99);
     for (int i=0; i<=N; ++i) {
-        GridPos p = cubeCoordinateRounding(p1.q*i/N + p2.q*(1-i/N), -(p1.q + p1.r)*i/N - (p2.q + p2.r)*(1-i/N), p1.r*i/N + p2.r*(1-i/N));
+        GridPos p = cubeCoordinateRounding(to.q*i/N + from.q*(1-i/N), -(to.q + to.r)*i/N -
+            (from.q + from.r)*(1-i/N), to.r*i/N + from.r*(1-i/N));
         if (p != prev) {
             line.push_back(p);
             prev = p;
@@ -347,8 +353,8 @@ std::vector<GridPos> SpatialGrid::ringFinder(const GridPos& pos, int range, bool
     std::vector<GridPos> ring;
 
     auto it = datas->cells.find(pos);
-    if (it == datas->cells.end())
-        LOGF("Tried to find movement range at invalid position: '" << pos.q << "," << pos.r <<"'");
+    LOGF_IF(it == datas->cells.end(), "Tried to find movement range at invalid position: '" << pos.q << "," << pos.r <<"'");
+
     GridPos p(pos.q-range, pos.r+range);
 
     for(int i=0; i<6; ++i) {

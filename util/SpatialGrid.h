@@ -29,6 +29,7 @@ public:
 class SpatialGrid {
 	public:
 		SpatialGrid(int w, int h, float hexagonWidth = 1);
+        ~SpatialGrid();
 
 	public:
 		std::vector<GridPos> getNeighbors(const GridPos& pos, bool enableInvalidPos) const;
@@ -49,7 +50,7 @@ class SpatialGrid {
         std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
         std::vector<GridPos> viewRange(const GridPos& p, int size) const;
         std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
-        std::vector<GridPos> lineDrawer(const GridPos& p1, const GridPos& p2) const;
+        std::vector<GridPos> lineDrawer(const GridPos& from, const GridPos& to) const;
         int canDrawLine(const GridPos& p1, const GridPos& p2) const;
 
         std::vector<GridPos> findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;
