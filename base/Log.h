@@ -38,7 +38,7 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 
 
 
-#include <cassert>
+#include <signal.h>
 
 #if SAC_ANDROID
 #include <sstream>
@@ -60,7 +60,7 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
         SAC_LOG_POST \
         \
         if (level == LogVerbosity::FATAL && AssertOnFatal) { \
-            assert(#x && 0); \
+            raise(SIGABRT); \
         } \
     }
 
