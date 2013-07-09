@@ -37,6 +37,13 @@ fi
 
 TEMP_FOLDER=$(mktemp)
 
+if [ ! -d "$1" ]; then
+    error_and_quit "Directory $1 does not exist!"
+fi
+if [ -z "$(find $1 -name '*.png')" ]; then
+    error_and_quit "Directory $1 does not contain any .png file!"
+fi
+
 ############# STEP 1: preparation
 info "Step #1: prepare temp folder ($TEMP_FOLDER)"
 rm -rf $TEMP_FOLDER 2>/dev/null
@@ -78,9 +85,6 @@ cd - 1>/dev/null
 ############# STEP 5: create png version of the atlas
 info "Step #5: create png version"
 convert /tmp/$1.png -alpha extract PNG32:$rootPath/assets/$1_alpha.png
-
-#convert /tmp/$1.png \( +clone -alpha Extract \) -channel RGB -compose Multiply -composite /tmp/$1.png
-
 convert /tmp/$1.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$1.png
 
 if  $hasPVRTool ; then
