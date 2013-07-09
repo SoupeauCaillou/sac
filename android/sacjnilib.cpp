@@ -1,10 +1,8 @@
 #include "sacjnilib.h"
 #include <errno.h>
 
-#include <EGL/egl.h>
 #include <GLES/gl.h>
 
-#include <android/sensor.h>
 #include <android/log.h>
 
 #include "base/Game.h"
