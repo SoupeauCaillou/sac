@@ -42,8 +42,9 @@ void TouchInputManager::Update(float) {
 
     for (unsigned i=0; i<pointers; i++) {
     	wasTouching[i] = touching[i];
-    	touching[i] = ptr->isTouching(i, &coords);
-    	if (touching[i]) {
+        moving[i] = ptr->isMoving(i);
+        touching[i] = ptr->isTouching(i, &coords);
+        if (touching[i]) {
             // convert window coordinates -> world coords
             lastTouchedPosition[i] = windowToWorld(coords, tc);
     	}

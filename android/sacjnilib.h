@@ -16,8 +16,8 @@ class GameHolder {
 	// RenderThreadJNIEnvCtx renderThreadJNICtx;
 
 	struct __input {
-        __input() : touching(0) {}
-		 int touching;
+        __input() : touching(0), moving(0) {}
+		 int touching, moving;
 		 float x, y;
 	};
     std::map<int, __input> input;

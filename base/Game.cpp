@@ -148,6 +148,7 @@ void Game::eventsHandler() {
         //LOGI("dont have the focus, dont treat inputs!");
         //return;
     //}
+    mouseNativeTouchState->_isMoving = false;
 
     while( SDL_PollEvent(&event) )
     {

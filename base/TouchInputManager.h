@@ -7,6 +7,7 @@ class NativeTouchState {
 	public:
         virtual int maxTouchingCount() = 0;
 		virtual bool isTouching(int index, glm::vec2* windowCoords) = 0;
+		virtual bool isMoving (int index) = 0;
 };
 
 struct TransformationComponent;
@@ -25,6 +26,8 @@ class TouchInputManager {
 
 		bool isTouched(int idx = 0) const { return touching[idx]; }
 
+		bool hasMoved(int idx = 0) const { return moving[idx]; }
+
         bool hasClicked(int idx = 0) const { return !touching[idx] && wasTouching[idx]; }
 
         const glm::vec2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
@@ -37,7 +40,7 @@ class TouchInputManager {
 	private:
 		NativeTouchState* ptr;
 
-		bool wasTouching[2], touching[2];
+		bool wasTouching[2], touching[2], moving[2];
 		glm::vec2 lastTouchedPosition[2];
 
 		glm::vec2 worldSize, windowSize;
