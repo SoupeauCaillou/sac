@@ -63,7 +63,7 @@ compilation_before() {
     info "Adding specific toolchain for android..."
     CMAKE_CONFIG=$CMAKE_CONFIG" -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.7\
     -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
-    -DANDROID_NATIVE_API_LEVEL=9"
+    -DANDROID_FORCE_ARM_BUILD=ON"
 }
 
 compilation_after() {
