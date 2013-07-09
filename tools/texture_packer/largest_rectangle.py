@@ -26,8 +26,9 @@ def max_size(mat, value=0):
     hist = [Histo(el==value, 0) for el in next(it, [])]
 
     max_size = max_rectangle_size(hist)[0]
+    pointX = 0
+    pointY = 0
     cpt = 0
-    pointX = cpt
     row_index = 1
     for row in it:
         #print (row_index, row)
@@ -121,12 +122,13 @@ if __name__=="__main__":
         print "Need the image in arg1: ./image.py image.png"
     else:
         im = Image.open(str(sys.argv[1]))
+        im = im.convert("RGBA")
 
         # m[0] is the size of the rect, m[1] the top left corner point
-        size, posX, posY = max_size(__s2m(im.load()))
+        sizeFinal, posXFinal, posYFinal = max_size(__s2m(im.load()))
 
         # print (size, posX, posY)
         # return the rectangle only if hes > 10% of the total size
         # if ( m[0][0] * m[0][1] > 0.10 * im.size[0] * im.size[1] ):
-        print "%d,%d,%d,%d" % (posX, posY, size[1], size[0])
+        print "%d,%d,%d,%d" % (posXFinal, posYFinal, sizeFinal[1], sizeFinal[0])
 

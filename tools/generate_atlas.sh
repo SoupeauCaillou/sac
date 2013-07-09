@@ -1,95 +1,102 @@
-#!/bin/sh
+#!/bin/bash
 
 # path need :
 # location of texture_packer (your_build_dir/sac/build/cmake)
 # location of PVRTexToolCL (need to install it from http://www.imgtec.com/powervr/insider/powervr-pvrtextool.asp)
 # location of etc1tool (android-sdk-linux/tools)
 
-reset="[0m"
-red="[1m[31m"
-green="[1m[32m"
-yellow="[1m[33m"
+#where the script is
+whereAmI=$(cd "$(dirname "$0")" && pwd)
+#if we executed a linked script; go to the real one
+if [ -h $0 ]; then
+    whereAmI+=/$(dirname $(readlink $0))
+fi
+rootPath=$whereAmI"/../.."
+gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+
+#import cool stuff
+source $whereAmI/coolStuff.sh
+
+export SAC_USAGE="$0 image_folder"
+export SAC_OPTIONS=""
+export SAC_EXAMPLE="${green}$0 unprepared_assets/logo"
 
 if [ $# != 1 ]; then
-	echo "${red}Usage: $0 image_folder${reset}"
-	exit 1
+    usage_and_quit
 fi
 
 ############# STEP 0: verify env
-if hash texture_packer 2>/dev/null; then
-    echo "texture_packer found!"
-else
-    echo "${red}texture_packer must be in PATH$reset"
-    exit 1
-fi
-
+check_package_in_PATH "texture_packer" "sac binary! (build/ directory)"
 hasPVRTool=false
 if hash PVRTexToolCL 2>/dev/null; then
-    echo "PVRTexToolCL found!"
+    info "PVRTexToolCL found!"
     hasPVRTool=true
 else
-    echo "${yellow}Warning: PVRTexToolCL not found -> compressed format won't be created$reset"
+    info "Warning: PVRTexToolCL not found -> compressed format won't be created" $orange
 fi
 
-SCRIPT=$(readlink -f $0)
-SAC_TOOLS_DIR=$(dirname $SCRIPT)
-TEMP_FOLDER=/tmp/$1
+TEMP_FOLDER=$(mktemp)
 
 ############# STEP 1: preparation
-echo "${green}Step #1: prepare temp folder ($TEMP_FOLDER)${reset}"
-if [ -d "$TEMP_FOLDER" ]; then
-    rm -r $TEMP_FOLDER
-fi
+info "Step #1: prepare temp folder ($TEMP_FOLDER)"
+rm -rf $TEMP_FOLDER 2>/dev/null
 mkdir $TEMP_FOLDER
 
+rm $rootPath/assets/$1_alpha.png $rootPath/assets/$1.atlas $rootPath/assets/$1.pvr.00 \
+$rootPath/assets/$1.pkm.00 $rootPath/assetspc/$1.png 2>/dev/null
 ############# STEP 2: create an optimized copy of each image
-printf "${green}Step #2: create optimized image${reset}"
-for file in `ls $1/*png`
-do
-    printf "${green}.${reset}"
-    used_rect=`${SAC_TOOLS_DIR}/texture_packer/tiniest_rectangle.py ${file}`
-    ww=`echo $used_rect | cut -d, -f1`
-    hh=`echo $used_rect | cut -d, -f2`
-    xx=`echo $used_rect | cut -d, -f3`
-    yy=`echo $used_rect | cut -d, -f4`
-    convert -crop ${ww}x${hh}+${xx}+${yy} +repage ${file} PNG32:$TEMP_FOLDER/`basename ${file}`
+info "Step #2: create optimized image"
+for file in $(echo $1/*png); do
+    printf "." #loading...
+
+    used_rect=$($whereAmI/texture_packer/tiniest_rectangle.py ${file})
+
+    if [ $? != 0 ]; then
+        error_and_quit "Script encountered an error with file $file! Aborting"
+    fi
+
+    ww=$(echo $used_rect | cut -d, -f1)
+    hh=$(echo $used_rect | cut -d, -f2)
+    xx=$(echo $used_rect | cut -d, -f3)
+    yy=$(echo $used_rect | cut -d, -f4)
+    convert -crop ${ww}x${hh}+${xx}+${yy} +repage ${file} PNG32:$TEMP_FOLDER/$(basename ${file})
 done
-echo "${green}Done${reset}"
+info "Done"
 
 ############# STEP 3: fit all image in one texture
 # Remark: we feed texture_packer with optimized (cropped) images
-echo "${green}Step #3: compute atlas placement${reset}"
-optimized_image_list=$(ls $TEMP_FOLDER/*png)
+info "Step #3: compute atlas placement"
+optimized_image_list=$(echo $TEMP_FOLDER/*png)
 
 ############# STEP 4: place image in atlas
 # Remark: we first cd into original image folder
-echo "${green}Step #4: compose atlas using individual images coords${reset}"
-oldpwd=$PWD
+info "Step #4: compose atlas using individual images coords"
 cd $1
-texture_packer $optimized_image_list | ${SAC_TOOLS_DIR}/texture_packer/texture_packer.sh $1
-cd $oldpwd
+texture_packer $optimized_image_list | $whereAmI/texture_packer/texture_packer.sh $1
+cd - 1>/dev/null
 
 ############# STEP 5: create png version of the atlas
-echo "${green}Step #5: create png version${reset}"
-convert /tmp/$1.png -alpha extract PNG32:../assets/$1_alpha.png
+info "Step #5: create png version"
+convert /tmp/$1.png -alpha extract PNG32:$rootPath/assets/$1_alpha.png
 
 #convert /tmp/$1.png \( +clone -alpha Extract \) -channel RGB -compose Multiply -composite /tmp/$1.png
 
-# mais pourquoi j'ai fait ca ?convert ../assets/$1_alpha.png -background white -flatten +matte -depth 8 ../assets/$1_alpha.png
-convert /tmp/$1.png -background white -alpha off -type TrueColor PNG24:../assetspc/$1.png
+convert /tmp/$1.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$1.png
 
 if  $hasPVRTool ; then
-    echo "${green}Step #6: create PVR version${reset}"
-    PVRTexToolCL -f OGLPVRTC4 -yflip0 -i ../assetspc/$1.png -p -pvrlegacy -m -o /tmp/$1.pvr
+    info "Step #6: create PVR version"
+    PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$1.png -p -pvrlegacy -m -o /tmp/$1.pvr
     split -d -b 1024K /tmp/$1.pvr $1.pvr.
-    mv $1.pvr.0* ../assets/
+    mv $1.pvr.0* $rootPath/assets/
 
-    echo "${green}Step #7: create ETC version${reset}"
-    PVRTexToolCL -f ETC -yflip0 -i ../assetspc/$1.png -q 3 -m -pvrlegacy -o /tmp/$1.pkm
+    info "Step #7: create ETC version"
+    PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$1.png -q 3 -m -pvrlegacy -o /tmp/$1.pkm
 
     # PVRTexToolCL ignore name extension
     split -d -b 1024K /tmp/$1.pvr $1.pkm.
-    mv $1.pkm.0* ../assets/
+    mv $1.pkm.0* $rootPath/assets/
 fi
 
-cp /tmp/$1.atlas ../assets/
+cp /tmp/$1.atlas $rootPath/assets/
+
+rm -r $TEMP_FOLDER
