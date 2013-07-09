@@ -205,6 +205,8 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height);
 #if SAC_EMSCRIPTEN
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+#elif SAC_ANDROID
+        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
 #else
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, typeToFormat(type), image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
 #endif
