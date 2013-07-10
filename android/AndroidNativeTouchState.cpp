@@ -1,5 +1,6 @@
 #include "AndroidNativeTouchState.h"
 #include "sacjnilib.h"
+#include "base/Log.h"
 
 AndroidNativeTouchState::AndroidNativeTouchState(GameHolder* h) {
 	holder = h;
@@ -28,6 +29,12 @@ bool AndroidNativeTouchState::isMoving (int index) {
 	for (int i=0; i<index && it!=holder->input.end(); ++it, i++)
 		if (it == holder->input.end())
 			return false;
-	return it->second.moving;
+	GameHolder::__input& input = it->second;
+	const bool result = input.moving;
+	// clear status
+	if (result) {
+		input.moving = false;
+	}
+	return result;
 }
 
