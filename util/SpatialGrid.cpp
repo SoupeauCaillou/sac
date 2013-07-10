@@ -57,64 +57,56 @@ GridPos::GridPos(int32_t pQ, int32_t pR) : q(pQ), r(pR) {
 
 }
 
-struct SpatialGrid::SpatialGridData {
-	int w, h;
-    float size;
-	std::map<GridPos, Cell> cells;
-    std::map<Entity, std::list<GridPos>> entityToGridPos; // only for single place
+SpatialGridData::SpatialGridData(int pW, int pH, float hexagonWidth) : w(pW), h(pH) {
+    LOGF_IF((h % 2) == 0, "Must use odd height");
+    LOGF_IF((w % 2) == 0, "Must use odd width");
 
-	SpatialGridData(int pW, int pH, float hexagonWidth) : w(pW), h(pH) {
-        LOGF_IF((h % 2) == 0, "Must use odd height");
-        LOGF_IF((w % 2) == 0, "Must use odd width");
+    float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5);
+    size = hexaHeight * 0.5;
 
-        float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5);
-        size = hexaHeight * 0.5;
+    const float vertSpacing = (3.0f/4) * hexaHeight;
+    const float horiSpacing = hexagonWidth;
 
-        const float vertSpacing = (3.0f/4) * hexaHeight;
-        const float horiSpacing = hexagonWidth;
+    GridPos endCell, firstCell = positionSizeToGridPos(
+        glm::vec2(horiSpacing * (int)(-w*0.5f), vertSpacing * (int)(-h*0.5f)), size);
 
-        GridPos endCell, firstCell = positionSizeToGridPos(
-            glm::vec2(horiSpacing * (int)(-w*0.5f), vertSpacing * (int)(-h*0.5f)), size);
-
-		// varies on z (r) first
-        int qStart = firstCell.q;
-		for (int z=0; z < h; z++) {
-			// then, compute q
-			for (int q=0; q<w; q++) {
-                endCell = GridPos(qStart + q, firstCell.r + z);
-				cells.insert(std::make_pair(endCell, Cell()));
-			}
-            if ((z % 2) == 1) {
-                qStart--;
-            }
+	// varies on z (r) first
+    int qStart = firstCell.q;
+	for (int z=0; z < h; z++) {
+		// then, compute q
+		for (int q=0; q<w; q++) {
+            endCell = GridPos(qStart + q, firstCell.r + z);
+			cells.insert(std::make_pair(endCell, Cell()));
 		}
-        LOGE_IF((endCell.q != -firstCell.q) || (endCell.r != -firstCell.r), "Incoherent first/last cell");
-	}
-
-	bool isPosValid(const GridPos& pos) const {
-        return cells.find(pos) != cells.end();
-	}
-
-    bool isPathBlockedAt(const GridPos& npos) const {
-        LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
-        for (const auto e: (cells.find(npos)->second).entities) {
-            if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
-                return true;
-            }
+        if ((z % 2) == 1) {
+            qStart--;
         }
-        return false;
-    }
-    bool isVisibilityBlockedAt(const GridPos& npos) const {
-        LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
-        for (const auto e: (cells.find(npos)->second).entities) {
-            if (theGridSystem.Get(e, false) && GRID(e)->blocksVision) {
-                return true;
-            }
-        }
-        return false;
-    }
+	}
+    LOGE_IF((endCell.q != -firstCell.q) || (endCell.r != -firstCell.r), "Incoherent first/last cell");
+}
 
-};
+bool SpatialGridData::isPosValid(const GridPos& pos) const {
+    return cells.find(pos) != cells.end();
+}
+
+bool SpatialGridData::isPathBlockedAt(const GridPos& npos) const {
+    LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
+    for (const auto e: (cells.find(npos)->second).entities) {
+        if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
+            return true;
+        }
+    }
+    return false;
+}
+bool SpatialGridData::isVisibilityBlockedAt(const GridPos& npos) const {
+    LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
+    for (const auto e: (cells.find(npos)->second).entities) {
+        if (theGridSystem.Get(e, false) && GRID(e)->blocksVision) {
+            return true;
+        }
+    }
+    return false;
+}
 
 SpatialGrid::SpatialGrid(int w, int h, float hexagonWidth) {
 	datas = new SpatialGridData(w, h, hexagonWidth);

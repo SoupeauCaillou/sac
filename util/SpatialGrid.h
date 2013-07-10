@@ -24,7 +24,22 @@ public:
     friend std::ostream& operator<<(std::ostream& str, const GridPos& gp);
 };
 
+struct Cell;
 
+struct SpatialGridData {
+    int w, h;
+    float size;
+    std::map<GridPos, Cell> cells;
+    std::map<Entity, std::list<GridPos>> entityToGridPos; // only for single place
+
+    SpatialGridData(int pW, int pH, float hexagonWidth);
+
+    bool isPosValid(const GridPos& pos) const ;
+
+    bool isPathBlockedAt(const GridPos& npos) const;
+    bool isVisibilityBlockedAt(const GridPos& npos) const;
+
+};
 
 class SpatialGrid {
 	public:
@@ -48,7 +63,7 @@ class SpatialGrid {
         void autoAssignEntitiesToCell(const std::vector<Entity>& entities);
 
         std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
-        std::vector<GridPos> viewRange(const GridPos& p, int size) const;
+        virtual std::vector<GridPos> viewRange(const GridPos& p, int size) const;
         std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
         std::vector<GridPos> lineDrawer(const GridPos& from, const GridPos& to) const;
         int canDrawLine(const GridPos& p1, const GridPos& p2) const;
@@ -60,8 +75,7 @@ class SpatialGrid {
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);
 
-	private:
-		struct SpatialGridData;
+	protected:
 		SpatialGridData* datas;
 
 };
