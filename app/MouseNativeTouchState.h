@@ -44,4 +44,8 @@ class MouseNativeTouchState: public NativeTouchState {
         //in order : left / right / middle
         bool isButtonDown[3];
         glm::vec2 lastPosition;
+#if !ANDROID
+    public:
+        int wheel;
+#endif
 };

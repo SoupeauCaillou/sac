@@ -86,6 +86,14 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
         case 3:
             isButtonDown[1] = isDownEvent;
             break;
+#if !ANDROID
+        case SDL_BUTTON_WHEELUP:
+            wheel = 1;
+            break;
+        case SDL_BUTTON_WHEELDOWN:
+            wheel = -1;
+            break;
+#endif
     }
 
     //LOGI("/!\\SDL ID " << (int)event->button.button << " is " << (isDownEvent ? "down!" : "up!"));

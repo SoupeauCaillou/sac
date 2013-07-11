@@ -37,6 +37,10 @@ class TouchInputManager {
 		void setNativeTouchStatePtr(NativeTouchState* p) { ptr = p; }
 
 		glm::vec2 windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const;
+
+#if !ANDROID
+		int getWheel() const;
+#endif
 	private:
 		NativeTouchState* ptr;
 
