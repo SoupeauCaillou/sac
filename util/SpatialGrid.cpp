@@ -92,7 +92,7 @@ bool SpatialGridData::isPosValid(const GridPos& pos) const {
 bool SpatialGridData::isPathBlockedAt(const GridPos& npos) const {
     LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
     for (const auto e: (cells.find(npos)->second).entities) {
-        if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
+        if (theGridSystem.Get(e, false) && GRID(e)->blocksPath()) {
             return true;
         }
     }
@@ -101,7 +101,7 @@ bool SpatialGridData::isPathBlockedAt(const GridPos& npos) const {
 bool SpatialGridData::isVisibilityBlockedAt(const GridPos& npos) const {
     LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
     for (const auto e: (cells.find(npos)->second).entities) {
-        if (theGridSystem.Get(e, false) && GRID(e)->blocksVision) {
+        if (theGridSystem.Get(e, false) && GRID(e)->blocksVision()) {
             return true;
         }
     }
@@ -229,7 +229,7 @@ void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) 
             if (isInside) {
                 this->addEntityAt(e, p);
                 // snap position
-                if (g && !g->canBeOnMultipleCells) {
+                if (g && !g->canBeOnMultipleCells()) {
                     trans->position = center;
                 }
             }

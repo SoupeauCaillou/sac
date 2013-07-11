@@ -2,12 +2,22 @@
 
 #include "System.h"
 
-
 struct GridComponent {
-	GridComponent(): blocksVision(false), blocksPath(false), canBeOnMultipleCells(false) {}
+    enum EType {
+        Normal,
+        House,
+        Bush,
+        Soldier,
+        SoldierDead,
+    };
 
-	bool blocksVision, blocksPath;
-    bool canBeOnMultipleCells;
+	GridComponent(): type(Normal) {}
+
+    bool blocksVision() { return type == House || type == Bush; }
+    bool blocksPath() { return type == House || type == Soldier; }
+    bool canBeOnMultipleCells() { return type == House || type == Bush; }
+
+    EType type;
 };
 
 #define theGridSystem GridSystem::GetInstance()
