@@ -2,13 +2,16 @@
 
 #how to use the script
 export PLATFORM_OPTIONS="\
-\t\t-j|java: compile java code (.java)
-\t\t-i|install: install on device
+\t\t-a|-atlas: generate all atlas from unprepared_assets directory
+\t\t-j|-java: compile java code (.java)
+\t\t-i|-install: install on device
 \t\t-l|-log: run adb logcat
+\t\t-a|-atlas: run adb logcat
 \t\t-s|-stacktrace: show latest dump crash trace"
 
 
 parse_arguments() {
+    GENERATE_ATLAS=0
     UPDATE_JAVA=0
     INSTALL_ON_DEVICE=0
     RUN_LOGCAT=0
@@ -23,6 +26,10 @@ parse_arguments() {
             "--c" | "--cmakeconfig" | "--t" | "--target")
                 # info "Ignoring '$1' and its arg '$2' (low lvl)"
                 shift
+                ;;
+            "-a" | "-atlas")
+                GENERATE_ATLAS=1
+                TARGETS=$TARGETS"n"
                 ;;
             "-j" | "-java")
                 UPDATE_JAVA=1
@@ -58,6 +65,11 @@ check_necessary() {
 }
 
 compilation_before() {
+    if [ $GENERATE_ATLAS = 1 ]; then
+        info "Generating atlas..."
+        $rootPath/sac/tools/generate_atlas.sh $rootPath/unprepared_assets/*
+    fi
+
 	info "Building tremor lib..."
 	cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
