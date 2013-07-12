@@ -11,8 +11,6 @@ inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
     return stream << v.x << ", " << v.y;
 }
 
-#if SAC_ENABLE_LOG
-
 #undef ERROR
 #include <map>
 
@@ -73,83 +71,86 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
         __LOG(level, x) \
 } while (false)
 
-#define LOG_OFFSET() \
-    logHeaderLength(__FILE__,__LINE__)
 
-#define LOGF(x) __LOG_WHILE(LogVerbosity::FATAL, x)
-#define LOGE(x) __LOG_WHILE(LogVerbosity::ERROR, x)
-#define LOGT(x) __LOG_WHILE(LogVerbosity::TODO, "<--TODO-->" << x)
-#define LOGW(x) __LOG_WHILE(LogVerbosity::WARNING, x)
-#define LOGI(x) __LOG_WHILE(LogVerbosity::INFO, x)
-#define LOGV(verbosity, x) do {\
-    if ((int)logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) {\
-        SAC_LOG_PRE\
-        vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl;\
-        SAC_LOG_POST\
-    }\
-} while (false)
+#if SAC_ENABLE_LOG
 
-#define LOGF_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::FATAL, x)
-#define LOGE_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::ERROR, x)
-#define LOGT_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::TODO, x)
-#define LOGW_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::WARNING, x)
-#define LOGI_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::INFO, x)
-#define LOGV_IF(verbosity, cond, x) do {\
-    if ((cond) && (int)logLevel >= (int)LogVerbosity::INFO + verbosity) {\
-        SAC_LOG_PRE \
-        vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; \
-        SAC_LOG_POST \
-    } \
-} while (false)
+    #define LOG_OFFSET() \
+        logHeaderLength(__FILE__,__LINE__)
 
-#define LOGE_EVERY_N(n, x) do {\
-    static unsigned __log_count = 0;\
-    if ((++__log_count % n) == 0) {\
-        __LOG(LogVerbosity::ERROR, x) \
-    } \
-} while (false)
+    #define LOGF(x) __LOG_WHILE(LogVerbosity::FATAL, x)
+    #define LOGE(x) __LOG_WHILE(LogVerbosity::ERROR, x)
+    #define LOGT(x) __LOG_WHILE(LogVerbosity::TODO, "<--TODO-->" << x)
+    #define LOGW(x) __LOG_WHILE(LogVerbosity::WARNING, x)
+    #define LOGI(x) __LOG_WHILE(LogVerbosity::INFO, x)
+    #define LOGV(verbosity, x) do {\
+        if ((int)logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) {\
+            SAC_LOG_PRE\
+            vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl;\
+            SAC_LOG_POST\
+        }\
+    } while (false)
 
-#define LOGW_EVERY_N(n, x) do {\
-    static unsigned __log_count = 0;\
-    if ((++__log_count % n) == 0) {\
-        __LOG(LogVerbosity::WARNING, x) \
-    } \
-} while (false)
+    #define LOGF_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::FATAL, x)
+    #define LOGE_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::ERROR, x)
+    #define LOGT_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::TODO, x)
+    #define LOGW_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::WARNING, x)
+    #define LOGI_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::INFO, x)
+    #define LOGV_IF(verbosity, cond, x) do {\
+        if ((cond) && (int)logLevel >= (int)LogVerbosity::INFO + verbosity) {\
+            SAC_LOG_PRE \
+            vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; \
+            SAC_LOG_POST \
+        } \
+    } while (false)
 
-#define LOGI_EVERY_N(n, x) do {\
-    static unsigned __log_count = 0;\
-    if ((++__log_count % n) == 0) {\
-        __LOG(LogVerbosity::INFO, x) \
-    } \
-} while (false)
+    #define LOGE_EVERY_N(n, x) do {\
+        static unsigned __log_count = 0;\
+        if ((++__log_count % n) == 0) {\
+            __LOG(LogVerbosity::ERROR, x) \
+        } \
+    } while (false)
 
-#define LOGT_EVERY_N(n, x) do {\
-    static unsigned __log_count = 0;\
-    if ((++__log_count % n) == 0) {\
-        __LOG(LogVerbosity::TODO, x) \
-    } \
-} while (false)
+    #define LOGW_EVERY_N(n, x) do {\
+        static unsigned __log_count = 0;\
+        if ((++__log_count % n) == 0) {\
+            __LOG(LogVerbosity::WARNING, x) \
+        } \
+    } while (false)
+
+    #define LOGI_EVERY_N(n, x) do {\
+        static unsigned __log_count = 0;\
+        if ((++__log_count % n) == 0) {\
+            __LOG(LogVerbosity::INFO, x) \
+        } \
+    } while (false)
+
+    #define LOGT_EVERY_N(n, x) do {\
+        static unsigned __log_count = 0;\
+        if ((++__log_count % n) == 0) {\
+            __LOG(LogVerbosity::TODO, x) \
+        } \
+    } while (false)
 
 #else
 
-#define LOG_OFFSET() 0
-#define LOGF(x) do { assert(!AssertOnFatal); } while (false)
-#define LOGE(x) do {} while(false)
-#define LOGT(x) do {} while(false)
-#define LOGW(x) do {} while(false)
-#define LOGI(x) do {} while(false)
-#define LOGV(verbosity, x) do {} while(false)
+    #define LOG_OFFSET() 0
+    #define LOGF(x) do { assert(!AssertOnFatal); } while (false)
+    #define LOGE(x) do {} while(false)
+    #define LOGT(x) do {} while(false)
+    #define LOGW(x) do {} while(false)
+    #define LOGI(x) do {} while(false)
+    #define LOGV(verbosity, x) do {} while(false)
 
-#define LOGF_IF(cond, x) do { if (cond) assert(!AssertOnFatal); } while (false)
-#define LOGE_IF(cond, x) do {} while(false)
-#define LOGT_IF(cond, x) do {} while(false)
-#define LOGW_IF(cond, x) do {} while(false)
-#define LOGI_IF(cond, x) do {} while(false)
-#define LOGV_IF(verbosity, cond, x) do {} while(false)
+    #define LOGF_IF(cond, x) do { if (cond) assert(!AssertOnFatal); } while (false)
+    #define LOGE_IF(cond, x) do {} while(false)
+    #define LOGT_IF(cond, x) do {} while(false)
+    #define LOGW_IF(cond, x) do {} while(false)
+    #define LOGI_IF(cond, x) do {} while(false)
+    #define LOGV_IF(verbosity, cond, x) do {} while(false)
 
-#define LOGE_EVERY_N(n, x) do {} while(false)
-#define LOGW_EVERY_N(n, x) do {} while(false)
-#define LOGI_EVERY_N(n, x) do {} while(false)
-#define LOGT_EVERY_N(n, x) do {} while(false)
+    #define LOGE_EVERY_N(n, x) do {} while(false)
+    #define LOGW_EVERY_N(n, x) do {} while(false)
+    #define LOGI_EVERY_N(n, x) do {} while(false)
+    #define LOGT_EVERY_N(n, x) do {} while(false)
 
 #endif

@@ -3,6 +3,7 @@
 #how to use the script
 export PLATFORM_OPTIONS="\
 \t\t-a|-atlas: generate all atlas from unprepared_assets directory
+\t\t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
 \t\t-j|-java: compile java code (.java)
 \t\t-i|-install: install on device
 \t\t-l|-log: run adb logcat
@@ -12,6 +13,7 @@ export PLATFORM_OPTIONS="\
 
 parse_arguments() {
     GENERATE_ATLAS=0
+    USE_GRADLE=0
     UPDATE_JAVA=0
     INSTALL_ON_DEVICE=0
     RUN_LOGCAT=0
@@ -30,6 +32,9 @@ parse_arguments() {
             "-a" | "-atlas")
                 GENERATE_ATLAS=1
                 TARGETS=$TARGETS"n"
+                ;;
+            "-g" | "-gradle")
+                USE_GRADLE=1
                 ;;
             "-j" | "-java")
                 UPDATE_JAVA=1
@@ -82,18 +87,32 @@ compilation_after() {
     info "Cleaning tremor directory..."
     cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
+    if [ $USE_GRADLE = 1 ]; then
+        if [ ! -f $rootPath/libs/armeabi-v7a.jar ]; then
+            error_and_quit "Missing libs/armeabi.jar (did you forgot to compile ?)!"
+        fi
+        info "TODO for gradle" $red
+    else
+        rm $rootPath/libs/armeabi-v7a.jar 2>/dev/null
+    fi
+
     if [ $UPDATE_JAVA = 1 ]; then
-        info "TODO" $red
-        # info "Updating android project"
-        # android update project -p . -t "android-8" -n $gameName --subprojects
-        # ant debug
+        info "Updating android project"
+        cd $rootPath
+        android update project -p . -t 1 -n $gameName --subprojects
+        ant debug
     fi
 }
 
 launch_the_application() {
+    cd $rootPath
     if [ $INSTALL_ON_DEVICE = 1 ]; then
-        info "Installing on device ..."
-        ant installd -e
+        if [ $USE_GRADLE = 1 ]; then
+            info "TODO for gradle" $red
+        else
+            info "Installing on device ..."
+            adb install -r $rootPath/bin/$gameName.apk
+        fi
     fi
 
     if [ ! -z $(echo $1 | grep r) ]; then
