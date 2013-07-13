@@ -21,7 +21,7 @@ if [ $# != 0 ]; then
 fi
 
     ############# STEP 0: verify env
-    check_package_in_PATH "R" "r-base"
+    check_package_in_PATH "R" "r-base and r-cran-vegan"
 
     ############# STEP 1: prepara datas and files
     datafile=$(mktemp)
