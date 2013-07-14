@@ -5,19 +5,16 @@
 struct GridComponent {
     enum EType {
         Normal,
-        House,
-        Bush,
-        Soldier,
-        SoldierDead,
     };
 
-	GridComponent(): type(Normal) {}
+	GridComponent(): type(Normal), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
 
-    bool blocksVision() { return type == House || type == Bush; }
-    bool blocksPath() { return type == House || type == Soldier; }
-    bool canBeOnMultipleCells() { return type == House || type == Bush; }
+
 
     EType type;
+    bool blocksPath;
+    bool blocksVision;
+    bool canBeOnMultipleCells;
 };
 
 #define theGridSystem GridSystem::GetInstance()
