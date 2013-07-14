@@ -5,6 +5,9 @@
 struct GridComponent {
     enum EType {
         Normal,
+        Pit,
+        Brush,
+        House,
     };
 
 	GridComponent(): type(Normal), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
