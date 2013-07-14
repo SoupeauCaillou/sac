@@ -99,6 +99,8 @@ bool SpatialGridData::isPathBlockedAt(const GridPos& npos) const {
     return false;
 }
 bool SpatialGridData::isVisibilityBlockedAt(const GridPos& npos) const {
+    // don't use this function because the result may depend on the point of view due to houses behaviour
+    // (if we are already in a house, we might see neighbours house blocks, otherwise this should return false for example)
     LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
     for (const auto e: (cells.find(npos)->second).entities) {
         if (theGridSystem.Get(e, false) && GRID(e)->blocksVision()) {
@@ -163,7 +165,7 @@ void SpatialGrid::forEachCellDo(std::function<void(const GridPos&)> fnct) {
 void SpatialGrid::addEntityAt(Entity e, const GridPos& p) {
     auto it = datas->cells.find(p);
     if (it == datas->cells.end())
-        LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
+        LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p);
 
     it->second.entities.push_back(e);
     datas->entityToGridPos[e].push_back(p);
@@ -172,7 +174,7 @@ void SpatialGrid::addEntityAt(Entity e, const GridPos& p) {
 void SpatialGrid::removeEntityFrom(Entity e, const GridPos& p) {
     auto it = datas->cells.find(p);
     if (it == datas->cells.end())
-        LOGF("Tried to remove entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p.q << ',' << p.r);
+        LOGF("Tried to remove entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p);
     it->second.entities.remove(e);
     datas->entityToGridPos[e].remove(p);
 }
