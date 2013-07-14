@@ -53,7 +53,7 @@ class SpatialGrid {
         GridPos positionToGridPos(const glm::vec2& pos) const;
         glm::vec2 gridPosToPosition(const GridPos& gp) const;
 
-        void doForEachCell(std::function<void(const GridPos& )> f);
+        void forEachCellDo(std::function<void(const GridPos& )> f);
 
         void addEntityAt(Entity e, const GridPos& p);
         void removeEntityFrom(Entity e, const GridPos& p);

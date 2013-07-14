@@ -154,7 +154,7 @@ unsigned SpatialGrid::ComputeDistance(const GridPos& p1, const GridPos& p2) {
           + glm::abs(p1.r + p1.q - p2.q - p2.r)) / 2;
 }
 
-void SpatialGrid::doForEachCell(std::function<void(const GridPos&)> fnct) {
+void SpatialGrid::forEachCellDo(std::function<void(const GridPos&)> fnct) {
     for (auto& a: datas->cells) {
         fnct(a.first);
     }
@@ -206,7 +206,7 @@ void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) 
             }
         }
 
-        doForEachCell([this, e, hexagon] (const GridPos& p) -> void {
+        forEachCellDo([this, e, hexagon] (const GridPos& p) -> void {
             const glm::vec2 center = gridPosToPosition(p);
             auto trans = TRANSFORM(e);
             auto g = theGridSystem.Get(e, false);
@@ -311,9 +311,9 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
 std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos& to) const {
     std::vector<GridPos> line;
 
-    float dx = from.q - to.q;
-    float dy = (to.q + to.r) - (from.q + from.r);
-    float dz = from.r - to.r;
+    float dx = to.q - from.q;
+    float dy = (from.q + from.r) - (to.q + to.r);
+    float dz = to.r - from.r;
 
     float N = glm::max(glm::max(glm::abs(dx-dy), glm::abs(dy-dz)), glm::abs(dz-dx));
 
@@ -326,7 +326,6 @@ std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos&
             prev = p;
         }
     }
-
     return std::move(line);
 }
 
