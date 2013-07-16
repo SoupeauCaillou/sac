@@ -18,7 +18,7 @@ ResourceHotReload::InotifyDatas::InotifyDatas(const std::string & file, const st
 
 void ResourceHotReload::updateReload() {
 #if SAC_LINUX && SAC_DESKTOP
-    for (auto it : filenames) {
+    for (auto& it : filenames) {
         InotifyDatas& idata = it.second;
         fd_set fds;
         FD_ZERO(&fds);
@@ -32,9 +32,13 @@ void ResourceHotReload::updateReload() {
                 event = (struct inotify_event *) buffer;
                 //it has changed! reload it
                 if (event->wd == idata.wd) {
-                    LOGI(idata._filename << " has changed! Reloading.");
-                    idata.wd = inotify_add_watch(idata.inotifyFd, idata._filename.c_str(), IN_CLOSE_WRITE);
+                    LOGI(idata._filename << " has changed! Reloading." << event->wd);
+                    idata.wd = inotify_add_watch(idata.inotifyFd,
+                        idata._filename.c_str(),
+                        IN_CLOSE_WRITE);
                     reload(idata._assetname);
+                } else {
+                    LOGW("Ugh ?" << idata.wd << "/" << event->wd);
                 }
 
             }
