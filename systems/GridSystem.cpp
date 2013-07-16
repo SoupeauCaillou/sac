@@ -10,6 +10,20 @@ GridSystem::GridSystem() : ComponentSystemImpl<GridComponent>("Grid") {
     componentSerializer.add(new Property<bool>("can_be_on_multiple_cells", OFFSET(canBeOnMultipleCells, tc)));
 }
 
+int GridSystem::GetVisibilityCost(GridComponent::EType type, int distance) {
+    switch (type) {
+        case GridComponent::Pit:
+        case GridComponent::Normal:
+            return 1;
+        case GridComponent::Brush:
+            return 1 + (distance % 6 / 2 );
+        case GridComponent::House:
+            return 3;
+    }
+    LOGF("Shouldn't be here!");
+    return 0;
+}
+
 void GridSystem::DoUpdate(float) {
 }
 

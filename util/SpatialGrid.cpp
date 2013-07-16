@@ -179,7 +179,7 @@ void SpatialGrid::removeEntityFrom(Entity e, const GridPos& p) {
     datas->entityToGridPos[e].remove(p);
 }
 
-std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) {
+std::list<Entity>& SpatialGrid::getEntitiesAt(const GridPos& p) const {
     auto it = datas->cells.find(p);
     if (it == datas->cells.end())
         LOGF("Tried to get entities at invalid pos: '" << p.q << "," << p.r << "'");
@@ -278,6 +278,7 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
     std::vector<GridPos> range, visibleButBlocking;
 
     std::vector<GridPos> borderLine = ringFinder(position, size, true);
+
     // We draw line between position and all border point to make "ray casting"
     for (auto point: borderLine) {
         std::vector<GridPos> ray = lineDrawer(position, point);

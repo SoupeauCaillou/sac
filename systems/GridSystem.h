@@ -12,8 +12,6 @@ struct GridComponent {
 
 	GridComponent(): type(Normal), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
 
-
-
     EType type;
     bool blocksPath;
     bool blocksVision;
@@ -24,4 +22,6 @@ struct GridComponent {
 #define GRID(e) theGridSystem.Get(e)
 
 UPDATABLE_SYSTEM(Grid)
+public:
+    int GetVisibilityCost(GridComponent::EType type, int distance);
 };

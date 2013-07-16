@@ -38,7 +38,6 @@ struct SpatialGridData {
 
     bool isPathBlockedAt(const GridPos& npos) const;
     bool isVisibilityBlockedAt(const GridPos& npos) const;
-
 };
 
 class SpatialGrid {
@@ -58,7 +57,7 @@ class SpatialGrid {
         void addEntityAt(Entity e, const GridPos& p);
         void removeEntityFrom(Entity e, const GridPos& p);
 
-        std::list<Entity>& getEntitiesAt(const GridPos& p);
+        std::list<Entity>& getEntitiesAt(const GridPos& p) const;
 
         void autoAssignEntitiesToCell(const std::vector<Entity>& entities);
 
