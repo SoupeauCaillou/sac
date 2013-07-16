@@ -8,7 +8,7 @@ struct AutoDestroyComponent {
     AutoDestroyComponent() : hasText(false) { }
 
     enum {
-        OUT_OF_AREA,
+        OUT_OF_AREA = 0,
         LIFETIME
     } type;
 
