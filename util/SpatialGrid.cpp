@@ -314,9 +314,11 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
 std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos& to) const {
     std::vector<GridPos> line;
 
-    float dx = to.q - from.q;
-    float dy = (from.q + from.r) - (to.q + to.r);
-    float dz = to.r - from.r;
+    float E = 1e-6;
+
+    float dx = (to.q + E) - from.q;
+    float dy = ((from.q + from.r)+E) - (to.q + to.r);
+    float dz = (to.r-2*E) - from.r;
 
     float N = glm::max(glm::max(glm::abs(dx-dy), glm::abs(dy-dz)), glm::abs(dz-dx));
 
