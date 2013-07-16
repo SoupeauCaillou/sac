@@ -16,7 +16,7 @@ int GridSystem::GetVisibilityCost(GridComponent::EType type, int distance) {
         case GridComponent::Normal:
             return 1;
         case GridComponent::Brush:
-            return 1 + (distance % 6 / 2 );
+            return 1 + (glm::min(distance + 1, 6) / 2 );
         case GridComponent::House:
             return 3;
     }
