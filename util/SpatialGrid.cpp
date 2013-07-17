@@ -279,15 +279,16 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p
                 if (datas->isPathBlockedAt(npos)) {
                     continue;
                 }
-                // do not add neighboor if already added with lower cost
-                const auto ex = visited.find(npos);
-                if (ex != visited.end() && (*ex).second <= movePointLeft) {
-                    continue;
-                }
                 const int travelCost = (*v).second + datas->gridPosMoveCost(npos);
                 const int leftAfterMove = movement - travelCost;
 
                 if (leftAfterMove >= 0) {
+                    // do not add neighboor if already added with lower cost
+                    const auto ex = visited.find(npos);
+                    if (ex != visited.end() && (*ex).second <= travelCost) {
+                        continue;
+                    }
+
                     visited.insert(std::make_pair(npos, travelCost));
                     if (leftAfterMove > 0)
                         lastlyAdded.push_back(npos);
@@ -301,29 +302,6 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p
         range[v.second].push_back(v.first);
     }
 
-#if 0
-    for(int i=1; i<movement+1; ++i) {
-        for (auto pos : range[i-1]) {
-            std::vector<GridPos> neighbors = getNeighbors(pos);
-            for (auto npos: neighbors) {
-                if (datas->isPathBlockedAt(npos)) {
-                    continue;
-                }
-                bool isVisited = false;
-                for (auto v: visited){
-                    if (v == npos) {// and not blocked
-                        isVisited = true;
-                        break;
-                    }
-                }
-                if (!isVisited) {
-                    visited.push_back(npos);
-                    range[i].push_back(npos);
-                }
-            }
-        }
-    }
-#endif
     return std::move(range);
 }
 
@@ -466,7 +444,7 @@ std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& t
             for (GridPos& n: neighbors) {
                 if (datas->isPathBlockedAt(n) && !(ignoreBlockedEndPath && n == to))
                     continue;
-                int cost = current.cost + 1;
+                int cost = current.cost + datas->gridPosMoveCost(n);
 
                 // Is n already in closed ?
                 auto jt = std::find_if(closed.begin(), closed.end(), [n] (const Node& node) -> bool {
