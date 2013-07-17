@@ -40,6 +40,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new Property<EffectRef>("effectRef", OFFSET(effectRef, tc)));
     componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
+    componentSerializer.add(new Property<bool>("fbo", OFFSET(fbo, tc)));
     componentSerializer.add(new Property<bool>("mirror_h", OFFSET(mirrorH, tc)));
     componentSerializer.add(new Property<bool>("z_pre_pass", OFFSET(zPrePass, tc)));
     componentSerializer.add(new Property<bool>("fast_culling", OFFSET(fastCulling, tc)));
@@ -281,7 +282,7 @@ void RenderingSystem::DoUpdate(float) {
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     // remove non active ones
     std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
-    // sort along z
+    // sort along order
     std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
 
     outQueue.count = 0;
