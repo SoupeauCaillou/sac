@@ -36,18 +36,24 @@ class Interval {
 
 template<>
 inline glm::vec2 Interval<glm::vec2>::random() const {
+    if (t1 == t2)
+        return t1;    
     float w = glm::linearRand(0.0f, 1.0f);
     return lerp(w);
 }
 
 template<>
 inline Color Interval<Color>::random() const {
+    if (t1 == t2)
+        return t1;
     float w = glm::linearRand(0.0f, 1.0f);
     return lerp(w);
 }
 
 template<>
 inline int Interval<int>::random() const {
+    if (t1 == t2)
+        return t1;
     float w = glm::linearRand(0.0f, 1.0f);
     int r = (int) Interval::lerp(t1, t2 + 1, w);
     CHECK_ITV_RESULT
@@ -56,6 +62,8 @@ inline int Interval<int>::random() const {
 
 template<>
 inline bool Interval<bool>::random() const {
+    if (t1 == t2)
+        return t1;
     float w = glm::linearRand(0.0f, 1.0f);
     bool r = w > 0.5;
     CHECK_ITV_RESULT
@@ -64,6 +72,8 @@ inline bool Interval<bool>::random() const {
 
 template<class T>
 inline T Interval<T>::random() const {
+    if (t1 == t2)
+        return t1;
     float w = glm::linearRand(0.0f, 1.0f);
     T r = lerp(w);
     CHECK_ITV_RESULT
