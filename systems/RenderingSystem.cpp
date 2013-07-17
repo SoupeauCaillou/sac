@@ -635,40 +635,44 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     fb.height = height;
 
     // create a texture object
-    glGenTextures(1, &fb.texture);
-    glBindTexture(GL_TEXTURE_2D, fb.texture);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    GL_OPERATION(glGenTextures(1, &fb.texture))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, fb.texture))
+    GL_OPERATION(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+    GL_OPERATION(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+    GL_OPERATION(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE))
 #if SAC_DESKTOP
-    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE))
 #endif
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
 
     // create a renderbuffer object to store depth info
-    glGenRenderbuffers(1, &fb.rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, fb.rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    GL_OPERATION(glGenRenderbuffers(1, &fb.rbo))
+    GL_OPERATION(glBindRenderbuffer(GL_RENDERBUFFER, fb.rbo))
+#if ANDROID || SAC_EMSCRIPTEN
+    GL_OPERATION(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height))
+#else
+    GL_OPERATION(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height))
+#endif
+    GL_OPERATION(glBindRenderbuffer(GL_RENDERBUFFER, 0))
 
     // create a framebuffer object
-    glGenFramebuffers(1, &fb.fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
+    GL_OPERATION(glGenFramebuffers(1, &fb.fbo))
+    GL_OPERATION(glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo))
 
     // attach the texture to FBO color attachment point
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
+    GL_OPERATION(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0))
     // attach the renderbuffer to depth attachment point
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb.rbo);
+    GL_OPERATION(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb.rbo))
 
     // check FBO status
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    GLenum status = GL_OPERATION(glCheckFramebufferStatus(GL_FRAMEBUFFER))
     if(status != GL_FRAMEBUFFER_COMPLETE)
-        LOGF("FBO not complete: " << status);
+        LOGE("FBO not complete: " << status);
 
     // switch back to window-system-provided framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL_OPERATION(glBindFramebuffer(GL_FRAMEBUFFER, 0))
 
     FramebufferRef result = nextValidFBRef++;
     nameToFramebuffer[name] = result;
