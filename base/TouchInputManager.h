@@ -32,11 +32,15 @@ class TouchInputManager {
 
         const glm::vec2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
 
+        const glm::vec2& getTouchLastPositionScreen(int idx = 0) const { return lastTouchedPositionScreen[idx]; }
+
 		void Update(float dt);
 
 		void setNativeTouchStatePtr(NativeTouchState* p) { ptr = p; }
 
 		glm::vec2 windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const;
+
+		glm::vec2 windowToScreen(const glm::vec2& windowCoords) const;
 
 #if !ANDROID
 		int getWheel() const;
@@ -45,7 +49,7 @@ class TouchInputManager {
 		NativeTouchState* ptr;
 
 		bool wasTouching[2], touching[2], moving[2];
-		glm::vec2 lastTouchedPosition[2];
+		glm::vec2 lastTouchedPosition[2], lastTouchedPositionScreen[2];
 
 		glm::vec2 worldSize, windowSize;
 };

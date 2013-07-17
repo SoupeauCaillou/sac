@@ -46,9 +46,15 @@ void TouchInputManager::Update(float) {
         touching[i] = ptr->isTouching(i, &coords);
         if (touching[i]) {
             // convert window coordinates -> world coords
+            lastTouchedPositionScreen[i] = windowToScreen(coords);
             lastTouchedPosition[i] = windowToWorld(coords, tc);
     	}
     }
+}
+
+glm::vec2 TouchInputManager::windowToScreen(const glm::vec2& windowCoords) const {
+    return glm::vec2(windowCoords.x / theRenderingSystem.windowW - 0.5,
+        (theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH - 0.5);
 }
 
 glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
