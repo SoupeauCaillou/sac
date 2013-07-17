@@ -26,6 +26,7 @@ struct Color {
 
     Color operator*(float s) const;
     Color operator+(const Color& c) const;
+    Color operator-(const Color& c) const;
     const Color& operator+=(const Color& c);
     bool operator==(const Color& c) const;
 
