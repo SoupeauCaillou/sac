@@ -41,7 +41,7 @@ struct RenderingComponent {
         dynamicVertices(DefaultVerticesRef),
         show(false), mirrorH(false), zPrePass(false), fastCulling(false),
         opaqueType(NON_OPAQUE),
-        cameraBitMask(~0u)
+        cameraBitMask(1)
         {
         fbo = false;
     }
