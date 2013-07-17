@@ -17,6 +17,8 @@
     along with RecursiveRunner.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "CameraSystem.h"
+#include "TransformationSystem.h"
+#include <glm/gtx/rotate_vector.hpp>
 
 INSTANCE_IMPL(CameraSystem);
 
@@ -38,4 +40,14 @@ bool CameraSystem::isDisabled(Entity e) {
 
 bool CameraSystem::sort(Entity e, Entity f) {
     return CAMERA(e)->order < CAMERA(f)->order;
+}
+
+glm::vec2 CameraSystem::WorldToScreen(const TransformationComponent* tc, const glm::vec2& pos) {
+    glm::vec2 p = glm::rotate(pos - tc->position, - tc->rotation);
+    p /= tc->size;
+    return p;
+}
+
+glm::vec2 CameraSystem::ScreenToWorld(const TransformationComponent* tc, const glm::vec2& pos) {
+    return tc->position + glm::rotate(pos * tc->size, tc->rotation);
 }

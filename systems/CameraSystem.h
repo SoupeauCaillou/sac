@@ -31,6 +31,8 @@ struct CameraComponent {
     int id;
 };
 
+struct TransformationComponent;
+
 #define theCameraSystem CameraSystem::GetInstance()
 #define CAMERA(e) theCameraSystem.Get(e)
 
@@ -39,4 +41,8 @@ UPDATABLE_SYSTEM(Camera)
 public:
     static bool isDisabled(Entity e);
     static bool sort(Entity e, Entity f);
+
+    // Transform world coords to screen, based on Camera TransformComp
+    static glm::vec2 WorldToScreen(const TransformationComponent* tc, const glm::vec2& pos);
+    static glm::vec2 ScreenToWorld(const TransformationComponent* tc, const glm::vec2& pos);
 };
