@@ -38,6 +38,8 @@ struct SpatialGridData {
 
     bool isPathBlockedAt(const GridPos& npos) const;
     bool isVisibilityBlockedAt(const GridPos& npos) const;
+
+    int gridPosMoveCost(const GridPos& npos) const;
 };
 
 class SpatialGrid {
@@ -74,7 +76,7 @@ class SpatialGrid {
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);
 
-	protected:
+	public: // arg
 		SpatialGridData* datas;
 
 };

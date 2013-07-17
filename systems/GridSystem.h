@@ -10,9 +10,10 @@ struct GridComponent {
         House,
     };
 
-	GridComponent(): type(Normal), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
+	GridComponent(): type(Normal), moveCost(1), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
 
     EType type;
+    int moveCost;
     bool blocksPath;
     bool blocksVision;
     bool canBeOnMultipleCells;

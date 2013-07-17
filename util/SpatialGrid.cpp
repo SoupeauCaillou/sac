@@ -91,7 +91,7 @@ bool SpatialGridData::isPosValid(const GridPos& pos) const {
 
 bool SpatialGridData::isPathBlockedAt(const GridPos& npos) const {
     LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
-    for (const auto e: (cells.find(npos)->second).entities) {
+    for (const auto& e: (cells.find(npos)->second).entities) {
         if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
             return true;
         }
@@ -102,12 +102,23 @@ bool SpatialGridData::isVisibilityBlockedAt(const GridPos& npos) const {
     // don't use this function because the result may depend on the point of view due to houses behaviour
     // (if we are already in a house, we might see neighbours house blocks, otherwise this should return false for example)
     LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
-    for (const auto e: (cells.find(npos)->second).entities) {
+    for (const auto& e: (cells.find(npos)->second).entities) {
         if (theGridSystem.Get(e, false) && GRID(e)->blocksVision) {
             return true;
         }
     }
     return false;
+}
+
+int SpatialGridData::gridPosMoveCost(const GridPos& npos) const {
+    for (const auto& e: (cells.find(npos)->second).entities) {
+        auto* gc = theGridSystem.Get(e, false);
+        if (gc && gc->moveCost > 0) {
+            return gc->moveCost;
+        }
+    }
+    // default cost is 1
+    return 1;
 }
 
 SpatialGrid::SpatialGrid(int w, int h, float hexagonWidth) {
@@ -240,15 +251,57 @@ void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) 
 }
 
 std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p, int movement) const {
-    std::map<int, std::vector<GridPos> > range;
 
     auto it = datas->cells.find(p);
 
     LOGF_IF(it == datas->cells.end(), "Tried to find movement range at invalid position: '" << p.q << "," << p.r <<"'");
 
-    std::vector<GridPos> visited;
-    visited.push_back(p);
-    range[0].push_back(p);
+    std::map<GridPos, int> visited;
+    std::list<GridPos> lastlyAdded;
+
+    visited.insert(std::make_pair(p, 0));
+    lastlyAdded.push_back(p);
+
+    while (!lastlyAdded.empty()) {
+        // browse last added positions
+        auto gp = lastlyAdded.front();
+        lastlyAdded.pop_front();
+
+        auto v = visited.find(gp);
+
+        const int movePointLeft = movement - (*v).second;
+
+        if (movePointLeft > 0) {
+            std::vector<GridPos> neighbors = getNeighbors(gp);
+
+            for (const auto& npos: neighbors) {
+                // do not add neighboor if it's blocking
+                if (datas->isPathBlockedAt(npos)) {
+                    continue;
+                }
+                // do not add neighboor if already added with lower cost
+                const auto ex = visited.find(npos);
+                if (ex != visited.end() && (*ex).second <= movePointLeft) {
+                    continue;
+                }
+                const int travelCost = (*v).second + datas->gridPosMoveCost(npos);
+                const int leftAfterMove = movement - travelCost;
+
+                if (leftAfterMove >= 0) {
+                    visited.insert(std::make_pair(npos, travelCost));
+                    if (leftAfterMove > 0)
+                        lastlyAdded.push_back(npos);
+                }
+            }
+        }
+    }
+
+    std::map<int, std::vector<GridPos> > range;
+    for (const auto& v: visited) {
+        range[v.second].push_back(v.first);
+    }
+
+#if 0
     for(int i=1; i<movement+1; ++i) {
         for (auto pos : range[i-1]) {
             std::vector<GridPos> neighbors = getNeighbors(pos);
@@ -270,7 +323,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p
             }
         }
     }
-
+#endif
     return std::move(range);
 }
 
