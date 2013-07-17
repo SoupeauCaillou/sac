@@ -2,6 +2,7 @@
 
 #include "TransformationSystem.h"
 #include "RenderingSystem.h"
+#include "CameraSystem.h"
 
 #include "base/TimeUtil.h"
 
@@ -26,10 +27,25 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
 
 void ButtonSystem::DoUpdate(float) {
     bool touch = theTouchInputManager.isTouched(0);
-	const glm::vec2& pos = theTouchInputManager.getTouchLastPosition(0);
+
+	std::vector<glm::vec2> camerasAdaptedPos;
+	if (touch) {
+		glm::vec2 pos = theTouchInputManager.getTouchLastPositionScreen(0);
+
+		theCameraSystem.forEachECDo([pos, &camerasAdaptedPos] (Entity c, CameraComponent* cc) -> void {
+			camerasAdaptedPos.resize(glm::max((int)camerasAdaptedPos.size(), cc->id + 1));
+			camerasAdaptedPos[cc->id] = CameraSystem::ScreenToWorld(TRANSFORM(c), pos);
+		});
+	}
+
 
     theButtonSystem.forEachECDo([&] (Entity e, ButtonComponent *bt) -> void {
-    	UpdateButton(e, bt, touch, pos);
+    	auto* rc = theRenderingSystem.Get(e, false);
+    	if (rc) {
+    		UpdateButton(e, bt, touch, camerasAdaptedPos[(int) (rc->cameraBitMask / 2)]);
+    	} else {
+    		UpdateButton(e, bt, touch, theTouchInputManager.getTouchLastPosition(0));
+    	}
     });
 }
 
@@ -47,14 +63,19 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	const glm::vec2& pos = TRANSFORM(entity)->position;
 	const glm::vec2& size = TRANSFORM(entity)->size;
 
-	bool over = IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize, TRANSFORM(entity)->rotation);
-	if (theRenderingSystem.Get(entity, false)) {
+	bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize, TRANSFORM(entity)->rotation);
+
+	auto* rc = theRenderingSystem.Get(entity, false);
+	if (rc) {
 		if (comp->textureActive != InvalidTextureRef) {
-			if (touching && over)
-				RENDERING(entity)->texture = comp->textureActive;
+			// Adapt texture to button state
+			if (touching && over && !comp->touchStartOutside)
+				rc->texture = comp->textureActive;
 			else
-				RENDERING(entity)->texture = comp->textureInactive;
+				rc->texture = comp->textureInactive;
 		}
+
+
 	}
 	if (comp->enabled && !comp->touchStartOutside) {
         if (comp->mouseOver) {
