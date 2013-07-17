@@ -22,7 +22,10 @@
 #include <GLES2/gl2.h>
 #else
 #include <GL/glew.h>
-#define CHECK_GL_ERROR
+#endif
+
+#if SAC_DEBUG
+#define CHECK_GL_ERROR 1
 #endif
 
 void check_GL_errors(const char* context);
