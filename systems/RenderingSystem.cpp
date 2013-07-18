@@ -306,7 +306,8 @@ void RenderingSystem::DoUpdate(float) {
                 continue;
             }
 
-            // LOGW_IF(tc->z <= 0 || tc->z > 1, "Entity '" << theEntityManager.entityName(a) << "' has invalid z value: " << tc->z << ". Will not be drawn")
+            LOGW_IF(tc->z <= 0 || tc->z > 1, "Entity '" << theEntityManager.entityName(a) <<
+                "' has invalid z value: " << tc->z << ". Will not be drawn");
 
     		RenderCommand c;
     		c.z = tc->z;
