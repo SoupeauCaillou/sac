@@ -68,11 +68,19 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	auto* rc = theRenderingSystem.Get(entity, false);
 	if (rc) {
 		if (comp->textureActive != InvalidTextureRef) {
+			#ifdef SAC_DEBUG
+			if (rc->texture != oldTexture[entity])
+				LOGW("Texture is changed in another place!");
+			#endif
+
 			// Adapt texture to button state
 			if (touching && over && !comp->touchStartOutside)
 				rc->texture = comp->textureActive;
 			else
 				rc->texture = comp->textureInactive;
+			#ifdef SAC_DEBUG
+			oldTexture[entity] = rc->texture;
+			#endif
 		}
 
 

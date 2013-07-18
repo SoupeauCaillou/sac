@@ -41,4 +41,8 @@ public:
     VibrateAPI* vibrateAPI;
 private:
 	void UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos);
+
+#ifdef SAC_DEBUG
+	std::map<Entity, TextureRef> oldTexture;
+#endif
 };
