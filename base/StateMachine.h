@@ -71,6 +71,8 @@ class StateMachine {
 
 		void registerState(T id, StateHandler<T>* hdl, const std::string& stateDebugName);
 
+        void unregisterAllStates();
+
 		void update(float dt);
 
         void forceNewState(T state);

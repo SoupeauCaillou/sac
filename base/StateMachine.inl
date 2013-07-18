@@ -135,3 +135,12 @@ template<typename T>
 const std::map<T, StateHandler<T>*>& StateMachine<T>::getHandlers() const {
     return state2handler;
 }
+
+template<typename T>
+void StateMachine<T>::unregisterAllStates() {
+    LOGT("To be checked!!! (maybe shouldn't do that)");
+    state2handler.clear();
+    #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
+        state2Name.clear();
+    #endif
+}
