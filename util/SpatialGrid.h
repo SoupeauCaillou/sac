@@ -45,7 +45,7 @@ struct SpatialGridData {
 class SpatialGrid {
 	public:
 		SpatialGrid(int w, int h, float hexagonWidth = 1);
-        ~SpatialGrid();
+        virtual ~SpatialGrid();
 
 	public:
 		std::vector<GridPos> getNeighbors(const GridPos& pos, bool enableInvalidPos) const;
