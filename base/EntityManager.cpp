@@ -94,7 +94,8 @@ Entity EntityManager::getEntityByName(const std::string& name) const {
 
 void EntityManager::DeleteEntity(Entity e) {
     auto i = entityComponents.find(e);
-    LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity '" << e << "'");
+    LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity " <<
+        e << "('" << entityName(e) << "') (did you already removed it?)");
 	std::list<ComponentSystem*>& l = i->second;
 
 	for (std::list<ComponentSystem*>::iterator it=l.begin(); it!=l.end(); ++it) {
