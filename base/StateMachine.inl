@@ -25,6 +25,7 @@ void StateMachine<T>::setup(T initState) {
         it->second->setup();
     }
 
+    currentState = (T) -1;
     transitionning = transition.readyExit = transition.dumbFrom = true;
     transition.toState = initState;
     transition.readyEnter = false;
