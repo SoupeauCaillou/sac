@@ -456,7 +456,10 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
                     ANCHOR(*e)->parent = entity;
                 } else if (a[0] == 1) {
-                    memcpy(TYPE_2_PTR(Entity), a + 1, sizeof(Entity));
+                    char* s = (char*)&a[1]; 
+                    Entity byName = theEntityManager.getEntityByName(s);
+                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << name << "'");
+                    memcpy(TYPE_2_PTR(Entity), &byName, sizeof(Entity));
                 }
                 break;
             }
@@ -561,11 +564,10 @@ static bool loadSingleProperty(const std::string& context,
                 theEntityManager.entityTemplateLibrary.defineParent(r,
                     theEntityManager.entityTemplateLibrary.load(s));
             } else if (load(dfp, section, name + "%name", IntervalAsRandom, &s)) {
-                Entity byName = theEntityManager.getEntityByName(s);
-                LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << name << "'");
-                uint8_t* arr = new uint8_t[sizeof(Entity) + 1];
+                uint8_t* arr = new uint8_t[1 + s.size() + 1];
                 arr[0] = 1;
-                memcpy(arr + 1, &byName, sizeof(byName));
+                memcpy(arr + 1, s.c_str(), s.size());
+                arr[s.size() + 1] = '\0';
                 propMap.insert(std::make_pair(name, arr));
             }
             break;
