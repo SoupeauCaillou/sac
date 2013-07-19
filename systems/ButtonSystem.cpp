@@ -21,6 +21,9 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     componentSerializer.add(new Property<bool>("enabled", OFFSET(enabled, bc)));
     componentSerializer.add(new Property<float>("over_size", OFFSET(overSize, bc), 0.001));
     componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, bc), 0.001));
+    componentSerializer.add(new Property<float>("trigger", OFFSET(trigger, bc), 0.001));
+    componentSerializer.add(new Property<float>("first_touch", OFFSET(firstTouch, bc), 0.001));
+    componentSerializer.add(new Property<int>("type", OFFSET(type, bc)));
     componentSerializer.add(new Property<TextureRef>("texture_active", PropertyType::Texture, OFFSET(textureActive, bc), 0));
     componentSerializer.add(new Property<TextureRef>("texture_inactive", PropertyType::Texture, OFFSET(textureInactive, bc), 0));
 }
@@ -78,37 +81,58 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 				rc->texture = comp->textureActive;
 			else
 				rc->texture = comp->textureInactive;
+			
 			#ifdef SAC_DEBUG
 			oldTexture[entity] = rc->texture;
 			#endif
 		}
-
-
 	}
+	// If button is enabled and we have clicked on button at beginning
 	if (comp->enabled && !comp->touchStartOutside) {
+        // If we are clicking on the button
         if (comp->mouseOver) {
 			if (touching) {
 				comp->mouseOver = over;
+				if (comp->type == ButtonComponent::LONGPUSH) {
+					float t =TimeUtil::GetTime();
+					if (comp->firstTouch == 0) {
+						comp->firstTouch = t;
+					}
+					LOGI_EVERY_N(10, t-comp->firstTouch);
+					if (t - comp->firstTouch > comp->trigger) {
+						comp->firstTouch = 0;
+						comp->lastClick = t;
+						comp->clicked = true;
+					}
+				}
 			} else {
 				if (!comp->touchStartOutside) {
 					float t =TimeUtil::GetTime();
 					// at least 200 ms between 2 clicks
+					
 					if (t - comp->lastClick > .2) {
-						comp->lastClick = t;
-						comp->clicked = true;
+						if (comp->type == ButtonComponent::NORMAL) {
+							comp->lastClick = t;
+							comp->clicked = true;
+						}
 
-                         LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked");
+                        LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked");
 
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
                         }
 					}
+					
+					comp->firstTouch = 0;	
 				}
+
 				comp->mouseOver = false;
 			}
 		} else {
 			comp->touchStartOutside = touching & !over;
 			comp->mouseOver = touching & over;
+			
+			comp->firstTouch = 0;
 		}
 	} else {
         comp->mouseOver = false;
