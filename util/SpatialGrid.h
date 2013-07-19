@@ -24,7 +24,9 @@ public:
     friend std::ostream& operator<<(std::ostream& str, const GridPos& gp);
 };
 
-struct Cell;
+struct Cell {
+    std::list<Entity> entities;
+};
 
 struct SpatialGridData {
     int w, h;
@@ -38,8 +40,6 @@ struct SpatialGridData {
 
     bool isPathBlockedAt(const GridPos& npos) const;
     bool isVisibilityBlockedAt(const GridPos& npos) const;
-
-    int gridPosMoveCost(const GridPos& npos) const;
 };
 
 class SpatialGrid {
@@ -48,30 +48,26 @@ class SpatialGrid {
         virtual ~SpatialGrid();
 
 	public:
-		std::vector<GridPos> getNeighbors(const GridPos& pos, bool enableInvalidPos) const;
-        bool isPathBlockedAt(const GridPos& npos) const;
-
+		std::vector<GridPos> getNeighbors(const GridPos& pos, bool enableInvalidPos = false) const;
         GridPos positionToGridPos(const glm::vec2& pos) const;
         glm::vec2 gridPosToPosition(const GridPos& gp) const;
-
         void forEachCellDo(std::function<void(const GridPos& )> f);
-
         void addEntityAt(Entity e, const GridPos& p);
         void removeEntityFrom(Entity e, const GridPos& p);
-
         std::list<Entity>& getEntitiesAt(const GridPos& p) const;
-
         void autoAssignEntitiesToCell(const std::vector<Entity>& entities);
-
-        std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
-        virtual std::vector<GridPos> viewRange(const GridPos& p, int size) const;
-        std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
-        std::vector<GridPos> lineDrawer(const GridPos& from, const GridPos& to) const;
-        int canDrawLine(const GridPos& p1, const GridPos& p2) const;
-
-        std::vector<GridPos> findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;
-
         unsigned computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const;
+
+        virtual bool isPathBlockedAt(const GridPos& npos) const;
+        virtual int gridPosMoveCost(const GridPos& from, const GridPos& to) const;
+        virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
+        virtual std::vector<GridPos> viewRange(const GridPos& p, int size) const;
+        virtual std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
+        virtual std::vector<GridPos> lineDrawer(const GridPos& from, const GridPos& to) const;
+        virtual int canDrawLine(const GridPos& p1, const GridPos& p2) const;
+
+        virtual std::vector<GridPos> findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;
+
 
 	public:
 		static unsigned ComputeDistance(const GridPos& p1, const GridPos& p2);
