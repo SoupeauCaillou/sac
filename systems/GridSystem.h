@@ -27,5 +27,4 @@ public:
     int GetVisibilityCost(GridComponent::EType type, int distance);
     int GetDefenceBonus(GridComponent::EType type);
     int GetAttackBonus(GridComponent::EType type);
-    int MaximumAttackBonus;
 };

@@ -3,8 +3,6 @@
 INSTANCE_IMPL(GridSystem);
 
 GridSystem::GridSystem() : ComponentSystemImpl<GridComponent>("Grid") {
-    MaximumAttackBonus = GetAttackBonus(GridComponent::House);
-
     GridComponent tc;
     componentSerializer.add(new Property<int>("type", OFFSET(type, tc)));
     componentSerializer.add(new Property<bool>("blocks_path", OFFSET(blocksPath, tc)));
