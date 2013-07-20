@@ -25,4 +25,7 @@ struct GridComponent {
 UPDATABLE_SYSTEM(Grid)
 public:
     int GetVisibilityCost(GridComponent::EType type, int distance);
+    int GetDefenceBonus(GridComponent::EType type);
+    int GetAttackBonus(GridComponent::EType type);
+    int MaximumAttackBonus;
 };
