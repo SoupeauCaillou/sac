@@ -76,6 +76,11 @@ static int drawBatchES2(
 
         GL_OPERATION(glDrawElements(GL_TRIANGLES, batchTriangleCount * 3, GL_UNSIGNED_SHORT, 0))
     }
+
+    #if SAC_OLD_HARDWARE
+        //seems to solve artifacts on old graphic cards (nvidia 8600GT at least)
+        glFinish();
+    #endif
     return 0;
 }
 
