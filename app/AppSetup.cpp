@@ -66,6 +66,7 @@
 #include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
 #include "api/linux/GameCenterAPIDebugImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
+#include "api/default/WWWAPIcURLImpl.h"
 
 #include "util/Recorder.h"
 
@@ -227,7 +228,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->stringInputAPI = new StringInputAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Vibrate))
         ctx->vibrateAPI = new VibrateAPILinuxImpl();
-
+    if (game->wantsAPI(ContextAPI::WWW))
+        ctx->wwwAPI = new WWWAPIcURLImpl();
     /////////////////////////////////////////////////////
     // Init systems
     game->mouseNativeTouchState = new MouseNativeTouchState();

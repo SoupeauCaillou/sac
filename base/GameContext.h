@@ -30,6 +30,7 @@ class SoundAPI;
 class StorageAPI;
 class StringInputAPI;
 class VibrateAPI;
+class WWWAPI;
 
 namespace ContextAPI {
     enum Enum {
@@ -45,7 +46,8 @@ namespace ContextAPI {
         Sound,
         Storage,
         StringInput,
-        Vibrate
+        Vibrate,
+        WWW,
     };
 }
 
@@ -63,7 +65,8 @@ struct GameContext {
         soundAPI(0),
         storageAPI(0),
         stringInputAPI(0),
-        vibrateAPI(0) {}
+        vibrateAPI(0),
+        wwwAPI(0) {}
 
     AdAPI* adAPI;
     AssetAPI* assetAPI;
@@ -78,4 +81,5 @@ struct GameContext {
     StorageAPI* storageAPI;
     StringInputAPI* stringInputAPI;
     VibrateAPI* vibrateAPI;
+    WWWAPI* wwwAPI;
 };
