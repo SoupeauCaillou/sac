@@ -33,5 +33,5 @@ function (postbuild_specific_actions)
 endfunction()
 
 function (import_specific_libs)
-    check_and_link_libs("sac" VPX GL)
+    check_and_link_libs("sac" VPX GL CURL)
 endfunction()
