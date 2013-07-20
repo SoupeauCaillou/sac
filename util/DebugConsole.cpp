@@ -13,7 +13,7 @@ DebugConsole & DebugConsole::Instance() {
 
 void DebugConsole::initTW() {
     bar = TwNewBar("Debug_Console");
-    TwDefine(" Debug_Console size='400 200' iconified=true ");
+    TwDefine(" Debug_Console size='400 200' iconified=true valueswidth=250");
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
@@ -24,13 +24,13 @@ void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(voi
 
     LOGE("New entry for debug console: " << name);
 
-    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "");
+    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "valueswidth=fit");
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
     const std::string & argumentName, TwType type, void* storingPlace) {
 
-    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "");
+    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "valueswidth=fit");
     RegisterMethod(name, callback, storingPlace);
 }
 
