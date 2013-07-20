@@ -15,27 +15,30 @@ class DebugConsole {
 
         static DebugConsole & Instance();
 
-        //there is no argument
-        static void registerMethodWithoutArg(const std::string & functionName, void (*callback)(void*));
-
-        //user can choose the argument in a enum list
-        //functionName: string to be displayed in Ant TW bar
-        //argumentName: string to be displayed in Ant TW bar (for the argument)
-        //callback: function to be called when clicking the function in Ant
-        //availableArgs: enum list of possible values
-        //availableArgsSize: size of the enum (note: you can use sizeof(availableArgs)/sizeof(TWEnumVal))
-        //storingPlace: where to store the argument value (should be a static or allocated variable)
-        static void registerMethodWithOneArg(const std::string & functionName, const std::string & argumentName,
-            void (*callback)(void*), TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace);
+        //Function without args (storingPlace is unused - should be 0)
+        static void RegisterMethod(const std::string & functionName, void (*callback)(void*),
+            void* storingPlace = 0);
 
         //user can choose the argument value of the specified type (see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twtype for the whole list)
         //functionName: string to be displayed in Ant TW bar
-        //argumentName: string to be displayed in Ant TW bar (for the argument)
         //callback: function to be called when clicking the function in Ant
-        //type: the argument type (bool, string, int, float, ... see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twtype for the whole list)
+        //argumentName: string to be displayed in Ant TW bar (for the argument)
+        //type: the argument type
+        //      (bool=TW_TYPE_BOOLCPP, string=TW_TYPE_STDSTRING, float=TW_TYPE_FLOAT, ...
+        //      see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twtype for the whole list)
         //storingPlace: where to store the argument value (should be a static or allocated variable)
-        static void registerMethodWithOneArg(const std::string & functionName, const std::string & argumentName,
-            void (*callback)(void*), void* storingPlace, TwType type);
+        static void RegisterMethod(const std::string & functionName, void (*callback)(void*),
+            const std::string & argumentName, TwType type, void* storingPlace);
+
+        //user can choose the argument in a enum list
+        //functionName: string to be displayed in Ant TW bar
+        //callback: function to be called when clicking the function in Ant
+        //argumentName: string to be displayed in Ant TW bar (for the argument)
+        //availableArgs: enum list of possible values
+        //availableArgsSize: size of the enum (note: you can use sizeof(availableArgs)/sizeof(TWEnumVal))
+        //storingPlace: where to store the argument value (should be a static or allocated variable)
+        static void RegisterMethod(const std::string & functionName, void (*callback)(void*),
+            const std::string & argumentName, TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace);
 
     private:
         DebugConsole() {}
