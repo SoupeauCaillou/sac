@@ -17,28 +17,27 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FileBuffer *fb) {
     return nmemb;
 }
 
-FileBuffer* WWWAPIcURLImpl::downloadFile(const std::string &url, FileBuffer *fb) {
+FileBuffer WWWAPIcURLImpl::downloadFile(const std::string &url) {
     //check url
     unsigned found = url.find_last_of("/");
     //if url ends with a '/' or there is no '/' at all, it's a bad url
     if (found >= url.size() - 1) {
         LOGE("Invalid URL! " << url);
-        return 0;
+        return FileBuffer();
     }
 
-    if (! fb) {
-        fb = new FileBuffer();
-    }
 
     CURL * curl = curl_easy_init();
     if (! curl) {
         LOGE("Could not init curl");
-        return 0;
+        return FileBuffer();
     }
+
+    FileBuffer fb;
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fb);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fb);
     CURLcode res = curl_easy_perform(curl);
     long HTTPCode;
     curl_easy_getinfo(curl, CURLINFO_HTTP_CODE, &HTTPCode);
@@ -46,7 +45,7 @@ FileBuffer* WWWAPIcURLImpl::downloadFile(const std::string &url, FileBuffer *fb)
     switch (res) {
         case 0:
             if (HTTPCode == 200) {
-                LOGI("Successfully downloaded FileBuffer " << url << ". Total size: " << fb->size << "o.");
+                LOGI("Successfully downloaded FileBuffer " << url << ". Total size: " << fb.size << "o.");
                 return fb;
             } else {
                 LOGE("Error with FileBuffer, http_code=" << HTTPCode);
@@ -60,5 +59,5 @@ FileBuffer* WWWAPIcURLImpl::downloadFile(const std::string &url, FileBuffer *fb)
             break;
     }
     curl_easy_cleanup(curl);
-    return 0;
+    return fb;
 }

@@ -65,8 +65,8 @@
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
 #include "api/linux/GameCenterAPIDebugImpl.h"
+#include "api/linux/WWWAPIcURLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
-#include "api/default/WWWAPIcURLImpl.h"
 
 #include "util/Recorder.h"
 

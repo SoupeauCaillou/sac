@@ -22,10 +22,9 @@ EntityTemplateLibrary::~EntityTemplateLibrary() {
 void EntityTemplateLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading, WWWAPI* pWwwAPI) {
     NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer>::init(pAssetAPI, pUseDeferredLoading);
     if (pWwwAPI) {
-        FileBuffer fb;
         LOGT("shouldn't be hardcoded url..");
         const std::string url = "https://dl.dropboxusercontent.com/s/azb4nmb798jjk7v/us_fusil_01.entity?token_hash=AAHWsTaEuBBfUb7RpQeuteFrNk1lJZtDTAKXR54Lo2NCkg&dl=1";
-        pWwwAPI->downloadFile(url, &fb);
+        FileBuffer fb = pWwwAPI->downloadFile(url);
         if (fb.size > 0) {
             // std::stringstream ss;
             // ss << fb.data;

@@ -72,10 +72,12 @@ const std::string &  AssetAPIAndroidImpl::getWritableAppDatasPath() {
     return path;
  }
 
-FileBuffer AssetAPIAndroidImpl::loadFile(const std::string& fullPath) {
+FileBuffer AssetAPIAndroidImpl::loadFile(const std::string&) {
     LOGT("Extract Linux impl as static method and use it here");
+    return FileBuffer();
 }
 
 std::list<std::string> AssetAPIAndroidImpl::listContent(const std::string&, const std::string&, const std::string&) {
     LOGT("Extract Linux impl as static method and use it here");
+    return std::list<std::string>();
 }
