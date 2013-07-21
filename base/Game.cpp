@@ -131,7 +131,7 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     gameThreadContext = pGameThreadContext;
     renderThreadContext = pRenderThreadContext;
 
-    theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
+    theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false, gameThreadContext->wwwAPI);
 }
 
 #if SAC_ENABLE_PROFILING

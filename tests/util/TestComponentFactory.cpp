@@ -67,7 +67,7 @@ struct StubAssetAPI : public AssetAPI {
 
 static Entity doTest(std::string s) {
     StubAssetAPI a(s);
-    theEntityManager.entityTemplateLibrary.init(&a, false);
+    theEntityManager.entityTemplateLibrary.init(&a, false, 0);
     return theEntityManager.CreateEntity("test", EntityType::Volatile,
         theEntityManager.entityTemplateLibrary.load("test"));
 }

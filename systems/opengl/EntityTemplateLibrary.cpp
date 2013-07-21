@@ -5,6 +5,8 @@
 #include "base/EntityManager.h"
 #include "systems/TransformationSystem.h"
 
+#include "api/WWWAPI.h"
+
 EntityTemplateLibrary::~EntityTemplateLibrary() {
     for (auto r2a: ref2asset) {
         EntityTemplate& tmp = r2a.second;
@@ -15,6 +17,27 @@ EntityTemplateLibrary::~EntityTemplateLibrary() {
         }
     }
     ref2asset.clear();
+}
+
+void EntityTemplateLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading, WWWAPI* pWwwAPI) {
+    NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer>::init(pAssetAPI, pUseDeferredLoading);
+    if (pWwwAPI) {
+        FileBuffer fb;
+        LOGT("shouldn't be hardcoded url..");
+        const std::string url = "https://dl.dropboxusercontent.com/s/azb4nmb798jjk7v/us_fusil_01.entity?token_hash=AAHWsTaEuBBfUb7RpQeuteFrNk1lJZtDTAKXR54Lo2NCkg&dl=1";
+        pWwwAPI->downloadFile(url, &fb);
+        if (fb.size > 0) {
+            // std::stringstream ss;
+            // ss << fb.data;
+            // std::string line;
+            // while (std::getline(ss,line,'\n')) {
+            //     LOGI("downloading file " << line << "...");
+            // }
+            std::string s = "soldier/us_mit_01";
+            auto hash = MurmurHash::compute(s.c_str(), s.size());
+            registerDataSource(hash, fb);
+        }
+    }
 }
 
 int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
@@ -50,12 +73,22 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
 }
 
 bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef& r) {
+    std::map<EntityTemplateRef, FileBuffer>::iterator it = dataSource.find(r);
     DataFileParser dfp;
-    FileBuffer fb = assetAPI->loadAsset(asset2File(name));
-    if (!fb.size) {
-        LOGF("Unable to load '" << asset2File(name) << "'");
-        return false;
+    FileBuffer fb;
+
+    if (it == dataSource.end()) {
+        LOGI("loadEntityTemplate: '" << name << "' from file");
+        fb = assetAPI->loadAsset(asset2File(name));
+        if (!fb.size) {
+            LOGF("Unable to load '" << asset2File(name) << "'");
+            return false;
+        }
+    } else {
+        LOGI("loadEntityTemplate: '" << name << "' from InMemoryEntityTemplate (" << fb.size << ')');
+        fb = it->second;
     }
+
     if (!dfp.load(fb, asset2File(name))) {
         LOGE("Unable to parse '" << asset2File(name) << "'");
         delete[] fb.data;
@@ -83,6 +116,7 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     LOGI( "Loaded entity template: '" << name << "' (" << propCount << " properties)");
 
     delete[] fb.data;
+
     return true;
 }
 
@@ -113,9 +147,9 @@ void EntityTemplateLibrary::doReload(const std::string& name, const EntityTempla
     EntityTemplate newTempl;
     if (doLoad(name, newTempl, ref)) {
         ref2asset[ref] = newTempl;
-#if SAC_LINUX && SAC_DESKTOP
-        applyTemplateToAll(ref);
-#endif
+        #if SAC_LINUX && SAC_DESKTOP
+            applyTemplateToAll(ref);
+        #endif
     } else {
         LOGW("Unable to reload '" << name << "'");
     }
@@ -148,9 +182,9 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
         theEntityManager.AddComponent(e, s, false);
         s->applyEntityTemplate(e, it.second);
     }
-#if SAC_LINUX && SAC_DESKTOP
-    template2entities[templRef].insert(e);
-#endif
+    #if SAC_LINUX && SAC_DESKTOP
+        template2entities[templRef].insert(e);
+    #endif
 }
 
 #if SAC_LINUX && SAC_DESKTOP
@@ -164,7 +198,7 @@ void EntityTemplateLibrary::remove(Entity e) {
 
 void EntityTemplateLibrary::defineParent(EntityTemplateRef child, EntityTemplateRef parent) {
     template2parent.insert(std::make_pair(child, parent));
-#if SAC_LINUX && SAC_DESKTOP
-    template2children[parent].insert(child);
-#endif
+    #if SAC_LINUX && SAC_DESKTOP
+        template2children[parent].insert(child);
+    #endif
 }
