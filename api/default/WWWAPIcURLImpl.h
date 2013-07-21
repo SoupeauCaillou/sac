@@ -3,5 +3,5 @@
 #include "api/WWWAPI.h"
 class WWWAPIcURLImpl : public WWWAPI {
     public:
-        FILE* downloadFile(const std::string & url, FILE* filename);
+        FileBuffer* downloadFile(const std::string &url, FileBuffer *fb);
 };
