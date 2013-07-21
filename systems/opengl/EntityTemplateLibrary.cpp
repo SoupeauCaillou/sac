@@ -19,11 +19,10 @@ EntityTemplateLibrary::~EntityTemplateLibrary() {
     ref2asset.clear();
 }
 
-void EntityTemplateLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading, WWWAPI* pWwwAPI) {
+void EntityTemplateLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading,
+    WWWAPI* pWwwAPI, const std::string & url) {
     NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer>::init(pAssetAPI, pUseDeferredLoading);
     if (pWwwAPI) {
-        LOGT("shouldn't be hardcoded url..");
-        const std::string url = "https://dl.dropboxusercontent.com/s/azb4nmb798jjk7v/us_fusil_01.entity?token_hash=AAHWsTaEuBBfUb7RpQeuteFrNk1lJZtDTAKXR54Lo2NCkg&dl=1";
         FileBuffer fb = pWwwAPI->downloadFile(url);
         if (fb.size > 0) {
             // std::stringstream ss;
@@ -32,7 +31,12 @@ void EntityTemplateLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading, 
             // while (std::getline(ss,line,'\n')) {
             //     LOGI("downloading file " << line << "...");
             // }
-            std::string s = "soldier/us_mit_01";
+            unsigned foundSlash = url.find_last_of("/");
+            unsigned foundDot = url.substr(foundSlash+1).find(".entity");
+
+            //name should be soldier/#file#
+            std::string s = "soldier" + url.substr(foundSlash, foundDot + 1);
+
             auto hash = MurmurHash::compute(s.c_str(), s.size());
             registerDataSource(hash, fb);
         }

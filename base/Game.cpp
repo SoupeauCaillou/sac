@@ -130,8 +130,6 @@ Game::~Game() {
 void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {
     gameThreadContext = pGameThreadContext;
     renderThreadContext = pRenderThreadContext;
-
-    theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false, gameThreadContext->wwwAPI);
 }
 
 #if SAC_ENABLE_PROFILING
@@ -263,6 +261,7 @@ void Game::sacInit(int windowW, int windowH) {
 
     PlacementHelper::WindowSize = glm::vec2(windowW, windowH);
     PlacementHelper::GimpSize = glm::vec2(800.0f, 1280.0f);
+
 
     theRenderingSystem.setWindowSize(PlacementHelper::WindowSize, PlacementHelper::ScreenSize);
     theTouchInputManager.init(PlacementHelper::ScreenSize, PlacementHelper::WindowSize);
