@@ -44,15 +44,13 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
         void doReload(const std::string& name, const EntityTemplateRef& ref);
 
     public:
-        //more info at http://publib.boulder.ibm.com/infocenter/comphelp/v8v101/index.jsp?topic=%2Fcom.ibm.xlcpp8a.doc%2Flanguage%2Fref%2Foverload_member_fn_base_derived.htm
-        using NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer>::init;
-        void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading, WWWAPI* wwwAPI, const std::string & url = "");
-
         std::string asset2File(const std::string& assetName) const { return "entities/" + assetName + ".entity"; }
 
         void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
 
         void defineParent(EntityTemplateRef child, EntityTemplateRef parent);
+
+        void registerDataSource(EntityTemplateRef ref, FileBuffer fb);
 
         ~EntityTemplateLibrary();
 

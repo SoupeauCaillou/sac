@@ -19,29 +19,10 @@ EntityTemplateLibrary::~EntityTemplateLibrary() {
     ref2asset.clear();
 }
 
-void EntityTemplateLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading,
-    WWWAPI* pWwwAPI, const std::string & url) {
-    NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer>::init(pAssetAPI, pUseDeferredLoading);
-    if (pWwwAPI) {
-        FileBuffer fb = pWwwAPI->downloadFile(url);
-        if (fb.size > 0) {
-            // std::stringstream ss;
-            // ss << fb.data;
-            // std::string line;
-            // while (std::getline(ss,line,'\n')) {
-            //     LOGI("downloading file " << line << "...");
-            // }
-            unsigned foundSlash = url.find_last_of("/");
-            unsigned foundDot = url.substr(foundSlash+1).find(".entity");
-
-            //name should be soldier/#file#
-            std::string s = "soldier" + url.substr(foundSlash, foundDot + 1);
-
-            auto hash = MurmurHash::compute(s.c_str(), s.size());
-            registerDataSource(hash, fb);
-        }
-    }
+void EntityTemplateLibrary::registerDataSource(EntityTemplateRef ref, FileBuffer fb) {
+    NamedAssetLibrary::registerDataSource(ref, fb);
 }
+
 
 int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
