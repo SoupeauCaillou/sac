@@ -39,11 +39,21 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
 #include <signal.h>
 
 #if SAC_ANDROID
-#include <sstream>
+
 #include <android/log.h>
+static const android_LogPriority level2prio[] {
+    ANDROID_LOG_FATAL,
+    ANDROID_LOG_ERROR,
+    ANDROID_LOG_WARN,
+    ANDROID_LOG_WARN,
+    ANDROID_LOG_INFO,
+    ANDROID_LOG_VERBOSE,
+    ANDROID_LOG_VERBOSE
+};
+#include <sstream>
 #define SAC_LOG_PRE std::stringstream __log_ss;
 #define SAC_LOG_STREAM __log_ss
-#define SAC_LOG_POST __android_log_print(ANDROID_LOG_INFO, "sac", "%s", __log_ss.str().c_str());
+#define SAC_LOG_POST __android_log_print(level2prio[logLevel], "sac", "%s", __log_ss.str().c_str());
 #else
 #include <iostream>
 #define SAC_LOG_PRE
