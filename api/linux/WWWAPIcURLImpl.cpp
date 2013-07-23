@@ -59,5 +59,6 @@ FileBuffer WWWAPIcURLImpl::downloadFile(const std::string &url) {
             break;
     }
     curl_easy_cleanup(curl);
-    return fb;
+    //return empty file buffer, since we got an error
+    return FileBuffer();
 }
