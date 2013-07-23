@@ -231,12 +231,12 @@ void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) 
             // If entity covers more than 2 vertices -> inside
             if (!isInside) {
                 int count = 0;
-                for (int i=1; i<=6 && count < 2; i++) {
+                for (int i=1; i<=6 && count < 3; i++) {
                     if (IntersectionUtil::pointRectangle(center + hexagon.vertices[i] * datas->size, trans->position, trans->size, trans->rotation)) {
                         count++;
                     }
                 }
-                isInside = (count >= 2);
+                isInside = (count >= 3);
             }
 
             if (isInside) {
