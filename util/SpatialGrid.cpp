@@ -216,14 +216,17 @@ void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) 
             }
         }
 
-        forEachCellDo([this, e, hexagon] (const GridPos& p) -> void {
+        auto* trans = TRANSFORM(e);
+        auto* gr = theGridSystem.Get(e, false);
+
+        for (auto& a: datas->cells) {
+            const GridPos& p = a.first;
             const glm::vec2 center = gridPosToPosition(p);
-            auto trans = TRANSFORM(e);
-            auto g = theGridSystem.Get(e, false);
 
             // If the center of the cell is in the entity -> entity is inside
             bool isInside =
-                IntersectionUtil::pointRectangle(center, trans->position, trans->size, trans->rotation);
+                IntersectionUtil::pointRectangle(center,
+                    trans->position, trans->size, trans->rotation);
 
             // If entity covers more than 2 vertices -> inside
             if (!isInside) {
@@ -239,11 +242,12 @@ void SpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entities) 
             if (isInside) {
                 this->addEntityAt(e, p);
                 // snap position
-                if (g && !g->canBeOnMultipleCells) {
+                if (gr && !gr->canBeOnMultipleCells) {
                     trans->position = center;
+                    break;
                 }
             }
-        });
+        }
     }
 }
 
