@@ -12,6 +12,9 @@
 //for getenv
 #include <cstdlib>
 
+//for rmdir
+#include <unistd.h>
+
 #if SAC_EMSCRIPTEN
 #include <emscripten.h>
 #endif
@@ -163,3 +166,63 @@ void AssetAPILinuxImpl::synchronize() {
     emscripten_run_script(script);
 #endif
 }
+
+static int isPathADirectory (const char* path) {
+    struct stat s_buf;
+
+    if (stat(path, &s_buf))
+        return 0;
+
+    return S_ISDIR(s_buf.st_mode);
+}
+
+void AssetAPILinuxImpl::createDirectory(const std::string& fullpath) {
+    struct stat st = {0};
+
+    if (stat(fullpath.c_str(), &st) == -1) {
+        mkdir(fullpath.c_str(), 0700);
+    } else {
+        LOGE("Couldn't create directory '" << fullpath << "' since it already exist!");
+    }
+}
+
+bool AssetAPILinuxImpl::doesExistFileOrDirectory(const std::string& fullpath) {
+    DIR* dp;
+
+    dp = opendir(fullpath.c_str());
+    if (dp != 0) closedir(dp);
+
+    return dp != 0;
+}
+
+void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {
+    DIR*            dp;
+    struct dirent*  ep;
+
+    std::string subfolder;
+
+    dp = opendir(fullpath.c_str());
+
+    if (dp == 0) {
+        LOGE("Couldn't open fileOrDirectory at path " << fullpath << ". Does it exist?" );
+        return;
+    }
+    while ((ep = readdir(dp)) != 0) {
+        if (std::strcmp (ep->d_name, "..") == 0 ||
+            std::strcmp (ep->d_name, ".") == 0) {
+            continue;
+        }
+        subfolder = fullpath + "/" + ep->d_name;
+        if (isPathADirectory(subfolder.c_str())) {
+            removeFileOrDirectory(subfolder.c_str());
+        } else {
+            unlink(subfolder.c_str());
+        }
+    }
+    closedir(dp);
+    rmdir(fullpath.c_str());
+}
+
+
+
+

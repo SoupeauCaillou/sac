@@ -63,6 +63,9 @@ struct StubAssetAPI : public AssetAPI {
     }
 
     void synchronize() {}
+    void createDirectory(const std::string&) {}
+    bool doesExistFileOrDirectory(const std::string&) { return false; }
+    void removeFileOrDirectory(const std::string&) {}
 };
 
 static Entity doTest(std::string s) {
