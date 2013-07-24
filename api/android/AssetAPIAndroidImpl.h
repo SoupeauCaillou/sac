@@ -3,6 +3,7 @@
 #include "../AssetAPI.h"
 #include "JNIWrapper.h"
 
+#include "base/Log.h"
 
 namespace jni_asset_api {
     enum Enum {
@@ -26,6 +27,11 @@ class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::En
 
         std::list<std::string> listContent(const std::string&, const std::string&,
             const std::string&);
+
+        void createDirectory(const std::string& ) { LOGT(""); }
+        bool doesExistFileOrDirectory(const std::string& ) { LOGT(""); return false; }
+        void removeFileOrDirectory(const std::string& ) { LOGT(""); }
+
 
         void synchronize() {}
 };
