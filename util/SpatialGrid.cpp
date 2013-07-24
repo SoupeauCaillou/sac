@@ -85,10 +85,11 @@ bool SpatialGridData::isPosValid(const GridPos& pos) const {
     return cells.find(pos) != cells.end();
 }
 
-bool SpatialGridData::isPathBlockedAt(const GridPos& npos) const {
+bool SpatialGridData::isPathBlockedAt(const GridPos& npos, Entity* by) const {
     LOGF_IF(!isPosValid(npos), "Invalid pos used: " << npos);
     for (const auto& e: (cells.find(npos)->second).entities) {
         if (theGridSystem.Get(e, false) && GRID(e)->blocksPath) {
+            if (by) *by = e;
             return true;
         }
     }
@@ -136,8 +137,8 @@ GridPos SpatialGrid::positionToGridPos(const glm::vec2& pos) const {
     return positionSizeToGridPos(pos, datas->size);
 }
 
-bool SpatialGrid::isPathBlockedAt(const GridPos& npos) const {
-    return datas->isPathBlockedAt(npos);
+bool SpatialGrid::isPathBlockedAt(const GridPos& npos, Entity* by) const {
+    return datas->isPathBlockedAt(npos, by);
 }
 
 std::vector<GridPos> SpatialGrid::getNeighbors(const GridPos& pos, bool enableInvalidPos) const {

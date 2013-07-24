@@ -38,7 +38,7 @@ struct SpatialGridData {
 
     bool isPosValid(const GridPos& pos) const ;
 
-    bool isPathBlockedAt(const GridPos& npos) const;
+    bool isPathBlockedAt(const GridPos& npos, Entity* by = 0) const;
     bool isVisibilityBlockedAt(const GridPos& npos) const;
 };
 
@@ -58,7 +58,7 @@ class SpatialGrid {
         void autoAssignEntitiesToCell(const std::vector<Entity>& entities);
         unsigned computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const;
 
-        virtual bool isPathBlockedAt(const GridPos& npos) const;
+        virtual bool isPathBlockedAt(const GridPos& npos, Entity* by = 0) const;
         virtual int gridPosMoveCost(const GridPos& from, const GridPos& to) const;
         virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
         virtual std::vector<GridPos> viewRange(const GridPos& p, int size) const;
