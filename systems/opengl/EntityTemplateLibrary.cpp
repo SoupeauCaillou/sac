@@ -23,6 +23,21 @@ void EntityTemplateLibrary::registerDataSource(EntityTemplateRef ref, FileBuffer
     NamedAssetLibrary::registerDataSource(ref, fb);
 }
 
+bool EntityTemplateLibrary::isRegisteredDataSource(EntityTemplateRef ref) {
+    return NamedAssetLibrary::isRegisteredDataSource(ref);
+}
+
+void EntityTemplateLibrary::unregisterDataSource(EntityTemplateRef ref) {
+    NamedAssetLibrary::unregisterDataSource(ref);
+    ref2asset.erase(ref);
+    for (auto it = nameToRef.begin(); it != nameToRef.end(); ++it) {
+        if (it->second == ref) {
+            nameToRef.erase(it);
+            return;
+        }
+    }
+}
+
 
 int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
@@ -92,7 +107,11 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         } else if (!dfp.load(fb2, asset2File(extends))) {
             LOGE("Unable to parse 'extends' file '" << extends << "'");
         }
-        registerNewAsset(name, extends);
+
+        //register only if we are not using custom resource
+        if (it == dataSource.end()) {
+            registerNewAsset(name, extends);
+        }
         delete[] fb2.data;
     }
 

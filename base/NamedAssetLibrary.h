@@ -202,6 +202,18 @@ class NamedAssetLibrary : public ResourceHotReload {
                 LOGW("Asset " << r << " already have one data source registered");
             dataSource.insert(std::make_pair(r, type));
         }
+        bool isRegisteredDataSource(TRef r) {
+            return (dataSource.find(r) != dataSource.end());
+        }
+
+        void unregisterDataSource(TRef r) {
+            auto it = dataSource.find(r);
+            if (it == dataSource.end()) {
+                LOGW("Asset " << r << " is not registered, can't unregister it");
+            } else {
+                dataSource.erase(it);
+            }
+        }
 
         void add(const std::string& name, const T& info) {
             if (useDeferredLoading) mutex.lock();

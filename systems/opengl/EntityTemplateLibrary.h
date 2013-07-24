@@ -51,6 +51,8 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
         void defineParent(EntityTemplateRef child, EntityTemplateRef parent);
 
         void registerDataSource(EntityTemplateRef ref, FileBuffer fb);
+        bool isRegisteredDataSource(EntityTemplateRef r);
+        void unregisterDataSource(EntityTemplateRef r);
 
         ~EntityTemplateLibrary();
 
