@@ -98,7 +98,7 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 					if (comp->firstTouch == 0) {
 						comp->firstTouch = t;
 					}
-					LOGI_EVERY_N(10, t-comp->firstTouch);
+					LOGI_EVERY_N(100, t-comp->firstTouch);
 					if (t - comp->firstTouch > comp->trigger) {
 						comp->firstTouch = 0;
 						comp->lastClick = t;
