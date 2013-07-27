@@ -26,16 +26,13 @@ int GridSystem::GetVisibilityCost(GridComponent::EType type, int distance) {
 
 int GridSystem::GetAttackBonus(GridComponent::EType type) {
     switch (type) {
-        case GridComponent::Pit:
-        case GridComponent::Normal:
-            return 1;
         case GridComponent::Brush:
             return 1;
         case GridComponent::House:
-            return 3;
+            return 2;
+        default:
+            return 0;
     }
-    LOGF("Shouldn't be here!");
-    return 0;
 }
 
 int GridSystem::GetDefenceBonus(GridComponent::EType type) {
