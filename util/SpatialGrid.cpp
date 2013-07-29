@@ -291,7 +291,7 @@ std::map<int, std::vector<GridPos> > SpatialGrid::movementRange(const GridPos& p
                         continue;
                     }
 
-                    visited.insert(std::make_pair(npos, travelCost));
+                    visited[npos] = travelCost;
                     if (leftAfterMove > 0)
                         lastlyAdded.push_back(npos);
                 }
