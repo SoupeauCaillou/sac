@@ -177,7 +177,7 @@ static int isPathADirectory (const char* path) {
 }
 
 void AssetAPILinuxImpl::createDirectory(const std::string& fullpath) {
-    struct stat st = {0};
+    struct stat st;
 
     if (stat(fullpath.c_str(), &st) == -1) {
         mkdir(fullpath.c_str(), 0700);
