@@ -4,8 +4,10 @@
 
 #include "api/AssetAPI.h"
 
+#if ! SAC_EMSCRIPTEN
 #include <curl/curl.h>
 #include <curl/easy.h>
+#endif
 
 #include <cstring>
 
@@ -18,6 +20,7 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FileBuffer *fb) {
 }
 
 FileBuffer WWWAPIcURLImpl::downloadFile(const std::string &url) {
+#if ! SAC_EMSCRIPTEN
     //check url
     unsigned found = url.find_last_of("/");
     //if url ends with a '/' or there is no '/' at all, it's a bad url
@@ -59,6 +62,7 @@ FileBuffer WWWAPIcURLImpl::downloadFile(const std::string &url) {
             break;
     }
     curl_easy_cleanup(curl);
+#endif
     //return empty file buffer, since we got an error
     return FileBuffer();
 }
