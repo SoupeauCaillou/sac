@@ -219,6 +219,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #if SAC_NETWORK
     if (game->wantsAPI(ContextAPI::Network))
         theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
+#elif SAC_DESKTOP
+    if (game->wantsAPI(ContextAPI::Network))
+        LOGF("You wanted NetworkAPI but did not used SAC_NETWORK!");
 #endif
     if (game->wantsAPI(ContextAPI::Sound))
         ctx->soundAPI = new SoundAPILinuxOpenALImpl();

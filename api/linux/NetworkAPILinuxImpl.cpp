@@ -84,9 +84,9 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     address.port = 50000;
     datas->status = NetworkStatus::ConnectingToLobby;
 
-    LOGI("Trying to connect to loby server: " << datas->lobby.server << ':' << address.port);
+    LOGI("Trying to connect to lobby server: " << datas->lobby.server << ':' << address.port);
     datas->lobby.peer = enet_host_connect (datas->lobby.client, &address, 2, 0);
-    if (enet_host_service (datas->lobby.client, &event, 50000) > 0) {
+    if (enet_host_service (datas->lobby.client, &event, address.port) > 0) {
         LOGI("Connection to lobby successful");
     } else {
         LOGI("Connection to lobby failed");
