@@ -29,5 +29,5 @@ class NetworkAPI {
         virtual NetworkPacket pullReceivedPacket() = 0;
         virtual void sendPacket(NetworkPacket packet) = 0;
 
-        virtual bool amIGameMaster() = 0;
+        virtual bool amIGameMaster() const = 0;
 };

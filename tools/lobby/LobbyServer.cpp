@@ -89,7 +89,7 @@ int main() {
                     peer2Name[event.peer] = tmp;
                     break;
                 } else {
-                    LOGW("Ignored packet type: " << (int)type);
+                    LOGW("Ignored packet type : " << (int)type);
                 }
                 enet_packet_destroy (event.packet);
             }

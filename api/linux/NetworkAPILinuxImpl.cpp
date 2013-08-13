@@ -319,7 +319,7 @@ void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {
     enet_peer_send(datas->match.peer, 0, convertPacket(packet, 0));
 }
 
-bool NetworkAPILinuxImpl::amIGameMaster() {
+bool NetworkAPILinuxImpl::amIGameMaster() const {
     return datas->match.masterMode;
 }
 

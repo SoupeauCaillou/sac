@@ -14,7 +14,7 @@ class NetworkAPILinuxImpl : public NetworkAPI {
         NetworkPacket pullReceivedPacket();
         void sendPacket(NetworkPacket packet);
 
-        bool amIGameMaster();
+        bool amIGameMaster() const;
 
         void runLobbyThread();
     private:
