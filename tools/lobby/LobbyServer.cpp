@@ -89,7 +89,7 @@ int main() {
                     peer2Name[event.peer] = tmp;
                     break;
                 } else {
-                    LOGW("Ingored packet type : " << (int)type);
+                    LOGW("Ignored packet type: " << (int)type);
                 }
                 enet_packet_destroy (event.packet);
             }
@@ -99,7 +99,7 @@ int main() {
         }
         // if we have 2 players with a name : connect them
         if (peerWaiting.size() >= 2) {
-            LOGI("Matchmaking in progress !");
+            LOGI("Matchmaking in progress!");
             int portA = glm::linearRand(55000.0f, 56000.0f);
             // *** int portB = MathUtil::RandomIntInRange(55000, 56000);
             MatchMaking match;
