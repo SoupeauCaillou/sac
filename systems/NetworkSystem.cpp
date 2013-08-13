@@ -96,7 +96,8 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::CreateEntity: {
-                    Entity e = theEntityManager.CreateEntity();
+                    const char* name = (char*) (pkt.data + sizeof(NetworkMessageHeader));
+                    Entity e = theEntityManager.CreateEntity(name);
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
                     LOGI("Received CREATE_ENTITY msg (guid: " << header->entityGuid << ")");
@@ -219,11 +220,13 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         if (!networkAPI->amIGameMaster()) {
             nc->guid |= 0x1;
         }
+        const std::string& name = theEntityManager.entityName(e);
         NetworkPacket pkt;
         NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
         header->type = NetworkMessageHeader::CreateEntity;
         header->entityGuid = nc->guid;
-        pkt.size = sizeof(NetworkMessageHeader);
+        pkt.size = sizeof(NetworkMessageHeader) + name.length() + 1;
+        std::strcpy ((char*)&temp[sizeof(NetworkMessageHeader)], name.c_str());
         pkt.data = temp;
         SEND(pkt);
         LOGI("NOTIFY create : " << e << "/" << nc->guid);
