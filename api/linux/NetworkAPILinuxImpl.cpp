@@ -375,7 +375,7 @@ NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
 void NetworkAPILinuxImpl::runLobbyThread() {}
 bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char*, uint16_t, uint16_t) { return false; }
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket) {}
-bool NetworkAPILinuxImpl::amIGameMaster() { return false; }
+bool NetworkAPILinuxImpl::amIGameMaster() const { return false; }
 void NetworkAPILinuxImpl::connectToLobby(const std::string&, const char*) { }
 bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() { return false; }
 NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();}
