@@ -24,6 +24,8 @@ public:
     Entity guidToEntity(unsigned int guid);
 
     void Delete(Entity e) override;
+
+    bool isOwnedLocally(Entity e);
 public:
     NetworkAPI* networkAPI;
     unsigned bytesSent, bytesReceived;

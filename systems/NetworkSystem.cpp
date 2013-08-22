@@ -342,6 +342,11 @@ Entity NetworkSystem::guidToEntity(unsigned int guid) {
     return 0;
 }
 
+bool NetworkSystem::isOwnedLocally(Entity e) {
+    const NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (Get(e));
+    return nc->ownedLocally;
+}
+
 void NetworkSystem::deleteAllNonLocalEntities() {
     int count = 0;
     FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
