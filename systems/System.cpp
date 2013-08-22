@@ -85,6 +85,9 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
         return false;
+    if (componentSerializer.getProperties().empty())
+        return false;
+    
     const std::string& group = name;
     // Browse properties, and add them to the TwBar
     for(IProperty* prop: componentSerializer.getProperties()) {
