@@ -129,7 +129,7 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
 }
 
 //should be enhanced
-bool IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
+int IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot, glm::vec2* intersectionPoint) {
 
     //NW
@@ -142,10 +142,29 @@ bool IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
     glm::vec2 rectBSEPoint = rectBPos + glm::rotate(glm::vec2(rectBSize.x, - rectBSize.y) * .5f, rectBRot);
 
     //try the 4 lines of the rectangle!
-    return (lineLine(pA1, pA2, rectBNWPoint, rectBNEPoint, intersectionPoint)
-            || lineLine(pA1, pA2, rectBNWPoint, rectBSWPoint, intersectionPoint)
-            || lineLine(pA1, pA2, rectBNEPoint, rectBSEPoint, intersectionPoint)
-            || lineLine(pA1, pA2, rectBSWPoint, rectBSEPoint, intersectionPoint));
+    int count = 0;
+    glm::vec2 temp;
+    if (lineLine(pA1, pA2, rectBNWPoint, rectBNEPoint, &temp)) {
+        if (intersectionPoint)
+            intersectionPoint[count] = temp;
+        count++;
+    }
+    if (lineLine(pA1, pA2, rectBNWPoint, rectBSWPoint, &temp)) {
+        if (intersectionPoint)
+            intersectionPoint[count] = temp;
+        count++;
+    }
+    if (lineLine(pA1, pA2, rectBNEPoint, rectBSEPoint, &temp)) {
+        if (intersectionPoint && count < 2)
+            intersectionPoint[count] = temp;
+        count++;
+    }
+    if (lineLine(pA1, pA2, rectBSWPoint, rectBSEPoint, &temp)) {
+        if (intersectionPoint && count < 2)
+            intersectionPoint[count] = temp;
+        count++;
+    }
+    return count;
 }
 
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
