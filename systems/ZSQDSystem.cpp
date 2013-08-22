@@ -14,6 +14,7 @@ ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
     componentSerializer.add(new Property<float>("new_direction_coeff", OFFSET(newDirectionCoeff, zc), 0.0001f));
     componentSerializer.add(new Property<float>("rotation_speed", OFFSET(rotationSpeed, zc), 0.0001f));
     componentSerializer.add(new Property<float>("rotation_speed_stopped", OFFSET(rotationSpeedStopped, zc), 0.0001f));
+    componentSerializer.add(new Property<bool>("rotate_to_face_direction", OFFSET(rotateToFaceDirection, zc)));
 }
 
 void ZSQDSystem::DoUpdate(float dt) {
@@ -21,9 +22,9 @@ void ZSQDSystem::DoUpdate(float dt) {
         //decrease current speed
         zc->currentSpeed = glm::max(zc->currentSpeed - zc->frictionCoeff * zc->maxSpeed * dt, 0.f);
 
-        if (true) {
+        if (false) {
             if (!zc->directions.empty()) {
-                //LOGI(zc->directions.size() << " more directions");
+                LOGI(zc->directions.size() << " more directions");
 
                 //calculate the average new direction from the whole new inputs
                 glm::vec2 newDir(0, 0);
@@ -92,6 +93,15 @@ void ZSQDSystem::DoUpdate(float dt) {
             } else {
                 zc->currentDirection = glm::vec2(0.f, 0.f);
             }
+        }
+
+        if (zc->rotateToFaceDirection && zc->currentSpeed > 0.01) {
+            const float t = glm::atan2(zc->currentDirection.y, zc->currentDirection.x);
+            float diffRot = t - TRANSFORM(a)->rotation;
+            if (glm::abs(diffRot) > glm::pi<float>()) {
+                diffRot = diffRot - glm::sign(diffRot) * glm::pi<float>() * 2;
+            }
+            TRANSFORM(a)->rotation += diffRot * 20 * dt;
         }
         zc->directions.clear();
     END_FOR_EACH()
