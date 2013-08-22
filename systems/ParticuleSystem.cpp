@@ -92,7 +92,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                             glm::cos(angle),
                             glm::sin(angle)
                         ) * pc->forceAmplitude.random(),
-                        tc->size * glm::linearRand(0.0f, 1.0f),
+                        glm::vec2(0.0f),//tc->size * glm::linearRand(-0.5f, 0.5f),
                         0.016);
                     PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }
