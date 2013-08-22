@@ -61,6 +61,13 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 	return e;
 }
 
+Entity EntityManager::CreateEntityFromTemplate(const std::string& name, EntityType::Enum type) {
+	const EntityTemplateRef tmpl = entityTemplateLibrary.load(name);
+	LOGF_IF(tmpl == InvalidEntityTemplateRef, "Invalid entity template '" << name << "'");
+	return CreateEntity(name, type, tmpl);
+}
+
+
 const std::string& EntityManager::entityName(Entity e) const {
     static const std::string u("unknown");
     auto it = entity2name.find(e);

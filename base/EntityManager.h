@@ -45,6 +45,9 @@ class EntityManager {
             , EntityType::Enum type = EntityType::Volatile,
             EntityTemplateRef tmpl = InvalidEntityTemplateRef);
 
+		Entity CreateEntityFromTemplate(const std::string& name = "noname"
+            , EntityType::Enum type = EntityType::Volatile);
+
     	void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas = true);
 		void deleteAllEntities();
