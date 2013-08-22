@@ -27,6 +27,11 @@ class Interval {
         static inline T lerp(T _t1, T _t2, float w) {
             return _t1 + (_t2 - _t1) * w;
         }
+
+        static float lerpf(float _t1, float _t2, float w) {
+            return _t1 + (_t2 - _t1) * w;
+        }
+
         inline float position(T t) const {
             return (t - t1) / (t2 - t1);
         }
@@ -38,16 +43,28 @@ template<>
 inline glm::vec2 Interval<glm::vec2>::random() const {
     if (t1 == t2)
         return t1;    
-    float w = glm::linearRand(0.0f, 1.0f);
-    return lerp(w);
+    float wx = glm::linearRand(0.0f, 1.0f);
+    float wy = glm::linearRand(0.0f, 1.0f);
+    return glm::vec2(
+        lerpf(t1.x, t2.x, wx),
+        lerpf(t1.y, t2.y, wy)
+        );
 }
 
 template<>
 inline Color Interval<Color>::random() const {
     if (t1 == t2)
         return t1;
-    float w = glm::linearRand(0.0f, 1.0f);
-    return lerp(w);
+    float wr = glm::linearRand(0.0f, 1.0f);
+    float wg = glm::linearRand(0.0f, 1.0f);
+    float wb = glm::linearRand(0.0f, 1.0f);
+    float wa = glm::linearRand(0.0f, 1.0f);
+    return Color(
+        lerpf(t1.r, t2.r, wr),
+        lerpf(t1.g, t2.g, wg),
+        lerpf(t1.b, t2.b, wb),
+        lerpf(t1.a, t2.a, wa)
+        );
 }
 
 template<>
