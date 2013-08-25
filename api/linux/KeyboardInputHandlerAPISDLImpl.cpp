@@ -32,22 +32,25 @@ bool KeyboardInputHandlerAPIGLFWImpl::isKeyPressed(int key) {
 
 int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
     auto event = (SDL_Event*)inEvent;
-    int key = event->key.keysym.sym;
+    if (!event || (event->type != SDL_KEYUP && event->type != SDL_KEYDOWN))
+        return 0;
+
+    int scancode = event->key.keysym.scancode;
     auto unicode = (char)event->key.keysym.unicode;
 
     if (event->type == SDL_KEYUP) {
-        // LOGI("key released: " << key);
+        LOGV(2, "key released, scancode: " << scancode);
         for (auto & it : key2callback) {
-            if (it.first == key) {
+            if (it.first == scancode) {
                 it.second.first = false;
                 return 1;
             }
         }
         return 0;
     } else if (event->type == SDL_KEYDOWN) {
-        LOGV(2, "key pressed: " << key << " unicode value: " << unicode);
+        LOGV(2, "key pressed, scancode: " << scancode << " unicode value: " << unicode);
         for (auto & it : key2callback) {
-            if (it.first == key) {
+            if (it.first == scancode) {
                 it.second.first = true;
                 return 1;
             }
