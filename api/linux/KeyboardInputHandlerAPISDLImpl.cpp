@@ -12,21 +12,43 @@
 
 void KeyboardInputHandlerAPIGLFWImpl::update() {
     //each dt, if the key is pressed, call the function
-    for (auto it : key2callback) {
-        if (it.second.first) {
-            if (it.second.second != 0) {
-                it.second.second();
-            }
+    for (auto it = keyState.begin(); it != keyState.end(); ) {
+        std::map<int, std::function<void()> >* source = 0;
+
+        const int scancode = it->first;
+        switch (it->second) {
+            case KeyState::Pressed:
+                source = &keyPressed2callback;
+                // advance iterator
+                ++it;
+                break;
+            case KeyState::Released:
+                source = &keyReleased2callback;
+                // remove it and advance
+                keyState.erase(it++);
+                break;
+        }
+
+        // call callback if any
+        auto jt = source->find(scancode);
+        if (jt != source->end()) {
+            jt->second();
         }
     }
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(int value, std::function<void()> f) {
-    key2callback[value] = std::pair<bool, std::function<void()>> (false, f);
+    keyPressed2callback[value] = f;
 }
 
+void KeyboardInputHandlerAPIGLFWImpl::registerToKeyRelease(int value, std::function<void()> f) {
+    keyReleased2callback[value] = f;
+}
+
+
 bool KeyboardInputHandlerAPIGLFWImpl::isKeyPressed(int key) {
-    return (key2callback[key].first == true);
+    auto it = keyState.find(key);
+    return (it != keyState.end() && it->second == KeyState::Pressed);
 }
 
 
@@ -40,21 +62,14 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
 
     if (event->type == SDL_KEYUP) {
         LOGV(2, "key released, scancode: " << scancode);
-        for (auto & it : key2callback) {
-            if (it.first == scancode) {
-                it.second.first = false;
-                return 1;
-            }
-        }
-        return 0;
+        keyState[scancode] = KeyState::Released;
+        const auto& p = keyReleased2callback.find(scancode);
+        return (p != keyReleased2callback.end());
     } else if (event->type == SDL_KEYDOWN) {
         LOGV(2, "key pressed, scancode: " << scancode << " unicode value: " << unicode);
-        for (auto & it : key2callback) {
-            if (it.first == scancode) {
-                it.second.first = true;
-                return 1;
-            }
-        }
+        keyState[scancode] = KeyState::Pressed;
+        const auto& p = keyPressed2callback.find(scancode);
+        return (p != keyPressed2callback.end());
     }
     return 0;
 }

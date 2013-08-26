@@ -5,9 +5,18 @@
 #include <string>
 #include <map>
 
+namespace KeyState {
+	enum Enum {
+		Pressed,
+		Released
+	};
+}
+
 class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
     public:
         void registerToKeyPress(int value, std::function<void()> f);
+
+        void registerToKeyRelease(int value, std::function<void()> f);
 
         void update();
 
@@ -16,5 +25,7 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         bool isKeyPressed(int key);
 
     private:
-        std::map<int, std::pair<bool, std::function<void()>>> key2callback;
+        std::map<int, KeyState::Enum> keyState;
+        std::map<int, std::function<void()> > keyPressed2callback;
+        std::map<int, std::function<void()> > keyReleased2callback;
 };
