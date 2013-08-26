@@ -62,8 +62,12 @@ void ZSQDSystem::DoUpdate(float dt) {
                     newDir.y += it.y / norm;
                 }
                 //normalize the new direction
-                if (newDir != glm::vec2(0.f, 0.f))
-                    newDir = glm::normalize(newDir);
+                if (glm::length2(newDir) < 0.001) {
+                    // no change
+                    continue;
+                }
+
+                newDir = glm::normalize(newDir);
 
                 //LOGI("current dir: " << zc->currentDirection << " at speed " << zc->currentSpeed
                 //    << "\nAnd new direction is: " << newDir << " at speed " << zc->maxSpeed);
