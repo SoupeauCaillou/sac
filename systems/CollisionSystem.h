@@ -22,11 +22,15 @@
 #include <functional>
 
 struct CollisionComponent {
+    CollisionComponent() : group(0), collideWith(0), restorePositionOnCollision(false) {}
     int group;
     int collideWith;
+    bool restorePositionOnCollision;
 
     glm::vec2 previousPosition;
     float previousRotation;
+
+    Entity collidedWithLastFrame;
 };
 
 #define theCollisionSystem CollisionSystem::GetInstance()

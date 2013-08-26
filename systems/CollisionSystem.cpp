@@ -32,6 +32,7 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Co
     CollisionComponent tc;
     componentSerializer.add(new Property<int>("group", OFFSET(group, tc), 0));
     componentSerializer.add(new Property<int>("collide_with", OFFSET(collideWith, tc), 0));
+    componentSerializer.add(new Property<bool>("restore_position_on_collision", OFFSET(restorePositionOnCollision, tc)));
 }
 
 struct Coll {
@@ -89,6 +90,7 @@ void CollisionSystem::DoUpdate(float) {
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
         if (!cc->group)
             continue;
+        cc->collidedWithLastFrame = 0;
 
         const TransformationComponent* tc = TRANSFORM(entity);
 
@@ -232,10 +234,18 @@ void CollisionSystem::DoUpdate(float) {
                         TRANSFORM(collision.other)->rotation
                     };
 
-                    TRANSFORM(refEntity)->position = glm::lerp(p1[0], p1[1], collision.t);
-                    TRANSFORM(refEntity)->rotation = glm::lerp(r1[0], r1[1], collision.t);
-                    TRANSFORM(collision.other)->position = glm::lerp(p2[0], p2[1], collision.t);
-                    TRANSFORM(collision.other)->rotation = glm::lerp(r2[0], r2[1], collision.t);
+                    if (COLLISION(refEntity)->restorePositionOnCollision) {
+                        TRANSFORM(refEntity)->position = glm::lerp(p1[0], p1[1], collision.t);
+                        TRANSFORM(refEntity)->rotation = glm::lerp(r1[0], r1[1], collision.t);
+                    }
+                    COLLISION(refEntity)->collidedWithLastFrame = collision.other;
+
+                    if (COLLISION(collision.other)->restorePositionOnCollision) {
+                        TRANSFORM(collision.other)->position = glm::lerp(p2[0], p2[1], collision.t);
+                        TRANSFORM(collision.other)->rotation = glm::lerp(r2[0], r2[1], collision.t);
+                    }
+                    COLLISION(collision.other)->collidedWithLastFrame = refEntity;
+
                 }
             }
         }
@@ -272,7 +282,7 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
                     collisionDuringTheFrame.push_back(c);
 
 
-                    LOGI("Collision : " <<
+                    LOGV(2, "Collision : " <<
                         theEntityManager.entityName(refEntity) << " <-> " <<
                         theEntityManager.entityName(testedEntity));
                 }
