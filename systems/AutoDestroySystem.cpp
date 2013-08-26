@@ -40,7 +40,7 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 adc->params.lifetime.freq.accum += dt;
                 if (adc->params.lifetime.freq.accum >= adc->params.lifetime.freq.value) {
                     toRemove.push_back(std::make_pair(a, adc->hasText));
-                    LOGI("Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed");
+                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed");
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.freq.accum / adc->params.lifetime.freq.value;

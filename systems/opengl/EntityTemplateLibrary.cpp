@@ -53,7 +53,7 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
 
             // if section define a subentity -> load it as template too
             if (!subEntities.empty())
-                LOGI("Entity '" << context << "' has " << subEntities.size() << " sub entities");
+                LOGV(1, "Entity '" << context << "' has " << subEntities.size() << " sub entities");
             for (auto subName : subEntities) {
                 std::string fullName (context + std::string("#") + subName);
                 EntityTemplateRef subRef = MurmurHash::compute(fullName.c_str(), fullName.length());
@@ -77,14 +77,14 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     FileBuffer fb;
 
     if (it == dataSource.end()) {
-        LOGI("loadEntityTemplate: '" << name << "' from file");
+        LOGV(1, "loadEntityTemplate: '" << name << "' from file");
         fb = assetAPI->loadAsset(asset2File(name));
         if (!fb.size) {
             LOGF("Unable to load '" << asset2File(name) << "'");
             return false;
         }
     } else {
-        LOGI("loadEntityTemplate: '" << name << "' from InMemoryEntityTemplate (" << fb.size << ')');
+        LOGV(1, "loadEntityTemplate: '" << name << "' from InMemoryEntityTemplate (" << fb.size << ')');
         fb = it->second;
     }
 
@@ -97,7 +97,7 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     // Handle recursive 'extends' attributes
     std::string extends;
     while (dfp.get("", "extends", &extends, 1, false)) {
-        LOGI(name << " extends: " << extends);
+        LOGV(1, name << " extends: " << extends);
         // remove extends key
         dfp.remove("", "extends");
 
@@ -116,7 +116,7 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     }
 
     int propCount = loadTemplate(name, "", dfp, r, out);
-    LOGI( "Loaded entity template: '" << name << "' (" << propCount << " properties)");
+    LOGV(1, "Loaded entity template: '" << name << "' (" << propCount << " properties)");
 
     delete[] fb.data;
 

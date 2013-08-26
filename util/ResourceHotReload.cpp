@@ -9,7 +9,7 @@
 
 ResourceHotReload::InotifyDatas::InotifyDatas(const std::string & file, const std::string & asset)
 	: _filename(file), _assetname(asset) {
-	LOGI("New asset to monitor: " << _assetname << " from file " << _filename);
+	LOGV(1, "New asset to monitor: " << _assetname << " from file " << _filename);
 
 	inotifyFd = inotify_init();
 	wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_CLOSE_WRITE);
