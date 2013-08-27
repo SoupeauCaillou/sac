@@ -9,7 +9,8 @@ struct AutoDestroyComponent {
 
     enum {
         OUT_OF_AREA = 0,
-        LIFETIME
+        LIFETIME,
+        NONE
     } type;
 
     std::function<void(Entity)> onDeletionCall;
