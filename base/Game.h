@@ -53,7 +53,7 @@ class Game {
 
         void setGameContexts(GameContext* gameThreadContext, GameContext* renderThreadContext);
         void step();
-        void render();
+        bool render();
         void resetTime();
         void eventsHandler();
 

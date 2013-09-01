@@ -534,12 +534,12 @@ void Game::step() {
     PROFILE("Game", "step", EndEvent);
 }
 
-void Game::render() {
+bool Game::render() {
     PROFILE("Game", "render-game", BeginEvent);
-    theRenderingSystem.render();
+    bool res = theRenderingSystem.render();
 
     {
-        static int count = 0;
+        static int count1 = 0, count2 = 0;
         static float prevT = 0;
         float t = TimeUtil::GetTime();
         float dt = t - prevT;
@@ -551,15 +551,19 @@ void Game::render() {
         if (dt < fpsStats.minDt) {
             fpsStats.minDt = dt;
         }
-        ++count;
-        if (count == 1000) {
-            LOGV(LogVerbosity::VERBOSE1, "FPS avg/min/max : " <<
-                (1000.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt));
-            count = 0;
+        ++count1;
+        count2 += (int)res;
+
+        if (count1 == 100) {
+            LOGI("FPS avg/min/max : " <<
+                (100.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt)
+                << ". New frames ratio: " << (100 * count2) / (float)count1 << '%');
+            count1 = count2 = 0;
             fpsStats.reset(t);
         }
     }
     PROFILE("Game", "render-game", EndEvent);
+    return res;
 }
 
 void Game::resetTime() {

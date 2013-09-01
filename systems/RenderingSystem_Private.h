@@ -46,6 +46,8 @@ struct RenderingSystem::RenderQueue {
 };
 
 struct RenderingSystem::RenderCommand {
+    RenderCommand();
+
     float z;
     EffectRef effectRef;
     union {
@@ -60,7 +62,7 @@ struct RenderingSystem::RenderCommand {
     glm::vec2 position;
     float rotation;
     int flags, shapeType, vertices;
-    bool mirrorH, fbo;
+    bool mirrorH, fbo, padding[2];
 };
 
 struct CameraComponent;

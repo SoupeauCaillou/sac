@@ -136,7 +136,7 @@ public:
 
     void reloadTextures();
 
-    void render();
+    bool render();
     void waitDrawingComplete();
 
     EffectRef changeShaderProgram(EffectRef ref, bool firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp,
@@ -209,4 +209,5 @@ public:
         bool runtimeOpaque;
     } highLight;
 #endif
+    unsigned int previousFrameHash;
 };

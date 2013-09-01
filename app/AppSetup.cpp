@@ -45,6 +45,9 @@
 #include <libintl.h>
 #endif
 
+#include <chrono>
+#include <thread>
+
 #include <glm/glm.hpp>
 #include "base/TouchInputManager.h"
 #include "base/TimeUtil.h"
@@ -338,11 +341,16 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     do {
         game->eventsHandler();
-        game->render();
-        SDL_GL_SwapBuffers();
-        float t = TimeUtil::GetTime();
-        Recorder::Instance().record(t - prevT);
-        prevT = t;
+
+        if (game->render()) {
+            SDL_GL_SwapBuffers();
+            float t = TimeUtil::GetTime();
+            Recorder::Instance().record(t - prevT);
+            prevT = t;
+        } else {
+            std::chrono::milliseconds dura( 16 );
+            std::this_thread::sleep_for( dura );
+        }
 
 #if SAC_DEBUG
         if (game->titleHint != currentHint) {

@@ -82,6 +82,8 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 #if SAC_INGAME_EDITORS
     memset(&highLight, 0, sizeof(highLight));
 #endif
+
+    previousFrameHash = 0;
 }
 
 RenderingSystem::~RenderingSystem() {
@@ -275,6 +277,13 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
         }
     }
     return true;
+}
+
+RenderingSystem::RenderCommand::RenderCommand() : 
+    z(0), effectRef(0), texture(0), rotateUV(0), halfSize(0.0f), color(), position(0.0f),
+    rotation(0), flags(0), shapeType(0), vertices(-1), mirrorH(false), fbo(false) {
+    uv[0] = uv[1] = glm::vec2(0.0f);
+    padding[0] = padding[1] = 0;
 }
 
 #if SAC_LINUX && SAC_DESKTOP
@@ -479,37 +488,50 @@ void RenderingSystem::DoUpdate(float) {
     );
 #endif
 
-    outQueue.commands.reserve(outQueue.count + 1);
+    unsigned int hash =
+        MurmurHash::compute( outQueue.commands.data(),
+            outQueue.count * sizeof(RenderCommand), 0x12345678);
 
-    RenderCommand dummy;
-    dummy.texture = EndFrameMarker;
-    dummy.rotateUV = cccc;
-    if (outQueue.commands.size() <= outQueue.count)
-        outQueue.commands.push_back(dummy);
-    else
-        outQueue.commands[outQueue.count] = dummy;
-    outQueue.count++;
-    // outQueue.count++;
-    std::stringstream framename;
-    framename << "create-frame-" << cccc;
-    PROFILE("Render", framename.str(), InstantEvent);
-    cccc++;
-    //LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
-    //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
+    if (0 && hash == previousFrameHash) {
+        // reset
+        outQueue.count = 0;
+        // LOGI("Skip");
+    } else {
+        previousFrameHash = hash;
 
-#if ! SAC_EMSCRIPTEN
-    // Lock to not change queue while ther thread is reading it
-    mutexes[L_RENDER].lock();
-    // Lock for notifying queue change
-    mutexes[L_QUEUE].lock();
-#endif
-    currentWriteQueue = (currentWriteQueue + 1) % 2;
-    newFrameReady = true;
-#if ! SAC_EMSCRIPTEN
-    cond[C_FRAME_READY].notify_all();
-    mutexes[L_QUEUE].unlock();
-    mutexes[L_RENDER].unlock();
-#endif
+        outQueue.commands.reserve(outQueue.count + 1);
+
+        RenderCommand dummy;
+        dummy.texture = EndFrameMarker;
+        dummy.rotateUV = cccc;
+        if (outQueue.commands.size() <= outQueue.count)
+            outQueue.commands.push_back(dummy);
+        else
+            outQueue.commands[outQueue.count] = dummy;
+        outQueue.count++;
+
+        // outQueue.count++;
+        std::stringstream framename;
+        framename << "create-frame-" << cccc;
+        PROFILE("Render", framename.str(), InstantEvent);
+        cccc++;
+        //LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
+        //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
+
+    #if ! SAC_EMSCRIPTEN
+        // Lock to not change queue while ther thread is reading it
+        mutexes[L_RENDER].lock();
+        // Lock for notifying queue change
+        mutexes[L_QUEUE].lock();
+    #endif
+        currentWriteQueue = (currentWriteQueue + 1) % 2;
+        newFrameReady = true;
+    #if ! SAC_EMSCRIPTEN
+        cond[C_FRAME_READY].notify_all();
+        mutexes[L_QUEUE].unlock();
+        mutexes[L_RENDER].unlock();
+    #endif
+    }
 }
 
 bool RenderingSystem::isVisible(Entity e) const {

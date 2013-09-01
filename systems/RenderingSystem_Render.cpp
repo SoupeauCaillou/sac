@@ -556,27 +556,32 @@ void RenderingSystem::waitDrawingComplete() {
 #endif
 }
 
-void RenderingSystem::render() {
+bool RenderingSystem::render() {
 #if ! SAC_EMSCRIPTEN
     if (!initDone)
         return;
     PROFILE("Renderer", "wait-frame", BeginEvent);
 
     std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);
+
     // processDelayedTextureJobs();
+    
     while (!newFrameReady && frameQueueWritable) {
         cond[C_FRAME_READY].wait(lock);
     }
+
+    bool hasFrame = newFrameReady;
+    newFrameReady = false;
 #endif
     int readQueue = (currentWriteQueue + 1) % 2;
-    newFrameReady = false;
+
     if (!frameQueueWritable) {
         LOGV(1, "Rendering disabled");
         renderQueue[readQueue].count = 0;
 #if ! SAC_EMSCRIPTEN
         lock.unlock();
 #endif
-        return;
+        return false;
     }
 #if ! SAC_EMSCRIPTEN
     lock.unlock();
@@ -597,7 +602,8 @@ void RenderingSystem::render() {
 
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
-        LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')');
+        if (hasFrame)
+            LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')');
     } else {
         RenderQueue& inQueue = renderQueue[readQueue];
         drawRenderCommands(inQueue);
@@ -613,6 +619,7 @@ void RenderingSystem::render() {
     TwDraw();
     LevelEditor::unlock();
 #endif
+    return hasFrame;
 }
 
 static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, int rotateUV, glm::vec3* out) {
