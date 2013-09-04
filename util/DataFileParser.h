@@ -74,6 +74,7 @@ bool DataFileParser::parse(const std::string& value, T* out, const int count, bo
 
 template <class T>
 bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound)  const{
+    LOGF_IF(count <= 0, "Invalid 'count' param");
     // Retrieve value
     std::string val;
     if (!keyValue(section, var, warnIfNotFound, val))
@@ -84,6 +85,7 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
 
 template <class T>
 bool DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count)  const{
+    LOGF_IF(count <= 0, "Invalid 'count' param");
     // Retrieve value
     std::string val;
     if (!indexValue(section, index, varName, val))
