@@ -49,6 +49,18 @@ void TouchInputManager::Update(float) {
             lastTouchedPositionScreen[i] = windowToScreen(coords);
             lastTouchedPosition[i] = windowToWorld(coords, tc);
     	}
+
+        clicked[i] = !touching[i] && wasTouching[i];
+        if (clicked[i]) {
+            float t = TimeUtil::GetTime();
+            doubleclicked[i] = (t - lastClickTime[i] < 0.5);
+            lastClickTime[i] = t;
+            LOGI("CLICK(" << i << ") at " << t);
+            if (doubleclicked[i])
+                LOGI("DOUBLE CLICKED("<< i << ") TOO!");
+        } else {
+            doubleclicked[i] = false;
+        }
     }
 }
 

@@ -28,7 +28,9 @@ class TouchInputManager {
 
 		bool hasMoved(int idx = 0) const { return moving[idx]; }
 
-        bool hasClicked(int idx = 0) const { return !touching[idx] && wasTouching[idx]; }
+        bool hasClicked(int idx = 0) const { return clicked[idx]; }
+
+        bool hasDoubleClicked(int idx = 0) const { return doubleclicked[idx]; }
 
         const glm::vec2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
 
@@ -48,8 +50,9 @@ class TouchInputManager {
 	private:
 		NativeTouchState* ptr;
 
-		bool wasTouching[2], touching[2], moving[2];
+		bool wasTouching[2], touching[2], moving[2], clicked[2], doubleclicked[2];
 		glm::vec2 lastTouchedPosition[2], lastTouchedPositionScreen[2];
+		float lastClickTime[2];
 
 		glm::vec2 worldSize, windowSize;
 };
