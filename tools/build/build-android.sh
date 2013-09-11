@@ -78,8 +78,7 @@ compilation_before() {
 	info "Building tremor lib..."
 	cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
-    CMAKE_CONFIG=$CMAKE_CONFIG" -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.7\
-    -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
+    CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
     -DANDROID_FORCE_ARM_BUILD=ON"
 }
 
