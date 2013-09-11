@@ -18,7 +18,7 @@ int GridSystem::GetVisibilityCost(GridComponent::EType type, int distance) {
         case GridComponent::Brush:
             return 1 + (glm::min(distance + 1, 6) / 2 );
         case GridComponent::House:
-            return 3;
+            return 1;
     }
     LOGF("Shouldn't be here!");
     return 0;
