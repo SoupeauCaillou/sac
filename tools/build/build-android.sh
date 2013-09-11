@@ -109,13 +109,22 @@ launch_the_application() {
         if [ $USE_GRADLE = 1 ]; then
             info "TODO for gradle" $red
         else
-            info "Installing on device ..."
-            adb install -r $rootPath/bin/$gameName.apk
+            if [ -f "$rootPath/bin/$gameName.apk" ]; then
+                APK=$rootPath/bin/$gameName.apk
+                info "Installing on device release APK ($(echo $APK | sed 's|.*/||'))..."
+            elif [ -f "$rootPath/bin/${gameName}-debug.apk" ]; then
+                APK=$rootPath/bin/${gameName}-debug.apk
+                info "Installing on device debug APK ($(echo $APK | sed 's|.*/||'))..."
+            else
+                APK=$(find $rootPath/bin -name "$gameName*.apk" | head -n1 )
+                info "Couldn't find a usual name for the apk... will install '$(echo $APK | sed 's|.*/||')'" $orange
+            fi
+            adb install -r $APK
         fi
     fi
 
     if [ ! -z $(echo $1 | grep r) ]; then
-        info "Running app $gameName..."
+        info "Running app '$gameName'..."
 
         gameNameLower=$(echo $gameName | sed 's/^./\l&/')
 
