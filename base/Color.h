@@ -33,6 +33,8 @@ struct Color {
     bool operator!=(const Color& c) const;
     bool operator<(const Color& c) const;
     bool operator>(const Color& c) const;
+
+    bool isGrey(float epsilon = 0.001f) const;
 };
 
 inline std::ostream& operator<<(std::ostream& s, const Color& c) {

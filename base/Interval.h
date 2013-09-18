@@ -59,6 +59,12 @@ inline Color Interval<Color>::random() const {
     float wg = glm::linearRand(0.0f, 1.0f);
     float wb = glm::linearRand(0.0f, 1.0f);
     float wa = glm::linearRand(0.0f, 1.0f);
+
+    // if t1 is grey and t2 is grey 
+    //  -> generate grey too
+    if (t1.isGrey() && t2.isGrey()) {
+        wg = wb = wr;
+    }
     return Color(
         lerpf(t1.r, t2.r, wr),
         lerpf(t1.g, t2.g, wg),

@@ -66,3 +66,9 @@ bool Color::operator>(const Color& c) const {
 bool Color::operator==(const Color& c) const {
 	return (memcmp(rgba, c.rgba, sizeof(rgba))==0);
 }
+
+bool Color::isGrey(float epsilon) const {
+	return (glm::abs(r - g) < epsilon) &&
+		(glm::abs(r -b) < epsilon) &&
+		(glm::abs(g - g) < epsilon);
+}
