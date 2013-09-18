@@ -18,17 +18,19 @@ function (others_specific_executables)
 endfunction()
 
 function (postbuild_specific_actions)
-    add_custom_command(
-        TARGET "sac" POST_BUILD
-        COMMAND rm -rf tmplibs/ ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar
-        COMMAND mkdir -p tmplibs/lib
-        COMMAND cp -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a tmplibs/lib
-        COMMAND rm -r tmplibs/lib/armeabi-v7a/*.a
-        COMMAND cd tmplibs && zip -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar lib/*
-        COMMAND rm -rf tmplibs/
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMENT "Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)"
-    )
+    if (USE_GRADLE)
+        add_custom_command(
+            TARGET "sac" POST_BUILD
+            COMMAND rm -rf tmplibs/ ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar
+            COMMAND mkdir -p tmplibs/lib
+            COMMAND cp -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a tmplibs/lib
+            COMMAND rm -r tmplibs/lib/armeabi-v7a/*.a
+            COMMAND cd tmplibs && zip -r ${PROJECT_SOURCE_DIR}/libs/armeabi-v7a.jar lib/*
+            COMMAND rm -rf tmplibs/
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)"
+        )
+    endif()
 endfunction()
 
 function (import_specific_libs)

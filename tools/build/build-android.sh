@@ -79,7 +79,7 @@ compilation_before() {
 	cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
     CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
-    -DANDROID_FORCE_ARM_BUILD=ON"
+    -DANDROID_FORCE_ARM_BUILD=ON -DUSE_GRADLE=$USE_GRADLE"
 }
 
 compilation_after() {
@@ -142,18 +142,3 @@ launch_the_application() {
         adb logcat | ndk-stack -sym $rootPath/obj/local/armeabi-v7a
     fi
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
