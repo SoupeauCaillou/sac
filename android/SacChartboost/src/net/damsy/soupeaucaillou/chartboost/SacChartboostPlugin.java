@@ -1,12 +1,15 @@
 package net.damsy.soupeaucaillou.chartboost;
 
 import net.damsy.soupeaucaillou.SacActivity;
+import net.damsy.soupeaucaillou.api.AdAPI.IAdCompletionAction;
+import net.damsy.soupeaucaillou.api.AdAPI.IAdProvider;
+
 import android.app.Activity;
 
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 
-public class SacChartboostPlugin implements ChartboostDelegate {
+public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 	public class ChartboostParams {
 		final String appId, appSignature;
 
@@ -16,42 +19,74 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 		}
 	}
 	
-	boolean adHasBeenShown, adWaitingAdDisplay;
 	private Chartboost chartboost;
-
-	public void init(Activity activity, ChartboostParams chartboostParams) {
-		this.adHasBeenShown = this.adWaitingAdDisplay = false;
-
+	
+	public void init(Activity activity, ChartboostParams chartboostParams) {	
 		if (chartboostParams != null) {
 			chartboost = Chartboost.sharedChartboost();
+			
+			SacActivity.LogW("Chartboost id" + chartboostParams.appId + " sign:" + chartboostParams.appSignature);
 			chartboost.onCreate(activity, chartboostParams.appId,
 					chartboostParams.appSignature, this);
 			chartboost.startSession();
+			chartboost.onStart(activity);
 			chartboost.cacheInterstitial();
 		} else {
 			SacActivity.LogW("Chartboost not initialized");
 		}
 	}
 
+	//todo! not called yet
+	public void onActivityStopped(Activity act) {
+		if (chartboost != null) {
+			chartboost.onStop(act);
+		}
+	}
+	
+	//todo! not called yet
+	public void onActivityStarted(Activity act) {
+		if (chartboost != null) {
+			chartboost.onStart(act);
+		}		
+	}
+	
 	// ---
 	// ----------------------------------------------------------------------
-	// AdsAPI
+	// IAdProvider impl
 	// -------------------------------------------------------------------------
-	public boolean showAd() {
-		if (chartboost.hasCachedInterstitial()) {
+	private IAdCompletionAction onAdClosed = null;
+	@Override
+	public boolean showAd(IAdCompletionAction completionAction) {
+		if (chartboost != null && chartboost.hasCachedInterstitial()) {
+			SacActivity.LogW("Display chartboost ad!");
+			
+			onAdClosed = completionAction;
+		
 			chartboost.showInterstitial();
 			chartboost.cacheInterstitial();
+			
 			return true;
 		} else {
-			SacActivity.LogW("No ad ready!");
+			SacActivity.LogW("No chartboost ad ready!");
+			
+			if (completionAction != null) {
+				completionAction.actionPerformed(false);
+			}
+			
+			chartboost.cacheInterstitial();
+			
 			return false;
 		}
 	}
-
-	public boolean done() {
-		return adHasBeenShown;
+	
+	public boolean willConsumeBackEvent() {
+	    return (chartboost != null && chartboost.onBackPressed());
 	}
 
+	// ---
+	// ----------------------------------------------------------------------
+	// ChartboostDelegate impl
+	// -------------------------------------------------------------------------
 	@Override
 	public void didCacheInterstitial(String arg0) {
 
@@ -74,8 +109,11 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 
 	@Override
 	public void didCloseInterstitial(String arg0) {
-		adWaitingAdDisplay = false;
-		adHasBeenShown = true;
+		SacActivity.LogI("[SacChartboostPlugin] didCloseInterstitial!");
+		if (onAdClosed != null) {
+			onAdClosed.actionPerformed(true);
+			onAdClosed = null;
+		}
 	}
 
 	@Override
@@ -85,6 +123,7 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 
 	@Override
 	public void didDismissInterstitial(String arg0) {
+		SacActivity.LogI("[SacChartboostPlugin] didDismissInterstitial!");
 	}
 
 	@Override
@@ -94,8 +133,12 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 
 	@Override
 	public void didFailToLoadInterstitial(String arg0) {
-		adWaitingAdDisplay = false;
-		adHasBeenShown = true;
+		SacActivity.LogW("[SacChartboostPlugin] didFailToLoadInterstitial!");
+		
+		if (onAdClosed != null) {
+			onAdClosed.actionPerformed(false);
+			onAdClosed = null;
+		}
 	}
 
 	@Override
@@ -105,7 +148,6 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 
 	@Override
 	public void didShowInterstitial(String arg0) {
-
 	}
 
 	@Override
@@ -115,12 +157,7 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 
 	@Override
 	public boolean shouldDisplayInterstitial(String arg0) {
-		if (adWaitingAdDisplay) {
-			adWaitingAdDisplay = false;
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
 
 	@Override
@@ -146,17 +183,5 @@ public class SacChartboostPlugin implements ChartboostDelegate {
 	@Override
 	public boolean shouldRequestMoreApps() {
 		return false;
-	}
-	
-	public void onActivityStopped(Activity act) {
-		if (chartboost != null) {
-			chartboost.onStop(act);
-		}
-	}
-	
-	public void onActivityStarted(Activity act) {
-		if (chartboost != null) {
-			chartboost.onStart(act);
-		}		
 	}
 }

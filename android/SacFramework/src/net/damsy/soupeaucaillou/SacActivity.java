@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
+import net.damsy.soupeaucaillou.api.AdAPI;
 import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
@@ -247,8 +248,13 @@ public abstract class SacActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-    	// Ask the Game if it wants to consume the event
-    	if (SacJNILib.willConsumeBackEvent())
+    	// Ask Ads if it wants to consume the event
+    	if (AdAPI.Instance().onBackPressed())
+    	{
+    		return;
+    	}
+    	// If not interested, ask the game
+    	else if (SacJNILib.willConsumeBackEvent())
     	{
     		gameThread.postEvent(Event.BackPressed);
     	}
