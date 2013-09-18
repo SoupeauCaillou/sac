@@ -6,13 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
-import com.purplebrain.giftiz.sdk.GiftizSDK;
-import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.ButtonNeedsUpdateDelegate;
-import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.GiftizButtonStatus;
-
-public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
-	public boolean giftizEnabled;
-
+public class CommunicationAPI {
 	private static CommunicationAPI instance = null;
 
 	public synchronized static CommunicationAPI Instance() {
@@ -22,20 +16,13 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 		return instance;
 	}
 
-	private GiftizSDK.Inner.GiftizButtonStatus buttonStatus;
 	private Activity activity;
 	private SharedPreferences appRaterPreference;
 
 	public void init(Activity activity, SharedPreferences appRaterPreference, boolean giftizEnabled) {
 		this.activity = activity;
 		this.appRaterPreference = appRaterPreference;
-		this.giftizEnabled = giftizEnabled;
-		this.buttonStatus = GiftizButtonStatus.ButtonInvisible;
 
-		if (this.giftizEnabled) {
-			buttonStatus = GiftizSDK.Inner.getButtonStatus(activity);
-			GiftizSDK.Inner.setButtonNeedsUpdateDelegate(this);
-		}
         /////////////////////////// INCREASE LAUNCH_COUNT
         long newValue = appRaterPreference.getLong("launch_count", 0) + 1;
         SacActivity.LogI("Increase launch count to: " + newValue);
@@ -47,35 +34,6 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 	// -------------------------------------------------------------------------
 	// CommunicationAPI
 	// -------------------------------------------------------------------------
-	public void giftizMissionDone() {
-		if (giftizEnabled) {
-			SacActivity.LogI("Mission done!");
-			GiftizSDK.missionComplete(activity);
-		}
-	}
-
-	public int giftizGetButtonState() {
-		switch (buttonStatus) {
-		case ButtonInvisible:
-			return 0;
-		case ButtonNaked:
-			return 1;
-		case ButtonBadge:
-			return 2;
-		case ButtonWarning:
-			return 3;
-		default:
-			return -1;
-		}
-	}
-
-	public void giftizButtonClicked() {
-		if (giftizEnabled) {
-			SacActivity.LogI("Giftiz clicked!");
-			GiftizSDK.Inner.buttonClicked(activity);
-		}
-	}
-
 	public void shareFacebook() {
 		// Intent sharingIntent = new Intent(Intent.ACTION_SEND);
 		// sharingIntent.setType("plain/text");
@@ -121,21 +79,5 @@ public class CommunicationAPI implements ButtonNeedsUpdateDelegate {
 		SharedPreferences.Editor editor = appRaterPreference.edit();
 		editor.putBoolean("dontshowagain", true);
 		editor.commit();
-	}
-
-	public void buttonNeedsUpdate() {
-		buttonStatus = GiftizSDK.Inner.getButtonStatus(activity);
-	}
-
-	public void onActivityPaused(final Activity act) {
-		if (giftizEnabled) {
-			GiftizSDK.onPauseMainActivity(act);
-		}
-	}
-
-	public void onActivityResumed(final Activity act) {
-		if (giftizEnabled) {
-			GiftizSDK.onResumeMainActivity(act);
-		}
 	}
 }

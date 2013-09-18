@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
-import net.damsy.soupeaucaillou.api.AdAPI;
-import net.damsy.soupeaucaillou.api.CommunicationAPI;
 import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
@@ -155,7 +153,6 @@ public abstract class SacActivity extends Activity {
         if (wl != null)
         	wl.release();
 	    
-        CommunicationAPI.Instance().onActivityPaused(this);
         Log(W, "ActivityLifeCycle <-- onPause");
     }
 
@@ -188,7 +185,6 @@ public abstract class SacActivity extends Activity {
     		}
     	}
 
-    	CommunicationAPI.Instance().onActivityResumed(this);
     	Log(W, "ActivityLifeCycle <-- onResume");
     }
 
@@ -251,13 +247,8 @@ public abstract class SacActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-    	// Ask Ads if it wants to consume the event
-    	if (AdAPI.Instance().onBackPressed())
-    	{
-    		return;
-    	}
-    	// If not interested, ask the game
-    	else if (SacJNILib.willConsumeBackEvent())
+    	// Ask the Game if it wants to consume the event
+    	if (SacJNILib.willConsumeBackEvent())
     	{
     		gameThread.postEvent(Event.BackPressed);
     	}
@@ -272,7 +263,6 @@ public abstract class SacActivity extends Activity {
     protected void onStart() {
     	Log(W, "ActivityLifeCycle --> onStart");
     	super.onStart();
-    	AdAPI.Instance().onActivityStarted(this);
     	Log(W, "ActivityLifeCycle <-- onStart");
     }
 
@@ -280,7 +270,6 @@ public abstract class SacActivity extends Activity {
     protected void onStop() {
     	Log(W, "ActivityLifeCycle --> onStop");
     	super.onStop();
-    	AdAPI.Instance().onActivityStopped(this);
     	Log(W, "ActivityLifeCycle <-- onStop");
     }
 
