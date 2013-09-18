@@ -2,13 +2,12 @@
 
 #how to use the script
 export PLATFORM_OPTIONS="\
-\t\t-a|-atlas: generate all atlas from unprepared_assets directory
-\t\t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
-\t\t-j|-java: compile java code (.java)
-\t\t-i|-install: install on device
-\t\t-l|-log: run adb logcat
-\t\t-a|-atlas: run adb logcat
-\t\t-s|-stacktrace: show latest dump crash trace"
+\t-a|-atlas: generate all atlas from unprepared_assets directory
+\t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
+\t-j|-java: compile java code (.java)
+\t-i|-install: install on device
+\t-l|-log: run adb logcat
+\t-s|-stacktrace: show latest dump crash trace"
 
 
 parse_arguments() {
@@ -31,19 +30,23 @@ parse_arguments() {
                 ;;
             "-a" | "-atlas")
                 GENERATE_ATLAS=1
-                TARGETS=$TARGETS"n"
+                TARGETS=$TARGETS" "
                 ;;
             "-g" | "-gradle")
                 USE_GRADLE=1
+                TARGETS=$TARGETS" "
                 ;;
             "-j" | "-java")
                 UPDATE_JAVA=1
+                TARGETS=$TARGETS"n"
                 ;;
             "-i" | "-install")
                 INSTALL_ON_DEVICE=1
+                TARGETS=$TARGETS" "
                 ;;
             "-l" | "-log")
                 RUN_LOGCAT=1
+                TARGETS=$TARGETS" "
                 ;;
             "-s" | "-stacktrace")
                 TARGETS=$TARGETS" "

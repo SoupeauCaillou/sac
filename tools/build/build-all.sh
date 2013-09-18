@@ -115,8 +115,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
     if [ -z "$TARGETS" ] || [ $SHOULD_QUIT_AFTER_READ = 1 ]; then
         if [ ! -z "$CMAKE_BUILD_TARGET" ]; then
             source build-$CMAKE_BUILD_TARGET.sh
-            SAC_OPTIONS=$SAC_OPTIONS"\nFor $CMAKE_BUILD_TARGET platform, you have the following options:\n\
-            $PLATFORM_OPTIONS"
+            SAC_OPTIONS=$SAC_OPTIONS"\nFor $CMAKE_BUILD_TARGET platform, you have the following options:\n$PLATFORM_OPTIONS"
         fi
         usage_and_quit
     fi

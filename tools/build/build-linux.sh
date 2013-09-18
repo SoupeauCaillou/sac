@@ -1,6 +1,6 @@
 #how to use the script
 export PLATFORM_OPTIONS="\
-n: simply compile
+\tn: simply compile
 \tr: run the app\t\t\t\t\t(options available, see below)
 \td: run&debug the app with cgdb
 \tl: use colorlog.sh script for colored logs\t(options available, see below)
