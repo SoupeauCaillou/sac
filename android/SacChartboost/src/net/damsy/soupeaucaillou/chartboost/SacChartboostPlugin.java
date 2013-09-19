@@ -25,14 +25,15 @@ public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 		if (chartboostParams != null) {
 			chartboost = Chartboost.sharedChartboost();
 			
-			SacActivity.LogW("Chartboost id" + chartboostParams.appId + " sign:" + chartboostParams.appSignature);
+			SacActivity.LogW("[SacChartboostPlugin] Chartboost id" + chartboostParams.appId + " sign:" + chartboostParams.appSignature);
 			chartboost.onCreate(activity, chartboostParams.appId,
 					chartboostParams.appSignature, this);
+			chartboost.setImpressionsUseActivities(true);
 			chartboost.startSession();
 			chartboost.onStart(activity);
 			chartboost.cacheInterstitial();
 		} else {
-			SacActivity.LogW("Chartboost not initialized");
+			SacActivity.LogW("[SacChartboostPlugin] Chartboost not initialized");
 		}
 	}
 
@@ -58,7 +59,7 @@ public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 	@Override
 	public boolean showAd(IAdCompletionAction completionAction) {
 		if (chartboost != null && chartboost.hasCachedInterstitial()) {
-			SacActivity.LogW("Display chartboost ad!");
+			SacActivity.LogW("[SacChartboostPlugin] Display chartboost ad!");
 			
 			onAdClosed = completionAction;
 		
@@ -67,7 +68,7 @@ public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 			
 			return true;
 		} else {
-			SacActivity.LogW("No chartboost ad ready!");
+			SacActivity.LogW("[SacChartboostPlugin] No chartboost ad ready!");
 			
 			if (completionAction != null) {
 				completionAction.actionPerformed(false);
@@ -77,10 +78,6 @@ public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 			
 			return false;
 		}
-	}
-	
-	public boolean willConsumeBackEvent() {
-	    return (chartboost != null && chartboost.onBackPressed());
 	}
 
 	// ---

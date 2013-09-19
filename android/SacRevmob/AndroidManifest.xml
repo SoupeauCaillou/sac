@@ -1,10 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.damsy.soupeaucaillou.revmob"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="2.0" >
 
-    <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="17" />
+    <!-- Required -->
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+	<!-- Strongly recommended -->
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	
+    <uses-sdk android:minSdkVersion="7" />
+    
+    <application>
+        
+        <!-- Don't forget to add this line in your game AndroidManifest.xml! -->
+        <!-- <meta-data android:name="com.revmob.app.id" android:value="your_revmob_app_id"/> -->
+        
+        <!-- Test id -->
+        <!-- <meta-data android:name="com.revmob.app.id" android:value="5106bea78e5bd71500000098"/> -->
+        <!-- Kindle devices test id -->
+        <!-- <meta-data android:name="revmob.app.id" android:value="5106beb3f919861200000072"/> -->
 
+        <activity android:name="com.revmob.ads.fullscreen.FullscreenActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent">
+        </activity>
+
+
+    </application>
+    
 </manifest>

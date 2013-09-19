@@ -12,8 +12,6 @@ public class AdAPI {
 
 	public interface IAdProvider {
 		public boolean showAd(IAdCompletionAction completionAction);
-		
-		public boolean willConsumeBackEvent();
 	}	
 	
 	private static AdAPI instance = null;
@@ -81,14 +79,5 @@ public class AdAPI {
 	private boolean bAdDone = true;
 	public boolean done() {
 		return bAdDone;
-	}
-	
-	public boolean onBackPressed() {
-		for (int index = 0; index < providers.size(); ++index) {
-			if (providers.get(index).willConsumeBackEvent()) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

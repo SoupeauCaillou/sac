@@ -248,13 +248,8 @@ public abstract class SacActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-    	// Ask Ads if it wants to consume the event
-    	if (AdAPI.Instance().onBackPressed())
-    	{
-    		return;
-    	}
-    	// If not interested, ask the game
-    	else if (SacJNILib.willConsumeBackEvent())
+    	// Ask the game if it wants to consume the event
+    	if (SacJNILib.willConsumeBackEvent())
     	{
     		gameThread.postEvent(Event.BackPressed);
     	}
