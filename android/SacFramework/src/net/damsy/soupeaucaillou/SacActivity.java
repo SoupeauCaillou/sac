@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
-import net.damsy.soupeaucaillou.api.AdAPI;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -52,7 +52,10 @@ public abstract class SacActivity extends Activity {
         super.onCreate(savedInstanceState);
         
         initRequiredAPI();
-
+       
+        SacPluginManager.instance().onActivityCreate(this, savedInstanceState);
+        
+        
         /////////////////////////// 
         // Create Game thread
         byte[] savedState = null;
@@ -128,6 +131,9 @@ public abstract class SacActivity extends Activity {
     protected void onPause() {
     	Log(W, "ActivityLifeCycle --> onPause");
     	super.onPause();
+    	
+    	SacPluginManager.instance().onActivityPause(this);
+    	
     	// Notify game thread
         gameThread.postEvent(Event.Pause);
 
@@ -161,6 +167,9 @@ public abstract class SacActivity extends Activity {
     protected void onResume() {
     	Log(W, "ActivityLifeCycle --> onResume");
         super.onResume();
+        
+        SacPluginManager.instance().onActivityResume(this);
+        
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN);
         
         // Restore WakeLock
@@ -203,6 +212,8 @@ public abstract class SacActivity extends Activity {
 	    		Log(I, "No state saved");
 	    	}
     	super.onSaveInstanceState(outState);
+    	
+    	SacPluginManager.instance().onSaveInstanceState(outState);
     	Log(W, "ActivityLifeCycle <-- onSaveInstanceState");
     }
 
@@ -239,6 +250,8 @@ public abstract class SacActivity extends Activity {
     protected void onDestroy() {
     	Log(W, "ActivityLifeCycle --> onDestroy");
     	super.onDestroy();
+    	
+    	SacPluginManager.instance().onActivityDestroy(this);
     	// This activity is being terminated.
     	// Kill gameThread! (because, next wake up will occur
     	// in a fresh new activity's onCreate method)
@@ -264,6 +277,8 @@ public abstract class SacActivity extends Activity {
     protected void onStart() {
     	Log(W, "ActivityLifeCycle --> onStart");
     	super.onStart();
+    	
+    	SacPluginManager.instance().onActivityStart(this);
     	Log(W, "ActivityLifeCycle <-- onStart");
     }
 
@@ -271,9 +286,16 @@ public abstract class SacActivity extends Activity {
     protected void onStop() {
     	Log(W, "ActivityLifeCycle --> onStop");
     	super.onStop();
+    	
+    	SacPluginManager.instance().onActivityStop(this);
     	Log(W, "ActivityLifeCycle <-- onStop");
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	SacPluginManager.instance().onActivityResult(requestCode, resultCode, data);
+    }
+    
     final static public int V = android.util.Log.VERBOSE;
     final static public int I = android.util.Log.INFO;
     final static public int W = android.util.Log.WARN;

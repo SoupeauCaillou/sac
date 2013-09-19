@@ -1,6 +1,7 @@
 package net.damsy.soupeaucaillou.chartboost;
 
 import net.damsy.soupeaucaillou.SacActivity;
+import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
 import net.damsy.soupeaucaillou.api.AdAPI.IAdCompletionAction;
 import net.damsy.soupeaucaillou.api.AdAPI.IAdProvider;
 
@@ -9,7 +10,12 @@ import android.app.Activity;
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 
-public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
+public class SacChartboostPlugin extends SacPlugin implements IAdProvider, ChartboostDelegate {
+	public SacChartboostPlugin() { 
+		super(); 
+	}
+
+	
 	public class ChartboostParams {
 		final String appId, appSignature;
 
@@ -21,7 +27,7 @@ public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 	
 	private Chartboost chartboost;
 	
-	public void init(Activity activity, ChartboostParams chartboostParams) {	
+	public void init(Activity activity, ChartboostParams chartboostParams) {			
 		if (chartboostParams != null) {
 			chartboost = Chartboost.sharedChartboost();
 			
@@ -29,26 +35,30 @@ public class SacChartboostPlugin implements IAdProvider, ChartboostDelegate {
 			chartboost.onCreate(activity, chartboostParams.appId,
 					chartboostParams.appSignature, this);
 			chartboost.setImpressionsUseActivities(true);
-			chartboost.startSession();
-			chartboost.onStart(activity);
-			chartboost.cacheInterstitial();
+			chartboost.startSession();		
 		} else {
 			SacActivity.LogW("[SacChartboostPlugin] Chartboost not initialized");
 		}
 	}
-
-	//todo! not called yet
-	public void onActivityStopped(Activity act) {
+	
+	// ---
+	// ----------------------------------------------------------------------
+	// SacPlugin overr
+	// -------------------------------------------------------------------------
+	@Override
+	public void onActivityStart(Activity act) {
+		if (chartboost != null) {
+			chartboost.onStart(act);
+			
+			chartboost.cacheInterstitial();
+		}		
+	}
+	
+	@Override
+	public void onActivityStop(Activity act) {
 		if (chartboost != null) {
 			chartboost.onStop(act);
 		}
-	}
-	
-	//todo! not called yet
-	public void onActivityStarted(Activity act) {
-		if (chartboost != null) {
-			chartboost.onStart(act);
-		}		
 	}
 	
 	// ---

@@ -1,6 +1,7 @@
 package net.damsy.soupeaucaillou.revmob;
 
 import net.damsy.soupeaucaillou.SacActivity;
+import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
 import net.damsy.soupeaucaillou.api.AdAPI.IAdCompletionAction;
 import net.damsy.soupeaucaillou.api.AdAPI.IAdProvider;
 import android.app.Activity;
@@ -12,7 +13,7 @@ import com.revmob.RevMob;
 import com.revmob.RevMobAdsListener;
 import com.revmob.ads.fullscreen.RevMobFullscreen;
 
-public class SacRevmobPlugin implements IAdProvider, RevMobAdsListener {
+public class SacRevmobPlugin extends SacPlugin implements IAdProvider, RevMobAdsListener {
 	private RevMob revmob;
 	private RevMobFullscreen revmobFullscreen;
 
@@ -29,14 +30,18 @@ public class SacRevmobPlugin implements IAdProvider, RevMobAdsListener {
 		} catch (NameNotFoundException e) {
 			SacActivity.LogF("[SacRevmobPlugin] Could not read AndroidManifest.xml");
 		}
-		
-
-		
-		revmob = RevMob.start(activity);
-		
-		revmobFullscreen = revmob.createFullscreen(activity, this);
 	}
-
+	// ---
+	// ----------------------------------------------------------------------
+	// SacPlugin overr
+	// -------------------------------------------------------------------------
+	@Override
+	public void onActivityStart(Activity activity) {
+		revmob = RevMob.start(activity);
+		revmobFullscreen = revmob.createFullscreen(activity, this);
+		revmobFullscreen.load();
+	}
+	
 	// ---
 	// ----------------------------------------------------------------------
 	// IAdProvider impl
@@ -44,7 +49,7 @@ public class SacRevmobPlugin implements IAdProvider, RevMobAdsListener {
 	private boolean adLoaded = false;
 	
 	//todo
-	private IAdCompletionAction onAdClosed = null;
+	//private IAdCompletionAction onAdClosed = null;
 	@Override
 	public boolean showAd(IAdCompletionAction completionAction) {
 		if (revmobFullscreen != null && adLoaded) {
@@ -52,7 +57,7 @@ public class SacRevmobPlugin implements IAdProvider, RevMobAdsListener {
 			
 			adLoaded = false;
 			
-			onAdClosed = completionAction;
+			//onAdClosed = completionAction;
 		
 			revmobFullscreen.show();
 			revmobFullscreen.load();
