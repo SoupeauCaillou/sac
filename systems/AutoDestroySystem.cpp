@@ -50,6 +50,9 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 }
                 break;
             }
+            default: {
+                break;
+            }
         }
     END_FOR_EACH()
     for (unsigned i=0; i<toRemove.size(); i++) {

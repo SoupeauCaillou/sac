@@ -29,12 +29,15 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
 }
 
 static int drawBatchES2(
-    const RenderingSystem::ColorAlphaTextures glref,
-    const glm::vec3* vertices,
-    const glm::vec2* uvs,
-    const unsigned short* indices,
-    int batchVertexCount,
-    int batchTriangleCount) {
+    const RenderingSystem::ColorAlphaTextures glref
+    , const glm::vec3* vertices
+    , const glm::vec2* uvs
+    , const unsigned short* indices
+    , int
+#if SAC_USE_VBO
+     batchVertexCount
+#endif
+    , int batchTriangleCount) {
 
     if (batchTriangleCount > 0) {
     	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
