@@ -58,6 +58,13 @@ sac_header='/*
 sac_header=${sac_header//GAME_NAME/$gameName}
 
 for file in $(find $rootPath/sources $rootPath/platforms -type f); do
+    ext=.$(basename $file | rev | cut -d'.' -f1 | rev). #points are relevant!
+    
+    #warning: there is still a bug, though, if $ext is like '.i' because it will match with '.inl'; this is the reason why we force 
+    #one dot each side
+    if [[ ! ".cpp. .h. .hpp. .c. .inl. .java." =~ "$ext" ]]; then
+        continue
+    fi
 
     if grep -q 'This file is part of' $file; then
         line=$(grep -m 1 -n '\/\*' $file | cut -d ':' -f1)
@@ -68,7 +75,6 @@ for file in $(find $rootPath/sources $rootPath/platforms -type f); do
             sed -i "${line},${endline}d" $file
 
             echo "$sac_header" | cat - $file > tmp$PPID && mv tmp$PPID $file
-
         else
             info "$file: Header does not start on first line! Please put it on top line. Aborted" $red
         fi
