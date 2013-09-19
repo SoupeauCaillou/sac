@@ -4,7 +4,7 @@
 export PLATFORM_OPTIONS="\
 \t-a|-atlas: generate all atlas from unprepared_assets directory
 \t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
-\t-j|-java: compile java code (.java)
+\t-p|-project: regenerate the ant files needed for build
 \t-i|-install: install on device
 \t-l|-log: run adb logcat
 \t-s|-stacktrace: show latest dump crash trace"
@@ -13,7 +13,7 @@ export PLATFORM_OPTIONS="\
 parse_arguments() {
     GENERATE_ATLAS=0
     USE_GRADLE=0
-    UPDATE_JAVA=0
+    REGENERATE_ANT_FILES=0
     INSTALL_ON_DEVICE=0
     RUN_LOGCAT=0
     STACK_TRACE=0
@@ -36,8 +36,8 @@ parse_arguments() {
                 USE_GRADLE=1
                 TARGETS=$TARGETS" "
                 ;;
-            "-j" | "-java")
-                UPDATE_JAVA=1
+            "-p" | "-project")
+                REGENERATE_ANT_FILES=1
                 TARGETS=$TARGETS"n"
                 ;;
             "-i" | "-install")
@@ -98,11 +98,16 @@ compilation_after() {
         rm $rootPath/libs/armeabi-v7a.jar 2>/dev/null
     fi
 
-    if [ $UPDATE_JAVA = 1 ]; then
+    if [ $REGENERATE_ANT_FILES = 1 ]; then
         info "Updating android project"
         cd $rootPath
-        android update project -p . -t 1 -n $gameName --subprojects
-        ant debug
+        if ! android update project -p . -t 1 -n $gameName --subprojects; then
+            error_and_quit "Error while updating project"
+        fi
+
+        if ! ant debug; then
+            error_and_quit "Ant failed - see above for the reason"
+        fi
     fi
 }
 
