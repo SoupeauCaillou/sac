@@ -20,7 +20,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Vector;
 
-import android.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;

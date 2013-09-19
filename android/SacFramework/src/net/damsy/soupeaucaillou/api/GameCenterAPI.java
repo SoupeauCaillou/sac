@@ -4,8 +4,20 @@ import net.damsy.soupeaucaillou.SacActivity;
 import android.app.Activity;
 
 public class GameCenterAPI {
+	public interface IGameCenterProvider {
+	    public boolean isRegistered();
+		public boolean isConnected();
+	    public void connectOrRegister();
+	    public void unlockAchievement(int id);
+	    public void openAchievement();
+	    public void openLeaderboards();
+	    public void openSpecificLeaderboard(int id);
+	    public void openDashboard();
+	}	
+	
+	
 	private static GameCenterAPI instance = null;
-
+	
 	public synchronized static GameCenterAPI Instance() {
 		if (instance == null) {
 			instance = new GameCenterAPI();
@@ -13,43 +25,66 @@ public class GameCenterAPI {
 		return instance;
 	}
 
-	private Activity activity;
-
-	public void init(Activity activity) {
-		this.activity = activity;
+	private IGameCenterProvider driver = null;
+	
+	public void init(Activity activity, IGameCenterProvider drv) {
+		this.driver = drv;
 	}
 
 	// -------------------------------------------------------------------------
 	// GameCenterAPI
 	// -------------------------------------------------------------------------
     public boolean isRegistered() {
-    	return false;
+    	return driver != null && driver.isRegistered(); 
     }
 
 	public boolean isConnected() {
-		return false;
+		return driver != null && driver.isConnected();
 	}
 
     public void connectOrRegister() {
-        SacActivity.LogE("TBD");
+    	if (driver != null) {
+    		driver.connectOrRegister();
+    	} else {
+    		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+    	}
     }
+    
     public void unlockAchievement(int id) {
-        SacActivity.LogE("TBD");
-    }
+    	if (driver != null) {
+    		driver.unlockAchievement(id);
+    	} else {
+    		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+    	}    }
     public void openAchievement() {
-        SacActivity.LogE("TBD");
+    	if (driver != null) {
+    		driver.openAchievement();
+    	} else {
+    		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+    	}   
     }
+    
     public void openLeaderboards() {
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
+    	if (driver != null) {
+    		driver.openLeaderboards();
+    	} else {
+    		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+    	}
     }
+    
     public void openSpecificLeaderboard(int id) {
-        SacActivity.LogE("TBD");
-    }
+    	if (driver != null) {
+    		driver.openSpecificLeaderboard(id);
+    	} else {
+    		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+    	}    
+   	}
+    
     public void openDashboard() {
-        SacActivity.LogE("TBD");
+    	if (driver != null) {
+    		driver.openDashboard();
+    	} else {
+    		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+    	}
     }
 }
