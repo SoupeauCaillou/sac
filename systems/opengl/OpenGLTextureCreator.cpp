@@ -235,7 +235,6 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
 #if SAC_ANDROID
-        LOGT("Fix PVR detection");
         char* ptr = image.datas;
         LOGV(2, "Using " << (pvrFormatSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
         for (int level=0; level<=image.mipmap; level++) {
