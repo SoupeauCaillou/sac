@@ -42,9 +42,9 @@ glm::vec2 SteeringBehavior::arrive(Entity e, const glm::vec2& targetPos, float m
 glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& linearVel,const glm::vec2& targetPos, float maxSpeed, float deceleration) {
     glm::vec2 toTarget (targetPos - pos);
     float d = glm::length(toTarget); 
-    toTarget = glm::normalize(toTarget);
     
     if (d > 0) {
+        toTarget = glm::normalize(toTarget);
         float speed = glm::min(d / deceleration, maxSpeed);
         glm::vec2 desiredVelocity(toTarget * speed);
         return desiredVelocity - linearVel;
