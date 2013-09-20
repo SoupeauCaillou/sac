@@ -30,6 +30,7 @@ public class GameCenterAPI {
 	    public boolean isRegistered();
 		public boolean isConnected();
 	    public void connectOrRegister();
+        public void disconnect();
 	    public void unlockAchievement(int id);
 	    public void openAchievement();
 	    public void openLeaderboards();
@@ -72,6 +73,14 @@ public class GameCenterAPI {
     	}
     }
     
+    public void disconnect() {
+        if (driver != null) {
+            driver.disconnect();
+        } else {
+            SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+        }
+    }
+
     public void unlockAchievement(int id) {
     	if (driver != null) {
     		driver.unlockAchievement(id);

@@ -28,6 +28,7 @@
 namespace jni_gamecenter_api {
     enum Enum {
         connectOrRegister,
+        disconnect,
         isRegistered,
         isConnected,
         unlockAchievement,
@@ -42,6 +43,7 @@ class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gam
         GameCenterAPIAndroidImpl();
 
         void connectOrRegister();
+        void disconnect();
 
         bool isRegistered();
         bool isConnected();

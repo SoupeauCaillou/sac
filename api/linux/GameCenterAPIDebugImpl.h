@@ -35,6 +35,7 @@ class GameCenterAPIDebugImpl : public GameCenterAPI {
 	public:
 
         void connectOrRegister() { LOGI("connecting."); _isConnected = true; }
+        void disconnect() { LOGI("disconnecting."); _isConnected = false; }
 
         bool isConnected() { return _isConnected; }
         bool isRegistered() { return true; }

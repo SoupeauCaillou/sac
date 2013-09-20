@@ -28,6 +28,7 @@ class GameCenterAPI {
 	public:
 
         virtual void connectOrRegister() = 0;
+        virtual void disconnect() = 0;
 
         virtual bool isRegistered() = 0;
         virtual bool isConnected() = 0;

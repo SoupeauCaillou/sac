@@ -146,6 +146,17 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 	}
 
 	@Override
+	public void disconnect() {		
+		mActivity.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				mHelper.signOut();
+			}
+		});
+	}
+
+	@Override
 	public void unlockAchievement(int id) {
 		if (mHelper.isSignedIn()){
         	if (! mHelper.getGamesClient().isConnected()) {
@@ -253,17 +264,8 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 		} else {
 			SacActivity.LogE( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't submitRanking");
 		}
-	}
-	public void signOut() {		
-		mActivity.runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				mHelper.signOut();
-			}
-		});
-	}
-	*/
+	}*/
+	
 	
 	// ---
 	// ----------------------------------------------------------------------
