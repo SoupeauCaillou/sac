@@ -13,7 +13,7 @@
 	#show logs in colors
 	info() {
 		if [ $# = 1 ]; then
-			echo -e "${green}$1${reset}"
+			echo -e "${green}$1${reset}" >/dev/tty
 		else
 			echo -e "$2$1${reset}"
 		fi

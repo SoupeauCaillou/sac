@@ -29,6 +29,10 @@ check_necessary() {
     :
 }
 
+init() {
+    :
+}
+
 compilation_before() {
     info "You can't compile on Windows version (yet?), so make will fail. That's ok, please open the project in Visual Studio!" $orange
 }

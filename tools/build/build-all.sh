@@ -4,14 +4,15 @@
 ###################################################
 ###################################################
 echo "[1m[31mSTILL TO DO:\
-- refaire le script android
-- mode interactif
+- interactive mode
 [0m
 "
 ###################################################
 ###################################################
 ###################################################
 
+#from where are we calling it
+fromWhereAmIBeingCalled=$PWD
 #where the script is
 whereAmI=$(cd "$(dirname "$0")" && pwd)
 cd $whereAmI
@@ -148,6 +149,8 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 		rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
 	fi
 
+    init
+    
 #Compiling
 	if [ ! -z "$(echo $TARGETS | grep -e n)" ]; then
         info "Compiling.."

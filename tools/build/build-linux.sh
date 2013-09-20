@@ -49,6 +49,10 @@ check_necessary() {
     :
 }
 
+init() {
+    :
+}
+
 compilation_before() {
     :
 }
