@@ -25,6 +25,8 @@
 #include <jni.h>
 #include <map>
 #include <string>
+#include <sstream>
+    
 #include "base/Log.h"
 
 class JNIHelper {

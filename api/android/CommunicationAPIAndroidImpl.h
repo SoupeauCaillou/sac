@@ -28,11 +28,6 @@
 
 namespace jni_comm_api {
     enum Enum {
-        GiftizMissionDone,
-        GiftizGetButtonState,
-        GiftizButtonClicked,
-        ShareFacebook,
-        ShareTwitter,
         MustShowRateDialog,
         RateItNow,
         RateItLater,
@@ -44,13 +39,6 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<j
         CommunicationAPIAndroidImpl();
 
         void init(JNIEnv* env);
-
-        void giftizMissionDone();
-        int  giftizGetButtonState();
-        void giftizButtonClicked();
-
-        void shareFacebook();
-        void shareTwitter();
 
         bool mustShowRateDialog();
         void rateItNow();

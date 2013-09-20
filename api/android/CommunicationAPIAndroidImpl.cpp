@@ -23,11 +23,6 @@
 #include "CommunicationAPIAndroidImpl.h"
 
 CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl()  : JNIWrapper<jni_comm_api::Enum>("net/damsy/soupeaucaillou/api/CommunicationAPI", true) {
-    declareMethod(jni_comm_api::GiftizMissionDone, "giftizMissionDone", "()V");
-    declareMethod(jni_comm_api::GiftizGetButtonState, "giftizGetButtonState", "()I");
-    declareMethod(jni_comm_api::GiftizButtonClicked, "giftizButtonClicked", "()V");
-    declareMethod(jni_comm_api::ShareFacebook, "shareFacebook", "()V");
-    declareMethod(jni_comm_api::ShareTwitter, "shareTwitter", "()V");
     declareMethod(jni_comm_api::MustShowRateDialog, "mustShowRateDialog", "()Z");
     declareMethod(jni_comm_api::RateItNow, "rateItNow", "()V");
     declareMethod(jni_comm_api::RateItLater, "rateItLater", "()V");
@@ -37,29 +32,6 @@ CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl()  : JNIWrapper<jni_com
 void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
     env = pEnv;
 }
-
-void CommunicationAPIAndroidImpl::giftizMissionDone() {
-   env->CallVoidMethod(instance, methods[jni_comm_api::GiftizMissionDone]);
-}
-
-int CommunicationAPIAndroidImpl::giftizGetButtonState() {
-   return env->CallIntMethod(instance, methods[jni_comm_api::GiftizGetButtonState]);
-}
-
-void CommunicationAPIAndroidImpl::giftizButtonClicked() {
-   env->CallVoidMethod(instance, methods[jni_comm_api::GiftizButtonClicked]);
-}
-
-void CommunicationAPIAndroidImpl::shareFacebook() {
-   LOGI("share facebook !");
-   env->CallVoidMethod(instance, methods[jni_comm_api::ShareFacebook]);
-}
-
-void CommunicationAPIAndroidImpl::shareTwitter() {
-   LOGI("share twitter !");
-   env->CallVoidMethod(instance, methods[jni_comm_api::ShareTwitter]);
-}
-
 
 bool CommunicationAPIAndroidImpl::mustShowRateDialog(){
    return env->CallBooleanMethod(instance, methods[jni_comm_api::MustShowRateDialog]);

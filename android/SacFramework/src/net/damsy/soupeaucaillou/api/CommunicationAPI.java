@@ -56,24 +56,6 @@ public class CommunicationAPI {
 	// -------------------------------------------------------------------------
 	// CommunicationAPI
 	// -------------------------------------------------------------------------
-	public void shareFacebook() {
-		// Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-		// sharingIntent.setType("plain/text");
-		// sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
-		// "This is the text that will be shared.");
-		// startActivity(Intent.createChooser(sharingIntent,"Share using"));
-	}
-
-	public void shareTwitter() {
-		// String message = "Text I wan't to share.";
-		/*
-		 * Intent share = new Intent(Intent.ACTION_SEND);
-		 * share.setType("text/plain"); share.putExtra(Intent.EXTRA_TEXT,
-		 * message); startActivity(Intent.createChooser(share,
-		 * "Title of the dialog the system will open"));
-		 */
-	}
-
 	public boolean mustShowRateDialog() {
 		if (appRaterPreference.getBoolean("dontshowagain", false)) {
 			return false;
