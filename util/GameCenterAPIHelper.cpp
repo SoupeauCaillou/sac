@@ -25,7 +25,7 @@
 #include <systems/RenderingSystem.h>
 #include <systems/ButtonSystem.h>
 
-void GameCenterAPIHelper::init(GameCenterAPI * gameCenterAPI) {
+void GameCenterAPIHelper::init(GameCenterAPI * gameCenterAPI, bool useAchievements, bool useLeaderboards) {
     _gameCenterAPI = gameCenterAPI;
 
     bUIdisplayed = false;
@@ -34,17 +34,22 @@ void GameCenterAPIHelper::init(GameCenterAPI * gameCenterAPI) {
     signButton = theEntityManager.CreateEntity("btn_gg_sign",
         EntityType::Volatile, theEntityManager.entityTemplateLibrary.load("googleplay/signinout_button"));
 
-    achievementsButton = theEntityManager.CreateEntity("btn_gg_achievements",
+
+    achievementsButton = !useAchievements ? 0 : theEntityManager.CreateEntity("btn_gg_achievements",
         EntityType::Volatile, theEntityManager.entityTemplateLibrary.load("googleplay/achievements_button"));
 
-    leaderboardsButton = theEntityManager.CreateEntity("btn_gg_leaderboards",
+    leaderboardsButton = !useLeaderboards ? 0 : theEntityManager.CreateEntity("btn_gg_leaderboards",
         EntityType::Volatile, theEntityManager.entityTemplateLibrary.load("googleplay/leaderboards_button"));
 }
 
 
 void GameCenterAPIHelper::displayFeatures(bool display) {
-    RENDERING(achievementsButton)->show = RENDERING(leaderboardsButton)->show =
-    BUTTON(achievementsButton)->enabled = BUTTON(leaderboardsButton)->enabled = display;
+    if (achievementsButton) {
+        RENDERING(achievementsButton)->show = BUTTON(achievementsButton)->enabled = display;
+    }
+    if (leaderboardsButton) {
+        RENDERING(leaderboardsButton)->show = BUTTON(leaderboardsButton)->enabled = display;
+    }
 }
 
 void GameCenterAPIHelper::displayUI() {
@@ -81,9 +86,9 @@ void GameCenterAPIHelper::updateUI() {
 
     if (BUTTON(signButton)->clicked) {
         isConnected ? _gameCenterAPI->disconnect() : _gameCenterAPI->connectOrRegister();
-    } else if (BUTTON(achievementsButton)->clicked) {
+    } else if (achievementsButton && BUTTON(achievementsButton)->clicked) {
         _gameCenterAPI->openAchievement();
-    } else if (BUTTON(leaderboardsButton)->clicked) {
+    } else if (leaderboardsButton && BUTTON(leaderboardsButton)->clicked) {
         _gameCenterAPI->openLeaderboards();
     }
 

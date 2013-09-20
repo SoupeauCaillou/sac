@@ -30,7 +30,7 @@
 
 class GameCenterAPIHelper {
 	public:
-		void init(GameCenterAPI * gameCenterAPI);
+		void init(GameCenterAPI * gameCenterAPI, bool useAchievements, bool useLeaderboards);
 	    
 	    void displayUI();
 		void hideUI();
