@@ -128,7 +128,7 @@ compilation_after() {
         cd $rootPath
 
         #TODO: dig why compilation fail when coming back from Eclipse instead of hacking it
-        rm -r bin/res/crunch
+        rm -rf bin/res/crunch
 
         if ! android update project -p . -t 1 -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
