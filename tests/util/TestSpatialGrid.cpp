@@ -86,10 +86,10 @@ TEST(LineDrawerWhenDiagonale)
 
 	CHECK_EQUAL(7, (int)path.size());
 	CHECK_EQUAL(GridPos(0,0), path[0]);
-	CHECK_EQUAL(GridPos(0,1), path[1]);
+	CHECK_EQUAL(GridPos(1, 0), path[1]);
 	CHECK_EQUAL(GridPos(1,1), path[2]);
-	CHECK_EQUAL(GridPos(1,2), path[3]);
+	CHECK_EQUAL(GridPos(2,1), path[3]);
 	CHECK_EQUAL(GridPos(2,2), path[4]);
-	CHECK_EQUAL(GridPos(2,3), path[5]);
+	CHECK_EQUAL(GridPos(3,2), path[5]);
 	CHECK_EQUAL(GridPos(3,3), path[6]);
 }
