@@ -65,3 +65,31 @@ TEST(RingAt2OfCenter)
 		CHECK_EQUAL(2, (int)grid.ComputeDistance(p, j));
 	}
 }
+
+TEST(LineDrawerWhenStraight)
+{	
+	auto grid = SpatialGrid(3, 3);
+
+	auto path = grid.lineDrawer(GridPos(0,0), GridPos(0,1));
+
+	CHECK_EQUAL(2, (int)path.size());
+	CHECK_EQUAL(GridPos(0,0), path[0]);
+	CHECK_EQUAL(GridPos(0,1), path[1]);
+	// CHECK_EQUAL(GridPos(0,2), path[2]);
+}
+
+TEST(LineDrawerWhenDiagonale)
+{	
+	auto grid = SpatialGrid(3, 3);
+
+	auto path = grid.lineDrawer(GridPos(0,0), GridPos(3,3));
+
+	CHECK_EQUAL(7, (int)path.size());
+	CHECK_EQUAL(GridPos(0,0), path[0]);
+	CHECK_EQUAL(GridPos(0,1), path[1]);
+	CHECK_EQUAL(GridPos(1,1), path[2]);
+	CHECK_EQUAL(GridPos(1,2), path[3]);
+	CHECK_EQUAL(GridPos(2,2), path[4]);
+	CHECK_EQUAL(GridPos(2,3), path[5]);
+	CHECK_EQUAL(GridPos(3,3), path[6]);
+}

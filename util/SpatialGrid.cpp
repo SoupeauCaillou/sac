@@ -371,16 +371,19 @@ std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos&
 
     float E = 1e-6;
 
-    float dx = (to.q + E) - from.q;
-    float dy = ((from.q + from.r)+E) - (to.q + to.r);
-    float dz = (to.r-2*E) - from.r;
+    float dx = (from.q + E) - to.q;
+    //since x(q)+y+z(r)=0, y = - (x + z) = - (q + r)
+    float dy = (- (from.q + from.r) + E) - ( - (to.q + to.r));
+    float dz = (from.r - 2 * E) - to.r;
 
     float N = glm::max(glm::max(glm::abs(dx-dy), glm::abs(dy-dz)), glm::abs(dz-dx));
 
     GridPos prev(99,99);
-    for (int i=0; i<=N; ++i) {
-        GridPos p = cubeCoordinateRounding(to.q*i/N + from.q*(1-i/N), -(to.q + to.r)*i/N -
-            (from.q + from.r)*(1-i/N), to.r*i/N + from.r*(1-i/N));
+    for (int i = 0; i <= N; ++i) {
+        GridPos p = cubeCoordinateRounding(
+            from.q + i / N * (to.q - from.q),
+            (- (from.q + from.r)) + i / N * ((- (to.q + to.r)) - (- (from.q + from.r))),
+            from.r + i / N * (to.r - from.r));
         if (p != prev) {
             line.push_back(p);
             prev = p;
@@ -526,7 +529,7 @@ static GridPos cubeCoordinateRounding(float x, float y, float z) {
     float x_err = glm::abs(rx - x);
     float y_err = glm::abs(ry - y);
     float z_err = glm::abs(rz - z);
-
+    
     if (x_err > y_err && x_err > z_err) {
         rx = -ry - rz;
     } else if (y_err > z_err) {
@@ -534,6 +537,7 @@ static GridPos cubeCoordinateRounding(float x, float y, float z) {
     } else {
         rz = -rx - ry;
     }
+
     return GridPos(rx, rz);
 }
 
