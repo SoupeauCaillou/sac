@@ -85,7 +85,7 @@ class SpatialGrid {
         virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
         virtual std::vector<GridPos> viewRange(const GridPos& p, int size) const;
         virtual std::vector<GridPos> ringFinder(const GridPos& p, int range, bool enableInvalidPos) const;
-        virtual std::vector<GridPos> lineDrawer(const GridPos& from, const GridPos& to) const;
+        virtual std::vector<GridPos> lineDrawer(const GridPos& from, const GridPos& to, bool positiveEps = true) const;
         virtual int canDrawLine(const GridPos& p1, const GridPos& p2) const;
 
         virtual std::vector<GridPos> findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;

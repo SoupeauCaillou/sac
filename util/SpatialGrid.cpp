@@ -366,11 +366,10 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
     return std::move(range);
 }
 
-std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos& to) const {
+std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos& to, bool positiveEps) const {
     std::vector<GridPos> line;
 
-    float E = 1e-6;
-
+    float E = 1e-6 * (positiveEps ? 1 : -1);
     float dx = (from.q + E) - to.q;
     //since x(q)+y+z(r)=0, y = - (x + z) = - (q + r)
     float dy = (- (from.q + from.r) + E) - ( - (to.q + to.r));
