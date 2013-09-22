@@ -29,7 +29,7 @@
 
 #include <vector>
 
-class Draw {
+class DrawSomething {
     public:
         static Entity DrawPoint(const std::string& groupID, const glm::vec2& position,
             const Color & color = Color(), const std::string name = "point", Entity vector = 0);
@@ -48,8 +48,8 @@ class Draw {
 
         static void Clear();
     private:
-        static Draw instance;
-        Draw() { drawPointList.clear(); drawVec2List.clear(); drawTriangleList.clear(); }
+        static DrawSomething instance;
+        DrawSomething() { drawPointList.clear(); drawVec2List.clear(); drawTriangleList.clear(); }
 
         std::vector<std::pair<Entity, std::string>> drawPointList;
         std::vector<std::pair<Entity, std::string>> drawVec2List;

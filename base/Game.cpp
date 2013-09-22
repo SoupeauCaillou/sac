@@ -117,7 +117,7 @@ Game::Game() {
 }
 
 Game::~Game() {
-    Draw::Clear();
+    DrawSomething::Clear();
 
     EntityManager::DestroyInstance();
 

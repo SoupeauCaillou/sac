@@ -30,9 +30,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-Draw Draw::instance;
+DrawSomething DrawSomething::instance;
 
-void Draw::Clear() {
+void DrawSomething::Clear() {
     for (auto item : instance.drawPointList) {
         theEntityManager.DeleteEntity(item.first);
     }
@@ -49,7 +49,7 @@ void Draw::Clear() {
     instance.drawTriangleList.clear();
 }
 
-Entity Draw::DrawPoint(const std::string& groupID, const glm::vec2& position,
+Entity DrawSomething::DrawPoint(const std::string& groupID, const glm::vec2& position,
  const Color & color, const std::string name, Entity vector) {
     if (vector == 0) {
         auto firstUnused = instance.drawPointList.begin();
@@ -81,7 +81,7 @@ Entity Draw::DrawPoint(const std::string& groupID, const glm::vec2& position,
 
     return vector;
 }
-void Draw::DrawPointRestart(const std::string & groupID) {
+void DrawSomething::DrawPointRestart(const std::string & groupID) {
     for (auto e : instance.drawPointList) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
@@ -92,7 +92,7 @@ void Draw::DrawPointRestart(const std::string & groupID) {
 
 
 
-Entity Draw::DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
+Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
  bool useTexture, const std::string name, Entity vector) {
     Entity e = DrawVec2(groupID, position, size, Color(), name, vector);
     if (useTexture) {
@@ -102,7 +102,7 @@ Entity Draw::DrawVec2(const std::string& groupID, const glm::vec2& position, con
     return e;
 }
 
-Entity Draw::DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
+Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
  const Color & color, const std::string name, Entity vector) {
     if (vector == 0) {
         auto firstUnused = instance.drawVec2List.begin();
@@ -140,7 +140,7 @@ Entity Draw::DrawVec2(const std::string& groupID, const glm::vec2& position, con
 
     return vector;
 }
-void Draw::DrawVec2Restart(const std::string & groupID) {
+void DrawSomething::DrawVec2Restart(const std::string & groupID) {
     for (auto e : instance.drawVec2List) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
@@ -149,7 +149,7 @@ void Draw::DrawVec2Restart(const std::string & groupID) {
 }
 
 
-Entity Draw::DrawTriangle(const std::string& groupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
+Entity DrawSomething::DrawTriangle(const std::string& groupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
  const Color & color, const std::string name, Entity vector, int dynamicVertices) {
     if (vector == 0) {
         auto firstUnused = instance.drawTriangleList.begin();
@@ -195,7 +195,7 @@ Entity Draw::DrawTriangle(const std::string& groupID, const glm::vec2& firstPoin
 
     return vector;
 }
-void Draw::DrawTriangleRestart(const std::string & groupID) {
+void DrawSomething::DrawTriangleRestart(const std::string & groupID) {
     for (auto e : instance.drawTriangleList) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
