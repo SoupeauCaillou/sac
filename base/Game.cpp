@@ -209,7 +209,9 @@ void Game::eventsHandler() {
 
                     switch (key) {
                         case (SDLK_ESCAPE):
-                            isFinished = true;
+                            if (willConsumeBackEvent()) {
+                                backPressed();
+                            }
                             break;
 #if SAC_ENABLE_PROFILING
                         case SDLK_F11:
@@ -315,22 +317,6 @@ void Game::sacInit(int windowW, int windowH) {
 
 #if SAC_INGAME_EDITORS
     levelEditor->init();
-#endif
-}
-
-void Game::backPressed() {
-#if SAC_ENABLE_PROFILING
-    static int profStarted = 0;
-    if ((profStarted % 2) == 0) {
-        startProfiler();
-    } else {
-        std::stringstream a;
-        a <<
-            gameThreadContext->assetAPI->getWritableAppDatasPath() <<
-            "sac_prof_" << (int)(profStarted / 2) << ".json";
-        stopProfiler(a.str());
-    }
-    profStarted++;
 #endif
 }
 

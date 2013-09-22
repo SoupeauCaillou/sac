@@ -52,13 +52,8 @@ class Game {
         void resetTime();
         void eventsHandler();
 
-#if SAC_ENABLE_PROFILING
-        void backPressed();
-        bool willConsumeBackEvent() { return true; }
-#else
-        virtual void backPressed();
+        virtual void backPressed() {};
         virtual bool willConsumeBackEvent() { return false; }
-#endif
 
         virtual bool wantsAPI(ContextAPI::Enum api) const = 0;
 		virtual void sacInit(int windowW, int windowH);
