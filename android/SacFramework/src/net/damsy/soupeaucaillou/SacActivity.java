@@ -29,6 +29,8 @@ import net.damsy.soupeaucaillou.SacGameThread.Event;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -73,6 +75,15 @@ public abstract class SacActivity extends Activity {
 		Log(W, "ActivityLifeCycle --> onCreate [" + savedInstanceState + "]");
         super.onCreate(savedInstanceState);
         
+        //display debug informations
+		try {
+			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			SacActivity.LogI("Package name: " + getPackageName() + ", version code: " + pInfo.versionCode + ", version name: " + pInfo.versionName);
+		} catch (NameNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
         initRequiredAPI();
        
         SacPluginManager.instance().onActivityCreate(this, savedInstanceState);
