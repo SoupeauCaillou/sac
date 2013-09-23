@@ -29,6 +29,7 @@
 #include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"
 
+#include <glm/gtx/norm.hpp>
 
 TouchInputManager* TouchInputManager::instance = 0;
 
@@ -75,11 +76,17 @@ void TouchInputManager::Update(float) {
         clicked[i] = !touching[i] && wasTouching[i];
         if (clicked[i]) {
             float t = TimeUtil::GetTime();
-            doubleclicked[i] = (t - lastClickTime[i] < 0.5);
+            glm::vec2 pos = lastTouchedPositionScreen[i];
+
+            if ((t - lastClickTime[i] < 0.3) && glm::distance2(pos, lastClickPosition[i]) < 0.005) {
+                doubleclicked[i] = true;    
+                LOGV(1, "DOUBLE CLICKED("<< i << ") TOO!");
+            } else {
+                lastClickPosition[i] = pos;
+                doubleclicked[i] = false;
+                LOGV(1, "CLICK(" << i << ") at " << t);
+            }
             lastClickTime[i] = t;
-            LOGI("CLICK(" << i << ") at " << t);
-            if (doubleclicked[i])
-                LOGI("DOUBLE CLICKED("<< i << ") TOO!");
         } else {
             doubleclicked[i] = false;
         }

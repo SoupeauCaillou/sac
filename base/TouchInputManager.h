@@ -73,7 +73,7 @@ class TouchInputManager {
 		NativeTouchState* ptr;
 
 		bool wasTouching[2], touching[2], moving[2], clicked[2], doubleclicked[2];
-		glm::vec2 lastTouchedPosition[2], lastTouchedPositionScreen[2];
+		glm::vec2 lastTouchedPosition[2], lastTouchedPositionScreen[2], lastClickPosition[2];
 		float lastClickTime[2];
 
 		glm::vec2 worldSize, windowSize;
