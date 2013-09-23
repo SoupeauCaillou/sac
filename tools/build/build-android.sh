@@ -128,7 +128,7 @@ compilation_after() {
         cd $rootPath
 
         #TODO: dig why compilation fail when coming back from Eclipse instead of hacking it
-        rm -rf bin/res/crunch
+        rm -rf bin/res/crunch sac/android/SacGooglePlayGameServices/libs/google_play_services/libproject/google-play-services_lib/bin/res/crunch
 
         if ! android update project -p . -t 1 -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
@@ -144,11 +144,11 @@ get_APK_name() {
     if [ ! -z "$APK" ] && [ -e "$APK" ]; then
         info "APK variable already set to '$APK'. Aborting searching a new one."
     else
-        if [ -f "$rootPath/bin/$gameName.apk" ]; then
-            APK=$rootPath/bin/$gameName.apk
-            info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
-        elif [ -f "$rootPath/bin/$gameName-release.apk" ]; then
+        if [ -f "$rootPath/bin/$gameName-release.apk" ]; then
             APK=$rootPath/bin/$gameName-release.apk
+            info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
+        elif [ -f "$rootPath/bin/$gameName.apk" ]; then
+            APK=$rootPath/bin/$gameName.apk
             info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
         elif [ -f "$rootPath/bin/${gameName}-debug.apk" ]; then
             APK=$rootPath/bin/${gameName}-debug.apk

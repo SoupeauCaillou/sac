@@ -33,7 +33,7 @@
 class TimeUtil
 {
 	public:
-		static void Init(); // plantage de la graine
+		static void Init();
 		static float GetTime();
         static void Wait(float waitInSeconds);
 
