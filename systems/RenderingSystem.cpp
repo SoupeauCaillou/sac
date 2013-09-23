@@ -697,9 +697,15 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     // switch back to window-system-provided framebuffer
     GL_OPERATION(glBindFramebuffer(GL_FRAMEBUFFER, 0))
 
-    FramebufferRef result = nextValidFBRef++;
-    nameToFramebuffer[name] = result;
+    FramebufferRef result;
+    if (nameToFramebuffer.find(name) == nameToFramebuffer.end()) {
+        result = nextValidFBRef++;
+        nameToFramebuffer[name] = result;
+    } else {
+        result = nameToFramebuffer.find(name)->second;
+    }
     ref2Framebuffers[result] = fb;
+
     return result;
 }
 

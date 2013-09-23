@@ -179,6 +179,12 @@ void RenderingSystem::reloadTextures() {
 	// reload individual textures
     // textureLibrary.reloadAll();
     effectLibrary.reloadAll();
+
+    // rebuild framebuffers too
+    for (auto& fb: nameToFramebuffer) {
+        const Framebuffer f = ref2Framebuffers[fb.second];
+        createFramebuffer(fb.first, f.width, f.height);
+    }
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
