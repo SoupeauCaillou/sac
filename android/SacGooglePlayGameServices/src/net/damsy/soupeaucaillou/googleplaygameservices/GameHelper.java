@@ -980,16 +980,19 @@ public class GameHelper implements GooglePlayServicesClient.ConnectionCallbacks,
         int actResp = mSignInFailureReason.getActivityResultCode();
 
         switch (actResp) {
-            case GamesActivityResultCodes.RESULT_APP_MISCONFIGURED:
-                errorDialog = makeSimpleDialog("App misconfigured");
+/*            case GamesActivityResultCodes.RESULT_APP_MISCONFIGURED:
+                errorDialog = makeSimpleDialog(ctx.getString(
+                        R.string.gamehelper_app_misconfigured));
                 printMisconfiguredDebugInfo();
                 break;
             case GamesActivityResultCodes.RESULT_SIGN_IN_FAILED:
-                errorDialog = makeSimpleDialog("Signin failed");
+                errorDialog = makeSimpleDialog(ctx.getString(
+                        R.string.gamehelper_sign_in_failed));
                 break;
             case GamesActivityResultCodes.RESULT_LICENSE_FAILED:
-                errorDialog = makeSimpleDialog("License failed");
-                break;
+                errorDialog = makeSimpleDialog(ctx.getString(
+                        R.string.gamehelper_license_failed));
+                break;*/
             default:
                 // No meaningful Activity response code, so generate default Google
                 // Play services dialog
@@ -998,7 +1001,8 @@ public class GameHelper implements GooglePlayServicesClient.ConnectionCallbacks,
                 if (errorDialog == null) {
                     // get fallback dialog
                     debugLog("No standard error dialog available. Making fallback dialog.");
-                    errorDialog = makeSimpleDialog("Unknown error: " + errorCodeToString(errorCode));
+                    errorDialog = makeSimpleDialog(ctx.getString(R.string.gamehelper_unknown_error)
+                            + " " + errorCodeToString(errorCode));
                 }
         }
 
