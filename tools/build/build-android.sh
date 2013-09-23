@@ -212,9 +212,10 @@ Continuing..."
     if [ ! -z $(echo $1 | grep r) ]; then
         info "Running app '$gameName'..."
 
-        gameNameLower=$(echo $gameName | sed 's/^./\l&/')
+        packageName=$(grep 'package=' $rootPath/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
+        activityName=$(grep '<activity' $rootPath/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
 
-        if (!(adb shell am start -n net.damsy.soupeaucaillou.$gameNameLower/.${gameName}Activity)); then
+        if (!(adb shell am start -n $packageName/$activityName)); then
             error_and_quit "Could not run $gameName!"
         fi
     fi
