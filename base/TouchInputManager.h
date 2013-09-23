@@ -54,6 +54,8 @@ class TouchInputManager {
 
         bool hasDoubleClicked(int idx = 0) const { return doubleclicked[idx]; }
 
+        void resetDoubleClick(int idx = 0);
+
         const glm::vec2& getTouchLastPosition(int idx = 0) const { return lastTouchedPosition[idx]; }
 
         const glm::vec2& getTouchLastPositionScreen(int idx = 0) const { return lastTouchedPositionScreen[idx]; }

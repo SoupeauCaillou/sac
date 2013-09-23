@@ -93,6 +93,10 @@ void TouchInputManager::Update(float) {
     }
 }
 
+void TouchInputManager::resetDoubleClick(int idx) {
+    lastClickTime[idx] = 0;
+}
+
 glm::vec2 TouchInputManager::windowToScreen(const glm::vec2& windowCoords) const {
     return glm::vec2(windowCoords.x / theRenderingSystem.windowW - 0.5,
         (theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH - 0.5);
