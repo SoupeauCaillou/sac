@@ -76,6 +76,8 @@ void FaderHelper::start(Fading::Enum pType, float pDuration) {
 }
 
 bool FaderHelper::update(float dt) {
+	if (duration <= 0)
+		return true;
 	accum = glm::min(duration, accum + dt);
 	const float progress = accum / duration;
 	updateFading(type, fadingEntity, progress);
