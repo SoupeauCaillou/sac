@@ -45,10 +45,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
 #add flag SAC_DEBUG or SAC_RELEASE
 add_definitions(-DSAC_${BUILD_TARGET})
 
-#to solve some glitch issues with old graphic cards
-if (USING_OLD_HARDWARE)
-    message("Using old hardware compatibility")
-    add_definitions(-DSAC_OLD_HARDWARE=1)
+if (SAC_CUSTOM_DEFINES)
+    message("Adding the following defines: ${SAC_CUSTOM_DEFINES}")
+    add_definitions(${SAC_CUSTOM_DEFINES})
 endif()
 
 #######################################################################
