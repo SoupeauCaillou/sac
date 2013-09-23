@@ -100,11 +100,13 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 
     @Override
     public void onActivityStart(Activity oActivity) {
+    	mActivity = oActivity;
         mHelper.onStart(mActivity);
     }
 
     @Override
     public void onActivityStop(Activity oActivity) {
+    	mActivity = null;
         mHelper.onStop();
     }
 
@@ -127,6 +129,7 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 		return mHelper.isSignedIn();
 	}
 
+
 	@Override
 	public void connectOrRegister() {
 		if (mHelper.isSignedIn())
@@ -146,7 +149,7 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 	}
 
 	@Override
-	public void disconnect() {		
+	public void disconnect() {
 		mActivity.runOnUiThread(new Runnable() {
 
 			@Override
