@@ -160,8 +160,11 @@ cleanup:
 
 void RenderingSystem::invalidateAtlasTextures() {
 	for (unsigned atlasIdx=0; atlasIdx<atlas.size(); atlasIdx++) {
-        LOGI("Invalidate atlas: #" << atlasIdx << ": ref='" << atlas[atlasIdx].ref << "', name='" << atlas[atlasIdx].name << "'");
-        textureLibrary.reload(atlas[atlasIdx].name);
+        // Invalidate only loaded textures
+        if (atlas[atlasIdx].ref != InvalidTextureRef) {
+            LOGI("Invalidate atlas: #" << atlasIdx << ": ref='" << atlas[atlasIdx].ref << "', name='" << atlas[atlasIdx].name << "'");
+            textureLibrary.reload(atlas[atlasIdx].name);
+        }
 	}
 }
 
@@ -171,7 +174,7 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
 
 void RenderingSystem::reloadTextures() {
     // Mark atlas textures invalid
-	invalidateAtlasTextures(); // not useful me thinks
+	invalidateAtlasTextures();
 
 	// reload individual textures
     // textureLibrary.reloadAll();
