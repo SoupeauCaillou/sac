@@ -26,11 +26,11 @@
 #include "RenderingSystem.h"
 
 struct CameraComponent {
-    CameraComponent() : fb(DefaultFrameBufferRef), clearColor(0,0,0), enable(false), order(0), id(0) {}
+    CameraComponent() : fb(DefaultFrameBufferRef), clearColor(0,0,0), enable(false), clear(true), order(0), id(0) {}
     // assume complete draw of FB
     FramebufferRef fb;
     Color clearColor;
-    bool enable;
+    bool enable, clear;
     int order;
     int id;
 };

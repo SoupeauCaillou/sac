@@ -29,6 +29,7 @@ INSTANCE_IMPL(CameraSystem);
 CameraSystem::CameraSystem() : ComponentSystemImpl<CameraComponent>("Camera") {
     CameraComponent tc;
     componentSerializer.add(new Property<bool>("enable", OFFSET(enable, tc)));
+    componentSerializer.add(new Property<bool>("clear", OFFSET(clear, tc)));
     componentSerializer.add(new Property<int>("id", OFFSET(id, tc)));
     componentSerializer.add(new Property<int>("order", OFFSET(order, tc)));
     componentSerializer.add(new Property<Color>("clear_color", OFFSET(clearColor, tc)));

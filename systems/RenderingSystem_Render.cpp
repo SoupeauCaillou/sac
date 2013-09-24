@@ -270,8 +270,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
-            GL_OPERATION(glClearColor(camera.cameraAttr.clearColor.r, camera.cameraAttr.clearColor.g, camera.cameraAttr.clearColor.b, camera.cameraAttr.clearColor.a))
-            GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+            if (camera.cameraAttr.clear) {
+                GL_OPERATION(glClearColor(camera.cameraAttr.clearColor.r, camera.cameraAttr.clearColor.g, camera.cameraAttr.clearColor.b, camera.cameraAttr.clearColor.a))
+                GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+            }
             currentFlags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
             continue;
         } else if (rc.texture == EndFrameMarker) {

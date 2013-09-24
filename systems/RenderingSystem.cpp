@@ -724,6 +724,7 @@ void packCameraAttributes(
     out.uv[0] = cameraTrans->position;
     out.uv[1] = cameraTrans->size;
     out.z = cameraTrans->rotation;
+    out.mirrorH = cameraComp->clear;
 
     out.rotateUV = cameraComp->fb;
     out.color = cameraComp->clearColor;
@@ -739,6 +740,7 @@ void unpackCameraAttributes(
 
     ccc->fb = in.rotateUV;
     ccc->clearColor = in.color;
+    ccc->clear = in.mirrorH;
 }
 
 void RenderingSystem::defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v) {
