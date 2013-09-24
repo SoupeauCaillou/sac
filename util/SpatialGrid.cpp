@@ -502,6 +502,8 @@ std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& t
     } while (!open.empty());
 
     LOGE_IF(success == open.end(), "Couldn't find a path: " << from << " -> " << to);
+    if (success == open.end())
+        return std::vector<GridPos>();
 
     LOGV(1, "Found path: " << from << " -> " << to << ':');
     std::vector<GridPos> result;
