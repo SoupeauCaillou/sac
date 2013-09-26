@@ -79,9 +79,11 @@ void GameCenterAPIHelper::updateUI() {
     displayFeatures(bUIdisplayed & isConnected);
     
     if (isConnected) {
-        RENDERING(signButton)->texture = theRenderingSystem.loadTextureFile("gg_signout");
+        BUTTON(signButton)->textureInactive = theRenderingSystem.loadTextureFile("gg_signout");
+        BUTTON(signButton)->textureActive = theRenderingSystem.loadTextureFile("gg_signout_active");
     } else {
-        RENDERING(signButton)->texture = theRenderingSystem.loadTextureFile("gg_signin");
+        BUTTON(signButton)->textureInactive = theRenderingSystem.loadTextureFile("gg_signin");
+        BUTTON(signButton)->textureActive = theRenderingSystem.loadTextureFile("gg_signin_active");
     }
 
     if (BUTTON(signButton)->clicked) {
