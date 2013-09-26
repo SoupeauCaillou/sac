@@ -27,7 +27,7 @@ export SAC_EXAMPLE="\
 	if [ -z "$(pwd | grep /sac/tools)" ]; then
 		error_and_quit "The script must be in sac/tools and not in $(pwd)!"
 	fi
-    check_package dot graphfiz
+    check_package dot graphviz
 
 ######### 1 : Read arguments. #########
     while [ "$1" != "" ]; do
