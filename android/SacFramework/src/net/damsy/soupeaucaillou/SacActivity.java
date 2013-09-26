@@ -78,7 +78,7 @@ public abstract class SacActivity extends Activity {
         //display debug informations
 		try {
 			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-			SacActivity.LogI("Package name: " + getPackageName() + ", version code: " + pInfo.versionCode + ", version name: " + pInfo.versionName);
+			LogI("Package name: " + getPackageName() + ", version code: " + pInfo.versionCode + ", version name: " + pInfo.versionName);
 		} catch (NameNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
