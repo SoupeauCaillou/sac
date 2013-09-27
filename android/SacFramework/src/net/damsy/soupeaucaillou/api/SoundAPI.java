@@ -40,7 +40,7 @@ public class SoundAPI {
 	private SoundPool soundPool;
 	private AssetManager assetManager;
 	
-	void init(AssetManager mgr) {
+	public void init(AssetManager mgr) {
 		this.assetManager = mgr;
 		soundPool = new SoundPool(8, AudioManager.STREAM_MUSIC, 0);
 	}
@@ -52,7 +52,7 @@ public class SoundAPI {
 		try {
 			return soundPool.load(assetManager.openFd(assetPath), 1);
 		} catch (Exception exc) {
-			SacActivity.LogE("Unable to load sound: " + assetPath);
+			SacActivity.LogE("Unable to load sound: " + assetPath + ". Error: " + exc.getMessage() + ". Did you call init method?");
 			return -1;
 		}
 	}
