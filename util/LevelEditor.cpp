@@ -157,6 +157,16 @@ void LevelEditor::LevelEditorDatas::deselect(Entity) {
 }
 
 TwBar* entityListBar, *debugConsoleBar, *logBar, *dumpEntities;
+
+namespace EntityListMode {
+    enum Enum {
+        All = 0,
+        VisibleOnly,
+        UnderMouse
+    };
+}
+EntityListMode::Enum listMode = EntityListMode::All;
+
 LevelEditor::LevelEditor() {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
@@ -183,6 +193,18 @@ LevelEditor::LevelEditor() {
     DebugConsole::Instance().initTW();
 
     entityListBar = TwNewBar("EntityList");
+    {
+        // add modes to entity list
+        TwEnumVal modes[] = {
+            {EntityListMode::All, "All"},
+            {EntityListMode::VisibleOnly, "Only Visible"},
+            {EntityListMode::UnderMouse, "Under Mouse"}
+        };
+        TwType type = TwDefineEnum("Mode", modes, sizeof(modes)/sizeof(TwEnumVal));
+        TwAddVarRW(entityListBar, "Mode", type, &listMode, "");
+        TwAddSeparator(entityListBar, "--- Entities ---", "");
+    }
+
     dumpEntities = TwNewBar("DumpEntities");
 
     TwDefine(" EntityList iconified=true ");
@@ -270,20 +292,59 @@ void LevelEditor::tick(float dt) {
         lock();
 
         std::vector<Entity> entities = theEntityManager.allEntities();
+        auto newEnd = entities.end();
+
+        // Filter based on type
+        switch (listMode) {
+            case EntityListMode::All:
+                break;
+            case EntityListMode::VisibleOnly: {
+                std::vector<TransformationComponent*> cameras;
+                cameras.resize(theCameraSystem.entityCount());
+                // get cameras
+                theCameraSystem.forEachECDo([&cameras] (Entity e, CameraComponent* cc) -> void {
+                    cameras[cc->id] = TRANSFORM(e);
+                });
+                // filter invisible entities
+                newEnd = std::remove_if(entities.begin(), newEnd, [this, &cameras] (Entity e) -> bool {
+                    const auto* rc = theRenderingSystem.Get(e, false);
+                    if (!rc)
+                        return true;
+                    if (!rc->show)
+                        return true;
+                    const auto* tc = theTransformationSystem.Get(e, false);
+                    if (!tc)
+                        return true;
+                    for (unsigned i=0; i<cameras.size(); i++) {
+                        if ((rc->cameraBitMask & (1 << i)) && IntersectionUtil::rectangleRectangle(TRANSFORM(e), cameras[i]))
+                            return false;
+                    }
+                    return true;
+                });
+                break;
+            }
+            case EntityListMode::UnderMouse: {
+                LOGT_EVERY_N(10, "Under-mouse entity filtering");
+                break;
+            }
+
+        } 
+        entities.resize(newEnd - entities.begin());
         const auto existing = entities;
 
-        // simple
-        auto newEnd = std::remove_if(entities.begin(), entities.end(), [this] (Entity e) -> bool {
+        // Filter out entities already in bar
+        newEnd = std::remove_if(entities.begin(), newEnd, [this] (Entity e) -> bool {
             return datas->barVar.find(e) != datas->barVar.end();
         });
         entities.resize(newEnd - entities.begin());
 
+        // Build entity groups
         std::map<std::string, std::vector<Entity> > groups;
-
         for (unsigned i=0; i<entities.size(); i++) {
             groups[displayName(entities[i])].push_back(entities[i]);
         }
 
+        // Add missing entities to bar
         for (unsigned i=0; i<entities.size(); i++) {
             Entity e = entities[i];
 
@@ -299,6 +360,7 @@ void LevelEditor::tick(float dt) {
             LOGF_IF(!added, "Added is false: " << e << '/' << n.str());
 
         }
+        // Make sure groups are there too
         for (const auto gp: groups) {
             if (gp.second.size() > 1) {
                 const std::string d("EntityList/'" + gp.first + "' opened=false");
@@ -306,6 +368,7 @@ void LevelEditor::tick(float dt) {
             }
         }
 
+        // Remove deleted/filtered entities from bar
         for (auto it=datas->barVar.begin(); it!=datas->barVar.end(); ) {
             if (std::find(existing.begin(), existing.end(), it->first) == existing.end()) {
                 TwRemoveVar(entityListBar, it->second.c_str());
