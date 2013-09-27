@@ -85,6 +85,9 @@ bool FaderHelper::update(float dt) {
 	if (progress >= 0.99) {
 		accum = duration = 0;
 		LOGV(1, "Fading done");
+		if (type == Fading::In) {
+			RENDERING(fadingEntity)->show = false;
+		}
 		return true;
 	} else {
 		return false;
