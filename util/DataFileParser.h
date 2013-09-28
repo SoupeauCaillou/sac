@@ -51,12 +51,17 @@ class DataFileParser {
         void defineVariable(const std::string& name, const std::string& value);
         int getSubStringCount(const std::string& section, const std::string& var) const;
 
+        template <class T>
+        void set(const std::string& section, const std::string& var, T* value, const int count = 1);
+
     private:
         bool keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& value) const;
         bool indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const;
 
         template <class T>
         bool parse(const std::string& value, T* out, const int count = 1, bool warnIfNotFound = true) const;
+
+        void put(const std::string& section, const std::string& var, const std::string& value);
 
     public:
         bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool warnIfNotFound) const;
@@ -114,4 +119,15 @@ bool DataFileParser::get(const std::string& section, unsigned index, std::string
         return false;
 
     return parse(val, out, count, true);
+}
+
+template <class T>
+void DataFileParser::set(const std::string& section, const std::string& var, T* value, const int count) {
+    std::stringstream ss;
+    for (int i=0; i<count; i++) {
+        if (i > 0)
+            ss << ", ";
+        ss << value[i];
+    }
+    put(section, var, ss.str());
 }

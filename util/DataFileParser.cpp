@@ -127,6 +127,15 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
     return true;
 }
 
+void DataFileParser::put(const std::string& section, const std::string& var, const std::string& value) {
+    Section* sectPtr = 0;
+    if (!data->selectSectionByName(section, &sectPtr)) {
+        sectPtr = new Section;
+        data->sections.insert(std::make_pair(section, sectPtr));
+    }
+    (*sectPtr)[var] = value;
+}
+
 void DataFileParser::unload() {
     if (data)
         delete data;

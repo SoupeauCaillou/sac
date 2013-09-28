@@ -125,3 +125,27 @@ TEST (TestVariables)
         CHECK_EQUAL(res[i], out[i]);
     }
 }
+
+TEST (TestSetReplace)
+{
+    DataFileParser dfp;
+    const char* simple = "[section]\n" \
+        "var=stringvalue";
+    CHECK(dfp.load(FB(simple), __FUNCTION__));
+    dfp.set("section", "var", &"plop");
+    std::string out;
+    CHECK(dfp.get("section", "var", &out));
+    CHECK_EQUAL("plop", out);
+}
+
+TEST (TestSetNew)
+{
+    DataFileParser dfp;
+    const char* simple = "[section]\n" \
+        "var=stringvalue";
+    CHECK(dfp.load(FB(simple), __FUNCTION__));
+    dfp.set("section", "var2", &"plop");
+    std::string out;
+    CHECK(dfp.get("section", "var2", &out));
+    CHECK_EQUAL("plop", out);
+}
