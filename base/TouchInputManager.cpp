@@ -71,24 +71,34 @@ void TouchInputManager::Update(float) {
             // convert window coordinates -> world coords
             lastTouchedPositionScreen[i] = windowToScreen(coords);
             lastTouchedPosition[i] = windowToWorld(coords, tc);
+            if (!wasTouching[i]) {
+                onTouchPosition[i] = lastTouchedPositionScreen[i];
+            }
     	}
 
-        clicked[i] = !touching[i] && wasTouching[i];
-        if (clicked[i]) {
-            float t = TimeUtil::GetTime();
-            glm::vec2 pos = lastTouchedPositionScreen[i];
+        // first click condition: was touched + is released
+        if (!touching[i] && wasTouching[i]) {
+            // click is valid if ~no move between on touch and on release event
+            clicked[i] = (glm::distance2(lastTouchedPositionScreen[i], onTouchPosition[i]) < 0.005);
 
-            if ((t - lastClickTime[i] < 0.3) && glm::distance2(pos, lastClickPosition[i]) < 0.005) {
-                doubleclicked[i] = true;    
-                LOGV(1, "DOUBLE CLICKED("<< i << ") TOO!");
+            if (clicked[i]) {
+                float t = TimeUtil::GetTime();
+                glm::vec2 pos = lastTouchedPositionScreen[i];
+
+                if ((t - lastClickTime[i] < 0.3) && glm::distance2(pos, lastClickPosition[i]) < 0.005) {
+                    doubleclicked[i] = true;    
+                    LOGV(1, "DOUBLE CLICKED("<< i << ") TOO!");
+                } else {
+                    lastClickPosition[i] = pos;
+                    doubleclicked[i] = false;
+                    LOGV(1, "CLICK(" << i << ") at " << t);
+                }
+                lastClickTime[i] = t;
             } else {
-                lastClickPosition[i] = pos;
                 doubleclicked[i] = false;
-                LOGV(1, "CLICK(" << i << ") at " << t);
             }
-            lastClickTime[i] = t;
         } else {
-            doubleclicked[i] = false;
+            clicked[i] = doubleclicked[i] = false;
         }
     }
 }
