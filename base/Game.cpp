@@ -59,10 +59,12 @@
 
 #include "util/DataFileParser.h"
 #include "util/DrawSomething.h"
+#include "util/Recorder.h"
 
 #if ! SAC_ANDROID
 #include <SDL/SDL.h>
 #endif
+
 
 #include <sstream>
 
@@ -224,6 +226,9 @@ void Game::eventsHandler() {
                             profilerEnabled = !profilerEnabled;
                             break;
 #endif
+                        case SDLK_F9:
+                            Recorder::Instance().toggle();
+                            break;
 
 #if SAC_INGAME_EDITORS
                         //if we use the editor; we need to handle some keys for it

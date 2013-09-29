@@ -78,7 +78,6 @@
 #include "MouseNativeTouchState.h"
 
 Game* game = 0;
-Recorder *record; //only on linux
 
 #if SAC_EMSCRIPTEN
 static void updateAndRender() {
@@ -103,15 +102,6 @@ static void updateLoop() {
             theMusicSystem.toggleMute(theSoundSystem.mute);
         } else {
             // theMusicSystem.toggleMute(true);
-        }
-        //pause ?
-
-        // recording
-        if (SDL_GetKeyState(NULL)[SDLK_F10]) {
-            record->stop();
-        }
-        if (SDL_GetKeyState(NULL)[SDLK_F9]) {
-            record->start();
         }
     }
     theRenderingSystem.disableRendering();
@@ -267,7 +257,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
-    record = new Recorder(resolution.x, resolution.y);
+    Recorder::Instance().init(resolution.x, resolution.y);
 
     LOGV(1, "Run game loop");
 
@@ -292,7 +282,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         game->eventsHandler();
         game->render();
         SDL_GL_SwapBuffers();
-        record->record();
+        Recorder::Instance().record();
     } while (!m.try_lock());
     th1.join();
 

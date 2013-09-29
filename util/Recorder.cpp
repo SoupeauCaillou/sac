@@ -143,7 +143,12 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
     }
 }
 
-Recorder::Recorder(int width, int height){
+Recorder & Recorder::Instance() {         
+    static Recorder instance;
+    return instance;
+}
+
+void Recorder::init(int width, int height){
     this->width = width;
     this->height = height;
     outfile = NULL;
@@ -228,18 +233,18 @@ bool Recorder::initSound (){
 
 void Recorder::start(){
     if (outfile == NULL && !recording && !th1.joinable()){
-        LOGE("Recording start");
 
         //new file : time
         char tmp[256];
         long H = time(NULL);
-        strftime(tmp, sizeof(tmp), "videos/rr_%d%m%Y_%X.webm", localtime(&H));
+        strftime(tmp, sizeof(tmp), "/tmp/sac_record_%d%m%Y_%H%M%S.webm", localtime(&H));
 
         if(!(outfile = fopen(tmp, "wb"))){
-            LOGE("Failed to open '" << tmp << "' for writing");
+            LOGE("Failed to open '" << tmp << "' for writing. Cancelling recording");
             outfile = NULL;
             return;
         }
+        LOGI("Recording start in file '" << tmp << "'");
         write_ivf_file_header(outfile, &cfg, 0);
         this->frameCounter = 0;
         recording = true;

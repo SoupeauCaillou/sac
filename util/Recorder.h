@@ -51,7 +51,9 @@ class Recorder {
         static const int PBO_COUNT = 2;
         static const int CHANNEL_COUNT = 4;
 
-        Recorder(int width, int height);
+        static Recorder & Instance();
+        void init(int width, int height);
+
         ~Recorder();
 
         void start();
@@ -63,6 +65,7 @@ class Recorder {
         void thread_video_encode();
 
     private:
+        Recorder() {}
         void addFrame(GLubyte *ptr);
 
         bool initVP8();
