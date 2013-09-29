@@ -36,7 +36,7 @@
 
 #define ALPHA_MASK_TAG "_alpha"
 
-DPI::Enum OpenGLTextureCreator::dpi = DPI::Medium;
+DPI::Enum OpenGLTextureCreator::dpi = DPI::High;
 
 static bool pvrFormatSupported = false;
 static bool pkmFormatSupported = false;
