@@ -28,6 +28,7 @@ GameCenterAPIAndroidImpl::GameCenterAPIAndroidImpl()  : JNIWrapper<jni_gamecente
     declareMethod(jni_gamecenter_api::connectOrRegister, "connectOrRegister", "()V");
     declareMethod(jni_gamecenter_api::disconnect, "disconnect", "()V");
     declareMethod(jni_gamecenter_api::unlockAchievement, "unlockAchievement", "(I)V");
+    declareMethod(jni_gamecenter_api::updateAchievementProgression, "updateAchievementProgression", "(IF)V");
     declareMethod(jni_gamecenter_api::openAchievement, "openAchievement", "()V");
     declareMethod(jni_gamecenter_api::openLeaderboards, "openLeaderboards", "()V");
     declareMethod(jni_gamecenter_api::openSpecificLeaderboard, "openSpecificLeaderboard", "(I)V");
@@ -48,6 +49,9 @@ void GameCenterAPIAndroidImpl::disconnect() {
 }
 void GameCenterAPIAndroidImpl::unlockAchievement(int id) {
    env->CallVoidMethod(instance, methods[jni_gamecenter_api::unlockAchievement], id);
+}
+void GameCenterAPIAndroidImpl::updateAchievementProgression(int id, float progression) {
+   env->CallVoidMethod(instance, methods[jni_gamecenter_api::updateAchievementProgression], id, progression);
 }
 void GameCenterAPIAndroidImpl::openAchievement() {
    env->CallVoidMethod(instance, methods[jni_gamecenter_api::openAchievement]);

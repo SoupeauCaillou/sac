@@ -40,7 +40,11 @@ class GameCenterAPIDebugImpl : public GameCenterAPI {
         bool isConnected() { return _isConnected; }
         bool isRegistered() { return true; }
 
-        void unlockAchievement(int id) { LOGI("Unlocked success " << id); }
+        void unlockAchievement(int id) { LOGI("Unlocked success " << id << "!"); }
+        void updateAchievementProgression(int id, float progression) { 
+            if (progression >= 1.f) unlockAchievement(id);
+            else LOGI("Success " << id << " progression reached " << progression * 100.f << "\%"); 
+        }
 
         void openAchievement() { LOGI("openAchievement."); }
         void openLeaderboards() { LOGI("openLeaderboards."); }

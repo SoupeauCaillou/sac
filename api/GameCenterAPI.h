@@ -34,6 +34,7 @@ class GameCenterAPI {
         virtual bool isConnected() = 0;
 
         virtual void unlockAchievement(int id) = 0;
+        virtual void updateAchievementProgression(int id, float progression) = 0;
 
         virtual void openAchievement() = 0;
         virtual void openLeaderboards() = 0;

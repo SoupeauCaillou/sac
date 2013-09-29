@@ -31,8 +31,9 @@ public class GameCenterAPI {
 		public boolean isConnected();
 	    public void connectOrRegister();
         public void disconnect();
-	    public void unlockAchievement(int id);
-	    public void openAchievement();
+        public void unlockAchievement(int id);
+        public void updateAchievementProgression(int id, float progression);
+        public void openAchievement();
 	    public void openLeaderboards();
 	    public void openSpecificLeaderboard(int id);
 	    public void openDashboard();
@@ -82,11 +83,20 @@ public class GameCenterAPI {
     }
 
     public void unlockAchievement(int id) {
+        if (driver != null) {
+            driver.unlockAchievement(id);
+        } else {
+            SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+        }  
+    }
+
+    public void updateAchievementProgression(int id, float progression) {
     	if (driver != null) {
-    		driver.unlockAchievement(id);
+    		driver.updateAchievementProgression(id, progression);
     	} else {
     		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
-    	}    }
+    	}    
+    }
     public void openAchievement() {
     	if (driver != null) {
     		driver.openAchievement();

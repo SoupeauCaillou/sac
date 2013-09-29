@@ -178,6 +178,26 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 			SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't unlockAchievement");
 		}		
 	}
+	
+	@Override
+	public void updateAchievementProgression(int id, float progression) {
+		if (mHelper.isSignedIn()){
+        	if (! mHelper.getGamesClient().isConnected()) {
+        		SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not connected, can't unlock Achievement");
+        		
+        		return;
+        	}
+			
+        	if (id < 0 || id > achievementsID.size()) {
+        		SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Invalid achievement ID " + id);
+        		return;
+        	} 
+        	
+			mHelper.getGamesClient().incrementAchievement(achievementsID.get(id), (int)(progression * 100.));
+		} else {
+			SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't unlockAchievement");
+		}		
+	}
 
 	@Override
 	public void openAchievement() {
