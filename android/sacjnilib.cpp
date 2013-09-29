@@ -355,10 +355,13 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
 JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeState
   (JNIEnv *env, jclass) {
     LOGW("-->" <<  __FUNCTION__);
+    jbyteArray jb = 0;
+    if (myGameHolder == 0)
+        return jb;
+
     uint8_t* state;
     int size = myGameHolder->game->saveState(&state);
 
-    jbyteArray jb = 0;
     if (size) {
         jb = env->NewByteArray(size);
         env->SetByteArrayRegion(jb, 0, size, (jbyte*)state);
