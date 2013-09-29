@@ -94,8 +94,8 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
 	if (rc) {
 		if (comp->textureActive != InvalidTextureRef) {
 			#ifdef SAC_DEBUG
-			if (rc->texture != oldTexture[entity])
-				LOGW("Texture is changed in another place!");
+			if (oldTexture.find(entity) != oldTexture.end() && rc->texture != oldTexture[entity])
+				LOGW("Texture is changed in another place! Current=" << rc->texture << "!= old=" << oldTexture[entity]);
 			#endif
 
 			// Adapt texture to button state

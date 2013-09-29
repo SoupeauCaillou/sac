@@ -29,7 +29,9 @@
 class VibrateAPI;
 
 struct ButtonComponent {
-	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false), textureActive(InvalidTextureRef), textureInactive(InvalidTextureRef), overSize(1.f) , vibration(0.035f), type(NORMAL) { }
+	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false), 
+	 textureActive(InvalidTextureRef), textureInactive(InvalidTextureRef), overSize(1.f) , 
+	 vibration(0.035f), type(NORMAL) { }
 
     ////// READ ONLY variables
     // States of button

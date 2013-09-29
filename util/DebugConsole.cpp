@@ -44,7 +44,7 @@ void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(voi
 
     Instance().name2callback[name] = callback;
 
-    LOGE("New entry for debug console: " << name);
+    LOGV(1, "New entry for debug console: " << name);
 
     TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "valueswidth=fit");
 }
