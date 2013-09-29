@@ -37,7 +37,7 @@ while read data; do
 		w=$(echo $data | cut -d: -f2 | cut -d, -f1)
 		h=$(echo $data | cut -d, -f2)
 
-		convert -size ${w}x${h} xc:transparent ${output}
+		convert -size ${w}x${h} xc:transparent PNG32:${output}
 		echo "atlas_size=$w,$h" > ${desc}
 	else
         #read input from pipe
@@ -73,7 +73,7 @@ while read data; do
 
 		info "   Adding ${image} at ${w}x${h}+${x}+${y} (rotation:${rot})" $blue
 		# copy a first version, 2 pixel taller/larger (used as a blend-compatible border)
-		# convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -compose Copy -composite $output $tmp_image $output
+		convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -compose Copy -composite $output $tmp_image PNG32:$output
 		# copy the real image
 		convert -geometry ${w}x${h}+${x}+${y} -compose Copy -composite $output $tmp_image $output
 
