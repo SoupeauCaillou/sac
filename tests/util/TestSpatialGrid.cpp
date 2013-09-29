@@ -93,3 +93,17 @@ TEST(LineDrawerWhenDiagonale)
 	CHECK_EQUAL(GridPos(3,2), path[5]);
 	CHECK_EQUAL(GridPos(3,3), path[6]);
 }
+
+TEST(LineDrawerWithNegativeEps)
+{	
+	auto grid = SpatialGrid(20, 20);
+
+	auto path = grid.lineDrawer(GridPos(-7,1), GridPos(-5,3), false);
+
+	CHECK_EQUAL(5, (int)path.size());
+	CHECK_EQUAL(GridPos(-7,1), path[0]);
+	CHECK_EQUAL(GridPos(-6,3), path[1]);
+	CHECK_EQUAL(GridPos(-6,2), path[2]);
+	CHECK_EQUAL(GridPos(-7,2), path[3]);
+	CHECK_EQUAL(GridPos(-5,3), path[4]);
+}
