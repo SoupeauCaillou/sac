@@ -369,20 +369,28 @@ std::vector<GridPos> SpatialGrid::viewRange(const GridPos& position, int size) c
 std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos& to, bool positiveEps) const {
     std::vector<GridPos> line;
 
+
     float E = 1e-6 * (positiveEps ? 1 : -1);
-    float dx = (from.q + E) - to.q;
+
+    float fromQ = from.q + E;
+    float fromR = from.r - 2 * E;
+
+    float dx = fromQ - to.q;
     //since x(q)+y+z(r)=0, y = - (x + z) = - (q + r)
-    float dy = (- (from.q + from.r) + E) - ( - (to.q + to.r));
-    float dz = (from.r - 2 * E) - to.r;
+    float dy = - (fromQ + fromR) - ( - (to.q + to.r));
+    float dz = fromR - to.r;
 
     float N = glm::max(glm::max(glm::abs(dx-dy), glm::abs(dy-dz)), glm::abs(dz-dx));
 
     GridPos prev(99,99);
     for (int i = 0; i <= N; ++i) {
-        GridPos p = cubeCoordinateRounding(
-            from.q + i / N * (to.q - from.q),
-            (- (from.q + from.r)) + i / N * ((- (to.q + to.r)) - (- (from.q + from.r))),
-            from.r + i / N * (to.r - from.r));
+        const float iOverN = i / N;
+
+        const float x = fromQ - iOverN * dx; // <=> fromX + iOverN * (endX - fromX)
+        const float y = - (fromQ + fromR) - iOverN * dy; // <=> fromX + iOverN * (endX - fromX)
+        const float z = fromR - iOverN * dz; // <=> fromX + iOverN * (endX - fromX)
+
+        GridPos p = cubeCoordinateRounding(x, y, z);
         if (p != prev) {
             line.push_back(p);
             prev = p;
