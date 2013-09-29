@@ -37,7 +37,7 @@ fi
 
 current=0
 for directory_path in $@; do
-    dir=${directory_path##*/}
+    dir=$(basename $directory_path)
     current=$(expr $current + 1)
     info "Treating atlas $dir at path $directory_path... ($current / $# - $(expr $current \* 100 / $# )%)"
     TEMP_FOLDER=$(mktemp)
@@ -93,19 +93,29 @@ for directory_path in $@; do
     info "Step #5: create png version"
     convert /tmp/$dir.png -alpha extract PNG32:$rootPath/assets/${dir}_alpha.png
     convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$dir.png
+    
+    width=$(file $rootPath/assetspc/$dir.png | cut -d ',' -f2 | cut -d ' ' -f2)
 
+    divide_by=1
+    tmp_png=/tmp/$dir-copy.png
     if  $hasPVRTool ; then
-        info "Step #6: create PVR version"
-        PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$dir.png -p -pvrlegacy -m -o /tmp/$dir.pvr
-        split -d -b 1024K /tmp/$dir.pvr $dir.pvr.
-        mv $dir.pvr.0* $rootPath/assets/
+        info "Step #6: create PVR and ETC version"
+        for i in  "hdpi" "mdpi" "ldpi"; do
+            convert $rootPath/assetspc/$dir.png -scale $(($width/$divide_by)) $tmp_png
+            info "Create $i version"
+            mkdir /tmp/$i -p
+            PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $tmp_png -p -m -o /tmp/$dir-$i.pvr -shh
+            split -d -b 1024K /tmp/$dir-$i.pvr /tmp/$i/$dir.pvr.
+            cp -r /tmp/$i $rootPath/assets/
 
-        info "Step #7: create ETC version"
-        PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$dir.png -q 3 -m -pvrlegacy -o /tmp/$dir.pkm
+            PVRTexToolCL -f ETC1 -flip y,flag -i $tmp_png -q pvrtcbest -m -o /tmp/$dir-$i-pkm.pvr -shh
 
-        # PVRTexToolCL ignore name extension
-        split -d -b 1024K /tmp/$dir.pvr $dir.pkm.
-        mv $dir.pkm.0* $rootPath/assets/
+            # PVRTexToolCL ignore name extension
+            split -d -b 1024K /tmp/$dir-$i-pkm.pvr /tmp/$i/$dir.pkm.
+            cp -r /tmp/$i/ $rootPath/assets/
+
+            divide_by=$(($divide_by * 2))
+        done 
     fi
 
     cp /tmp/$dir.atlas $rootPath/assets/
