@@ -35,6 +35,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -129,9 +130,20 @@ public abstract class SacActivity extends Activity {
         android.view.SurfaceHolder holder = mGLView.getHolder();
         holder.setFixedSize(viewWidth, viewHeight);
         layout.addView(mGLView);
+        
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int densityDPI = 0; // low-dpi
+        if (metrics.densityDpi < DisplayMetrics.DENSITY_MEDIUM)
+        	densityDPI = 0;
+        else if (metrics.densityDpi < DisplayMetrics.DENSITY_HIGH)
+        	densityDPI = 1;
+        else
+        	densityDPI = 2;
+        
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
-        	renderer = new SacRenderer(viewWidth, viewHeight, gameThread);
+        	renderer = new SacRenderer(viewWidth, viewHeight, gameThread, densityDPI);
             mGLView.setRenderer(renderer);
 		}
         holder.addCallback(new SurfaceHolder.Callback() {

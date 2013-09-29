@@ -33,8 +33,17 @@ class AssetAPI;
 #include <GL/glew.h>
 #endif
 
-
+namespace DPI {
+    enum Enum {
+        Low,
+        Medium,
+        High
+    };
+}
 class OpenGLTextureCreator {
+    public:
+        static DPI::Enum dpi;
+        static std::string DPI2Folder(DPI::Enum dpi);
     public:
         enum Type { COLOR, ALPHA_MASK, COLOR_ALPHA };
 

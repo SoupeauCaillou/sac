@@ -36,7 +36,7 @@ public class SacJNILib {
 	 * @param width View width
 	 * @param height View height
 	 */
-	public static native void initFromRenderThread(int width, int height);
+	public static native void initFromRenderThread(int dpi, int width, int height);
 
 	/**
 	 * Initialize sac engine, from game thread context

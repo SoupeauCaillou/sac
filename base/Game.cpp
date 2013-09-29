@@ -57,6 +57,8 @@
 #include "systems/TransformationSystem.h"
 #include "systems/ZSQDSystem.h"
 
+#include "systems/opengl/OpenGLTextureCreator.h"
+
 #include "util/DataFileParser.h"
 #include "util/DrawSomething.h"
 #include "util/Recorder.h"
@@ -301,11 +303,12 @@ void Game::sacInit(int windowW, int windowH) {
 
     // Auto-load all atlas
     {
+        const std::string dpiFolder(OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi));
         std::list<std::string> atlas = renderThreadContext->assetAPI->listAssetContent(
-            ".atlas");
+            ".atlas", dpiFolder);
         LOGI("Autoloading " << atlas.size() << " atlas");
-        std::for_each(atlas.begin(), atlas.end(), [] (const std::string& a) -> void {
-            theRenderingSystem.loadAtlas(a);
+        std::for_each(atlas.begin(), atlas.end(), [dpiFolder] (const std::string& a) -> void {
+            theRenderingSystem.loadAtlas(dpiFolder + '/' + a);
         });
     }
 

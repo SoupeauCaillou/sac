@@ -211,7 +211,17 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
 
 const glm::vec2& RenderingSystem::getTextureSize(const std::string& textureName) {
     const TextureInfo& info = textureLibrary.get(textureName);
+
+    switch (OpenGLTextureCreator::dpi) {
+        case DPI::Low:
+            return info.originalSize * 4.0f;
+        case DPI::Medium:
+            return info.originalSize * 2.0f;
+        default:
+            break;
+    }
     return info.originalSize;
+
 }
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {

@@ -36,8 +36,24 @@
 
 #define ALPHA_MASK_TAG "_alpha"
 
+DPI::Enum OpenGLTextureCreator::dpi = DPI::Medium;
+
 static bool pvrFormatSupported = false;
 static bool pkmFormatSupported = false;
+
+std::string OpenGLTextureCreator::DPI2Folder(DPI::Enum dpi) {
+    switch (dpi) {
+        case DPI::Low:
+            return "ldpi";
+        case DPI::Medium:
+            return "mdpi";
+        case DPI::High:
+            return "hdpi";
+        default:
+            LOGF("Unhandled DPI setting");
+    }
+    return "";
+}
 
 void OpenGLTextureCreator::detectSupportedTextureFormat() {
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
@@ -199,7 +215,8 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
 }
 
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type type) {
-    const bool enableMipMapping =
+    const bool enableMipMapping = false;
+#if 0
 #if SAC_ANDROID
     ((type == COLOR) && image.mipmap > 0);
 #elif SAC_EMSCRIPTEN
@@ -207,7 +224,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 #else
     (type == COLOR) || (type == COLOR_ALPHA);
 #endif
-
+#endif
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture))
 
     // Determine GL format based on channel count
@@ -275,7 +292,7 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
 #endif
 
     // Create GL texture object
-    GLuint result = createAndInitTexture(enableMipMapping);
+    GLuint result = createAndInitTexture(false);//enableMipMapping);
 
     updateFromImageDesc(image, result, type);
 

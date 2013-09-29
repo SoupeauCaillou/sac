@@ -33,14 +33,16 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 	final SacGameThread sacGame;
 	long time;
 	final int width, height;
+	int densityDpi;
 
-	public SacRenderer(int width, int height, SacGameThread sacG) {
+	public SacRenderer(int width, int height, SacGameThread sacG, int densityDpi) {
 		super();
 		this.sacGame = sacG;
 		this.gameThread = new Thread(this.sacGame, "GameUpdate");
 		this.time = System.currentTimeMillis();
 		this.width = width;
 		this.height = height;
+		this.densityDpi = densityDpi;
 		SacActivity.Log(SacActivity.I, "SacRenderer created w,h=" + width + "," + height);
 	}
 
@@ -52,7 +54,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	SacActivity.Log(SacActivity.W, "onSurfaceCreated");
     	// Create (or reset) native game
     	if (SacJNILib.createGame()) {
-    		SacJNILib.initFromRenderThread(width, height);
+    		SacJNILib.initFromRenderThread(densityDpi, width, height);
     	} else {
     		// Clear saved state if native game is not recreated
     		sacGame.clearSavedState();

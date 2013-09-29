@@ -50,6 +50,8 @@
 #include "api/android/WWWAPIAndroidImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 
+#include "systems/opengl/OpenGLTextureCreator.h"
+
 #include <png.h>
 #include <algorithm>
 
@@ -136,13 +138,19 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThread
-  (JNIEnv *env, jclass, jint w, jint h) {
+  (JNIEnv *env, jclass, jint dpi, jint w, jint h) {
     LOGW("-->" <<  __FUNCTION__);
     myGameHolder->width = w;
     myGameHolder->height = h;
     myGameHolder->renderEnv = env;
 
     INIT_1(assetAPI, render, AssetAPIAndroidImpl)
+
+    if (dpi > 2 || dpi < 0) {
+        LOGW("Invalid DPI value. Using hdpi by default");
+        dpi = 2;
+    }
+    OpenGLTextureCreator::dpi = (DPI::Enum)dpi;
 
     myGameHolder->game->sacInit(myGameHolder->width, myGameHolder->height);
     LOGW("<--" <<  __FUNCTION__);
