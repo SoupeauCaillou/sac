@@ -64,8 +64,8 @@ for directory_path in $@; do
 
         mkdir $rootPath/assets/$quality -p
         mkdir $rootPath/assetspc/$quality -p
-        rm $rootPath/assets/$quality/${dir}_alpha.png $rootPath/assets/$quality/${dir}.atlas $rootPath/assets/$quality/${dir}.pvr.00 \
-        $rootPath/assets/$quality/${dir}.pkm.00 $rootPath/assetspc/$quality/${dir}.png 2>/dev/null
+        rm $rootPath/assets/$quality/${dir}_alpha.png $rootPath/assets/$quality/${dir}.atlas $rootPath/assets/$quality/${dir}.pvr.* \
+        $rootPath/assets/$quality/${dir}.pkm.* $rootPath/assetspc/$quality/${dir}.png 2>/dev/null
         
         ############# STEP 2: create an optimized copy of each image
         info "Step #2: create optimized image"
@@ -104,6 +104,9 @@ for directory_path in $@; do
         texture_packer $optimized_image_list | $whereAmI/texture_packer/texture_packer.sh $dir
         cd - 1>/dev/null
 
+        mkdir $rootPath/assets/$quality/
+        mkdir $rootPath/assetspc/$quality/
+
         ############# STEP 5: create png version of the atlas
         info "Step #5: create png version"
         convert /tmp/$dir.png -alpha extract PNG32:$rootPath/assets/$quality/${dir}_alpha.png
@@ -112,15 +115,18 @@ for directory_path in $@; do
         if  $hasPVRTool ; then
             info "Step #6: create PVR and ETC version"
             mkdir /tmp/$quality -p
-            PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -p -m -o /tmp/$dir-$quality.pvr -shh
+
+            PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$quality/$dir.png -p -pvrlegacy -o /tmp/$dir-$quality.pvr
+            # PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -p -m -o /tmp/$dir-$quality.pvr -shh
             split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pvr.
             cp -r /tmp/$quality $rootPath/assets/
 
-            PVRTexToolCL -f ETC1 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -q pvrtcbest -m -o /tmp/$dir-$quality-pkm.pvr -shh
+            # PVRTexToolCL -f ETC -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -q pvrtcbest -m -o /tmp/$dir-$quality-pkm.pvr -shh
+            PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o /tmp/$dir-$quality.pkm
 
             # PVRTexToolCL ignore name extension
-            split -d -b 1024K /tmp/$dir-$quality-pkm.pvr /tmp/$quality/$dir.pkm.
-            cp -r /tmp/$quality $rootPath/assets/
+            split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pkm.
+            cp -r /tmp/$quality $rootPath/assets
         fi
 
         cp /tmp/$dir.atlas $rootPath/assets/$quality/
