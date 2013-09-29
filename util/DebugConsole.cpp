@@ -46,13 +46,13 @@ void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(voi
 
     LOGV(1, "New entry for debug console: " << name);
 
-    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "valueswidth=fit");
+    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "");
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
     const std::string & argumentName, TwType type, void* storingPlace) {
 
-    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "valueswidth=fit");
+    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "");
     RegisterMethod(name, callback, storingPlace);
 }
 
