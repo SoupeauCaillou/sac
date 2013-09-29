@@ -77,6 +77,14 @@ DataFileParser::~DataFileParser() {
     unload();
 }
 
+void DataFileParser::init() { 
+    if (data) 
+        delete data;
+    
+    data = new DataFileParserData(); 
+}
+
+
 bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
     if (fb.size == 0)
         return false;
@@ -273,4 +281,23 @@ std::string DataFileParser::replaceVariables(const std::string& str) const {
         }
     }
     return result;
+}
+
+std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp) {
+    LOGT("Variables not handled!");
+
+    //Global section first
+    for (auto & kv : dfp.data->global) {
+        o << kv.first << "=" << kv.second << std::endl;
+    }
+
+    for (auto & section : dfp.data->sections) {
+        o << "[" << section.first << "]" << std::endl;
+        for (auto & kv : *section.second) {
+            o << kv.first << "=" << kv.second << std::endl;
+        }
+        o << std::endl;
+    }
+
+    return o;
 }

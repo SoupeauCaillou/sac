@@ -34,6 +34,10 @@ class DataFileParser {
         DataFileParser();
         ~DataFileParser();
 
+        // If you don't want to load a FileBuffer but only a DataFileParser, you can create init it
+        // using this function
+        void init();
+
         bool load(const FileBuffer& fb, const std::string& context);
         void unload();
 
@@ -71,7 +75,11 @@ class DataFileParser {
         struct DataFileParserData;
         DataFileParserData* data;
         std::string context;
+
+    friend std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp);
 };
+
+std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp);
 
 #define MAX_ELEMENTS 10
 
