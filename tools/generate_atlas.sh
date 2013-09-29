@@ -49,78 +49,85 @@ for directory_path in $@; do
         error_and_quit "Directory $directory_path does not contain any .png file!"
     fi
 
-    ############# STEP 1: preparation
-    info "Step #1: prepare temp folder ($TEMP_FOLDER)"
-    rm -rf $TEMP_FOLDER 2>/dev/null
-    mkdir $TEMP_FOLDER
-
-    rm $rootPath/assets/${dir}_alpha.png $rootPath/assets/${dir}.atlas $rootPath/assets/${dir}.pvr.00 \
-    $rootPath/assets/${dir}.pkm.00 $rootPath/assetspc/${dir}.png 2>/dev/null
-    ############# STEP 2: create an optimized copy of each image
-    info "Step #2: create optimized image"
-    for file in $(cd $directory_path && ls *.png); do
-        info "\tOptimizing $file..." $blue
-        used_rect=$($whereAmI/texture_packer/tiniest_rectangle.py $directory_path/${file})
-
-        if [ $? != 0 ]; then
-            error_and_quit "Script encountered an error with file $file! Aborting"
-        fi
-
-        ww=$(echo $used_rect | cut -d, -f1)
-        hh=$(echo $used_rect | cut -d, -f2)
-        xx=$(echo $used_rect | cut -d, -f3)
-        yy=$(echo $used_rect | cut -d, -f4)
-
-        if (! convert -crop ${ww}x${hh}+${xx}+${yy} +repage $directory_path/$file PNG32:$TEMP_FOLDER/${file}); then
-            error_and_quit "Error when converting $file!"
-        fi
-
-    done
-
-    ############# STEP 3: fit all image in one texture
-    # Remark: we feed texture_packer with optimized (cropped) images
-    info "Step #3: compute atlas placement"
-    optimized_image_list=$(echo $TEMP_FOLDER/*png)
-
-    ############# STEP 4: place image in atlas
-    # Remark: we first cd into original image folder
-    info "Step #4: compose atlas using individual images coords"
-    cd $directory_path
-    texture_packer $optimized_image_list | $whereAmI/texture_packer/texture_packer.sh $dir
-    cd - 1>/dev/null
-
-    ############# STEP 5: create png version of the atlas
-    info "Step #5: create png version"
-    convert /tmp/$dir.png -alpha extract PNG32:$rootPath/assets/${dir}_alpha.png
-    convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$dir.png
-    
-    width=$(file $rootPath/assetspc/$dir.png | cut -d ',' -f2 | cut -d ' ' -f2)
-
     divide_by=1
-    tmp_png=/tmp/$dir-copy.png
-    if  $hasPVRTool ; then
-        info "Step #6: create PVR and ETC version"
-        for i in  "hdpi" "mdpi" "ldpi"; do
-            convert $rootPath/assetspc/$dir.png -scale $(($width/$divide_by)) $tmp_png
-            info "Create $i version"
-            mkdir /tmp/$i -p
-            PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $tmp_png -p -m -o /tmp/$dir-$i.pvr -shh
-            split -d -b 1024K /tmp/$dir-$i.pvr /tmp/$i/$dir.pvr.
-            cp -r /tmp/$i $rootPath/assets/
+    TMP_FILEDIR=$(mktemp)
+    for quality in "hdpi" "mdpi" "ldpi"; do
+        info "Generate $quality atlas"
+        
+        ############# STEP 1: preparation
+        info "Step #1: prepare temp folder ($TEMP_FOLDER)"
+        rm -rf $TEMP_FOLDER 2>/dev/null
+        mkdir $TEMP_FOLDER
 
-            PVRTexToolCL -f ETC1 -flip y,flag -i $tmp_png -q pvrtcbest -m -o /tmp/$dir-$i-pkm.pvr -shh
+        rm -rf $TMP_FILEDIR 2>/dev/null
+        mkdir $TMP_FILEDIR -p
+
+        mkdir $rootPath/assets/$quality -p
+        mkdir $rootPath/assetspc/$quality -p
+        rm $rootPath/assets/$quality/${dir}_alpha.png $rootPath/assets/$quality/${dir}.atlas $rootPath/assets/$quality/${dir}.pvr.00 \
+        $rootPath/assets/$quality/${dir}.pkm.00 $rootPath/assetspc/$quality/${dir}.png 2>/dev/null
+        
+        ############# STEP 2: create an optimized copy of each image
+        info "Step #2: create optimized image"
+        for file in $(cd $directory_path && ls *.png); do
+            width=$(file $directory_path/$file | cut -d ',' -f2 | cut -d ' ' -f2)
+            convert $directory_path/$file -scale $(($width/$divide_by)) $TMP_FILEDIR/$file
+        done
+        for file in $(cd $TMP_FILEDIR && ls *.png); do
+            info "\tOptimizing $file..." $blue
+            used_rect=$($whereAmI/texture_packer/tiniest_rectangle.py $TMP_FILEDIR/${file})
+
+            if [ $? != 0 ]; then
+                error_and_quit "Script encountered an error with file $file! Aborting"
+            fi
+
+            ww=$(echo $used_rect | cut -d, -f1)
+            hh=$(echo $used_rect | cut -d, -f2)
+            xx=$(echo $used_rect | cut -d, -f3)
+            yy=$(echo $used_rect | cut -d, -f4)
+
+            if (! convert -crop ${ww}x${hh}+${xx}+${yy} +repage $TMP_FILEDIR/$file PNG32:$TEMP_FOLDER/${file}); then
+                error_and_quit "Error when converting $file!"
+            fi
+
+        done
+
+        ############# STEP 3: fit all image in one texture
+        # Remark: we feed texture_packer with optimized (cropped) images
+        info "Step #3: compute atlas placement"
+        optimized_image_list=$(echo $TEMP_FOLDER/*png)
+
+        ############# STEP 4: place image in atlas
+        # Remark: we first cd into original image folder
+        info "Step #4: compose atlas using individual images coords"
+        cd $TMP_FILEDIR
+        texture_packer $optimized_image_list | $whereAmI/texture_packer/texture_packer.sh $dir
+        cd - 1>/dev/null
+
+        ############# STEP 5: create png version of the atlas
+        info "Step #5: create png version"
+        convert /tmp/$dir.png -alpha extract PNG32:$rootPath/assets/$quality/${dir}_alpha.png
+        convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$quality/$dir.png
+        
+        if  $hasPVRTool ; then
+            info "Step #6: create PVR and ETC version"
+            mkdir /tmp/$quality -p
+            PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -p -m -o /tmp/$dir-$quality.pvr -shh
+            split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pvr.
+            cp -r /tmp/$quality $rootPath/assets/
+
+            PVRTexToolCL -f ETC1 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -q pvrtcbest -m -o /tmp/$dir-$quality-pkm.pvr -shh
 
             # PVRTexToolCL ignore name extension
-            split -d -b 1024K /tmp/$dir-$i-pkm.pvr /tmp/$i/$dir.pkm.
-            cp -r /tmp/$i/ $rootPath/assets/
+            split -d -b 1024K /tmp/$dir-$quality-pkm.pvr /tmp/$quality/$dir.pkm.
+            cp -r /tmp/$quality $rootPath/assets/
+        fi
 
-            divide_by=$(($divide_by * 2))
-        done 
-    fi
+        cp /tmp/$dir.atlas $rootPath/assets/$quality/
 
-    cp /tmp/$dir.atlas $rootPath/assets/
-
-    rm -r $TEMP_FOLDER/*
+        rm -r $TEMP_FOLDER/*
+        divide_by=$(($divide_by * 2))
+    done
 done
 
 rm -r $TEMP_FOLDER
