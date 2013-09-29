@@ -259,19 +259,26 @@ public abstract class SacActivity extends Activity {
     	switch (action) {
 	    	case MotionEvent.ACTION_DOWN:
 	    	case MotionEvent.ACTION_POINTER_DOWN:
+	    		// Log(I, "DOWN - Pointer: " + ptrIdx + "(" + activePointersId.size() + ") / " + event.getPointerId(ptrIdx));
+	    		//if (activePointersId.size() >= 2)
+	    		//	return false;
 	    		activePointersId.add(event.getPointerId(ptrIdx));
 	    		SacJNILib.handleInputEvent(MotionEvent.ACTION_DOWN, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
 	    		return true;
 	    	case MotionEvent.ACTION_UP:
 	    	case MotionEvent.ACTION_POINTER_UP:
+	    	case MotionEvent.ACTION_CANCEL:
+	    		// Log(I, "UP - Pointer: " + ptrIdx + "(" + activePointersId.size() + ") / " + event.getPointerId(ptrIdx));
 	    		activePointersId.remove((Object)Integer.valueOf(event.getPointerId(ptrIdx)));
 	    		SacJNILib.handleInputEvent(MotionEvent.ACTION_UP, event.getX(ptrIdx) * factor, event.getY(ptrIdx) * factor, event.getPointerId(ptrIdx));
 	    		return true;
 	    	case MotionEvent.ACTION_MOVE:
 	    		for (Integer ptr : activePointersId) {
 	    			int idx = event.findPointerIndex(ptr);
-	    			if (idx >= 0)
+	    			if (idx >= 0) {
+	    				// Log(I, "MOVE - Pointer: " + idx + "(" + activePointersId.size() + ")");
 	    				SacJNILib.handleInputEvent(event.getAction(), event.getX(idx) * factor, event.getY(idx) * factor, ptr);
+	    			}
 	    		}
 	    		return true;
 	    	default:
