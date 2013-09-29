@@ -29,6 +29,10 @@
 #include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"
 
+#if SAC_DEBUG
+#include "../systems/AnchorSystem.h"
+#endif
+
 #include <glm/gtx/norm.hpp>
 
 TouchInputManager* TouchInputManager::instance = 0;
@@ -42,7 +46,27 @@ TouchInputManager* TouchInputManager::Instance() {
 void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
 	worldSize = pWorldSize;
 	windowSize = pWindowSize;
+#if SAC_DEBUG
+    for (int i=0; i<2; i++) {
+        debugState[i] = 0;
+    }
+#endif
 }
+
+#if SAC_DEBUG
+void TouchInputManager::activateDebug(Entity camera) {
+    for (int i=0; i<2; i++) {
+        debugState[i] = theEntityManager.CreateEntity("debug_input");
+        ADD_COMPONENT(debugState[i], Transformation);
+        ADD_COMPONENT(debugState[i], Anchor);
+        ANCHOR(debugState[i])->parent = camera;
+        ANCHOR(debugState[i])->z = 0.9999 - TRANSFORM(camera)->z;
+        ADD_COMPONENT(debugState[i], Rendering);
+        RENDERING(debugState[i])->opaqueType = RenderingComponent::FULL_OPAQUE;
+        RENDERING(debugState[i])->show = 1;
+    }
+}
+#endif
 
 void TouchInputManager::Update(float) {
     Entity camera = 0;
@@ -101,6 +125,26 @@ void TouchInputManager::Update(float) {
             clicked[i] = doubleclicked[i] = false;
         }
     }
+
+#if SAC_DEBUG
+    if (!debugState[0])
+        return;
+    const auto* cam = TRANSFORM(ANCHOR(debugState[0])->parent);
+    for (int i=0; i<2; i++) {
+        TRANSFORM(debugState[i])->size = glm::vec2(0.05 * cam->size.y);
+
+        ANCHOR(debugState[i])->position =
+            AnchorSystem::adjustPositionWithCardinal(
+                cam->size * glm::vec2(-0.5, 0.5) - glm::vec2(0, TRANSFORM(debugState[i])->size.y * i),
+                TRANSFORM(debugState[i])->size,
+                Cardinal::NW);
+
+        if (touching[i])
+            RENDERING(debugState[i])->color = Color(0, 1, 0);
+        else
+            RENDERING(debugState[i])->color = Color(1, 0, 0);
+    }
+#endif
 }
 
 void TouchInputManager::resetDoubleClick(int idx) {

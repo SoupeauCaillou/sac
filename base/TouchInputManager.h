@@ -24,6 +24,9 @@
 
 #include <glm/glm.hpp>
 
+#if SAC_DEBUG
+#include "EntityManager.h"
+#endif
 
 class NativeTouchState {
 	public:
@@ -44,6 +47,9 @@ class TouchInputManager {
 
 		void init(glm::vec2 worldSize, glm::vec2 windowSize);
 
+#if SAC_DEBUG
+		void activateDebug(Entity camera);
+#endif
 		bool wasTouched(int idx = 0) const { return wasTouching[idx]; }
 
 		bool isTouched(int idx = 0) const { return touching[idx]; }
@@ -79,4 +85,8 @@ class TouchInputManager {
 		float lastClickTime[2];
 
 		glm::vec2 worldSize, windowSize;
+
+#if SAC_DEBUG
+		Entity debugState[2];
+#endif
 };
