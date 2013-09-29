@@ -149,3 +149,16 @@ TEST (TestSetNew)
     CHECK(dfp.get("section", "var2", &out));
     CHECK_EQUAL("plop", out);
 }
+
+TEST (TestSetNewGlobal)
+{
+    DataFileParser dfp;
+    const char* simple = "[section]\n" \
+        "var=stringvalue";
+    CHECK(dfp.load(FB(simple), __FUNCTION__));
+    int i = 1;
+    dfp.set("", "global", &i);
+    i = 10;
+    CHECK(dfp.get("", "global", &i));
+    CHECK_EQUAL(1, i);
+}
