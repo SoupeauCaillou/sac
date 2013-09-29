@@ -91,8 +91,30 @@ static void updateAndRender() {
 #else
 std::mutex m;
 
-static void updateLoop() {
+static void updateLoop(const std::string& title) {
+    unsigned char * keys = SDL_GetKeyState(NULL);
+
     while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
+#if SAC_DESKTOP
+        if (keys[SDLK_LSHIFT]) {
+            LOGI("****************** Testing Restore");
+            uint8_t* ptr;
+            int size = game->saveState(&ptr);
+
+            if (size == 0) {
+                LOGI("*  Nothing saved by game... continuing execution then");
+            } else {
+                std::stringstream name;
+                name << title << ".restore.bin";
+                LOGI("*  " << size << " bytes saved. Writing to '" << name.str() << "' file");
+                std::ofstream of(name.str(), std::ios::binary);
+                of.write((char*)ptr, size);
+                of.close();
+                LOGI("*  Now exiting");
+                break;
+            }
+        }
+#endif
         // game->eventsHandler();
 
         game->step();
@@ -107,9 +129,9 @@ static void updateLoop() {
     theRenderingSystem.disableRendering();
 }
 
-static void* callback_thread(){
+static void* callback_thread(const std::string& title){
     m.lock();
-    updateLoop();
+    updateLoop(title);
     m.unlock();
     return NULL;
 }
@@ -118,8 +140,10 @@ static void* callback_thread(){
 // hum hum
 extern bool profilerEnabled;
 glm::vec2 resolution;
-int initGame(const std::string& title, const glm::ivec2& res) {
+std::string title;
+int initGame(const std::string& pTitle, const glm::ivec2& res) {
     resolution = res;
+    title = pTitle;
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
@@ -177,7 +201,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (restore) {
         // TODO: portability
         std::stringstream restoreFile;
-        restoreFile << "/tmp/" << "todo" << ".bin";
+        restoreFile << title << ".restore.bin";
         FILE* file = fopen(restoreFile.str().c_str(), "r+b");
         if (file) {
             fseek(file, 0, SEEK_END);
@@ -277,7 +301,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     //used for text translation, if needed
     setlocale( LC_ALL, "" );
 
-    std::thread th1(callback_thread);
+    std::thread th1(callback_thread, title);
     do {
         game->eventsHandler();
         game->render();
