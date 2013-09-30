@@ -50,6 +50,9 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
     }
 }
 
+#if SAC_DEBUG
+static std::vector<int> batchSizes;
+#endif
 static int drawBatchES2(
     const RenderingSystem::ColorAlphaTextures glref
     , const glm::vec3* vertices
@@ -62,21 +65,24 @@ static int drawBatchES2(
     , int batchTriangleCount) {
 
     if (batchTriangleCount > 0) {
-    	GL_OPERATION(glActiveTexture(GL_TEXTURE0))
-    	// GL_OPERATION(glEnable(GL_TEXTURE_2D)
-    	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
+        #if SAC_DEBUG
+        batchSizes.push_back(batchTriangleCount);
+        #endif
+        GL_OPERATION(glActiveTexture(GL_TEXTURE0))
+        // GL_OPERATION(glEnable(GL_TEXTURE_2D)
+        GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
 
-    	// GL_OPERATION(glEnable(GL_TEXTURE_2D))
-    	if (firstCall) {
-    		// GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
-    	} else {
+        // GL_OPERATION(glEnable(GL_TEXTURE_2D))
+        if (firstCall) {
+            // GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+        } else {
             GL_OPERATION(glActiveTexture(GL_TEXTURE1))
-    		GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
-    	}
+            GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
+        }
 
 #if SAC_USE_VBO
         // update vertex buffer
-    	GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
             batchVertexCount * 3 * sizeof(float), vertices))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
@@ -89,13 +95,13 @@ static int drawBatchES2(
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 2 * sizeof(float), 0))
 #else
-    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
-    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
-    	GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
-    	GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
+        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 1, 0, uvs))
+        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
 #endif
 
-    	GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
+        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
             batchTriangleCount * 3 * sizeof(unsigned short), indices))
 
@@ -177,23 +183,23 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
 }
 
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
-	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled, useTexturing);
+    const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled, useTexturing);
     // change active shader
-	GL_OPERATION(glUseProgram(shader.program))
+    GL_OPERATION(glUseProgram(shader.program))
     // upload transform matrix (perspective + view)
     GL_OPERATION( glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)))
     // upload texture uniforms
-	GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
-	GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
+    GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
+    GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
     // upload color uniform
-	GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
-	return ref;
+    GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
+    return ref;
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // Worst case scenario: 3 vertices per triangle (no shared vertices)
-	static glm::vec3 vertices[MAX_BATCH_TRIANGLE_COUNT * 3];
-	static glm::vec2 uvs[MAX_BATCH_TRIANGLE_COUNT * 3];
+    static glm::vec3 vertices[MAX_BATCH_TRIANGLE_COUNT * 3];
+    static glm::vec2 uvs[MAX_BATCH_TRIANGLE_COUNT * 3];
     static unsigned short indices[MAX_BATCH_TRIANGLE_COUNT * 3];
 
     // Rendering state
@@ -209,7 +215,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     bool useFbo = false;
 
     // Batch variable
-	unsigned int batchVertexCount = 0, batchTriangleCount = 0;
+    unsigned int batchVertexCount = 0, batchTriangleCount = 0;
 
     // matrices
     glm::mat4 camViewPerspMatrix;
@@ -222,6 +228,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
 
+    #if SAC_DEBUG
+    batchSizes.clear();
+    #endif
+
     #define TEX chooseTextures(boundTexture, fboRef, useFbo)
 
     // The idea here is to browse through the list of _ordered_ list of
@@ -231,7 +241,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // building a new one.
     const unsigned count = commands.count;
     for (unsigned i=0; i<count; i++) {
-		RenderCommand& rc = commands.commands[i];
+        RenderCommand& rc = commands.commands[i];
 
         // HANDLE BEGIN/END FRAME MARKERS (new frame OR new camera)
         if (rc.texture == BeginFrameMarker) {
@@ -277,8 +287,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             currentFlags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
             continue;
         } else if (rc.texture == EndFrameMarker) {
-			break;
-		}
+            break;
+        }
 
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
@@ -316,15 +326,15 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             currentFlags = rc.flags;
         }
         // EFFECT HAS CHANGED ?
-		if (rc.effectRef != currentEffect) {
+        if (rc.effectRef != currentEffect) {
             // flush before changing effect
-			batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
+            batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
             currentEffect = changeShaderProgram(rc.effectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
-		}
+        }
 
         // SETUP TEXTURING
-		if (rc.texture != InvalidTextureRef) {
+        if (rc.texture != InvalidTextureRef) {
             if (!rc.fbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
                 LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found");
@@ -345,22 +355,22 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             }
             if (rc.glref.color == 0)
                 rc.glref.color = whiteTexture;
-		} else {
-			rc.glref = InternalTexture::Invalid;
+        } else {
+            rc.glref = InternalTexture::Invalid;
             // hum
             if (firstCall) {
-			    rc.glref.color = whiteTexture;
-			    rc.glref.alpha = whiteTexture;
+                rc.glref.color = whiteTexture;
+                rc.glref.alpha = whiteTexture;
             }
-			rc.uv[0] = glm::vec2(0.0f, 0.0f);
-			rc.uv[1] = glm::vec2(1.0f, 1.0f);
-			rc.rotateUV = 0;
-		}
+            rc.uv[0] = glm::vec2(0.0f, 0.0f);
+            rc.uv[1] = glm::vec2(1.0f, 1.0f);
+            rc.rotateUV = 0;
+        }
 
         // TEXTURE OR COLOR HAS CHANGED ?
-		if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
+        if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
             // flush before changing texture/color
-			batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
+            batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             if (rc.fbo) {
                 fboRef = rc.framebuffer;
                 boundTexture = InternalTexture::Invalid;
@@ -368,13 +378,13 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 fboRef = DefaultFrameBufferRef;
                 boundTexture = rc.glref;
             }
-			useFbo = rc.fbo;
-			if (currentColor != rc.color) {
-	            currentColor = rc.color;
+            useFbo = rc.fbo;
+            if (currentColor != rc.color) {
+                currentColor = rc.color;
                 currentEffect =
                     changeShaderProgram(currentEffect, firstCall, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
-			}
-		}
+            }
+        }
 
         // ADD TO BATCH
         addRenderCommandToBatch(rc,
@@ -386,10 +396,22 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if ((batchTriangleCount + 6) >= MAX_BATCH_TRIANGLE_COUNT) {
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
         }
-	}
+    }
     drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
 
     #undef TEX
+
+    #if SAC_DEBUG
+    LOGI_EVERY_N(300, "Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
+    static unsigned ______debug = 0;
+    if ((++______debug % 300) == 0) {
+        ______debug = 0;
+        for (unsigned i=0; i<batchSizes.size(); i++) {
+            LOGI("   # batch " << i << ':' << batchSizes[i]);
+        }
+    }
+    batchSizes.clear();
+    #endif
 }
 #include <errno.h>
 
@@ -454,7 +476,7 @@ void RenderingSystem::render() {
     cond[C_RENDER_DONE].notify_all();
     mutexes[L_RENDER].unlock();
 #endif
-	PROFILE("Renderer", "render", EndEvent);
+    PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();
     TwDraw();
@@ -476,7 +498,7 @@ static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const
 }
 
 const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture) {
-	if (ref == DefaultEffectRef) {
+    if (ref == DefaultEffectRef) {
         if (colorEnabled) {
             if (firstCall) {
                 ref = defaultShaderNoAlpha;
@@ -488,6 +510,6 @@ const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, 
         } else {
             ref = defaultShaderEmpty;
         }
-	}
-	return *effectLibrary.get(ref, false);
+    }
+    return *effectLibrary.get(ref, false);
 }
