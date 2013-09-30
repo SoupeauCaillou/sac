@@ -94,3 +94,11 @@ bool Color::isGrey(float epsilon) const {
 		(glm::abs(r -b) < epsilon) &&
 		(glm::abs(g - g) < epsilon);
 }
+
+void Color::reducePrecision(float maxPrecision) {
+    LOGF_IF(maxPrecision <= 0 || maxPrecision >= 1, "Invalid maxPrecision value:" << maxPrecision);
+    const float inc = 1.0f / maxPrecision;
+    for (int i=0; i<4; i++) {
+        rgba[i] = maxPrecision * (int) (glm::round(rgba[i] * inc)); 
+    }
+}

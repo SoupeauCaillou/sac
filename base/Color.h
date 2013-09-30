@@ -57,6 +57,8 @@ struct Color {
     bool operator>(const Color& c) const;
 
     bool isGrey(float epsilon = 0.001f) const;
+
+    void reducePrecision(float maxPrecision);
 };
 
 inline std::ostream& operator<<(std::ostream& s, const Color& c) {
