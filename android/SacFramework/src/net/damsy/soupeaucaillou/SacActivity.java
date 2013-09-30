@@ -134,9 +134,9 @@ public abstract class SacActivity extends Activity {
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         int densityDPI = 0; // low-dpi
-        if (metrics.densityDpi < DisplayMetrics.DENSITY_MEDIUM)
+        if (metrics.densityDpi < DisplayMetrics.DENSITY_LOW)
         	densityDPI = 0;
-        else if (metrics.densityDpi < DisplayMetrics.DENSITY_HIGH)
+        else if (metrics.densityDpi < DisplayMetrics.DENSITY_MEDIUM)
         	densityDPI = 1;
         else
         	densityDPI = 2;
