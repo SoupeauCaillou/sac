@@ -50,6 +50,29 @@ if (SAC_CUSTOM_DEFINES)
     add_definitions(${SAC_CUSTOM_DEFINES})
 endif()
 
+#set a variable used for the window title
+#retrieve git latest tag
+execute_process(
+        COMMAND git tag COMMAND head -n 1 COMMAND tr -d '\n'
+        OUTPUT_VARIABLE SAC_REVISION_TAG
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    )
+#and git latest commit id
+execute_process(
+        COMMAND git rev-parse HEAD COMMAND head -c 8
+        OUTPUT_VARIABLE SAC_REVISION
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    )
+if (SAC_REVISION_TAG OR SAC_REVISION)
+    if (SAC_REVISION_TAG)
+        set ( SAC_REVISION_TAG "${SAC_REVISION_TAG} - " )
+    endif()
+    set (SAC_REVISION_TAG "${SAC_REVISION_TAG}${SAC_REVISION}")
+
+    message("Revision tag is ${SAC_REVISION_TAG}")
+    add_definitions(-DSAC_REVISION_TAG="${SAC_REVISION_TAG}")
+endif()
+
 #######################################################################
 ########Library path finding related tools#############################
 #######################################################################
