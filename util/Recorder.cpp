@@ -25,6 +25,7 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <SDL/SDL.h>
 #include <cstring>
 #include <string>
 #include "base/Profiler.h"
@@ -237,7 +238,7 @@ void Recorder::start(){
         //new file : time
         char tmp[256];
         long H = time(NULL);
-        strftime(tmp, sizeof(tmp), "/tmp/sac_record_%d%m%Y_%H%M%S.webm", localtime(&H));
+        strftime(tmp, sizeof(tmp), "/tmp/sac_record_%Y%m%d_%H%M%S.webm", localtime(&H));
 
         if(!(outfile = fopen(tmp, "wb"))){
             LOGE("Failed to open '" << tmp << "' for writing. Cancelling recording");
@@ -343,12 +344,36 @@ void Recorder::thread_video_encode(){
     }
 }
 
+void drawPoint(GLubyte* ptr, int width, int height, int channelCount, int cursorX, int cursorY) {
+    LOGV(2, "Cursor position: " << cursorX << " , " << cursorY);
+
+    //warning: cursorY is inverted relatively to the byte array!
+    int yMin = std::max((height - cursorY) - 10, 0);
+    int yMax = std::min((height - cursorY) + 10, height);
+    for ( int y = yMin; y < yMax; ++y) {
+        float t = (y - yMin) * 1. / (yMax - yMin);
+        //draw a "triangle" like shape
+        for (int x = std::max(cursorX - (int)(t * 10), 0); x < std::min(cursorX + (int)(t * 10), width); ++x) {
+            int pos = (x + y * width) * channelCount;
+            ptr[0 + pos] = 0;
+            ptr[1 + pos] = 0;
+            ptr[2 + pos] = 0;
+        }
+    }
+}
+
 void Recorder::addFrame(GLubyte *ptr){
     vpx_codec_iter_t iter = NULL;
     const vpx_codec_cx_pkt_t *pkt;
 
-    if (ptr)
+    if (ptr) {
+        //retrieve cursor position
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+        drawPoint(ptr, width, height, CHANNEL_COUNT, x, y);
         RGB_To_YV12(ptr, width, height, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
+    }
+
 
     PROFILE("Recorder", "encode-image", BeginEvent);
     if(vpx_codec_encode(&codec, ptr ? &raw : NULL, this->frameCounter,
