@@ -130,7 +130,7 @@ compilation_after() {
         #TODO: dig why compilation fail when coming back from Eclipse instead of hacking it
         rm -rf bin/res/crunch sac/android/SacGooglePlayGameServices/libs/google_play_services/libproject/google-play-services_lib/bin/res/crunch
 
-        if ! android update project -p . -t 1 -n $gameName --subprojects; then
+        if ! android update project -p . -t 4 -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
         fi
 
