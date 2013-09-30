@@ -30,6 +30,7 @@
 #include <string>
 #include "base/Profiler.h"
 #include "base/Log.h"
+#include "base/TimeUtil.h"
 
 #define VPX_CODEC_DISABLE_COMPAT 1
 #define interface (vpx_codec_vp8_cx())
@@ -144,6 +145,9 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
     }
 }
 
+#define TARGET_FPS 30.0
+#define TIME_BETWEEN_FRAME (1.0f/TARGET_FPS)
+
 Recorder & Recorder::Instance() {         
     static Recorder instance;
     return instance;
@@ -199,7 +203,7 @@ bool Recorder::initVP8 (){
     cfg.kf_max_dist = 300;
     cfg.g_pass = VPX_RC_ONE_PASS; /* -p 1 */
     cfg.g_timebase.num = 1;
-    cfg.g_timebase.den = 60; /* fps = 30 */
+    cfg.g_timebase.den = TARGET_FPS; /* fps = 30 */
     cfg.rc_end_usage = VPX_VBR; /* --end-usage=cbr */
     cfg.g_threads = 2;
 
@@ -248,6 +252,8 @@ void Recorder::start(){
         LOGI("Recording start in file '" << tmp << "'");
         write_ivf_file_header(outfile, &cfg, 0);
         this->frameCounter = 0;
+        recordingStartTime = TimeUtil::GetTime();
+        frameGrabAccum = 0;
         recording = true;
 
         // on lance le thread pour l'encodage
@@ -260,7 +266,8 @@ void Recorder::start(){
 
 void Recorder::stop(){
     if (outfile != NULL && recording == true){
-        LOGI("Recording stop");
+        float duration = TimeUtil::GetTime() - recordingStartTime;
+        LOGI("Recording stop (" << duration << " sec, " << frameCounter << " images -> " << frameCounter / duration << " fps)");
         mutex_buf.lock();
         cond.notify_all();
         buf.push(NULL);
@@ -276,46 +283,51 @@ void Recorder::toggle(){
         start();
 }
 
-void Recorder::record(){
+void Recorder::record(float dt){
     static int index = 0;
 
     if (recording && outfile){
+        frameGrabAccum += dt;
 
-        PROFILE("Recorder", "read-request", BeginEvent);
-        // "index" is used to read pixels from framebuffer to a PBO
-        // "nextIndex" is used to update pixels in the other PBO
-        index = (index + 1) % PBO_COUNT;
-        int nextIndex = (index + 1) % PBO_COUNT;
+        if (frameGrabAccum >= TIME_BETWEEN_FRAME) {
+            PROFILE("Recorder", "read-request", BeginEvent);
+            // "index" is used to read pixels from framebuffer to a PBO
+            // "nextIndex" is used to update pixels in the other PBO
+            index = (index + 1) % PBO_COUNT;
+            int nextIndex = (index + 1) % PBO_COUNT;
 
-        // set the target framebuffer to read
-        glReadBuffer(GL_FRONT);
+            // set the target framebuffer to read
+            glReadBuffer(GL_FRONT);
 
-        // read pixels from framebuffer to PBO
-        // glReadPixels() should return immediately.
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
-        glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
-        PROFILE("Recorder", "read-request", EndEvent);
-        PROFILE("Recorder", "read-back", BeginEvent);
-        // map the PBO to process its data by CPU
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
-        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER,
-                                                GL_READ_ONLY);
-        if(ptr)
-        {
-            GLubyte *test = new GLubyte[width*height * CHANNEL_COUNT];
-            memcpy (test, ptr, width*height*CHANNEL_COUNT );
+            // read pixels from framebuffer to PBO
+            // glReadPixels() should return immediately.
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
+            glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+            PROFILE("Recorder", "read-request", EndEvent);
+            PROFILE("Recorder", "read-back", BeginEvent);
+            // map the PBO to process its data by CPU
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
+            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER,
+                                                    GL_READ_ONLY);
+            if(ptr)
+            {
+                GLubyte *test = new GLubyte[width*height * CHANNEL_COUNT];
+                memcpy (test, ptr, width*height*CHANNEL_COUNT );
 
-            mutex_buf.lock();
-            buf.push(test);
-            cond.notify_all();
-            mutex_buf.unlock();
+                mutex_buf.lock();
+                buf.push(test);
+                cond.notify_all();
+                mutex_buf.unlock();
 
-            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+            }
+
+            // back to conventional pixel operation
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+            PROFILE("Recorder", "read-back", EndEvent);
+
+            frameGrabAccum -= TIME_BETWEEN_FRAME;
         }
-
-        // back to conventional pixel operation
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        PROFILE("Recorder", "read-back", EndEvent);
     }
 }
 

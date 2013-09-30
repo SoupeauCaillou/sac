@@ -302,11 +302,14 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     setlocale( LC_ALL, "" );
 
     std::thread th1(callback_thread, title);
+    float prevT = 0;
     do {
         game->eventsHandler();
         game->render();
         SDL_GL_SwapBuffers();
-        Recorder::Instance().record();
+        float t = TimeUtil::GetTime();
+        Recorder::Instance().record(t - prevT);
+        prevT = t;
     } while (!m.try_lock());
     th1.join();
 

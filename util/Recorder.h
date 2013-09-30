@@ -60,7 +60,7 @@ class Recorder {
         void stop();
         void toggle();
 
-        void record();
+        void record(float dt);
 
         void thread_video_encode();
 
@@ -74,6 +74,8 @@ class Recorder {
 
         int width, height;
         bool recording;
+        float recordingStartTime;
+        float frameGrabAccum;
 
         GLuint pboIds[PBO_COUNT];
 
