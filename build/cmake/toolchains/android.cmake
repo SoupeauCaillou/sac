@@ -1,7 +1,6 @@
 set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/build/cmake/toolchains/android.toolchain.cmake)
 
-ADD_DEFINITIONS(-DSAC_MOBILE=1
-    -DSAC_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets/")
+ADD_DEFINITIONS(-DSAC_MOBILE=1)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
