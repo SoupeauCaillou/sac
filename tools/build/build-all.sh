@@ -128,14 +128,17 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         CMAKE_BUILD_TYPE=$(echo $CMAKE_CONFIG | sed 's/-DCMAKE_BUILD_TYPE=/~/' | cut -d '~' -f2 | cut -d ' ' -f1)
     fi
 
-######### 2 : Create build dir. #########
+######### 2 : Verify needed softwares are installed. #########
+    check_necessary
+
+######### 3 : Create build dir. #########
     builddir=$rootPath/build/$CMAKE_BUILD_TARGET-$CMAKE_BUILD_TYPE
 	mkdir -p $builddir
 
-######### 3 : Go into build directory #########
+######### 4 : Go into build directory #########
 	cd $builddir
 
-######### 4 : Execute query. #########
+######### 5 : Execute query. #########
 
 #Cleaning
 	if [ ! -z "$(echo $TARGETS | grep R)" ]; then
