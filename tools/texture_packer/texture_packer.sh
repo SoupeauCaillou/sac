@@ -73,9 +73,9 @@ while read data; do
 
 		info "   Adding ${image} at ${w}x${h}+${x}+${y} (rotation:${rot})" $blue
 		# copy a first version, 2 pixel taller/larger (used as a blend-compatible border)
-		convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;` -compose Copy -composite $output $tmp_image PNG32:$output
+		convert -geometry `expr ${w} + 2;`x`expr ${h} + 2;`+`expr ${x} - 1;`+`expr ${y} - 1;`! -compose Copy -composite $output $tmp_image PNG32:$output
 		# copy the real image
-		convert -geometry ${w}x${h}+${x}+${y} -compose Copy -composite $output $tmp_image $output
+		convert -geometry +${x}+${y} -compose Copy -composite $output $tmp_image $output
 
 
 		#largest_rectangle script
