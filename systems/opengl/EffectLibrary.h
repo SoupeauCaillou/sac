@@ -40,6 +40,7 @@ struct Shader {
 
 #define DEFAULT_FRAGMENT "default.fs"
 #define DEFAULT_NO_ALPHA_FRAGMENT "default_no_alpha.fs"
+#define DEFAULT_NO_TEXTURE_FRAGMENT "default_no_texture.fs"
 #define EMPTY_FRAGMENT "empty.fs"
 
 class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {

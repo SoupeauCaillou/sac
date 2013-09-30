@@ -25,6 +25,7 @@
 #include "shaders/default_fs.h"
 #include "shaders/default_no_alpha_fs.h"
 #include "shaders/empty_fs.h"
+#include "shaders/default_no_texture_fs.h"
 #include "shaders/default_vs.h"
 #define VERTEX_SHADER_ARRAY default_vs
 #define VERTEX_SHADER_SIZE default_vs_len
@@ -120,6 +121,12 @@ void EffectLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading) {
     fb.data = empty_fs;
     fb.size = empty_fs_len;
     registerDataSource(load(EMPTY_FRAGMENT), fb);
+    fb.data = empty_fs;
+    fb.size = empty_fs_len;
+    registerDataSource(load(EMPTY_FRAGMENT), fb);
+    fb.data = default_no_texture_fs;
+    fb.size = default_no_texture_fs_len;
+    registerDataSource(load(DEFAULT_NO_TEXTURE_FRAGMENT), fb);
 }
 
 bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const EffectRef& ref) {

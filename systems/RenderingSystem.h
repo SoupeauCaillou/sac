@@ -145,10 +145,10 @@ public:
     void render();
     void waitDrawingComplete();
 
-    EffectRef changeShaderProgram(EffectRef ref, bool firstCall, const Color& color, const glm::mat4& mvp,
+    EffectRef changeShaderProgram(EffectRef ref, bool firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp,
         bool colorEnabled = true);
-    const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled);
-    const glm::vec2& getTextureSize(const std::string& textureName);
+    const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture);
+    glm::vec2 getTextureSize(const std::string& textureName);
     void removeExcessiveFrames(int& readQueue, int& writeQueue);
 
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
@@ -187,7 +187,7 @@ void setFrameQueueWritable(bool b);
 private:
     void drawRenderCommands(RenderQueue& commands);
     void processDelayedTextureJobs();
-    EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty;
+    EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty, defaultShaderNoTexture;
     GLuint whiteTexture;
 
 #if SAC_LINUX && SAC_DESKTOP

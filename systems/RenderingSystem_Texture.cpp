@@ -209,7 +209,7 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
     return result;
 }
 
-const glm::vec2& RenderingSystem::getTextureSize(const std::string& textureName) {
+glm::vec2 RenderingSystem::getTextureSize(const std::string& textureName) {
     const TextureInfo& info = textureLibrary.get(textureName);
 
     switch (OpenGLTextureCreator::dpi) {

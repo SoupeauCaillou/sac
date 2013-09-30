@@ -176,8 +176,8 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     *triangleCount += polygon.indices.size() / 3;
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
-	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled);
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
+	const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled, useTexturing);
     // change active shader
 	GL_OPERATION(glUseProgram(shader.program))
     // upload transform matrix (perspective + view)
@@ -266,7 +266,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     glm::vec3(-camera.worldPos.position, 0.0f));
 
             // setup initial GL state
-            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);
+            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, true, currentColor, camViewPerspMatrix);
             GL_OPERATION(glDepthMask(true))
             GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
@@ -284,6 +284,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.flags != currentFlags) {
             // flush batch before changing state
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
+            const bool useTexturing = (rc.texture != InvalidTextureRef);
+
             if (rc.flags & EnableZWriteBit) {
                 GL_OPERATION(glDepthMask(true))
             } else if (rc.flags & DisableZWriteBit) {
@@ -292,7 +294,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 firstCall = false;
                 GL_OPERATION(glEnable(GL_BLEND))
                 if (currentEffect == DefaultEffectRef) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
                 }
             } else if (rc.flags & DisableBlendingBit) {
                  GL_OPERATION(glDisable(GL_BLEND))
@@ -300,14 +302,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 GL_OPERATION(glColorMask(true, true, true, true))
                 if (!(currentFlags & EnableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
                     }
                 }
             } else if (rc.flags & DisableColorWriteBit) {
                 GL_OPERATION(glColorMask(false, false, false, false))
                 if (!(currentFlags & DisableColorWriteBit)) {
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, currentColor, camViewPerspMatrix, false);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, false);
                     }
                 }
             }
@@ -317,7 +319,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 		if (rc.effectRef != currentEffect) {
             // flush before changing effect
 			batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
-            currentEffect = changeShaderProgram(rc.effectRef, firstCall, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
+            const bool useTexturing = (rc.texture != InvalidTextureRef);
+            currentEffect = changeShaderProgram(rc.effectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
 		}
 
         // SETUP TEXTURING
@@ -344,8 +347,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 rc.glref.color = whiteTexture;
 		} else {
 			rc.glref = InternalTexture::Invalid;
-			rc.glref.color = whiteTexture;
-			rc.glref.alpha = whiteTexture;
+            // hum
+            if (firstCall) {
+			    rc.glref.color = whiteTexture;
+			    rc.glref.alpha = whiteTexture;
+            }
 			rc.uv[0] = glm::vec2(0.0f, 0.0f);
 			rc.uv[1] = glm::vec2(1.0f, 1.0f);
 			rc.rotateUV = 0;
@@ -365,7 +371,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 			useFbo = rc.fbo;
 			if (currentColor != rc.color) {
 	            currentColor = rc.color;
-	            GL_OPERATION(glUniform4fv(effectRefToShader(currentEffect, firstCall, currentFlags & EnableColorWriteBit).uniformColor, 1, currentColor.rgba))
+                currentEffect =
+                    changeShaderProgram(currentEffect, firstCall, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
 			}
 		}
 
@@ -468,9 +475,19 @@ static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const
     }
 }
 
-const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled) {
+const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture) {
 	if (ref == DefaultEffectRef) {
-		ref = (colorEnabled ? (firstCall ? defaultShaderNoAlpha : defaultShader) : defaultShaderEmpty);
+        if (colorEnabled) {
+            if (firstCall) {
+                ref = defaultShaderNoAlpha;
+            } else if (hasTexture) {
+                ref = defaultShader;
+            } else {
+                ref = defaultShaderNoTexture;
+            }
+        } else {
+            ref = defaultShaderEmpty;
+        }
 	}
 	return *effectLibrary.get(ref, false);
 }
