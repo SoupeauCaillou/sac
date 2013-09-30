@@ -62,7 +62,7 @@ struct RenderingComponent {
         shape(Shape::Square),
         dynamicVertices(DefaultVerticesRef),
         show(false), mirrorH(false), zPrePass(false), fastCulling(false),
-        opaqueType(NON_OPAQUE),
+        opaqueType(FULL_OPAQUE),
         cameraBitMask(1)
         {
         fbo = false;

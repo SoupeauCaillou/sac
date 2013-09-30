@@ -261,6 +261,7 @@ void TextSystem::DoUpdate(float dt) {
             ac->position = trans->position;
             rc->show = trc->show;
             rc->cameraBitMask = trc->cameraBitMask;
+            rc->opaqueType = RenderingComponent::NON_OPAQUE;
 
             // At this point, we have the proper unicodeId to display,
             // except if it's an image delimiter
