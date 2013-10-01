@@ -41,6 +41,7 @@ void FaderHelper::init(Entity camera) {
 	ADD_COMPONENT(fadingEntity, Rendering);
 	RENDERING(fadingEntity)->color = Color(0,0,0);
 	RENDERING(fadingEntity)->show = false;
+	RENDERING(fadingEntity)->opaqueType = RenderingComponent::NON_OPAQUE;
 	ADD_COMPONENT(fadingEntity, Anchor);
 	ANCHOR(fadingEntity)->parent = camera;
 	ANCHOR(fadingEntity)->z = 0.999 - TRANSFORM(camera)->z;
