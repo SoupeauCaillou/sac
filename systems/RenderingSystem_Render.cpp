@@ -51,7 +51,43 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
 }
 
 #if SAC_DEBUG
-static std::vector<int> batchSizes;
+namespace BatchFlushReason {
+    enum Enum {
+        NewCamera,
+        NewFlags,
+        NewTarget,
+        NewTexture,
+        NewEffect,
+        NewColor,
+        NewFBO,
+        End,
+        Full,
+    };
+}
+static std::vector<std::pair<BatchFlushReason::Enum, int> > batchSizes;
+static std::string enumToString(BatchFlushReason::Enum e) {
+    switch (e) {
+        case BatchFlushReason::NewCamera:
+            return "NewCamera";
+        case BatchFlushReason::NewFlags:
+            return "NewFlags";
+        case BatchFlushReason::NewTarget:
+            return "NewTarget";
+        case BatchFlushReason::NewTexture:
+            return "NewTexture";
+        case BatchFlushReason::NewEffect:
+            return "NewEffect";
+        case BatchFlushReason::NewColor:
+            return "NewColor";
+        case BatchFlushReason::NewFBO:
+            return "NewFBO";
+        case BatchFlushReason::End:
+            return "End";
+        case BatchFlushReason::Full:
+            return "Full";
+    }
+    return "";
+}
 #endif
 static int drawBatchES2(
     const RenderingSystem::ColorAlphaTextures glref
@@ -65,9 +101,6 @@ static int drawBatchES2(
     , int batchTriangleCount) {
 
     if (batchTriangleCount > 0) {
-        #if SAC_DEBUG
-        batchSizes.push_back(batchTriangleCount);
-        #endif
         GL_OPERATION(glActiveTexture(GL_TEXTURE0))
         // GL_OPERATION(glEnable(GL_TEXTURE_2D)
         GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
@@ -245,6 +278,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // HANDLE BEGIN/END FRAME MARKERS (new frame OR new camera)
         if (rc.texture == BeginFrameMarker) {
+            #if SAC_DEBUG
+            batchSizes.push_back(std::make_pair(BatchFlushReason::NewCamera, batchTriangleCount));
+            #endif
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
 
             PROFILE("Render", "begin-render-frame", InstantEvent);
@@ -292,6 +328,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
+            #if SAC_DEBUG
+            batchSizes.push_back(std::make_pair(BatchFlushReason::NewFlags, batchTriangleCount));
+            #endif
             // flush batch before changing state
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
@@ -327,6 +366,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         }
         // EFFECT HAS CHANGED ?
         if (rc.effectRef != currentEffect) {
+            #if SAC_DEBUG
+            batchSizes.push_back(std::make_pair(BatchFlushReason::NewEffect, batchTriangleCount));
+            #endif
             // flush before changing effect
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
@@ -368,7 +410,22 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         }
 
         // TEXTURE OR COLOR HAS CHANGED ?
-        if (useFbo != rc.fbo || (!rc.fbo && boundTexture != rc.glref) || (rc.fbo && fboRef != rc.framebuffer) || currentColor != rc.color) {
+        const bool condUseFbo = (useFbo != rc.fbo);
+        const bool condTexture = (!rc.fbo && boundTexture != rc.glref);
+        const bool condFbo = (rc.fbo && fboRef != rc.framebuffer);
+        const bool condColor = (currentColor != rc.color);
+        if (condUseFbo | condTexture | condFbo | condColor) {
+            #if SAC_DEBUG
+            if (condUseFbo) {
+                batchSizes.push_back(std::make_pair(BatchFlushReason::NewTarget, batchTriangleCount));
+            } else if (condTexture) {
+                batchSizes.push_back(std::make_pair(BatchFlushReason::NewTexture, batchTriangleCount));
+            } else if (condColor) {
+                batchSizes.push_back(std::make_pair(BatchFlushReason::NewColor, batchTriangleCount));
+            } else if (condColor) {
+                batchSizes.push_back(std::make_pair(BatchFlushReason::NewFBO, batchTriangleCount));
+            }
+            #endif
             // flush before changing texture/color
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             if (rc.fbo) {
@@ -394,9 +451,15 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             &batchVertexCount, &batchTriangleCount);
 
         if ((batchTriangleCount + 6) >= MAX_BATCH_TRIANGLE_COUNT) {
+            #if SAC_DEBUG
+            batchSizes.push_back(std::make_pair(BatchFlushReason::Full, batchTriangleCount));
+            #endif
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
         }
     }
+    #if SAC_DEBUG
+    batchSizes.push_back(std::make_pair(BatchFlushReason::End, batchTriangleCount));
+    #endif
     drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
 
     #undef TEX
@@ -407,7 +470,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     if ((++______debug % 3000) == 0) {
         ______debug = 0;
         for (unsigned i=0; i<batchSizes.size(); i++) {
-            LOGI("   # batch " << i << ':' << batchSizes[i]);
+            const auto& p = batchSizes[i];
+            LOGI("   # batch " << i << ':' << enumToString(p.first) << " - " << p.second);
         }
     }
     batchSizes.clear();
