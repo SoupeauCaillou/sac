@@ -96,7 +96,7 @@ TEST(LineDrawerWhenDiagonale)
 
 TEST(LineDrawerWithNegativeEps)
 {	
-	auto grid = SpatialGrid(20, 20);
+	auto grid = SpatialGrid(21, 21);
 
 	auto path = grid.lineDrawer(GridPos(-7,1), GridPos(-5,3), false);
 
