@@ -523,12 +523,26 @@ void Game::step() {
 #endif
     LOGV(2, "Produce rendering frame");
     // produce 1 new frame
-    theRenderingSystem.Update(0);
-
-    float updateDuration = TimeUtil::GetTime() - timeBeforeThisStep;
-    if (updateDuration < 0.016) {
-        //TimeUtil::Wait(0.016 - updateDuration);
+#if SAC_DEBUG
+    static unsigned count1 = 0, count2 = 0;
+    count1++;
+#endif
+    if(!theRenderingSystem.DoUpdate2(0)) {
+        float updateDuration = TimeUtil::GetTime() - timeBeforeThisStep;
+        if (updateDuration < 0.016) {
+            TimeUtil::Wait(0.016 - updateDuration);
+        }
     }
+#if SAC_DEBUG
+    else
+        count2++;
+#endif
+#if SAC_DEBUG
+    if (count1 == 300) {
+        LOGI("Frame drawn: " << count2 << '/' << count1 << " = " << ((100 * count2) / count1) << " %");
+        count1 = count2 = 0;
+    }
+#endif
     lastUpdateTime = timeBeforeThisStep;
 
     PROFILE("Game", "step", EndEvent);

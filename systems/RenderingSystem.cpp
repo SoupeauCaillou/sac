@@ -286,17 +286,21 @@ RenderingSystem::RenderCommand::RenderCommand() :
     padding[0] = padding[1] = 0;
 }
 
+void RenderingSystem::DoUpdate(float dt) {
+    DoUpdate2(dt);
+}
+
 #if SAC_LINUX && SAC_DESKTOP
 void RenderingSystem::updateReload() {
     effectLibrary.updateReload();
     textureLibrary.updateReload();
 }
 
-void RenderingSystem::DoUpdate(float) {
+bool RenderingSystem::DoUpdate2(float) {
     updateReload();
 
 #else
-void RenderingSystem::DoUpdate(float) {
+bool RenderingSystem::DoUpdate2(float) {
 #endif
 
     static unsigned int cccc = 0;
@@ -492,10 +496,10 @@ void RenderingSystem::DoUpdate(float) {
         MurmurHash::compute( outQueue.commands.data(),
             outQueue.count * sizeof(RenderCommand), 0x12345678);
 
-    if (0 && hash == previousFrameHash) {
+    if (hash == previousFrameHash) {
         // reset
         outQueue.count = 0;
-        // LOGI("Skip");
+        return false;
     } else {
         previousFrameHash = hash;
 
@@ -531,6 +535,7 @@ void RenderingSystem::DoUpdate(float) {
         mutexes[L_QUEUE].unlock();
         mutexes[L_RENDER].unlock();
     #endif
+        return true;
     }
 }
 

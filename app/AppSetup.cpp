@@ -121,7 +121,7 @@ static void updateLoop(const std::string& title) {
             }
         }
 #endif
-        // game->eventsHandler();
+        game->eventsHandler();
 
         game->step();
 
