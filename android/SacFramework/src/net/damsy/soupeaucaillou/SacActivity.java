@@ -223,7 +223,9 @@ public abstract class SacActivity extends Activity {
         	wl.acquire();
 
         // Game Thread is not notified. It'll be waken up by OnCreateSurface cb 
-
+        // Notify game thread
+        gameThread.postEvent(Event.Resume);
+        
     	// TODO: simplify this (or understand why it's so complicated)
     	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
     	int count = layout.getChildCount();
