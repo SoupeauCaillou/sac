@@ -57,7 +57,11 @@ std::string OpenGLTextureCreator::DPI2Folder(DPI::Enum dpi) {
 
 void OpenGLTextureCreator::detectSupportedTextureFormat() {
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
+#if 0
     pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+#else
+    pvrFormatSupported = false;
+#endif
 #if SAC_ANDROID
     pkmFormatSupported = true;
 #endif

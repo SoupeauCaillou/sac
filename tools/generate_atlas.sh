@@ -116,10 +116,10 @@ for directory_path in $@; do
             info "Step #6: create PVR and ETC version"
             mkdir /tmp/$quality -p
 
-            PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$quality/$dir.png -p -pvrlegacy -o /tmp/$dir-$quality.pvr
+            # PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$quality/$dir.png -p -pvrlegacy -o /tmp/$dir-$quality.pvr
             # PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -p -m -o /tmp/$dir-$quality.pvr -shh
-            split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pvr.
-            cp -r /tmp/$quality $rootPath/assets/
+            # split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pvr.
+            # cp -r /tmp/$quality $rootPath/assets/
 
             # PVRTexToolCL -f ETC -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -q pvrtcbest -m -o /tmp/$dir-$quality-pkm.pvr -shh
             PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o /tmp/$dir-$quality.pkm
