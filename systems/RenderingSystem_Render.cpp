@@ -64,7 +64,20 @@ namespace BatchFlushReason {
         Full,
     };
 }
-static std::vector<std::pair<BatchFlushReason::Enum, int> > batchSizes;
+struct BatchFlushInfo {
+    BatchFlushInfo(const BatchFlushReason::Enum e) : reason(e) {}
+    BatchFlushInfo(const BatchFlushReason::Enum e, unsigned f) : reason(e), newFlags(f) {}
+    BatchFlushInfo(const BatchFlushReason::Enum e, TextureRef r) : reason(e), newTexture(r) {}
+    BatchFlushInfo(const BatchFlushReason::Enum e, const Color& r) : reason(e), newColor(r) {}
+
+    BatchFlushReason::Enum reason;
+    union {
+        unsigned newFlags;
+        TextureRef newTexture;
+        Color newColor;
+    };
+};
+static std::vector<std::pair<BatchFlushInfo, int> > batchSizes;
 static std::string enumToString(BatchFlushReason::Enum e) {
     switch (e) {
         case BatchFlushReason::NewCamera:
@@ -88,6 +101,53 @@ static std::string enumToString(BatchFlushReason::Enum e) {
     }
     return "";
 }
+
+inline std::ostream& operator<<(std::ostream& stream, const BatchFlushInfo & v) {
+    stream << enumToString(v.reason);
+    switch (v.reason) {
+        case BatchFlushReason::NewFlags:
+            stream << " [ ";
+            if (v.newFlags & EnableZWriteBit)
+                stream << "EnableZWriteBit ";
+            if (v.newFlags & DisableZWriteBit)
+                stream << "DisableZWriteBit ";
+            if (v.newFlags & EnableBlendingBit)
+                stream << "EnableBlendingBit ";
+            if (v.newFlags & DisableBlendingBit)
+                stream << "DisableBlendingBit ";
+            if (v.newFlags & EnableColorWriteBit)
+                stream << "EnableColorWriteBit ";
+            if (v.newFlags & DisableColorWriteBit)
+                stream << "DisableColorWriteBit ";
+            stream << "]";
+            break;
+        case BatchFlushReason::NewColor:
+            stream << " [ " << v.newColor << " ]";
+            break;
+        case BatchFlushReason::NewTexture: {
+            if (v.newTexture == InvalidTextureRef) {
+                stream << " [ No Texture ]";
+            } else {
+                const TextureInfo* info = theRenderingSystem.textureLibrary.get(v.newTexture, false);
+                if (!info) {
+                    stream << " [ --- ]";
+                } else {
+                    if (info->atlasIndex >= 0) {
+                        stream << " [ " << theRenderingSystem.atlas[info->atlasIndex].name << " ]";
+                    } else {
+                        stream << " [ " << theRenderingSystem.textureLibrary.ref2Name(v.newTexture) << " ]";
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    return stream;
+}
+
+
 #endif
 static int drawBatchES2(
     const RenderingSystem::ColorAlphaTextures glref
@@ -329,7 +389,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // HANDLE RENDERING FLAGS (GL state switch)
         if (rc.flags != currentFlags) {
             #if SAC_DEBUG
-            batchSizes.push_back(std::make_pair(BatchFlushReason::NewFlags, batchTriangleCount));
+            batchSizes.push_back(std::make_pair(BatchFlushInfo(BatchFlushReason::NewFlags, rc.flags), batchTriangleCount));
             #endif
             // flush batch before changing state
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
@@ -376,6 +436,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         }
 
         // SETUP TEXTURING
+#if SAC_DEBUG
+        const TextureRef rrr = rc.texture;
+#endif
         if (rc.texture != InvalidTextureRef) {
             if (!rc.fbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
@@ -419,9 +482,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             if (condUseFbo) {
                 batchSizes.push_back(std::make_pair(BatchFlushReason::NewTarget, batchTriangleCount));
             } else if (condTexture) {
-                batchSizes.push_back(std::make_pair(BatchFlushReason::NewTexture, batchTriangleCount));
+                batchSizes.push_back(std::make_pair(BatchFlushInfo(BatchFlushReason::NewTexture, rrr), batchTriangleCount));
             } else if (condColor) {
-                batchSizes.push_back(std::make_pair(BatchFlushReason::NewColor, batchTriangleCount));
+                batchSizes.push_back(std::make_pair(BatchFlushInfo(BatchFlushReason::NewColor, rc.color), batchTriangleCount));
             } else if (condColor) {
                 batchSizes.push_back(std::make_pair(BatchFlushReason::NewFBO, batchTriangleCount));
             }
@@ -465,13 +528,13 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     #undef TEX
 
     #if SAC_DEBUG
-    LOGI_EVERY_N(3000, "Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
     static unsigned ______debug = 0;
     if ((++______debug % 3000) == 0) {
         ______debug = 0;
+        LOGI("Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
         for (unsigned i=0; i<batchSizes.size(); i++) {
             const auto& p = batchSizes[i];
-            LOGI("   # batch " << i << ':' << enumToString(p.first) << " - " << p.second);
+            LOGI("   # batch " << i << ", size: "<< p.second << ", reason: " << p.first);
         }
     }
     batchSizes.clear();

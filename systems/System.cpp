@@ -189,7 +189,7 @@ static void textureGetCB(void* valueOut, void* clientData) {
         TwCopyStdStringToLibrary(*s, "no texture");
     } else {
         // see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twcopystdstringtolibrary
-        TwCopyStdStringToLibrary(*s, theRenderingSystem.textureLibrary.reverse(*r));
+        TwCopyStdStringToLibrary(*s, theRenderingSystem.textureLibrary.ref2Name(*r));
     }
 }
 

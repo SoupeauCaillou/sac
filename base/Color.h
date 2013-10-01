@@ -62,13 +62,10 @@ struct Color {
 };
 
 inline std::ostream& operator<<(std::ostream& s, const Color& c) {
-    unsigned int a;
-    a = (((int)(255 * c.r)) & 0xff) << 24;
-    a |= (((int)(255 * c.g)) & 0xff) << 16;
-    a |= (((int)(255 * c.b)) & 0xff) << 8;
-    a |= (((int)(255 * c.a)) & 0xff);
-    s << std::hex << '{' << a << '}' << std::dec;
-    return s;
+    return s << "color = [r:" << (int)(c.r * 255)
+        << ", g:" << (int)(c.g * 255)
+        << ", b:" << (int)(c.b * 255)
+        << ", a:" << (int)(c.a * 255)<< ']';
 }
 
 inline std::istream& operator>>(std::istream& s, Color& c) {

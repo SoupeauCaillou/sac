@@ -227,13 +227,14 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (useDeferredLoading) mutex.unlock();
         }
 
-        #if SAC_INGAME_EDITORS
-        std::string reverse(TRef ref) const {
-            for (auto p: nameToRef) {
+        #if SAC_DEBUG
+        const std::string& ref2Name(TRef ref) const {
+            for (const auto& p: nameToRef) {
                 if (p.second == ref)
                     return p.first;
             }
-            return "";
+            static const std::string empty("");
+            return empty;
         }
         #endif
 
