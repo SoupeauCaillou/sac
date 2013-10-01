@@ -402,9 +402,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     #undef TEX
 
     #if SAC_DEBUG
-    LOGI_EVERY_N(300, "Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
+    LOGI_EVERY_N(3000, "Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
     static unsigned ______debug = 0;
-    if ((++______debug % 300) == 0) {
+    if ((++______debug % 3000) == 0) {
         ______debug = 0;
         for (unsigned i=0; i<batchSizes.size(); i++) {
             LOGI("   # batch " << i << ':' << batchSizes[i]);
