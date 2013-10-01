@@ -38,38 +38,6 @@
 #include <fcntl.h>
 #include <fstream>
 
-#if 0
-static void parse(const std::string& line, std::string& assetName, glm::vec2& originalSize, glm::vec2& reduxOffset, glm::vec2& posInAtlas, glm::vec2& sizeInAtlas, bool& rotate, glm::vec2& opaqueStart, glm::vec2& opaqueEnd) {
-	std::string substrings[14];
-	int from = 0, to = 0, count = 0;
-	for (count=0; count<14; count++) {
-		to = line.find_first_of(',', from);
-		substrings[count] = line.substr(from, to - from);
-        if (to == (int)std::string::npos) {
-            count++;
-            break;
-        }
-		from = to + 1;
-	}
-    // image,original width, original height, redux offset x, redux offset y, pox x in atlas, pos y in atlas, width, height, rotate[, opaque box min x, min y, max x, max y]
-	assetName = substrings[0];
-	originalSize.x = atoi(substrings[1].c_str());
-	originalSize.y = atoi(substrings[2].c_str());
-	reduxOffset.x = atoi(substrings[3].c_str());
-	reduxOffset.y = atoi(substrings[4].c_str());
-    posInAtlas.x = atoi(substrings[5].c_str());
-    posInAtlas.y = atoi(substrings[6].c_str());
-    sizeInAtlas.x = atoi(substrings[7].c_str());
-    sizeInAtlas.y = atoi(substrings[8].c_str());
-	rotate = atoi(substrings[9].c_str());
-    if (count == 14) {
-        opaqueStart.x = atoi(substrings[10].c_str());
-        opaqueStart.y = atoi(substrings[11].c_str());
-        opaqueEnd.x = atoi(substrings[12].c_str());
-        opaqueEnd.y = atoi(substrings[13].c_str());
-    }
-}
-#endif
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
 	const std::string atlasDesc = atlasName + ".atlas";
 
