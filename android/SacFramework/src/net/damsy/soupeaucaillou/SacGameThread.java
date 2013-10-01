@@ -58,7 +58,9 @@ public class SacGameThread implements Runnable {
 	
 	
 	public void run() {
+		SacActivity.Log(SacActivity.I, "Before initFromGameThread");
 		SacJNILib.initFromGameThread(savedState);
+		SacActivity.Log(SacActivity.I, "After initFromGameThread");
 
 		boolean runGameLoop = true;
 		while (true) {
@@ -67,13 +69,16 @@ public class SacGameThread implements Runnable {
 				Event evt = eventsToConsume.poll();
 				switch (evt) {
 					case BackPressed:
+						SacActivity.Log(SacActivity.I, "Back pressed");
 						SacJNILib.back();
 						break;
 					case Pause:
+						SacActivity.Log(SacActivity.I, "Pause");
 						SacJNILib.pause();
 						runGameLoop = false;
 						break;
 					case Resume:
+						SacActivity.Log(SacActivity.I, "Resume");
 						runGameLoop = true;
 						SacJNILib.resetTimestep();
 						break;
@@ -82,13 +87,13 @@ public class SacGameThread implements Runnable {
 						return;
 				}
 			}
-
+			
 			if (runGameLoop) {
 				SacJNILib.step();
 			} else synchronized (queueMutex) {
 				if (eventsToConsume.isEmpty()) {
 					try {
-						queueMutex.wait(500);
+						queueMutex.wait();
 					} catch (InterruptedException exc) {
 						// TODO: read doc again
 					}
