@@ -497,7 +497,7 @@ bool RenderingSystem::DoUpdate2(bool forceNewFrame) {
         MurmurHash::compute( outQueue.commands.data(),
             outQueue.count * sizeof(RenderCommand), 0x12345678);
     float t = TimeUtil::GetTime();
-    if (hash == previousFrameHash && !forceNewFrame && (t - lastFullFrameTime) < 1) {
+    if (hash == previousFrameHash) { //} && !forceNewFrame && (t - lastFullFrameTime) < 1) {
         // reset
         outQueue.count = 0;
         return false;
