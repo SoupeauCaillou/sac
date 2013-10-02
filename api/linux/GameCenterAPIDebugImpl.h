@@ -41,9 +41,8 @@ class GameCenterAPIDebugImpl : public GameCenterAPI {
         bool isRegistered() { return true; }
 
         void unlockAchievement(int id) { LOGI("Unlocked success " << id << "!"); }
-        void updateAchievementProgression(int id, float progression) { 
-            if (progression >= 1.f) unlockAchievement(id);
-            else LOGI("Success " << id << " progression reached " << progression * 100.f << "\%"); 
+        void updateAchievementProgression(int id, int stepReached) { 
+            LOGI("Success " << id << " progression reached step " << stepReached << "\%"); 
         }
 
         void openAchievement() { LOGI("openAchievement."); }

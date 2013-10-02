@@ -32,7 +32,7 @@ public class GameCenterAPI {
 	    public void connectOrRegister();
         public void disconnect();
         public void unlockAchievement(int id);
-        public void updateAchievementProgression(int id, float progression);
+        public void updateAchievementProgression(int id, int stepReached);
         public void openAchievement();
 	    public void openLeaderboards();
 	    public void openSpecificLeaderboard(int id);
@@ -90,9 +90,9 @@ public class GameCenterAPI {
         }  
     }
 
-    public void updateAchievementProgression(int id, float progression) {
+    public void updateAchievementProgression(int id, int stepReached) {
     	if (driver != null) {
-    		driver.updateAchievementProgression(id, progression);
+    		driver.updateAchievementProgression(id, stepReached);
     	} else {
     		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
     	}    

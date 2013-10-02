@@ -50,7 +50,7 @@ class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gam
         bool isConnected();
 
         void unlockAchievement(int id);
-        void updateAchievementProgression(int id, float progression);
+        void updateAchievementProgression(int id, int stepReached);
 
         void openAchievement();
         void openLeaderboards();

@@ -180,7 +180,7 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 	}
 	
 	@Override
-	public void updateAchievementProgression(int id, float progression) {
+	public void updateAchievementProgression(int id, int stepReached) {
 		if (mHelper.isSignedIn()){
         	if (! mHelper.getGamesClient().isConnected()) {
         		SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not connected, can't unlock Achievement");
@@ -193,7 +193,7 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
         		return;
         	} 
         	
-			mHelper.getGamesClient().incrementAchievement(achievementsID.get(id), (int)(progression * 100.));
+			mHelper.getGamesClient().incrementAchievement(achievementsID.get(id), stepReached);
 		} else {
 			SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't unlockAchievement");
 		}		
