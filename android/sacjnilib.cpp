@@ -236,12 +236,12 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThr
  * Method:    step
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
-  (JNIEnv * LOG_USAGE_ONLY(env), jclass) {
+JNIEXPORT bool JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
+  (JNIEnv * LOG_USAGE_ONLY(env), jclass, jboolean forceNewFrame) {
     if (!myGameHolder->game)
-        return;
+        return false;
     LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv);
-    myGameHolder->game->step();
+    return myGameHolder->game->step(forceNewFrame);
 }
 
 static float pauseTime;

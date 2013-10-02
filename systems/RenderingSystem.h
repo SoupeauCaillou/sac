@@ -148,7 +148,7 @@ public:
 
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
-    bool DoUpdate2(float dt);
+    bool DoUpdate2(bool forceNewFrame);
 
 public:
     void enableRendering();

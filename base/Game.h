@@ -52,7 +52,7 @@ class Game {
 		virtual ~Game();
 
         void setGameContexts(GameContext* gameThreadContext, GameContext* renderThreadContext);
-        void step();
+        bool step(bool forceNewFrame);
         bool render();
         void resetTime();
         void eventsHandler();

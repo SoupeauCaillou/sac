@@ -48,7 +48,7 @@ public class SacJNILib {
 	/**
 	 * Update game (run 1 simulation step)
 	 */
-	public static native void step();
+	public static native boolean step(boolean forceNewFrame);
 
 	/**
 	 * Reset time origin

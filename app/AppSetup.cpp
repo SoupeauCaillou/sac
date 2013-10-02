@@ -123,7 +123,7 @@ static void updateLoop(const std::string& title) {
 #endif
         game->eventsHandler();
 
-        game->step();
+        game->step(false);
 
         bool focus = (SDL_GetAppState() & SDL_APPINPUTFOCUS);
         //if we lost the focus, mute the music (release mode only)

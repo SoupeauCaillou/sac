@@ -47,6 +47,7 @@
 
 INSTANCE_IMPL(RenderingSystem);
 
+static float lastFullFrameTime = 0;
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
     nextValidFBRef = 1;
     currentWriteQueue = 0;
@@ -286,8 +287,8 @@ RenderingSystem::RenderCommand::RenderCommand() :
     padding[0] = padding[1] = 0;
 }
 
-void RenderingSystem::DoUpdate(float dt) {
-    DoUpdate2(dt);
+void RenderingSystem::DoUpdate(float ) {
+    DoUpdate2(false);
 }
 
 #if SAC_LINUX && SAC_DESKTOP
@@ -296,11 +297,11 @@ void RenderingSystem::updateReload() {
     textureLibrary.updateReload();
 }
 
-bool RenderingSystem::DoUpdate2(float) {
+bool RenderingSystem::DoUpdate2(bool forceNewFrame) {
     updateReload();
 
 #else
-bool RenderingSystem::DoUpdate2(float) {
+bool RenderingSystem::DoUpdate2(bool forceNewFrame) {
 #endif
 
     static unsigned int cccc = 0;
@@ -495,12 +496,13 @@ bool RenderingSystem::DoUpdate2(float) {
     unsigned int hash =
         MurmurHash::compute( outQueue.commands.data(),
             outQueue.count * sizeof(RenderCommand), 0x12345678);
-
-    if (hash == previousFrameHash) {
+    float t = TimeUtil::GetTime();
+    if (hash == previousFrameHash && !forceNewFrame && (t - lastFullFrameTime) < 1) {
         // reset
         outQueue.count = 0;
         return false;
     } else {
+        lastFullFrameTime = t;
         previousFrameHash = hash;
 
         outQueue.commands.reserve(outQueue.count + 1);

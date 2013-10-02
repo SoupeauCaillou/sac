@@ -179,6 +179,8 @@ static int drawBatchES2(
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 3 * sizeof(float), 0))
 
+        LOGT_EVERY_N(1000, "Use short for uv. Interleave position and uv [xxxx][yyyy][zzzz][uuvv]");
+        LOGT_EVERY_N(1000, "Could also use short for position, for instance: using [x * 100] x can be in [-320, 320] range");
         // update uv buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[2]))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,

@@ -106,7 +106,6 @@ public abstract class SacActivity extends Activity {
         } else {
         	Log(V, "savedInstanceState is null");
         }
-        gameThread = new SacGameThread(savedState);
         
         /////////////////////////// CREATE VIEW
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
@@ -127,6 +126,8 @@ public abstract class SacActivity extends Activity {
         	factor = 0.9f;
         	Log(I, "Current GFX value: HIGH RES");
         }*/
+        
+        gameThread = new SacGameThread(mGLView, savedState);
         Log(W, "TODO: restore GFX setting preference");
         factor = 1;
         
@@ -151,7 +152,9 @@ public abstract class SacActivity extends Activity {
         	mGLView.setEGLContextClientVersion(2);
         	renderer = new SacRenderer(viewWidth, viewHeight, gameThread, densityDPI, getRequestedOrientation());
             mGLView.setRenderer(renderer);
+            mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		}
+
         holder.addCallback(new SurfaceHolder.Callback() {
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {

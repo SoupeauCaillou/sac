@@ -25,10 +25,13 @@ package net.damsy.soupeaucaillou;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.opengl.GLSurfaceView;
+
 public class SacGameThread implements Runnable {
 	final private Queue<Event> eventsToConsume;
 	final private Object queueMutex;
 	private byte[] savedState;
+	private GLSurfaceView glView;
 	
 	static public enum Event {
 		BackPressed,
@@ -54,6 +57,14 @@ public class SacGameThread implements Runnable {
 		this.queueMutex = new Object();
 		this.savedState = savedState;
 		eventsToConsume = new ConcurrentLinkedQueue<SacGameThread.Event>();
+	}
+	
+	public SacGameThread(GLSurfaceView view, byte[] savedState) {
+		super();
+		this.queueMutex = new Object();
+		this.savedState = savedState;
+		eventsToConsume = new ConcurrentLinkedQueue<SacGameThread.Event>();
+		glView = view;
 	}
 	
 	
@@ -92,7 +103,8 @@ public class SacGameThread implements Runnable {
 			}
 			
 			if (runGameLoop) {
-				SacJNILib.step();
+				if (SacJNILib.step(false))
+					glView.requestRender();
 			} else synchronized (queueMutex) {
 				if (eventsToConsume.isEmpty()) {
 					try {

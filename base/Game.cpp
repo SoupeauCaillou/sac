@@ -412,7 +412,7 @@ int Game::saveState(uint8_t**) {
     return 0;
 }
 
-void Game::step() {
+bool Game::step(bool forceNewFrame) {
     PROFILE("Game", "step", BeginEvent);
 
     theRenderingSystem.waitDrawingComplete();
@@ -527,7 +527,9 @@ void Game::step() {
     static unsigned count1 = 0, count2 = 0;
     count1++;
 #endif
-    if(!theRenderingSystem.DoUpdate2(0)) {
+    bool newFrame = true;
+    if(!theRenderingSystem.DoUpdate2(forceNewFrame)) {
+        newFrame = false;
         float updateDuration = TimeUtil::GetTime() - timeBeforeThisStep;
         if (updateDuration < 0.016) {
             TimeUtil::Wait(0.016 - updateDuration);
@@ -546,6 +548,7 @@ void Game::step() {
     lastUpdateTime = timeBeforeThisStep;
 
     PROFILE("Game", "step", EndEvent);
+    return newFrame;
 }
 
 bool Game::render() {
