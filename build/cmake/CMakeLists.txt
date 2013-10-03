@@ -46,6 +46,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
 add_definitions(-DSAC_${BUILD_TARGET})
 
 if (SAC_CUSTOM_DEFINES)
+    #since I cannot managed to make it possible to have "SAC_CUSTOM_DEFINES="var1=arg1 var2=arg2",
+    #we are using '|' separator between variables definition and we replace now it with a space
+    string(REPLACE "|" " " SAC_CUSTOM_DEFINES ${SAC_CUSTOM_DEFINES})
     message("Adding the following defines: ${SAC_CUSTOM_DEFINES}")
     add_definitions(${SAC_CUSTOM_DEFINES})
 endif()

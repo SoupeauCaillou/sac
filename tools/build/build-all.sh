@@ -109,7 +109,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         source build-$CMAKE_BUILD_TARGET.sh
 
         #let him parse the args if necessary
-        parse_arguments $ARGS
+        parse_arguments "$ARGS"
     fi
 
     #if there is no target or help was asked
