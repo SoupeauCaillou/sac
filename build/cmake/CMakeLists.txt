@@ -53,7 +53,7 @@ endif()
 #set a variable used for the window title
 #retrieve git latest tag
 execute_process(
-        COMMAND git tag COMMAND head -n 1 COMMAND tr -d '\n'
+        COMMAND git describe --abbrev=0 COMMAND tr -d '\n'
         OUTPUT_VARIABLE SAC_REVISION_TAG
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
