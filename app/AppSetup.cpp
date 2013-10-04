@@ -100,6 +100,9 @@ std::mutex m;
 static void updateLoop(const std::string& title) {
     unsigned char * keys = SDL_GetKeyState(NULL);
 
+    // produce dummy frame to trick dummy display :)
+    theRenderingSystem.Update(0);
+
     while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
 #if SAC_DESKTOP
         if (keys[SDLK_LSHIFT]) {
