@@ -15,15 +15,20 @@ def run(directory, rewrite = False):
 			print("Found a file : '{0}'".format(filename))
 			image = pdb.gimp_file_load(directory+filename, directory+filename)
 
-			for layer in image.layers:
-				for c in [layer] + layer.children:
-					output = c.name
-					#check if an existing as already this name
-					while output+".png" in os.listdir(directory) and not rewrite:
-						output += '1'
-					print("Write layer '{0}' in '{1}.png'".format(c.name, output))
-					# write the new png file
-					pdb.file_png_save(image, c, directory + output +".png", directory + output + ".png", 0, 9, 0, 0, 0, 0, 0)
+			with open(os.path.join(directory, "infos.txt"), "wb") as f:
+				for layer in image.layers:
+					for c in [layer] + layer.children:
+						f.write("texture = {}\n"\
+								"size = {}, {}\n"\
+								"position = {}, {}\n".format(c.name, c.width, c.height, *c.offsets))
+
+						output = c.name
+						#check if an existing as already this name
+						while output+".png" in os.listdir(directory) and not rewrite:
+							output += '1'
+						print("Write layer '{0}' in '{1}.png'".format(c.name, output))
+						# write the new png file
+						pdb.file_png_save(image, c, directory + output +".png", directory + output + ".png", 0, 9, 0, 0, 0, 0, 0)
 
 	end = time.time()
 	print("Finished, total processing time : {0:.{1}f}".format(end-start, 2))
