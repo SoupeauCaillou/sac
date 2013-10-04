@@ -33,14 +33,15 @@
 #include <vector>
 
 #if ! SAC_EMSCRIPTEN
-static const char* errToString(ALenum err);
-static void check_AL_errors(const char* context);
-#define AL_OPERATION(x)  \
-     (x); \
-     check_AL_errors(#x);
+    static const char* errToString(ALenum err);
+    static void check_AL_errors(const char* context);
+    #define AL_OPERATION(x)  \
+         (x); \
+         check_AL_errors(#x);
 #else
-#define AL_OPERATION(x)
+    #define AL_OPERATION(x)
 #endif
+         
 #define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
@@ -58,7 +59,7 @@ void MusicAPILinuxOpenALImpl::init() {
     ALCdevice* device = alcOpenDevice(0);
     ALCcontext* context = alcCreateContext(device, 0);
     if (!(device && context && alcMakeContextCurrent(context)))
-        LOGW("probleme initialisation du son");
+        LOGE("Could not init AL library");
 #endif
 }
 

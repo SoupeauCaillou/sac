@@ -228,12 +228,14 @@ void MusicSystem::DoUpdate(float dt) {
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
             LOGE_IF (m->music == InvalidMusicRef, "Invalid music ref: " << m->music);
-#if ! SAC_EMSCRIPTEN
+            
+        #if ! SAC_EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
-            if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0])) {
-#else
-            if (!musicAPI->isPlaying(m->opaque[0])) {
-            #endif
+            if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0]))
+        #else
+            if (!musicAPI->isPlaying(m->opaque[0]))
+        #endif
+            {
                 LOGV(1, "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music);
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
@@ -249,17 +251,18 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->master) {
                     loop = m->master->looped;
                 } else {
-#if SAC_EMSCRIPTEN
-                    loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
-#else
-                    loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
-#endif
+                    #if SAC_EMSCRIPTEN
+                        loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
+                    #else
+                        loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
+                    #endif
                 }
 
                 if (loop) {
-#if ! SAC_EMSCRIPTEN
-                    LOGV(1, "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']');
-#endif
+                    #if ! SAC_EMSCRIPTEN
+                        LOGV(1, "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']');
+                    #endif
+
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
                     // memorize ending music
@@ -579,8 +582,9 @@ void MusicSystem::toggleMute(bool enable) {
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     LOGI("loadMusicFile " << assetName);
-    if (!assetAPI)
-        return InvalidMusicRef;
+    
+    LOGF_IF(!assetAPI, "Asked to load a music file but invalid assetAPI given. Did you init MusicSystem?");
+
     PROFILE("Music", "loadMusicFile", BeginEvent);
 #if ! SAC_EMSCRIPTEN
     FileBuffer b;
