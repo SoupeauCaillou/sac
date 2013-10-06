@@ -227,7 +227,7 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (useDeferredLoading) mutex.unlock();
         }
 
-        #if SAC_DEBUG
+        #if SAC_DEBUG || SAC_INGAME_EDITORS
         const std::string& ref2Name(TRef ref) const {
             for (const auto& p: nameToRef) {
                 if (p.second == ref)
