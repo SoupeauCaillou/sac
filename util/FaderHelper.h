@@ -23,11 +23,13 @@
 #pragma once
 
 #include "base/Entity.h"
+#include <vector>
 
 namespace Fading {
 	enum Enum {
 		In,
-		Out
+		Out,
+		OutIn
 	};
 }
 
@@ -37,7 +39,13 @@ class FaderHelper {
 
 		void init(Entity camera);
 
+		void registerFadingOutEntity(Entity e);
+
+		void registerFadingInEntity(Entity e);
+
 		void start(Fading::Enum type, float duration);
+
+		void clearFadingEntities();
 
 		bool update(float dt);
 
@@ -46,4 +54,7 @@ class FaderHelper {
 		float duration;
 		float accum;
 		Fading::Enum type;
+
+		std::vector<Entity> fadingOut;
+		std::vector<Entity> fadingIn;
 };
