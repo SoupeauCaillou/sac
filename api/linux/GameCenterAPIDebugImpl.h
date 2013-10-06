@@ -42,7 +42,7 @@ class GameCenterAPIDebugImpl : public GameCenterAPI {
 
         void unlockAchievement(int id) { LOGI("Unlocked success " << id << "!"); }
         void updateAchievementProgression(int id, int stepReached) { 
-            LOGI("Success " << id << " progression reached step " << stepReached << "\%"); 
+            LOGI("Success " << id << " progression reached step " << stepReached); 
         }
 
         void openAchievement() { LOGI("openAchievement."); }

@@ -141,7 +141,7 @@ static void* callback_thread(const std::string& title){
 extern bool profilerEnabled;
 glm::vec2 resolution;
 std::string title;
-int initGame(const std::string& pTitle, const glm::ivec2& res) {
+int initGame(const std::string& pTitle, const glm::ivec2& res, const std::string& pVersionName) {
     resolution = res;
     title = pTitle;
 
@@ -150,7 +150,7 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
-    SDL_WM_SetCaption(title.c_str(), 0);
+    SDL_WM_SetCaption((title + " " + pVersionName).c_str(), 0);
     SDL_EnableUNICODE(1);
 
     // Double Buffering
@@ -257,6 +257,11 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     game->mouseNativeTouchState = new MouseNativeTouchState();
     theTouchInputManager.setNativeTouchStatePtr(game->mouseNativeTouchState);
     theRenderingSystem.assetAPI = ctx->assetAPI;
+
+    if (game->wantsAPI(ContextAPI::Asset) || true) {
+        static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(title);
+    }
+
     if (game->wantsAPI(ContextAPI::Music)) {
         theMusicSystem.musicAPI = ctx->musicAPI;
         theMusicSystem.assetAPI = ctx->assetAPI;

@@ -22,7 +22,11 @@
 
 #pragma once
 
+#include <string>
+#include <glm/glm.hpp>
+class Game;
+
 // SETUP WINDOW, GL, stuff
-int initGame(const std::string& title, const glm::ivec2& resolution);
+int initGame(const std::string& title, const glm::ivec2& resolution, const std::string & versionName);
 // START GAME
 int launchGame(Game* gameImpl, int argc, char** argv);

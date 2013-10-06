@@ -27,7 +27,8 @@
 #include <list>
 
 class AssetAPILinuxImpl : public AssetAPI {
-	void init();
+public:
+	void init(const std::string & gName);
 
     FileBuffer loadFile(const std::string& full);
     FileBuffer loadAsset(const std::string& asset);
@@ -39,6 +40,7 @@ class AssetAPILinuxImpl : public AssetAPI {
     bool doesExistFileOrDirectory(const std::string& fullpath);
     void removeFileOrDirectory(const std::string& fullpath);
 
+    std::string gameName; //used for writable app data
     const std::string & getWritableAppDatasPath();
 
     void synchronize();

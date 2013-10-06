@@ -47,8 +47,8 @@
 #include <dirent.h>
 #endif
 
-void AssetAPILinuxImpl::init() {
-
+void AssetAPILinuxImpl::init(const std::string & gName) {
+    gameName = gName;
 }
 
 FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
@@ -158,7 +158,7 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
         } else {
             ss << "/tmp/";
         }
-        ss << "sac/";
+        ss << gameName;
 
         // create folder if needed
         struct stat statFolder;
