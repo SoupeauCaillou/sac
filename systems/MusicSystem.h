@@ -50,7 +50,7 @@ namespace MusicControl {
 }
 
 struct MusicComponent {
-    MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), control(MusicControl::Stop) {
+    MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), autoLoopName(""), control(MusicControl::Stop) {
         opaque[0] = opaque[1] = 0;
         fadeOut = fadeIn = 0;
         paused = false;
@@ -68,6 +68,7 @@ struct MusicComponent {
     float volume;
     float currentVolume; //handled by system - do not modify
     bool looped, paused;
+    std::string autoLoopName;
     MusicControl::Enum control;
 
     // 2 opaque structure to allow overlapping looping

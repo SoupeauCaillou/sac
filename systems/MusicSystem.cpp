@@ -67,6 +67,7 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), muted
     componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001));
     componentSerializer.add(new Property<bool>("looped", OFFSET(looped, sc)));
     componentSerializer.add(new Property<bool>("paused", OFFSET(paused, sc)));
+    componentSerializer.add(new StringProperty("auto_loop_name", OFFSET(autoLoopName, sc)));
     componentSerializer.add(new Property<int>("control", OFFSET(control, sc)));
 }
 
@@ -167,8 +168,16 @@ void MusicSystem::DoUpdate(float dt) {
         return;
     }
 
-    FOR_EACH_COMPONENT(Music, m)
+    for (auto& p: components) {
+        const Entity e = p.first;
+        auto* m = p.second;
+
         m->looped = false;
+
+        if (m->loopNext == InvalidMusicRef && !m->autoLoopName.empty()) {
+            LOGI("Music '" << theEntityManager.entityName(e) << "': prepare next loop '" << m->autoLoopName << "'");
+            m->loopNext = loadMusicFile(m->autoLoopName);
+        }
 
         // Music is not started and is startable => launch opaque[0] player
         if (m->control == MusicControl::Play && m->music != InvalidMusicRef && !m->opaque[0]) {
@@ -336,7 +345,7 @@ void MusicSystem::DoUpdate(float dt) {
             m->positionF = m->positionI / (float)musics[m->music].nbSamples;
         }
 #endif
-    END_FOR_EACH()
+    }
 
 #if SAC_MUSIC_VISU
     int idx = 0;
