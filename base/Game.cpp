@@ -299,7 +299,6 @@ void Game::sacInit(int windowW, int windowH) {
     theTouchInputManager.init(PlacementHelper::ScreenSize, PlacementHelper::WindowSize);
 
     theRenderingSystem.init();
-    theRenderingSystem.enableRendering();
 
     // Auto-load all atlas
     {

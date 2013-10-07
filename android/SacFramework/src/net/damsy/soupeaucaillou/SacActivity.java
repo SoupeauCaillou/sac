@@ -179,7 +179,11 @@ public abstract class SacActivity extends Activity {
     	super.onPause();
     	
     	SacPluginManager.instance().onActivityPause(this);
-    	
+
+    	// This must be done before requesting gl view pause, otherwise we'll end up
+    	// in a dead lock (game paused -> no frame, and render thread waiting for a frame 
+    	SacJNILib.stopRendering();
+
     	// Notify game thread
         gameThread.postEvent(Event.Pause);
 
@@ -200,7 +204,6 @@ public abstract class SacActivity extends Activity {
     	    	break;
     		}
     	}
-    	SacJNILib.stopRendering();
     	
     	// Release WakeLock
         if (wl != null)

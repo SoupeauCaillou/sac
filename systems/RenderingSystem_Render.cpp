@@ -556,6 +556,8 @@ void RenderingSystem::waitDrawingComplete() {
 
 void RenderingSystem::render() {
 #if ! SAC_EMSCRIPTEN
+    if (!initDone)
+        return;
     PROFILE("Renderer", "wait-frame", BeginEvent);
 
     std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);

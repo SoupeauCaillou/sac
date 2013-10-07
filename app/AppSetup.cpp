@@ -286,6 +286,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
+    theRenderingSystem.enableRendering();
+
     Recorder::Instance().init(resolution.x, resolution.y);
 
     LOGV(1, "Run game loop");

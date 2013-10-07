@@ -40,8 +40,8 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 		this.sacGame = sacG;
 		this.gameThread = new Thread(this.sacGame, "GameUpdate");
 		this.time = System.currentTimeMillis();
-		this.width = width;
-		this.height = height;
+		this.width = Math.max(width, height);
+		this.height = Math.min(width, height);
 		this.densityDpi = densityDpi;
 		SacActivity.Log(SacActivity.I, "SacRenderer created w,h=" + width + "," + height);
 	}

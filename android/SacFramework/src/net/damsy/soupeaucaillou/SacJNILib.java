@@ -59,6 +59,7 @@ public class SacJNILib {
 	 * Prevent simulation to queue new frames to draw
 	 */
 	public static native void stopRendering();
+	public static native void startRendering();
 
 	/**
 	 * Draw next frame

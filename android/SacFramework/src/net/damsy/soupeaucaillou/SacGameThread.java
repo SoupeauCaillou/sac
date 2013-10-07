@@ -62,6 +62,7 @@ public class SacGameThread implements Runnable {
 		SacJNILib.initFromGameThread(savedState);
 		SacActivity.Log(SacActivity.I, "After initFromGameThread");
 
+		SacJNILib.startRendering();
 		boolean runGameLoop = true;
 		while (true) {
 			// Consume events first
@@ -74,11 +75,13 @@ public class SacGameThread implements Runnable {
 						break;
 					case Pause:
 						SacActivity.Log(SacActivity.I, "Pause");
+						SacJNILib.stopRendering();
 						SacJNILib.pause();
 						runGameLoop = false;
 						break;
 					case Resume:
 						SacActivity.Log(SacActivity.I, "Resume");
+						SacJNILib.startRendering();
 						runGameLoop = true;
 						SacJNILib.resetTimestep();
 						break;

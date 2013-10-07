@@ -623,13 +623,12 @@ void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) 
 }
 
 void RenderingSystem::enableRendering() {
-    if (frameQueueWritable || !initDone)
+    if (frameQueueWritable)
         return;
     setFrameQueueWritable(true);
 }
 void RenderingSystem::disableRendering() {
-    if (!frameQueueWritable || !initDone)
-        return;
+    LOGW("HELO");
     setFrameQueueWritable(false);
 }
 
