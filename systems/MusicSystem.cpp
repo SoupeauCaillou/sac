@@ -538,10 +538,10 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
     OpaqueMusicPtr* ptr = m->opaque[0] = musicAPI->createPlayer(info.sampleRate);
 
     int initialNeededCount = musicAPI->initialPacketCount(ptr);
-    info.nbSamples += initialNeededCount * info.pcmBufferSize / 2;
+    info.nbSamples += (initialNeededCount * info.pcmBufferSize * info.channels) / 2;
     for (int i=0; i<initialNeededCount; i++) {
         // init with silence pkts
-        int8_t* buffer0 = musicAPI->allocate(info.pcmBufferSize);
+        int8_t* buffer0 = musicAPI->allocate(info.pcmBufferSize * info.channels);
         memset(buffer0, 0,  info.pcmBufferSize);
         musicAPI->queueMusicData(ptr, buffer0, info.pcmBufferSize, info.sampleRate);
     }
@@ -622,9 +622,11 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     info.totalTime = ov_time_total(f, -1) + 1; // hum hum
     vorbis_info* inf = ov_info(f, -1);
     info.toRemove = false;
+    LOGI("nb channels: " << inf->channels);
     info.sampleRate = inf->rate * inf->channels;
     info.pcmBufferSize = musicAPI->pcmBufferSize(info.sampleRate);
-    info.nbSamples = ov_pcm_total(f, -1);
+    info.nbSamples = ov_pcm_total(f, -1) * inf->channels;
+    info.channels = inf->channels;
     info.leftOver = 0;
     info.buffer = new CircularBuffer(info.pcmBufferSize * 10);
     LOGV(1, "(music) File: " << assetName << " / rate: " << info.sampleRate << " duration: " << info.totalTime << " nbSample: " << info.nbSamples << " -> " << nextValidRef);

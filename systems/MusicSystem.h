@@ -101,7 +101,7 @@ UPDATABLE_SYSTEM(Music)
                 OggVorbis_File* ovf;
                 // track info
                 float totalTime;
-                int nbSamples;
+                int nbSamples, channels;
                 int sampleRate;
                 // raw data
                 int pcmBufferSize;
