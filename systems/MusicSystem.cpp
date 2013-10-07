@@ -619,7 +619,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 
     MusicInfo info;
     info.ovf = f;
-    info.totalTime = ov_time_total(f, -1) * 0.001 + 1; // hum hum
+    info.totalTime = ov_time_total(f, -1) + 1; // hum hum
     vorbis_info* inf = ov_info(f, -1);
     info.toRemove = false;
     info.sampleRate = inf->rate * inf->channels;
