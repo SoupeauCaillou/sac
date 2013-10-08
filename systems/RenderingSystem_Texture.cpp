@@ -137,7 +137,16 @@ void RenderingSystem::invalidateAtlasTextures() {
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
-    textureLibrary.unload(atlasName);
+    std::stringstream realName;
+    realName << OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi)
+        << '/' << atlasName;
+    textureLibrary.unload(realName.str());
+    for (unsigned i=0; i<atlas.size(); i++) {
+        if (atlas[i].name == realName.str()) {
+            atlas[i].ref = InvalidTextureRef;
+        }
+    }
+    
 }
 
 void RenderingSystem::reloadTextures() {
