@@ -62,6 +62,29 @@ void GameCenterAPIHelper::displayUI() {
     displayFeatures(_gameCenterAPI->isConnected());
 }
 
+void GameCenterAPIHelper::registerForFading(FaderHelper* fader, Fading::Enum type) {
+    switch (type) {
+        case Fading::In:
+            fader->registerFadingInEntity(signButton);
+            if (_gameCenterAPI->isConnected()) {
+                if (achievementsButton)
+                    fader->registerFadingInEntity(achievementsButton);
+                if (leaderboardsButton)
+                    fader->registerFadingInEntity(leaderboardsButton);
+            }
+            break;
+        case Fading::Out:
+            fader->registerFadingOutEntity(signButton);
+            if (achievementsButton && RENDERING(achievementsButton)->show)
+                fader->registerFadingOutEntity(achievementsButton);
+            if (leaderboardsButton && RENDERING(leaderboardsButton)->show)
+                fader->registerFadingOutEntity(leaderboardsButton);
+            break;
+        default:
+            LOGF("Invalid type '" << type << "' used in " << __PRETTY_FUNCTION__);
+    }
+}
+
 void GameCenterAPIHelper::hideUI() {
     LOGF_IF (! _gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
 

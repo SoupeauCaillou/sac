@@ -28,6 +28,8 @@
 
 #include <string>
 
+#include "FaderHelper.h"
+
 class GameCenterAPIHelper {
 	public:
 		void init(GameCenterAPI * gameCenterAPI, bool useAchievements, bool useLeaderboards);
@@ -35,6 +37,8 @@ class GameCenterAPIHelper {
 	    void displayUI();
 		void hideUI();
 		void updateUI(); //do not forget to call it if you display UI otherwise inputs won't be handled!
+
+        void registerForFading(FaderHelper* fader, Fading::Enum type);
 
 	private:
         void displayFeatures(bool display);
