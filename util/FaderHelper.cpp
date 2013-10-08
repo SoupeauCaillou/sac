@@ -23,6 +23,7 @@
 #include "FaderHelper.h"
 
 #include "systems/AnchorSystem.h"
+#include "systems/ButtonSystem.h"
 #include "systems/RenderingSystem.h"
 #include "systems/TransformationSystem.h"
 
@@ -111,11 +112,18 @@ bool FaderHelper::update(float dt) {
 		// hide every fading-out entities
 		for (auto e: fadingOut) {
 			RENDERING(e)->show = false;
+
+			ButtonComponent* bc = theButtonSystem.Get(e, false);
+			if (bc)
+				bc->enabled = false;
 		}
 
 		// show every fading-in entities
 		for (auto e: fadingIn) {
 			RENDERING(e)->show = true;
+			ButtonComponent* bc = theButtonSystem.Get(e, false);
+			if (bc)
+				bc->enabled = true;
 		}
 	}
 
