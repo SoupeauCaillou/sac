@@ -294,7 +294,7 @@ public:
     return p;
   }
 
-  virtual int packTextures(int &width,int &height,bool forcePowerOfTwo,bool onePixelBorder)  // pack the textures, the return code is the amount of wasted/unused area.
+  virtual int packTextures(int &width,int &height,bool forcePowerOfTwo,bool onePixelBorder, int forceWidth)  // pack the textures, the return code is the amount of wasted/unused area.
   {
     width = 0;
     height = 0;
@@ -316,7 +316,11 @@ public:
     }
 
 youpi:
-    width = mLongestEdge;              // The width is no more than the longest edge of any rectangle passed in
+  if (forceWidth == 0) {
+    width = mLongestEdge;
+  }else {              // The width is no more than the longest edge of any rectangle passed in
+    width = forceWidth;
+  }
     int count = mTotalArea / (mLongestEdge);
     height = (count+2)*mLongestEdge;            // We guess that the height is no more than twice the longest edge.  On exit, this will get shrunk down to the actual tallest height.
 

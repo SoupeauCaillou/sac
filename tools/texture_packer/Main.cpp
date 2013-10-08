@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include <base/Log.h>
+#include <vector>
 
 static char* loadPng(const char* assetName, int* width, int* height);
 
@@ -34,8 +35,10 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
+	std::vector<std::pair<int, int> > sizes;
 	TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
 	tp->setTextureCount(argc - 1);
+
 	for (int i=1; i<argc; i++) {
 		int width, height;
 		char* img = loadPng(argv[i], &width, &height);
@@ -43,6 +46,7 @@ int main(int argc, char** argv) {
 			LOGE ("Unable to load '" << argv[i] << "'" );
 			return -1;
 		}
+		sizes.push_back(std::make_pair(width, height));
 		tp->addTexture(width, height);
 	}
 
@@ -51,6 +55,17 @@ int main(int argc, char** argv) {
 	int unused_area =
 	#endif
 	tp->packTextures(finalW, finalH,true,true);
+
+	if (finalW > 2048 || finalH > 2048) {
+		TEXTURE_PACKER::releaseTexturePacker(tp);
+		tp = TEXTURE_PACKER::createTexturePacker();
+		tp->setTextureCount(argc - 1);
+		for(auto p: sizes) {
+			tp->addTexture(p.first, p.second);		
+		}
+		// re-run
+		tp->packTextures(finalW, finalH,true,true, 2048);		
+	}
 
 	// GAUTIER BORDEL, LAISSE LES std::cout :p
 	std::cout << "Atlas size:" << finalW << "," << finalH << std::endl;

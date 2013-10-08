@@ -108,7 +108,7 @@ public:
   virtual void  setTextureCount(int tcount) = 0; // number of textures to consider..
   virtual void  addTexture(int wid,int hit) = 0; // add textures 0 - n
 
-  virtual int packTextures(int &width,int &height,bool forcePowerOfTwo,bool onePixelBorder) = 0;  // pack the textures, the return code is the amount of wasted/unused area.
+  virtual int packTextures(int &width,int &height,bool forcePowerOfTwo,bool onePixelBorder, int forceWidth = 0) = 0;  // pack the textures, the return code is the amount of wasted/unused area.
 
   virtual bool  getTextureLocation(int index,int &x,int &y,int &wid,int &hit) = 0; // returns true if the texture has been rotated 90 degrees
 
