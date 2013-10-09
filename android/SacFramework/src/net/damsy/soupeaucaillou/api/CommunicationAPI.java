@@ -41,7 +41,7 @@ public class CommunicationAPI {
 	private Activity activity;
 	private SharedPreferences appRaterPreference;
 
-	public void init(Activity activity, SharedPreferences appRaterPreference, boolean giftizEnabled) {
+	public void init(Activity activity, SharedPreferences appRaterPreference) {
 		this.activity = activity;
 		this.appRaterPreference = appRaterPreference;
 
