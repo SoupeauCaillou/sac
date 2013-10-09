@@ -120,10 +120,14 @@ static void updateLoop(const std::string& title) {
         game->step();
 
         bool focus = (SDL_GetAppState() & SDL_APPINPUTFOCUS);
-        if (focus) {
-            theMusicSystem.toggleMute(theSoundSystem.mute);
+        //if we lost the focus, mute the music (release mode only)
+        if (! focus) {
+            #if ! SAC_DEBUG
+                theMusicSystem.toggleMute(true);
+            #endif
+        //otherwise, restore sound as it was before focus was lost
         } else {
-            // theMusicSystem.toggleMute(true);
+            theMusicSystem.toggleMute(theSoundSystem.mute);
         }
     }
     theRenderingSystem.disableRendering();
