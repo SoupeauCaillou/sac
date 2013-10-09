@@ -114,9 +114,23 @@ compilation_after() {
     info "Cleaning tremor directory..."
     cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
+    info "Stripping libsac.so (cleaning stuff)"
+    #actually this should be useless since we could use ANDROID_NDK env variable, but it's like a security..
+    android_ndk_path=$(grep 'set( ANDROID_NDK ' $builddir/CMakeFiles/android.toolchain.config.cmake)
+    strip_path=$(grep 'set( ANDROID_TOOLCHAIN_NAME ' $builddir/CMakeFiles/android.toolchain.config.cmake)
+
+    #if we found it, strip the lib
+    if [ $? = 0 ]; then
+        strip_path=$(find $(echo $android_ndk_path | cut -d " " -f 3)/toolchains/$(echo $strip_path | cut -d " " -f 3) -name arm-linux-androideabi-strip)
+        $strip_path $rootPath/libs/armeabi-v7a/libsac.so
+    else
+        info "Warning: could not find strip tool path! Could not strip libsac.so" $orange
+    fi
+    
+
     if [ $USE_GRADLE = 1 ]; then
         if [ ! -f $rootPath/libs/armeabi-v7a.jar ]; then
-            error_and_quit "Missing libs/armeabi.jar (did you forgot to compile ?)!"
+            error_and_quit "Missing libs/armeabi.jar (did you forgot to compile?)!"
         fi
         info "TODO for gradle" $red
     else
@@ -126,9 +140,6 @@ compilation_after() {
     if [ $REGENERATE_ANT_FILES = 1 ]; then
         info "Updating android project"
         cd $rootPath
-
-        #TODO: dig why compilation fail when coming back from Eclipse instead of hacking it
-        rm -rf bin/res/crunch sac/android/SacGooglePlayGameServices/libs/google_play_services/libproject/google-play-services_lib/bin/res/crunch
 
         if ! android update project -p . -t 4 -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
