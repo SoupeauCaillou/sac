@@ -145,7 +145,7 @@ static void* callback_thread(const std::string& title){
 extern bool profilerEnabled;
 glm::vec2 resolution;
 std::string title;
-int initGame(const std::string& pTitle, const glm::ivec2& res, const std::string& pVersionName) {
+int initGame(const std::string& pTitle, const glm::ivec2& res) {
     resolution = res;
     title = pTitle;
 
@@ -154,7 +154,14 @@ int initGame(const std::string& pTitle, const glm::ivec2& res, const std::string
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
-    SDL_WM_SetCaption((title + " " + pVersionName).c_str(), 0);
+
+    //display git revision if available
+    #ifdef SAC_REVISION_TAG
+        SDL_WM_SetCaption((title + " " + SAC_REVISION_TAG).c_str(), 0);
+    #else
+        SDL_WM_SetCaption(title.c_str(), 0);
+    #endif
+
     SDL_EnableUNICODE(1);
 
     // Double Buffering
