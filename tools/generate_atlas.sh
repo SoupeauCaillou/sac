@@ -70,8 +70,9 @@ for directory_path in $@; do
         ############# STEP 2: create an optimized copy of each image
         info "Step #2: create optimized image"
         for file in $(cd $directory_path && ls *.png); do
-            width=$(file $directory_path/$file | cut -d ',' -f2 | cut -d ' ' -f2)
-            convert $directory_path/$file -scale $(($width/$divide_by)) $TMP_FILEDIR/$file
+            width=$(identify -format "%w" $directory_path/$file)
+            scale=$(($width/$divide_by))
+            convert $directory_path/$file -scale $scale $TMP_FILEDIR/$file
         done
         for file in $(cd $TMP_FILEDIR && ls *.png); do
             info "\tOptimizing $file..." $blue
