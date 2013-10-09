@@ -1,48 +1,54 @@
-#!/bin/sh
+#!/bin/bash
 
-#inspired from http://www.intuitive.com/wicked/showscript.cgi?011-colors.sh
-initializeANSI()
-{
-  esc=""
+#from where are we calling it
+fromWhereAmIBeingCalled=$PWD
+#where the script is
+whereAmI=$(cd "$(dirname "$0")" && pwd)
+cd $whereAmI
+#if we executed a linked script; go to the real one
+if [  -h $0 ]; then
+	whereAmI+=/$(dirname $(readlink $0))
+	cd $whereAmI
+fi
+rootPath=$whereAmI"/../../.."
 
-	reset="[0m"
-	red="[1m[31m"
-	green="[1m[32m"
-	yellow="[1m[33m"
+#import cool stuff
+source ../coolStuff.sh
 
-}
+#how to use the script
+export SAC_USAGE="$0 [options]"
+export SAC_OPTIONS="\
+all: print everything
+I: print info
+T: print todos
+W: print warnings
+E: print errors
+C: desactivate colors"
 
-if [ $# != 1 ] || [ `echo $1 | grep -- -h` ]; then
-	echo "Usage: $0 options"
-	echo "	- all: print all"
-	echo "	- I: print info"
-	echo "	- W: print warnings"
-	echo "	- E: print errors"
-	echo "	- C: desactivate colors"
-	echo "Example : \"$0 I-W-C\" will show only info and warnings, without color."
-	exit -1
+export SAC_EXAMPLE="${green}$0 IWC will show only info and warnings, without color.{default_color}"
+
+if [ $# != 1 ] || [ $(echo $1 | grep -- -h) ]; then
+	usage_and_quit
 fi
 
-info=`echo $1 | grep -i -e all -e I`
+info=$(echo $1 | grep -i -e all -e I)
+todo=$(echo $1 | grep -i -e all -e T)
+warn=$(echo $1 | grep -i -e all -e W)
+erro=$(echo $1 | grep -i -e all -e E)
+nocolors=$(echo $1 | grep C)
 
-warn=`echo $1 | grep -i -e all -e W`
-
-erro=`echo $1 | grep -i -e all -e E`
-
-nocolors=`echo $1 | grep C`
-
-initializeANSI
 
 if [ -z $info ] && [ -z "$warn" ] && [ -z "$erro" ]; then
-	echo "${red}Warning, no LOG INFO, WARN and ERRO to print!(only std::cout codes)"
-	echo "Use 'all' option to enable all of them!${reset}"
+	info "Warning: no LOG INFO, WARN and ERRO to print!(only std::cout codes).
+Use 'all' option to enable all of them!" $orange
 fi
 
 while read LINE; do
-	n=`echo $LINE | grep INFO`
-	w=`echo $LINE | grep WARN`
-	e=`echo $LINE | grep ERRO
-	`
+	n=$(echo $LINE | grep INFO)
+	t=$(echo $LINE | grep TODO)
+	w=$(echo $LINE | grep WARN)
+	e=$(echo $LINE | grep ERRO)
+
 	# *** show info?
 	if [ -n "$n" ]; then
 		if [ -z $info ]; then
@@ -50,7 +56,18 @@ while read LINE; do
 		fi
 
 		if [ -z $nocolors ]; then
-			echo "${green}$LINE${reset}"
+			info "$LINE$" $green
+		else
+			echo "$LINE"
+		fi
+	# *** show todos?
+	elif [ -n "$t" ]; then
+		if [ -z $todo ]; then
+			continue
+		fi
+
+		if [ -z $nocolors ]; then
+			info "$LINE$" $yellow
 		else
 			echo "$LINE"
 		fi
@@ -61,7 +78,7 @@ while read LINE; do
 		fi
 
 		if [ -z $nocolors ]; then
-			echo "${yellow}$LINE${reset}"
+			info "$LINE" $orange
 		else
 			echo "$LINE"
 		fi
@@ -72,7 +89,7 @@ while read LINE; do
 		fi
 
 		if [ -z $nocolors ]; then
-			echo "${red}$LINE${reset}"
+			info "$LINE" $red
 		else
 			echo "$LINE"
 		fi
@@ -80,5 +97,3 @@ while read LINE; do
 		echo "(std::cout)$LINE"
 	fi
 done
-
-exit 0
