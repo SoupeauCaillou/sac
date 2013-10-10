@@ -57,7 +57,7 @@ class JNIWrapper {
 				std::stringstream getInstanceSign;
 				getInstanceSign << "()L" << className << ';';
 				jmethodID getInstance = JNIHelper::findStaticMethod(env, javaClass, "Instance", getInstanceSign.str());
-				instance = env->CallStaticObjectMethod(javaClass, getInstance);
+				instance = env->NewGlobalRef(env->CallStaticObjectMethod(javaClass, getInstance));
 				if (!instance) {
 					LOGF("Could not retrieve '" << className << "' instance");
 				}
