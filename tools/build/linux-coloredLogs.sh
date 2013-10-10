@@ -56,7 +56,7 @@ while read LINE; do
 		fi
 
 		if [ -z $nocolors ]; then
-			info "$LINE$" $green
+			info "$LINE" $green
 		else
 			echo "$LINE"
 		fi
@@ -67,7 +67,7 @@ while read LINE; do
 		fi
 
 		if [ -z $nocolors ]; then
-			info "$LINE$" $yellow
+			info "$LINE" $yellow
 		else
 			echo "$LINE"
 		fi
