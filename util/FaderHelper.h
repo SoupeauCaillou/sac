@@ -49,6 +49,8 @@ class FaderHelper {
 
 		bool update(float dt);
 
+		float getDuration() const { return duration; }
+
 	private:
 		Entity fadingEntity;
 		float duration;
