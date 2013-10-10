@@ -269,11 +269,16 @@ void LevelEditor::init() {
     }
 }
 
-static std::string displayName(Entity e) {
+static std::string displayGroup(Entity e) {
     std::string name (theEntityManager.entityName(e));
+
+    //if name contains a slash ('/'), then first part is the group's name
+    auto slashPos = name.find('/');
+    if (slashPos != std::string::npos) name = name.substr(0, slashPos);
 
     if (name.find("__debug") == 0) name = "__debug";
     if (name.find("__text") == 0) name = "__text";
+
 
     return name;
 }
@@ -341,7 +346,7 @@ void LevelEditor::tick(float dt) {
         // Build entity groups
         std::map<std::string, std::vector<Entity> > groups;
         for (unsigned i=0; i<entities.size(); i++) {
-            groups[displayName(entities[i])].push_back(entities[i]);
+            groups[displayGroup(entities[i])].push_back(entities[i]);
         }
 
         // Add missing entities to bar
@@ -352,8 +357,8 @@ void LevelEditor::tick(float dt) {
             n << entityToTwName(e);
 
             std::string define = "";
-            if (groups[displayName(e)].size() > 1) {
-                define = "group='" + displayName(e) + "'";
+            if (groups[displayGroup(e)].size() > 1) {
+                define = "group='" + displayGroup(e) + "'";
             }
             TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], define.c_str());
             bool added = datas->barVar.insert(std::make_pair(e, n.str())).second;
