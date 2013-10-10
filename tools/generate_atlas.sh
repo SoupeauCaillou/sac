@@ -73,7 +73,7 @@ for directory_path in $@; do
         for file in $(cd $directory_path && ls *.png); do
             width=$(identify -format "%w" $directory_path/$file)
             scale=$(($width/$divide_by))
-            convert $directory_path/$file -scale $scale $TMP_FILEDIR/$file
+            convert $directory_path/$file -scale $scale PNG32:$TMP_FILEDIR/$file
         done
         for file in $(cd $TMP_FILEDIR && ls *.png); do
             info "\tOptimizing $file..." $blue
