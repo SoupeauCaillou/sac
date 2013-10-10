@@ -115,7 +115,7 @@ void TouchInputManager::Update(float) {
                 } else {
                     lastClickPosition[i] = pos;
                     doubleclicked[i] = false;
-                    LOGV(1, "CLICK(" << i << ") at " << t);
+                    LOGV(1, "CLICK(" << i << ") at " << t << ": " << pos);
                 }
                 lastClickTime[i] = t;
             } else {

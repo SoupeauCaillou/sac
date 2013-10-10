@@ -30,16 +30,15 @@ void GameCenterAPIHelper::init(GameCenterAPI * gameCenterAPI, bool useAchievemen
 
     bUIdisplayed = false;
 
-    //creat needed entities
-    signButton = theEntityManager.CreateEntity("btn_gg_sign",
-        EntityType::Volatile, theEntityManager.entityTemplateLibrary.load("googleplay/signinout_button"));
+    //create entities
+    signButton = theEntityManager.CreateEntity("gg/sign_in_out_button",
+        EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/signinout_button"));
 
+    achievementsButton = !useAchievements ? 0 : theEntityManager.CreateEntity("gg/achievements_button",
+        EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/achievements_button"));
 
-    achievementsButton = !useAchievements ? 0 : theEntityManager.CreateEntity("btn_gg_achievements",
-        EntityType::Volatile, theEntityManager.entityTemplateLibrary.load("googleplay/achievements_button"));
-
-    leaderboardsButton = !useLeaderboards ? 0 : theEntityManager.CreateEntity("btn_gg_leaderboards",
-        EntityType::Volatile, theEntityManager.entityTemplateLibrary.load("googleplay/leaderboards_button"));
+    leaderboardsButton = !useLeaderboards ? 0 : theEntityManager.CreateEntity("gg/leaderboards_button",
+        EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/leaderboards_button"));
 }
 
 
