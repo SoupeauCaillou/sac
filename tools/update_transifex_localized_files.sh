@@ -66,10 +66,10 @@ source_lang = en'
 		fi
 	done
 
-######### 3 : Change strings.xml content. Remove \ character when followed by an "'"#########
+######### 3 : Change strings.xml content. Remove \ character when followed by an "'" and add extra "#########
 	info "Removing useless escape char (sequence=\"\'\")"
 	for file in $(find . -name strings.xml); do
-		sed -i -e "s|\\\'|'|g" $file
+		sed -i -e "s|\\\'|'|g" -e 's|">|">"|g' -e 's|</string>|"</string>|g' $file
 	done
 
 	info "Done. Cya!"
