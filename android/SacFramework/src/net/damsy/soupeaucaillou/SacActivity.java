@@ -111,6 +111,7 @@ public abstract class SacActivity extends Activity {
         RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
 
         GLSurfaceView mGLView = new GLSurfaceView(this);
+        mGLView.setEGLConfigChooser(true);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
 
         /*SharedPreferences preferences = getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
