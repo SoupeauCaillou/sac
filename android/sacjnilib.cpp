@@ -154,10 +154,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThr
     myGameHolder->game->sacInit(myGameHolder->width, myGameHolder->height);
 }
 
-JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
-  (JNIEnv *env, jclass, jbyteArray jstate) {
-    LOGW("-->" <<  __FUNCTION__ << ':' << myGameHolder);
-    // init JNI env
+static void initGameJni(JNIEnv *env) {
     myGameHolder->gameEnv = env;
     INIT_1(adAPI, game, AdAPIAndroidImpl)
     INIT_1(assetAPI, game, AssetAPIAndroidImpl)
@@ -170,6 +167,14 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
     INIT_1(stringInputAPI, game, StringInputAPIAndroidImpl)
     INIT_1(vibrateAPI, game, VibrateAPIAndroidImpl)
     INIT_1(wwwAPI, game, WWWAPIAndroidImpl)
+
+}
+
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThread
+  (JNIEnv *env, jclass, jbyteArray jstate) {
+    LOGW("-->" <<  __FUNCTION__ << ':' << myGameHolder);
+    // init JNI env
+    initGameJni(env);
 
     theMusicSystem.musicAPI = myGameHolder->game->gameThreadContext->musicAPI;
     theMusicSystem.assetAPI = myGameHolder->game->gameThreadContext->assetAPI;
@@ -235,11 +240,16 @@ static float pauseTime;
 // HACK: this one is called only from Activity::onResume
 // Here we'll compute the time since pause. If < 5s -> autoresume the music
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
-  (JNIEnv *, jclass) {
+  (JNIEnv *env, jclass) {
 
     LOGW("-->" <<  __FUNCTION__ << ':' << myGameHolder);
     if (!myGameHolder)
         return;
+
+    if (env != myGameHolder->gameEnv) {
+        LOGI("Re-init JNI layer");
+        initGameJni(env);
+    }
     float d = TimeUtil::GetTime();
     myGameHolder->game->resetTime();
     LOGW("resume time: " << d << ", diff:" << (d - pauseTime) << ", " << theSoundSystem.mute);
