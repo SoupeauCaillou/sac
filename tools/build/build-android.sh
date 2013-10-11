@@ -2,6 +2,8 @@
 
 #how to use the script
 export PLATFORM_OPTIONS="\
+\t-arm: build ARM version
+\t-x86: build x86 version
 \t-a|-atlas: generate all atlas from unprepared_assets directory
 \t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
 \t-p|-project: regenerate ant files and run it
@@ -13,6 +15,7 @@ export PLATFORM_OPTIONS="\
 
 
 parse_arguments() {
+    ARCHI=arm
     GENERATE_ATLAS=0
     USE_GRADLE=0
     REGENERATE_ANT_FILES=0
@@ -56,14 +59,20 @@ parse_arguments() {
                 TARGETS=$TARGETS" "
                 STACK_TRACE=1
                 ;;
+            "-c" | "-clean")
+                TARGETS=$TARGETS" "
+                FORE_CLEAN=1
+                ;;
+            "-arm")
+                ARCHI=arm
+                ;;
+            "-x86")
+                ARCHI=x86
+                ;;
             "--v" | "--validation")
                 TARGETS=$TARGETS" "
                 shift
                 SIGN_APK=$1
-                ;;
-            "-c" | "-clean")
-                TARGETS=$TARGETS" "
-                FORE_CLEAN=1
                 ;;
             --*)
                 info "Unknown option '$1', ignoring it and its arg '$2'" $red
@@ -106,6 +115,14 @@ compilation_before() {
 	info "Building tremor lib..."
 	cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
+
+    if [ "$ARCHI" = "x86" ]; then
+        CMAKE_CONFIG=$CMAKE_CONFIG" -DANDROID_ABI=x86"
+    fi
+
+    #change build dir!
+    builddir=$builddir-$ARCHI
+
     CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
     -DANDROID_FORCE_ARM_BUILD=ON -DUSE_GRADLE=$USE_GRADLE"
 }
@@ -114,19 +131,20 @@ compilation_after() {
     info "Cleaning tremor directory..."
     cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
-    info "Stripping libsac.so (cleaning stuff)"
-    #actually this should be useless since we could use ANDROID_NDK env variable, but it's like a security..
-    android_ndk_path=$(grep 'set( ANDROID_NDK ' $builddir/CMakeFiles/android.toolchain.config.cmake)
-    strip_path=$(grep 'set( ANDROID_TOOLCHAIN_NAME ' $builddir/CMakeFiles/android.toolchain.config.cmake)
+    if [ $ARCHI = "arm" ]; then
+        info "Stripping libsac.so (cleaning stuff)"
+        #actually this should be useless since we could use ANDROID_NDK env variable, but it's like a security..
+        android_ndk_path=$(grep 'set( ANDROID_NDK ' $builddir/CMakeFiles/android.toolchain.config.cmake)
+        strip_path=$(grep 'set( ANDROID_TOOLCHAIN_NAME ' $builddir/CMakeFiles/android.toolchain.config.cmake)
 
-    #if we found it, strip the lib
-    if [ $? = 0 ]; then
-        strip_path=$(find $(echo $android_ndk_path | cut -d " " -f 3)/toolchains/$(echo $strip_path | cut -d " " -f 3) -name arm-linux-androideabi-strip)
-        $strip_path $rootPath/libs/armeabi-v7a/libsac.so
-    else
-        info "Warning: could not find strip tool path! Could not strip libsac.so" $orange
+        #if we found it, strip the lib
+        if [ $? = 0 ]; then
+            strip_path=$(find $(echo $android_ndk_path | cut -d " " -f 3)/toolchains/$(echo $strip_path | cut -d " " -f 3) -name arm-linux-androideabi-strip)
+            $strip_path $rootPath/libs/armeabi-v7a/libsac.so
+        else
+            info "Warning: could not find strip tool path! Could not strip libsac.so" $orange
+        fi
     fi
-    
 
     if [ $USE_GRADLE = 1 ]; then
         if [ ! -f $rootPath/libs/armeabi-v7a.jar ]; then
