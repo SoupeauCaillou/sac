@@ -36,14 +36,16 @@ class GameCenterAPIHelper {
 	    
 	    void displayUI();
 		void hideUI();
-		void updateUI(); //do not forget to call it if you display UI otherwise inputs won't be handled!
+        //do not forget to call it if you display UI otherwise inputs won't be handled!
+        //return true if a button has been clicked
+        bool updateUI(); 
 
         void registerForFading(FaderHelper* fader, Fading::Enum type);
 
 	private:
         void displayFeatures(bool display);
 
-		GameCenterAPI * _gameCenterAPI;
+		GameCenterAPI * gameCenterAPI;
         Entity signButton, achievementsButton, leaderboardsButton;
         bool bUIdisplayed;
 };

@@ -25,8 +25,8 @@
 #include <systems/RenderingSystem.h>
 #include <systems/ButtonSystem.h>
 
-void GameCenterAPIHelper::init(GameCenterAPI * gameCenterAPI, bool useAchievements, bool useLeaderboards) {
-    _gameCenterAPI = gameCenterAPI;
+void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool useLeaderboards) {
+    gameCenterAPI = g;
 
     bUIdisplayed = false;
 
@@ -52,20 +52,20 @@ void GameCenterAPIHelper::displayFeatures(bool display) {
 }
 
 void GameCenterAPIHelper::displayUI() {
-    LOGF_IF (! _gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
+    LOGF_IF (! gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
 
     bUIdisplayed = true;
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = true;
 
     //only display other buttons if we are connected
-    displayFeatures(_gameCenterAPI->isConnected());
+    displayFeatures(gameCenterAPI->isConnected());
 }
 
 void GameCenterAPIHelper::registerForFading(FaderHelper* fader, Fading::Enum type) {
     switch (type) {
         case Fading::In:
             fader->registerFadingInEntity(signButton);
-            if (_gameCenterAPI->isConnected()) {
+            if (gameCenterAPI->isConnected()) {
                 if (achievementsButton)
                     fader->registerFadingInEntity(achievementsButton);
                 if (leaderboardsButton)
@@ -85,7 +85,7 @@ void GameCenterAPIHelper::registerForFading(FaderHelper* fader, Fading::Enum typ
 }
 
 void GameCenterAPIHelper::hideUI() {
-    LOGF_IF (! _gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
+    LOGF_IF (! gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
 
     bUIdisplayed = false;
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = false;
@@ -93,10 +93,10 @@ void GameCenterAPIHelper::hideUI() {
     displayFeatures(false);
 }  
 
-void GameCenterAPIHelper::updateUI() {
-    LOGF_IF (! _gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
+bool GameCenterAPIHelper::updateUI() {
+    LOGF_IF (! gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
 
-    bool isConnected = _gameCenterAPI->isConnected();
+    bool isConnected = gameCenterAPI->isConnected();
 
     displayFeatures(bUIdisplayed & isConnected);
     
@@ -109,12 +109,15 @@ void GameCenterAPIHelper::updateUI() {
     }
 
     if (BUTTON(signButton)->clicked) {
-        isConnected ? _gameCenterAPI->disconnect() : _gameCenterAPI->connectOrRegister();
+        isConnected ? gameCenterAPI->disconnect() : gameCenterAPI->connectOrRegister();
+        return true;
     } else if (achievementsButton && BUTTON(achievementsButton)->clicked) {
-        _gameCenterAPI->openAchievement();
+        gameCenterAPI->openAchievement();
+        return true;
     } else if (leaderboardsButton && BUTTON(leaderboardsButton)->clicked) {
-        _gameCenterAPI->openLeaderboards();
+        gameCenterAPI->openLeaderboards();
+        return true;
     }
 
-
+    return false;
 }
