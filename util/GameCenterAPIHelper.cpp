@@ -25,7 +25,7 @@
 #include <systems/RenderingSystem.h>
 #include <systems/ButtonSystem.h>
 
-void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool useLeaderboards, bool bLeaderboard) {
+void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool displayIfNotConnected,  bool useLeaderboards, bool bLeaderboard) {
     gameCenterAPI = g;
 
     bUIdisplayed = false;
@@ -41,15 +41,18 @@ void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool use
         EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/leaderboards_button"));
 
     uniqueLeaderboard = bLeaderboard;
+    this->displayIfNotConnected = displayIfNotConnected;
 }
 
 
-void GameCenterAPIHelper::displayFeatures(bool display) {
+void GameCenterAPIHelper::displayFeatures(bool display, bool enableButton) {
     if (achievementsButton) {
-        RENDERING(achievementsButton)->show = BUTTON(achievementsButton)->enabled = display;
+        RENDERING(achievementsButton)->show = display;
+        BUTTON(achievementsButton)->enabled = display & enableButton;
     }
     if (leaderboardsButton) {
-        RENDERING(leaderboardsButton)->show = BUTTON(leaderboardsButton)->enabled = display;
+        RENDERING(leaderboardsButton)->show = display;
+        BUTTON(leaderboardsButton)->enabled = display & enableButton;
     }
 }
 
@@ -60,7 +63,7 @@ void GameCenterAPIHelper::displayUI() {
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = true;
 
     //only display other buttons if we are connected
-    displayFeatures(gameCenterAPI->isConnected());
+    displayFeatures(displayIfNotConnected || gameCenterAPI->isConnected(), gameCenterAPI->isConnected());
 }
 
 void GameCenterAPIHelper::registerForFading(FaderHelper* fader, Fading::Enum type) {
@@ -92,7 +95,7 @@ void GameCenterAPIHelper::hideUI() {
     bUIdisplayed = false;
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = false;
 
-    displayFeatures(false);
+    displayFeatures(false, false);
 }  
 
 bool GameCenterAPIHelper::updateUI() {
@@ -100,7 +103,7 @@ bool GameCenterAPIHelper::updateUI() {
 
     bool isConnected = gameCenterAPI->isConnected();
 
-    displayFeatures(bUIdisplayed & isConnected);
+    displayFeatures((bUIdisplayed & isConnected)||displayIfNotConnected, isConnected);
     
     if (isConnected) {
         BUTTON(signButton)->textureInactive = theRenderingSystem.loadTextureFile("gg_signout");
