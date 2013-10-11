@@ -36,6 +36,8 @@ class GameCenterAPI {
         virtual void unlockAchievement(int id) = 0;
         virtual void updateAchievementProgression(int id, int stepReached) = 0;
 
+        virtual void submitScore(int leaderboardID, const std::string & score) = 0;        
+
         virtual void openAchievement() = 0;
         virtual void openLeaderboards() = 0;
         virtual void openSpecificLeaderboard(int id) = 0;

@@ -31,8 +31,12 @@ namespace jni_gamecenter_api {
         disconnect,
         isRegistered,
         isConnected,
+
         unlockAchievement,
         updateAchievementProgression,
+
+        submitScore,
+        
         openAchievement,
         openLeaderboards,
         openSpecificLeaderboard,
@@ -51,6 +55,8 @@ class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gam
 
         void unlockAchievement(int id);
         void updateAchievementProgression(int id, int stepReached);
+
+        void submitScore(int leaderboardID, const std::string & score);
 
         void openAchievement();
         void openLeaderboards();

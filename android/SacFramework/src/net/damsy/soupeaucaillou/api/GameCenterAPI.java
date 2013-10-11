@@ -31,8 +31,12 @@ public class GameCenterAPI {
 		public boolean isConnected();
 	    public void connectOrRegister();
         public void disconnect();
+
         public void unlockAchievement(int id);
         public void updateAchievementProgression(int id, int stepReached);
+
+        public void submitScore(int leaderboardID, String score);
+
         public void openAchievement();
 	    public void openLeaderboards();
 	    public void openSpecificLeaderboard(int id);
@@ -97,6 +101,15 @@ public class GameCenterAPI {
     		SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
     	}    
     }
+
+    public void submitScore(int leaderboardID, String score) {
+        if (driver != null) {
+            driver.submitScore(leaderboardID, score);
+        } else {
+            SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+        }  
+    }
+
     public void openAchievement() {
     	if (driver != null) {
     		driver.openAchievement();

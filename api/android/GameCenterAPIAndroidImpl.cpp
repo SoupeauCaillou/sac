@@ -27,8 +27,12 @@ GameCenterAPIAndroidImpl::GameCenterAPIAndroidImpl()  : JNIWrapper<jni_gamecente
     declareMethod(jni_gamecenter_api::isConnected, "isConnected", "()Z");
     declareMethod(jni_gamecenter_api::connectOrRegister, "connectOrRegister", "()V");
     declareMethod(jni_gamecenter_api::disconnect, "disconnect", "()V");
+
     declareMethod(jni_gamecenter_api::unlockAchievement, "unlockAchievement", "(I)V");
     declareMethod(jni_gamecenter_api::updateAchievementProgression, "updateAchievementProgression", "(II)V");
+
+    declareMethod(jni_gamecenter_api::submitScore, "submitScore", "(ILjava/lang/String;)V");
+
     declareMethod(jni_gamecenter_api::openAchievement, "openAchievement", "()V");
     declareMethod(jni_gamecenter_api::openLeaderboards, "openLeaderboards", "()V");
     declareMethod(jni_gamecenter_api::openSpecificLeaderboard, "openSpecificLeaderboard", "(I)V");
@@ -36,34 +40,41 @@ GameCenterAPIAndroidImpl::GameCenterAPIAndroidImpl()  : JNIWrapper<jni_gamecente
 }
 
 bool GameCenterAPIAndroidImpl::isRegistered() {
-   return env->CallBooleanMethod(instance, methods[jni_gamecenter_api::isRegistered]);
+    return env->CallBooleanMethod(instance, methods[jni_gamecenter_api::isRegistered]);
 }
 bool GameCenterAPIAndroidImpl::isConnected() {
-   return env->CallBooleanMethod(instance, methods[jni_gamecenter_api::isConnected]);
+    return env->CallBooleanMethod(instance, methods[jni_gamecenter_api::isConnected]);
 }
 void GameCenterAPIAndroidImpl::connectOrRegister() {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::connectOrRegister]);
+    env->CallVoidMethod(instance, methods[jni_gamecenter_api::connectOrRegister]);
 }
 void GameCenterAPIAndroidImpl::disconnect() {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::disconnect]);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::disconnect]);
 }
+
+
 void GameCenterAPIAndroidImpl::unlockAchievement(int id) {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::unlockAchievement], id);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::unlockAchievement], id);
 }
 void GameCenterAPIAndroidImpl::updateAchievementProgression(int id, int stepReached) {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::updateAchievementProgression], id, stepReached);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::updateAchievementProgression], id, stepReached);
 }
+
+void GameCenterAPIAndroidImpl::submitScore(int leaderboardID, const std::string & score) {
+    jstring jscore = env->NewStringUTF(score.c_str());
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::submitScore], leaderboardID, jscore);
+}
+
+
 void GameCenterAPIAndroidImpl::openAchievement() {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::openAchievement]);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openAchievement]);
 }
 void GameCenterAPIAndroidImpl::openLeaderboards() {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::openLeaderboards]);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openLeaderboards]);
 }
 void GameCenterAPIAndroidImpl::openSpecificLeaderboard(int id) {
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::openSpecificLeaderboard], id);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openSpecificLeaderboard], id);
 }
 void GameCenterAPIAndroidImpl::openDashboard() {
-    LOGI("opendash board");
-    LOGE_IF(!env, "env is null!");
-   env->CallVoidMethod(instance, methods[jni_gamecenter_api::openDashboard]);
+	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openDashboard]);
 }

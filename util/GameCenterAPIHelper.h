@@ -32,7 +32,8 @@
 
 class GameCenterAPIHelper {
 	public:
-		void init(GameCenterAPI * gameCenterAPI, bool useAchievements, bool useLeaderboards);
+		void init(GameCenterAPI * gameCenterAPI, bool useAchievements, 
+            bool useLeaderboards, bool uniqueLeaderboard);
 	    
 	    void displayUI();
 		void hideUI();
@@ -45,6 +46,7 @@ class GameCenterAPIHelper {
 	private:
         void displayFeatures(bool display);
 
+        bool uniqueLeaderboard;
 		GameCenterAPI * gameCenterAPI;
         Entity signButton, achievementsButton, leaderboardsButton;
         bool bUIdisplayed;

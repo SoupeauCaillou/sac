@@ -199,6 +199,26 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 		}		
 	}
 
+    @Override
+    public void submitScore(int leaderboardID, String score) {
+        if (mHelper.isSignedIn()){
+            if (! mHelper.getGamesClient().isConnected()) {
+                SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not connected, can't submit Score");
+                
+                return;
+            }
+            
+            if (leaderboardID < 0 || leaderboardID > leaderboardsID.size()) {
+                SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Invalid leaderboard ID " + leaderboardID);
+                return;
+            } 
+            
+            mHelper.getGamesClient().submitScore(leaderboardsID.get(leaderboardID), Long.parseLong(score));
+        } else {
+            SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't submitScore");
+        }       
+    }
+
 	@Override
 	public void openAchievement() {
         if (mHelper.isSignedIn()) {
