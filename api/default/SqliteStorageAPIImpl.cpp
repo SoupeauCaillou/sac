@@ -58,9 +58,8 @@
             sav->append(", ");
         }
         sav->append(argv[i]);
-#if SAC_ENABLE_LOG
-        LOGI("query string result: " << *sav);
-#endif
+
+        LOGV(1, "query string result: " << *sav);
 
         return 0;
     }
@@ -108,7 +107,7 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
     bool r = request("", 0, 0);
 
     if (r) {
-        LOGI("initializing database...");
+        LOGV(1, "initializing database...");
 
         createTable("info", "opt varchar2(10) primary key, value varchar2(10)");
     }
@@ -133,9 +132,7 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     #else
     LOGF_IF(!_initialized, "The database hasn't been initialized before first request!");
 
-#ifdef SAC_ENABLE_LOG
-    LOGI("sqlite request: " << statement);
-#endif
+    LOGV(1, "sqlite request: " << statement);
 
     sqlite3 *db;
     char *zErrMsg = 0;
@@ -247,7 +244,7 @@ void SqliteStorageAPIImpl::saveEntries(IStorageProxy * pproxy) {
             }
         }
         ss << ssNames.str() << ") values (" << ssValues.str() << ")";
-        LOGI("Final statement: " << ss.str());
+        LOGV(1, "Final statement: " << ss.str());
         request(ss.str(), 0, 0);
 
         pproxy->popAnElement();
