@@ -33,7 +33,7 @@ public class AdAPI {
 	}
 
 	public interface IAdProvider {
-		public boolean showAd(IAdCompletionAction completionAction);
+		public boolean showAd(IAdCompletionAction completionAction, boolean force);
 	}	
 	
 	private static AdAPI instance = null;
@@ -52,7 +52,7 @@ public class AdAPI {
 	public List<IAdProvider> providers = new ArrayList<IAdProvider>();
 	
 	int showAdLastIndex = 0;
-	public boolean showAd(/*IAdCompletionAction completionAction*/) {
+	public boolean showAd(/*IAdCompletionAction completionAction,*/ boolean force) {
 		boolean succeeded = false;
 		SacActivity.LogI ( "[AdAPI] Provider count: " + providers.size());
 		if (providers.size() != 0) {
@@ -71,7 +71,7 @@ public class AdAPI {
 				}
 			};
 			
-			while (! finishedLoop && ! providers.get(index).showAd(completionAction)) {
+			while (! finishedLoop && ! providers.get(index).showAd(completionAction, force)) {
 				SacActivity.LogI ( "[AdAPI] Provider " + index + " is not ready. Trying next." );
 				index = (index + 1) % providers.size();
 				if (index == (showAdLastIndex + 1) % providers.size()) 

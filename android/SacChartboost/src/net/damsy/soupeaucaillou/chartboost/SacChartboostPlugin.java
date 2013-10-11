@@ -89,8 +89,8 @@ public class SacChartboostPlugin extends SacPlugin implements IAdProvider, Chart
 	// -------------------------------------------------------------------------
 	private IAdCompletionAction onAdClosed = null;
 	@Override
-	public boolean showAd(IAdCompletionAction completionAction) {
-		if (chartboost != null && chartboost.hasCachedInterstitial()) {
+	public boolean showAd(IAdCompletionAction completionAction, boolean force) {
+		if (chartboost != null && (force || chartboost.hasCachedInterstitial())) {
 			SacActivity.LogW("[SacChartboostPlugin] Display chartboost ad!");
 			
 			onAdClosed = completionAction;

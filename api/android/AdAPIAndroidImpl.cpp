@@ -26,12 +26,12 @@
 
 
 AdAPIAndroidImpl::AdAPIAndroidImpl() : JNIWrapper<jni_ad_api::Enum>("net/damsy/soupeaucaillou/api/AdAPI", true) {
-    declareMethod(jni_ad_api::ShowAd, "showAd", "()Z");
+    declareMethod(jni_ad_api::ShowAd, "showAd", "(Z)Z");
     declareMethod(jni_ad_api::Done, "done", "()Z");
 }
 
-bool AdAPIAndroidImpl::showAd() {
-    return env->CallBooleanMethod(instance, methods[jni_ad_api::ShowAd]);
+bool AdAPIAndroidImpl::showAd(bool force) {
+    return env->CallBooleanMethod(instance, methods[jni_ad_api::ShowAd], force);
 }
 
 bool AdAPIAndroidImpl::done() {

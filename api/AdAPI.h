@@ -26,7 +26,7 @@
 
 class AdAPI {
     public:
-        virtual bool showAd() {
+        virtual bool showAd(bool force) {
             LOGI("affichage de la pub !");
             return true;
         }

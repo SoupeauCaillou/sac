@@ -73,8 +73,8 @@ public class SacRevmobPlugin extends SacPlugin implements IAdProvider, RevMobAds
 	//todo
 	//private IAdCompletionAction onAdClosed = null;
 	@Override
-	public boolean showAd(IAdCompletionAction completionAction) {
-		if (revmobFullscreen != null && adLoaded) {
+	public boolean showAd(IAdCompletionAction completionAction, boolean force) {
+		if (revmobFullscreen != null && (force || adLoaded)) {
 			SacActivity.LogW("[SacRevmobPlugin] Display revmob ad!");
 			
 			adLoaded = false;

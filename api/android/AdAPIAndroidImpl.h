@@ -36,6 +36,6 @@ class AdAPIAndroidImpl : public AdAPI, public JNIWrapper<jni_ad_api::Enum> {
     public:
     	AdAPIAndroidImpl();
 
-        bool showAd();
+        bool showAd(bool force);
         bool done();
 };
