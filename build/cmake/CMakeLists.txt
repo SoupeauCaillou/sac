@@ -271,18 +271,27 @@ endif()
 
 if(MOBILE_BUILD)
    ########## build ogg lib ###########
-    enable_language(ASM)
-    set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
-    file(
-        GLOB_RECURSE ogg_sources
-        ${ogg_base}/*.s
-        ${ogg_base}/*.c
-    )
+   set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
 
-    add_library("ogg" STATIC ${ogg_sources})
-    set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
-        "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
-
+    if (NOT ANDROID_ABI STREQUAL x86)
+        enable_language(ASM)
+        file(
+            GLOB_RECURSE ogg_sources
+            ${ogg_base}/*.s
+            ${ogg_base}/*.c
+        )
+        add_library("ogg" STATIC ${ogg_sources})
+        set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
+            "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
+    else()
+        file(
+            GLOB_RECURSE ogg_sources
+            ${ogg_base}/*.c
+        )
+        add_library("ogg" STATIC ${ogg_sources})
+        set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
+            "-DLITTLE_ENDIAN=1 -DBYTE_ORDER=LITTLE_ENDIAN")
+    endif()
 
     ##########do the linkage with sac ###########
     target_link_libraries("sac" GLESv2 z ogg log)
