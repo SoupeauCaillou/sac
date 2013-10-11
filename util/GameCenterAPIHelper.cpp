@@ -45,14 +45,14 @@ void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool dis
 }
 
 
-void GameCenterAPIHelper::displayFeatures(bool display, bool enableButton) {
+void GameCenterAPIHelper::displayFeatures(bool display) {
     if (achievementsButton) {
-        RENDERING(achievementsButton)->show = display;
-        BUTTON(achievementsButton)->enabled = display & enableButton;
+        RENDERING(achievementsButton)->show =
+            BUTTON(achievementsButton)->enabled = display;
     }
     if (leaderboardsButton) {
-        RENDERING(leaderboardsButton)->show = display;
-        BUTTON(leaderboardsButton)->enabled = display & enableButton;
+        RENDERING(leaderboardsButton)->show = 
+            BUTTON(leaderboardsButton)->enabled = display;
     }
 }
 
@@ -63,7 +63,7 @@ void GameCenterAPIHelper::displayUI() {
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = true;
 
     //only display other buttons if we are connected
-    displayFeatures(displayIfNotConnected || gameCenterAPI->isConnected(), gameCenterAPI->isConnected());
+    displayFeatures(displayIfNotConnected || gameCenterAPI->isConnected());
 }
 
 void GameCenterAPIHelper::registerForFading(FaderHelper* fader, Fading::Enum type) {
@@ -95,7 +95,7 @@ void GameCenterAPIHelper::hideUI() {
     bUIdisplayed = false;
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = false;
 
-    displayFeatures(false, false);
+    displayFeatures(false);
 }  
 
 bool GameCenterAPIHelper::updateUI() {
@@ -103,7 +103,7 @@ bool GameCenterAPIHelper::updateUI() {
 
     bool isConnected = gameCenterAPI->isConnected();
 
-    displayFeatures((bUIdisplayed & isConnected)||displayIfNotConnected, isConnected);
+    displayFeatures((bUIdisplayed & isConnected)||displayIfNotConnected);
     
     if (isConnected) {
         BUTTON(signButton)->textureInactive = theRenderingSystem.loadTextureFile("gg_signout");
@@ -117,7 +117,10 @@ bool GameCenterAPIHelper::updateUI() {
         isConnected ? gameCenterAPI->disconnect() : gameCenterAPI->connectOrRegister();
         return true;
     } else if (achievementsButton && BUTTON(achievementsButton)->clicked) {
-        gameCenterAPI->openAchievement();
+            if (isConnected)
+                gameCenterAPI->openAchievement();
+            else
+                gameCenterAPI->connectOrRegister();
         return true;
     } else if (leaderboardsButton && BUTTON(leaderboardsButton)->clicked) {
         (uniqueLeaderboard) ? gameCenterAPI->openSpecificLeaderboard(0) : gameCenterAPI->openLeaderboards();

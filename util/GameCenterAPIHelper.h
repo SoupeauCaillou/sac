@@ -44,7 +44,7 @@ class GameCenterAPIHelper {
         void registerForFading(FaderHelper* fader, Fading::Enum type);
 
 	private:
-        void displayFeatures(bool display, bool enableButton);
+        void displayFeatures(bool display);
 
         bool uniqueLeaderboard;
 		GameCenterAPI * gameCenterAPI;
