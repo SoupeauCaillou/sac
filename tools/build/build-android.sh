@@ -92,6 +92,9 @@ check_necessary() {
     check_package_in_PATH "ndk-build" "android-ndk"
 	check_package_in_PATH "adb" "android-sdk/platform-tools"
 	check_package "ant"
+
+    #change build dir!
+    builddir=$builddir-$ARCHI
 }
 
 init() {
@@ -112,16 +115,13 @@ init() {
 }
 
 compilation_before() {
-	info "Building tremor lib..."
-	cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
+    info "Building tremor lib..."
+    cd $rootPath/sac/libs/tremor; git checkout *; sh ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
 
     if [ "$ARCHI" = "x86" ]; then
         CMAKE_CONFIG=$CMAKE_CONFIG" -DANDROID_ABI=x86"
     fi
-
-    #change build dir!
-    builddir=$builddir-$ARCHI
 
     CMAKE_CONFIG=$CMAKE_CONFIG" -DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/build/cmake/toolchains/android.toolchain.cmake\
     -DANDROID_FORCE_ARM_BUILD=ON -DUSE_GRADLE=$USE_GRADLE"
