@@ -76,6 +76,8 @@ void ButtonSystem::DoUpdate(float) {
 
 void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
 	if (!comp->enabled) {
+		if (RENDERING(entity)->show && RENDERING(entity)->texture == InvalidTextureRef)
+			RENDERING(entity)->texture = comp->textureInactive;
 		comp->mouseOver = comp->clicked = comp->touchStartOutside = false;
 		return;
 	}
