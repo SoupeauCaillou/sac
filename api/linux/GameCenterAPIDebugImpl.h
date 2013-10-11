@@ -41,7 +41,7 @@ class GameCenterAPIDebugImpl : public GameCenterAPI {
         bool isRegistered() { return true; }
 
         void unlockAchievement(int id) { LOGI("Unlocked success " << id << "!"); }
-        void updateAchievementProgression(int id, int stepReached) { LOGI("Success " << id << " progression reached step " << stepReached); }
+        void updateAchievementProgression(int id, int step) { LOGI("Success " << id << " progression reached " << step << " more steps"); }
 
         void submitScore(int leaderboardID, const std::string & score) { LOGI("Submit score " << score << " to leaderboard " << leaderboardID); }
 
