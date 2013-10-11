@@ -24,8 +24,17 @@
 
 #include "base/Log.h"
 
-class AdAPI {
+#include "api/AdAPI.h"
+
+class AdAPIDebugImpl : public AdAPI {
     public:
-        virtual bool showAd(bool force) = 0;
-        virtual bool done() = 0;
+        bool showAd(bool force) {
+            LOGI("!!!!!!!!!!!!!!!!!!!!!!!!!!!!Interstitial ad display " << (force ? "(forced)" : "") 
+                << "!!!!!!!!!!!!!!!!!!!!!!!");
+            return true;
+        }
+        
+        bool done() { 
+            return true; 
+        }
 };

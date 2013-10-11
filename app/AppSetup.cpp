@@ -72,6 +72,7 @@
 #include "api/linux/GameCenterAPIDebugImpl.h"
 #include "api/linux/WWWAPIcURLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
+#include "api/default/AdAPIDebugImpl.h"
 
 #include "util/Recorder.h"
 
@@ -231,7 +232,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     LOGV(1, "Initialize APIs");
     GameContext* ctx = new GameContext;
     if (game->wantsAPI(ContextAPI::Ad))
-        ctx->adAPI = new AdAPI();
+        ctx->adAPI = new AdAPIDebugImpl();
     if (game->wantsAPI(ContextAPI::Asset) || true)
         ctx->assetAPI = new AssetAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Communication))
