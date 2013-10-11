@@ -23,10 +23,12 @@
 package net.damsy.soupeaucaillou.googleplaygameservices;
 
 import java.util.List;
-
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.leaderboard.SubmitScoreResult;
+import com.google.android.gms.games.achievement.Achievement;
+import com.google.android.gms.games.achievement.AchievementBuffer;
 import com.google.android.gms.games.achievement.OnAchievementUpdatedListener;
+import com.google.android.gms.games.achievement.OnAchievementsLoadedListener;
 import com.google.android.gms.games.leaderboard.OnScoreSubmittedListener;
 
 import net.damsy.soupeaucaillou.SacActivity;
@@ -40,10 +42,12 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 public class SacGooglePlayGameServicesPlugin extends SacPlugin implements IGameCenterProvider,
-GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedListener {
+GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedListener, OnAchievementsLoadedListener {
 	public SacGooglePlayGameServicesPlugin() { 
 		super(); 
 	}
+	
+	int[] achievementsStep = null;
 
 	
 	public class GooglePlayGameServicesParams {
@@ -78,6 +82,8 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 			mHelper.enableDebugLog(googlePlayGameServicesParams.enableDebugLog, "SacGooglePlayGameServicesPlugin");
 			leaderboardsID = googlePlayGameServicesParams.leaderboardsID;
 			achievementsID = googlePlayGameServicesParams.achievementsID;
+			
+			achievementsStep = new int[achievementsID.size()];
 		}
 		
 		mHelper.setup(this);
@@ -193,7 +199,13 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
         		return;
         	} 
         	
-			mHelper.getGamesClient().incrementAchievement(achievementsID.get(id), stepReached);
+			if (stepReached < achievementsStep[id]) {
+				SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Trying to reach a lower step (" + 
+					stepReached + " < " + achievementsStep[id] + ") for " + id + ". Aborting now");
+			} else {
+				mHelper.getGamesClient().incrementAchievement(achievementsID.get(id), stepReached - achievementsStep[id]);
+				achievementsStep[id] = stepReached;
+			}
 		} else {
 			SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't unlockAchievement");
 		}		
@@ -271,48 +283,9 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
         openLeaderboards();	
 	}
 	
-	/*
-	public String getPlayerName()
-	{
-		String displayName;
-        Player p = null;
-        
-        if (mHelper.isSignedIn()) {
-        	if (mHelper.getGamesClient().isConnected()) {
-        		p = mHelper.getGamesClient().getCurrentPlayer();
-        	} else {
-        		SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not connected");
-        	}
-        }
-        
-        if (p == null) {
-            SacActivity.LogE( "[SacGooglePlayGameServicesPlugin] mGamesClient.getCurrentPlayer() is NULL!");
-            displayName = "";
-        } else {
-            displayName = p.getDisplayName();
-        }
-		
-        return displayName;
-	}
-	
-	public void submitRanking(final String googlePlayID, final long score)
-	{
-		if (mHelper.isSignedIn()) {
-        	if (! mHelper.getGamesClient().isConnected()) {
-        		SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not connected, can't submit ranking");
-        		return;
-        	}
-        	
-			mHelper.getGamesClient().submitScoreImmediate(this, googlePlayID, score);
-		} else {
-			SacActivity.LogE( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't submitRanking");
-		}
-	}*/
-	
-	
 	// ---
 	// ----------------------------------------------------------------------
-	// Googel Play Game Services overr
+	// Google Play Game Services override
 	// -------------------------------------------------------------------------
 	@Override
 	public void onSignInFailed() {
@@ -326,6 +299,9 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 		//this a bug with gameHelper - now that we are connected, don't try anymore to fix connection lost because if the user
 		// WANTS to disconnect from within the app, you must let him go and not try to reconnect him
 		mHelper.mUserInitiatedSignIn = false;
+		
+		//force to reload achievements
+		mHelper.getGamesClient().loadAchievements(this, true);
 	}
 	
 	@Override
@@ -343,6 +319,32 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 			SacActivity.LogE( "[SacGooglePlayGameServicesPlugin] onAchievementUpdated failed with status " + arg0 + " for achievement " + arg1 );
 		} else {
 			SacActivity.LogI( "[SacGooglePlayGameServicesPlugin] onAchievementUpdated succeed");
+		}
+	}
+
+	@Override
+	public void onAchievementsLoaded(int arg0, AchievementBuffer arg1) {
+		if (arg0 != GamesClient.STATUS_OK) {
+			SacActivity.LogE( "[SacGooglePlayGameServicesPlugin] onAchievementsLoaded failed with status " + arg0 + ". Incremental achievements might be messed up.");
+		} else {
+			SacActivity.LogI( "[SacGooglePlayGameServicesPlugin] onAchievementsLoaded succeed");
+			
+			for (int i = 0; i < arg1.getCount(); ++i) {
+				Achievement ach = arg1.get(i);
+				
+				int position = achievementsID.indexOf(ach.getAchievementId());
+				
+				if (ach.getType() == com.google.android.gms.games.achievement.Achievement.TYPE_INCREMENTAL) {
+					achievementsStep[position] = ach.getCurrentSteps();
+				} else {
+					//should not be used
+					achievementsStep[position] = -1;
+				}
+			}
+		}
+		
+		if (arg1 != null) {
+			arg1.close();
 		}
 	}
 }
