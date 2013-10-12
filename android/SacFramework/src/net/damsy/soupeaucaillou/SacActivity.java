@@ -360,7 +360,7 @@ public abstract class SacActivity extends Activity {
     final static public int E = android.util.Log.ERROR;
     final static public int F = android.util.Log.ASSERT;
     
-    final static int LogLevel = android.util.Log.INFO;
+    public static int LogLevel = android.util.Log.INFO;
     
     static void Log(int prio, final String msg) {
     	if (prio >= LogLevel)
