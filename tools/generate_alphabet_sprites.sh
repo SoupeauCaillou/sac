@@ -1,4 +1,34 @@
-#/bin/bash
+#!/bin/bash
+
+#from where are we calling it
+fromWhereAmIBeingCalled=$PWD
+#where the script is
+whereAmI=$(cd "$(dirname "$0")" && pwd)
+cd $whereAmI
+#if we executed a linked script; go to the real one
+if [  -h $0 ]; then
+    whereAmI+=/$(dirname $(readlink $0))
+    cd $whereAmI
+fi
+rootPath=$whereAmI"/../.."
+gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+
+#import cool stuff
+source coolStuff.sh
+
+#how to use the script
+export SAC_USAGE="$0"
+export SAC_OPTIONS=""
+export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
+
+######### 0 : Check requirements. #########
+    if [ $# != 1 ]; then
+        error_and_usage_and_quit "Need the path to the alphabet directory"
+    fi
+
+######### 1 : Process. #########
+
+cd $fromWhereAmIBeingCalled/$1
 
 #typo=/home/pierre-eric/AmericanTypewriter-Condensed.ttf
 typo=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansCondensed.ttf
@@ -6,44 +36,57 @@ typo_mono=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf
 
 size=60
 suffix="_typo.png"
-function generate_sprite
-{
+
+function generate_sprite {
 	convert -background transparent -fill white -font $3 -pointsize ${size} label:${1} PNG32:${2}${suffix}
+    return $?
     #convert -resize 70%x100% ${2}${suffix} PNG32:${2}${suffix}
 }
 
-echo "Generating A->Z"
+info "Generating A->Z"
 for i in {A..Z};
 do
-    dec=`printf "%x" "'$i"`
-    generate_sprite ${i} $dec $typo
+    dec=$(printf "%x" "'$i")
+    generate_sprite $i $dec $typo
 done
 
-echo "Generating a->z"
+info "Generating a->z"
 for i in {a..z};
 do
-    dec=`printf "%x" "'$i"`
-    generate_sprite ${i} $dec $typo
+    dec=$(printf "%x" "'$i")
+    generate_sprite $i $dec $typo
 done
 
-echo "Generating 0->9"
+info "Generating 0->9"
 for i in {0..9};
 do
-    dec=`printf "%x" "'$i"`
-    generate_sprite ${i} $dec $typo_mono
+    dec=$(printf "%x" "'$i")
+    generate_sprite $i $dec $typo_mono
 done
 
-echo "Generating punctuation"
-for i in \! \? \# \' \( \) \, \- \. \; \: \=;
+info "Generating punctuation"
+ponct="! ? # ' ( ) , - . ; : ="
+for i in $ponct; 
 do
-    dec=`printf "%x" "'$i"`
+    dec=$(printf "%x" "'$i")
     generate_sprite $i $dec $typo
 done
 
-echo "Generating accentued letters "
-for i in à é è ê î ç ù À É È Ê Î Ç Ù;
+info "Generating accented letters"
+specials=$(cat $rootPath/res/values*/strings.xml | tr -d "[:alnum:]$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
+
+printf "Treating... "
+for i in $specials;
 do
-    dec=`printf "%x" "'$i"`
-    generate_sprite $i $dec $typo
+    printf $i
+
+    dec=$(printf "%x" "'$i")
+
+    if (!(generate_sprite $i $dec $typo &>/dev/null)); then
+        info "Error while generating character $i" $red
+        printf "Treating... "
+    fi
 done
+echo 
+info "Done! Do not forget to reexport atlas now..."
 
