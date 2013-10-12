@@ -39,20 +39,23 @@ host = https://www.transifex.com
 
 [YOUR-PROJECT-RESOURCE (automatically set by tx)]
 file_filter = res/values-<lang>/strings.xml
+source_file = res/values/strings.xml
 source_lang = en'
 		exit 1
 	fi
 
 ######### 1 : Pull files. #########
-	info "Pulling files..."
+    info "Removing old files..."
+    rm -rf res/values*
+
+    info "Pulling files..."
 	tx pull -s -a &>/dev/null
 	
 ######### 2 : Rename some folders. #########
 ######### These are folders with a local like fr-BE, which must be renamed fr-rbe for Android ########
 	info "Renaming values* folder (if needed)"
 	cd res/
-	rm -rf values
-	mv values-en values
+    
 	for lang in values-*; do
 		if grep -q '_' <<< $lang; then
 			suffix=r$(echo $lang | cut -d '_' -f 2 | tr [A-Z] [a-z])
