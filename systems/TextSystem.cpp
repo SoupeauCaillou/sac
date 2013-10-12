@@ -367,7 +367,12 @@ void TextSystem::DoUpdate(float dt) {
 void TextSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
     uint32_t highestUnicode = 0;
     std::for_each(charH2Wratio.begin(), charH2Wratio.end(),
-        [&highestUnicode] (std::pair<uint32_t, float> a) { if (a.first > highestUnicode) highestUnicode = a.first; });
+        [&highestUnicode] (std::pair<uint32_t, float> a) { 
+            LOGE(a.first << " " << a.second << " " << highestUnicode);
+            if (a.first > highestUnicode)
+                highestUnicode = a.first;
+            }
+        );
 
     std::string invalidChar = "00_" + fontName;
     TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);

@@ -283,6 +283,7 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
                     // try to find the exact collision time
                     Coll c;
                     c.other = testedEntity;
+                    c.t = 0;
                     collisionDuringTheFrame.push_back(c);
 
 

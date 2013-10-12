@@ -520,10 +520,12 @@ std::vector<GridPos> SpatialGrid::findPath(const GridPos& from, const GridPos& t
         success = (*success).parent;
     } while ((*success).parent != closed.end());
     std::reverse(result.begin(), result.end());
-    for (const auto& gp: result) {
-        LOGV(1, "   - " << gp);
-    }
 
+#if SAC_ENABLE_LOG
+        for (const auto& gp: result) {
+            LOGV(1, "   - " << gp);
+        }
+#endif
     return result;
 }
 

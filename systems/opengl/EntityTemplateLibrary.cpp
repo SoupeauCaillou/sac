@@ -137,7 +137,7 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         delete[] fb2.data;
     }
 
-    int propCount = loadTemplate(name, "", dfp, r, out);
+    LOG_USAGE_ONLY(int propCount =) loadTemplate(name, "", dfp, r, out);
     LOGV(1, "Loaded entity template: '" << name << "' (" << propCount << " properties)");
 
     delete[] fb.data;

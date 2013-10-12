@@ -229,7 +229,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_uninitFromGameThr
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_step
-  (JNIEnv *env, jclass) {
+  (JNIEnv * LOG_USAGE_ONLY(env), jclass) {
     if (!myGameHolder->game)
         return;
     LOGE_IF(env != myGameHolder->gameEnv, "Incoherent JNIEnv " << env << " != " << myGameHolder->gameEnv);
@@ -261,7 +261,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resetTimestep
 
 float renderingPrevTime = 0;
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
-  (JNIEnv *env, jclass) {
+  (JNIEnv *LOG_USAGE_ONLY(env), jclass) {
     if (!myGameHolder)
          return;
     if (!RenderingSystem::GetInstancePointer())
@@ -272,7 +272,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_render
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_pause
-  (JNIEnv *env, jclass) {
+  (JNIEnv *LOG_USAGE_ONLY(env), jclass) {
     LOGW("-->" <<  __FUNCTION__ << ':' << myGameHolder);
     if (!myGameHolder->game)
         return;
@@ -340,7 +340,7 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_willConsumeBa
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_back
-  (JNIEnv *env, jclass) {
+  (JNIEnv *LOG_USAGE_ONLY(env), jclass) {
     LOGW("-->" <<  __FUNCTION__ << ':' << myGameHolder);
     if (!myGameHolder->game)
         return;

@@ -204,6 +204,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     return result;
 }
 
+#if ! SAC_ANDROID
 static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
     switch (type) {
         case OpenGLTextureCreator::COLOR:
@@ -217,9 +218,9 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
      }
      return GL_INVALID_VALUE;
 }
+#endif
 
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type type) {
-    const bool enableMipMapping = false;
 #if 0
 #if SAC_ANDROID
     ((type == COLOR) && image.mipmap > 0);
@@ -278,6 +279,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
 #else
+    const bool enableMipMapping = false;
     if (image.mipmap == 0 && enableMipMapping) {
         LOGV(1, "Generating mipmaps");
         glGenerateMipmap(GL_TEXTURE_2D);

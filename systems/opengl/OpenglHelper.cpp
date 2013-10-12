@@ -23,26 +23,30 @@
 #include "OpenglHelper.h"
 #include "base/Log.h"
 
-void check_GL_errors(const char* context) {
-    int maxIterations=10;
-    GLenum error;
-    while (((error = glGetError()) != GL_NO_ERROR) && maxIterations > 0)
-    {
-        switch(error)
+#if SAC_ENABLE_LOG
+    void check_GL_errors(const char* context) {
+        int maxIterations=10;
+        GLenum error;
+        while (((error = glGetError()) != GL_NO_ERROR) && maxIterations > 0)
         {
-            case GL_INVALID_ENUM:
-                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_ENUM"); break;
-            case GL_INVALID_VALUE:
-                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_VALUE"); break;
-            case GL_INVALID_OPERATION:
-                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_OPERATION"); break;
-            case GL_OUT_OF_MEMORY:
-                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_OUT_OF_MEMORY"); break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_FRAMEBUFFER_OPERATION"); break;
-            default:
-                LOGE('[' << maxIterations << "]GL error: '" << context << "' -> " << error); break;
+            switch(error)
+            {
+                case GL_INVALID_ENUM:
+                    LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_ENUM"); break;
+                case GL_INVALID_VALUE:
+                    LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_VALUE"); break;
+                case GL_INVALID_OPERATION:
+                    LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_OPERATION"); break;
+                case GL_OUT_OF_MEMORY:
+                    LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_OUT_OF_MEMORY"); break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION:
+                    LOGE('[' << maxIterations << "]GL error: '" << context << "' -> GL_INVALID_FRAMEBUFFER_OPERATION"); break;
+                default:
+                    LOGE('[' << maxIterations << "]GL error: '" << context << "' -> " << error); break;
+            }
+              maxIterations--;
         }
-          maxIterations--;
     }
-}
+#else
+    void check_GL_errors(const char*) {}
+#endif

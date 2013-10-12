@@ -53,7 +53,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
 }
 
 #if ! SAC_DEBUG
-void DebuggingSystem::DoUpdate(float dt) {}
+void DebuggingSystem::DoUpdate(float) {}
 void DebuggingSystem::toggle() {}
 
 #else

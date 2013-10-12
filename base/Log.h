@@ -105,6 +105,7 @@ static const android_LogPriority level2prio[] {
 
 
 #if SAC_ENABLE_LOG
+    #define LOG_USAGE_ONLY(x) x
 
     #define LOG_OFFSET() \
         logHeaderLength(__FILE__,__LINE__)
@@ -164,6 +165,7 @@ static const android_LogPriority level2prio[] {
     } while (false)
 
 #else
+    #define LOG_USAGE_ONLY(x) 
 
     #define LOG_OFFSET() 0
     #define LOGF(x) do { assert(!AssertOnFatal); } while (false)

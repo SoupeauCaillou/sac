@@ -150,7 +150,7 @@ void DataFileParser::unload() {
     data = 0;
 }
 
-bool DataFileParser::keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& out) const {
+bool DataFileParser::keyValue(const std::string& section, const std::string& var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
     if (!data) {
         LOGE("No data loaded before requesting key value : " << section << '/' << var);
         return false;
@@ -231,7 +231,7 @@ unsigned DataFileParser::sectionSize(const std::string& section) const {
     return it->second->size();
 }
 
-bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool warnIfNotFound) const{
+bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool LOG_USAGE_ONLY(warnIfNotFound)) const{
     // Determine substring indexes
     outIndexes[count - 1] = str.size() - 1;
     size_t index = 0;

@@ -69,8 +69,8 @@ void ResourceHotReload::updateReload() {
 #endif
 }
 
-void ResourceHotReload::registerNewAsset(const std::string & asset, const std::string & override) {
 #if SAC_LINUX && SAC_DESKTOP
+void ResourceHotReload::registerNewAsset(const std::string & asset, const std::string & override) {
     std::string filename = asset;
     if (!override.empty())
         filename = override;
@@ -93,6 +93,9 @@ void ResourceHotReload::registerNewAsset(const std::string & asset, const std::s
     }
 
     if (filenames.find(full) == filenames.end())
-    	filenames.insert(std::make_pair(full, InotifyDatas(full, asset)));
-#endif
+        filenames.insert(std::make_pair(full, InotifyDatas(full, asset)));
 }
+#else
+    void ResourceHotReload::registerNewAsset(const std::string &, const std::string &) {}
+#endif
+

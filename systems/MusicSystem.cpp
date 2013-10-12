@@ -169,13 +169,12 @@ void MusicSystem::DoUpdate(float dt) {
     }
 
     for (auto& p: components) {
-        const Entity e = p.first;
         auto* m = p.second;
 
         m->looped = false;
 
         if (m->loopNext == InvalidMusicRef && !m->autoLoopName.empty()) {
-            LOGI("Music '" << theEntityManager.entityName(e) << "': prepare next loop '" << m->autoLoopName << "'");
+            LOGI("Music '" << theEntityManager.entityName(p.first) << "': prepare next loop '" << m->autoLoopName << "'");
             m->loopNext = loadMusicFile(m->autoLoopName);
         }
 

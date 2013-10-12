@@ -44,7 +44,7 @@ struct FileBufferOffset {
 	FileBuffer file;
 	int offset;
 };
-ImageDesc ImageLoader::loadPng(const std::string& context, const FileBuffer& file) {
+ImageDesc ImageLoader::loadPng(const std::string& LOG_USAGE_ONLY(context), const FileBuffer& file) {
 	ImageDesc result;
 	result.datas = 0;
 	result.type = ImageDesc::RAW;
