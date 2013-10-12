@@ -56,8 +56,8 @@ std::string OpenGLTextureCreator::DPI2Folder(DPI::Enum dpi) {
 }
 
 void OpenGLTextureCreator::detectSupportedTextureFormat() {
-    const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 #if 0
+    const GLubyte* extensions = glGetString(GL_EXTENSIONS);
     pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
 #else
     pvrFormatSupported = false;
@@ -286,18 +286,21 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
 }
 
 GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std::string& /*name*/, Type type, glm::vec2& outSize) {
+#if 0
     const bool enableMipMapping =
-#if SAC_ANDROID
-    ((type == COLOR) && image.mipmap > 0);
-#elif SAC_EMSCRIPTEN
-    false;
-#else
-    (type == COLOR) || (type == COLOR_ALPHA);
-#endif
+    #if SAC_ANDROID
+        ((type == COLOR) && image.mipmap > 0);
+    #elif SAC_EMSCRIPTEN
+        false;
+    #else
+        (type == COLOR) || (type == COLOR_ALPHA);
+    #endif
 
     // Create GL texture object
-    GLuint result = createAndInitTexture(false);//enableMipMapping);
-
+    GLuint result = createAndInitTexture(enableMipMapping);
+#else
+    GLuint result = createAndInitTexture(false);
+#endif
     updateFromImageDesc(image, result, type);
 
     outSize.x = image.width;
