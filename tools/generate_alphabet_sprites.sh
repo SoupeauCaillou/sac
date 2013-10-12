@@ -17,7 +17,7 @@ gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr 
 source coolStuff.sh
 
 #how to use the script
-export SAC_USAGE="$0"
+export SAC_USAGE="$0 alphabet-directory"
 export SAC_OPTIONS=""
 export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
@@ -88,5 +88,5 @@ do
     fi
 done
 echo 
-info "Done! Do not forget to reexport atlas now..."
+info "Done! Do not forget to reexport atlas now and to run generetae_font_desc_generator script!"
 
