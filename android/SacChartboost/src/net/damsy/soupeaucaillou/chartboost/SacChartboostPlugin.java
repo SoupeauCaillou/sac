@@ -90,11 +90,11 @@ public class SacChartboostPlugin extends SacPlugin implements IAdProvider, Chart
 	private IAdCompletionAction onAdClosed = null;
 	@Override
 	public boolean showAd(IAdCompletionAction completionAction, boolean force) {
-		if (chartboost != null && (force || chartboost.hasCachedInterstitial())) {
+		if (chartboost != null && chartboost.hasCachedInterstitial()) {
 			SacActivity.LogW("[SacChartboostPlugin] Display chartboost ad!");
 			
 			onAdClosed = completionAction;
-		
+
 			chartboost.showInterstitial();
 			chartboost.cacheInterstitial();
 			
@@ -103,7 +103,7 @@ public class SacChartboostPlugin extends SacPlugin implements IAdProvider, Chart
 			SacActivity.LogW("[SacChartboostPlugin] No chartboost ad ready!");
 			
 			if (completionAction != null) {
-				completionAction.actionPerformed(false);
+				completionAction.actionPerformed(true);
 			}
 			
 			chartboost.cacheInterstitial();
@@ -153,6 +153,10 @@ public class SacChartboostPlugin extends SacPlugin implements IAdProvider, Chart
 	@Override
 	public void didDismissInterstitial(String arg0) {
 		SacActivity.LogI("[SacChartboostPlugin] didDismissInterstitial!");
+		if (onAdClosed != null) {
+			onAdClosed.actionPerformed(true);
+			onAdClosed = null;
+		}
 	}
 
 	@Override
@@ -165,7 +169,7 @@ public class SacChartboostPlugin extends SacPlugin implements IAdProvider, Chart
 		SacActivity.LogW("[SacChartboostPlugin] didFailToLoadInterstitial!");
 		
 		if (onAdClosed != null) {
-			onAdClosed.actionPerformed(false);
+			onAdClosed.actionPerformed(true);
 			onAdClosed = null;
 		}
 	}
