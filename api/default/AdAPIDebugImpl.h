@@ -23,18 +23,47 @@
 #pragma once
 
 #include "base/Log.h"
+#include "base/EntityManager.h"
+
+#include "systems/TransformationSystem.h"
+#include "systems/RenderingSystem.h"
+#include "systems/ButtonSystem.h"
 
 #include "api/AdAPI.h"
 
 class AdAPIDebugImpl : public AdAPI {
     public:
+        AdAPIDebugImpl() : e(0) {}
         bool showAd(bool force) {
+            if (e == 0) {
+                e = theEntityManager.CreateEntity("ad");
+                ADD_COMPONENT(e, Transformation);
+                ADD_COMPONENT(e, Button);
+                ADD_COMPONENT(e, Rendering);
+
+                TRANSFORM(e)->z = 1.;
+                TRANSFORM(e)->size = glm::vec2(100,100);
+            }
+            BUTTON(e)->enabled = true;
+            RENDERING(e)->show = true;
+            RENDERING(e)->color = Color::random();
+
             LOGI("!!!!!!!!!!!!!!!!!!!!!!!!!!!!Interstitial ad display " << (force ? "(forced)" : "") 
                 << "!!!!!!!!!!!!!!!!!!!!!!!");
             return true;
         }
         
-        bool done() { 
-            return true; 
+        bool done() {
+            if (RENDERING(e)->show) {
+                if (BUTTON(e)->clicked) {
+                    RENDERING(e)->show = false;
+                    BUTTON(e)->enabled = false;
+                    return true; 
+                }
+                return false;
+            }
+            return true;
         }
+    private:
+        Entity e;
 };
