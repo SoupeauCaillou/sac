@@ -8,6 +8,7 @@ export PLATFORM_OPTIONS="\
 \t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
 \t-p|-project: regenerate ant files and run it
 \t-i|-install: install on device
+\t-u|-uninstall: uninstall game from device
 \t-l|-log: run adb logcat
 \t-s|-stacktrace: show latest dump crash trace
 \t-c|-clean: remove all bin/ and gen/ directories (in sac too!)
@@ -20,6 +21,7 @@ parse_arguments() {
     USE_GRADLE=0
     REGENERATE_ANT_FILES=0
     INSTALL_ON_DEVICE=0
+    UNINSTALL_FROM_DEVICE=0
     RUN_LOGCAT=0
     STACK_TRACE=0
     SIGN_APK=
@@ -49,6 +51,10 @@ parse_arguments() {
                 ;;
             "-i" | "-install")
                 INSTALL_ON_DEVICE=1
+                TARGETS=$TARGETS" "
+                ;;
+            "-u" | "-uninstall")
+                UNINSTALL_FROM_DEVICE=1
                 TARGETS=$TARGETS" "
                 ;;
             "-l" | "-log")
@@ -111,6 +117,11 @@ init() {
     if [ $GENERATE_ATLAS = 1 ]; then
         info "Generating atlas..."
         $rootPath/sac/tools/generate_atlas.sh $rootPath/unprepared_assets/*
+    fi
+
+    if [ $UNINSTALL_FROM_DEVICE = 1 ]; then
+        info "Uninstalling from device..."
+        adb uninstall $(cat $rootPath/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
     fi
 }
 
