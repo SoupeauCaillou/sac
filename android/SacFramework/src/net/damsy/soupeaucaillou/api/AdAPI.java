@@ -65,12 +65,11 @@ public class AdAPI {
 				
 				@Override
 				public void actionPerformed(boolean succeeded) {
-					if (succeeded) {
-						bAdDone = true;
-					}
+					bAdDone = true;
 				}
 			};
 			
+			bAdDone = false;
 			while (! finishedLoop && ! providers.get(index).showAd(completionAction, force)) {
 				SacActivity.LogI ( "[AdAPI] Provider " + index + " is not ready. Trying next." );
 				index = (index + 1) % providers.size();
@@ -78,9 +77,9 @@ public class AdAPI {
 					finishedLoop = true;
 			}
 			
-			bAdDone = ! finishedLoop;
 			if (finishedLoop) {
 				SacActivity.LogW ( "[AdAPI] Asked for an ad but no provider ready...");
+				bAdDone = true;
 			}
 			
 			//update index for the next time
@@ -101,6 +100,7 @@ public class AdAPI {
 	
 	private boolean bAdDone = true;
 	public boolean done() {
+		SacActivity.LogE("" + bAdDone);
 		return bAdDone;
 	}
 }
