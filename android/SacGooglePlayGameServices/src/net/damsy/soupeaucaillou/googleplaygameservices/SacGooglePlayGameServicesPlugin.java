@@ -199,7 +199,7 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
         		return;
         	} 
         	
-			if (stepReached < achievementsStep[id]) {
+			if (stepReached <= achievementsStep[id]) {
 				SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Trying to reach a lower step (" + 
 					stepReached + " < " + achievementsStep[id] + ") for " + id + ". Aborting now");
 			} else {
