@@ -73,6 +73,7 @@
 #include "api/linux/WWWAPIcURLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/default/AdAPIDebugImpl.h"
+#include "api/default/InAppPurchaseAPIDebugImpl.h"
 
 #include "util/Recorder.h"
 
@@ -241,6 +242,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->exitAPI = new ExitAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::GameCenter))
         ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
+    if (game->wantsAPI(ContextAPI::InAppPurchase))
+        ctx->inAppPurchaseAPI = new InAppPurchaseAPIDebugImpl();
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
         ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPIGLFWImpl();
     if (game->wantsAPI(ContextAPI::Localize))

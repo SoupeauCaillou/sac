@@ -27,6 +27,7 @@ class AssetAPI;
 class CommunicationAPI;
 class ExitAPI;
 class GameCenterAPI;
+class InAppPurchaseAPI;
 class KeyboardInputHandlerAPI;
 class LocalizeAPI;
 class MusicAPI;
@@ -44,6 +45,7 @@ namespace ContextAPI {
         Communication,
         Exit,
         GameCenter,
+        InAppPurchase,
         KeyboardInputHandler,
         Localize,
         Music,
@@ -63,6 +65,7 @@ struct GameContext {
         communicationAPI(0),
         exitAPI(0),
         gameCenterAPI(0),
+        inAppPurchaseAPI(0),
         keyboardInputHandlerAPI(0),
         localizeAPI(0),
         musicAPI(0),
@@ -78,6 +81,7 @@ struct GameContext {
     CommunicationAPI* communicationAPI;
     ExitAPI* exitAPI;
     GameCenterAPI* gameCenterAPI;
+    InAppPurchaseAPI* inAppPurchaseAPI;
     KeyboardInputHandlerAPI* keyboardInputHandlerAPI;
     LocalizeAPI* localizeAPI;
     MusicAPI* musicAPI;

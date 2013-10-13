@@ -37,18 +37,19 @@
 #include "base/EntityManager.h"
 #include "AndroidNativeTouchState.h"
 
+#include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/AssetAPIAndroidImpl.h"
 #include "api/android/CommunicationAPIAndroidImpl.h"
-#include "api/android/MusicAPIAndroidImpl.h"
-#include "api/android/SoundAPIAndroidImpl.h"
-#include "api/android/LocalizeAPIAndroidImpl.h"
-#include "api/android/StringInputAPIAndroidImpl.h"
-#include "api/android/AdAPIAndroidImpl.h"
 #include "api/android/ExitAPIAndroidImpl.h"
 #include "api/android/GameCenterAPIAndroidImpl.h"
+#include "api/android/InAppPurchaseAPIAndroidImpl.h"
+#include "api/android/LocalizeAPIAndroidImpl.h"
+#include "api/android/MusicAPIAndroidImpl.h"
+#include "api/android/SoundAPIAndroidImpl.h"
+#include "api/default/SqliteStorageAPIImpl.h"
+#include "api/android/StringInputAPIAndroidImpl.h"
 #include "api/android/VibrateAPIAndroidImpl.h"
 #include "api/android/WWWAPIAndroidImpl.h"
-#include "api/default/SqliteStorageAPIImpl.h"
 
 #include "systems/opengl/OpenGLTextureCreator.h"
 
@@ -96,6 +97,8 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
             gCtx->exitAPI = new ExitAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::GameCenter))
             gCtx->gameCenterAPI = new GameCenterAPIAndroidImpl();
+        if (game->wantsAPI(ContextAPI::InAppPurchase))
+            gCtx->inAppPurchaseAPI = new InAppPurchaseAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Localize))
             gCtx->localizeAPI = new LocalizeAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Music))
@@ -161,6 +164,7 @@ static void initGameJni(JNIEnv *env) {
     INIT_1(communicationAPI, game, CommunicationAPIAndroidImpl)
     INIT_1(exitAPI, game, ExitAPIAndroidImpl)
     INIT_1(gameCenterAPI, game, GameCenterAPIAndroidImpl)
+    INIT_1(inAppPurchaseAPI, game, InAppPurchaseAPIAndroidImpl)
     INIT_1(localizeAPI, game, LocalizeAPIAndroidImpl)
     INIT_1(musicAPI, game, MusicAPIAndroidImpl)
     INIT_1(soundAPI, game, SoundAPIAndroidImpl)
