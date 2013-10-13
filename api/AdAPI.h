@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include "base/Log.h"
-
 class AdAPI {
     public:
         virtual bool showAd(bool force) = 0;

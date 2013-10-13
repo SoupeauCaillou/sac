@@ -78,8 +78,9 @@ public class AdAPI {
 					finishedLoop = true;
 			}
 			
-			if (! finishedLoop) {
-				bAdDone = false;
+			bAdDone = ! finishedLoop;
+			if (finishedLoop) {
+				SacActivity.LogW ( "[AdAPI] Asked for an ad but no provider ready...");
 			}
 			
 			//update index for the next time
