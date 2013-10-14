@@ -63,9 +63,19 @@ void FaderHelper::registerFadingInEntity(Entity e) {
 	fadingIn.push_back(e);
 }
 
+void FaderHelper::registerFadingOutCallback(std::function<void (void)> fdCb) {
+	fadingOutCallbacks.push_back(fdCb);
+}
+
+void FaderHelper::registerFadingInCallback(std::function<void (void)> fdCb) {
+	fadingInCallbacks.push_back(fdCb);
+}
+
 void FaderHelper::clearFadingEntities() {
 	fadingOut.clear();
 	fadingIn.clear();
+	fadingOutCallbacks.clear();
+	fadingInCallbacks.clear();
 }
 
 static void updateFading(Fading::Enum type, Entity e, float progress) {
@@ -126,6 +136,9 @@ bool FaderHelper::update(float dt) {
 			if (bc)
 				bc->enabled = false;
 		}
+		for (auto& f: fadingOutCallbacks) {
+			f();
+		}
 
 		// show every fading-in entities
 		for (auto e: fadingIn) {
@@ -140,6 +153,9 @@ bool FaderHelper::update(float dt) {
 			auto* bc = theButtonSystem.Get(e, false);
 			if (bc)
 				bc->enabled = true;
+		}
+		for (auto& f: fadingInCallbacks) {
+			f();
 		}
 	}
 

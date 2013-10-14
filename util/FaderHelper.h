@@ -24,6 +24,7 @@
 
 #include "base/Entity.h"
 #include <vector>
+#include <functional>
 
 namespace Fading {
 	enum Enum {
@@ -41,7 +42,11 @@ class FaderHelper {
 
 		void registerFadingOutEntity(Entity e);
 
+		void registerFadingOutCallback(std::function<void ()> fdCb);
+
 		void registerFadingInEntity(Entity e);
+
+		void registerFadingInCallback(std::function<void ()> fdCb);
 
 		void start(Fading::Enum type, float duration);
 
@@ -59,4 +64,6 @@ class FaderHelper {
 
 		std::vector<Entity> fadingOut;
 		std::vector<Entity> fadingIn;
+		std::vector<std::function<void ()>> fadingOutCallbacks;
+		std::vector<std::function<void ()>> fadingInCallbacks;
 };
