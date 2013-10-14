@@ -25,6 +25,7 @@
 #include "systems/AnchorSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/RenderingSystem.h"
+#include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 
 FaderHelper::FaderHelper() : fadingEntity(0) {
@@ -51,12 +52,14 @@ void FaderHelper::init(Entity camera) {
 }
 
 void FaderHelper::registerFadingOutEntity(Entity e) {
-	LOGW_IF(!RENDERING(e)->show, "Entity '" << theEntityManager.entityName(e) << "' registered as fading-out but isn't visible");
+	if (theRenderingSystem.Get(e, false))
+		LOGW_IF(!RENDERING(e)->show, "Entity '" << theEntityManager.entityName(e) << "' registered as fading-out but isn't visible");
 	fadingOut.push_back(e);
 }
 
 void FaderHelper::registerFadingInEntity(Entity e) {
-	LOGW_IF(RENDERING(e)->show, "Entity '" << theEntityManager.entityName(e) << "' registered as fading-in but is already visible");
+	if (theRenderingSystem.Get(e, false))
+		LOGW_IF(RENDERING(e)->show, "Entity '" << theEntityManager.entityName(e) << "' registered as fading-in but is already visible");
 	fadingIn.push_back(e);
 }
 
@@ -111,17 +114,30 @@ bool FaderHelper::update(float dt) {
 	if (type == Fading::OutIn && oldProgress < 0.5 && progress >= 0.5) {
 		// hide every fading-out entities
 		for (auto e: fadingOut) {
-			RENDERING(e)->show = false;
+			auto* rc = theRenderingSystem.Get(e, false);
+			if (rc)
+				rc->show = false;
 
-			ButtonComponent* bc = theButtonSystem.Get(e, false);
+			auto* tc = theTextSystem.Get(e, false);
+			if (rc)
+				rc->show = false;
+
+			auto* bc = theButtonSystem.Get(e, false);
 			if (bc)
 				bc->enabled = false;
 		}
 
 		// show every fading-in entities
 		for (auto e: fadingIn) {
-			RENDERING(e)->show = true;
-			ButtonComponent* bc = theButtonSystem.Get(e, false);
+			auto* rc = theRenderingSystem.Get(e, false);
+			if (rc)
+				rc->show = true;
+
+			auto* tc = theTextSystem.Get(e, false);
+			if (rc)
+				rc->show = true;
+
+			auto* bc = theButtonSystem.Get(e, false);
 			if (bc)
 				bc->enabled = true;
 		}
