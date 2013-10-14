@@ -30,7 +30,6 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 cd $fromWhereAmIBeingCalled/$1
 
-#typo=/home/pierre-eric/AmericanTypewriter-Condensed.ttf
 typo=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansCondensed.ttf
 typo_mono=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf
 
@@ -88,5 +87,5 @@ do
     fi
 done
 echo 
-info "Done! Do not forget to reexport atlas now and to run generetae_font_desc_generator script!"
+info "Done! Do not forget to reexport atlas now and to run generate_alphabet_font_descriptor script!"
 
