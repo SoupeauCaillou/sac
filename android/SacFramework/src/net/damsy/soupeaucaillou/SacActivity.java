@@ -75,7 +75,7 @@ public abstract class SacActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
 		Log(W, "ActivityLifeCycle --> onCreate [" + savedInstanceState + "]");
         super.onCreate(savedInstanceState);
-        
+
         //display debug informations
 		try {
 			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -144,7 +144,7 @@ public abstract class SacActivity extends Activity {
         
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
-        	renderer = new SacRenderer(viewWidth, viewHeight, gameThread, densityDPI);
+        	renderer = new SacRenderer(viewWidth, viewHeight, gameThread, densityDPI, getRequestedOrientation());
             mGLView.setRenderer(renderer);
 		}
         holder.addCallback(new SurfaceHolder.Callback() {

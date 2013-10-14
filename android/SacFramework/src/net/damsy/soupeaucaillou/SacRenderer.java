@@ -26,6 +26,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
+import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 
 public class SacRenderer implements GLSurfaceView.Renderer {
@@ -35,13 +37,18 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 	final int width, height;
 	int densityDpi;
 
-	public SacRenderer(int width, int height, SacGameThread sacG, int densityDpi) {
+	public SacRenderer(int width, int height, SacGameThread sacG, int densityDpi, int requestedOrientation) {
 		super();
 		this.sacGame = sacG;
 		this.gameThread = new Thread(this.sacGame, "GameUpdate");
 		this.time = System.currentTimeMillis();
-		this.width = Math.max(width, height);
-		this.height = Math.min(width, height);
+		if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+			this.height = Math.max(width, height);
+			this.width = Math.min(width, height);
+		} else {
+			this.width = Math.max(width, height);
+			this.height = Math.min(width, height);
+		}
 		this.densityDpi = densityDpi;
 		SacActivity.Log(SacActivity.I, "SacRenderer created w,h=" + width + "," + height);
 	}
