@@ -119,8 +119,8 @@ bool FaderHelper::update(float dt) {
 				rc->show = false;
 
 			auto* tc = theTextSystem.Get(e, false);
-			if (rc)
-				rc->show = false;
+			if (tc)
+				tc->show = false;
 
 			auto* bc = theButtonSystem.Get(e, false);
 			if (bc)
@@ -134,8 +134,8 @@ bool FaderHelper::update(float dt) {
 				rc->show = true;
 
 			auto* tc = theTextSystem.Get(e, false);
-			if (rc)
-				rc->show = true;
+			if (tc)
+				tc->show = true;
 
 			auto* bc = theButtonSystem.Get(e, false);
 			if (bc)
