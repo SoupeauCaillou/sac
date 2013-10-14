@@ -368,7 +368,6 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
     uint32_t highestUnicode = 0;
     std::for_each(charH2Wratio.begin(), charH2Wratio.end(),
         [&highestUnicode] (std::pair<uint32_t, float> a) { 
-            LOGE(a.first << " " << a.second << " " << highestUnicode);
             if (a.first > highestUnicode)
                 highestUnicode = a.first;
             }
