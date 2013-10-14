@@ -65,7 +65,7 @@ void ButtonSystem::DoUpdate(float) {
 
 
     theButtonSystem.forEachECDo([&] (Entity e, ButtonComponent *bt) -> void {
-    	auto* rc = theRenderingSystem.Get(e, false);
+    	const auto* rc = theRenderingSystem.Get(e, false);
     	if (rc) {
     		UpdateButton(e, bt, touch, camerasAdaptedPos[(int) (rc->cameraBitMask / 2)]);
     	} else {
@@ -76,8 +76,9 @@ void ButtonSystem::DoUpdate(float) {
 
 void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
 	if (!comp->enabled) {
-		if (RENDERING(entity)->show && RENDERING(entity)->texture == InvalidTextureRef)
-			RENDERING(entity)->texture = comp->textureInactive;
+		auto* rc = theRenderingSystem.Get(entity, false);
+		if (rc && rc->show && rc->texture == InvalidTextureRef)
+			rc->texture = comp->textureInactive;
 		comp->mouseOver = comp->clicked = comp->touchStartOutside = false;
 		return;
 	}
