@@ -84,8 +84,6 @@ public abstract class SacActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-        initRequiredAPI();
        
         SacPluginManager.instance().onActivityCreate(this, savedInstanceState);
         
@@ -170,6 +168,10 @@ public abstract class SacActivity extends Activity {
         /////////////////////////// PREVENT PHONE SLEEP
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        
+        // Must be done _after_ setContentView
+        initRequiredAPI();
+        
         Log(W, "ActivityLifeCycle <-- onCreate");
     }
 
