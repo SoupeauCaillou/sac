@@ -322,6 +322,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     //used for text translation, if needed
     setlocale( LC_ALL, "" );
+    setlocale( LC_NUMERIC, "C" );
 
     std::thread th1(callback_thread, title);
     float prevT = 0;

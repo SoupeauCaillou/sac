@@ -80,6 +80,8 @@ Game::Game() {
 
     mouseNativeTouchState = 0;
 
+    setlocale( LC_NUMERIC, "C" );
+
     TimeUtil::Init();
 
     /* create EntityManager */
