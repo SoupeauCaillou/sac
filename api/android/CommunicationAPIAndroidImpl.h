@@ -38,12 +38,8 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<j
     public:
         CommunicationAPIAndroidImpl();
 
-        void init(JNIEnv* env);
-
         bool mustShowRateDialog();
         void rateItNow();
         void rateItLater();
         void rateItNever();
-    public:
-        JNIEnv* env;
 };

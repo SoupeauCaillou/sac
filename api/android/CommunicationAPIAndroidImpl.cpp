@@ -29,10 +29,6 @@ CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl()  : JNIWrapper<jni_com
     declareMethod(jni_comm_api::RateItNever, "rateItNever", "()V");
 }
 
-void CommunicationAPIAndroidImpl::init(JNIEnv* pEnv) {
-    env = pEnv;
-}
-
 bool CommunicationAPIAndroidImpl::mustShowRateDialog(){
    return env->CallBooleanMethod(instance, methods[jni_comm_api::MustShowRateDialog]);
 }
