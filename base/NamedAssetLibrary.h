@@ -176,7 +176,11 @@ class NamedAssetLibrary : public ResourceHotReload {
             std::unique_lock<std::mutex> lock(mutex);
             typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
             if (it == ref2asset.end()) {
-                LOGW("Unavailable resource requested " << ref);;
+#if SAC_DEBUG
+                LOGW("Unavailable resource requested " << ref << " '" << ref2Name(ref) << "'");
+#else
+                LOGW("Unavailable resource requested " << ref);
+#endif
 #if USE_COND_SIGNALING
                 if (waitIfLoadingInProgress) {
                     // wait for next load end, the requested resource might be loaded in the next batch
