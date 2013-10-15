@@ -569,7 +569,7 @@ void RenderingSystem::render() {
     int readQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = false;
     if (!frameQueueWritable) {
-        LOGI("Rendering disabled");
+        LOGV(1, "Rendering disabled");
         renderQueue[readQueue].count = 0;
 #if ! SAC_EMSCRIPTEN
         lock.unlock();
