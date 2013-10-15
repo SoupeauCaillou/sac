@@ -36,10 +36,32 @@ typo_mono=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf
 size=60
 suffix="_typo.png"
 
+override=-1
 function generate_sprite {
-	convert -background transparent -fill white -font $3 -pointsize ${size} label:${1} PNG32:${2}${suffix}
-    return $?
-    #convert -resize 70%x100% ${2}${suffix} PNG32:${2}${suffix}
+    result=""
+
+    # if destination sprite does already exist, ask the user for a confirmation
+    if [ $override = -1 ] && [ -f ${2}${suffix} ]; then
+	   info "Sprite ${2}${suffix}('$1') already exists. Override it?" $orange
+       select result in Yes No Yes-for-all No-for-all; do
+            if [ $result = "Yes-for-all" ]; then
+                override=1
+            elif [ $result = "No-for-all" ]; then
+                override=0
+            fi
+            break
+        done
+    fi
+
+    if [ $override = 1 ] || [ "$result" = Yes ]; then
+        convert -background transparent -fill white -font $3 -pointsize ${size} label:${1} PNG32:${2}${suffix}
+        return $?
+    else
+        info "Skipped $1" $orange
+    fi
+
+    # sprite was not generated, return success because this is user's choice
+    return 0
 }
 
 info "Generating A->Z"
