@@ -25,7 +25,8 @@
 #include <systems/RenderingSystem.h>
 #include <systems/ButtonSystem.h>
 
-void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool displayIfNotConnected,  bool useLeaderboards, bool bLeaderboard) {
+void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool displayIfNotConnected, 
+ bool useLeaderboards, std::function<void()> f) {
     gameCenterAPI = g;
 
     bUIdisplayed = false;
@@ -40,7 +41,8 @@ void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool dis
     leaderboardsButton = !useLeaderboards ? 0 : theEntityManager.CreateEntity("gg/leaderboards_button",
         EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/leaderboards_button"));
 
-    uniqueLeaderboard = bLeaderboard;
+    onLeaderboardClick = f;
+
     this->displayIfNotConnected = displayIfNotConnected;
 }
 
@@ -123,7 +125,7 @@ bool GameCenterAPIHelper::updateUI() {
                 gameCenterAPI->connectOrRegister();
         return true;
     } else if (leaderboardsButton && BUTTON(leaderboardsButton)->clicked) {
-        (uniqueLeaderboard) ? gameCenterAPI->openSpecificLeaderboard(0) : gameCenterAPI->openLeaderboards();
+        onLeaderboardClick();
         return true;
     }
 

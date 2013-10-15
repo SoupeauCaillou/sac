@@ -32,8 +32,8 @@
 
 class GameCenterAPIHelper {
 	public:
-		void init(GameCenterAPI * gameCenterAPI, bool useAchievements, 
-            bool displayIfNotConnected, bool useLeaderboards, bool uniqueLeaderboard);
+        void init(GameCenterAPI * gameCenterAPI, bool useAchievements, 
+            bool displayIfNotConnected, bool useLeaderboards, std::function<void()>);
 	    
 	    void displayUI();
 		void hideUI();
@@ -43,12 +43,12 @@ class GameCenterAPIHelper {
 
         void registerForFading(FaderHelper* fader, Fading::Enum type);
 
-	private:
+        Entity signButton, achievementsButton, leaderboardsButton;
+    private:
         void displayFeatures(bool display);
 
-        bool uniqueLeaderboard;
-		GameCenterAPI * gameCenterAPI;
-        Entity signButton, achievementsButton, leaderboardsButton;
+        std::function<void()> onLeaderboardClick;
+        GameCenterAPI * gameCenterAPI;
         bool bUIdisplayed;
         bool displayIfNotConnected;
 };
