@@ -75,7 +75,7 @@ const char InlineImageDelimiter[] = {(char)0xC3, (char)0x97};
 
 // Utility functions
 static Entity createRenderingEntity();
-static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h);
+static void parseInlineImageString(const std::string& s, std::string* image, float* scale);
 static float computePartialStringWidth(TextComponent* trc, size_t from, size_t to, float charHeight, const TextSystem::FontDesc& fontDesc);
 static float computeStringWidth(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc);
 static float computeStartX(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc);
@@ -271,15 +271,14 @@ void TextSystem::DoUpdate(float dt) {
                 LOGV(3, "Inline image '" << trc->text.substr(i, next - i + 1) << "'");
                 LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'");
                 std::string texture;
+                float scale = 1.0f;
                 parseInlineImageString(
-                    trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &tc->size.x, &tc->size.y);
+                    trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &scale);
                 rc->texture = theRenderingSystem.loadTextureFile(texture);
                 rc->color = Color();
-                tc->size.x *= charHeight;
-                tc->size.y *= charHeight;
-                tc->size = theRenderingSystem.getTextureSize(texture);
-                tc->size.x *= charHeight / tc->size.y;
-                tc->size.y = charHeight;
+                glm::vec2 size = theRenderingSystem.getTextureSize(texture);
+                tc->size.y = charHeight * scale;
+                tc->size.x = tc->size.y * size.x / size.y;
                 inlineImage = true;
                 // skip inline image letters
                 skip = next + 1;
@@ -433,15 +432,13 @@ static Entity createRenderingEntity() {
     return e;
 }
 
-static void parseInlineImageString(const std::string& s, std::string* image, float* w, float* h) {
+static void parseInlineImageString(const std::string& s, std::string* image, float* scale) {
     int idx0 = s.find(',');
-    int idx1 = s.find(',', idx0 + 1);
     if (image)
         *image = s.substr(0, idx0);
-    if (w)
-        *w = atof(s.substr(idx0 + 1, idx1 - idx0).c_str());
-    if (h)
-        *h = atof(s.substr(idx1 + 1, s.length() - idx1).c_str());
+    if (scale) {
+        *scale = atof(s.substr(idx0 + 1, s.length() - idx0).c_str());
+    }
 }
 
 static float computePartialStringWidth(TextComponent* trc, size_t from, size_t toInc, float charHeight, const TextSystem::FontDesc& fontDesc) {
@@ -463,10 +460,12 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
         if (unicode == 0x00D7) {
             size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
             LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'");
-            float w = 0;
+            float scale = 0;
+            std::string texture;
             parseInlineImageString(
-                trc->text.substr(i+1, next - 1 - (i+1) + 1), 0, &w, 0);
-            width += w * charHeight;
+                trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &scale);
+            glm::vec2 size = theRenderingSystem.getTextureSize(texture);
+            width += (charHeight * scale) * size.x / size.y;
             i = next + 1;
         } else if (unicode == '\n') {
 
