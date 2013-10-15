@@ -60,7 +60,8 @@ for directory_path in $@; do
         mkdir $TEMP_FOLDER
 
         rm -rf $TMP_FILEDIR 2>/dev/null
-        mkdir $TMP_FILEDIR -p
+        mkdir $TMP_FILEDIR/$quality -p
+        mkdir $TMP_FILEDIR/tmp -p
 
         mkdir $rootPath/assets/$quality -p
         mkdir $rootPath/assetspc/$quality -p
@@ -113,7 +114,6 @@ for directory_path in $@; do
         
         if  $hasPVRTool ; then
             info "Step #6: create PVR and ETC version"
-            mkdir /tmp/$quality -p
 
             # PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$quality/$dir.png -p -pvrlegacy -o /tmp/$dir-$quality.pvr
             # PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -p -m -o /tmp/$dir-$quality.pvr -shh
@@ -121,13 +121,13 @@ for directory_path in $@; do
             # cp -r /tmp/$quality $rootPath/assets/
 
             # PVRTexToolCL -f ETC -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -q pvrtcbest -m -o /tmp/$dir-$quality-pkm.pvr -shh
-            PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o /tmp/$dir-$quality.pkm
+            PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
 
             # PVRTexToolCL ignore name extension
-            split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pkm.
-            cp -r /tmp/$quality $rootPath/assets
+            split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pvr ${TMP_FILEDIR}/$quality/$dir.pkm.
         fi
-
+        
+        cp -r ${TMP_FILEDIR}/$quality $rootPath/assets
         cp /tmp/$dir.atlas $rootPath/assets/$quality/
 
         rm -r $TEMP_FOLDER/*
