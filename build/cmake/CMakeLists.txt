@@ -45,7 +45,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
 #add flag SAC_DEBUG or SAC_RELEASE
 add_definitions(-DSAC_${BUILD_TARGET})
 
-if (SAC_CUSTOM_DEFINES)    
+if (SAC_CUSTOM_DEFINES)
     message("Adding the following defines: ${SAC_CUSTOM_DEFINES}")
     add_definitions(${SAC_CUSTOM_DEFINES})
 endif()
@@ -97,6 +97,8 @@ endfunction()
 #######################################################################
 ##########Build headers files for .vs and .fs files####################
 #######################################################################
+
+# 1st step: add a recipe to build a .h for each [vf]s files
 file (
     GLOB_RECURSE
     SHADER_SOURCE_FILES
@@ -125,9 +127,12 @@ foreach (FILE ${SHADER_SOURCE_FILES})
     )
 endforeach()
 
+# 2nd step: define 'generate_shaders' target and make it depends on .h file
 string(REGEX REPLACE "\\.([vf]s)" "_\\1.h;" SHADER_HEADER_FILES ${SHADER_SOURCE_FILES})
-
 add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
+
+# 3rd step (see below): make sac target depends on generate_shaders target
+
 #######################################################################
 ##################Make assets (from unprepared_assets##################
 #######################################################################
