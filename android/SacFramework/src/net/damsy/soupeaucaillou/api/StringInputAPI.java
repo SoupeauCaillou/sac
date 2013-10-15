@@ -51,11 +51,11 @@ public class StringInputAPI {
 				Math.min(11, n.length()));
 	}
 
-	void init(Button nameInputButton, EditText text, View playerNameInputView, InputMethodManager inputMethodManager) {
+	public void init(Button nameInputButton, EditText text, View pPlayerNameInputView, InputMethodManager pInputMethodManager) {
 		this.nameButton = nameInputButton;
 		this.nameEdit = text;
-		this.playerNameInputView = playerNameInputView;
-		this.inputMethodManager = inputMethodManager;
+		this.playerNameInputView = pPlayerNameInputView;
+		this.inputMethodManager = pInputMethodManager;
 	}
 
 	// -------------------------------------------------------------------------
@@ -84,7 +84,6 @@ public class StringInputAPI {
 				nameEdit.setText("");
 			}
 		});
-		SacActivity.LogI("Show player name UI");
 	}
 
 	public void onNameInputComplete(final String newName) {

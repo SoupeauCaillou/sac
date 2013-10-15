@@ -31,15 +31,14 @@ StringInputAPIAndroidImpl::StringInputAPIAndroidImpl() : JNIWrapper<jni_name_api
 }
 
 void StringInputAPIAndroidImpl::askUserInput(const std::string&, const int) {
-    LOGT("Use parameters?");
     env->CallVoidMethod(instance, methods[jni_name_api::AskUserInput]);
 }
 
 bool StringInputAPIAndroidImpl::done(std::string& name) {
     jstring n = (jstring) env->CallObjectMethod(instance, methods[jni_name_api::Done]);
-    const char *mfile = env->GetStringUTFChars(n, 0);
-    name = mfile;
     if (n) {
+        const char *mfile = env->GetStringUTFChars(n, 0);
+        name = mfile;
         LOGI("Entered string: '" << mfile << "'");
         env->ReleaseStringUTFChars(n, mfile);
         return true;
