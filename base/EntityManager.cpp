@@ -72,8 +72,9 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 			e |= EntityTypeMask;
 			break;
 	}
+
 	// maybe hide the TypeBit from the rest of the world...
-    LOGF_IF(entity2name.find(e) != entity2name.end(), "Incoherent entity2name state");
+    LOGF_IF(entity2name.find(e) != entity2name.end(), "Newly created entity '" << e << "' is already in entity2name. Value='" << entity2name.find(e)->second << "'");
     entity2name[e] = name;
 
     if (tmpl != InvalidEntityTemplateRef) {
@@ -180,6 +181,16 @@ int EntityManager::serialize(uint8_t** result) {
 	std::vector<EntitySave> saves;
 	int totalLength = 0;
 
+	// Save entities. For each entity we write:
+	//  * entity (id)
+	//  * name length
+	//  * name
+	//  * component count
+	//  * for each component of entity:
+	//      * system name
+	//      * component size
+	//      * component
+
 	for (std::map<Entity, std::list<ComponentSystem*> >::iterator it=entityComponents.begin();
 		it!=entityComponents.end();
 		++it) {
@@ -189,12 +200,14 @@ int EntityManager::serialize(uint8_t** result) {
 		if (!(e.e & EntityTypeMask))
 			continue;
 
-		totalLength += sizeof(Entity) + sizeof(int);
+		totalLength += sizeof(Entity) + 2 * sizeof(int);
+		totalLength += entity2name.find(e.e)->second.size();
 
 		for(std::list<ComponentSystem*>::iterator jt=(*it).second.begin();
 			jt != (*it).second.end();
 			++jt) {
 			ComponentSave c;
+			// TODO: use a simple id/hash
 			c.name = (*jt)->getName();
 			c.contentSize = (*jt)->serialize(e.e, &c.content);
 			e.components.push_back(c);
@@ -208,9 +221,20 @@ int EntityManager::serialize(uint8_t** result) {
 	*result = new uint8_t[totalLength];
 	uint8_t* out = *result;
 	for(unsigned int i=0; i<saves.size(); i++) {
+		// entity (id)
 		out = (uint8_t*)mempcpy(out, &saves[i].e, sizeof(Entity));
-		int cCount = saves[i].components.size();
+		
+		const std::string& name = entity2name.find(saves[i].e)->second;
+		const int nameLength = name.size();
+		// name length
+		out = (uint8_t*) mempcpy(out, &nameLength, sizeof(int));
+		// name
+		out = (uint8_t*) mempcpy(out, name.c_str(), nameLength);
+
+		// nb component
+		const int cCount = saves[i].components.size();
 		out = (uint8_t*)mempcpy(out, &cCount, sizeof(int));
+		// components
 		for (int j=0; j<cCount; j++) {
 			out = (uint8_t*)mempcpy(out, saves[i].components[j].name.c_str(), saves[i].components[j].name.length()+1);
 			out = (uint8_t*)mempcpy(out, &saves[i].components[j].contentSize, sizeof(int));
@@ -222,6 +246,7 @@ int EntityManager::serialize(uint8_t** result) {
 
 
 void EntityManager::deserialize(const uint8_t* in, int length) {
+	char tmp[512];
 	int index = 0;
 	while (index < length) {
 		Entity e;
@@ -230,6 +255,13 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 		if (!(e & EntityTypeMask)) {
 			LOGW("EntityManager deserializing a non-persistent entity");
 		}
+		int nameLength = 0;
+		memcpy(&nameLength, &in[index], sizeof(int)); index += sizeof(int);
+		LOGW_IF(nameLength == 0 || (nameLength > 512), "Invalid entity name:" << nameLength);
+		nameLength = glm::min(512, nameLength);
+		memcpy(tmp, &in[index], nameLength); index += nameLength;
+		tmp[nameLength] = '\0';
+		entity2name[e] = tmp;
 
 		int cCount = 0;
 		memcpy(&cCount, &in[index], sizeof(int)); index += sizeof(int);
@@ -256,8 +288,8 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 			l.push_back(system);
 		}
 		entityComponents[e] = l;
-        LOGV(1, " - restored entity '" << (e & ~EntityTypeMask) << "' with "  << l.size() << " components");
-		nextEntity = glm::max(nextEntity, e + 1);
+        LOGI( " - restored entity '" << (e & ~EntityTypeMask) << "' / '" << entityName(e) << "' with "  << l.size() << " components");
+		nextEntity = glm::max(nextEntity, (e & ~((unsigned long)EntityTypeMask)) + 1);
 	}
 }
 
