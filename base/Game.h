@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 #include "GameContext.h"
 
 class MouseNativeTouchState;
@@ -40,6 +41,8 @@ namespace GameType {
     };
 }
 #endif
+
+class ComponentSystem;
 
 class Game {
 	public:
@@ -92,4 +95,8 @@ class Game {
         GameType::Enum gameType;
         LevelEditor* levelEditor;
 #endif
+    public:
+        void buildOrderedSystemsToUpdateList();
+    private:
+        std::vector<ComponentSystem*> orderedSystemsToUpdate;
 };

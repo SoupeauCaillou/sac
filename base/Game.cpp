@@ -115,11 +115,51 @@ Game::Game() {
     NetworkSystem::CreateInstance();
 #endif
 
+    // default
+    buildOrderedSystemsToUpdateList();
+
     fpsStats.reset(0);
     lastUpdateTime = TimeUtil::GetTime();
 #if SAC_INGAME_EDITORS
     levelEditor = new LevelEditor();
 #endif
+}
+
+void Game::buildOrderedSystemsToUpdateList() {
+    orderedSystemsToUpdate.clear();
+
+    #define ADD_IF_EXISTING(ptr) do { \
+        auto* _ptr = (ptr); \
+        if (_ptr) orderedSystemsToUpdate.push_back(_ptr); \
+    } while (false)
+
+#if SAC_NETWORK
+    ADD_IF_EXISTING(NetworkSystem::GetInstancePointer());
+#endif
+
+    ADD_IF_EXISTING(CameraSystem::GetInstancePointer());
+    ADD_IF_EXISTING(ADSRSystem::GetInstancePointer());
+    ADD_IF_EXISTING(AnimationSystem::GetInstancePointer());
+    ADD_IF_EXISTING(AutoDestroySystem::GetInstancePointer());
+    ADD_IF_EXISTING(AutonomousAgentSystem::GetInstancePointer());
+    ADD_IF_EXISTING(ButtonSystem::GetInstancePointer());
+    ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
+    ADD_IF_EXISTING(ContainerSystem::GetInstancePointer());
+    ADD_IF_EXISTING(DebuggingSystem::GetInstancePointer());
+    ADD_IF_EXISTING(GraphSystem::GetInstancePointer());
+    ADD_IF_EXISTING(GridSystem::GetInstancePointer());
+    ADD_IF_EXISTING(MorphingSystem::GetInstancePointer());
+    ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
+    ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
+    ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
+    ADD_IF_EXISTING(ScrollingSystem::GetInstancePointer());
+    ADD_IF_EXISTING(SoundSystem::GetInstancePointer());
+    ADD_IF_EXISTING(TextSystem::GetInstancePointer());
+    ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
+    ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
+    ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
+
+    LOGI(orderedSystemsToUpdate.size() << " active systems");
 }
 
 Game::~Game() {
@@ -153,6 +193,7 @@ Game::~Game() {
 #if SAC_NETWORK
     NetworkSystem::DestroyInstance();
 #endif
+    orderedSystemsToUpdate.clear();
 }
 
 void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {
@@ -405,32 +446,10 @@ void Game::step() {
     if (delta > 0) {
 #endif
 
-#if SAC_NETWORK
-    theNetworkSystem.Update(delta);
-#endif
-
     LOGV(2, "Update systems");
-    theCameraSystem.Update(delta);
-    theADSRSystem.Update(delta);
-    theAnimationSystem.Update(delta);
-    theAutoDestroySystem.Update(delta);
-    theAutonomousAgentSystem.Update(delta);
-    theButtonSystem.Update(delta);
-    theCollisionSystem.Update(delta);
-    theContainerSystem.Update(delta);
-    theDebuggingSystem.Update(delta);
-    theGraphSystem.Update(delta);
-    theGridSystem.Update(delta);
-    theMorphingSystem.Update(delta);
-    theMusicSystem.Update(delta);
-    theParticuleSystem.Update(delta);
-    thePhysicsSystem.Update(delta);
-    theScrollingSystem.Update(delta);
-    theSoundSystem.Update(delta);
-    theTextSystem.Update(delta);
-    theAnchorSystem.Update(delta);
-    theTransformationSystem.Update(delta);
-    theZSQDSystem.Update(delta);
+    for (auto* sys : orderedSystemsToUpdate) {
+        sys->Update(delta);
+    }
 
 #if SAC_INGAME_EDITORS
     } else {
