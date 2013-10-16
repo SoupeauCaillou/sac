@@ -42,7 +42,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     ParticuleComponent tc;
     componentSerializer.add(new Property<float>("emission_rate", OFFSET(emissionRate, tc)));
     componentSerializer.add(new Property<float>("duration", OFFSET(duration, tc)));
-    componentSerializer.add(new Property<TextureRef>("texture", PropertyType::Texture, OFFSET(texture, tc)));
+    componentSerializer.add(new Property<TextureRef>("texture", PropertyType::Texture, OFFSET(texture, tc), 0));
     componentSerializer.add(new IntervalProperty<float>("lifetime", OFFSET(lifetime, tc)));
     componentSerializer.add(new IntervalProperty<Color>("initial_color", OFFSET(initialColor, tc)));
     componentSerializer.add(new IntervalProperty<Color>("final_color", OFFSET(finalColor, tc)));
