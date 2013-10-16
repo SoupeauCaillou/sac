@@ -137,7 +137,7 @@ inline int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
 }
 
 template <>
-inline int VectorProperty<std::string>::deserialize(uint8_t* in, void* object) const {
+inline int VectorProperty<std::string>::deserialize(const uint8_t* in, void* object) const {
     std::vector<std::string>* v = (std::vector<std::string>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -159,7 +159,7 @@ inline int VectorProperty<std::string>::deserialize(uint8_t* in, void* object) c
 }
 
 template <typename T>
-inline int VectorProperty<T>::deserialize(uint8_t* in, void* object) const {
+inline int VectorProperty<T>::deserialize(const uint8_t* in, void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -206,7 +206,7 @@ inline int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T>
-inline int IntervalProperty<T>::deserialize(uint8_t* in, void* object) const {
+inline int IntervalProperty<T>::deserialize(const uint8_t* in, void* object) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     memcpy(&v->t1, in, sizeof(T));
     memcpy(&v->t2, in + sizeof(T), sizeof(T));
@@ -254,7 +254,7 @@ inline int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T, typename U>
-inline int MapProperty<T,U>::deserialize(uint8_t* in, void* object) const {
+inline int MapProperty<T,U>::deserialize(const uint8_t* in, void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -302,7 +302,7 @@ inline int MapProperty<std::string, float>::serialize(uint8_t* out, void* object
 }
 
 template <>
-inline int MapProperty<std::string, float>::deserialize(uint8_t* in, void* object) const {
+inline int MapProperty<std::string, float>::deserialize(const uint8_t* in, void* object) const {
     std::map<std::string, float>* v = (std::map<std::string, float>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;

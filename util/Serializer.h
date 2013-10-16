@@ -59,7 +59,7 @@ class IProperty {
         virtual unsigned size(void* object) const;
         virtual bool different(void* object, void* refObject) const;
         virtual int serialize(uint8_t* out, void* object) const;
-        virtual int deserialize(uint8_t* in, void* object) const;
+        virtual int deserialize(const uint8_t* in, void* object) const;
 
         const std::string& getName() const { return name; }
         PropertyType::Enum getType() const {return type;}
@@ -89,7 +89,7 @@ class EntityProperty : public IProperty {
         EntityProperty(const std::string& name, unsigned long offset);
         unsigned size(void* object) const;
         int serialize(uint8_t* out, void* object) const;
-        int deserialize(uint8_t* in, void* object) const;
+        int deserialize(const uint8_t* in, void* object) const;
 };
 
 class StringProperty : public IProperty {
@@ -98,7 +98,7 @@ class StringProperty : public IProperty {
         unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
-        int deserialize(uint8_t* in, void* object) const;
+        int deserialize(const uint8_t* in, void* object) const;
 };
 
 template <typename T>
@@ -108,7 +108,7 @@ class VectorProperty : public IProperty {
         unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
-        int deserialize(uint8_t* in, void* object) const;
+        int deserialize(const uint8_t* in, void* object) const;
 };
 
 template <typename T>
@@ -117,7 +117,7 @@ class IntervalProperty : public IProperty {
         IntervalProperty(const std::string& name, unsigned long offset);
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
-        int deserialize(uint8_t* in, void* object) const;
+        int deserialize(const uint8_t* in, void* object) const;
 };
 
 
@@ -128,7 +128,7 @@ class MapProperty : public IProperty {
         virtual unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         virtual int serialize(uint8_t* out, void* object) const;
-        virtual int deserialize(uint8_t* in, void* object) const;
+        virtual int deserialize(const uint8_t* in, void* object) const;
 };
 
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
@@ -146,7 +146,7 @@ class Serializer {
     int size(void* object);
     int serializeObject(uint8_t* out, void* object, void* refObject = 0);
     int serializeObject(uint8_t** out, void* object, void* refObject = 0);
-    int deserializeObject(uint8_t* in, int size, void* object);
+    int deserializeObject(const uint8_t* in, int size, void* object);
 
     const std::vector<IProperty*>& getProperties() const { return properties; }
 };

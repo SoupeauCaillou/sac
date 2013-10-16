@@ -48,7 +48,7 @@ int IProperty::serialize(uint8_t* out, void* object) const {
     return _size;
 }
 
-int IProperty::deserialize(uint8_t* in, void* object) const {
+int IProperty::deserialize(const uint8_t* in, void* object) const {
     memcpy(PTR_OFFSET_2_PTR(object, offset), in, _size);
     return _size;
 }
@@ -78,7 +78,7 @@ int EntityProperty::serialize(uint8_t* out, void* object) const {
     return sizeof(Entity);
 }
 
-int EntityProperty::deserialize(uint8_t* in, void* object) const {
+int EntityProperty::deserialize(const uint8_t* in, void* object) const {
 #if SAC_NETWORK
     if (NetworkSystem::GetInstancePointer()) {
         unsigned int guid;
@@ -113,7 +113,7 @@ int StringProperty::serialize(uint8_t* out, void* object) const {
     return length + 1;
 }
 
-int StringProperty::deserialize(uint8_t* in, void* object) const {
+int StringProperty::deserialize(const uint8_t* in, void* object) const {
     uint8_t length = in[0];
     std::string* a = (std::string*) PTR_OFFSET_2_PTR(object, offset);
     *a = std::string((const char*)&in[1], length);
@@ -163,7 +163,7 @@ int Serializer::serializeObject(uint8_t** out, void* object, void* refObject) {
     return serializeObject(*out, object, refObject);
 }
 
-int Serializer::deserializeObject(uint8_t* in, int size, void* object) {
+int Serializer::deserializeObject(const uint8_t* in, int size, void* object) {
     int index = 0;
     while (index < size) {
         uint8_t prop = in[index++];
