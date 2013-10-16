@@ -22,6 +22,7 @@
 
 #include "StateMachine.h"
 #include "Profiler.h"
+#include <cstring>
 
 template<typename T>
 StateMachine<T>::StateMachine() : override(false), transitionning(false) {
@@ -42,12 +43,15 @@ StateMachine<T>::~StateMachine() {
 }
 
 template<typename T>
-void StateMachine<T>::setup(T initState) {
+void StateMachine<T>::setup() {
     for(auto it=state2handler.begin(); it!=state2handler.end(); ++it) {
         it->second->setup();
     }
+}
 
-    currentState = (T) -1;
+template<typename T>
+void StateMachine<T>::start(T initState) {
+    currentState = previousState = (T) -1;
     transitionning = transition.readyExit = transition.dumbFrom = true;
     transition.toState = initState;
     transition.readyEnter = false;
@@ -145,13 +149,8 @@ void StateMachine<T>::changeState(T oldState, T newState, bool ignoreFromState) 
     if (!ignoreFromState)
         state2handler[oldState]->onExit(newState);
     state2handler[newState]->onEnter(oldState);
+    previousState = currentState;
     currentState = newState;
-}
-
-template<typename T>
-void StateMachine<T>::reEnterCurrentState() {
-    state2handler[currentState]->onPreEnter(currentState);
-    state2handler[currentState]->onEnter(currentState);
 }
 
 template<typename T>
@@ -165,4 +164,30 @@ void StateMachine<T>::unregisterAllStates() {
     #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
         state2Name.clear();
     #endif
+}
+
+template<typename T>
+int StateMachine<T>::serialize(uint8_t** out) const {
+    LOGW_IF(transitionning, "Serializing a transitionning state machine is'nt a good idea");
+    const int size = sizeof(currentState) + sizeof(previousState);
+    uint8_t* ptr = *out = new uint8_t[size];
+    memcpy(ptr, &currentState, sizeof(currentState));
+    memcpy(&ptr[sizeof(currentState)], &previousState, sizeof(previousState));
+    return size;
+}
+
+template<typename T>
+int StateMachine<T>::deserialize(const uint8_t* in, int size) {
+    const int _size = sizeof(currentState) + sizeof(previousState);
+    LOGF_IF(size != _size, "Incorrect size: " << size << ". Expected: " << _size);
+    T newState;
+    memcpy(&newState, in, sizeof(currentState));
+    memcpy(&currentState, &in[sizeof(currentState)], sizeof(previousState));
+    //         ^ yes, currentState
+    // hackish setup
+    transitionning = transition.readyExit = transition.dumbFrom = true;
+    transition.fromState = currentState;
+    transition.toState = newState;
+    transition.readyEnter = false;
+    return _size;
 }

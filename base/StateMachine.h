@@ -70,9 +70,9 @@ class StateMachine {
 
         ~StateMachine();
 
-        void setup(T initState);
+        void setup();
 
-        void reEnterCurrentState();
+        void start(T initState);
 
 		void registerState(T id, StateHandler<T>* hdl, const std::string& stateDebugName);
 
@@ -90,8 +90,11 @@ class StateMachine {
 
         StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
 
+        int serialize(uint8_t** out) const;
+        int deserialize(const uint8_t* in, int size);
+
 	private:
-		T currentState, overrideNextState;
+		T currentState, overrideNextState, previousState;
 		std::map<T, StateHandler<T>*> state2handler;
         #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
         std::map<T, std::string> state2Name;
