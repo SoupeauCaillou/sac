@@ -26,12 +26,27 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
         error_and_usage_and_quit "Need the path to the alphabet directory"
     fi
 
-######### 1 : Process. #########
+######### 1 : Read arguments. #########
+    CHECK_GENERATED_SPRITES=0
+    while [ "$1" != "" ]; do
+        case $1 in
+            "-h" | "-help")
+                usage_and_quit
+                ;;
+            *)
+                alphabet=$1
+        esac
+        shift
+    done
 
-cd $fromWhereAmIBeingCalled/$1
+######### 2 : Process. #########
+
+cd $fromWhereAmIBeingCalled/$alphabet
 
 typo=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansCondensed.ttf
 typo_mono=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf
+# Find fonts for a language: 'fc-list :lang=zh' (for chinese)
+typo_asian=/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf
 
 size=60
 suffix="_typo.png"
@@ -42,19 +57,19 @@ function generate_sprite {
 
     # if destination sprite does already exist, ask the user for a confirmation
     if [ $override = -1 ] && [ -f ${2}${suffix} ]; then
-	   info "Sprite ${2}${suffix}('$1') already exists. Override it?" $orange
-       select result in Yes No Yes-for-all No-for-all; do
+	   info "\nSprite ${2}${suffix}('$1') already exists. Override it?" $orange
+       select result in Yes No Yes-for-all No-for-all ; do
             if [ $result = "Yes-for-all" ]; then
                 override=1
             elif [ $result = "No-for-all" ]; then
                 override=0
             fi
             break
-        done
+        done 
     fi
 
     if [ $override = 1 ] || [ "$result" = Yes ]; then
-        convert -background transparent -fill white -font $3 -pointsize ${size} label:${1} PNG32:${2}${suffix}
+        convert -background transparent -fill white -font $3 -pointsize ${size} label:${1} PNG32:${2}${suffix} &>/dev/null
         return $?
     else
         info "Skipped $1" $orange
@@ -64,50 +79,43 @@ function generate_sprite {
     return 0
 }
 
+function generate_for_list {
+    printf "Treating... "
+    typo=$1
+    shift
+    for i in $@; do
+        printf $i
+
+        dec=$(printf "%x" "'$i")
+        if ! generate_sprite $i $dec $typo; then
+            info "Error while generating character $i" $red
+            printf "Treating... "
+        fi
+    done
+    echo
+}
+
 info "Generating A->Z"
-for i in {A..Z};
-do
-    dec=$(printf "%x" "'$i")
-    generate_sprite $i $dec $typo
-done
+generate_for_list $typo {A..Z} 
 
 info "Generating a->z"
-for i in {a..z};
-do
-    dec=$(printf "%x" "'$i")
-    generate_sprite $i $dec $typo
-done
+generate_for_list $typo {a..z} 
 
 info "Generating 0->9"
-for i in {0..9};
-do
-    dec=$(printf "%x" "'$i")
-    generate_sprite $i $dec $typo_mono
-done
+generate_for_list $typo_mono {0..9} 
 
 info "Generating punctuation"
 ponct="! ? # ' ( ) , - . ; : ="
-for i in $ponct; 
-do
-    dec=$(printf "%x" "'$i")
-    generate_sprite $i $dec $typo
-done
+generate_for_list $typo $ponct 
+
+info "Generating Asian characters"
+asian_chars=$(cat $rootPath/res/values-ja/strings.xml $rootPath/res/values-zh/strings.xml | tr -d "[:alnum:]$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
+#not working well yet
+generate_for_list $typo_asian $asian_chars 
 
 info "Generating accented letters"
-specials=$(cat $rootPath/res/values*/strings.xml | tr -d "[:alnum:]$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
+specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct$asian_chars" | grep -o . | sort -n | uniq | tr '\n' ' ')
+generate_for_list $typo $specials 
 
-printf "Treating... "
-for i in $specials;
-do
-    printf $i
-
-    dec=$(printf "%x" "'$i")
-
-    if (!(generate_sprite $i $dec $typo &>/dev/null)); then
-        info "Error while generating character $i" $red
-        printf "Treating... "
-    fi
-done
-echo 
 info "Done! Do not forget to reexport atlas now and to run generate_alphabet_font_descriptor script!"
 
