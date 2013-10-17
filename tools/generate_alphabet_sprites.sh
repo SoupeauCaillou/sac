@@ -53,7 +53,7 @@ suffix="_typo.png"
 
 override=-1
 function generate_sprite {
-    result=""
+    result="Yes"
 
     # if destination sprite does already exist, ask the user for a confirmation
     if [ $override = -1 ] && [ -f ${2}${suffix} ]; then
@@ -105,11 +105,11 @@ info "Generating 0->9"
 generate_for_list $typo_mono {0..9} 
 
 info "Generating punctuation"
-ponct="! ? # ' ( ) , - . ; : ="
+ponct="! ? # ' ( ) , \- . ; : = < > _ "
 generate_for_list $typo $ponct 
 
 info "Generating Asian characters"
-asian_chars=$(cat $rootPath/res/values-ja/strings.xml $rootPath/res/values-zh/strings.xml | tr -d "[:alnum:]$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
+asian_chars=$(cat $rootPath/res/values-ja/strings.xml $rootPath/res/values-zh/strings.xml | tr -d "\\[:alnum:]$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
 #not working well yet
 generate_for_list $typo_asian $asian_chars 
 
