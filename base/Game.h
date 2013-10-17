@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <set>
 #include "GameContext.h"
 
 class MouseNativeTouchState;
@@ -99,4 +100,8 @@ class Game {
         void buildOrderedSystemsToUpdateList();
     private:
         std::vector<ComponentSystem*> orderedSystemsToUpdate;
+
+        #if SAC_ENABLE_LOG
+        std::set<ComponentSystem*> unusedSystems;
+        #endif
 };

@@ -159,6 +159,12 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
     ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
 
+#if SAC_ENABLE_LOG
+    unusedSystems.clear();
+    std::copy(orderedSystemsToUpdate.begin(), orderedSystemsToUpdate.end(), std::inserter(unusedSystems, unusedSystems.begin()));
+#endif
+
+
     LOGI(orderedSystemsToUpdate.size() << " active systems");
 }
 
@@ -194,6 +200,10 @@ Game::~Game() {
     NetworkSystem::DestroyInstance();
 #endif
     orderedSystemsToUpdate.clear();
+
+#if SAC_ENABLE_LOG
+    unusedSystems.clear();
+#endif
 }
 
 void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {
@@ -272,7 +282,9 @@ void Game::eventsHandler() {
                             break;
 #endif
                         case SDLK_F9:
+#if SAC_LINUX && SAC_DESKTOP
                             Recorder::Instance().toggle();
+#endif
                             break;
 
 #if SAC_INGAME_EDITORS
@@ -446,11 +458,31 @@ void Game::step() {
     if (delta > 0) {
 #endif
 
+    #if SAC_ENABLE_LOG
+        static int timer = 0;
+        //every 20 secs, log it
+        if (++timer == 60*20) {
+            timer = 0;
+            for (auto* sys : unusedSystems) {
+                LOGW("System " << sys->getName() << " has (yet) not been used");
+            }
+        }
+    #endif
+
     LOGV(2, "Update systems");
+
     for (auto* sys : orderedSystemsToUpdate) {
+        #if SAC_ENABLE_LOG
+            //if system contains entities, remove it from "unused" systems set
+            if (sys->entityCount()) {
+                std::set<ComponentSystem*>::iterator systemIt;
+                if ((systemIt = unusedSystems.find(sys)) != unusedSystems.end()) {
+                    unusedSystems.erase(systemIt);
+                }
+            }
+        #endif
         sys->Update(delta);
     }
-
 #if SAC_INGAME_EDITORS
     } else {
         theAnchorSystem.Update(delta);
