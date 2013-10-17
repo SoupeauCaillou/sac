@@ -14,9 +14,11 @@ gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr 
 #import cool stuff
 source coolStuff.sh
 #how to use the script
-export SAC_USAGE="$0 [options]. Generate header for source files (This file is part of...)"
-export SAC_OPTIONS=""
-export SAC_EXAMPLE="${green}TODO${default_color}"
+export SAC_USAGE="$0 [options]. Generate header for source files ('This file is part of...')"
+export SAC_OPTIONS="\
+-game(default): regenerate game's headers
+\t-sac: regenerate sac's headers"
+export SAC_EXAMPLE="$0: will regenerate headers for files located in platforms and sources directories"
 
 ######### 0 : Check requirements. #########
 	if [ -z "$(pwd | grep /sac/tools)" ]; then
@@ -24,13 +26,16 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 	fi
 
 ######### 1 : Read arguments. #########
+    GENERATE_SAC=0
     while [ "$1" != "" ]; do
         case $1 in
+            "-sac")
+                GENERATE_SAC=1
+                ;;
             *)
-                info "Unknow option '$1'"
+                error_and_usage_and_quit "Unknown option '$1'"
         esac
         shift
-
     done
 
 ######### 2 : replace headers #########
@@ -53,15 +58,23 @@ sac_header='/*
 
     You should have received a copy of the GNU General Public License
     along with GAME_NAME.  If not, see <http://www.gnu.org/licenses/>.
-*/
-'
-sac_header=${sac_header//GAME_NAME/$gameName}
+*/'
 
-for file in $(find $rootPath/sources $rootPath/platforms -type f); do
+if [ $GENERATE_SAC = 1 ]; then
+    sac_header=${sac_header//GAME_NAME/Soupe Au Caillou}
+    sac=$rootPath/sac
+    files=$(find $sac/android $sac/api $sac/app $sac/base $sac/steering $sac/systems $sac/tests $sac/tools $sac/util -type f -not -path "*/libs/*")
+else
+    #replace GAME_NAME in ^ text with the real game name
+    sac_header=${sac_header//GAME_NAME/$gameName}
+    files=$(find $rootPath/sources $rootPath/platforms -type f)
+fi
+
+for file in $files; do
     ext=.$(basename $file | rev | cut -d'.' -f1 | rev). #points are relevant!
     
-    #warning: there is still a bug, though, if $ext is like '.i' because it will match with '.inl'; this is the reason why we force 
-    #one dot each side
+    #warning: there is still a bug, though, if $ext is like '.i' because it will 
+    #match with '.inl'; this is the reason why we force one dot each side
     if [[ ! ".cpp. .h. .hpp. .c. .inl. .java." =~ "$ext" ]]; then
         continue
     fi
