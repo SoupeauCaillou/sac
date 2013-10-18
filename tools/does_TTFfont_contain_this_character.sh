@@ -67,6 +67,7 @@ debug 2 "index is $index"
 match_block=$(echo $match_line | cut -d " " -f $(($index +1)) | tr '[:lower:]' '[:upper:]')
 debug 2 "match_block is $match_block"
 
+######### OBSOLETE ######
 # Step 7: convert hexadecimal block value to right-to-left(inverted) binary value
 match_block_to_binary=$(echo "obase=2; ibase=16; $match_block" | bc | rev)
 # we force it to be 32-length long, (filling with left zeros)
@@ -81,13 +82,13 @@ byte_position=$(($row % 0x20))
 debug 2 "byte_position is $byte_position"
 
 # Step 9: finally, get it and we're done!
-match_byte=${match_block_to_binary:$byte_position:1}
+match_byte=$((0x$match_block & $((1 << $byte_position))))
 debug 2 "match_byte is $match_byte"
 
-if [ "$match_byte" = 1 ]; then
-    debug 1 "Character $char is available in font $font!"
-    exit 0
-else
+if [ "$match_byte" = 0 ]; then
     debug 1 "Character $char not available in font $font..."
     exit 1
+else
+    debug 1 "Character $char is available in font $font!"
+    exit 0
 fi

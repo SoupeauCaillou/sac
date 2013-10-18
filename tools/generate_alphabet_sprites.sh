@@ -106,6 +106,7 @@ info "Generating 0->9"
 generate_for_list {0..9} 
 
 info "Generating punctuation"
+# ? needs to be escaped for an unknown reason...
 ponct=", - . / : ; < = > \? _ ! \" # ' ( )"
 generate_for_list $ponct
 
