@@ -178,6 +178,7 @@ struct CharSequenceToUnicode {
                 (sequence[(int)FirstChar] - offsets[(int)FirstChar]) * 0x1000 +
                     (sequence[(int)MiddleChar] - offsets[(int)MiddleChar]) * 0x40 +
                     sequence[(int)LastChar] - offsets[(int)LastChar];
+            LOGV_IF(1, (sequence[1] > 0), std::hex << "0x" << (int)sequence[0] << " 0x" << (int)sequence[1] << " 0x" << (int)sequence[2] << " => 0x" << unicode << std::dec);
             return true;
         } else {
             return false;
@@ -390,6 +391,7 @@ void TextSystem::DoUpdate(float dt) {
                 } else {
 #if SAC_DEBUG
                     if (info.texture == invalidCharTexture) {
+                        LOGV(1, "Missing unicode char: 0x" << std::hex << unicode << std::dec);
                         invalidLettersTexturePosition.push_back(lastValidCharIndex);
                     }
 #endif
