@@ -32,7 +32,7 @@ done
             
 
 function debug {
-    if [ $log_level -ge $1 ]; then
+    if [ "$log_level" -ge "$1" ]; then
         echo $2
     fi
 }
