@@ -19,37 +19,37 @@ source coolStuff.sh
 #how to use the script
 export SAC_USAGE="$0 alphabet-directory font-name: generate the font descriptor file in assets/ directory for the given font"
 export SAC_OPTIONS=""
-export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet myfont"
+export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
-    if [ $# != 2 ]; then
-        error_and_usage_and_quit "Need the path to the alphabet directory and the font name"
+    if [ $# != 1 ]; then
+        error_and_usage_and_quit "Need the path to the alphabet directory"
     fi
 
     if [ ! -d "$fromWhereAmIBeingCalled/$1" ]; then
         error_and_usage_and_quit "Directory $1 does not exist!"
     fi
 
-    if [ $(find $fromWhereAmIBeingCalled/$1 -name "*_$2.png" | wc -l) = 0 ]; then
-        error_and_usage_and_quit "Could not find any *_$2.png image in $1!"
+    if [ $(find $fromWhereAmIBeingCalled/$1 -name "*_typo.png" | wc -l) = 0 ]; then
+        error_and_usage_and_quit "Could not find any *_typo.png image in $1!"
     fi
 
  
 ######### 1 : Process. #########
-output=$rootPath/assets/$2.font
+output=$rootPath/assets/typo.font
 rm -f $output
 
 function write {
     echo $@ >> $output
 }
 
-write "#FONT: $2" 
+write "#FONT: typo" 
 write "#char,width,height"
 
 cd $fromWhereAmIBeingCalled/$1
 
 info "Processing.."
-for i in $(ls *_$2.png); do
+for i in $(ls *_typo.png); do
 	size=$(identify $i | cut -d\  -f 3)
 	c=$(echo $i | cut -d_ -f1)
 	width=$(echo $size | cut -dx -f1)
