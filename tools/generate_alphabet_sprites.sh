@@ -111,7 +111,7 @@ ponct=", - . / : ; < = > \? _ ! \" # ' ( )"
 generate_for_list $ponct
 
 info "Generating accented letters"
-specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
+specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -n | sed '$!N; /^\(.*\)\n\1$/!P; D' | tr '\n' ' ')
 generate_for_list $specials 
 
 info "Done! Do not forget to reexport atlas now and to run generate_alphabet_font_descriptor script!"
