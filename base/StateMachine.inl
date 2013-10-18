@@ -52,7 +52,9 @@ void StateMachine<T>::setup() {
 template<typename T>
 void StateMachine<T>::start(T initState) {
     currentState = previousState = (T) -1;
+#if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
     state2Name[currentState] = "Dummy";
+#endif
     transitionning = transition.readyExit = transition.dumbFrom = true;
     transition.toState = initState;
     transition.readyEnter = false;
