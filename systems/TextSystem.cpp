@@ -333,7 +333,9 @@ void TextSystem::DoUpdate(float dt) {
                 continue;
             uint32_t unicode = seqToUni.unicode;
             seqToUni.reset();
+#if SAC_DEBUG
             lastValidCharIndex++;
+#endif
 
             // Add rendering entity if needed
             if (letterCount >= renderingEntitiesPool.size()) {
