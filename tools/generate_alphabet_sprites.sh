@@ -106,7 +106,7 @@ info "Generating 0->9"
 generate_for_list {0..9} 
 
 info "Generating punctuation"
-ponct="! ? # ' ( ) , \- . ; : = < > _ "
+ponct=", - . / : ; < = > \? _ ! \" # ' ( )"
 generate_for_list $ponct
 
 info "Generating accented letters"
