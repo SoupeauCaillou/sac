@@ -17,36 +17,30 @@ gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr 
 source coolStuff.sh
 
 #how to use the script
-export SAC_USAGE="$0 alphabet-directory"
+export SAC_USAGE="$0 fonts-directory output-directory"
 export SAC_OPTIONS=""
-export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
+export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
-    if [ $# != 1 ]; then
-        error_and_usage_and_quit "Need the path to the alphabet directory"
+    if [ $# != 2 ]; then
+        error_and_usage_and_quit "Need the path to the fonts directory and the output directory"
     fi
 
-######### 1 : Read arguments. #########
-    CHECK_GENERATED_SPRITES=0
-    while [ "$1" != "" ]; do
-        case $1 in
-            "-h" | "-help")
-                usage_and_quit
-                ;;
-            *)
-                alphabet=$1
-        esac
-        shift
-    done
+    cd $fromWhereAmIBeingCalled
 
-######### 2 : Process. #########
+    if [ ! -d $1 ]; then
+        error_and_quit "Fonts directory '$1' does not exist"
+    elif [ ! -d $2 ]; then
+        error_and_quit "Output directory '$2' does not exist"
+    fi
+    fonts=$(ls $1/*.ttf 2>/dev/null)
+    output=$2
 
-cd $fromWhereAmIBeingCalled/$alphabet
+    if [ -z "$fonts" ]; then
+        error_and_quit "No fonts (.ttf) found in $1"
+    fi
 
-typo=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansCondensed.ttf
-typo_mono=/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf
-# Find fonts for a language: 'fc-list :lang=zh' (for chinese)
-typo_asian=/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf
+######### 1 : Process. #########
 
 size=60
 suffix="_typo.png"
@@ -56,8 +50,8 @@ function generate_sprite {
     result="Yes"
 
     # if destination sprite does already exist, ask the user for a confirmation
-    if [ $override = -1 ] && [ -f ${2}${suffix} ]; then
-	   info "\nSprite ${2}${suffix}('$1') already exists. Override it?" $orange
+    if [ $override = -1 ] && [ -f $2$suffix ]; then
+	   info "\nSprite $2$suffix('$1') already exists. Override it?" $orange
        select result in Yes No Yes-for-all No-for-all ; do
             if [ $result = "Yes-for-all" ]; then
                 override=1
@@ -69,8 +63,17 @@ function generate_sprite {
     fi
 
     if [ $override = 1 ] || [ "$result" = Yes ]; then
-        convert -background transparent -fill white -font $3 -pointsize ${size} label:${1} PNG32:${2}${suffix} &>/dev/null
-        return $?
+        for font in $fonts; do
+            if ($whereAmI/does_TTFfont_contain_this_character.sh $font $1); then
+                convert -background transparent -fill white -font $font -pointsize ${size} label:${1} PNG32:$output/${2}${suffix} &>/dev/null
+                return $?
+            fi
+        done
+
+        #if no font had the character, force quit
+        echo
+        error_and_quit "Character '$1' (hex=$2) could not be found in any .ttf file. 
+        Please add a .ttf file containing it (use does_TTFfont_contain_this_character to find a matching font)"
     else
         info "Skipped $1" $orange
     fi
@@ -81,13 +84,11 @@ function generate_sprite {
 
 function generate_for_list {
     printf "Treating... "
-    typo=$1
-    shift
     for i in $@; do
         printf $i
 
         dec=$(printf "%x" "'$i")
-        if ! generate_sprite $i $dec $typo; then
+        if ! generate_sprite $i $dec; then
             info "Error while generating character $i" $red
             printf "Treating... "
         fi
@@ -96,26 +97,21 @@ function generate_for_list {
 }
 
 info "Generating A->Z"
-generate_for_list $typo {A..Z} 
+generate_for_list {A..Z} 
 
 info "Generating a->z"
-generate_for_list $typo {a..z} 
+generate_for_list {a..z} 
 
 info "Generating 0->9"
-generate_for_list $typo_mono {0..9} 
+generate_for_list {0..9} 
 
 info "Generating punctuation"
 ponct="! ? # ' ( ) , \- . ; : = < > _ "
-generate_for_list $typo $ponct 
-
-info "Generating Asian characters"
-asian_chars=$(cat $rootPath/res/values-ja/strings.xml $rootPath/res/values-zh/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
-#not working well yet
-generate_for_list $typo_asian $asian_chars 
+generate_for_list $ponct
 
 info "Generating accented letters"
-specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct$asian_chars" | grep -o . | sort -n | uniq | tr '\n' ' ')
-generate_for_list $typo $specials 
+specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -n | uniq | tr '\n' ' ')
+generate_for_list $specials 
 
 info "Done! Do not forget to reexport atlas now and to run generate_alphabet_font_descriptor script!"
 
