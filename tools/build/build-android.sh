@@ -170,7 +170,8 @@ compilation_after() {
         info "Updating android project"
         cd $rootPath
 
-        if ! android update project -p . -t 1 -n $gameName --subprojects; then
+        # -t 4 is required for installLocation, glEsVersion, targetSdkVersion and allowBackup attributes
+        if ! android update project -p . -t 4 -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
         fi
 
