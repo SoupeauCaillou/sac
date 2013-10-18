@@ -98,7 +98,7 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
     std::stringstream f(std::string((const char*)fb.data, size), std::ios_base::in);
 
-    std::string s;
+    std::string s("");
     while (getline(f, s)) {
         if (s.empty())
             continue;

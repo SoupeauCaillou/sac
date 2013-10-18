@@ -52,6 +52,7 @@ void StateMachine<T>::setup() {
 template<typename T>
 void StateMachine<T>::start(T initState) {
     currentState = previousState = (T) -1;
+    state2Name[currentState] = "Dummy";
     transitionning = transition.readyExit = transition.dumbFrom = true;
     transition.toState = initState;
     transition.readyEnter = false;
