@@ -156,16 +156,14 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     bool png = false;
 
     // First, try PVR compression, then PKM (ETC1)
-    if (type == COLOR) {
-        if (pvrFormatSupported) {
-            LOGV(2, "Using PVR version");
-            file = assetAPI->loadAsset(name + ".pvr");
-        } else if (pkmFormatSupported) {
-            LOGV(2, "Using PKM version");
-            file = assetAPI->loadAsset(name + ".pkm");
-        } else {
-            LOGV(1, "PVM nor ETC1 supported, falling back on PNG format");
-        }
+    if (pvrFormatSupported) {
+        LOGV(2, "Using PVR version");
+        file = assetAPI->loadAsset(name + ".pvr");
+    } else if (pkmFormatSupported) {
+        LOGV(2, "Using PKM version");
+        file = assetAPI->loadAsset(name + ".pkm");
+    } else {
+        LOGV(1, "PVM nor ETC1 supported, falling back on PNG format");
     }
 
     if (!file.data) {
