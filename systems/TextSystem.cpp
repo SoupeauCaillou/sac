@@ -408,7 +408,7 @@ void TextSystem::DoUpdate(float dt) {
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
  			if (trc->flags & TextComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
-				x += fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
+				x += fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75;
 			}
 
             // Fastforward to skip some chars (e.g: inline image description)
@@ -535,7 +535,7 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
     float width = 0;
     // If it's a number, pre-add grouping spacing
     if (trc->flags & TextComponent::IsANumberBit) {
-        float spaceW = fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
+        float spaceW = fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75;
         width += ((int) (from - toInc) / 3) * spaceW;
     }
 
