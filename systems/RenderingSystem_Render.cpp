@@ -318,6 +318,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // Setup initial GL state
     GL_OPERATION(glDepthMask(true))
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
+    GL_OPERATION(glDepthFunc(GL_GREATER))
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
 
@@ -497,6 +498,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             } else {
                 fboRef = DefaultFrameBufferRef;
                 boundTexture = rc.glref;
+#if SAC_INGAME_EDITORS
+                if (highLight.nonOpaque)
+                    boundTexture.alpha = whiteTexture;
+#endif
             }
             useFbo = rc.fbo;
             if (currentColor != rc.color) {

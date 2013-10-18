@@ -75,19 +75,13 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
     renderQueue = new RenderQueue[2];
 
-    // simple square
-    #if 0
-    shapes[0].points.push_back(glm::vec2(-0.5, -0.5));
-    shapes[0].points.push_back(glm::vec2(0.5, -0.5));
-    shapes[0].points.push_back(glm::vec2(-0.5, 0.5));
-    shapes[0].points.push_back(glm::vec2(0.5, 0.5));
-    shapes[0].supportUV = true;
-    shapes[0].verticesCount = 6;
-    unsigned short baseSquare[] = {0, 1, 2, 1, 3, 2};
-    #endif
     for (unsigned i=0; i<Shape::Count; i++) {
         shapes[i] = Polygon::create((Shape::Enum)i);
     }
+
+#if SAC_INGAME_EDITORS
+    memset(&highLight, 0, sizeof(highLight));
+#endif
 }
 
 RenderingSystem::~RenderingSystem() {
@@ -198,7 +192,7 @@ static bool sortToMinizeStateChanges(const RenderingSystem::RenderCommand& r1, c
             return r1.effectRef < r2.effectRef;
         }
     } else {
-        return r1.flags < r2.flags;
+        return r1.flags > r2.flags;
     }
 }
 
@@ -347,12 +341,28 @@ void RenderingSystem::DoUpdate(float) {
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
             if (rc->zPrePass) {
-                // rc->opaqueType = RenderingComponent::FULL_OPAQUE;
+#if SAC_INGAME_EDITORS
+                if (highLight.zPrePass) {
+                    c.color.g = c.color.r = 0;
+                    c.color.a = 0.5;
+                    c.flags = (EnableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
+                    c.texture = InvalidTextureRef;
+                } else
+#endif
                 c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
                 c.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+#if SAC_INGAME_EDITORS
+                if (highLight.opaque)
+                    c.color.g = 0;
+#endif
             } else {
                 c.flags = (DisableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
+#if SAC_INGAME_EDITORS
+                if (highLight.nonOpaque) {
+                    c.color.b = 0;
+                }
+#endif
             }
 
             if (c.texture != InvalidTextureRef && !c.fbo) {
@@ -368,7 +378,6 @@ void RenderingSystem::DoUpdate(float) {
                     // Only display the required area of the texture
                     modifyQ(c, info->reduxStart, info->reduxSize);
 
-#if 1
                     // Check if we can enable opaque-first optimisation. Conditions are:
                     // 1. blending-enabled sprite
                     // 2. alpha == 1
@@ -379,9 +388,15 @@ void RenderingSystem::DoUpdate(float) {
                         c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
                         !rc->zPrePass &&
-                        (c.halfSize.x * c.halfSize.y * cameraInvSize) > 0.01) {
+                        (c.halfSize.x * c.halfSize.y * cameraInvSize) > 0.001) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
+#if SAC_INGAME_EDITORS
+                        cCenter.color = rc->color;
+                        if (highLight.runtimeOpaque) {
+                            cCenter.color.r = 0;
+                        }
+#endif
                         cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
 
                         // Note: no need to take rotate info->rotate into account.
@@ -390,58 +405,35 @@ void RenderingSystem::DoUpdate(float) {
 
                         if (cull(camTrans, cCenter))
                             opaqueCommands.push_back(cCenter);
-                        semiOpaqueCommands.push_back(c);
-#if 0
-                        const float leftBorder = info->opaqueStart.x, rightBorder = info->opaqueStart.x + info->opaqueSize.x;
-                        const float bottomBorder = info->opaqueStart.y + info->opaqueSize.y;
-                        if (leftBorder > 0) {
-                            RenderCommand cLeft(c);
-                            modifyR(cLeft, glm::vec2(0.0f), glm::vec2(leftBorder, 1.0f));
-                            if (cull(camTrans, cLeft))
-                                semiOpaqueCommands.push_back(cLeft);
+
+#if SAC_INGAME_EDITORS
+                        if (highLight.nonOpaque) {
+                            c.color.b = 0;
+                            c.color.a *= 0.6;
                         }
-
-                        if (rightBorder < 1) {
-                            RenderCommand cRight(c);
-                            modifyR(cRight, glm::vec2(rightBorder, 0.0f), glm::vec2(1 - rightBorder, 1.0f));
-                            if (cull(camTrans, cRight))
-                                semiOpaqueCommands.push_back(cRight);
-                        }
-
-                        RenderCommand cTop(c);
-                        modifyR(cTop, glm::vec2(leftBorder, 0.0f), glm::vec2(rightBorder - leftBorder, info->opaqueStart.y));
-                        if (cull(camTrans, cTop))
-                            semiOpaqueCommands.push_back(cTop);
-
-                        RenderCommand cBottom(c);
-                        modifyR(cBottom, glm::vec2(leftBorder, bottomBorder), glm::vec2(rightBorder - leftBorder, 1 - bottomBorder));
-                        if (cull(camTrans, cBottom))
-                            semiOpaqueCommands.push_back(cBottom);
 #endif
+                        semiOpaqueCommands.push_back(c);
                         continue;
                     }
-#endif
                 }
             }
 
-#if 1
              if (!rc->fastCulling && rc->shape == Shape::Square) {
                 if (!cull(camTrans, c)) {
                     continue;
                 }
              }
-#endif
 
-            switch (rc->opaqueType) {
-             	case RenderingComponent::NON_OPAQUE:
-    	         	semiOpaqueCommands.push_back(c);
-    	         	break;
-    	         case RenderingComponent::FULL_OPAQUE:
-    	         	opaqueCommands.push_back(c);
-    	         	break;
-                 default:
-                    LOGW("Entity will not be drawn");
-                    break;
+            if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
+                opaqueCommands.push_back(c);
+            } else {
+#if SAC_INGAME_EDITORS
+                if (highLight.nonOpaque) {
+                    c.color.b = 0;
+                    c.color.a *= 0.6;
+                }
+#endif
+                semiOpaqueCommands.push_back(c);
             }
         END_FOR_EACH()
 

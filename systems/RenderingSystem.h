@@ -204,4 +204,13 @@ public:
     Polygon shapes[Shape::Count];
 
     void defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v);
+
+#if SAC_INGAME_EDITORS
+    struct {
+        bool zPrePass;
+        bool nonOpaque;
+        bool opaque;
+        bool runtimeOpaque;
+    } highLight;
+#endif
 };
