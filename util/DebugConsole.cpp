@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include <cstring>
+#include "systems/RenderingSystem.h"
 
 DebugConsole & DebugConsole::Instance() {
     static DebugConsole _instance;
@@ -36,6 +37,12 @@ DebugConsole & DebugConsole::Instance() {
 void DebugConsole::initTW() {
     bar = TwNewBar("Debug_Console");
     TwDefine(" Debug_Console size='400 200' iconified=true valueswidth=250");
+
+    // Rendering debug
+    TwAddVarRW(bar, "render - show opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.opaque, 0); 
+    TwAddVarRW(bar, "render - show non-opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.nonOpaque, 0);
+    TwAddVarRW(bar, "render - show runtime opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.runtimeOpaque, 0);
+    TwAddVarRW(bar, "render - show z prepass", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.zPrePass, 0);
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),

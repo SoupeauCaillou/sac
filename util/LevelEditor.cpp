@@ -80,7 +80,6 @@ struct LevelEditor::LevelEditorDatas {
 
     Entity over;
     Entity selected, gallerySelected;
-    Entity selectionDisplay, overDisplay;
     Color originalColor;
     float selectionColorChangeSpeed;
 
@@ -153,7 +152,7 @@ void LevelEditor::LevelEditorDatas::select(Entity e) {
 }
 
 void LevelEditor::LevelEditorDatas::deselect(Entity) {
-    RENDERING(selectionDisplay)->show = false;
+
 }
 
 TwBar* entityListBar, *debugConsoleBar, *logBar, *dumpEntities;
@@ -172,17 +171,6 @@ LevelEditor::LevelEditor() {
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
     datas->selectionColorChangeSpeed = -0.5;
-    datas->selectionDisplay = theEntityManager.CreateEntity("debug_selection");
-    ADD_COMPONENT(datas->selectionDisplay, Rendering);
-    ADD_COMPONENT(datas->selectionDisplay, Transformation);
-    TRANSFORM(datas->selectionDisplay)->z = -0.001;
-    RENDERING(datas->selectionDisplay)->color = Color(1, 0, 0, 0.7);
-
-    datas->overDisplay = theEntityManager.CreateEntity("debug_over");
-    ADD_COMPONENT(datas->overDisplay, Rendering);
-    ADD_COMPONENT(datas->overDisplay, Transformation);
-    TRANSFORM(datas->overDisplay)->z = -0.001;
-    RENDERING(datas->overDisplay)->color = Color(0, 0, 1, 0.7);
 
     TwInit(TW_OPENGL, NULL);
     TwDefine(" GLOBAL fontsize=3 "); // use large font
