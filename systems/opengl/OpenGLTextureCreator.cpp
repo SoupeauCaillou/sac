@@ -236,23 +236,21 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
     GLenum format = channelCountToGLFormat(image.channels);
 
     if (image.type == ImageDesc::RAW) {
-        if (type == ALPHA_MASK && image.channels == 4) {
-                    LOGT(":'(");
-            for (int i=0; i<image.height; i++) {
-                const int base = i * image.width * 4;
-                for (int j=0; j<image.width; j++) {
-                    image.datas[base + 4 * j + 3] = image.datas[base + 4 * j + 0];
-
-                }
-            }
-        }
+//        if (type == ALPHA_MASK && image.channels == 4) {
+//                    LOGT(":'(");
+//            for (int i=0; i<image.height; i++) {
+//                const int base = i * image.width * 4;
+//                for (int j=0; j<image.width; j++) {
+//                    image.datas[base + 4 * j + 3] = image.datas[base + 4 * j + 0];
+//
+//                }
+//            }
+//        }
         LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height);
 #if SAC_EMSCRIPTEN
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
-#elif SAC_ANDROID
-        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
 #else
-        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, typeToFormat(type), image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
+        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
 #endif
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {

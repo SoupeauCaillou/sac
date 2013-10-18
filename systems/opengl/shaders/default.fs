@@ -9,7 +9,11 @@ varying vec2 uvVarying;
 
 void main()
 {
-    vec3 rgb = texture2D(tex0, uvVarying).rgb * vColor.rgb;
-    gl_FragColor = vec4(rgb, texture2D(tex1, uvVarying).a * vColor.a);
+	// Fetch color from tex0, alpha from tex1 (in red channel)
+	vec4 color = vec4(
+		texture2D(tex0, uvVarying).rgb,
+		texture2D(tex1, uvVarying).r);
+
+	gl_FragColor = color * vColor;
 }
 

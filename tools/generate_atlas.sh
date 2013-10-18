@@ -66,8 +66,8 @@ for directory_path in $@; do
         mkdir $rootPath/assets/$quality -p
         mkdir $rootPath/assetspc/$quality -p
 
-        rm $rootPath/assets/$quality/${dir}_alpha.png $rootPath/assets/$quality/${dir}.atlas $rootPath/assets/$quality/${dir}.pvr.* \
-        $rootPath/assets/$quality/${dir}.pkm.* $rootPath/assetspc/$quality/${dir}.png 2>/dev/null
+        find $rootPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
+        find $rootPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
         
         ############# STEP 2: create an optimized copy of each image
         info "Step #2: create optimized image"
@@ -109,25 +109,22 @@ for directory_path in $@; do
 
         ############# STEP 5: create png version of the atlas
         info "Step #5: create png version"
-        convert /tmp/$dir.png -alpha extract PNG32:$rootPath/assets/$quality/${dir}_alpha.png
+        convert /tmp/$dir.png -alpha extract PNG24:$rootPath/assetspc/$quality/${dir}_alpha.png
         convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$quality/$dir.png
         
         if  $hasPVRTool ; then
-            info "Step #6: create PVR and ETC version"
-
-            # PVRTexToolCL -f OGLPVRTC4 -yflip0 -i $rootPath/assetspc/$quality/$dir.png -p -pvrlegacy -o /tmp/$dir-$quality.pvr
-            # PVRTexToolCL -f PVRTC2_4 -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -p -m -o /tmp/$dir-$quality.pvr -shh
-            # split -d -b 1024K /tmp/$dir-$quality.pvr /tmp/$quality/$dir.pvr.
-            # cp -r /tmp/$quality $rootPath/assets/
-
-            # PVRTexToolCL -f ETC -flip y,flag -i $rootPath/assetspc/$quality/$dir.png -q pvrtcbest -m -o /tmp/$dir-$quality-pkm.pvr -shh
+            info "Step #6: create ETC version of color texture"
             PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
-
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pvr ${TMP_FILEDIR}/$quality/$dir.pkm.
+
+            info "Step #7: create ETC version of alpha texture"
+            PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/${dir}_alpha.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
+            # PVRTexToolCL ignore name extension
+            split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pvr ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
         
-        cp -r ${TMP_FILEDIR}/$quality $rootPath/assets
+        cp -rv ${TMP_FILEDIR}/$quality $rootPath/assets
         cp /tmp/$dir.atlas $rootPath/assets/$quality/
 
         rm -r $TEMP_FOLDER/*
