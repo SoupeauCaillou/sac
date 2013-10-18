@@ -119,13 +119,11 @@ bool GameCenterAPIHelper::updateUI() {
         isConnected ? gameCenterAPI->disconnect() : gameCenterAPI->connectOrRegister();
         return true;
     } else if (achievementsButton && BUTTON(achievementsButton)->clicked) {
-            if (isConnected)
-                gameCenterAPI->openAchievement();
-            else
-                gameCenterAPI->connectOrRegister();
+        isConnected ? gameCenterAPI->openAchievement() : gameCenterAPI->connectOrRegister();
         return true;
     } else if (leaderboardsButton && BUTTON(leaderboardsButton)->clicked) {
-        onLeaderboardClick();
+        isConnected ? onLeaderboardClick() : gameCenterAPI->connectOrRegister();
+        
         return true;
     }
 
