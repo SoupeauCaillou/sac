@@ -95,6 +95,97 @@ TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
 }
 
+struct CharSequenceToUnicode {
+    unsigned char sequence[3];
+    unsigned char offsets[3];
+    uint32_t unicode; // or "code point"
+    enum {
+        FirstChar = 0,
+        MiddleChar,
+        LastChar,
+        NewSequence
+    } index;
+
+    CharSequenceToUnicode() {
+        reset();
+    }
+
+    void reset() {
+        memset(sequence, 0, sizeof(sequence));
+        memset(offsets, 0, sizeof(offsets));
+        index = NewSequence;
+        unicode = 0;
+    }
+
+    bool update(unsigned char newChar) {
+        switch (index) {
+            case NewSequence: {      
+                // 1st byte can be in these ranges:
+                //    * [00, 7F] -> 1 byte  UTF8 char
+                //    * [C2, DF] -> 2 bytes UTF char
+                //    * [E0, EF] -> 3 bytes UTF char
+                //    * [F0, F4] -> 4 bytes UTF char (unsupported)
+
+                // Char sequence to unicode code point is:
+                //    unicode = char0
+                //      + (char1 - rangeStart) * 0x40
+                //      + (char2 - rangeStart) * 0x1000
+                // For a multibyte sequence, charN+1 is read before charN
+                memset(sequence, 0, sizeof(sequence));
+
+                if (newChar <= 0x7F) {
+                    index = LastChar;
+                    memset(offsets, 0, sizeof(offsets));
+                } else if (newChar <= 0xDF) {
+                    // example: â
+                    // 2 bytes: 0xc3 0xa2
+                    // unicode code point: U+00E2
+                    // texture name: e2_typo
+                    index = MiddleChar;
+                    offsets[(int)MiddleChar] = 0xc2;
+                } else if (newChar <= 0xEF) {
+                    // example: 輕
+                    // 2 bytes: 0xe8 0xbc 0x95
+                    // unicode code point: U+8f15
+                    // texture name: 8f15_typo
+                    index = FirstChar;
+                    offsets[(int)LastChar] =
+                        offsets[(int)MiddleChar] = 0x80;
+                    offsets[(int)FirstChar] = 0xe0;
+                } else {
+                    LOGE("Unsupported first byte in UTF8 sequence: 0x" << std::hex << newChar << std::dec);
+                }
+                break;
+            }
+            case MiddleChar: {
+                index = LastChar;
+                break;
+            }
+            case FirstChar: {
+                index = MiddleChar;
+                break;
+            }
+            case LastChar:
+            default:
+                LOGF_IF(index == LastChar, "Invalid state. Missing call to reset maybe ?");
+        }
+
+        // insert char in sequence
+        sequence[(int)index] = newChar;
+
+        if (index == LastChar) {
+            unicode = 
+                (sequence[(int)FirstChar] - offsets[(int)FirstChar]) * 0x1000 +
+                    (sequence[(int)MiddleChar] - offsets[(int)MiddleChar]) * 0x40 +
+                    sequence[(int)LastChar] - offsets[(int)LastChar];
+            return true;
+        } else {
+            return false;
+        }
+    }
+};
+
+
 void TextSystem::DoUpdate(float dt) {
     if (!components.empty() && fontRegistry.empty()) {
         LOGW("Trying to use Text, with no font defined");
@@ -193,19 +284,12 @@ void TextSystem::DoUpdate(float dt) {
 		float x = startX, y = 0;
 		bool newWord = true;
 
-        unsigned char sequence[3];
-        unsigned char offsets[3];
-#define LAST_CHAR 2
-#define MIDDLE_CHAR 1
-#define FIRST_CHAR 0
-#define NEW_SEQUENCE -1
-        int indexInSequence = NEW_SEQUENCE;
-        offsets[LAST_CHAR] = 0;
-
 #if SAC_DEBUG
         int lastValidCharIndex = -1;
         std::vector<int> invalidLettersTexturePosition;
 #endif
+        CharSequenceToUnicode seqToUni;
+
         // Setup rendering for each individual letter
 		for(unsigned int i=0; i<length; i++) {
             // If it's a multiline text, we must compute words/lines boundaries
@@ -245,67 +329,11 @@ void TextSystem::DoUpdate(float dt) {
 			unsigned char letter = (unsigned char)trc->text[i];
             int skip = -1;
 
-            // 1st byte can be in these ranges:
-            //    * [00, 7F] -> 1 byte  UTF8 char
-            //    * [C2, DF] -> 2 bytes UTF char
-            //    * [E0, EF] -> 3 bytes UTF char
-            //    * [F0, F4] -> 4 bytes UTF char (unsupported)
-
-            // Char sequence to unicode code point is:
-            //    unicode = char0
-            //      + (char1 - rangeStart) * 0x40
-            //      + (char2 - rangeStart) * 0x1000
-            // For a multibyte sequence, charN+1 is read before charN
-
-            LOGF_IF(indexInSequence == LAST_CHAR, "Invalid state");
-
-            // Are we starting a new UTF8 char ?
-            if (indexInSequence == NEW_SEQUENCE) {
-                memset(sequence, 0, sizeof(sequence));
-                if (letter <= 0x7F) {
-                    indexInSequence = LAST_CHAR;
-                    memset(offsets, 0, sizeof(offsets));
-                } else if (letter <= 0xDF) {
-                    // example: â
-                    // 2 bytes: 0xc3 0xa2
-                    // unicode code point: U+00E2
-                    // texture name: e2_typo
-                    indexInSequence = MIDDLE_CHAR;
-                    offsets[LAST_CHAR] = 0;
-                    offsets[MIDDLE_CHAR] = 0xc2;
-                    offsets[FIRST_CHAR] = 0;
-                } else if (letter <= 0xEF) {
-                    // example: 輕
-                    // 2 bytes: 0xe8 0xbc 0x95
-                    // unicode code point: U+8f15
-                    // texture name: 8f15_typo
-                    indexInSequence = FIRST_CHAR;
-                    offsets[LAST_CHAR] =
-                        offsets[MIDDLE_CHAR] = 0x80;
-                    offsets[FIRST_CHAR] = 0xe0;
-                } else {
-                    LOGE("Unsupported first byte in UTF8 sequence: 0x" << std::hex << letter << std::dec);
-                }
-            } else if (indexInSequence == MIDDLE_CHAR) {
-                indexInSequence = LAST_CHAR;
-            } else if (indexInSequence == FIRST_CHAR) {
-                indexInSequence = MIDDLE_CHAR;
-            }
-
-            // insert char in sequence
-            sequence[indexInSequence] = letter;
-
-            uint32_t unicode = 0; // or "code point"
-            if (indexInSequence == LAST_CHAR) {
-                unicode = 
-                    (sequence[FIRST_CHAR] - offsets[FIRST_CHAR]) * 0x1000 +
-                    (sequence[MIDDLE_CHAR] - offsets[MIDDLE_CHAR]) * 0x40 +
-                    sequence[LAST_CHAR] - offsets[LAST_CHAR];
-#if SAC_DEBUG
-                lastValidCharIndex++;
-#endif
-                indexInSequence = NEW_SEQUENCE;
-            }
+            if (!seqToUni.update(letter))
+                continue;
+            uint32_t unicode = seqToUni.unicode;
+            seqToUni.reset();
+            lastValidCharIndex++;
 
             // Add rendering entity if needed
             if (letterCount >= renderingEntitiesPool.size()) {
@@ -373,7 +401,6 @@ void TextSystem::DoUpdate(float dt) {
 			ac->position.x = x;
             ac->position.y = y + (inlineImage ? tc->size.x * 0.25 : 0);
 			x += tc->size.x * 0.5;
-            unicode = 0;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
  			if (trc->flags & TextComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
@@ -507,15 +534,16 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
         float spaceW = fontDesc.entries[(unsigned)'a'].h2wRatio * charHeight * 0.75;
         width += ((int) (from - toInc) / 3) * spaceW;
     }
-    uint16_t unicode = 0;
+
+    CharSequenceToUnicode seqToUni;
     for (unsigned int i=from; i<toInc; i++) {
         unsigned char letter = (unsigned char)trc->text[i];
-        if (letter >= 0xC2) {
-            LOGW_IF(unicode != 0, "3+ bytes support for UTF8 not complete");
-            unicode = (letter - 0xC2) * 0x40;
+
+        if (!seqToUni.update(letter))
             continue;
-        }
-        unicode += letter;
+        const uint32_t unicode = seqToUni.unicode;
+        seqToUni.reset();
+
         if (unicode == 0x00D7) {
             size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
             LOGE_IF(next == std::string::npos, "Malformed string, cannot find inline image delimiter: '" << trc->text << "'");
@@ -531,7 +559,6 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
         } else {
             width += fontDesc.entries[unicode].h2wRatio * charHeight;
         }
-        unicode = 0;
     }
     return width;
 }
