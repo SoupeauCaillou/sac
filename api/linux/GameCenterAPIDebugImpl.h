@@ -25,28 +25,34 @@
 #include "api/GameCenterAPI.h"
 
 #include "base/Log.h"
+#include "base/EntityManager.h"
 
 #include <vector>
 #include <fstream>
 
 class GameCenterAPIDebugImpl : public GameCenterAPI {
+    public:
+
+        void connectOrRegister();
+        void disconnect();
+
+        bool isConnected();
+        bool isRegistered();
+
+        void unlockAchievement(int id);
+        void updateAchievementProgression(int id, int stepReached);
+
+        void submitScore(int leaderboardID, const std::string & score);
+
+        void openAchievement();
+        void openLeaderboards();
+        void openSpecificLeaderboard(int id);
+        void openDashboard();
+    
     private:
         bool _isConnected = false;
-	public:
 
-        void connectOrRegister() { LOGI("connecting."); _isConnected = true; }
-        void disconnect() { LOGI("disconnecting."); _isConnected = false; }
-
-        bool isConnected() { return _isConnected; }
-        bool isRegistered() { return true; }
-
-        void unlockAchievement(int id) { LOGI("Unlocked success " << id << "!"); }
-        void updateAchievementProgression(int id, int stepReached) { LOGI("Success " << id << " progression reached step no" << stepReached); }
-
-        void submitScore(int leaderboardID, const std::string & score) { LOGI("Submit score " << score << " to leaderboard " << leaderboardID); }
-
-        void openAchievement() { LOGI("openAchievement."); }
-        void openLeaderboards() { LOGI("openLeaderboards."); }
-        void openSpecificLeaderboard(int id) { LOGI("openSpecificLeaderboard." << id); }
-        void openDashboard() { LOGI("openDashboard."); }
+        std::stringstream message;
+        Entity createAutodestroySuccess(float duration);
+        void  displayAction(float duration = 2.5f);
 };
