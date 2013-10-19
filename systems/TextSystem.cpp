@@ -403,7 +403,7 @@ void TextSystem::DoUpdate(float dt) {
             letterCount++;
 			x += tc->size.x * 0.5;
 			ac->position.x = x;
-            ac->position.y = y + (inlineImage ? tc->size.x * 0.25 : 0);
+            ac->position.y = y; // + (inlineImage ? tc->size.x * 0.25 : 0);
 			x += tc->size.x * 0.5;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
