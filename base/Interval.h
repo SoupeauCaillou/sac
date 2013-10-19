@@ -29,7 +29,7 @@
 #include "base/Color.h"
 
 #if SAC_DEBUG
-#define CHECK_ITV_RESULT LOGE_IF(r < t1 || r > t2, "Random value " << r << " outside [" << t1 << ',' << t2 << ']');
+#define CHECK_ITV_RESULT LOGE_IF((r < glm::min(t1, t2) || r > glm::max(t1, t2)), "Random value " << r << " outside [" << t1 << ',' << t2 << ']');
 #else
 #define CHECK_ITV_RESULT
 #endif
