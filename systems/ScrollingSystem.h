@@ -31,7 +31,7 @@ struct ScrollingComponent {
         speed(0),
         displaySize(0),
         show(false),
-        opaqueType(RenderingComponent::NON_OPAQUE) {}
+        opaqueType(RenderingComponent::FULL_OPAQUE) {}
     std::vector<std::string> images;
     glm::vec2 direction;
     float speed;
