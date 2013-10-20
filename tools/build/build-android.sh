@@ -171,7 +171,8 @@ compilation_after() {
         cd $rootPath
 
         # -t "android-8" is required for installLocation, glEsVersion, targetSdkVersion and allowBackup attributes
-        if ! android update project -p . -t "android-8" -n $gameName --subprojects; then
+        # but currently all ndk <= 9 produce buggy builds for android-8, so use android-10
+        if ! android update project -p . -t "android-10" -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
         fi
 
