@@ -53,6 +53,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     componentSerializer.add(new IntervalProperty<float>("moment", OFFSET(moment, tc)));
     componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc)));
     componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
@@ -101,8 +102,8 @@ void ParticuleSystem::DoUpdate(float dt) {
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
                 rc->show = true;
-                if (pc->texture == InvalidTextureRef && pc->initialColor.t1.a == 1 && pc->initialColor.t2.a == 1)
-                    rc->opaqueType = RenderingComponent::FULL_OPAQUE;
+                rc->opaqueType = pc->opaqueType;
+
                 if (pc->mass) {
                     ADD_COMPONENT(e, Physics);
                     PhysicsComponent* ppc = PHYSICS(e);

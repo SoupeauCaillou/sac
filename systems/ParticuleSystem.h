@@ -56,6 +56,7 @@ struct ParticuleComponent {
     glm::vec2 gravity;
     float spawnLeftOver;
     float mass;
+    RenderingComponent::Opacity opaqueType;
 };
 
 struct InternalParticule {
