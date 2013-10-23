@@ -536,7 +536,10 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
     // If it's a number, pre-add grouping spacing
     if (trc->flags & TextComponent::IsANumberBit) {
         float spaceW = fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75;
-        width += ((int) (from - toInc) / 3) * spaceW;
+        int count = toInc - from;
+        // count [0, 3] -> 0 space
+        // count [4, 6] -> 1 space
+        width += glm::max(0, (count-1) / 3) * spaceW;
     }
 
     CharSequenceToUnicode seqToUni;
