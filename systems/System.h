@@ -242,6 +242,9 @@ class ComponentSystemImpl: public ComponentSystem {
         }
 
 		T* Get(Entity entity, bool failIfNotfound = true) {
+#if SAC_DEBUG
+            theEntityManager.validateEntity(entity);
+#endif
             if (entity != previous) {
 #if SAC_USE_VECTOR_STORAGE
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);

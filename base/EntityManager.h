@@ -84,11 +84,17 @@ class EntityManager {
 
         int getNumberofEntity() {return entityComponents.size();}
 
+#if SAC_DEBUG
+        void validateEntity(Entity e) const;
+#endif
 	private:
 		Entity nextEntity;
 		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
         std::map<Entity, std::string> entity2name;
 
+#if SAC_DEBUG
+        std::map<Entity, std::pair<float, std::string> > entityDeletionTime;
+#endif
     public:
         EntityTemplateLibrary entityTemplateLibrary;
 };

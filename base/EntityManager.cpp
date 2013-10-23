@@ -126,6 +126,10 @@ void EntityManager::DeleteEntity(Entity e) {
     auto i = entityComponents.find(e);
     LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity " <<
         e << "('" << entityName(e) << "') (did you already removed it?)");
+#if SAC_DEBUG
+    entityDeletionTime[e] = std::make_pair(TimeUtil::GetTime(), entityName(e));
+#endif
+
 	std::list<ComponentSystem*>& l = i->second;
 
 	for (std::list<ComponentSystem*>::iterator it=l.begin(); it!=l.end(); ++it) {
@@ -133,11 +137,21 @@ void EntityManager::DeleteEntity(Entity e) {
 	}
 	entityComponents.erase(e);
 
+
 #if SAC_LINUX && SAC_DESKTOP
     entityTemplateLibrary.remove(e);
 #endif
     entity2name.erase(e);
 }
+
+#if SAC_DEBUG
+void EntityManager::validateEntity(Entity e) const {
+	auto it = entityDeletionTime.find(e);
+	if (it != entityDeletionTime.end()) {
+		LOGE("Entity '" << e << "' (" << it->second.second << " ) was deleted at: " << it->second.first);
+	}
+}
+#endif
 
 void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas) {
     if (!failIfAlreadyHas) {
