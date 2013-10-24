@@ -134,6 +134,7 @@ class MapProperty : public IProperty {
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 
 #define OFFSET(member, p) ((uint8_t*)&p.member - (uint8_t*)&p)
+#define OFFSET_PTR(member, ptr) ((uint8_t*)&ptr->member - (uint8_t*)ptr)
 
 #include "Serializer.hpp"
 
