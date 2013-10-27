@@ -10,5 +10,5 @@ float Random::Float (float Min, float Max) {
 
 int Random::Int (int Min, int Max) {
 	// return value is between [min; max]
-	return (((int)glm::linearRand((float) Min, (float) Max+1)) % (Max+1)) + Min;
+	return ((((int)glm::linearRand((float) 0, (float) (Max-Min+1))) % (Max-Min+1))) + Min;
 }
