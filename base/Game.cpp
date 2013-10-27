@@ -62,6 +62,7 @@
 #include "util/DataFileParser.h"
 #include "util/DrawSomething.h"
 #include "util/Recorder.h"
+#include "util/Random.h"
 
 #if ! SAC_ANDROID
 #include <SDL/SDL.h>
@@ -83,6 +84,8 @@ Game::Game() {
     setlocale( LC_NUMERIC, "C" );
 
     TimeUtil::Init();
+
+    Random::Init();
 
     /* create EntityManager */
     EntityManager::CreateInstance();

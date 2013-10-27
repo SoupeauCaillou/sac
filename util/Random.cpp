@@ -3,12 +3,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 
-float Random::Float (float Min, float Max) {
-	// return value is between [min; max]
-	return glm::linearRand(Min, Max);
+void Random::Init () {
+	//not a proper init but we don't mind (game!)
+	srand(time(0));
 }
 
-int Random::Int (int Min, int Max) {
-	// return value is between [min; max]
-	return ((((int)glm::linearRand((float) 0, (float) (Max-Min+1))) % (Max-Min+1))) + Min;
+float Random::Float (float min, float max) {
+	return glm::linearRand(min, max);
+}
+
+int Random::Int (int min, int max) {
+	return ((((int)glm::linearRand((float) 0, (float) (max-min+1))) % (max-min+1))) + min;
 }

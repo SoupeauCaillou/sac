@@ -21,6 +21,12 @@
 
 class Random {
 	public:
-	static float Float (float Min=0.0f, float Max=1.0f);
-	static int Int (int Min=0, int Max=1);
+    static void Init ();
+
+
+    // return value is between [min; max]
+    static float Float (float min=0.0f, float max=1.0f);
+
+    // return value is between [min; max]
+	static int Int (int min=0, int max=1);
 };

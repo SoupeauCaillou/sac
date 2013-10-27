@@ -167,6 +167,7 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
     SDL_EnableUNICODE(1);
 
     // Double Buffering
+    // Warning! This method DOES call srand (random generator)
     if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
         return 1;
 
