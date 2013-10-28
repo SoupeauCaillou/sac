@@ -124,6 +124,8 @@ class ComponentSystem {
 		virtual const std::string& getName() const { return name; }
 		virtual void Add(Entity entity) = 0;
 		virtual void Delete(Entity entity) = 0;
+        virtual void suspendEntity(Entity entity) = 0;
+        virtual void resumeEntity(Entity entity) = 0;
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
@@ -228,6 +230,25 @@ class ComponentSystemImpl: public ComponentSystem {
                 previousComp = 0;
             }
 		}
+
+        void suspendEntity(Entity entity) {
+            ComponentIt it = components.find(entity);
+
+            if (it != components.end()) {
+                suspended[entity] = it->second;
+                components.erase(it);
+            }
+            if (previous == entity) {
+                previous = 0;
+                previousComp = 0;
+            }
+        }
+
+        void resumeEntity(Entity entity) {
+            LOGF_IF(components.find(entity) != components.end(), "Resuming an entity '" << entity << "' which is already active");
+            LOGF_IF(suspended.find(entity) == components.end(), "Resuming a not suspended entity " << entity);
+            components[entity] = suspended.find(entity)->second;
+        }
 
         const std::map<Entity, T*>& getAllComponents() const {
             return components;
@@ -343,6 +364,7 @@ class ComponentSystemImpl: public ComponentSystem {
 	public:
 #endif
 		std::map<Entity, T*> components;
+        std::map<Entity, T*> suspended;
 	protected:
         typedef typename std::map<Entity, T*> ComponentMap;
         typedef typename std::map<Entity, T*>::iterator ComponentIt;

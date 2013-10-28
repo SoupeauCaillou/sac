@@ -100,6 +100,34 @@ const std::string& EntityManager::entityName(Entity e) const {
         return u;
 }
 
+void EntityManager::SuspendEntity(Entity e) {
+    auto i = entityComponents.find(e);
+    LOGF_IF(i == entityComponents.end(), "SuspendEntity requested with invalid entity " <<
+        e << " ('" << entityName(e) << "')");
+
+	std::list<ComponentSystem*>& l = i->second;
+	suspendedEntityComponents[e] = l;
+
+	for (std::list<ComponentSystem*>::iterator it=l.begin(); it!=l.end(); ++it) {
+		(*it)->suspendEntity(e);
+	}
+	entityComponents.erase(i);
+}
+
+void EntityManager::ResumeEntity(Entity e) {
+    auto i = suspendedEntityComponents.find(e);
+    LOGF_IF(i == suspendedEntityComponents.end(), "ResumeEntity requested with invalid entity " <<
+        e << " ('" << entityName(e) << "')");
+
+	std::list<ComponentSystem*>& l = i->second;
+	entityComponents[e] = l;
+
+	for (std::list<ComponentSystem*>::iterator it=l.begin(); it!=l.end(); ++it) {
+		(*it)->resumeEntity(e);
+	}
+	suspendedEntityComponents.erase(i);
+}
+
 Entity EntityManager::getEntityByName(const std::string& name) const {
 	Entity byName = 0;
 #if SAC_DEBUG

@@ -75,6 +75,9 @@ class EntityManager {
 		void deleteAllEntities();
 		std::vector<Entity> allEntities();
 
+        void SuspendEntity(Entity e);
+        void ResumeEntity(Entity e);
+
 		int serialize(uint8_t** result);
 		void deserialize(const uint8_t* in, int size);
 
@@ -89,8 +92,9 @@ class EntityManager {
 #endif
 	private:
 		Entity nextEntity;
-		std::map<Entity, std::list<ComponentSystem*> > entityComponents;
         std::map<Entity, std::string> entity2name;
+        std::map<Entity, std::list<ComponentSystem*> > entityComponents;
+        std::map<Entity, std::list<ComponentSystem*> > suspendedEntityComponents;
 
 #if SAC_DEBUG
         std::map<Entity, std::pair<float, std::string> > entityDeletionTime;
