@@ -59,11 +59,16 @@ struct ParticuleComponent {
     RenderingComponent::Opacity opaqueType;
 };
 
+struct TransformationComponent;
+
 struct InternalParticule {
     Entity e;
     float time, lifetime;
     Interval<Color> color;
     Interval<float> size;
+
+    RenderingComponent* rc;
+    TransformationComponent* tc;
 };
 
 #define theParticuleSystem ParticuleSystem::GetInstance()
@@ -73,4 +78,6 @@ UPDATABLE_SYSTEM(Particule)
 private:
     std::list<InternalParticule> particules;
     int minUsedIdx, maxUsedIdx;
+    std::vector<Entity> pool;
+    int poolLastValidElement;
 };

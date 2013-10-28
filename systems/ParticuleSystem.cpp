@@ -54,11 +54,14 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc)));
     componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
+
+    poolLastValidElement = -1;
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
- // return;
-    FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
+    for (auto& p: components) {
+        Entity a = p.first;
+        ParticuleComponent* pc = p.second;
         TransformationComponent* ptc = TRANSFORM(a);
         if (pc->duration >= 0) {
         	pc->duration -= dt;
@@ -84,20 +87,28 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.time = -dt;
                 internal.lifetime = pc->lifetime.random();
 
+                Entity e = 0;
+                if (poolLastValidElement < 0) {
 #if SAC_DEBUG
-                Entity e = internal.e = theEntityManager.CreateEntity(name.str());
+                    e = internal.e = theEntityManager.CreateEntity(name.str());
 #else
-                Entity e = internal.e = theEntityManager.CreateEntity();
+                    e = internal.e = theEntityManager.CreateEntity("_particule");
 #endif
-                ADD_COMPONENT(e, Transformation);
-                TransformationComponent* tc = TRANSFORM(e);
+                    ADD_COMPONENT(e, Transformation);
+                    ADD_COMPONENT(e, Rendering);
+                    ADD_COMPONENT(e, Physics);
+                } else {
+                    e = internal.e = pool[poolLastValidElement--];
+                    theEntityManager.ResumeEntity(e);
+                }
+                
+                TransformationComponent* tc = internal.tc = TRANSFORM(e);
                 tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
                 tc->rotation = ptc->rotation;
                 tc->size.x = tc->size.y = pc->initialSize.random();
                 tc->z = ptc->z;
 
-                ADD_COMPONENT(e, Rendering);
-                RenderingComponent* rc = RENDERING(e);
+                RenderingComponent* rc = internal.rc = RENDERING(e);
                 rc->fastCulling = true;
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
@@ -105,7 +116,6 @@ void ParticuleSystem::DoUpdate(float dt) {
                 rc->opaqueType = pc->opaqueType;
 
                 if (pc->mass) {
-                    ADD_COMPONENT(e, Physics);
                     PhysicsComponent* ppc = PHYSICS(e);
                     ppc->gravity = pc->gravity;
                     ppc->mass = pc->mass;
@@ -123,7 +133,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.size = Interval<float> (tc->size.x, pc->finalSize.random());
             }
         }
-    END_FOR_EACH()
+    }
 
     // update emitted particules
     for (std::list<InternalParticule>::iterator it=particules.begin(); it!=particules.end(); ) {
@@ -133,13 +143,15 @@ void ParticuleSystem::DoUpdate(float dt) {
         if (internal.time >= internal.lifetime) {
             std::list<InternalParticule>::iterator next = it;
             next++;
-            theEntityManager.DeleteEntity(internal.e);
+            pool.resize(++poolLastValidElement + 1);
+            pool[poolLastValidElement] = internal.e;
+            theEntityManager.SuspendEntity(internal.e);
             internal.e = 0;
             particules.erase(it);
             it = next;
         } else {
-            RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
-            TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
+            internal.rc->color = internal.color.lerp(internal.time / internal.lifetime);
+            internal.tc->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
             ++it;
         }
     }
