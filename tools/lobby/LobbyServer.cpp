@@ -85,7 +85,7 @@ struct Room {
     ConnectionDetails details;
 
     bool acceptsParticipants() const {
-        return (details.address.host != 0) && (details.address.port != 0);
+        return details.address.port != 0;
     }
 };
 
@@ -211,6 +211,11 @@ int main() {
                                 // fill room connection details
                                 room->details.address.host = event.peer->address.host;
                                 room->details.address.port = conn.address.port;
+                                char tmp[50];
+                                if (enet_address_get_host(&event.peer->address, tmp, 50) == 0 && strncmp(tmp, "localhost", 9) == 0) {
+                                    room->details.address.host = 0;
+                                }
+
                                 LOGI("room->details.address = " << room->details.address.host << ":" << room->details.address.port);
                                 LOGE_IF(!room->acceptsParticipants(), "Room still doesn't accept participant... weird");
 

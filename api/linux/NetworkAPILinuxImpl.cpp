@@ -228,6 +228,10 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                                 }
                                 case NetworkStatus::JoiningRoom: {
                                     datas->match.host = enet_host_create (0, 32, 2, 0, 0);
+                                    if (conn.address.host == 0) {
+                                        // server is running on the lobby_server machine 
+                                        enet_address_set_host (&conn.address, datas->lobby.server.c_str());
+                                    }
                                     LOGI("Connecting to room's host: " << conn.address.host << ':' << conn.address.port);
                                     datas->match.peer = enet_host_connect (datas->match.host, &conn.address, 2, 0);
                                     break;
