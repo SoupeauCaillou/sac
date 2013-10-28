@@ -23,7 +23,7 @@
 #pragma once
 
 #include "../NetworkAPI.h"
-#include <vector>
+#include <map>
 
 class NetworkAPILinuxImpl : public NetworkAPI {
     public:
@@ -36,7 +36,7 @@ class NetworkAPILinuxImpl : public NetworkAPI {
         void createRoom();
         unsigned getPendingInvitationCount() const;
         void acceptInvitation();
-        std::vector<std::string> getPlayerNamesInRoom();
+        std::map<std::string, NetworkStatus::Enum> getPlayersInRoom();
 
         NetworkStatus::Enum getStatus() const;
 

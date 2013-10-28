@@ -22,6 +22,7 @@
 #include <enet/enet.h>
 class Serializer;
 #include <string>
+#include <vector>
 
 // Different package types
 namespace Packet {
@@ -35,6 +36,7 @@ namespace Packet {
         RoomClosed,
         Invitation,
         ConnectionInfo,
+        PlayersInRoom,
     };
 }
 
@@ -112,6 +114,15 @@ struct ConnectionInfoPacket : LobbyPacket {
 
 	ConnectionInfoPacket() : LobbyPacket(Packet::ConnectionInfo) {}
 	ConnectionInfoPacket(const ENetAddress& addr) : LobbyPacket(Packet::ConnectionInfo), address(addr) {}
+
+    void addProperties(Serializer& );
+};
+
+struct PlayersInRoomPacket : LobbyPacket {
+    std::vector<std::string> names;
+    std::vector<int> states;
+
+    PlayersInRoomPacket() : LobbyPacket(Packet::PlayersInRoom) {}
 
     void addProperties(Serializer& );
 };

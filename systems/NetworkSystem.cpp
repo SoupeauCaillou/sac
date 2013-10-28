@@ -34,7 +34,7 @@ typedef std::map<std::string, uint8_t*>::iterator CacheIt;
 static unsigned bytesSentLastSec, bytesReceivedLastSec;
 static float counterTime;
 
-#define SEND(pkt) networkAPI->sendPacket(pkt); bytesSentLastSec += pkt.size
+#define SEND(pkt) do { networkAPI->sendPacket(pkt); bytesSentLastSec += pkt.size; } while (false)
 
 struct NetworkComponentPriv : NetworkComponent {
     NetworkComponentPriv() : NetworkComponent(), guid(0), entityExistsGlobally(false), ownedLocally(true) {}
@@ -93,11 +93,13 @@ void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
         return;
 
+#if 0
     if (!networkAPI->isConnectedToAnotherPlayer()) {
         counterTime = TimeUtil::GetTime();
         bytesSent = bytesReceived = bytesSentLastSec = bytesReceivedLastSec = 0;
         return;
     }
+#endif
 
     // Pull packets from networkAPI
     {
@@ -162,12 +164,12 @@ void NetworkSystem::DoUpdate(float dt) {
             }
         }
     }
-
+/*
     if (!hsDone) {
         sendHandShakePacket(networkAPI, myNonce);
         return;
     }
-
+*/
     // Process update type packets received
     {
         uint8_t temp[1024];

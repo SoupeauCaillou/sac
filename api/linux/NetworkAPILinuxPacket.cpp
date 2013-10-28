@@ -23,7 +23,6 @@ ENetPacket* LobbyPacket::toENetPacket() {
     uint8_t* ptr = new uint8_t[s.size(this) + 4];
     memcpy(ptr, &type, sizeof(Packet::Enum));
     unsigned size = s.serializeObject(&ptr[4], this);
-    LOGI("type: " << type);
 
     return enet_packet_create(ptr, size + 4, ENET_PACKET_FLAG_RELIABLE);
 }
@@ -56,4 +55,9 @@ void EnteringRoomPacket::addProperties(Serializer& s) {
 void ConnectionInfoPacket::addProperties(Serializer& s) {
     s.add(new Property<int>("host", OFFSET_PTR(address.host, this)));
     s.add(new Property<short>("port", OFFSET_PTR(address.port, this)));
+}
+
+void PlayersInRoomPacket::addProperties(Serializer& s) {
+    s.add(new VectorProperty<std::string>("names", OFFSET_PTR(names, this)));
+    s.add(new VectorProperty<int>("states", OFFSET_PTR(states, this)));
 }

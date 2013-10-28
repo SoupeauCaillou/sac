@@ -56,7 +56,10 @@ public:
 
     struct {
         ENetHost* host;
+        // client mode
         ENetPeer* peer;
+        // server mode
+        std::vector<ENetPeer*> peers;
         bool connected, masterMode;
     } match;
 
@@ -72,8 +75,9 @@ public:
     }
 
     std::vector<std::string> pendingInvites;
-
     std::string acceptedInvite;
+
+    std::map<std::string, NetworkStatus::Enum> connectedPlayers;
 private:
     NetworkStatus::Enum status;
     std::mutex mutex;
@@ -156,7 +160,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
 
     // Process incoming messages from lobby
     while (true) {
-        int ret = enet_host_service(datas->lobby.client, &event, (datas->match.host ? 500 : 1000));
+        int ret = enet_host_service(datas->lobby.client, &event, 1000);
 
         if (ret < 0) {
             LOGI("Error communicating with lobby, caramba!");
@@ -224,6 +228,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                                 }
                                 case NetworkStatus::JoiningRoom: {
                                     datas->match.host = enet_host_create (0, 32, 2, 0, 0);
+                                    LOGI("Connecting to room's host: " << conn.address.host << ':' << conn.address.port);
                                     datas->match.peer = enet_host_connect (datas->match.host, &conn.address, 2, 0);
                                     break;
                                 }
@@ -231,6 +236,15 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                                     LOGW("Ignore connectionInfo packet, wrong state: " << datas->getStatus());
                                     break;
                                 }
+                            }
+                            break;
+                        }
+                        case Packet::PlayersInRoom: {
+                            PlayersInRoomPacket p;
+                            p.fromENetPacket(event.packet);
+                            datas->connectedPlayers.clear();
+                            for (unsigned i=0; i<p.names.size(); i++) {
+                                datas->connectedPlayers[p.names[i]] = (NetworkStatus::Enum) p.states[i];
                             }
                             break;
                         }
@@ -244,36 +258,9 @@ void NetworkAPILinuxImpl::runLobbyThread() {
         if (datas->acceptedInvite != "") {
             datas->setStatus(NetworkStatus::JoiningRoom);
             JoinRoomPacket join(datas->acceptedInvite);
+            datas->roomId = datas->acceptedInvite;
+            datas->acceptedInvite = "";
             enet_peer_send(datas->lobby.peer, 0, join.toENetPacket());
-        }
-
-        if (datas->match.host && !(datas->match.connected || datas->match.masterMode)) {
-            int ret = enet_host_service(datas->match.host, &event, 0);
-            if (ret < 0) {
-                LOGE("enet_host_service(datas->match.host) failure");
-            }
-            if (ret > 0) {
-                switch (event.type) {
-                    case ENET_EVENT_TYPE_CONNECT: {
-                        if (!datas->match.masterMode) {
-                            datas->setStatus(NetworkStatus::ConnectedToServer);
-                            datas->match.connected = true;
-                        }
-                        else
-                            LOGI("New incoming connection");
-                        break;
-                    }
-                    case ENET_EVENT_TYPE_DISCONNECT: {
-                        LOGI("Client disconnection: @" << event.peer->address.host << ":" << event.peer->address.port);
-                        break;
-                    }
-                    // Packet received
-                    case ENET_EVENT_TYPE_RECEIVE: {
-                        enet_packet_destroy (event.packet);
-                    }
-                }
-            }
-            enet_host_flush(datas->match.host);
         }
     }
 }
@@ -287,128 +274,9 @@ void NetworkAPILinuxImpl::acceptInvitation() {
     datas->pendingInvites.clear();
 }
 
-#if 0
-bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char* addr, uint16_t remotePort, uint16_t localPort) {
-    ENetAddress address;
-    LOGI("Creating server socket (" << localPort << ')');
-    address.host = ENET_HOST_ANY;
-    address.port = localPort;
-    datas->match.host = enet_host_create (&address /* the address to bind the server host to */,
-                                  32      /* allow up to 32 clients and/or outgoing connections */,
-                                  2      /* allow up to 2 channels to be used, 0 and 1 */,
-                                  0      /* assume any amount of incoming bandwidth */,
-                                  0      /* assume any amount of outgoing bandwidth */);
-    float begin = TimeUtil::GetTime();
-    ENetEvent event;
-    while ((TimeUtil::GetTime()-begin) < 5) {
-        int ret = enet_host_service(datas->match.host, &event, 250);
-        if (ret < 0)
-            return false;
-        switch(event.type) {
-            case ENET_EVENT_TYPE_CONNECT: {
-                datas->match.peer = event.peer;
-                LOGI("Received connection");
-                return true;
-            }
-            case ENET_EVENT_TYPE_RECEIVE:
-                enet_packet_destroy (event.packet);
-                break;
-            default:
-                break;
-        }
-        if (datas->match.peer) {
-            enet_peer_send(datas->match.peer, 0, convertPacket(createLocalPortPacket(0), ENET_PACKET_FLAG_RELIABLE));
-        } else {
-            sendNatPunchThroughPacket(datas->match.host->socket, addr, remotePort);
-        }
-    }
-    enet_host_destroy(datas->match.host);
-    datas->match.host = 0;
-    LOGE("Fail");
-    return false;
+std::map<std::string, NetworkStatus::Enum> NetworkAPILinuxImpl::getPlayersInRoom() {
+    return datas->connectedPlayers;
 }
-
-bool NetworkAPILinuxImpl::connectToOtherPlayerClientMode(const char* addr, uint16_t remotePort) {
-    datas->match.host = enet_host_create (0,
-                                  32      /* allow up to 32 clients and/or outgoing connections */,
-                                  2      /* allow up to 2 channels to be used, 0 and 1 */,
-                                  0      /* assume any amount of incoming bandwidth */,
-                                  0      /* assume any amount of outgoing bandwidth */);
-    ENetAddress address;
-    enet_address_set_host (&address, addr);
-    address.port = remotePort;
-
-    datas->match.peer = enet_host_connect (datas->match.host, &address, 2, 0);
-
-    // send local socket port
-    int localPort = 0;
-
-
-
-
-    float begin = TimeUtil::GetTime();
-    ENetEvent event;
-    while ((TimeUtil::GetTime() - begin)< 15) {
-        int ret = enet_host_service(datas->match.host, &event, 1000);
-        if (ret < 0)
-            return false;
-        switch(event.type) {
-            case ENET_EVENT_TYPE_NONE:
-                break;
-            case ENET_EVENT_TYPE_CONNECT:
-                datas->match.peer = event.peer;
-                datas->match.connected = true;
-                break;
-            case ENET_EVENT_TYPE_RECEIVE:
-                enet_packet_destroy (event.packet);
-                if (datas->match.connected)
-                    return true;
-                break;
-            default:
-                break;
-        }
-
-        if (localPort == 0) {
-            struct sockaddr_in sin;
-            socklen_t addrlen = sizeof(sin);
-            int ret = getsockname(datas->match.host->socket, (struct sockaddr *)&sin, &addrlen);
-            if( ret == 0 && sin.sin_family == AF_INET && addrlen == sizeof(sin)) {
-                localPort = ntohs(sin.sin_port);
-                LOGI("Local port: " << localPort);
-                enet_peer_send(datas->lobby.peer, 0, convertPacket(createLocalPortPacket(localPort), ENET_PACKET_FLAG_RELIABLE));
-                enet_host_flush(datas->lobby.client);
-                enet_host_destroy(datas->lobby.client);
-                datas->lobby.client = 0;
-            }
-        }
-        if (datas->match.peer) {
-            enet_peer_send(datas->match.peer, 0, convertPacket(createLocalPortPacket(0), ENET_PACKET_FLAG_RELIABLE));
-        }
-        /*{
-            sendNatPunchThroughPacket(datas->match.host->socket, addr, remotePort);
-        }*/
-    }
-    return datas->match.connected;
-}
-
-
-void NetworkAPILinuxImpl::connectToLobby(const std::string& nick, const char* addr) {
-    if (datas->lobby.client) {
-        return;
-    }
-    datas->lobby.server = addr;
-    datas->lobby.nickName = nick;
-    datas->lobby.nickName.resize(64);
-
-    datas->lobby.thread = std::thread([this] () -> void {
-        runLobbyThread();
-    });
-}
-
-bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() {
-    return datas->match.connected;
-}
-#endif
 
 NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
     NetworkPacket result;
@@ -423,6 +291,22 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
         // nothing received
     } else {
         switch (event.type) {
+            case ENET_EVENT_TYPE_CONNECT: {
+                if (!datas->match.masterMode) {
+                    datas->setStatus(NetworkStatus::ConnectedToServer);
+                    datas->match.connected = true;
+
+                    EnteringRoomPacket p;
+                    p.roomId = datas->roomId;
+                    p.playerName = datas->lobby.nickName;
+                    enet_peer_send(datas->lobby.peer, 0, p.toENetPacket());
+                }
+                else {
+                    LOGI("New incoming connection");
+                    datas->match.peers.push_back(event.peer);
+                }
+                break;
+            }
             case ENET_EVENT_TYPE_DISCONNECT:
                 // probably some cleanup is needed here
                 LOGW("Disconnect even received");
@@ -438,6 +322,7 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                 break;
         }
     }
+    enet_host_flush(datas->match.host);
     return result;
 }
 
@@ -446,7 +331,15 @@ static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags) {
 }
 
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {
-    enet_peer_send(datas->match.peer, 0, convertPacket(packet, 0));
+    if (datas->match.masterMode) {
+        for (auto* peer: datas->match.peers) {
+            enet_peer_send(peer, 0, convertPacket(packet, 0));
+        }
+    } else {
+        if (datas->match.peer) {
+            enet_peer_send(datas->match.peer, 0, convertPacket(packet, 0));   
+        }
+    }
 }
 
 static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t port) {

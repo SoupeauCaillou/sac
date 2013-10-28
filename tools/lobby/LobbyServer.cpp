@@ -33,6 +33,10 @@
 
 #include "base/Log.h"
 #include "api/linux/NetworkAPILinuxPacket.h"
+#include "api/NetworkAPI.h"
+#include "api/NetworkAPI.h"
+#include "base/TimeUtil.h"
+#include "base/Frequency.h"
 
 
 /////////////////////// Example packets sequence
@@ -70,13 +74,14 @@ struct ConnectionDetails {
 };
 
 struct Room {
-    Room(Player* p, const std::string& n) : name(n), creator(p) {}
+    Room(Player* p, const std::string& n) : name(n), creator(p), participantListUpdate(1.0) {}
 
     std::string name;
 
     Player* creator;
-    std::list<Player*> participants;
+    std::map<Player*, NetworkStatus::Enum> participants;
 
+    Frequency<float> participantListUpdate;
     ConnectionDetails details;
 
     bool acceptsParticipants() const {
@@ -105,6 +110,8 @@ int main() {
 
     // Process network received packets
     ENetEvent event;
+    float before = TimeUtil::GetTime();
+
     while (enet_host_service(server, &event, 1000) >= 0) {
         switch (event.type) {
             // New incoming connection
@@ -123,9 +130,9 @@ int main() {
                         if (room) {
                             if (room->creator == player) {
                                 // close room, notify other
-                                for (auto* p: room->participants) {
+                                for (auto& p: room->participants) {
                                     RoomClosedPacket rc(room->name);
-                                    enet_peer_send(p->peer, 0, rc.toENetPacket());
+                                    enet_peer_send(p.first->peer, 0, rc.toENetPacket());
                                 }
                                 delete room;
                                 *it = 0;
@@ -163,7 +170,7 @@ int main() {
                                 InvitePacket r (room->name);
                                 enet_peer_send(event.peer, 0, r.toENetPacket());
 
-                                room->participants.push_back(player);
+                                room->participants.insert(std::make_pair(player, NetworkStatus::JoiningRoom));
                                 LOGI("Sent '" << login.name << "' an invite to join room '" << room->name << "'");
 
                                 EnteringRoomPacket enter(room->name, player->name);
@@ -206,10 +213,35 @@ int main() {
                                 room->details.address.port = conn.address.port;
                                 LOGI("room->details.address = " << room->details.address.host << ":" << room->details.address.port);
                                 LOGE_IF(!room->acceptsParticipants(), "Room still doesn't accept participant... weird");
+
+                                // Invite every idle players
+                                for (auto* p: loggedIn) {
+                                    bool idle = true;
+                                    for (auto* r: rooms) {
+                                        if (!r) continue;
+                                        if (r->creator == p) idle = false;
+                                        else {
+                                            for (auto& q: r->participants) {
+                                                if (q.first == p) idle = false;
+                                            }
+                                        }
+                                    }
+                                    if (idle) {
+                                        InvitePacket r (room->name);
+                                        enet_peer_send(p->peer, 0, r.toENetPacket());
+
+                                        room->participants.insert(std::make_pair(p, NetworkStatus::JoiningRoom));
+                                        LOGI("Sent '" << p->name << "' an invite to join room '" << room->name << "'");
+
+                                        EnteringRoomPacket enter(room->name, p->name);
+                                        enet_peer_send(room->creator->peer, 0, enter.toENetPacket());
+                                    }
+
+                                }
                                 break;
                             } else {
-                                for (auto* p: room->participants) {
-                                    if (p == player) {
+                                for (auto& p: room->participants) {
+                                    if (p.first == player) {
                                         // notify room creator to enable him to send nat-punch through packets
                                         enet_peer_send(room->creator->peer, 0, conn.toENetPacket());
                                         break;
@@ -229,8 +261,9 @@ int main() {
                                 LOGE("JoinRoom packet received from room creator (" << player->name << ')');
                                 break;
                             } else {
-                                for (auto* p: room->participants) {
-                                    if (p == player) {
+                                for (auto& p: room->participants) {
+                                    if (p.first == player) {
+                                        LOGE("JoinRoom packet received from '" << player->name << "'. Sending room '" << room->name << "' connection details.");
                                         // send player connection info
                                         ConnectionInfoPacket conn(room->details.address);
                                         enet_peer_send(event.peer, 0, conn.toENetPacket());
@@ -241,11 +274,31 @@ int main() {
                         }
                         break;
                     }
+                    case Packet::EnteringRoom: {
+                        EnteringRoomPacket enter;
+                        enter.fromENetPacket(event.packet);
+                        LOGI("ENTER: '" << enter.roomId << "', '" << enter.playerName << "'");
+                        for (auto* room: rooms) {
+                            if (!room) continue;
+                            if (room->name == enter.roomId) {
+                                LOGI("Found room");
+                                for (auto& p: room->participants) {
+                                    if (p.first->name == enter.playerName) {
+                                        LOGI("Found player");
+                                        room->participants[p.first] = NetworkStatus::ConnectedToServer;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        break;
+                    }
                     case Packet::AckLogin:
                     case Packet::RoomId:
-                    case Packet::EnteringRoom:
                     case Packet::RoomClosed:
                     case Packet::Invitation:
+                    case Packet::PlayersInRoom:
                         LOGE("Received invalid message type");
                         break;
                 }
@@ -253,6 +306,29 @@ int main() {
             }
         }
         enet_host_flush(server);
+
+        float now = TimeUtil::GetTime();
+        float dt = now - before;
+        before = now;
+        for (auto* room: rooms) {
+            if (room) {
+                if ((room->participantListUpdate.accum += dt) > room->participantListUpdate.value) {
+                    room->participantListUpdate.accum = 0;
+
+                    PlayersInRoomPacket pkt;
+                    pkt.names.push_back(room->creator->name);
+                    pkt.states.push_back(NetworkStatus::InRoomAsMaster);
+                    for (auto& p: room->participants) {
+                        pkt.names.push_back(p.first->name);
+                        pkt.states.push_back(p.second);
+                    }
+                    for (auto& p: room->participants) {
+                        enet_peer_send(p.first->peer, 0, pkt.toENetPacket());
+                    }
+                    enet_peer_send(room->creator->peer, 0, pkt.toENetPacket());
+                }
+            }
+        }
     }
     return 0;
 }
