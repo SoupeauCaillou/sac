@@ -15,7 +15,7 @@ def run(directory, rewrite = False):
 			print("Found a file : '{0}'".format(filename))
 			image = pdb.gimp_file_load(os.path.join(directory, filename), os.path.join(directory, filename))
 
-			with open(os.path.join(directory, "infos.desc"), "wb") as f:
+			with open(os.path.join(directory, os.path.splitext(filename)[0]+".desc"), "wb") as f:
 				for layer in image.layers:
 					for c in [layer] + layer.children:
 						f.write("texture = {}\n"\
