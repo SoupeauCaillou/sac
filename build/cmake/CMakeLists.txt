@@ -24,8 +24,6 @@ endif()
 message ("Building for ${varplatform}")
 add_definitions(-DSAC_${VARPLATFORM})
 
-include(${PROJECT_SOURCE_DIR}/sac/build/cmake/toolchains/${varplatform}.cmake)
-
 #######################################################################
 ############Check build target (release/debug)#########################
 #######################################################################
@@ -37,6 +35,10 @@ else()
 endif()
 
 message("Build target: " ${BUILD_TARGET})
+
+
+#import platform dependent toolchain
+include(${PROJECT_SOURCE_DIR}/sac/build/cmake/toolchains/${varplatform}.cmake)
 
 #import gcc/g++ flags relative to toolchain
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_${BUILD_TARGET}}")

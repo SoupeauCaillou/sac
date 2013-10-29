@@ -2,6 +2,7 @@
 
 #how to use the script
 export PLATFORM_OPTIONS="\
+\td: run&debug the app with gdb
 \t-arm: build ARM version
 \t-x86: build x86 version
 \t-a|-atlas: generate all atlas from unprepared_assets directory
@@ -142,21 +143,6 @@ compilation_after() {
     info "Cleaning tremor directory..."
     cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
-    if [ "$ARCHI" = "arm" ] && [ "$CMAKE_BUILD_TYPE" = "release" ]; then
-        info "Stripping libsac.so (cleaning stuff)"
-        #actually this should be useless since we could use ANDROID_NDK env variable, but it's like a security..
-        android_ndk_path=$(grep 'set( ANDROID_NDK ' $builddir/CMakeFiles/android.toolchain.config.cmake)
-        strip_path=$(grep 'set( ANDROID_TOOLCHAIN_NAME ' $builddir/CMakeFiles/android.toolchain.config.cmake)
-
-        #if we found it, strip the lib
-        if [ $? = 0 ]; then
-            strip_path=$(find $(echo $android_ndk_path | cut -d " " -f 3)/toolchains/$(echo $strip_path | cut -d " " -f 3) -name arm-linux-androideabi-strip)
-            $strip_path $rootPath/libs/armeabi-v7a/libsac.so
-        else
-            info "Warning: could not find strip tool path! Could not strip libsac.so" $orange
-        fi
-    fi
-
     if [ $USE_GRADLE = 1 ]; then
         if [ ! -f $rootPath/libs/armeabi-v7a.jar ]; then
             error_and_quit "Missing libs/armeabi.jar (did you forgot to compile?)!"
@@ -251,11 +237,20 @@ Continuing..."
         fi
     fi
 
-    if [ ! -z $(echo $1 | grep r) ]; then
+    packageName=$(grep 'package=' $rootPath/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
+    activityName=$(grep '<activity' $rootPath/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
+    
+    #debug required
+    if [ ! -z "$(echo $TARGETS | grep d)" ]; then
+        info "A bug? gdb on the way!"
+        if ! ndk-gdb; then
+            info "Note: this does not work with Android<2.3 and Cyanogen devices!" $orange
+            error_and_quit "Could not start gdb. Did your build a debug version?"
+        fi
+    #launch required
+    elif [ ! -z $(echo $1 | grep r) ]; then
         info "Running app '$gameName'..."
 
-        packageName=$(grep 'package=' $rootPath/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
-        activityName=$(grep '<activity' $rootPath/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
 
         if (!(adb shell am start -n $packageName/$activityName)); then
             error_and_quit "Could not run $gameName!"

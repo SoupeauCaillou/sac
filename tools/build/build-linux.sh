@@ -66,7 +66,6 @@ launch_the_application() {
     #debug required
     if [ ! -z "$(echo $TARGETS | grep d)" ]; then
         info "A bug? Cgdb on the way!"
-        #(echo r; cat) | gdb $executable
         cgdb -ex run $executable
     #launch required
     elif [ ! -z "$(echo $TARGETS | grep r)" ]; then
