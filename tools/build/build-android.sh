@@ -142,7 +142,7 @@ compilation_after() {
     info "Cleaning tremor directory..."
     cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
-    if [ $ARCHI = "arm" ]; then
+    if [ "$ARCHI" = "arm" ] && [ "$CMAKE_BUILD_TYPE" = "release" ]; then
         info "Stripping libsac.so (cleaning stuff)"
         #actually this should be useless since we could use ANDROID_NDK env variable, but it's like a security..
         android_ndk_path=$(grep 'set( ANDROID_NDK ' $builddir/CMakeFiles/android.toolchain.config.cmake)
