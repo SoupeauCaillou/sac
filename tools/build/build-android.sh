@@ -270,6 +270,6 @@ Continuing..."
     if [ $STACK_TRACE = 1 ]; then
         info "Printing latest dump crashes"
         check_package_in_PATH "ndk-stack" "android-ndk"
-        adb logcat | ndk-stack -sym $rootPath/obj/local/armeabi-v7a
+        adb logcat | ndk-stack -sym $rootPath/libs/armeabi-v7a
     fi
 }
