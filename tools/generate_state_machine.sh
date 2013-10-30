@@ -95,8 +95,6 @@ get_return_within_method() {
     done
 }
 
-    info "todo: chercher le 'if' au dessus du return, afin de le mettre en condition de l'automate..." $red
-
     #a list of colors is available here: http://www.graphviz.org/doc/info/colors.html
     unknown_state_color="darkgoldenrod1"
     initial_state_color="chartreuse3"
@@ -109,7 +107,7 @@ get_return_within_method() {
     statesDirectory=$rootPath"/sources/states"
 
     #get the list of states
-    initial_states=$(grep 'sceneStateMachine.setup(' $rootPath/sources/${gameName}Game.cpp | cut -d ':' -f3 | cut -d ')' -f1)
+    initial_states=$(grep 'sceneStateMachine.start(' $rootPath/sources/${gameName}Game.cpp | cut -d ':' -f3 | cut -d ')' -f1)
     for initial_state in $initial_states; do
         echo "$initial_state [ fillcolor=$initial_state_color];" >> $temp_file
     done
