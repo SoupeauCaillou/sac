@@ -201,6 +201,20 @@ glm::vec2 RenderingSystem::getTextureSize(const std::string& textureName) {
 
 }
 
+glm::vec2 RenderingSystem::getTextureSize(const TextureRef& textureRef) {
+    const TextureInfo* info = textureLibrary.get(textureRef, false);
+
+    switch (OpenGLTextureCreator::dpi) {
+        case DPI::Low:
+            return info->originalSize * 4.0f;
+        case DPI::Medium:
+            return info->originalSize * 2.0f;
+        default:
+            break;
+    }
+    return info->originalSize;
+}
+
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
 	if (ref != InvalidTextureRef) {
 		const TextureInfo* info = textureLibrary.get(ref, true);

@@ -149,6 +149,7 @@ public:
         bool colorEnabled = true);
     const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture);
     glm::vec2 getTextureSize(const std::string& textureName);
+    glm::vec2 getTextureSize(const TextureRef& textureRef);
     void removeExcessiveFrames(int& readQueue, int& writeQueue);
 
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
