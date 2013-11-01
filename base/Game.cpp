@@ -389,8 +389,6 @@ int Game::saveState(uint8_t**) {
     return 0;
 }
 
-const float DDD = 1.0/60.f;
-
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
 
