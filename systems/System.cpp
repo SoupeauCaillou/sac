@@ -42,7 +42,7 @@ const std::map<std::string, ComponentSystem*>& ComponentSystem::registeredSystem
 }
 
 #if SAC_INGAME_EDITORS
-#define FLOAT_PROPERTIES "precision=3 step=0,01"
+#define FLOAT_PROPERTIES "precision=3 step=0.01"
 
 namespace VarType {
     enum Enum {
