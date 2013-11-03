@@ -30,6 +30,7 @@
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
 #include "../systems/CameraSystem.h"
+#include "../systems/TextSystem.h"
 #include <SDL/SDL.h>
 #include <AntTweakBar.h>
 #include <mutex>
@@ -301,16 +302,23 @@ void LevelEditor::tick(float dt) {
                 // filter invisible entities
                 newEnd = std::remove_if(entities.begin(), newEnd, [this, &cameras] (Entity e) -> bool {
                     const auto* rc = theRenderingSystem.Get(e, false);
-                    if (!rc)
+                    const auto* txtc = theTextSystem.Get(e, false);
+                    if (!rc && !txtc)
                         return true;
-                    if (!rc->show)
+                    if ((rc && !rc->show) && (txtc && !txtc->show))
                         return true;
                     const auto* tc = theTransformationSystem.Get(e, false);
                     if (!tc)
                         return true;
                     for (unsigned i=0; i<cameras.size(); i++) {
-                        if ((rc->cameraBitMask & (1 << i)) && IntersectionUtil::rectangleRectangle(TRANSFORM(e), cameras[i]))
-                            return false;
+                        if (rc) {
+                            if ((rc->cameraBitMask & (1 << i)) && IntersectionUtil::rectangleRectangle(TRANSFORM(e), cameras[i]))
+                                return false;
+                        }
+                        else {
+                            if ((txtc->cameraBitMask & (1 << i)) && IntersectionUtil::rectangleRectangle(TRANSFORM(e), cameras[i]))
+                                return false;
+                        }
                     }
                     return true;
                 });
