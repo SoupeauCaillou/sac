@@ -50,6 +50,7 @@ const std::string vec2singlefloatmodifiers[] = {
     "%screen_h,texture_ratio",
     "%texture_ratio,abs",
     "%abs,texture_ratio",
+    "%texture",
 };
 const std::string colormodifiers[] =
     { "", "%html", "%255", "%name" };
@@ -184,7 +185,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     }
 
     // Try 6 variants with 1 float
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<7; i++) {
         if (dfp.get(section, name + vec2singlefloatmodifiers[i], parsed, 1, false)) {
             // hum oh
             std::string textureName;
@@ -214,6 +215,9 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
                     case 5:
                         out->x = parsed[0];
                         out->y = out->x * s.y / s.x;
+                        break;
+                    case 6:
+                        *out = PlacementHelper::GimpSizeToScreen(s * parsed[0]);
                         break;
                 }
                 return 1;
