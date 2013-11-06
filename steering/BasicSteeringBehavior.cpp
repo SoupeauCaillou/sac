@@ -26,8 +26,18 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 glm::vec2 SteeringBehavior::seek(Entity e, const glm::vec2& targetPos, float maxSpeed) {
-	glm::vec2 d (glm::normalize(targetPos - TRANSFORM(e)->position) * maxSpeed);
-	return d - PHYSICS(e)->linearVelocity;
+    return seek(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed);
+}
+
+glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& linearVel, const glm::vec2& targetPos, float maxSpeed) {
+    glm::vec2 toTarget (targetPos - pos);
+    float d = glm::length(toTarget); 
+    
+    if (d > 0) {
+        return toTarget * (maxSpeed / d) - linearVel;
+    } else {
+        return glm::vec2(.0f);
+    }
 }
 
 glm::vec2 SteeringBehavior::flee(Entity e, const glm::vec2& targetPos, float maxSpeed) {
