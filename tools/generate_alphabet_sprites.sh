@@ -150,8 +150,7 @@ info "Symbols 0->9..."
 iterate_through_list {0..9} 
 
 info "Symbols punctuation..."
-# ? needs to be escaped for an unknown reason...
-ponct=", - . / : ; < = > \? _ ! \" # ' ( )"
+ponct=", - . / : ; < = > ? _ ! \" # ' ( )"
 iterate_through_list $ponct
 
 info "Symbols missing..."
