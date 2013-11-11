@@ -186,6 +186,20 @@ struct CharSequenceToUnicode {
     }
 };
 
+static void adjustLineHorizontalCentering(std::vector<Entity>& charInLine, const float startX, const TextComponent* trc, const TransformationComponent* trans) {
+    if (!charInLine.empty()) {
+        // real line width
+        float leftest = TRANSFORM(charInLine.front())->position.x - TRANSFORM(charInLine.front())->size.x * -0.5f;
+        float rightest = TRANSFORM(charInLine.back())->position.x - TRANSFORM(charInLine.back())->size.x * -0.5f;
+        float width = rightest - leftest;
+        float start = startX + (trans->size.x - width) * trc->positioning;
+        float diff = start - startX;
+        for (auto e: charInLine) {
+            ANCHOR(e)->position.x += diff;
+        }
+        charInLine.clear();
+    }
+}
 
 void TextSystem::DoUpdate(float dt) {
     if (!components.empty() && fontRegistry.empty()) {
@@ -290,6 +304,7 @@ void TextSystem::DoUpdate(float dt) {
         std::vector<int> invalidLettersTexturePosition;
 #endif
         CharSequenceToUnicode seqToUni;
+        std::vector<Entity> charInLine;
 
         // Setup rendering for each individual letter
 		for(unsigned int i=0; i<length; i++) {
@@ -318,6 +333,8 @@ void TextSystem::DoUpdate(float dt) {
 				}
                 // Begin new line if requested
 				if (newLine) {
+                    adjustLineHorizontalCentering(charInLine, startX, trc, trans);
+
 					y -= 1.2 * charHeight;
 					x = startX;
 					if (lineEnd == i) {
@@ -343,6 +360,9 @@ void TextSystem::DoUpdate(float dt) {
                 renderingEntitiesPool.push_back(createRenderingEntity());
             }
             const Entity e = renderingEntitiesPool[letterCount];
+            if (trc->flags & TextComponent::MultiLineBit) {
+                charInLine.push_back(e);
+            }
             RenderingComponent* rc = RENDERING(e);
             TransformationComponent* tc = TRANSFORM(e);
             AnchorComponent* ac = ANCHOR(e);
@@ -416,6 +436,9 @@ void TextSystem::DoUpdate(float dt) {
                 i = skip;
             }
 		}
+
+        adjustLineHorizontalCentering(charInLine, startX, trc, trans);
+
 #if SAC_DEBUG
         if (invalidLettersTexturePosition.size() > 0) {
             std::stringstream ss;
