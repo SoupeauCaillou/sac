@@ -68,19 +68,23 @@ override=-1
 # arg 2 is the hexa value of the symbol (arg 1)
 # Generate the symbol and warn the user if it already exists. Return an error if no font contains the symbol
 function generate_sprite {
-    result="Yes"
+    result="No"
 
     # if destination sprite does already exist, ask the user for a confirmation
-    if [ $override = -1 ] && [ -f $output/$2$suffix ]; then
-	   info "\nSprite $2$suffix('$1') already exists. Override it?" $orange
-       select result in Yes No Yes-for-all No-for-all ; do
-            if [ $result = "Yes-for-all" ]; then
-                override=1
-            elif [ $result = "No-for-all" ]; then
-                override=0
-            fi
-            break
-        done 
+    if [ -f $output/$2$suffix ]; then
+        if [ $override = -1 ]; then
+    	   info "\nSprite $2$suffix('$1') already exists. Override it?" $orange
+           select result in Yes No Yes-for-all No-for-all ; do
+                if [ $result = "Yes-for-all" ]; then
+                    override=1
+                elif [ $result = "No-for-all" ]; then
+                    override=0
+                fi
+                break
+            done 
+        fi
+    else
+        result="Yes"
     fi
 
     if [ $override = 1 ] || [ "$result" = Yes ]; then
