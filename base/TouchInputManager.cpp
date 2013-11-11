@@ -47,7 +47,7 @@ void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
 	worldSize = pWorldSize;
 	windowSize = pWindowSize;
 #if SAC_DEBUG
-    for (int i=0; i<2; i++) {
+    for (int i=0; i<MAX_TOUCH_POINT; i++) {
         debugState[i] = 0;
     }
 #endif
@@ -55,7 +55,7 @@ void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
 
 #if SAC_DEBUG
 void TouchInputManager::activateDebug(Entity camera) {
-    for (int i=0; i<2; i++) {
+    for (int i=0; i<MAX_TOUCH_POINT; i++) {
         debugState[i] = theEntityManager.CreateEntity("debug_input");
         ADD_COMPONENT(debugState[i], Transformation);
         ADD_COMPONENT(debugState[i], Anchor);
@@ -130,7 +130,7 @@ void TouchInputManager::Update(float) {
     if (!debugState[0])
         return;
     const auto* cam = TRANSFORM(ANCHOR(debugState[0])->parent);
-    for (int i=0; i<2; i++) {
+    for (int i=0; i<MAX_TOUCH_POINT; i++) {
         TRANSFORM(debugState[i])->size = glm::vec2(0.05 * cam->size.y);
 
         ANCHOR(debugState[i])->position =

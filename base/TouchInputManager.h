@@ -28,6 +28,8 @@
 #include "EntityManager.h"
 #endif
 
+#define MAX_TOUCH_POINT 2
+
 class NativeTouchState {
 	public:
         virtual int maxTouchingCount() = 0;
@@ -80,13 +82,13 @@ class TouchInputManager {
 	private:
 		NativeTouchState* ptr;
 
-		bool wasTouching[2], touching[2], moving[2], clicked[2], doubleclicked[2];
-		glm::vec2 lastTouchedPosition[2], lastTouchedPositionScreen[2], lastClickPosition[2], onTouchPosition[2];
-		float lastClickTime[2];
+		bool wasTouching[MAX_TOUCH_POINT], touching[MAX_TOUCH_POINT], moving[MAX_TOUCH_POINT], clicked[MAX_TOUCH_POINT], doubleclicked[MAX_TOUCH_POINT];
+		glm::vec2 lastTouchedPosition[MAX_TOUCH_POINT], lastTouchedPositionScreen[MAX_TOUCH_POINT], lastClickPosition[MAX_TOUCH_POINT], onTouchPosition[MAX_TOUCH_POINT];
+		float lastClickTime[MAX_TOUCH_POINT];
 
 		glm::vec2 worldSize, windowSize;
 
 #if SAC_DEBUG
-		Entity debugState[2];
+		Entity debugState[MAX_TOUCH_POINT];
 #endif
 };

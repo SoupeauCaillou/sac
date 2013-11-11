@@ -29,7 +29,7 @@ AndroidNativeTouchState::AndroidNativeTouchState(GameHolder* h) {
 }
 
 int AndroidNativeTouchState::maxTouchingCount() {
-	return 2; // holder->input.size();
+	return 3;
 }
 
 bool AndroidNativeTouchState::isTouching (int index, glm::vec2* windowCoords) {
