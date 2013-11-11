@@ -58,6 +58,10 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
     lastPosition.y = event->motion.y;
 
     switch(event->type) {
+        case SDL_ACTIVEEVENT:
+            // app lose focus == mouse up
+            isDownEvent = false;
+            break;
         case SDL_MOUSEMOTION: {
             _isMoving = true;
             return 1;
