@@ -36,7 +36,7 @@ class MouseNativeTouchState: public NativeTouchState {
         bool isMoving (int index) ;
 
         int maxTouchingCount() {
-            return 2;
+            return 3;
         }
 
     public:

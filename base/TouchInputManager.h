@@ -28,7 +28,7 @@
 #include "EntityManager.h"
 #endif
 
-#define MAX_TOUCH_POINT 2
+#define MAX_TOUCH_POINT 3
 
 class NativeTouchState {
 	public:
