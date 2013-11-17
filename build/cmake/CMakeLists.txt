@@ -161,6 +161,15 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #######################################################################
 ######################How to build sac#################################
 #######################################################################
+
+if (DEFINED extra_source_directories)
+    include_directories(${extra_source_directories})
+    file(
+        GLOB_RECURSE extra_source_files
+        ${extra_source_directories}/*
+    )
+endif()
+
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
@@ -218,7 +227,7 @@ else()
     message(SEND_ERROR "which platform?")
 endif()
 
-add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files})
+add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files} ${extra_source_files})
 add_dependencies( sac generate_shaders )
 
 #######################################################################
