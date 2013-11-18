@@ -228,7 +228,7 @@ else()
 endif()
 
 add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files} ${extra_source_files})
-add_dependencies( sac generate_shaders )
+add_dependencies( sac generate_shaders ${extra_custom_target})
 
 #######################################################################
 ##########Build and link libraries per target##########################
