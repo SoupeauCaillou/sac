@@ -70,10 +70,12 @@ if (SAC_REVISION_TAG OR SAC_REVISION)
         set ( SAC_REVISION_TAG "${SAC_REVISION_TAG} - " )
     endif()
     set (SAC_REVISION_TAG "${SAC_REVISION_TAG}${SAC_REVISION}")
+    string(STRIP ${SAC_REVISION_TAG} SAC_REVISION_TAG)
 
-    message("Revision tag is ${SAC_REVISION_TAG}")
+    message("Revision tag is '${SAC_REVISION_TAG}'")
     add_definitions(-DSAC_REVISION_TAG="${SAC_REVISION_TAG}")
 endif()
+
 
 #######################################################################
 ########Library path finding related tools#############################
