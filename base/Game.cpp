@@ -56,6 +56,7 @@
 #include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/ZSQDSystem.h"
+#include "systems/SwypeButtonSystem.h"
 
 #include "systems/opengl/OpenGLTextureCreator.h"
 
@@ -113,6 +114,7 @@ Game::Game() {
     TextSystem::CreateInstance();
     TransformationSystem::CreateInstance();
     ZSQDSystem::CreateInstance();
+    SwypeButtonSystem::CreateInstance();
 
 #if SAC_NETWORK
     NetworkSystem::CreateInstance();
@@ -161,6 +163,7 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
     ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
+    ADD_IF_EXISTING(SwypeButtonSystem::GetInstancePointer());
 
 #if SAC_ENABLE_LOG
     unusedSystems.clear();
@@ -198,6 +201,7 @@ Game::~Game() {
     TextSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
     ZSQDSystem::DestroyInstance();
+    SwypeButtonSystem::DestroyInstance();
 
 #if SAC_NETWORK
     NetworkSystem::DestroyInstance();
