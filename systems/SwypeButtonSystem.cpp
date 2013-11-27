@@ -34,6 +34,7 @@
 #include "util/Random.h"
 
 #include "glm/glm.hpp"
+#include "glm/gtx/projection.hpp"
 
 INSTANCE_IMPL(SwypeButtonSystem);
 
@@ -45,7 +46,7 @@ SwypeButtonSystem::SwypeButtonSystem() : ComponentSystemImpl<SwypeButtonComponen
     componentSerializer.add(new Property<bool>("enabled", OFFSET(enabled, sc)));
     componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, sc), 0.001));
     componentSerializer.add(new Property<bool>("animated", OFFSET(animated, sc)));
-    componentSerializer.add(new Property<glm::vec2>("direction", OFFSET(direction, sc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>("final_pos", OFFSET(finalPos, sc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<glm::vec2>("idle_pos", OFFSET(idlePos, sc), glm::vec2(0.001, 0)));
     
 }
@@ -81,6 +82,8 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
         return;
     }
 
+    LOGF_IF(comp->idlePos == comp->finalPos, theEntityManager.entityName(entity) << " have the point as origin and final destination!");
+
     comp->clicked = false;
 
     const glm::vec2& pos = TRANSFORM(entity)->position;
@@ -88,18 +91,20 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
 
     bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size, TRANSFORM(entity)->rotation);
 
+    glm::vec2 direction = glm::normalize(comp->finalPos - comp->idlePos);
+
     // Animation of button (to show it)
     if (comp->animated && glm::length(comp->idlePos - pos) < 0.01) {
         comp->activeIdleTime += dt;
         if (comp->activeIdleTime > 4) {
             LOGI("idle, pushing " << theEntityManager.entityName(entity));
             comp->animationPlaying = true;
-            comp->speed = comp->direction * glm::vec2(10.f);
+            comp->speed = direction * glm::vec2(10.f);
             comp->activeIdleTime = 0;
         }
     } else if ((!over && !comp->mouseOver) && comp->animationPlaying) {
-        LOGI("deccelerate : " << comp->speed << " + " << -comp->direction * comp->speed * glm::vec2(10.f * dt));
-        comp->speed = comp->speed - comp->direction * comp->speed * glm::vec2(10.f * dt);
+        comp->speed += SteeringBehavior::arrive(
+            pos, comp->speed, comp->idlePos, 10, 0.1);
     } else {
         comp->animationPlaying = false;
         comp->activeIdleTime = 0;
@@ -114,41 +119,42 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     }
     // if he's touching and was once on button
     if (touching && comp->mouseOver) {
-        comp->speed = comp->direction * glm::distance(touchPos, comp->lastPos) / dt;
+        
+        comp->speed = glm::proj(touchPos - comp->lastPos, direction)/dt;
         comp->lastPos = touchPos;
     } else {
         comp->mouseOver = false;
     }
 
+    if (glm::distance(pos, comp->idlePos) < 1.f) {
+        if (glm::normalize(pos - comp->idlePos) == - direction) {
+            comp->speed = glm::vec2(0.0f);
+            TRANSFORM(entity)->position = comp->idlePos;
+        }
+    }
+
+    // update entity position with its speed
     TRANSFORM(entity)->position += comp->speed * dt;
 
-    glm::vec2 d = glm::normalize(TRANSFORM(entity)->position - comp->idlePos);
-    LOGI("current direction : "<< d << " set direction " << comp->direction);
-    if (d == glm::normalize(-comp->direction))
-        TRANSFORM(entity)->position = comp->idlePos;
-
-    glm::vec2 cameraSize;
-    glm::vec2 cameraPosition;
-    const int entityMask = RENDERING(entity)->cameraBitMask;
-    theCameraSystem.forEachECDo([&entityMask, &cameraSize, &cameraPosition] (Entity c, CameraComponent* cc) -> void {
-        if (entityMask == cc->id) {
-            cameraPosition = TRANSFORM(c)->position;
-            cameraSize = TRANSFORM(c)->size;
+    //
+    if (!touching && glm::length(comp->speed) < 1.f) {
+        if (glm::length(pos) < glm::length(comp->finalPos)*0.5f) {
+            comp->speed += SteeringBehavior::arrive(
+                pos, comp->speed, comp->idlePos, 10, 0.1);
+        } else {
+            comp->speed += SteeringBehavior::arrive(
+                pos, comp->speed, comp->finalPos, 10, 0);
         }
-    });
+    }
 
-    if (!theRenderingSystem.isVisible(entity)) {
+    // check if the button is arrived at its final pos
+    if (glm::length(pos - comp->idlePos) > glm::length(comp->finalPos - comp->idlePos)) {
         LOGI("Button clicked !");
         comp->speed = glm::vec2(0.0f);
         comp->clicked = true;
+        comp->mouseOver = false;
         TRANSFORM(entity)->position = comp->idlePos;
     }
-
-    if (!touching && glm::length(comp->speed) < 1.f) {
-        comp->speed = glm::vec2(0.0f);
-        TRANSFORM(entity)->position = comp->idlePos;
-    }
-
 }
 
             

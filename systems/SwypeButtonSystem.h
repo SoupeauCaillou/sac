@@ -24,8 +24,9 @@
 class VibrateAPI;
 
 struct SwypeButtonComponent {
-	SwypeButtonComponent() : mouseOver(false), enabled(false),
-	lastPos(0.0f), idlePos(0.0f), animationPlaying(false), vibration(0.035f) { }
+	SwypeButtonComponent() : mouseOver(false), clicked(false),
+	lastPos(0.0f), idlePos(0.0f), animationPlaying(false), 
+    enabled(false), vibration(0.035f) { }
 
     ////// READ ONLY variables
     // States of button
@@ -47,7 +48,7 @@ struct SwypeButtonComponent {
     // Speed of button
     glm::vec2 speed;
     // Swype direction
-    glm::vec2 direction;
+    glm::vec2 finalPos;
 	////// END OF READ/WRITE variables
 
 	////// WRITE ONLY variables
