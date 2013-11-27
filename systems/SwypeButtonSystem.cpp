@@ -78,7 +78,9 @@ void SwypeButtonSystem::DoUpdate(float dt) {
 
 void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
     if (!comp->enabled) {
-        comp->mouseOver = comp->clicked = false;
+        comp->mouseOver = 
+            comp->touchStartOutside = 
+            comp->clicked = false;
         return;
     }
 
@@ -90,7 +92,11 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     const glm::vec2& size = TRANSFORM(entity)->size;    
 
     bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size, TRANSFORM(entity)->rotation);
-
+    if (touching && !(over || comp->mouseOver)) {
+        comp->touchStartOutside = true;
+    } else {
+        comp->touchStartOutside = false;
+    }
     glm::vec2 direction = glm::normalize(comp->finalPos - comp->idlePos);
 
     // Animation of button (to show it)
@@ -112,22 +118,27 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
 
     // User touches this button
     if (over) {
-        if (!comp->mouseOver) {
+        if (!comp->mouseOver && !comp->touchStartOutside) {
             comp->mouseOver = true;
             comp->lastPos = touchPos;
         }
     }
     // if he's touching and was once on button
     if (touching && comp->mouseOver) {
-        
         comp->speed = glm::proj(touchPos - comp->lastPos, direction)/dt;
+        if (pos == comp->idlePos &&
+            comp->speed != glm::vec2(0.f) &&
+            glm::normalize(comp->speed) == -direction) 
+            comp->speed = glm::vec2(0.f);
         comp->lastPos = touchPos;
     } else {
         comp->mouseOver = false;
     }
 
-    if (glm::distance(pos, comp->idlePos) < 1.f) {
-        if (glm::normalize(pos - comp->idlePos) == - direction) {
+    
+    if (pos != comp->idlePos) {
+        if (glm::normalize(pos - comp->idlePos) == - direction &&
+            glm::distance(pos, comp->idlePos) < 1.f) {
             comp->speed = glm::vec2(0.0f);
             TRANSFORM(entity)->position = comp->idlePos;
         }
