@@ -92,7 +92,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     const glm::vec2& size = TRANSFORM(entity)->size;    
 
     bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size, TRANSFORM(entity)->rotation);
-    if (touching && !(over || comp->mouseOver)) {
+    if (touching && !over && !comp->mouseOver) {
         comp->touchStartOutside = true;
     } else {
         comp->touchStartOutside = false;
@@ -126,27 +126,18 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     // if he's touching and was once on button
     if (touching && comp->mouseOver) {
         comp->speed = glm::proj(touchPos - comp->lastPos, direction)/dt;
-        if (pos == comp->idlePos &&
-            comp->speed != glm::vec2(0.f) &&
-            glm::normalize(comp->speed) == -direction) 
-            comp->speed = glm::vec2(0.f);
         comp->lastPos = touchPos;
     } else {
         comp->mouseOver = false;
     }
 
-    
-    if (pos != comp->idlePos) {
-        if (glm::normalize(pos - comp->idlePos) == - direction &&
-            glm::distance(pos, comp->idlePos) < 1.f) {
-            comp->speed = glm::vec2(0.0f);
-            TRANSFORM(entity)->position = comp->idlePos;
-        }
-    }
-
     // update entity position with its speed
     TRANSFORM(entity)->position += comp->speed * dt;
-
+    if (glm::min(comp->idlePos, comp->finalPos) == comp->idlePos) {
+        TRANSFORM(entity)->position = glm::max(comp->idlePos, pos);
+    } else {
+        TRANSFORM(entity)->position = glm::min(comp->idlePos, pos);
+    }
     //
     if (!touching && glm::length(comp->speed) < 1.f) {
         if (glm::length(pos) < glm::length(comp->finalPos)*0.5f) {
