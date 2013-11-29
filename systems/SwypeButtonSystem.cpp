@@ -92,11 +92,12 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     const glm::vec2& size = TRANSFORM(entity)->size;    
 
     bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size, TRANSFORM(entity)->rotation);
-    if (touching && !over && !comp->mouseOver) {
+    if (touching && (!over || (over && comp->touchStartOutside))) {
         comp->touchStartOutside = true;
     } else {
         comp->touchStartOutside = false;
     }
+
     glm::vec2 direction = glm::normalize(comp->finalPos - comp->idlePos);
 
     // Animation of button (to show it)
