@@ -21,8 +21,11 @@
 
 
 #include "System.h"
-#include <sstream>
 #include "systems/RenderingSystem.h"
+
+#if SAC_INGAME_EDITORS
+#include "systems/opengl/TextureLibrary.h"
+#endif
 
 std::map<std::string, ComponentSystem*> ComponentSystem::registry;
 

@@ -21,7 +21,7 @@
 
 
 #include "SoundSystem.h"
-
+#include "api/SoundAPI.h"
 
 INSTANCE_IMPL(SoundSystem);
 

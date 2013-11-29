@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
 
+class AssetAPI;
+
 #include "api/StorageAPI.h"
-#include "api/AssetAPI.h"
 
 #include "util/StorageProxy.h"
 

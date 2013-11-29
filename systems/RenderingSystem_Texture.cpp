@@ -24,18 +24,9 @@
 #include "RenderingSystem_Private.h"
 #include "opengl/OpenGLTextureCreator.h"
 
-#include "base/EntityManager.h"
 #include "util/DataFileParser.h"
-#include <cmath>
-#include <sstream>
 
 #include <stdint.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <fstream>
 
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {

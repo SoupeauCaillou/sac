@@ -23,10 +23,7 @@
 #if SAC_INGAME_EDITORS
 
 #include "DebugConsole.h"
-
-#include <algorithm>
-
-#include <cstring>
+#include "base/Log.h"
 #include "systems/RenderingSystem.h"
 
 DebugConsole & DebugConsole::Instance() {

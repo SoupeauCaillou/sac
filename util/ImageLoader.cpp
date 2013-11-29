@@ -21,6 +21,7 @@
 
 
 #include "ImageLoader.h"
+#include "../api/AssetAPI.h"
 #include "base/Log.h"
 
 #ifdef __SAC_EMSCRIPTEN

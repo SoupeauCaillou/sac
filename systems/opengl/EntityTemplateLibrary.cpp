@@ -27,8 +27,6 @@
 #include "base/EntityManager.h"
 #include "systems/TransformationSystem.h"
 
-#include "api/WWWAPI.h"
-
 EntityTemplateLibrary::~EntityTemplateLibrary() {
     for (auto r2a: ref2asset) {
         EntityTemplate& tmp = r2a.second;

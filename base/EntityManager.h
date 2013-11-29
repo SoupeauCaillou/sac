@@ -27,7 +27,6 @@
 
 #include <map>
 #include <list>
-#include <sstream>
 #include <vector>
 #if SAC_DEBUG
 #include <string>
@@ -37,8 +36,6 @@
 #include "systems/opengl/EntityTemplateLibrary.h"
 
 class ComponentSystem;
-class DataFileParser;
-class AssetAPI;
 
 #if SAC_EMSCRIPTEN || SAC_WINDOWS || SAC_DARWIN
 void* mempcpy(void* dst, const void* src, size_t size);

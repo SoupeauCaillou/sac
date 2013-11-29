@@ -26,8 +26,6 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include <base/Log.h>
-
 MouseNativeTouchState::MouseNativeTouchState() {
     isButtonDown[0] =
     isButtonDown[1] =

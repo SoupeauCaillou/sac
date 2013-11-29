@@ -23,11 +23,11 @@
 #if SAC_LINUX && SAC_DESKTOP
 #include "Recorder.h"
 #include <iostream>
-#include <sstream>
 #include <ctime>
 #include <SDL/SDL.h>
 #include <cstring>
 #include <string>
+#include <sstream>
 #include "base/Profiler.h"
 #include "base/Log.h"
 #include "base/TimeUtil.h"

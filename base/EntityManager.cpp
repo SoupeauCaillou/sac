@@ -21,9 +21,7 @@
 
 
 #include "EntityManager.h"
-#include <glm/glm.hpp>
 #include "systems/System.h"
-#include "util/DataFileParser.h"
 #include <cstring>
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN || SAC_WINDOWS || SAC_DARWIN

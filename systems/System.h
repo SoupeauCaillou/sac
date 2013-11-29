@@ -35,7 +35,6 @@
 #include "base/TimeUtil.h"
 #include "base/Profiler.h"
 #include "util/Serializer.h"
-#include "util/DataFileParser.h"
 #include "util/ComponentFactory.h"
 #include "base/EntityManager.h"
 

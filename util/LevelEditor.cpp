@@ -25,13 +25,10 @@
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
 #include "../base/EntityManager.h"
-#include "../base/TouchInputManager.h"
-#include "../base/PlacementHelper.h"
 #include "../systems/TransformationSystem.h"
 #include "../systems/RenderingSystem.h"
 #include "../systems/CameraSystem.h"
 #include "../systems/TextSystem.h"
-#include <SDL/SDL.h>
 #include <AntTweakBar.h>
 #include <mutex>
 #include <set>

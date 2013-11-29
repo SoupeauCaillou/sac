@@ -24,7 +24,6 @@
 #include "../api/NetworkAPI.h"
 #include "../base/EntityManager.h"
 #include <queue>
-#include <glm/gtc/random.hpp>
 
 struct StatusCache {
     std::map<std::string, uint8_t*> components;

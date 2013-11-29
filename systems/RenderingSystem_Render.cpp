@@ -24,8 +24,6 @@
 #include "RenderingSystem_Private.h"
 #include "CameraSystem.h"
 #include "TransformationSystem.h"
-#include "base/EntityManager.h"
-#include <cmath>
 #include <sstream>
 #if SAC_INGAME_EDITORS
 #include <AntTweakBar.h>
@@ -545,7 +543,6 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     batchSizes.clear();
     #endif
 }
-#include <errno.h>
 
 void RenderingSystem::waitDrawingComplete() {
 #if ! SAC_EMSCRIPTEN

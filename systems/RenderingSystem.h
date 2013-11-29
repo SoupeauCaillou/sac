@@ -22,25 +22,15 @@
 
 #pragma once
 
-#include <cstdio>
-#include <cstdlib>
-#include <algorithm>
-
-#include <thread>
 #include <condition_variable>
 #include <mutex>
 
 #include "opengl/OpenglHelper.h"
 #include "opengl/TextureLibrary.h"
 #include "opengl/EffectLibrary.h"
-#include <set>
-#include <queue>
-#include <list>
 
 #include <glm/glm.hpp>
 #include <base/Color.h>
-
-#include "../api/AssetAPI.h"
 
 #include "System.h"
 #include "opengl/Polygon.h"

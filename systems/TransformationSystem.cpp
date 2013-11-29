@@ -21,8 +21,6 @@
 
 
 #include "TransformationSystem.h"
-#include <set>
-#include <glm/gtx/rotate_vector.hpp>
 
 INSTANCE_IMPL(TransformationSystem);
 

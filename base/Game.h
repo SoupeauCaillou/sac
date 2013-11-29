@@ -32,7 +32,9 @@ class MouseNativeTouchState;
 
 #if SAC_INGAME_EDITORS
 
-#include "../util/LevelEditor.h"
+class AssetApi;
+class LevelEditor;
+class ComponentSystem;
 
 namespace GameType {
     enum Enum {
@@ -43,7 +45,6 @@ namespace GameType {
 }
 #endif
 
-class ComponentSystem;
 
 class Game {
 	public:

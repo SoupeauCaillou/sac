@@ -22,6 +22,7 @@
 
 #include "AnimationSystem.h"
 #include "TransformationSystem.h"
+#include "RenderingSystem.h"
 #include "opengl/AnimDescriptor.h"
 
 static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {

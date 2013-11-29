@@ -34,7 +34,6 @@ class Recorder {
 
 #include <cstdlib>
 #include <cstdio>
-#include <vector>
 #include <queue>
 
 #include <thread>

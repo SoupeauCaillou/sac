@@ -22,8 +22,6 @@
 
 #if SAC_INGAME_EDITORS
 
-#include "base/Log.h"
-
 #include <string>
 #include <map>
 

@@ -25,7 +25,6 @@
 
 #if SAC_LINUX && SAC_DESKTOP
 #include <sys/inotify.h>
-#include <list>
 #include <fstream>
 #include <unistd.h>
 

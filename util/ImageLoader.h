@@ -23,7 +23,7 @@
 #pragma once
 
 #include <string>
-#include "../api/AssetAPI.h"
+struct FileBuffer;
 
 struct ImageDesc {
     union {

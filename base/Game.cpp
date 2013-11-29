@@ -64,6 +64,7 @@
 #include "util/DrawSomething.h"
 #include "util/Recorder.h"
 #include "util/Random.h"
+#include "util/LevelEditor.h"
 
 #if ! SAC_ANDROID
 #include <SDL/SDL.h>

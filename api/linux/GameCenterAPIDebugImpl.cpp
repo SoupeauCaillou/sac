@@ -21,6 +21,7 @@
 #include "GameCenterAPIDebugImpl.h"
 
 #include "base/PlacementHelper.h"
+#include "base/EntityManager.h"
 #include "base/Frequency.h"
 
 #include "systems/TransformationSystem.h"

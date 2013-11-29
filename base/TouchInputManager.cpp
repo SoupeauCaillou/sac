@@ -26,7 +26,6 @@
 #include "../systems/RenderingSystem.h"
 #include "../systems/TransformationSystem.h"
 #include "../systems/CameraSystem.h"
-#include "../util/IntersectionUtil.h"
 #include "PlacementHelper.h"
 
 #if SAC_DEBUG

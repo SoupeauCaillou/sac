@@ -28,8 +28,9 @@
 #include <algorithm>
 
 #include "System.h"
-#include "api/SoundAPI.h"
 
+class SoundAPI;
+struct OpaqueSoundPtr;
 typedef int SoundRef;
 
 #define InvalidSoundRef -1

@@ -24,7 +24,6 @@
 
 #include "base/TouchInputManager.h"
 #include <glm/glm.hpp>
-#include <list>
 
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {

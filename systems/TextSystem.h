@@ -22,12 +22,6 @@
 
 #pragma once
 
-#if SAC_ANDROID || SAC_EMSCRIPTEN
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#endif
-
 #include "System.h"
 #include "base/Color.h"
 

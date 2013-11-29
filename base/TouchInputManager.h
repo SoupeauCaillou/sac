@@ -25,7 +25,7 @@
 #include <glm/glm.hpp>
 
 #if SAC_DEBUG
-#include "EntityManager.h"
+#include "base/Entity.h"
 #endif
 
 #define MAX_TOUCH_POINT 3

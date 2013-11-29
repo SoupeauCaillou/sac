@@ -23,7 +23,6 @@
 #pragma once
 
 #include "System.h"
-#include "RenderingSystem.h"
 
 class AnimDescriptor;
 

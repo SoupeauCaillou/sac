@@ -23,12 +23,9 @@
 #pragma once
 
 #include "api/GameCenterAPI.h"
-
-#include "base/Log.h"
-#include "base/EntityManager.h"
-
-#include <vector>
-#include <fstream>
+#include "base/Entity.h"
+#include <string>
+#include <sstream>
 
 class GameCenterAPIDebugImpl : public GameCenterAPI {
     public:

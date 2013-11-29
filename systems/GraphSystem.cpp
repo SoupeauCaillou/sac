@@ -21,11 +21,7 @@
 
 
 #include "GraphSystem.h"
-
-#include "base/EntityManager.h"
-
 #include "systems/RenderingSystem.h"
-#include "systems/TextSystem.h"
 
 #include <algorithm>
 #include <cstdint>

@@ -21,26 +21,17 @@
 
 
 #include "SqliteStorageAPIImpl.h"
+#include "api/AssetAPI.h"
 
 #include "base/Log.h"
 #if !SAC_EMSCRIPTEN
 #include <sqlite3.h>
-
-#include <sys/stat.h>
-#include <sys/types.h>
-
-//for getenv
-#include <cstdlib>
 
 //for cerr
 #include <iostream>
 #include <string>
 #include <sstream>
 
-//for strcmp
-#include <string.h>
-//for sscanf
-#include <stdio.h>
 #include <vector>
 
 

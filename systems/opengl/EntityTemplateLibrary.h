@@ -24,6 +24,7 @@
 
 #include "base/NamedAssetLibrary.h"
 #include "base/Entity.h"
+#include "api/AssetAPI.h"
 
 typedef int EntityTemplateRef;
 #define InvalidEntityTemplateRef -1
@@ -33,9 +34,8 @@ struct Void {};
 #include <map>
 #include <set>
 #include <string>
-class WWWAPI;
+
 class DataFileParser;
-struct FileBuffer;
 class ComponentSystem;
 typedef std::map<std::string, uint8_t*> PropertyNameValueMap;
 typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
