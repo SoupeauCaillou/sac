@@ -45,11 +45,12 @@
 #include "api/android/InAppPurchaseAPIAndroidImpl.h"
 #include "api/android/LocalizeAPIAndroidImpl.h"
 #include "api/android/MusicAPIAndroidImpl.h"
+#include "api/android/OpenURLAPIAndroidImpl.h"
 #include "api/android/SoundAPIAndroidImpl.h"
-#include "api/default/SqliteStorageAPIImpl.h"
 #include "api/android/StringInputAPIAndroidImpl.h"
 #include "api/android/VibrateAPIAndroidImpl.h"
 #include "api/android/WWWAPIAndroidImpl.h"
+#include "api/default/SqliteStorageAPIImpl.h"
 
 #include "systems/opengl/OpenGLTextureCreator.h"
 
@@ -105,6 +106,8 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
             gCtx->musicAPI = new MusicAPIAndroidImpl();
         if (game->wantsAPI(ContextAPI::Storage))
             gCtx->storageAPI = new SqliteStorageAPIImpl();
+        if (game->wantsAPI(ContextAPI::OpenURL))
+            gCtx->openURLAPI = new OpenURLAPIAndroidImpl();
         //if (game->wantsAPI(ContextAPI::Network))
             gCtx->networkAPI = 0;
         if (game->wantsAPI(ContextAPI::Sound))
@@ -167,6 +170,7 @@ static void initGameJni(JNIEnv *env) {
     INIT_1(inAppPurchaseAPI, game, InAppPurchaseAPIAndroidImpl)
     INIT_1(localizeAPI, game, LocalizeAPIAndroidImpl)
     INIT_1(musicAPI, game, MusicAPIAndroidImpl)
+    INIT_1(openURLAPI, game, OpenURLAPIAndroidImpl)
     INIT_1(soundAPI, game, SoundAPIAndroidImpl)
     INIT_1(stringInputAPI, game, StringInputAPIAndroidImpl)
     INIT_1(vibrateAPI, game, VibrateAPIAndroidImpl)

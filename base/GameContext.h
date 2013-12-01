@@ -32,6 +32,7 @@ class KeyboardInputHandlerAPI;
 class LocalizeAPI;
 class MusicAPI;
 class NetworkAPI;
+class OpenURLAPI;
 class SoundAPI;
 class StorageAPI;
 class StringInputAPI;
@@ -50,6 +51,7 @@ namespace ContextAPI {
         Localize,
         Music,
         Network,
+        OpenURL,
         Sound,
         Storage,
         StringInput,
@@ -70,11 +72,13 @@ struct GameContext {
         localizeAPI(0),
         musicAPI(0),
         networkAPI(0),
+        openURLAPI(0),
         soundAPI(0),
         storageAPI(0),
         stringInputAPI(0),
         vibrateAPI(0),
         wwwAPI(0) {}
+
 
     AdAPI* adAPI;
     AssetAPI* assetAPI;
@@ -86,6 +90,7 @@ struct GameContext {
     LocalizeAPI* localizeAPI;
     MusicAPI* musicAPI;
     NetworkAPI* networkAPI;
+    OpenURLAPI* openURLAPI;
     SoundAPI* soundAPI;
     StorageAPI* storageAPI;
     StringInputAPI* stringInputAPI;

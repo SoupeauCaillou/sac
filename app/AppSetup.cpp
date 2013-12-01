@@ -62,14 +62,15 @@
 #include "api/linux/AssetAPILinuxImpl.h"
 #include "api/linux/CommunicationAPILinuxImpl.h"
 #include "api/linux/ExitAPILinuxImpl.h"
+#include "api/linux/GameCenterAPIDebugImpl.h"
+#include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
 #include "api/linux/LocalizeAPILinuxImpl.h"
 #include "api/linux/MusicAPILinuxOpenALImpl.h"
 #include "api/linux/NetworkAPILinuxImpl.h"
+#include "api/linux/OpenURLAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
 #include "api/linux/StringInputAPISDLImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
-#include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
-#include "api/linux/GameCenterAPIDebugImpl.h"
 #include "api/linux/WWWAPIcURLImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/default/AdAPIDebugImpl.h"
@@ -251,6 +252,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->localizeAPI = new LocalizeAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Music))
         ctx->musicAPI = new MusicAPILinuxOpenALImpl();
+    if (game->wantsAPI(ContextAPI::OpenURL))
+        ctx->openURLAPI = new OpenURLAPILinuxImpl();
 #if SAC_NETWORK
     if (game->wantsAPI(ContextAPI::Network))
         theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
