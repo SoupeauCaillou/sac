@@ -74,6 +74,34 @@ void SwypeButtonSystem::DoUpdate(float dt) {
         }
     });
 
+    // if all active buttons have been idle for a while, give a hint to the player
+    bool allIdle = true;
+    std::vector<Entity> choices;
+    theSwypeButtonSystem.forEachECDo([&] (Entity e, SwypeButtonComponent *bt) -> void {
+        if (bt->enabled) {
+            if (bt->activeIdleTime < 4) {
+                allIdle = false;
+            }
+            if (allIdle) {
+                choices.push_back(e);
+            }
+        }
+    });
+
+    if (allIdle && !choices.empty()) {
+        // push one of them
+        Entity pushed = choices[Random::Int(0, choices.size() - 1)];
+        LOGI("idle, pushing " << theEntityManager.entityName(pushed));
+        auto* comp = SWYPEBUTTON(pushed);
+
+        glm::vec2 direction = glm::normalize(comp->finalPos - comp->idlePos);
+        comp->animationPlaying = true;
+        comp->speed = direction * glm::vec2(75.f);
+
+        theSwypeButtonSystem.forEachECDo([&] (Entity, SwypeButtonComponent *bt) -> void {
+            bt->activeIdleTime = 0;
+        });
+    }
 }
 
 void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
@@ -103,12 +131,6 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     // Animation of button (to show it)
     if (comp->animated && glm::length(comp->idlePos - pos) < 0.01) {
         comp->activeIdleTime += dt;
-        if (comp->activeIdleTime > 4) {
-            LOGI("idle, pushing " << theEntityManager.entityName(entity));
-            comp->animationPlaying = true;
-            comp->speed = direction * glm::vec2(10.f);
-            comp->activeIdleTime = 0;
-        }
     } else if ((!over && !comp->mouseOver) && comp->animationPlaying) {
         comp->speed += SteeringBehavior::arrive(
             pos, comp->speed, comp->idlePos, 10, 0.1);
@@ -119,6 +141,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
 
     // User touches this button
     if (over) {
+        comp->animationPlaying = false;
         if (!comp->mouseOver && !comp->touchStartOutside) {
             comp->mouseOver = true;
             comp->lastPos = touchPos;
@@ -151,7 +174,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     }
 
     // check if the button is arrived at its final pos
-    if (glm::length(pos - comp->idlePos) > glm::length(comp->finalPos - comp->idlePos)) {
+    if (glm::length(pos - comp->idlePos) > glm::length(comp->finalPos - comp->idlePos) && !comp->animationPlaying) {
         LOGI("Button clicked !");
         comp->speed = glm::vec2(0.0f);
         comp->clicked = true;
