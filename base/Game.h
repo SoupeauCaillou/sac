@@ -28,13 +28,13 @@
 #include <set>
 #include "GameContext.h"
 
+class AssetApi;
+class ComponentSystem;
 class MouseNativeTouchState;
 
 #if SAC_INGAME_EDITORS
 
-class AssetApi;
 class LevelEditor;
-class ComponentSystem;
 
 namespace GameType {
     enum Enum {
