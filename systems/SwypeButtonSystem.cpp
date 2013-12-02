@@ -156,7 +156,6 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
         comp->speed = glm::vec2(0.0f);
         comp->clicked = true;
         comp->mouseOver = false;
-        TRANSFORM(entity)->position = comp->idlePos;
     }
 }
 
