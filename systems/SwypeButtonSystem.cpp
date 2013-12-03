@@ -149,7 +149,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     }
     // if he's touching and was once on button
     if (touching && comp->mouseOver) {
-        comp->speed = glm::proj(touchPos - comp->lastPos, direction)/dt;
+        comp->speed = comp->speed * 0.5f + (glm::proj(touchPos - comp->lastPos, direction)/dt) * 0.5f;
         comp->lastPos = touchPos;
     } else {
         comp->mouseOver = false;
@@ -162,6 +162,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     } else {
         TRANSFORM(entity)->position = glm::min(comp->idlePos, pos);
     }
+
     //
     if (!touching && glm::length(comp->speed) < 1.f) {
         if (glm::length(pos) < glm::length(comp->finalPos)*0.5f) {
