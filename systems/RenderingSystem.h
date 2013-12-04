@@ -192,7 +192,8 @@ public:
     GLuint glBuffers[1];
 #endif
     std::vector<std::vector<glm::vec2> > dynamicVertices;
-    Polygon shapes[Shape::Count];
+    std::vector<Polygon> shapes;
+    // std::vector<Polygon> dynamicShapes;
 
     void defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v);
 

@@ -53,6 +53,7 @@
 #include "systems/RenderingSystem.h"
 #include "systems/ScrollingSystem.h"
 #include "systems/SoundSystem.h"
+#include "systems/SpotSystem.h"
 #include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/ZSQDSystem.h"
@@ -112,6 +113,8 @@ Game::Game() {
     RenderingSystem::CreateInstance();
     ScrollingSystem::CreateInstance();
     SoundSystem::CreateInstance();
+    SpotSystem::CreateInstance();
+    SpotBlockSystem::CreateInstance();
     TextSystem::CreateInstance();
     TransformationSystem::CreateInstance();
     ZSQDSystem::CreateInstance();
@@ -160,6 +163,8 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
     ADD_IF_EXISTING(ScrollingSystem::GetInstancePointer());
     ADD_IF_EXISTING(SoundSystem::GetInstancePointer());
+    ADD_IF_EXISTING(SpotSystem::GetInstancePointer());
+    ADD_IF_EXISTING(SpotBlockSystem::GetInstancePointer());
     ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
@@ -199,6 +204,7 @@ Game::~Game() {
     RenderingSystem::DestroyInstance();
     ScrollingSystem::DestroyInstance();
     SoundSystem::DestroyInstance();
+    SpotSystem::DestroyInstance();
     TextSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
     ZSQDSystem::DestroyInstance();

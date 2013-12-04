@@ -76,7 +76,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     renderQueue = new RenderQueue[2];
 
     for (unsigned i=0; i<Shape::Count; i++) {
-        shapes[i] = Polygon::create((Shape::Enum)i);
+        shapes.push_back(Polygon::create((Shape::Enum)i));
     }
 
 #if SAC_INGAME_EDITORS
