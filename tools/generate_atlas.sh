@@ -6,13 +6,13 @@
 # location of etc1tool (android-sdk-linux/tools)
 
 #where the script is
+#assume default layout: unprepared_assets and assets in the same folder
 whereAmI=$(cd "$(dirname "$0")" && pwd)
 #if we executed a linked script; go to the real one
 if [ -h $0 ]; then
     whereAmI+=/$(dirname $(readlink $0))
 fi
-rootPath=$whereAmI"/../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+rootPath=$(pwd)"/../"
 
 #import cool stuff
 source $whereAmI/coolStuff.sh
