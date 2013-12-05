@@ -194,8 +194,9 @@ static void adjustLineHorizontalCentering(std::vector<Entity>& charInLine, const
         float width = rightest - leftest;
         float start = startX + (trans->size.x - width) * trc->positioning;
         float diff = start - startX;
+
         for (auto e: charInLine) {
-            ANCHOR(e)->position.x += diff;
+            TRANSFORM(e)->position.x += diff;
         }
         charInLine.clear();
     }
@@ -213,6 +214,7 @@ void TextSystem::DoUpdate(float dt) {
     LOGT_EVERY_N(6000, "TODO: textrendering cache");
 
     FOR_EACH_ENTITY_COMPONENT(Text, entity, trc)
+        const unsigned firstEntity = letterCount;
         // compute cache entry
         if (0 && trc->blink.onDuration == 0) {
             unsigned keySize = key.populate(trc);
@@ -365,10 +367,13 @@ void TextSystem::DoUpdate(float dt) {
             }
             RenderingComponent* rc = RENDERING(e);
             TransformationComponent* tc = TRANSFORM(e);
-            AnchorComponent* ac = ANCHOR(e);
+            
+            /*
+            AnchorComponent ac = ANCHOR(e);
             ac->parent = entity;
             ac->z = 0.001; // put text in front
             ac->position = trans->position;
+            */
             rc->show = trc->show;
             rc->cameraBitMask = trc->cameraBitMask;
             rc->opaqueType = RenderingComponent::NON_OPAQUE;
@@ -422,8 +427,8 @@ void TextSystem::DoUpdate(float dt) {
             // Advance position
             letterCount++;
 			x += tc->size.x * 0.5;
-			ac->position.x = x;
-            ac->position.y = y; // + (inlineImage ? tc->size.x * 0.25 : 0);
+			tc->position.x = x;
+            tc->position.y = y; // + (inlineImage ? tc->size.x * 0.25 : 0);
 			x += tc->size.x * 0.5;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
@@ -438,6 +443,17 @@ void TextSystem::DoUpdate(float dt) {
 		}
 
         adjustLineHorizontalCentering(charInLine, startX, trc, trans);
+
+        // update position
+        AnchorComponent ac;
+        ac.parent = entity;
+        ac.z = 0.001; // put text in front
+        for (unsigned i=firstEntity; i<letterCount; i++) {
+            auto* tc = TRANSFORM(renderingEntitiesPool[i]);
+            ac.position = tc->position;
+            AnchorSystem::adjustTransformWithAnchor(tc, trans, &ac);
+        }
+
 
 #if SAC_DEBUG
         if (invalidLettersTexturePosition.size() > 0) {
@@ -471,7 +487,7 @@ void TextSystem::DoUpdate(float dt) {
     }
     for (unsigned i=letterCount; i<renderingEntitiesPool.size(); i++) {
         const Entity e = renderingEntitiesPool[i];
-        ANCHOR(e)->parent = 0;
+        // ANCHOR(e)->parent = 0;
         RENDERING(e)->show = false;
     }
 }
@@ -525,6 +541,7 @@ float TextSystem::computeTextComponentWidth(TextComponent* trc) const {
 }
 
 void TextSystem::Delete(Entity e) {
+    /*
     for (Entity subE: renderingEntitiesPool) {
         // if we're deleting all entities, subE could have
         // already been destroyed, without Text system noticing
@@ -534,6 +551,7 @@ void TextSystem::Delete(Entity e) {
             RENDERING(subE)->show = false;
         }
     }
+    */
     ComponentSystemImpl<TextComponent>::Delete(e);
 }
 
@@ -541,7 +559,7 @@ static Entity createRenderingEntity() {
     Entity e = theEntityManager.CreateEntity("__text_letter");
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
-    ADD_COMPONENT(e, Anchor);
+    // ADD_COMPONENT(e, Anchor);
     return e;
 }
 

@@ -83,6 +83,18 @@ glm::vec2 AnchorSystem::adjustPositionWithCardinal(const glm::vec2& position, co
     return adjustPositionWithAnchor(position, size * modifiers[(int)cardinal]);
 }
 
+void AnchorSystem::adjustTransformWithAnchor(TransformationComponent* tc, const TransformationComponent* parentTc, const AnchorComponent* anchor) {
+    // compute global rotation first
+    tc->rotation = parentTc->rotation + anchor->rotation;
+    // then position
+    tc->position = parentTc->position
+        + glm::rotate(anchor->position, parentTc->rotation)
+        - glm::rotate(anchor->anchor, tc->rotation)
+        ;
+    // and z
+    tc->z = parentTc->z + anchor->z;
+}
+
 void AnchorSystem::DoUpdate(float) {
     std::set<std::pair<Entity, AnchorComponent*> , CompareParentChain> cp;
 
@@ -96,15 +108,7 @@ void AnchorSystem::DoUpdate(float) {
         if (anchor->parent) {
             const auto pTc = TRANSFORM(anchor->parent);
             auto tc = TRANSFORM(p.first);
-            // compute global rotation first
-            tc->rotation = pTc->rotation + anchor->rotation;
-            // then position
-            tc->position = pTc->position
-                + glm::rotate(anchor->position, pTc->rotation)
-                - glm::rotate(anchor->anchor, tc->rotation)
-                ;
-            // and z
-            tc->z = pTc->z + anchor->z;
+            adjustTransformWithAnchor(tc, pTc, anchor);
         }
     }
 }

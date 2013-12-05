@@ -49,6 +49,8 @@ struct AnchorComponent {
 	float z;
 };
 
+struct TransformationComponent;
+
 #define theAnchorSystem AnchorSystem::GetInstance()
 #define ANCHOR(e) theAnchorSystem.Get(e)
 
@@ -57,6 +59,7 @@ UPDATABLE_SYSTEM(Anchor)
 public:
     static glm::vec2 adjustPositionWithAnchor(const glm::vec2& position, const glm::vec2& anchor);
     static glm::vec2 adjustPositionWithCardinal(const glm::vec2& position, const glm::vec2& size, Cardinal::Enum cardinal);
+    static void adjustTransformWithAnchor(TransformationComponent* tc, const TransformationComponent* parentTc, const AnchorComponent* ac);
 
 #if SAC_DEBUG
     void Delete(Entity e) override;
