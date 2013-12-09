@@ -19,7 +19,8 @@ source coolStuff.sh
 #how to use the script
 export SAC_USAGE="$0 fonts-directory output-directory [option]"
 export SAC_OPTIONS="\
--c|-check: test if every symbols are already in atlas"
+-c|-check: test if every symbols are already in atlas\
+-i|-inputs: inputs dir to search symbols"
 export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
@@ -45,11 +46,25 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
     shift #second arg is output directory
 
     preview_mode=0
+    src_dir=''
     while [ "$1" != "" ]; do
         case $1 in
             "-c" | "-check")
                 info "Preview mode"
                 preview_mode=1
+                ;;
+            "-i" | "-inputs")
+                shift
+                i=0
+                for arg in $@ 
+                do
+                    if [ $arg = "-c" -o $arg = "--check" ]; then
+                        break
+                    fi
+                    src_dir[$i]="$PWD/$arg";
+                    i=$((i+1));
+                done
+                echo ${src_dir[*]}
                 ;;
             *)
                 echo "Unknown option $1"
@@ -158,8 +173,17 @@ ponct=", - . / : ; < = > ? _ ! \" # ' ( )"
 iterate_through_list $ponct
 
 info "Symbols missing..."
-specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
-iterate_through_list $specials 
+if [ ${#src_dir[@]} -gt 0 ]; then
+    for dir in $src_dir ; do
+        info "Check in $dir ..."
+        specials=$(cat ${dir%/}/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
+        iterate_through_list $specials 
+    done
+else
+    specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
+    iterate_through_list $specials 
+fi
+
 
 if [ "$preview_mode" = 1 ]; then
     info "Done! There is/are $missing_symbols_count missing symbols!"
