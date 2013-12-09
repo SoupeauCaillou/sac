@@ -64,7 +64,7 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
                     src_dir[$i]="$PWD/$arg";
                     i=$((i+1));
                 done
-                echo ${src_dir[*]}
+                shift ${#src_dir[@]}
                 ;;
             *)
                 echo "Unknown option $1"
@@ -174,11 +174,12 @@ iterate_through_list $ponct
 
 info "Symbols missing..."
 if [ ${#src_dir[@]} -gt 0 ]; then
-    for dir in $src_dir ; do
+    specials=''
+    for dir in "${src_dir[@]}" ; do
         info "Check in $dir ..."
-        specials=$(cat ${dir%/}/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
-        iterate_through_list $specials 
+        specials=$specials$(cat ${dir%/}/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
     done
+    iterate_through_list $specials 
 else
     specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
     iterate_through_list $specials 
