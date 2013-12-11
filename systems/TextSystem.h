@@ -40,7 +40,7 @@ struct TextComponent {
 
 	TextComponent() : text(""), color(Color(1.f)), localizableID(""),
     charHeight(1.), fontName("typo"), positioning(CENTER), show(false),
-    flags(0), cameraBitMask(1) {
+    flags(0), cameraBitMask(1), maxLineToUse(-1) {
 		caret.show = false;
 		caret.speed = caret.dt = 0;
 		blink.offDuration =
@@ -74,6 +74,7 @@ struct TextComponent {
 		float accum;
 	} blink;
 	unsigned cameraBitMask;
+    int maxLineToUse;
 };
 
 #define theTextSystem TextSystem::GetInstance()

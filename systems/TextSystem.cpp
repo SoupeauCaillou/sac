@@ -93,6 +93,7 @@ TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
     componentSerializer.add(new Property<float>("positioning", OFFSET(positioning, tc), 0.001));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
+    componentSerializer.add(new Property<int>("max_line_to_use", OFFSET(maxLineToUse, tc)));
 }
 
 struct CharSequenceToUnicode {
@@ -295,6 +296,8 @@ void TextSystem::DoUpdate(float dt) {
 			}
 		}
 
+relayout:
+        int lineCount = 1, layoutCount = 0;
         // Variables
 		const float startX = (trc->flags & TextComponent::MultiLineBit) ?
 			(trans->size.x * -0.5) : computeStartX(trc, charHeight, fontDesc);
@@ -336,7 +339,7 @@ void TextSystem::DoUpdate(float dt) {
                 // Begin new line if requested
 				if (newLine) {
                     adjustLineHorizontalCentering(charInLine, startX, trc, trans);
-
+                    lineCount++;
 					y -= 1.2 * charHeight;
 					x = startX;
 					if (lineEnd == i) {
@@ -380,7 +383,6 @@ void TextSystem::DoUpdate(float dt) {
 
             // At this point, we have the proper unicodeId to display,
             // except if it's an image delimiter
-            bool inlineImage = false;
             if (unicode == 0x00D7) {
                 size_t next = trc->text.find(InlineImageDelimiter, i+1, 2);
                 LOGV(3, "Inline image '" << trc->text.substr(i, next - i + 1) << "'");
@@ -394,7 +396,6 @@ void TextSystem::DoUpdate(float dt) {
                 glm::vec2 size = theRenderingSystem.getTextureSize(texture);
                 tc->size.y = charHeight * scale;
                 tc->size.x = tc->size.y * size.x / size.y;
-                inlineImage = true;
                 // skip inline image letters
                 skip = next + 1;
             } else {
@@ -443,6 +444,16 @@ void TextSystem::DoUpdate(float dt) {
 		}
 
         adjustLineHorizontalCentering(charInLine, startX, trc, trans);
+
+        if (trc->maxLineToUse > 0 && lineCount > trc->maxLineToUse && ++layoutCount < 3) {
+            float target = charHeight * ((float)trc->maxLineToUse) / lineCount; 
+            if (target < charHeight) {
+                float weight = 0.5;
+                charHeight = charHeight * (1 - weight) + target * weight;
+                letterCount -= (letterCount - firstEntity);
+                goto relayout;
+            }
+        }
 
         // update position
         AnchorComponent ac;
