@@ -37,6 +37,7 @@ struct Void {};
 
 class DataFileParser;
 class ComponentSystem;
+class LocalizeAPI;
 typedef std::map<std::string, uint8_t*> PropertyNameValueMap;
 typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
 
@@ -50,6 +51,8 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
 
     public:
         std::string asset2File(const std::string& assetName) const { return "entities/" + assetName + ".entity"; }
+
+        void setLocalizeAPI(LocalizeAPI* api) { localizeAPI = api; }
 
         void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
 
@@ -70,6 +73,7 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
         std::map<EntityTemplateRef, std::set<EntityTemplateRef> > template2children;
         #endif
         std::map<EntityTemplateRef, EntityTemplateRef> template2parent;
+        LocalizeAPI* localizeAPI;
 
         void applyTemplateToAll(const EntityTemplateRef& ref);
 

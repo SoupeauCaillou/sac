@@ -23,6 +23,7 @@
 #include "ComponentFactory.h"
 #include "DataFileParser.h"
 #include "Serializer.h"
+#include "api/LocalizeAPI.h"
 #include "base/PlacementHelper.h"
 #include "base/Interval.h"
 #include "base/EntityManager.h"
@@ -54,6 +55,8 @@ const std::string vec2singlefloatmodifiers[] = {
 };
 const std::string colormodifiers[] =
     { "", "%html", "%255", "%name" };
+const std::string stringmodifiers[] =
+    { "%loc" };
 
 static void applyVec2Modifiers(int idx, glm::vec2* out) {
     switch (idx) {
@@ -285,6 +288,7 @@ template <>
 inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode, std::string* out) {
     std::string parsed;
 
+    // %loc handled by caller
     if (dfp.get(section, name, &parsed, 1, false)) {
         // we got a single value
         *out = parsed;
@@ -403,7 +407,7 @@ int ComponentFactory::build(
     return propMap.size();
 }
 
-void ComponentFactory::applyTemplate(Entity entity, void* component, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties) {
+void ComponentFactory::applyTemplate(Entity entity, void* component, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties, LocalizeAPI* localizeAPI) {
     #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + prop->offset)
     #define ASSIGN(_type_) { \
         Interval< _type_ > itv; \
@@ -452,13 +456,18 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     VectorProperty<std::string> vp("dummy", 0);
                     vp.deserialize((*it).second, out);
                 } else {
-                    char tmp[1024];
                     unsigned l;
                     memcpy(&l, (*it).second, sizeof(int));
-                    memcpy(tmp, (*it).second + sizeof(int), l);
+                    bool toLocalize;
+                    memcpy(&toLocalize, (*it).second + sizeof(int), sizeof(bool));
+                    char tmp[l];
+                    memcpy(tmp, (*it).second + sizeof(int) + sizeof(bool), l);
                     tmp[l] = '\0';
                     std::string* s = TYPE_2_PTR(std::string);
-                    *s = tmp;
+                    if (toLocalize)
+                        *s = localizeAPI->text(tmp);
+                    else
+                        *s = tmp;
                 }
                 break;
             }
@@ -567,11 +576,20 @@ static bool loadSingleProperty(const std::string& context,
                     delete[] all;
                 }
             } else {
-                if (load(dfp, section, name, IntervalAsRandom, &s)) {
+                bool toLocalize = false;
+                int success = load(dfp, section, name, IntervalAsRandom, &s);
+                if (!success) {
+                    if ((success = load(dfp, section, name + stringmodifiers[0], IntervalAsRandom, &s))) {
+                        toLocalize = true;
+                    }
+                }
+
+                if (success) {
                     unsigned l = s.length();
-                    uint8_t* arr = new uint8_t[sizeof(int) + l];
+                    uint8_t* arr = new uint8_t[sizeof(int) + sizeof(bool) + l];
                     memcpy(arr, &l, sizeof(int));
-                    memcpy(&arr[sizeof(int)], s.c_str(), l);
+                    memcpy(&arr[sizeof(int)], &toLocalize, sizeof(bool));
+                    memcpy(&arr[sizeof(int) + sizeof(bool)], s.c_str(), l);
                     propMap.insert(std::make_pair(name, arr));
                 }
             }

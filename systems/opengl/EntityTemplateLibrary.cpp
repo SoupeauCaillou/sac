@@ -26,6 +26,7 @@
 #include "systems/System.h"
 #include "base/EntityManager.h"
 #include "systems/TransformationSystem.h"
+#include "api/LocalizeAPI.h"
 
 EntityTemplateLibrary::~EntityTemplateLibrary() {
     for (auto r2a: ref2asset) {
@@ -196,14 +197,14 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
     auto hack = templ.find(transfS);
     if (hack != templ.end()) {
         theEntityManager.AddComponent(e, transfS, false);
-        transfS->applyEntityTemplate(e, (*hack).second);
+        transfS->applyEntityTemplate(e, (*hack).second, localizeAPI);
     }
     for (auto it: templ) {
         ComponentSystem* s = it.first;
         if (s == transfS) continue;
 
         theEntityManager.AddComponent(e, s, false);
-        s->applyEntityTemplate(e, it.second);
+        s->applyEntityTemplate(e, it.second, localizeAPI);
     }
     #if SAC_LINUX && SAC_DESKTOP
         template2entities[templRef].insert(e);

@@ -38,6 +38,7 @@
 #include "util/ComponentFactory.h"
 #include "base/EntityManager.h"
 
+class LocalizeAPI;
 #if SAC_INGAME_EDITORS
 #include "AntTweakBar.h"
 #endif
@@ -128,7 +129,7 @@ class ComponentSystem {
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
 		virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
 		virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
-        virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) = 0;
+        virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap, LocalizeAPI* localizeAPI) = 0;
         virtual void* componentAsVoidPtr(Entity e) = 0;
         virtual unsigned entityCount() const = 0;
         virtual void forEachEntityDo(std::function<void(Entity)> func) = 0;
@@ -326,9 +327,9 @@ class ComponentSystemImpl: public ComponentSystem {
             return componentSerializer.serializeObject(out, component, ref);
 		}
 
-        void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap) {
+        void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap, LocalizeAPI* localizeAPI) {
             T* comp = Get(entity);
-            ComponentFactory::applyTemplate(entity, comp, propMap, componentSerializer.getProperties());
+            ComponentFactory::applyTemplate(entity, comp, propMap, componentSerializer.getProperties(), localizeAPI);
         }
 
 		int deserialize(Entity entity, uint8_t* in, int size) {

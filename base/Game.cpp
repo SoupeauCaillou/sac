@@ -219,6 +219,7 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     renderThreadContext = pRenderThreadContext;
 
     theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
+    theEntityManager.entityTemplateLibrary.setLocalizeAPI(gameThreadContext->localizeAPI);
 }
 
 #if SAC_ENABLE_PROFILING

@@ -27,6 +27,7 @@ class DataFileParser;
 #include <vector>
 class IProperty;
 #include "systems/opengl/EntityTemplateLibrary.h"
+class LocalizeAPI;
 
 class ComponentFactory {
     public:
@@ -39,5 +40,5 @@ class ComponentFactory {
             const std::vector<IProperty*>& properties, EntityTemplate& templ,
             std::vector<std::string>& subEntities);
 
-        static void applyTemplate(Entity e, void* comp, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties);
+        static void applyTemplate(Entity e, void* comp, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties, LocalizeAPI* locAPI);
 };
