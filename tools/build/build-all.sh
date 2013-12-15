@@ -187,7 +187,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         fi
 
         if [ -f Makefile ]; then
-            BUILD_COMMAND='make'
+            BUILD_COMMAND='make -j 16'
         elif [ -f build.ninja ]; then
             BUILD_COMMAND='ninja'
         else
