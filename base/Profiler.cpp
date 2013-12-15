@@ -71,7 +71,7 @@ static inline const char* phaseEnum2String(enum ProfilePhase ph) {
 	}
 }
 
-void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph) {
+void addProfilePoint(const std::string& /*category*/, const std::string& /*name*/, enum ProfilePhase /*ph*/) {
 	if (!started)
 		return;
 	timespec t1;
@@ -102,7 +102,7 @@ void startProfiler() {
 	started = true;
 }
 
-void stopProfiler(const std::string& filename) {
+void stopProfiler(const std::string& /*filename*/) {
 	std::unique_lock<std::mutex> lck(mutex);
 	if (!started)
 		return;

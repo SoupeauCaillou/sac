@@ -194,15 +194,6 @@ if (WEB_BUILD)
 else()
     set(EXECUTABLE_NAME ${PROJECT_NAME})
 
-    if(SAC_ENABLE_PROFILING)
-        include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
-
-        file(
-            GLOB_RECURSE opt_source_files
-            ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp #lib json
-        )
-    endif()
-
     file (
         GLOB_RECURSE opt_source_files
         ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
@@ -257,18 +248,9 @@ if (NETWORK_BUILD)
 endif()
 
 if (DESKTOP_BUILD)
-    file(
-        GLOB_RECURSE jsoncpp_sources
-        ${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/src/lib_json/*.cpp
-    )
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/jsoncpp-src-0.6.0-rc2/include)
-    add_library("jsoncpp" STATIC ${jsoncpp_sources})
-    target_link_libraries("sac" jsoncpp)
-
     check_and_link_libs("sac" AntTweakBar GLEW Ogg OpenAL SDL Sqlite3 Tinyxml2 VorbisFile Vorbis ZLIB)
-
-
 endif()
+
 if (MOBILE_BUILD OR WEB_BUILD)
     if (MOBILE_BUILD)
         ########## build sqlite3 lib ###########
