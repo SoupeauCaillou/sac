@@ -23,7 +23,6 @@
 #include "Profiler.h"
 
 #if SAC_ENABLE_PROFILING
-#include "libs/jsoncpp-src-0.6.0-rc2/include/json/json.h"
 #include <sys/types.h>
 #include <time.h>
 #include <stdint.h>
@@ -52,12 +51,12 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 
 #include <thread>
 #include <mutex>
-static Json::Value* root;
+// static Json::Value* root;
 static std::mutex mutex;
 static bool started;
 
 void initProfiler() {
-	root = new Json::Value;
+	// root = new Json::Value;
 	started = false;
 }
 
@@ -78,19 +77,20 @@ void addProfilePoint(const std::string& category, const std::string& name, enum 
 	timespec t1;
 	clock_gettime(CLOCK_REALTIME, &t1);
 
-	Json::Value sample;
-	sample["cat"] = category;
-	sample["name"] = name;
-	sample["pid"] = 1;
-    std::stringstream a;
-    a << std::this_thread::get_id();
-	sample["tid"] = a.str();
-	sample["ts"] = (unsigned long long int)t1.tv_sec * 1000000 + (unsigned long long int)t1.tv_nsec / 1000;
-	sample["ph"] = phaseEnum2String(ph);
-	sample["args"] = Json::Value(Json::arrayValue);
+	LOGT("Json library removed (incompatible with sublimeclang)");
+	// // Json::Value sample;
+	// sample["cat"] = category;
+	// sample["name"] = name;
+	// sample["pid"] = 1;
+ //    std::stringstream a;
+ //    a << std::this_thread::get_id();
+	// sample["tid"] = a.str();
+	// sample["ts"] = (unsigned long long int)t1.tv_sec * 1000000 + (unsigned long long int)t1.tv_nsec / 1000;
+	// sample["ph"] = phaseEnum2String(ph);
+	// // sample["args"] = Json::Value(Json::arrayValue);
 
-	std::unique_lock<std::mutex> lck(mutex);
-	(*root)["traceEvents"].append(sample);
+	// std::unique_lock<std::mutex> lck(mutex);
+	// (*root)["traceEvents"].append(sample);
 }
 
 void startProfiler() {
@@ -106,9 +106,10 @@ void stopProfiler(const std::string& filename) {
 	std::unique_lock<std::mutex> lck(mutex);
 	if (!started)
 		return;
-    LOGI("Stop profiler, saving to: " << filename);
-	std::ofstream out(filename.c_str());
-	out << *root;
+    // LOGI("Stop profiler, saving to: " << filename);
+    LOGT("Not saving anything, need to replace the lib");
+	// std::ofstream out(filename.c_str());
+	// out << *root;
 	started = false;
 }
 #endif
