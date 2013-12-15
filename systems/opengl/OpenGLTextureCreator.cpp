@@ -202,7 +202,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     return result;
 }
 
-#if ! SAC_ANDROID
+#if 0 && ! SAC_ANDROID
 static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
     switch (type) {
         case OpenGLTextureCreator::COLOR:
@@ -218,7 +218,7 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
 }
 #endif
 
-void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type type) {
+void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type) {
 #if 0
 #if SAC_ANDROID
     ((type == COLOR) && image.mipmap > 0);

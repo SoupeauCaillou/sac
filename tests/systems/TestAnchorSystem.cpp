@@ -55,6 +55,7 @@ TEST(AnchorParentingChain)
     AnchorSystem::DestroyInstance();
 }
 
+/*
 static const std::vector<glm::vec2> rectanglePoints(const TransformationComponent* tc1) {
     std::vector<glm::vec2> res;
 
@@ -69,6 +70,7 @@ static const std::vector<glm::vec2> rectanglePoints(const TransformationComponen
 
     return res;
 }
+*/
 
 TEST(TransformationTestCentralRotationRandomDegrees) {
     TransformationSystem::CreateInstance();
