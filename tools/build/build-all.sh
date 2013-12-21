@@ -185,7 +185,9 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         fi
 
         if [ -f Makefile ]; then
-            BUILD_COMMAND='make -j 16'
+            #get the number of CPUs
+            CPU_INFOS=$(cat /proc/cpuinfo | grep processor | wc -l)
+            BUILD_COMMAND="make -j $CPU_INFOS"
         elif [ -f build.ninja ]; then
             BUILD_COMMAND='ninja'
         else

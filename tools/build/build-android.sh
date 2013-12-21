@@ -163,7 +163,7 @@ compilation_after() {
             error_and_quit "Error while updating project"
         fi
 
-        if ! ant release; then
+        if ! ant -q release; then
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi

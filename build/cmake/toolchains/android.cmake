@@ -13,25 +13,25 @@ SET (SAC_LIB_TYPE SHARED)
 
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/)
 
-#enable GDB debug in debug mode
-if (BUILD_TARGET STREQUAL "DEBUG")
-    # thanks to http://www.rojtberg.net/465/debugging-native-code-with-ndk-gdb-using-standalone-cmake-toolchain/
-    if (NOT ANDROID_NDK)
-        set (ANDROID_NDK $ENV{ANDROID_NDK})
-    endif()
+# #enable GDB debug in debug mode
+# if (BUILD_TARGET STREQUAL "DEBUG")
+#     # thanks to http://www.rojtberg.net/465/debugging-native-code-with-ndk-gdb-using-standalone-cmake-toolchain/
+#     if (NOT ANDROID_NDK)
+#         set (ANDROID_NDK $ENV{ANDROID_NDK})
+#     endif()
 
-    # 1. generate Android.mk
-    file(WRITE ${PROJECT_SOURCE_DIR}/jni/Android.mk "APP_ABI := ${ANDROID_NDK_ABI_NAME}\n")
+#     # 1. generate Android.mk
+#     file(WRITE ${PROJECT_SOURCE_DIR}/jni/Android.mk "APP_ABI := ${ANDROID_NDK_ABI_NAME}\n")
 
-    # 2. generate gdb.setup
-    get_directory_property(INCLUDE_DIRECTORIES DIRECTORY ${PROJECT_SOURCE_DIR} INCLUDE_DIRECTORIES)
-    string(REGEX REPLACE ";" " " INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")
-    file(WRITE ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/gdb.setup "set solib-search-path ${PROJECT_SOURCE_DIR}/obj/local/${ANDROID_NDK_ABI_NAME}\n")
-    file(APPEND ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/gdb.setup "directory ${INCLUDE_DIRECTORIES}\n")
+#     # 2. generate gdb.setup
+#     get_directory_property(INCLUDE_DIRECTORIES DIRECTORY ${PROJECT_SOURCE_DIR} INCLUDE_DIRECTORIES)
+#     string(REGEX REPLACE ";" " " INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")
+#     file(WRITE ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/gdb.setup "set solib-search-path ${PROJECT_SOURCE_DIR}/obj/local/${ANDROID_NDK_ABI_NAME}\n")
+#     file(APPEND ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/gdb.setup "directory ${INCLUDE_DIRECTORIES}\n")
 
-    # 3. copy gdbserver executable
-    file(COPY ${ANDROID_NDK}/prebuilt/android-arm/gdbserver/gdbserver DESTINATION ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/)
-endif()
+#     # 3. copy gdbserver executable
+#     file(COPY ${ANDROID_NDK}/prebuilt/android-arm/gdbserver/gdbserver DESTINATION ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/)
+# endif()
 
 function (others_specific_executables)
 endfunction()

@@ -21,7 +21,7 @@ if (target_in_list EQUAL -1)
     return()
 endif()
 
-message ("Building for ${varplatform}")
+message ("Build platform: ${varplatform}")
 add_definitions(-DSAC_${VARPLATFORM})
 
 #######################################################################
@@ -72,7 +72,7 @@ if (SAC_REVISION_TAG OR SAC_REVISION)
     set (SAC_REVISION_TAG "${SAC_REVISION_TAG}${SAC_REVISION}")
     string(STRIP ${SAC_REVISION_TAG} SAC_REVISION_TAG)
 
-    message("Revision tag is '${SAC_REVISION_TAG}'")
+    message("Revision tag: '${SAC_REVISION_TAG}'")
     add_definitions(-DSAC_REVISION_TAG="${SAC_REVISION_TAG}")
 endif()
 
