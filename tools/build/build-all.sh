@@ -183,7 +183,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
             compilation_after
             error_and_quit "Error in cmake. Maybe should run with C option?"
         fi
-        
+
         if [ -f Makefile ]; then
             BUILD_COMMAND='make -j 16'
         elif [ -f build.ninja ]; then

@@ -1172,8 +1172,8 @@ set( CMAKE_COMPILER_IS_GNUASM 1)
 set( CMAKE_ASM_SOURCE_FILE_EXTENSIONS s S asm )
 
 # flags and definitions
-remove_definitions( -DANDROID )
-add_definitions( -DANDROID )
+# remove_definitions( -DANDROID )
+add_definitions(-DANDROID)
 
 if(ANDROID_SYSROOT MATCHES "[ ;\"]")
  set( ANDROID_CXX_FLAGS "--sysroot=\"${ANDROID_SYSROOT}\"" )
