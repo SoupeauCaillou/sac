@@ -43,8 +43,6 @@ You can also specify arguments:
 \t--t|--target target_name: specify the target name (in the following list: '$TARGETS_LIST')
 \t--g|--generate ${BUILD_SYSTEM_LIST// /|}: generate build system files and sublime project
 \t--c|--cmakeconfig \"arguments for cmake\": see cmake for options."
-
-
 export SAC_EXAMPLE="${green}TODO${default_color}"
 
 ######### 0 : Check requirements. #########
@@ -157,7 +155,8 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         info "Are you sure you want to clean current build('$builddir') directory? Press enter to confirm..." $yellow
         read aaa${RANDOM}ndomav
 		info "Cleaning.."
-		rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
+		# rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
+        rm -r * &>/dev/null
 	fi
 
     init
@@ -180,12 +179,11 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         fi
 
         compilation_before
-
         if ! (cmake "${CMAKE_CONFIG[@]}" $rootPath); then
             compilation_after
             error_and_quit "Error in cmake. Maybe should run with C option?"
         fi
-
+        
         if [ -f Makefile ]; then
             BUILD_COMMAND='make -j 16'
         elif [ -f build.ninja ]; then

@@ -16,6 +16,9 @@ include_directories(${PROJECT_SOURCE_DIR}/sac/libs/)
 #enable GDB debug in debug mode
 if (BUILD_TARGET STREQUAL "DEBUG")
     # thanks to http://www.rojtberg.net/465/debugging-native-code-with-ndk-gdb-using-standalone-cmake-toolchain/
+    if (NOT ANDROID_NDK)
+        set (ANDROID_NDK $ENV{ANDROID_NDK})
+    endif()
 
     # 1. generate Android.mk
     file(WRITE ${PROJECT_SOURCE_DIR}/jni/Android.mk "APP_ABI := ${ANDROID_NDK_ABI_NAME}\n")

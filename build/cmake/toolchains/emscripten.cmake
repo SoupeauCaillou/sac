@@ -26,7 +26,7 @@ function (postbuild_specific_actions)
         COMMAND rm -rf assets
         COMMAND mkdir assets
         COMMAND cp -r ${PROJECT_SOURCE_DIR}/assets/* ${PROJECT_SOURCE_DIR}/assetspc/* assets
-        COMMAND rm assets/*pvr* assets/*pkm*
+        COMMAND find assets/ -name '*pvr*' -or -name '*pkm*' -exec rm -r {} '\;'
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Building 'assets' folder"
     )

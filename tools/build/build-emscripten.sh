@@ -35,7 +35,7 @@ parse_arguments() {
 }
 
 check_necessary() {
-    :
+    check_package nodejs
 }
 
 init() {

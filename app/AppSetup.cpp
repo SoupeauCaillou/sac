@@ -307,8 +307,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     theRenderingSystem.enableRendering();
 
+#if SAC_LINUX && SAC_DESKTOP
     Recorder::Instance().init(resolution.x, resolution.y);
-
+#endif
+    
     LOGV(1, "Run game loop");
 
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
