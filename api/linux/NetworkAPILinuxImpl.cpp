@@ -61,6 +61,7 @@ public:
         // server mode
         std::vector<ENetPeer*> peers;
         bool connected, masterMode;
+        unsigned guidTag;
     } match;
 
     std::string roomId;
@@ -119,6 +120,10 @@ NetworkStatus::Enum NetworkAPILinuxImpl::getStatus() const {
     return datas->getStatus();
 }
 
+unsigned NetworkAPILinuxImpl::guidTag() const {
+    return datas->match.guidTag;
+}
+
 void NetworkAPILinuxImpl::runLobbyThread() {
     datas->setStatus(NetworkStatus::ConnectingToLobby);
 
@@ -157,6 +162,8 @@ void NetworkAPILinuxImpl::runLobbyThread() {
     LoginPacket login(datas->lobby.nickName);
     datas->setStatus(NetworkStatus::LoginInProgress);
     enet_peer_send(datas->lobby.peer, 0, login.toENetPacket());
+
+    datas->match.guidTag = 0;
 
     // Process incoming messages from lobby
     while (true) {
@@ -204,6 +211,8 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                             ConnectionInfoPacket conn;
                             conn.address = address;
                             enet_peer_send(datas->lobby.peer, 0, conn.toENetPacket());
+
+                            datas->match.guidTag = 0x1 << 31;
                             break;
                         }
                         case Packet::Invitation: {
@@ -308,6 +317,10 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                 else {
                     LOGI("New incoming connection");
                     datas->match.peers.push_back(event.peer);
+                    // send guid
+                    GuidPacket p;
+                    p.guid = 1 << (30 - datas->match.peers.size());
+                    enet_peer_send(event.peer, 0, p.toENetPacket());
                 }
                 break;
             }
@@ -317,6 +330,17 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                 datas->match.connected = false;
                 break;
             case ENET_EVENT_TYPE_RECEIVE:
+                if (datas->match.guidTag == 0) {
+                    // this packet must be the guid tag
+                    auto t = LobbyPacket::getPacketType(event.packet);
+                    if (t != Packet::Guid) {
+                        LOGE("Expected Guid package, got: " << t );
+                    } else {
+                        GuidPacket p;
+                        p.fromENetPacket(event.packet);
+                        datas->match.guidTag = p.guid;
+                    }
+                }
                 result.size = event.packet->dataLength;
                 result.data = new uint8_t[event.packet->dataLength];
                 memcpy(result.data, event.packet->data, result.size);

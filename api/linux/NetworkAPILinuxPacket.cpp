@@ -61,3 +61,7 @@ void PlayersInRoomPacket::addProperties(Serializer& s) {
     s.add(new VectorProperty<std::string>("names", OFFSET_PTR(names, this)));
     s.add(new VectorProperty<int>("states", OFFSET_PTR(states, this)));
 }
+
+void GuidPacket::addProperties(Serializer& s) {
+    s.add(new Property<int>("guid", OFFSET_PTR(guid, this)));
+}

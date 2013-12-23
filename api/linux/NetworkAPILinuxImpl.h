@@ -43,6 +43,8 @@ class NetworkAPILinuxImpl : public NetworkAPI {
         NetworkPacket pullReceivedPacket();
         void sendPacket(NetworkPacket packet);
 
+        unsigned guidTag() const;
+
     private:
         void runLobbyThread();
 

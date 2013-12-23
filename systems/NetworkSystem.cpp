@@ -22,6 +22,7 @@
 
 #include "NetworkSystem.h"
 #include "../api/NetworkAPI.h"
+#include "api/linux/NetworkAPILinuxImpl.h"
 #include "../base/EntityManager.h"
 #include <queue>
 
@@ -55,7 +56,7 @@ struct NetworkMessageHeader {
 
     union {
         struct {
-            unsigned int nonce;
+            unsigned int guidTag;
         } HANDSHAKE;
         struct {
 
@@ -72,7 +73,7 @@ struct NetworkMessageHeader {
     };
 };
 
-static void sendHandShakePacket(NetworkAPI* net, unsigned nonce);
+static void sendHandShakePacket(NetworkAPI* net, unsigned guidTag);
 
 INSTANCE_IMPL(NetworkSystem);
 
@@ -80,7 +81,7 @@ INSTANCE_IMPL(NetworkSystem);
  bool hsDone;
 NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"), networkAPI(0) {
     /* nothing saved (?!) */
-    nextGuid = 2;
+    nextGuid = 1;
     hsDone = false;
     myNonce = glm::linearRand(0.0f, 65000.0f);
 
@@ -108,16 +109,6 @@ void NetworkSystem::DoUpdate(float dt) {
             bytesReceivedLastSec += pkt.size;
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
             switch (header->type) {
-                case NetworkMessageHeader::HandShake: {
-                    LOGI("Received HANDSHAKE msg / " << header->HANDSHAKE.nonce);
-                    if (header->HANDSHAKE.nonce == myNonce) {
-                        LOGI("Handshake done");
-                        hsDone = true;
-                    } else {
-                        sendHandShakePacket(networkAPI, header->HANDSHAKE.nonce);
-                    }
-                    break;
-                }
                 case NetworkMessageHeader::CreateEntity: {
                     const char* name = (char*) (pkt.data + sizeof(NetworkMessageHeader));
                     Entity e = theEntityManager.CreateEntity(name);
@@ -239,10 +230,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
 
     if (!nc->entityExistsGlobally) {
         // later nc->entityExistsGlobally = true;
-        nc->guid = (nextGuid += 2);
-        if (!networkAPI->amIGameMaster()) {
-            nc->guid |= 0x1;
-        }
+        nc->guid = (nextGuid++) | (static_cast<NetworkAPILinuxImpl*>(networkAPI))->guidTag();
         const std::string& name = theEntityManager.entityName(e);
         NetworkPacket pkt;
         NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
@@ -394,13 +382,13 @@ unsigned int NetworkSystem::entityToGuid(Entity e) {
     return nc->guid;
 }
 
-static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned nonce) {
+static void sendHandShakePacket(NetworkAPI* networkAPI, unsigned guidTag) {
     uint8_t temp[64];
     NetworkPacket pkt;
     NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
     header->type = NetworkMessageHeader::HandShake;
-    header->HANDSHAKE.nonce = nonce;
-    LOGV(1, "Send handshake packet :" << nonce);
+    header->HANDSHAKE.guidTag = guidTag;
+    LOGV(1, "Send handshake packet :" << guidTag);
     pkt.size = sizeof(NetworkMessageHeader);
     pkt.data = temp;
     SEND(pkt);

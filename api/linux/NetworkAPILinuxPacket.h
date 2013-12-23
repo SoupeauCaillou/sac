@@ -37,6 +37,7 @@ namespace Packet {
         Invitation,
         ConnectionInfo,
         PlayersInRoom,
+        Guid,
     };
 }
 
@@ -123,6 +124,14 @@ struct PlayersInRoomPacket : LobbyPacket {
     std::vector<int> states;
 
     PlayersInRoomPacket() : LobbyPacket(Packet::PlayersInRoom) {}
+
+    void addProperties(Serializer& );
+};
+
+struct GuidPacket : LobbyPacket {
+    unsigned guid;
+
+    GuidPacket() : LobbyPacket(Packet::Guid) {}
 
     void addProperties(Serializer& );
 };
