@@ -26,15 +26,16 @@
 #include <functional>
 
 struct CollisionComponent {
-    CollisionComponent() : group(0), collideWith(0), restorePositionOnCollision(false) {}
+    CollisionComponent() : group(0), collideWith(0), restorePositionOnCollision(false), isARay(false), rayTestDone(false), collidedWithLastFrame(0) {}
     int group;
     int collideWith;
-    bool restorePositionOnCollision;
+    bool restorePositionOnCollision, isARay, rayTestDone;
 
     glm::vec2 previousPosition;
     float previousRotation;
 
     Entity collidedWithLastFrame;
+    glm::vec2 collisionAt;
 };
 
 #define theCollisionSystem CollisionSystem::GetInstance()

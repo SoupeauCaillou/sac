@@ -29,7 +29,9 @@
 #include "util/IntersectionUtil.h"
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include <glm/gtx/norm.hpp>
 
+#include "util/DrawSomething.h"
 INSTANCE_IMPL(CollisionSystem);
 
 CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Collision") {
@@ -37,6 +39,7 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Co
     componentSerializer.add(new Property<int>("group", OFFSET(group, tc), 0));
     componentSerializer.add(new Property<int>("collide_with", OFFSET(collideWith, tc), 0));
     componentSerializer.add(new Property<bool>("restore_position_on_collision", OFFSET(restorePositionOnCollision, tc)));
+    componentSerializer.add(new Property<bool>("is_a_ray", OFFSET(isARay, tc)));
 }
 
 struct Coll {
@@ -45,6 +48,7 @@ struct Coll {
     glm::vec2 normal;
 };
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame);
+static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, float& nearest, glm::vec2& point);
 
 void CollisionSystem::DoUpdate(float) {
     #define CELL_SIZE 4.0f
@@ -64,13 +68,16 @@ void CollisionSystem::DoUpdate(float) {
                 TRANSFORM(d)->size = glm::vec2(CELL_SIZE);
                 TRANSFORM(d)->z = 0.95;
                 ADD_COMPONENT(d, Rendering);
-                float c = ((i+j) % 2) ? 0.1:0.3;
-                RENDERING(d)->color = Color(c, c, c, 0.3);
+                float r = j / (float)h;
+                float g = i / (float)w;
+                RENDERING(d)->color = Color(r,g,0, 0.1);
                 RENDERING(d)->show = 1;
+                RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
                 ADD_COMPONENT(d, Text);
                 TEXT(d)->fontName = "typo";
                 TEXT(d)->charHeight = CELL_SIZE * 0.2;
                 TEXT(d)->show = 1;
+                TEXT(d)->color.a = 0.3;
                 debug.push_back(d);
             }
         }
@@ -83,12 +90,16 @@ void CollisionSystem::DoUpdate(float) {
         // collider/collider collisions forbidden
         std::vector<Entity> collidingEntities;
         std::vector<Entity> colliderEtities;
+        std::vector<Entity> rayEntities;
         int collidingGroupsInside, colliderGroupsInside;
     };
 
     std::vector<Cell> cells;
 
-    cells.resize(w * h);
+    cells.reserve(w * h);
+    while ((int)cells.size() < w * h) {
+        cells.push_back(Cell());
+    }
 
     // Assign each entity to cells
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
@@ -104,22 +115,27 @@ void CollisionSystem::DoUpdate(float) {
         pOffset += tc->position + worldSize * 0.5f;
         nOffset += tc->position + worldSize * 0.5f;
 
-        int xStart = glm::floor(pOffset.x * INV_CELL_SIZE);
-        int xEnd = glm::floor(nOffset.x * INV_CELL_SIZE);
+        int xStart = glm::max(0, glm::min(w-1, (int)glm::floor(pOffset.x * INV_CELL_SIZE)));
+        int xEnd = glm::max(0, glm::min(w-1, (int)glm::floor(nOffset.x * INV_CELL_SIZE)));
         if (xStart > xEnd)
             std::swap(xStart, xEnd);
 
-        int yStart = glm::floor(pOffset.y * INV_CELL_SIZE);
-        int yEnd = glm::floor(nOffset.y * INV_CELL_SIZE);
+        int yStart = glm::max(0, glm::min(h-1, (int)glm::floor(pOffset.y * INV_CELL_SIZE)));
+        int yEnd = glm::max(0, glm::min(h-1, (int)glm::floor(nOffset.y * INV_CELL_SIZE)));
         if (yStart > yEnd)
             std::swap(yStart, yEnd);
 
         for (int x = xStart; x <= xEnd; x++) {
             for (int y = yStart; y <= yEnd; y++) {
+                LOGE_IF(x + y * w >=  w * h, "Incorrect cell index: " << x << '+' << y << '*' << w << " >= " << w << '*' << h);
                 Cell& cell = cells[x + y * w];
                 if (cc->group > 1) {
-                    cell.collidingEntities.push_back(entity);
-                    cell.collidingGroupsInside |= cc->group;
+                    if (cc->isARay) {
+                        cell.rayEntities.push_back(entity);
+                    } else {
+                        cell.collidingEntities.push_back(entity);
+                        cell.collidingGroupsInside |= cc->group;
+                    }
                 } else {
                     cell.colliderEtities.push_back(entity);
                     cell.colliderGroupsInside |= cc->group;
@@ -127,6 +143,8 @@ void CollisionSystem::DoUpdate(float) {
             }
         }
     END_FOR_EACH()
+
+    // DrawSomething::Clear();
 
     for (unsigned i=0; i<cells.size(); i++) {
         const Cell& cell = cells[i];
@@ -249,13 +267,89 @@ void CollisionSystem::DoUpdate(float) {
                         TRANSFORM(collision.other)->rotation = glm::lerp(r2[0], r2[1], collision.t);
                     }
                     COLLISION(collision.other)->collidedWithLastFrame = refEntity;
-
+                    LOGV(2, "Collision: " << theEntityManager.entityName(refEntity) << " -> " << theEntityManager.entityName(collision.other));
                 }
+            }
+        }
+
+        if (!cell.rayEntities.empty()) {
+            const unsigned count = cell.rayEntities.size();
+            const int xStart = i % w;
+            const int yStart = i / w;
+
+            for (unsigned j=0; j<count; j++) {
+                auto* cc = COLLISION(cell.rayEntities[j]);
+                cc->rayTestDone = true;
+                cc->collidedWithLastFrame = 0;
+                const glm::vec2& origin = TRANSFORM(cell.rayEntities[j])->position;
+                const glm::vec2 axis = glm::rotate(glm::vec2(1.0f, 0.0f), TRANSFORM(cell.rayEntities[j])->rotation);
+                const glm::vec2 endAxis (origin + axis * glm::max(worldSize.x, worldSize.y));
+                cc->collisionAt = endAxis;
+                float nearest = glm::distance2(endAxis, origin);
+                glm::vec2 point;
+
+                // from http://www.cse.yorku.ca/~amana/research/grid.pdf
+                const int stepX = glm::sign(axis.x);
+                const int stepY = glm::sign(axis.y);
+
+                float tMaxX = (CELL_SIZE * (xStart + stepX + 0.5) - (origin.x + worldSize.x * 0.5)) / axis.x;
+                float tMaxY = (CELL_SIZE * (yStart + stepY + 0.5) - (origin.y + worldSize.y * 0.5)) / axis.y;
+                const float tDeltaX = (CELL_SIZE / axis.x) * stepX;
+                const float tDeltaY = (CELL_SIZE / axis.y) * stepY;
+
+                LOGV(2, origin << " / " << xStart << ", " << yStart << "/" << stepX << "," << stepY << '/' << tMaxX << ", " << tMaxY);
+                int X = xStart;
+                int Y = yStart;
+
+                const Cell* cell2 = &cell;
+                while(true) {
+                    LOGV(2, "X=" << X << ", Y=" << Y);
+
+                    performRayObjectCollisionInCell(
+                        cc,
+                        cell2->collidingGroupsInside,
+                        origin,
+                        endAxis,
+                        cell2->collidingEntities.begin(),
+                        cell2->collidingEntities.end(),
+                        nearest,
+                        cc->collisionAt);
+
+                    performRayObjectCollisionInCell(
+                        cc,
+                        cell2->colliderGroupsInside,
+                        origin,
+                        endAxis,
+                        cell2->colliderEtities.begin(),
+                        cell2->colliderEtities.end(),
+                        nearest,
+                        cc->collisionAt);
+
+                    if (cc->collidedWithLastFrame != 0)
+                        break;
+
+
+                    // loop
+                    if (tMaxX < tMaxY) {
+                        tMaxX += tDeltaX;
+                        X += stepX;
+                    } else {
+                        tMaxY += tDeltaY;
+                        Y += stepY;
+                    }
+                    LOGV(2, tMaxX << "," << tMaxY);
+
+                    if (X >= w || X < 0 || Y >= h || Y < 0)
+                        break;
+
+                    cell2 = &cells[Y * w + X];
+                }
+
             }
         }
         #if SAC_DEBUG
         else if (cell.colliderEtities.empty()) {
-            TEXT(debug[i])->text.clear();
+            // TEXT(debug[i])->text.clear();
         }
         #endif
     }
@@ -264,6 +358,35 @@ void CollisionSystem::DoUpdate(float) {
         cc->previousPosition = TRANSFORM(entity)->position;
         cc->previousRotation = TRANSFORM(entity)->rotation;
     END_FOR_EACH()
+}
+
+static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, float& nearest, glm::vec2& point) {
+    // Quick exit if this cell doesn't have any entity
+    // from our colliding group
+    if (cc->collideWith & groupsInside) {
+        for (auto it = begin; it!=end; ++it) {
+            const Entity testedEntity = *it;
+            const CollisionComponent* cc2 = COLLISION(testedEntity);
+            if (cc2->group & cc->collideWith) {
+                // Test for collision
+
+                glm::vec2 intersectionPoints[2];
+                const auto* tc = TRANSFORM(testedEntity);
+                int cnt = IntersectionUtil::lineRectangle(origin, endA, tc->position, tc->size, tc->rotation, intersectionPoints);
+
+                for (int i=0; i<cnt; i++) {
+                    // DrawSomething::DrawPoint("collision", intersectionPoints[i]);
+                    // compute distance2
+                    float d = glm::distance2(origin, intersectionPoints[i]);
+                    if (d < nearest) {
+                        nearest = d;
+                        point = intersectionPoints[i];
+                        cc->collidedWithLastFrame = testedEntity;
+                    }
+                }
+            }
+        }
+    }
 }
 
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame) {
