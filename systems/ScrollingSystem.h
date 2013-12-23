@@ -42,7 +42,11 @@ struct ScrollingComponent {
 };
 
 #define theScrollingSystem ScrollingSystem::GetInstance()
+#if SAC_DEBUG
+#define SCROLLING(actor) theScrollingSystem.Get(actor,true,__FILE__,__LINE__)
+#else
 #define SCROLLING(actor) theScrollingSystem.Get(actor)
+#endif
 UPDATABLE_SYSTEM(Scrolling)
 
 private:

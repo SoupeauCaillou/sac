@@ -52,7 +52,11 @@ struct AnchorComponent {
 struct TransformationComponent;
 
 #define theAnchorSystem AnchorSystem::GetInstance()
+#if SAC_DEBUG
+#define ANCHOR(e) theAnchorSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define ANCHOR(e) theAnchorSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Anchor)
 

@@ -42,7 +42,11 @@ struct GridComponent {
 };
 
 #define theGridSystem GridSystem::GetInstance()
+#if SAC_DEBUG
+#define GRID(e) theGridSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define GRID(e) theGridSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Grid)
 public:

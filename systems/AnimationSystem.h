@@ -38,7 +38,11 @@ struct AnimationComponent {
 };
 
 #define theAnimationSystem AnimationSystem::GetInstance()
+#if SAC_DEBUG
+#define ANIMATION(e) theAnimationSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define ANIMATION(e) theAnimationSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Animation)
 

@@ -40,7 +40,11 @@ struct TaskAIComponent {
 };
 
 #define theTaskAISystem TaskAISystem::GetInstance()
+#if SAC_DEBUG
+#define TASK_AI(e) theTaskAISystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define TASK_AI(e) theTaskAISystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(TaskAI)
 

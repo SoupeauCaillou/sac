@@ -60,7 +60,11 @@ struct SwypeButtonComponent {
 };
 
 #define theSwypeButtonSystem SwypeButtonSystem::GetInstance()
+#if SAC_DEBUG
+#define SWYPEBUTTON(actor) theSwypeButtonSystem.Get(actor,true,__FILE__,__LINE__)
+#else
 #define SWYPEBUTTON(actor) theSwypeButtonSystem.Get(actor)
+#endif
 UPDATABLE_SYSTEM(SwypeButton)
 
 public:

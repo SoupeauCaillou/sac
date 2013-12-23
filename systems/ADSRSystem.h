@@ -62,7 +62,11 @@ struct ADSRComponent {
 };
 
 #define theADSRSystem ADSRSystem::GetInstance()
+#if SAC_DEBUG
+#define ADSR(entity) theADSRSystem.Get(entity,true,__FILE__,__LINE__)
+#else
 #define ADSR(entity) theADSRSystem.Get(entity)
+#endif
 
 UPDATABLE_SYSTEM(ADSR)
 

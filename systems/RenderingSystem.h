@@ -76,7 +76,11 @@ struct RenderingComponent {
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
+#if SAC_DEBUG
+#define RENDERING(e) theRenderingSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define RENDERING(e) theRenderingSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Rendering)
 

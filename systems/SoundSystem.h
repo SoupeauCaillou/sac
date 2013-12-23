@@ -42,7 +42,11 @@ struct SoundComponent {
 };
 
 #define theSoundSystem SoundSystem::GetInstance()
+#if SAC_DEBUG
+#define SOUND(e) theSoundSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define SOUND(e) theSoundSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Sound)
 

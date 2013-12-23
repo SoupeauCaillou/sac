@@ -36,7 +36,11 @@ struct TransformationComponent {
 };
 
 #define theTransformationSystem TransformationSystem::GetInstance()
+#if SAC_DEBUG
+#define TRANSFORM(e) theTransformationSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define TRANSFORM(e) theTransformationSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Transformation)
 };

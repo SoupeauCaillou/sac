@@ -32,7 +32,11 @@ struct ContainerComponent {
 };
 
 #define theContainerSystem ContainerSystem::GetInstance()
+#if SAC_DEBUG
+#define CONTAINER(e) theContainerSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define CONTAINER(e) theContainerSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Container)
 };

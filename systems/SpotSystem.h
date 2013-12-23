@@ -36,7 +36,11 @@ struct SpotComponent {
 };
 
 #define theSpotSystem SpotSystem::GetInstance()
+#if SAC_DEBUG
+#define SPOT(e) theSpotSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define SPOT(e) theSpotSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Spot)
 };
@@ -46,7 +50,11 @@ struct SpotBlockComponent {
 };
 
 #define theSpotBlockSystem SpotBlockSystem::GetInstance()
+#if SAC_DEBUG
+#define SPOT_BLOCK(e) theSpotBlockSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define SPOT_BLOCK(e) theSpotBlockSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(SpotBlock)
 };

@@ -76,7 +76,11 @@ struct MusicComponent {
 };
 
 #define theMusicSystem MusicSystem::GetInstance()
+#if SAC_DEBUG
+#define MUSIC(e) theMusicSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define MUSIC(e) theMusicSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Music)
 

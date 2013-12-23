@@ -78,7 +78,11 @@ struct TextComponent {
 };
 
 #define theTextSystem TextSystem::GetInstance()
+#if SAC_DEBUG
+#define TEXT(e) theTextSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define TEXT(e) theTextSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Text)
 

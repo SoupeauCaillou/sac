@@ -38,7 +38,11 @@ struct CollisionComponent {
 };
 
 #define theCollisionSystem CollisionSystem::GetInstance()
+#if SAC_DEBUG
+#define COLLISION(e) theCollisionSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define COLLISION(e) theCollisionSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Collision)
 

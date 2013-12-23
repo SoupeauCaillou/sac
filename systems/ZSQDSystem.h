@@ -60,6 +60,10 @@ struct ZSQDComponent {
 };
 
 #define theZSQDSystem ZSQDSystem::GetInstance()
+#if SAC_DEBUG
+#define ZSQD(actor) theZSQDSystem.Get(actor,true,__FILE__,__LINE__)
+#else
 #define ZSQD(actor) theZSQDSystem.Get(actor)
+#endif
 UPDATABLE_SYSTEM(ZSQD)
 };

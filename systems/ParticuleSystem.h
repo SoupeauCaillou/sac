@@ -72,7 +72,11 @@ struct InternalParticule {
 };
 
 #define theParticuleSystem ParticuleSystem::GetInstance()
+#if SAC_DEBUG
+#define PARTICULE(actor) theParticuleSystem.Get(actor,true,__FILE__,__LINE__)
+#else
 #define PARTICULE(actor) theParticuleSystem.Get(actor)
+#endif
 UPDATABLE_SYSTEM(Particule)
 
 private:

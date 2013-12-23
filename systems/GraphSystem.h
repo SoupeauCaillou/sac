@@ -54,7 +54,11 @@ struct GraphComponent {
 };
 
 #define theGraphSystem GraphSystem::GetInstance()
+#if SAC_DEBUG
+#define GRAPH(e) theGraphSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define GRAPH(e) theGraphSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Graph)
 

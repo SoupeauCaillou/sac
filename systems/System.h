@@ -262,7 +262,7 @@ class ComponentSystemImpl: public ComponentSystem {
             return Get(e, false);
         }
 
-		T* Get(Entity entity, bool failIfNotfound = true) {
+        T* Get(Entity entity, bool failIfNotfound = true, const char* file = "\0", int line = 0) {
 #if SAC_DEBUG
             theEntityManager.validateEntity(entity);
 #endif
@@ -274,21 +274,21 @@ class ComponentSystemImpl: public ComponentSystem {
                 }
                 previousComp = &components[it->second];
 #else
-    			ComponentIt it = components.find(entity);
-    			if (it == components.end()) {
+                ComponentIt it = components.find(entity);
+                if (it == components.end()) {
                     // crash here
                     if (failIfNotfound) {
                         LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << entity << ") has no component of type '" << getName() << "'");
+                            << "' (" << entity << ") has no component of type '" << getName() << "' [@ " << file << ':' << line << ']');
                     }
-    				return 0;
-    			}
+                    return 0;
+                }
                 previousComp = (*it).second;
 #endif
                 previous = entity;
             }
-			return previousComp;
-		}
+            return previousComp;
+        }
 
 		std::vector<Entity> RetrieveAllEntityWithComponent() {
 			std::vector<Entity> result;

@@ -56,7 +56,11 @@ struct AutoDestroyComponent {
 };
 
 #define theAutoDestroySystem AutoDestroySystem::GetInstance()
+#if SAC_DEBUG
+#define AUTO_DESTROY(e) theAutoDestroySystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define AUTO_DESTROY(e) theAutoDestroySystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(AutoDestroy)
 

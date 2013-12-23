@@ -49,7 +49,11 @@ struct AutonomousAgentComponent {
 };
 
 #define theAutonomousAgentSystem AutonomousAgentSystem::GetInstance()
+#if SAC_DEBUG
+#define AUTONOMOUS(entity) theAutonomousAgentSystem.Get(entity,true,__FILE__,__LINE__)
+#else
 #define AUTONOMOUS(entity) theAutonomousAgentSystem.Get(entity)
+#endif
 
 UPDATABLE_SYSTEM(AutonomousAgent)
 public:

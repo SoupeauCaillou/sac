@@ -36,7 +36,11 @@ struct NetworkComponent {
 };
 
 #define theNetworkSystem NetworkSystem::GetInstance()
+#if SAC_DEBUG
+#define NETWORK(e) theNetworkSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define NETWORK(e) theNetworkSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Network)
 

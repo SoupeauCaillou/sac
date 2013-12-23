@@ -68,7 +68,11 @@ struct ButtonComponent {
 };
 
 #define theButtonSystem ButtonSystem::GetInstance()
+#if SAC_DEBUG
+#define BUTTON(actor) theButtonSystem.Get(actor,true,__FILE__,__LINE__)
+#else
 #define BUTTON(actor) theButtonSystem.Get(actor)
+#endif
 UPDATABLE_SYSTEM(Button)
 
 public:

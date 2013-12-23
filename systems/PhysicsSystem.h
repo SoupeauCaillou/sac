@@ -65,7 +65,11 @@ struct PhysicsComponent {
 };
 
 #define thePhysicsSystem PhysicsSystem::GetInstance()
+#if SAC_DEBUG
+#define PHYSICS(actor) thePhysicsSystem.Get(actor,true,__FILE__,__LINE__)
+#else
 #define PHYSICS(actor) thePhysicsSystem.Get(actor)
+#endif
 UPDATABLE_SYSTEM(Physics)
 
 public:

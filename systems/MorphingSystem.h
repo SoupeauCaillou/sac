@@ -62,7 +62,11 @@ struct MorphingComponent {
 };
 
 #define theMorphingSystem MorphingSystem::GetInstance()
+#if SAC_DEBUG
+#define MORPHING(entity) theMorphingSystem.Get(entity,true,__FILE__,__LINE__)
+#else
 #define MORPHING(entity) theMorphingSystem.Get(entity)
+#endif
 
 UPDATABLE_SYSTEM(Morphing)
 

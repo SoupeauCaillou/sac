@@ -38,7 +38,11 @@ struct CameraComponent {
 struct TransformationComponent;
 
 #define theCameraSystem CameraSystem::GetInstance()
+#if SAC_DEBUG
+#define CAMERA(e) theCameraSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define CAMERA(e) theCameraSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Camera)
 

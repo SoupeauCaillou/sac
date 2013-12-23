@@ -29,7 +29,11 @@ struct DebuggingComponent {
 };
 
 #define theDebuggingSystem DebuggingSystem::GetInstance()
+#if SAC_DEBUG
+#define DEBUGGING(e) theDebuggingSystem.Get(e,true,__FILE__,__LINE__)
+#else
 #define DEBUGGING(e) theDebuggingSystem.Get(e)
+#endif
 
 UPDATABLE_SYSTEM(Debugging)
 
