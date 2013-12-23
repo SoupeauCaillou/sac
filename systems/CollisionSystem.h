@@ -49,6 +49,9 @@ UPDATABLE_SYSTEM(Collision)
 
     public:
         glm::vec2 worldSize;
+#if SAC_DEBUG
+        bool showDebug;
+#endif
     private:
         std::vector<Entity> debug;
 };

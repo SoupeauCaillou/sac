@@ -40,6 +40,10 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Co
     componentSerializer.add(new Property<int>("collide_with", OFFSET(collideWith, tc), 0));
     componentSerializer.add(new Property<bool>("restore_position_on_collision", OFFSET(restorePositionOnCollision, tc)));
     componentSerializer.add(new Property<bool>("is_a_ray", OFFSET(isARay, tc)));
+
+#if SAC_DEBUG
+    showDebug = false;
+#endif
 }
 
 struct Coll {
@@ -58,30 +62,35 @@ void CollisionSystem::DoUpdate(float) {
     const int h = glm::floor(worldSize.y * INV_CELL_SIZE);
 
 #if SAC_DEBUG
-    if (debug.empty()) {
-        for (int j=0; j<h; j++) {
-            for (int i=0; i<w; i++) {
-                Entity d = theEntityManager.CreateEntity("debug_collision_grid");
-                ADD_COMPONENT(d, Transformation);
-                TRANSFORM(d)->position =
-                    -worldSize * 0.5f + glm::vec2(CELL_SIZE * (i+.5f), CELL_SIZE *(j+.5f));
-                TRANSFORM(d)->size = glm::vec2(CELL_SIZE);
-                TRANSFORM(d)->z = 0.95;
-                ADD_COMPONENT(d, Rendering);
-                float r = j / (float)h;
-                float g = i / (float)w;
-                RENDERING(d)->color = Color(r,g,0, 0.1);
-                RENDERING(d)->show = 1;
-                RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
-                ADD_COMPONENT(d, Text);
-                TEXT(d)->fontName = "typo";
-                TEXT(d)->charHeight = CELL_SIZE * 0.2;
-                TEXT(d)->show = 1;
-                TEXT(d)->color.a = 0.3;
-                debug.push_back(d);
+    if (showDebug) {
+        if (debug.empty()) {
+            for (int j=0; j<h; j++) {
+                for (int i=0; i<w; i++) {
+                    Entity d = theEntityManager.CreateEntity("debug_collision_grid");
+                    ADD_COMPONENT(d, Transformation);
+                    TRANSFORM(d)->position =
+                        -worldSize * 0.5f + glm::vec2(CELL_SIZE * (i+.5f), CELL_SIZE *(j+.5f));
+                    TRANSFORM(d)->size = glm::vec2(CELL_SIZE);
+                    TRANSFORM(d)->z = 0.95;
+                    ADD_COMPONENT(d, Rendering);
+                    float r = j / (float)h;
+                    float g = i / (float)w;
+                    RENDERING(d)->color = Color(r,g,0, 0.1);
+                    RENDERING(d)->show = 1;
+                    RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
+                    ADD_COMPONENT(d, Text);
+                    TEXT(d)->fontName = "typo";
+                    TEXT(d)->charHeight = CELL_SIZE * 0.2;
+                    TEXT(d)->show = 1;
+                    TEXT(d)->color.a = 0.3;
+                    debug.push_back(d);
+                }
             }
         }
-
+    } else {
+        for (auto d: debug) {
+            RENDERING(d)->show = TEXT(d)->show = false;
+        }
     }
 #endif
 
@@ -150,12 +159,14 @@ void CollisionSystem::DoUpdate(float) {
         const Cell& cell = cells[i];
 
 #if SAC_DEBUG
-        std::stringstream ss;
-        ss << cell.collidingEntities.size() << '('
-            << cell.collidingGroupsInside << "), "
-            << cell.colliderEtities.size() << '('
-            << cell.colliderGroupsInside << ')';
-        TEXT(debug[i])->text = ss.str();
+        if (showDebug) {
+            std::stringstream ss;
+            ss << cell.collidingEntities.size() << '('
+                << cell.collidingGroupsInside << "), "
+                << cell.colliderEtities.size() << '('
+                << cell.colliderGroupsInside << ')';
+            TEXT(debug[i])->text = ss.str();
+        }
 #endif
 
         // Browse colliding entities in this cell

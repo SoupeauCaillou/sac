@@ -24,6 +24,7 @@
 
 #include "DebugConsole.h"
 #include "base/Log.h"
+#include "systems/CollisionSystem.h"
 #include "systems/RenderingSystem.h"
 
 DebugConsole & DebugConsole::Instance() {
@@ -40,6 +41,8 @@ void DebugConsole::initTW() {
     TwAddVarRW(bar, "render - show non-opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.nonOpaque, 0);
     TwAddVarRW(bar, "render - show runtime opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.runtimeOpaque, 0);
     TwAddVarRW(bar, "render - show z prepass", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.zPrePass, 0);
+    // Collision debug
+    TwAddVarRW(bar, "collision - show debug", TW_TYPE_BOOLCPP, &theCollisionSystem.showDebug, 0);
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
