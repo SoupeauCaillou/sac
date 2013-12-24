@@ -28,11 +28,13 @@ class NetworkAPI;
 struct NetworkComponentPriv;
 
 struct NetworkComponent {
-    NetworkComponent() : newOwnerShipRequest(-1) {
+    NetworkComponent() {
 
     }
     std::vector<std::string> sync;
+#if 0
     int newOwnerShipRequest;
+#endif
 };
 
 #define theNetworkSystem NetworkSystem::GetInstance()
