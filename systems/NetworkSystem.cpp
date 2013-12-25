@@ -123,13 +123,13 @@ void NetworkSystem::DoUpdate(float dt) {
                     Entity e = theEntityManager.CreateEntity(name);
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
-                    LOGI("Received CREATE_ENTITY msg (guid: " << header->entityGuid << ")");
+                    LOGV(1, "Received CREATE_ENTITY msg (guid: " << header->entityGuid << ")");
                     nc->guid = header->entityGuid;
-                    LOGI("Create entity :" << e << " / " << nc->guid);
+                    LOGV(1, "Create entity :" << e << " / " << nc->guid);
                     break;
                 }
                 case NetworkMessageHeader::DeleteEntity: {
-                    LOGI("Received DELETE_ENTITY msg (guid: " << header->entityGuid << ")");
+                    LOGV(1, "Received DELETE_ENTITY msg (guid: " << header->entityGuid << ")");
                     Entity e = guidToEntity(header->entityGuid);
                     if (e) {
                         theEntityManager.DeleteEntity(e);
@@ -266,15 +266,12 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         ComponentSystem* system = ComponentSystem::Named(name);
         // find cache entry, if any
         uint8_t* cacheEntry = 0;
-#if 1
+
         CacheIt c = cache.components.find(name);
-        if (c == cache.components.end()) {
-            // cache.components.insert(std::make_pair(jt->first, system->saveComponent(e)));
-            // LOGW("Entity : " << nc->guid << ": no cache found for component: " << name)
-        } else {
+        if (c != cache.components.end()) {
             cacheEntry = c->second;
         }
-#endif
+
         uint8_t* out;
         int size = system->serialize(e, &out, cacheEntry);
         if (size > 0 || !nc->entityExistsGlobally) {
