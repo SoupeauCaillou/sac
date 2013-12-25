@@ -186,7 +186,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                 case ENET_EVENT_TYPE_RECEIVE: {
                     ENetPacket * packet = event.packet;
 
-                    LOGI("Received packet. Type: " << LobbyPacket::getPacketType(packet));
+                    LOGV(1, "Received packet. Type: " << LobbyPacket::getPacketType(packet));
                     switch (LobbyPacket::getPacketType(packet)) {
                         case Packet::AckLogin: {
                             datas->setStatus(NetworkStatus::Logged);

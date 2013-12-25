@@ -481,8 +481,8 @@ void Game::step() {
 
     #if SAC_ENABLE_LOG
         static int timer = 0;
-        //every 20 secs, log it
-        if (++timer == 60*20) {
+        //every 60 secs, log it
+        if (++timer == 60*60) {
             timer = 0;
             for (auto* sys : unusedSystems) {
                 LOGW("System " << sys->getName() << " has (yet) not been used");

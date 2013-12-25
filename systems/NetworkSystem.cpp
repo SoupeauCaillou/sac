@@ -223,7 +223,7 @@ void NetworkSystem::DoUpdate(float dt) {
         ulRate = bytesSentLastSec / diff;
         dlRate = bytesReceivedLastSec / diff;
         counterTime = TimeUtil::GetTime();
-        LOGI("Network statititics: DL=" << bytesReceivedLastSec/1024.<< " kB/s UL=" << bytesSentLastSec/1024. << " kB/s");
+        LOGI_EVERY_N(10, "Network statititics: DL=" << bytesReceivedLastSec/1024.<< " kB/s UL=" << bytesSentLastSec/1024. << " kB/s");
         bytesSentLastSec = bytesReceivedLastSec = 0;
     }
 }
@@ -325,7 +325,9 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
 
 void NetworkSystem::Delete(Entity e) {
     // mark the entity as deleted
-    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (NETWORK(e));
+    auto it = components.find(e);
+
+    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (it->second);
 
     if (nc->guid & GUID_TAG) {
         deletedEntities.push_back(nc->guid);
