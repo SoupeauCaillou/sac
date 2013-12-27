@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #include "NetworkSystem.h"
 #include "../api/NetworkAPI.h"
 #include "api/linux/NetworkAPILinuxImpl.h"
@@ -32,10 +30,13 @@ struct StatusCache {
 std::map<Entity, StatusCache> statusCache;
 typedef std::map<std::string, uint8_t*>::iterator CacheIt;
 
+#if SAC_DEBUG
 static unsigned bytesSentLastSec, bytesReceivedLastSec;
 static float counterTime;
-
-#define SEND(pkt) do { networkAPI->sendPacket(pkt); bytesSentLastSec += pkt.size; } while (false)
+#define SEND(pkt) do { networkAPI->sendPacket(pkt); bytesSentLastSec += pkt.size; ++theNetworkSystem.packetSent; } while (false)
+#else
+#define SEND(pkt) do { networkAPI->sendPacket(pkt); } while (false)
+#endif
 
 #define GUID_TAG (static_cast<NetworkAPILinuxImpl*>(networkAPI))->guidTag()
 
@@ -87,20 +88,18 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"
 
     NetworkComponentPriv nc;
     componentSerializer.add(new VectorProperty<std::string>("sync", OFFSET(sync, nc)));
-}
 
+#if SAC_DEBUG
+    bytesSentLastSec = bytesReceivedLastSec = 0;
+    packetSent = packetRcvd = 0;
+    bytesSent = bytesReceived = 0;
+    counterTime = ulRate= dlRate = 0;
+#endif
+}
 
 void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
         return;
-
-#if 0
-    if (!networkAPI->isConnectedToAnotherPlayer()) {
-        counterTime = TimeUtil::GetTime();
-        bytesSent = bytesReceived = bytesSentLastSec = bytesReceivedLastSec = 0;
-        return;
-    }
-#endif
 
     bool isHosting = ((static_cast<NetworkAPILinuxImpl*>(networkAPI))->getStatus() == NetworkStatus::InRoomAsMaster);
 
@@ -110,6 +109,9 @@ void NetworkSystem::DoUpdate(float dt) {
         NetworkPacket pkt;
         while ((pkt = networkAPI->pullReceivedPacket()).size) {
             bytesReceivedLastSec += pkt.size;
+#if SAC_DEBUG
+            ++packetRcvd;
+#endif
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
 
             // if I'm the server, forward this packet to other clients
@@ -216,6 +218,7 @@ void NetworkSystem::DoUpdate(float dt) {
     });
     deletedEntities.clear();
 
+#if SAC_DEBUG
     float diff = TimeUtil::GetTime() - counterTime;
     if (diff >= 1.0) {
         bytesSent += bytesSentLastSec;
@@ -226,6 +229,7 @@ void NetworkSystem::DoUpdate(float dt) {
         LOGI_EVERY_N(10, "Network statititics: DL=" << bytesReceivedLastSec/1024.<< " kB/s UL=" << bytesSentLastSec/1024. << " kB/s");
         bytesSentLastSec = bytesReceivedLastSec = 0;
     }
+#endif
 }
 
 void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {

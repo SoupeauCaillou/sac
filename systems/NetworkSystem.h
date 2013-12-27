@@ -56,8 +56,6 @@ public:
     bool isOwnedLocally(Entity e);
 public:
     NetworkAPI* networkAPI;
-    unsigned bytesSent, bytesReceived;
-    float ulRate, dlRate;
 
 protected:
     NetworkComponent* CreateComponent();
@@ -66,4 +64,11 @@ private:
     void updateEntity(Entity e, NetworkComponent* c, float dt);
     unsigned int nextGuid;
     std::list<unsigned int> deletedEntities;
+
+#if SAC_DEBUG
+public:
+    unsigned bytesSent, bytesReceived;
+    unsigned packetSent, packetRcvd;
+    float ulRate, dlRate;
+#endif
 };
