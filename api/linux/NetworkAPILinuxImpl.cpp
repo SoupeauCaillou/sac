@@ -361,11 +361,11 @@ static ENetPacket* convertPacket(const NetworkPacket& pkt, uint32_t flags) {
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {
     if (datas->match.masterMode) {
         for (auto* peer: datas->match.peers) {
-            enet_peer_send(peer, 0, convertPacket(packet, 0));
+            enet_peer_send(peer, 0, convertPacket(packet, ENET_PACKET_FLAG_RELIABLE));
         }
     } else {
         if (datas->match.peer) {
-            enet_peer_send(datas->match.peer, 0, convertPacket(packet, 0));   
+            enet_peer_send(datas->match.peer, 0, convertPacket(packet, ENET_PACKET_FLAG_RELIABLE));   
         }
     }
 }
