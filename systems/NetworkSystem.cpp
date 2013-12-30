@@ -24,6 +24,8 @@
 #include "../base/EntityManager.h"
 #include <queue>
 
+#define USE_SYSTEM_IDX 1
+
 struct StatusCache {
     std::map<std::string, uint8_t*> components;
 };
@@ -175,6 +177,10 @@ void NetworkSystem::DoUpdate(float dt) {
     // Process update type packets received
     {
         uint8_t temp[1024];
+#if USE_SYSTEM_IDX
+        const auto& name2ptr = ComponentSystem::registeredSystems();
+#endif
+
         FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
             NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
 
@@ -182,14 +188,20 @@ void NetworkSystem::DoUpdate(float dt) {
                 NetworkPacket pkt = nc->packetToProcess.front();
                 int index = sizeof(NetworkMessageHeader);
                 while (index < pkt.size) {
+#if USE_SYSTEM_IDX
+                    auto it = name2ptr.begin();
+                    std::advance(it, pkt.data[index++]);
+                    ComponentSystem* system = it->second;
+#else
                     uint8_t nameLength = pkt.data[index++];
                     memcpy(temp, &pkt.data[index], nameLength);
                     temp[nameLength] = '\0';
                     index += nameLength;
+                    ComponentSystem* system = ComponentSystem::Named((const char*)temp);
+#endif
                     int size;
                     memcpy(&size, &pkt.data[index], 4);
                     index += 4;
-                    ComponentSystem* system = ComponentSystem::Named((const char*)temp);
                     index += system->deserialize(e, &pkt.data[index], size);
                 }
                  nc->packetToProcess.pop();
@@ -264,10 +276,20 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
     header->entityGuid = nc->guid;
     pkt.size = sizeof(NetworkMessageHeader);
 
+#if USE_SYSTEM_IDX
+    const auto& name2ptr = ComponentSystem::registeredSystems();
+#endif
     // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
     for (auto& name : nc->sync) {
         // time to update
+        
+#if USE_SYSTEM_IDX
+        auto it = name2ptr.find(name);
+        ComponentSystem* system = it->second;
+        uint8_t idx = std::distance(name2ptr.begin(), it);
+#else
         ComponentSystem* system = ComponentSystem::Named(name);
+#endif
         // find cache entry, if any
         uint8_t* cacheEntry = 0;
 
@@ -279,10 +301,14 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         uint8_t* out;
         int size = system->serialize(e, &out, cacheEntry);
         if (size > 0 || !nc->entityExistsGlobally) {
+#if USE_SYSTEM_IDX
+            temp[pkt.size++] = idx;
+#else
             uint8_t nameLength = strlen(name.c_str());
             temp[pkt.size++] = nameLength;
             memcpy(&temp[pkt.size], name.c_str(), nameLength);
             pkt.size += nameLength;
+#endif
             memcpy(&temp[pkt.size], &size, 4);
             pkt.size += 4;
             if (size > 0) {
