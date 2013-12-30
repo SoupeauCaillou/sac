@@ -279,7 +279,6 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         uint8_t* out;
         int size = system->serialize(e, &out, cacheEntry);
         if (size > 0 || !nc->entityExistsGlobally) {
-            LOGI(name << " size: " << size);
             uint8_t nameLength = strlen(name.c_str());
             temp[pkt.size++] = nameLength;
             memcpy(&temp[pkt.size], name.c_str(), nameLength);
@@ -299,7 +298,6 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         }
     }
     if (!nc->entityExistsGlobally || pkt.size > sizeof(NetworkMessageHeader)) {
-        LOGI(pkt.size << " bytes for entity " << theEntityManager.entityName(e));
         nc->entityExistsGlobally = true;
         // finish up packet
         pkt.data = temp;
