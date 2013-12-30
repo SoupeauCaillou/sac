@@ -279,7 +279,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         uint8_t* out;
         int size = system->serialize(e, &out, cacheEntry);
         if (size > 0 || !nc->entityExistsGlobally) {
-            //LOG_EVERY_N(INFO, 250) << jt->first << " size: " << size;
+            LOGI(name << " size: " << size);
             uint8_t nameLength = strlen(name.c_str());
             temp[pkt.size++] = nameLength;
             memcpy(&temp[pkt.size], name.c_str(), nameLength);
@@ -298,32 +298,13 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
             }
         }
     }
-    // LOG_EVERY_N(INFO, 500) << pkt.size << " b for entity " << theEntityManager.entityName(e);
-    nc->entityExistsGlobally = true;
-    // finish up packet
-    pkt.data = temp;
-    SEND(pkt);
-
-#if 0
-    if (nc->newOwnerShipRequest >= 0) {
-        uint8_t temp[64];
-        NetworkPacket pkt;
-        NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
-        header->type = NetworkMessageHeader::ChangeEntityOwner;
-        header->entityGuid = nc->guid;
-        header->CHANGE_OWNERSHIP.newOwner = nc->newOwnerShipRequest;
-        pkt.size = sizeof(NetworkMessageHeader);
+    if (!nc->entityExistsGlobally || pkt.size > sizeof(NetworkMessageHeader)) {
+        LOGI(pkt.size << " bytes for entity " << theEntityManager.entityName(e));
+        nc->entityExistsGlobally = true;
+        // finish up packet
         pkt.data = temp;
         SEND(pkt);
-        if (networkAPI->amIGameMaster()) {
-            nc->ownedLocally = (nc->newOwnerShipRequest==0);
-        } else {
-            nc->ownedLocally = (nc->newOwnerShipRequest==1);
-        }
-        nc->newOwnerShipRequest = -1;
-        LOGV(1, "Send change ownrship request for entity " << e << "/" << nc->guid << " :" << header->CHANGE_OWNERSHIP.newOwner << "(is local: " << nc->ownedLocally << ")");
     }
-#endif
 }
 
 

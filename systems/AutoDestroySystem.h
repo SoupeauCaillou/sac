@@ -41,6 +41,11 @@ struct AutoDestroyComponent {
         _params() {
             memset(this, 0, sizeof(_params));
         }
+        _params& operator=(const _params& p) {
+            area = p.area;
+            lifetime = p.lifetime;
+            return *this;
+        }
 
         struct _area : glm::vec2 {
             _area() : position(1.f), size(1.f) {}
