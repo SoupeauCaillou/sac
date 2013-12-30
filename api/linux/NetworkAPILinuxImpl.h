@@ -31,7 +31,7 @@ class NetworkAPILinuxImpl : public NetworkAPI {
 
         void init();
 
-        void login(const std::string& nickName);
+        void login(const std::string& nickName, const std::string& lobby);
 
         void createRoom();
         unsigned getPendingInvitationCount() const;

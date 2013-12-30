@@ -97,11 +97,11 @@ void NetworkAPILinuxImpl::init() {
     enet_initialize();
 }
 
-void NetworkAPILinuxImpl::login(const std::string& nickName) {
+void NetworkAPILinuxImpl::login(const std::string& nickName, const std::string& lobby) {
     LOGF_IF(datas->getStatus() != NetworkStatus::None && datas->getStatus() != NetworkStatus::ConnectionToLobbyFailed,
         "Invalid call to login, state = " << datas->getStatus());
 
-    datas->lobby.server = "127.0.0.1";
+    datas->lobby.server = lobby;
     datas->lobby.nickName = nickName;
 
     datas->lobby.thread = std::thread([this] () -> void {
