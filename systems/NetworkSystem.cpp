@@ -253,7 +253,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         std::strcpy ((char*)&temp[sizeof(NetworkMessageHeader)], name.c_str());
         pkt.data = temp;
         SEND(pkt);
-        LOGI("NOTIFY create : " << e << "/" << nc->guid << '/' << theEntityManager.entityName(e));
+        LOGV(1, "NOTIFY create : " << e << "/" << nc->guid << '/' << theEntityManager.entityName(e));
     }
     StatusCache& cache = statusCache[e];
 
