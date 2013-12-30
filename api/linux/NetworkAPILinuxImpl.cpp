@@ -43,6 +43,7 @@ public:
         lobby.peer = match.peer = 0;
         match.connected = match.masterMode = false;
         status = NetworkStatus::None;
+        match.guidTag = 0;
     }
 
     // Network datas

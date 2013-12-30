@@ -26,7 +26,11 @@
 #include <functional>
 
 struct CollisionComponent {
-    CollisionComponent() : group(0), collideWith(0), restorePositionOnCollision(false), isARay(false), rayTestDone(false), collidedWithLastFrame(0) {}
+    CollisionComponent() :
+        group(0), collideWith(0),
+        restorePositionOnCollision(false), isARay(false), rayTestDone(false),
+        previousPosition(0.0f), previousRotation(0.0f),
+        collidedWithLastFrame(0), collisionAt(0.0f) {}
     int group;
     int collideWith;
     bool restorePositionOnCollision, isARay, rayTestDone;
