@@ -29,8 +29,10 @@
 
 namespace KeyState {
 	enum Enum {
-		Pressed,
-		Released
+        Pressed,
+        Releasing,
+        Released,
+        Idle,
 	};
 }
 
@@ -44,7 +46,11 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
 
         int eventSDL(const void* event);
 
-        bool isKeyPressed(int key);
+        bool isKeyPressed(int key) { return queryKeyState(key, KeyState::Pressed); }
+
+        bool isKeyReleased(int key) { return queryKeyState(key, KeyState::Released); }
+
+        bool queryKeyState(int key, KeyState::Enum state);
 
     private:
         std::map<int, KeyState::Enum> keyState;

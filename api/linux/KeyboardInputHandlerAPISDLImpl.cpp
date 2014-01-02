@@ -44,17 +44,27 @@ void KeyboardInputHandlerAPIGLFWImpl::update() {
                 // advance iterator
                 ++it;
                 break;
-            case KeyState::Released:
+            case KeyState::Releasing:
                 source = &keyReleased2callback;
+                it->second = KeyState::Released;
+                ++it;
+                break;
+            case KeyState::Released:
+                it->second = KeyState::Idle;
+                ++it;
+                break;
+            case KeyState::Idle:
                 // remove it and advance
                 keyState.erase(it++);
                 break;
         }
 
         // call callback if any
-        auto jt = source->find(scancode);
-        if (jt != source->end()) {
-            jt->second();
+        if (source) {
+            auto jt = source->find(scancode);
+            if (jt != source->end()) {
+                jt->second();
+            }
         }
     }
 }
@@ -68,11 +78,10 @@ void KeyboardInputHandlerAPIGLFWImpl::registerToKeyRelease(int value, std::funct
 }
 
 
-bool KeyboardInputHandlerAPIGLFWImpl::isKeyPressed(int key) {
+bool KeyboardInputHandlerAPIGLFWImpl::queryKeyState(int key, KeyState::Enum state) {
     auto it = keyState.find(key);
-    return (it != keyState.end() && it->second == KeyState::Pressed);
+    return (it != keyState.end() && it->second == state);
 }
-
 
 int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
     auto event = (SDL_Event*)inEvent;
@@ -84,7 +93,7 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
 
     if (event->type == SDL_KEYUP) {
         LOGV(2, "key released, scancode: " << scancode);
-        keyState[scancode] = KeyState::Released;
+        keyState[scancode] = KeyState::Releasing;
         const auto& p = keyReleased2callback.find(scancode);
         return (p != keyReleased2callback.end());
     } else if (event->type == SDL_KEYDOWN) {

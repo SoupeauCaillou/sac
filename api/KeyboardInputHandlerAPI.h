@@ -78,4 +78,6 @@ class KeyboardInputHandlerAPI {
         virtual int eventSDL(const void* event) = 0;
 
         virtual bool isKeyPressed(int key) = 0;
+
+        virtual bool isKeyReleased(int key) = 0;
 };
