@@ -30,6 +30,7 @@
 #include "base/Entity.h"
 #include "base/Log.h"
 #include "systems/RenderingSystem.h"
+#include "systems/SoundSystem.h"
 #include "systems/opengl/EntityTemplateLibrary.h"
 #include "systems/TransformationSystem.h"
 #include "systems/AnchorSystem.h"
@@ -474,10 +475,10 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
             case PropertyType::Color:
                 ASSIGN(Color);
                 break;
-            case PropertyType::Texture: {
+            case PropertyType::Sound:
+            case PropertyType::Texture:
                 memcpy((uint8_t*)component + prop->offset, (*it).second, sizeof(TextureRef));
                 break;
-            }
             case PropertyType::Entity: {
                 uint8_t* a = (*it).second;
                 if (a[0] == 0) {
@@ -619,6 +620,15 @@ static bool loadSingleProperty(const std::string& context,
         case PropertyType::Color:
             LOAD_INTERVAL_TEMPL(Color);
             break;
+        case PropertyType::Sound: {
+            std::string soundName;
+            if (load(dfp, section, name, IntervalAsRandom,&soundName)) {
+                uint8_t* arr = new uint8_t[sizeof(TextureRef)];
+                *((SoundRef*)arr) = theSoundSystem.loadSoundFile(soundName);
+                propMap.insert(std::make_pair(name, arr));
+            }
+            break;
+        }
         case PropertyType::Texture: {
             std::string textureName;
             if (load(dfp, section, name, IntervalAsRandom,&textureName)) {

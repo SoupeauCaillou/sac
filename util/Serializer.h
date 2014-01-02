@@ -37,6 +37,7 @@ namespace PropertyType {
         Float,
         Color,
         Texture,
+        Sound,
         Entity,
         Bool,
         Unsupported
