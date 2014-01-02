@@ -61,7 +61,7 @@ protected:
     NetworkComponent* CreateComponent();
 private:
     NetworkComponentPriv* guidToComponent(unsigned int guid);
-    void updateEntity(Entity e, NetworkComponent* c, float dt);
+    void updateEntity(Entity e, NetworkComponent* c, float dt, bool onlyCreate);
     unsigned int nextGuid;
     std::list<unsigned int> deletedEntities;
 

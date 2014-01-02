@@ -212,7 +212,10 @@ void NetworkSystem::DoUpdate(float dt) {
     // Process local entities : send required update to others
     {
         FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
-            updateEntity(e, nc, dt);
+            updateEntity(e, nc, dt, true);
+        END_FOR_EACH()
+        FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
+            updateEntity(e, nc, dt, false);
         END_FOR_EACH()
     }
 
@@ -244,7 +247,7 @@ void NetworkSystem::DoUpdate(float dt) {
 #endif
 }
 
-void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
+void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool onlyCreate) {
     static uint8_t temp[1024];
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (comp);
 
@@ -253,7 +256,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
     if (nc->sync.empty())
         return;
 
-    if (!nc->entityExistsGlobally) {
+    if (!nc->entityExistsGlobally && onlyCreate) {
         // later nc->entityExistsGlobally = true;
         nc->guid = (nextGuid++) | GUID_TAG;
         const std::string& name = theEntityManager.entityName(e);
@@ -267,6 +270,8 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float) {
         SEND(pkt);
         LOGV(1, "NOTIFY create : " << e << "/" << nc->guid << '/' << theEntityManager.entityName(e));
     }
+    if (onlyCreate)
+        return;
     StatusCache& cache = statusCache[e];
 
     NetworkPacket pkt;
