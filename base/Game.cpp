@@ -32,6 +32,7 @@
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
 #include "base/TouchInputManager.h"
+#include "base/JoystickManager.h"
 
 #include "systems/ADSRSystem.h"
 #include "systems/AnchorSystem.h"
@@ -267,6 +268,11 @@ void Game::eventsHandler() {
             handled = mouseNativeTouchState->eventSDL(&event);
         }
 
+        //or try joystick
+        if (!handled) {
+            handled = JoystickManager::Instance()->eventSDL(&event);
+        }
+
         // If event has not been handled by anyone, treat it
         if( !handled )
         {
@@ -412,6 +418,7 @@ void Game::step() {
     LOGV(2, "dt = " << delta);
     LOGV(2, "Update input");
     theTouchInputManager.Update(delta);
+    theJoystickManager.Update(delta);
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
     framename << "update-" << (int)(delta * 1000000);

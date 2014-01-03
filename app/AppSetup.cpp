@@ -154,7 +154,7 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
         return 1;
     }
 
