@@ -366,20 +366,24 @@ endif()
 function (generate_sublime_clang_configuration)
     #retrieve all our defines
     get_directory_property(defs COMPILE_DEFINITIONS)
-    list(LENGTH defs len)
-    math(EXPR len ${len}-1)
     set (DEFINES "")
     #and for each, add them to our custom variables DEFINES, adding -D before 
     #them and comma separated
-    foreach (item RANGE ${len})
-        list(GET defs ${item} value)
-
+    foreach(value ${defs})
         #.... because this will be placed in another .cmake file so we must 
         #meta-escape quotes
         string(REPLACE "\"" "\\\\\\\"" value ${value})
 
         #finally add the item to our string list
         set (DEFINES "${DEFINES} '-D${value}',\n")
+    endforeach()
+
+    get_property(include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+    list(REMOVE_DUPLICATES include_dirs)
+    set(INCLUDE_DIRECTORIES "'-I/usr/include/x86_64-linux-gnu/c++/4.8/',")
+    foreach(dir ${include_dirs})
+        string(REPLACE "\"" "\\\\\\\"" dir ${dir})
+        set (INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES} '-I${dir}',\n")
     endforeach()
 
     #this is the content of the created .cmake file
@@ -396,16 +400,12 @@ function (generate_sublime_clang_configuration)
                     [
                         '-ferror-limit=0',
 
-                        '-I/usr/include/x86_64-linux-gnu/c++/4.8/',
-                        '-I/usr/include/unittest++/',
-                        '-I/usr/include/AL/',
-
+                        ${INCLUDE_DIRECTORIES}
                         ${DEFINES}
 
-                        '-I\${project_path}/**'
+                        '-I\\\${project_path}/**'
                     ]
                 }
-            #end of file '{'
             }
         \")
         message(\"post build planished\")
@@ -420,6 +420,9 @@ function (generate_sublime_clang_configuration)
         endif()
     "
     )
+
+
+
 
     #write the upon defined variable in a custom cmake file
     #we do NOT execute this directly (would be too easy :-)) because we need to wait 
