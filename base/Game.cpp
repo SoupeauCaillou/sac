@@ -184,6 +184,7 @@ void Game::buildOrderedSystemsToUpdateList() {
 Game::~Game() {
     DrawSomething::Clear();
 
+    JoystickManager::DestroyInstance();
     EntityManager::DestroyInstance();
 
     ADSRSystem::DestroyInstance();

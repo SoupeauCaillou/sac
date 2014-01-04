@@ -36,6 +36,13 @@ JoystickManager* JoystickManager::Instance() {
 	return instance;
 }
 
+void JoystickManager::DestroyInstance() {
+    for (auto & j : Instance()->joysticks) {
+        LOGI("Unregistering pad at address " << (SDL_Joystick*)j.joystickPtr);
+        SDL_JoystickClose((SDL_Joystick*)j.joystickPtr);
+    }
+}
+
 int JoystickManager::eventSDL(void* inEvent) {
     #if ! SAC_ANDROID
         auto event = (SDL_Event*)inEvent;
@@ -44,13 +51,30 @@ int JoystickManager::eventSDL(void* inEvent) {
         }
         if (event->type == SDL_JOYAXISMOTION) {
             int joystick = event->jaxis.which;
-            int pad = event->jaxis.axis / 2;
-            if (event->jaxis.axis % 2 == 0) {
-                joysticks[joystick].lastDirection[pad].x = event->jaxis.value / 32768.;
+
+            //0: Y left 
+            //1: X left
+            //2: Left trigger LT
+            //3: Y right
+            //4: X right
+            //5: Right trigger RT
+            int pad = (event->jaxis.axis-1) / 2;
+
+            float value = abs(event->jaxis.value) > 300 ? event->jaxis.value / 32768.f : 0.f;
+
+            if (event->jaxis.axis == 2) {
+                // LT
+            } else if (event->jaxis.axis == 5) {
+                // RT
+            } else if (event->jaxis.axis == 0 || event->jaxis.axis == 3) {
+                // Left stick
+                joysticks[joystick].lastDirection[pad].x = value;
             } else {
-                joysticks[joystick].lastDirection[pad].y = - event->jaxis.value / 32768.;                
+                // Right stick
+                joysticks[joystick].lastDirection[pad].y = - value;
             }
-            LOGV(2, "SDL_JOYAXISMOTION: direction=" << joysticks[joystick].lastDirection[pad] << " axis=" << (int)event->jaxis.axis << " value=" << event->jaxis.value);
+            LOGV(2, "SDL_JOYAXISMOTION: direction=" << joysticks[joystick].lastDirection[pad] 
+                << " axis=" << (int)event->jaxis.axis << " value=" << event->jaxis.value << " valuef=" << value);
             return 1;
         } else if (event->type == SDL_JOYBUTTONDOWN) {
             int joystick = event->jaxis.which;
@@ -90,11 +114,13 @@ void JoystickManager::Update(float) {
             LOGW("joysticks.size() changed from " << joysticks.size() << " to " << SDL_NumJoysticks());
         
             SDL_JoystickEventState(SDL_ENABLE);
-            for (unsigned j = joysticks.size(); j < newCount; ++j) {
-                LOGI("Opening joystick "<< j << "...");
-                SDL_JoystickOpen(j);
-            }
+
+            auto oldCount = joysticks.size();
             joysticks.resize(newCount);
+            for (unsigned j = oldCount; j < newCount; ++j) {
+                LOGI("Opening joystick "<< j << "...");
+                joysticks[j].joystickPtr = SDL_JoystickOpen(j);
+            }
         }
     #endif
 }

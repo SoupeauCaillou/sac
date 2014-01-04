@@ -29,7 +29,7 @@
 
 namespace JoystickButton {
 	enum Enum {
-		GREEN,
+		GREEN = 0,
 		RED,
 		BLUE,
 		YELLOW,
@@ -46,7 +46,7 @@ namespace JoystickButton {
 
 namespace JoystickPad {
 	enum Enum {
-		LEFT,
+		LEFT = 0,
 		RIGHT,
 		TOTAL,
 	};
@@ -65,6 +65,8 @@ struct JoystickState {
 			lastClickTime[b] = 0;
 		}
 	}
+
+	void* joystickPtr;
 };
 
 class JoystickManager {
@@ -72,12 +74,15 @@ class JoystickManager {
 		static JoystickManager* instance;
 	public:
 		static JoystickManager* Instance();
-
+		static void DestroyInstance();
+		
         bool hasClicked(int idx, JoystickButton::Enum btn) const { return joysticks[idx].clicked[btn]; }
 
         bool hasDoubleClicked(int idx, JoystickButton::Enum btn) const { return joysticks[idx].doubleclicked[btn]; }
 
         void resetDoubleClick(int idx, JoystickButton::Enum btn);
+
+        const glm::vec2& getPadDirection(int idx, JoystickPad::Enum pad) const { return joysticks[idx].lastDirection[pad]; }
 
 		void Update(float dt);
 
