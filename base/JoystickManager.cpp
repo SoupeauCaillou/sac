@@ -113,8 +113,6 @@ void JoystickManager::Update(float) {
 
         if (joysticks.size() != newCount) {
             LOGW("joysticks.size() changed from " << joysticks.size() << " to " << SDL_NumJoysticks());
-        
-            SDL_JoystickEventState(SDL_ENABLE);
 
             auto oldCount = joysticks.size();
             joysticks.resize(newCount);
