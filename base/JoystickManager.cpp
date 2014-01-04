@@ -52,21 +52,22 @@ int JoystickManager::eventSDL(void* inEvent) {
         if (event->type == SDL_JOYAXISMOTION) {
             int joystick = event->jaxis.which;
 
-            //0: Y left 
-            //1: X left
-            //2: Left trigger LT
+            //0: X left 
+            //1: Y left
+            //2: X right
             //3: Y right
-            //4: X right
-            //5: Right trigger RT
-            int pad = (event->jaxis.axis-1) / 2;
+            //4: Right trigger RT
+            //5: Left trigger LT
+            int pad = event->jaxis.axis / 2;
 
-            float value = abs(event->jaxis.value) > 300 ? event->jaxis.value / 32768.f : 0.f;
+            float value = event->jaxis.value / 32768.f;
+            if (glm::abs(value) < .2f) value = 0.f;
 
-            if (event->jaxis.axis == 2) {
+            if (event->jaxis.axis == 5) {
                 // LT
-            } else if (event->jaxis.axis == 5) {
+            } else if (event->jaxis.axis == 4) {
                 // RT
-            } else if (event->jaxis.axis == 0 || event->jaxis.axis == 3) {
+            } else if (event->jaxis.axis % 2 == 0) {
                 // Left stick
                 joysticks[joystick].lastDirection[pad].x = value;
             } else {
