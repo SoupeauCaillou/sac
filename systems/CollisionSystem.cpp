@@ -78,8 +78,6 @@ void CollisionSystem::DoUpdate(float dt) {
                     TRANSFORM(d)->size = glm::vec2(CELL_SIZE);
                     TRANSFORM(d)->z = 0.95;
                     ADD_COMPONENT(d, Rendering);
-                    float r = j / (float)h;
-                    float g = i / (float)w;
                     RENDERING(d)->color = Color(i%2,j%2,0, 0.1);
                     RENDERING(d)->show = 1;
                     RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
@@ -88,6 +86,7 @@ void CollisionSystem::DoUpdate(float dt) {
                     TEXT(d)->charHeight = CELL_SIZE * 0.2;
                     TEXT(d)->show = 1;
                     TEXT(d)->color.a = 0.3;
+                    TEXT(d)->flags = TextComponent::MultiLineBit;
                     debug.push_back(d);
                 }
             }
@@ -167,8 +166,12 @@ void CollisionSystem::DoUpdate(float dt) {
 
 #if SAC_DEBUG
         if (showDebug) {
+            const int x = i % w;
+            const int y = i / w;
+
             std::stringstream ss;
-            ss << cell.collidingEntities.size() << '('
+            ss << x << ' ' << y << '\n'
+                << cell.collidingEntities.size() << '('
                 << cell.collidingGroupsInside << "), "
                 << cell.colliderEtities.size() << '('
                 << cell.colliderGroupsInside << ')';
@@ -296,6 +299,7 @@ void CollisionSystem::DoUpdate(float dt) {
             const int yStart = i / w;
 
             for (unsigned j=0; j<count; j++) {
+                auto* cc = COLLISION(cell.rayEntities[j]);
 #if SAC_DEBUG
                 if (maximumRayCastPerSec > 0) {
                     if (maximumRayCastPerSecAccum < 1)
@@ -304,7 +308,6 @@ void CollisionSystem::DoUpdate(float dt) {
                         maximumRayCastPerSecAccum--;
                 }
 #endif
-                auto* cc = COLLISION(cell.rayEntities[j]);
                 cc->rayTestDone = true;
                 cc->collidedWithLastFrame = 0;
                 const glm::vec2& origin = TRANSFORM(cell.rayEntities[j])->position;
@@ -318,18 +321,20 @@ void CollisionSystem::DoUpdate(float dt) {
                 const int stepX = glm::sign(axis.x);
                 const int stepY = glm::sign(axis.y);
 
-                float tMaxX = (CELL_SIZE * (xStart + stepX + 0.5) - (origin.x + worldSize.x * 0.5)) / axis.x;
-                float tMaxY = (CELL_SIZE * (yStart + stepY + 0.5) - (origin.y + worldSize.y * 0.5)) / axis.y;
+                const float dX = (CELL_SIZE * (xStart + ((stepX > 0) ? 1 : 0)) - (origin.x + worldSize.x * 0.5));
+                float tMaxX = dX / axis.x;
+                const float dY = (CELL_SIZE * (yStart + ((stepY > 0) ? 1 : 0)) - (origin.y + worldSize.y * 0.5));
+                float tMaxY = dY / axis.y;
                 const float tDeltaX = (CELL_SIZE / axis.x) * stepX;
                 const float tDeltaY = (CELL_SIZE / axis.y) * stepY;
 
-                LOGV(2, origin << " / " << xStart << ", " << yStart << "/" << stepX << "," << stepY << '/' << tMaxX << ", " << tMaxY);
+                LOGV(2, origin << " / " << xStart << ", " << yStart << "/" << stepX << "," << stepY << '/' << axis << '/' << dX << "->" << tMaxX << ", " << dY << "->" << tMaxY);
                 int X = xStart;
                 int Y = yStart;
 
                 const Cell* cell2 = &cell;
                 while(true) {
-                    LOGV(2, "X=" << X << ", Y=" << Y);
+                    LOGV(2, "X=" << X << ", Y=" << Y << '[' << tMaxX << "," << tMaxY << ']');
 
                     performRayObjectCollisionInCell(
                         cc,
@@ -363,7 +368,6 @@ void CollisionSystem::DoUpdate(float dt) {
                         tMaxY += tDeltaY;
                         Y += stepY;
                     }
-                    LOGV(2, tMaxX << "," << tMaxY);
 
                     if (X >= w || X < 0 || Y >= h || Y < 0)
                         break;
