@@ -177,12 +177,12 @@ int IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
         count++;
     }
     if (lineLine(pA1, pA2, rectBNEPoint, rectBSEPoint, &temp)) {
-        if (intersectionPoint && count < 2)
+        if (intersectionPoint)
             intersectionPoint[count] = temp;
         count++;
     }
     if (lineLine(pA1, pA2, rectBSWPoint, rectBSEPoint, &temp)) {
-        if (intersectionPoint && count < 2)
+        if (intersectionPoint)
             intersectionPoint[count] = temp;
         count++;
     }
