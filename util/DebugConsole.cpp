@@ -43,6 +43,7 @@ void DebugConsole::initTW() {
     TwAddVarRW(bar, "render - show z prepass", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.zPrePass, 0);
     // Collision debug
     TwAddVarRW(bar, "collision - show debug", TW_TYPE_BOOLCPP, &theCollisionSystem.showDebug, 0);
+    TwAddVarRW(bar, "collision - max raycast per sec", TW_TYPE_FLOAT, &theCollisionSystem.maximumRayCastPerSec, 0);
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),

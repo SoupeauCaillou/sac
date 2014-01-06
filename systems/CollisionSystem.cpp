@@ -43,6 +43,8 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Co
 
 #if SAC_DEBUG
     showDebug = false;
+    maximumRayCastPerSec = -1;
+    maximumRayCastPerSecAccum = 0;
 #endif
 }
 
@@ -54,7 +56,7 @@ struct Coll {
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame);
 static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, float& nearest, glm::vec2& point);
 
-void CollisionSystem::DoUpdate(float) {
+void CollisionSystem::DoUpdate(float dt) {
     #define CELL_SIZE 4.0f
     #define INV_CELL_SIZE (1.0f/CELL_SIZE)
 
@@ -62,6 +64,9 @@ void CollisionSystem::DoUpdate(float) {
     const int h = glm::floor(worldSize.y * INV_CELL_SIZE);
 
 #if SAC_DEBUG
+    if (maximumRayCastPerSec > 0)
+        maximumRayCastPerSecAccum += maximumRayCastPerSec * dt;
+
     if (showDebug) {
         if (debug.empty()) {
             for (int j=0; j<h; j++) {
@@ -75,7 +80,7 @@ void CollisionSystem::DoUpdate(float) {
                     ADD_COMPONENT(d, Rendering);
                     float r = j / (float)h;
                     float g = i / (float)w;
-                    RENDERING(d)->color = Color(r,g,0, 0.1);
+                    RENDERING(d)->color = Color(i%2,j%2,0, 0.1);
                     RENDERING(d)->show = 1;
                     RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
                     ADD_COMPONENT(d, Text);
@@ -112,7 +117,7 @@ void CollisionSystem::DoUpdate(float) {
 
     // Assign each entity to cells
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
-        if (!cc->group)
+        if (!cc->isARay && !cc->group)
             continue;
         cc->collidedWithLastFrame = 0;
 
@@ -138,9 +143,11 @@ void CollisionSystem::DoUpdate(float) {
             for (int y = yStart; y <= yEnd; y++) {
                 LOGE_IF(x + y * w >=  w * h, "Incorrect cell index: " << x << '+' << y << '*' << w << " >= " << w << '*' << h);
                 Cell& cell = cells[x + y * w];
-                if (cc->group > 1) {
+                if (cc->group > 1 || cc->isARay) {
                     if (cc->isARay) {
-                        cell.rayEntities.push_back(entity);
+                        if (!cc->rayTestDone) {
+                            cell.rayEntities.push_back(entity);
+                        }
                     } else {
                         cell.collidingEntities.push_back(entity);
                         cell.collidingGroupsInside |= cc->group;
@@ -289,6 +296,14 @@ void CollisionSystem::DoUpdate(float) {
             const int yStart = i / w;
 
             for (unsigned j=0; j<count; j++) {
+#if SAC_DEBUG
+                if (maximumRayCastPerSec > 0) {
+                    if (maximumRayCastPerSecAccum < 1)
+                        break;
+                    else
+                        maximumRayCastPerSecAccum--;
+                }
+#endif
                 auto* cc = COLLISION(cell.rayEntities[j]);
                 cc->rayTestDone = true;
                 cc->collidedWithLastFrame = 0;
@@ -355,7 +370,6 @@ void CollisionSystem::DoUpdate(float) {
 
                     cell2 = &cells[Y * w + X];
                 }
-
             }
         }
         #if SAC_DEBUG

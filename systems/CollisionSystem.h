@@ -24,6 +24,9 @@
 
 #include "System.h"
 #include <functional>
+#if SAC_DEBUG
+#include "base/Frequency.h"
+#endif
 
 struct CollisionComponent {
     CollisionComponent() :
@@ -55,6 +58,7 @@ UPDATABLE_SYSTEM(Collision)
         glm::vec2 worldSize;
 #if SAC_DEBUG
         bool showDebug;
+        float maximumRayCastPerSec, maximumRayCastPerSecAccum;
 #endif
     private:
         std::vector<Entity> debug;
