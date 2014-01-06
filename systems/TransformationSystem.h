@@ -23,6 +23,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "System.h"
 
@@ -43,4 +44,17 @@ struct TransformationComponent {
 #endif
 
 UPDATABLE_SYSTEM(Transformation)
+
+public:
+    template<typename T>
+    static void appendVerticesTo(const TransformationComponent* tc, T& out);
 };
+
+template<typename T>
+inline void TransformationSystem::appendVerticesTo(const TransformationComponent* tc, T& out) {
+    const glm::vec2 hSize = tc->size * 0.5f;
+    out.push_back(tc->position + glm::rotate(glm::vec2(hSize.x, hSize.y), tc->rotation));
+    out.push_back(tc->position + glm::rotate(glm::vec2(-hSize.x, hSize.y), tc->rotation));
+    out.push_back(tc->position + glm::rotate(glm::vec2(-hSize.x, -hSize.y), tc->rotation));
+    out.push_back(tc->position + glm::rotate(glm::vec2(hSize.x, -hSize.y), tc->rotation));
+}
