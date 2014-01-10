@@ -125,5 +125,7 @@ void JoystickManager::Update(float) {
 }
 
 void JoystickManager::resetDoubleClick(int idx, JoystickButton::Enum btn) {
-    joysticks[idx].lastClickTime[btn] = 0;
+    if (joysticks.size() > (unsigned)idx) {
+        joysticks[idx].lastClickTime[btn] = 0;
+    }
 }
