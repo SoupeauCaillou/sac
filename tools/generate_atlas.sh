@@ -7,12 +7,13 @@
 
 #where the script is
 #assume default layout: unprepared_assets and assets in the same folder
+current=$(pwd)
 whereAmI=$(cd "$(dirname "$0")" && pwd)
 #if we executed a linked script; go to the real one
 if [ -h $0 ]; then
     whereAmI+=/$(dirname $(readlink $0))
 fi
-rootPath="$whereAmI/../.."
+outPath="$current/.."
 
 #import cool stuff
 source $whereAmI/coolStuff.sh
@@ -63,11 +64,11 @@ for directory_path in $@; do
         mkdir $TMP_FILEDIR/$quality -p
         mkdir $TMP_FILEDIR/tmp -p
 
-        mkdir $rootPath/assets/$quality -p
-        mkdir $rootPath/assetspc/$quality -p
+        mkdir $outPath/assets/$quality -p
+        mkdir $outPath/assetspc/$quality -p
 
-        find $rootPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
-        find $rootPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
+        find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
+        find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
         
         ############# STEP 2: create an optimized copy of each image
         info "Step #2: create optimized image"
@@ -109,23 +110,23 @@ for directory_path in $@; do
 
         ############# STEP 5: create png version of the atlas
         info "Step #5: create png version"
-        convert /tmp/$dir.png -alpha extract PNG24:$rootPath/assetspc/$quality/${dir}_alpha.png
-        convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$rootPath/assetspc/$quality/$dir.png
+        convert /tmp/$dir.png -alpha extract PNG24:$outPath/assetspc/$quality/${dir}_alpha.png
+        convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$outPath/assetspc/$quality/$dir.png
         
         if  $hasPVRTool ; then
             info "Step #6: create ETC version of color texture"
-            PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
+            PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pvr ${TMP_FILEDIR}/$quality/$dir.pkm.
 
             info "Step #7: create ETC version of alpha texture"
-            PVRTexToolCL -f ETC -yflip0 -i $rootPath/assetspc/$quality/${dir}_alpha.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
+            PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/${dir}_alpha.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pvr ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
         
-        cp -rv ${TMP_FILEDIR}/$quality $rootPath/assets
-        cp /tmp/$dir.atlas $rootPath/assets/$quality/
+        cp -rv ${TMP_FILEDIR}/$quality $outPath/assets
+        cp /tmp/$dir.atlas $outPath/assets/$quality/
 
         rm -r $TEMP_FOLDER/*
         divide_by=$(($divide_by * 2))
