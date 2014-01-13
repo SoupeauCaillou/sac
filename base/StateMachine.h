@@ -90,13 +90,17 @@ class StateMachine {
 
         StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
 
+#if SAC_DEBUG
+        const std::string& getCurrentStateName() const { return state2Name.find(currentState)->second; }
+#endif
+
         int serialize(uint8_t** out) const;
         int deserialize(const uint8_t* in, int size);
 
 	private:
 		T currentState, overrideNextState, previousState;
 		std::map<T, StateHandler<T>*> state2handler;
-        #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
+        #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING || SAC_DEBUG
         std::map<T, std::string> state2Name;
         #endif
 		struct {

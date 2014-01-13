@@ -97,6 +97,11 @@ class Game {
         GameType::Enum gameType;
         LevelEditor* levelEditor;
 #endif
+#if SAC_DEBUG
+    public:
+        std::string titleHint;
+        void setTitleHint(const std::string& s) { titleHint = s; }
+#endif
     public:
         void buildOrderedSystemsToUpdateList();
     protected:

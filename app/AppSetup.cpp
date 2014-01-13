@@ -332,6 +332,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     std::thread th1(callback_thread, title);
     float prevT = 0;
+#if SAC_DEBUG
+    std::string currentHint = game->titleHint;
+#endif
+
     do {
         game->eventsHandler();
         game->render();
@@ -339,6 +343,18 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         float t = TimeUtil::GetTime();
         Recorder::Instance().record(t - prevT);
         prevT = t;
+
+#if SAC_DEBUG
+        if (game->titleHint != currentHint) {
+            std::stringstream str;
+            str << title;
+#ifdef SAC_REVISION_TAG
+            str << " / " << SAC_REVISION_TAG;
+#endif
+            str << " / " << (currentHint = game->titleHint);
+            SDL_WM_SetCaption(str.str().c_str(), 0);
+        }
+#endif
     } while (!m.try_lock());
     th1.join();
 
