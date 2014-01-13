@@ -29,6 +29,7 @@ import net.damsy.soupeaucaillou.SacGameThread.Event;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.opengl.GLSurfaceView;
@@ -41,6 +42,7 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public abstract class SacActivity extends Activity {
 	protected SacRenderer renderer;
@@ -59,6 +61,7 @@ public abstract class SacActivity extends Activity {
 	public abstract int getParentViewId();
 
 	float factor = 1.f;
+    static boolean isDebuggable = false;
  
 	/**
 	 * 3 potential reasons for onCreate to be called:
@@ -73,17 +76,21 @@ public abstract class SacActivity extends Activity {
 	 */
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
-		Log(W, "ActivityLifeCycle --> onCreate [" + savedInstanceState + "]");
         super.onCreate(savedInstanceState);
+        isDebuggable = (0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE));
+        Log(W, "ActivityLifeCycle --> onCreate [" + savedInstanceState + "]");
 
         //display debug informations
-		try {
-			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-			LogI("Package name: " + getPackageName() + ", version code: " + pInfo.versionCode + ", version name: " + pInfo.versionName);
-		} catch (NameNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        if (isDebuggable) {
+            try {
+                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                Toast toast = Toast.makeText(this, "Package name: " + getPackageName() + ", version code: "
+                        + pInfo.versionCode + ", version name: " + pInfo.versionName, Toast.LENGTH_LONG);
+                toast.show();
+            } catch (NameNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
        
         SacPluginManager.instance().onActivityCreate(this, savedInstanceState);
         
@@ -365,7 +372,7 @@ public abstract class SacActivity extends Activity {
     public static int LogLevel = android.util.Log.INFO;
     
     static void Log(int prio, final String msg) {
-    	if (prio >= LogLevel)
+    	if (prio >= LogLevel && isDebuggable)
     		android.util.Log.println(prio, "sac", msg);
     }
     public static void LogV(final String msg) {
