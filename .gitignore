@@ -12,3 +12,4 @@ sac.pidb
 *.o
 systems/opengl/shaders/*.h
 *pyc
+android/SacGooglePlayGameServices/libs/google-play-services.jar
