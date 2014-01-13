@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !SAC_MOBILE
 
 #include "JoystickManager.h"
 
@@ -129,3 +129,4 @@ void JoystickManager::Update(float) {
 void JoystickManager::resetDoubleClick(int idx, JoystickButton::Enum btn) {
     joysticks[idx].lastClickTime[btn] = 0;
 }
+#endif

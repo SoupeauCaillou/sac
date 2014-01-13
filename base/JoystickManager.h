@@ -18,8 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
+#if !SAC_MOBILE
 #pragma once
 
 #include <glm/glm.hpp>
@@ -90,3 +89,4 @@ class JoystickManager {
 	private:
 		std::vector<JoystickState> joysticks;
 };
+#endif

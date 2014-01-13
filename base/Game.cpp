@@ -184,7 +184,9 @@ void Game::buildOrderedSystemsToUpdateList() {
 Game::~Game() {
     DrawSomething::Clear();
 
+#if !SAC_MOBILE
     JoystickManager::DestroyInstance();
+#endif
     EntityManager::DestroyInstance();
 
     ADSRSystem::DestroyInstance();
@@ -270,9 +272,11 @@ void Game::eventsHandler() {
         }
 
         //or try joystick
+#if !SAC_MOBILE
         if (!handled) {
             handled = JoystickManager::Instance()->eventSDL(&event);
         }
+#endif
 
         // If event has not been handled by anyone, treat it
         if( !handled )
@@ -419,7 +423,9 @@ void Game::step() {
     LOGV(2, "dt = " << delta);
     LOGV(2, "Update input");
     theTouchInputManager.Update(delta);
+#if !SAC_MOBILE
     theJoystickManager.Update(delta);
+#endif
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
     framename << "update-" << (int)(delta * 1000000);
