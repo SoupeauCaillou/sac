@@ -343,9 +343,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #endif
 
     do {
-        game->eventsHandler();
+        // game->eventsHandler();
 
-        if (game->render()) {
+        if (game->render() || 1) {
             SDL_GL_SwapBuffers();
             float t = TimeUtil::GetTime();
             Recorder::Instance().record(t - prevT);
