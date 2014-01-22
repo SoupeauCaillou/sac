@@ -81,7 +81,7 @@ class DataFileParser {
 
 std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp);
 
-#define MAX_ELEMENTS 10
+#define MAX_ELEMENTS 50
 
 template <class T>
 bool DataFileParser::parse(const std::string& value, T* out, const int count, bool warnIfNotFound) const {
