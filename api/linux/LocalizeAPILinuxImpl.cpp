@@ -86,6 +86,8 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
     }
     LOGI("[INIT]Localize strings count: " << _idToMessage.size());
 
+    delete[] fb.data;
+
     return 0;
 }
 #endif
