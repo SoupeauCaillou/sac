@@ -25,6 +25,9 @@
 #include <systems/RenderingSystem.h>
 #include <systems/ButtonSystem.h>
 
+GameCenterAPIHelper::GameCenterAPIHelper() :
+    signButton(0), achievementsButton(0), leaderboardsButton(0), gameCenterAPI(0), bUIdisplayed(false), displayIfNotConnected(false) {}
+
 void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool displayIfNotConnected, 
  bool useLeaderboards, std::function<void()> f) {
     gameCenterAPI = g;

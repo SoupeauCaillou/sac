@@ -32,6 +32,8 @@
 
 class GameCenterAPIHelper {
 	public:
+        GameCenterAPIHelper();
+
         void init(GameCenterAPI * gameCenterAPI, bool useAchievements, 
             bool displayIfNotConnected, bool useLeaderboards, std::function<void()>);
 	    
