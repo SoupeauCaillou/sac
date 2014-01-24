@@ -42,7 +42,7 @@ const std::string floatmodifiers[] =
     { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h", "%degrees"};
 
 const std::string vec2modifiers[] =
-    { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp_size", "%gimp"};
+    { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp_size", "%gimp_pos", "%gimp"};
 
 const std::string vec2singlefloatmodifiers[] = {
     "%texture_ratio,screen_w",
@@ -78,10 +78,11 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
             out->y *= PlacementHelper::ScreenSize.y;
             break;
         case 5:
-        case 6:
+        case 7:
             out->x = PlacementHelper::GimpWidthToScreen(out->x);
             out->y = PlacementHelper::GimpHeightToScreen(out->y);
             break;
+        case 6:
         case 51:
             out->x = PlacementHelper::GimpXToScreen(out->x);
             out->y = PlacementHelper::GimpYToScreen(out->y);
@@ -137,7 +138,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     float parsed[4];
 
     // 5 different variants
-    for (int i = 0; i<6; i++) {
+    for (int i = 0; i<7; i++) {
         if (dfp.get(section, name + vec2modifiers[i], parsed, 4, false)) {
             // we got an interval
             Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
@@ -160,7 +161,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     int res1 = name.compare(0, 4, "size");
     int res2 = name.compare(0, 8, "position");
     if (res1 == 0 || res2 == 0) {
-        if (dfp.get(section, name + vec2modifiers[6], parsed, 4, false)) {
+        if (dfp.get(section, name + vec2modifiers[7], parsed, 4, false)) {
             // we got an interval
             Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
             switch (mode) {
@@ -175,7 +176,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
 
             LOG_SUCCESS_ << out->x << ", " << out->y << "'");
             return 1;
-        } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[6], parsed, 2, false)) {
+        } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[7], parsed, 2, false)) {
             // we got a single value
             *out = glm::vec2(parsed[0], parsed[1]);
             LOG_SUCCESS_ << out->x << ", " << out->y << "'");

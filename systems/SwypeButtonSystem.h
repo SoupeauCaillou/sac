@@ -23,9 +23,17 @@
 
 class VibrateAPI;
 
+namespace SwypeIdleState {
+    enum Enum {
+        Used,
+        Halted,
+        Animating,
+        GoingBackToHalt,
+    };
+}
 struct SwypeButtonComponent {
 	SwypeButtonComponent() : mouseOver(false), clicked(false),
-	lastPos(0.0f), idlePos(0.0f), animationPlaying(false), 
+	lastPos(0.0f), idlePos(0.0f), animationPlaying(SwypeIdleState::Halted), 
     enabled(false), vibration(0.035f) { }
 
     ////// READ ONLY variables
@@ -37,7 +45,7 @@ struct SwypeButtonComponent {
     // idle position
     glm::vec2 idlePos;
     //
-    bool animationPlaying;
+    SwypeIdleState::Enum animationPlaying;
     //
     float activeIdleTime;
 	////// END OF READ ONLY variables
