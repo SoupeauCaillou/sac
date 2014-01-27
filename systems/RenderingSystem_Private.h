@@ -53,7 +53,7 @@ struct RenderingSystem::RenderCommand {
         FramebufferRef framebuffer;
         InternalTexture glref;
     };
-    unsigned int rotateUV;
+    bool rotateUV;
     glm::vec2 uv[2];
     glm::vec2 halfSize;
     Color color;

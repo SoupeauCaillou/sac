@@ -48,7 +48,7 @@ struct TextureInfo {
     // GL texture(s)
     InternalTexture glref;
     // is image rotated in atlas
-    unsigned short rotateUV;
+    bool rotateUV;
     // which atlas
     short atlasIndex;
     // uv coords in atlas

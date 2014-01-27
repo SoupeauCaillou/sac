@@ -286,7 +286,9 @@ void RenderingSystem::DoUpdate(float) {
 void RenderingSystem::DoUpdate(float) {
 #endif
 
+#if SAC_DEBUG
     static unsigned int cccc = 0;
+#endif
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
     LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
@@ -479,19 +481,21 @@ void RenderingSystem::DoUpdate(float) {
 
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;
+#if SAC_DEBUG
     dummy.rotateUV = cccc;
+#endif
     if (outQueue.commands.size() <= outQueue.count)
         outQueue.commands.push_back(dummy);
     else
         outQueue.commands[outQueue.count] = dummy;
     outQueue.count++;
     // outQueue.count++;
+#if SAC_DEBUG
     std::stringstream framename;
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
     cccc++;
-    //LOGW("[%d] Added: %d + %d + 2 elt (%d frames) -> %d (%u)", currentWriteQueue, opaqueCommands.size(), semiOpaqueCommands.size(), outQueue.frameToRender, outQueue.commands.size(), dummy.rotateUV);
-    //LOGW("Wrote frame %d commands to queue %d", outQueue.count, currentWriteQueue);
+#endif
 
 #if ! SAC_EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
@@ -714,7 +718,7 @@ void packCameraAttributes(
     out.z = cameraTrans->rotation;
     out.mirrorH = cameraComp->clear;
 
-    out.rotateUV = cameraComp->fb;
+    out.flags = cameraComp->fb;
     out.color = cameraComp->clearColor;
 }
 
@@ -726,7 +730,7 @@ void unpackCameraAttributes(
     camera->size = in.uv[1];
     camera->rotation = in.z;
 
-    ccc->fb = in.rotateUV;
+    ccc->fb = in.flags;
     ccc->clearColor = in.color;
     ccc->clear = in.mirrorH;
 }
