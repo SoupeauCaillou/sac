@@ -26,8 +26,8 @@
 #include "api/AssetAPI.h"
 #include "OpenglHelper.h"
 
-typedef int EffectRef;
-#define DefaultEffectRef -1
+typedef uint8_t EffectRef;
+#define DefaultEffectRef 0
 
 
 struct Shader {
