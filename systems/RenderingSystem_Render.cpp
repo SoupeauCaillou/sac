@@ -154,7 +154,7 @@ static int drawBatchES2(
     , const unsigned short* indices
     , int
 #if SAC_USE_VBO
-     batchVertexCount
+    batchVertexCount
 #endif
     , int batchTriangleCount) {
 
@@ -174,6 +174,10 @@ static int drawBatchES2(
 #if SAC_USE_VBO
         // update vertex buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
+        // orphan previous storage
+        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
+            MAX_BATCH_TRIANGLE_COUNT * 3 * 3 * sizeof(float), 0, GL_STREAM_DRAW))
+        // update buffer
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
             batchVertexCount * 3 * sizeof(float), vertices))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
@@ -181,6 +185,10 @@ static int drawBatchES2(
 
         // update uv buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[2]))
+        // orphan
+        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
+            MAX_BATCH_TRIANGLE_COUNT * 3 * 2 * sizeof(float), 0, GL_STREAM_DRAW))
+        // then update
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
             batchVertexCount * 2 * sizeof(float), uvs))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
@@ -193,6 +201,10 @@ static int drawBatchES2(
 #endif
 
         GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
+        // orphan
+        GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+            sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_STREAM_DRAW))
+        // update
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
             batchTriangleCount * 3 * sizeof(unsigned short), indices))
 

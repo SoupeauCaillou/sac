@@ -160,17 +160,13 @@ void RenderingSystem::init() {
     // create a VBO for indices
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
     GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_DYNAMIC_DRAW))
+        sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_STREAM_DRAW))
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0))
 
 #if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[1]))
-    GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-        MAX_BATCH_TRIANGLE_COUNT * 3 * 3 * sizeof(float), 0, GL_DYNAMIC_DRAW))
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[2]))
-    GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-        MAX_BATCH_TRIANGLE_COUNT * 3 * 2 * sizeof(float), 0, GL_DYNAMIC_DRAW))
 #endif
 }
 
