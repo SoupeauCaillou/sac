@@ -35,8 +35,8 @@
 #include "System.h"
 #include "opengl/Polygon.h"
 
-typedef int FramebufferRef;
-#define DefaultFrameBufferRef -1
+typedef uint8_t FramebufferRef;
+#define DefaultFrameBufferRef 0
 
 typedef int VerticesRef;
 // Default represents 'unit' shape (1 unit-length square for instance)
