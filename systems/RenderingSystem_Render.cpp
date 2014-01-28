@@ -294,7 +294,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 GL_OPERATION(glClearColor(camera.cameraAttr.clearColor.r, camera.cameraAttr.clearColor.g, camera.cameraAttr.clearColor.b, camera.cameraAttr.clearColor.a))
                 GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
             }
-            currentFlags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+            currentFlags = OpaqueFlagSet;
             continue;
         } else if (rc.texture == EndFrameMarker) {
             break;
@@ -309,31 +309,25 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
 
-            if (rc.flags & EnableZWriteBit) {
-                GL_OPERATION(glDepthMask(true))
-            } else if (rc.flags & DisableZWriteBit) {
-                GL_OPERATION(glDepthMask(false))
-            } if (rc.flags & EnableBlendingBit) {
+            GL_OPERATION(glDepthMask(rc.flags & EnableZWriteBit))
+
+            if (rc.flags & EnableBlendingBit) {
                 firstCall = false;
                 GL_OPERATION(glEnable(GL_BLEND))
                 if (currentEffect == DefaultEffectRef) {
                     currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
                 }
-            } else if (rc.flags & DisableBlendingBit) {
+            } else {
                  GL_OPERATION(glDisable(GL_BLEND))
-            } if (rc.flags & EnableColorWriteBit) {
-                GL_OPERATION(glColorMask(true, true, true, true))
-                if (!(currentFlags & EnableColorWriteBit)) {
-                    if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
-                    }
-                }
-            } else if (rc.flags & DisableColorWriteBit) {
-                GL_OPERATION(glColorMask(false, false, false, false))
-                if (!(currentFlags & DisableColorWriteBit)) {
-                    if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, false);
-                    }
+            }
+
+            const bool colorMask = rc.flags & EnableColorWriteBit;
+
+            GL_OPERATION(glColorMask(colorMask, colorMask, colorMask, colorMask))
+
+            if (currentEffect == DefaultEffectRef) {
+                if ( 1 ||(currentFlags ^ rc.flags) & EnableColorWriteBit ) {
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, colorMask);
                 }
             }
             currentFlags = rc.flags;

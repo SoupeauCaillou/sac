@@ -25,12 +25,15 @@
 #define EndFrameMarker -10
 #define BeginFrameMarker -12
 
-#define EnableZWriteBit (0x1 << 0)
-#define DisableZWriteBit (0x1 << 1)
-#define EnableBlendingBit (0x1 << 2)
-#define DisableBlendingBit (0x1 << 3)
-#define EnableColorWriteBit (0x1 << 4)
-#define DisableColorWriteBit (0x1 << 5)
+#define EnableZWriteBit       0x1
+#define EnableBlendingBit     0x2
+#define EnableColorWriteBit   0x4
+
+// Possible flags
+#define ZPrePassFlagSet       0x1
+#define OpaqueFlagSet         0x5
+#define AlphaBlendedFlagSet   0x6
+#define DebugFlagSet          0x7
 
 #define L_RENDER  0
 #define L_QUEUE   1

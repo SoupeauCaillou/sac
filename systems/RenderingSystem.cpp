@@ -170,6 +170,13 @@ void RenderingSystem::init() {
 #endif
 }
 
+// [z][flags][effect][texture][color]
+//   z:         16 bits
+//   flags:      3 bits
+//  effect:      4 bits
+// texture:     16 bits
+//   color:     16 bits
+
 
 // The goal of this sort function is to group sprites to reduce OpenGL state changes.
 static bool sortToMinizeStateChanges(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
@@ -188,7 +195,7 @@ static bool sortToMinizeStateChanges(const RenderingSystem::RenderCommand& r1, c
             return r1.effectRef < r2.effectRef;
         }
     } else {
-        return r1.flags > r2.flags;
+        return r1.flags < r2.flags;
     }
 }
 
@@ -338,24 +345,25 @@ void RenderingSystem::DoUpdate(float) {
     		c.uv[1] = glm::vec2(1.0f);
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
+
             if (rc->zPrePass) {
 #if SAC_INGAME_EDITORS
                 if (highLight.zPrePass) {
                     c.color.g = c.color.r = 0;
                     c.color.a = 0.5;
-                    c.flags = (EnableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
+                    c.flags = DebugFlagSet;
                     c.texture = InvalidTextureRef;
                 } else
 #endif
-                c.flags = (EnableZWriteBit | DisableBlendingBit | DisableColorWriteBit);
+                c.flags = ZPrePassFlagSet;
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
-                c.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+                c.flags = OpaqueFlagSet;
 #if SAC_INGAME_EDITORS
                 if (highLight.opaque)
                     c.color.g = 0;
 #endif
             } else {
-                c.flags = (DisableZWriteBit | EnableBlendingBit | EnableColorWriteBit);
+                c.flags = AlphaBlendedFlagSet;
 #if SAC_INGAME_EDITORS
                 if (highLight.nonOpaque) {
                     c.color.b = 0;
@@ -395,7 +403,7 @@ void RenderingSystem::DoUpdate(float) {
                             cCenter.color.r = 0;
                         }
 #endif
-                        cCenter.flags = (EnableZWriteBit | DisableBlendingBit | EnableColorWriteBit);
+                        cCenter.flags = OpaqueFlagSet;
 
                         // Note: no need to take rotate info->rotate into account.
                         // (opaqueStart/Size attributes do not depend on this)
