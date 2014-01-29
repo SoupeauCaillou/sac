@@ -67,7 +67,7 @@ void TouchInputManager::activateDebug(Entity camera) {
 }
 #endif
 
-void TouchInputManager::Update(float) {
+void TouchInputManager::Update() {
     Entity camera = 0;
     const std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     for (auto c: cameras) {

@@ -415,24 +415,30 @@ int Game::saveState(uint8_t**) {
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
 
+    theEntityManager.entityTemplateLibrary.update();
+
+#if SAC_DESKTOP    
+    theEntityManager.entityTemplateLibrary.updateReload();
+#endif
+
+    theTouchInputManager.Update();
+
+#if !SAC_MOBILE
+    theJoystickManager.Update();
+#endif
+
     theRenderingSystem.waitDrawingComplete();
 
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
-
+    LOGI_EVERY_N(60, "dt=" << delta);
     LOGV(2, "dt = " << delta);
-    LOGV(2, "Update input");
-    theTouchInputManager.Update(delta);
-#if !SAC_MOBILE
-    theJoystickManager.Update(delta);
-#endif
+
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
     framename << "update-" << (int)(delta * 1000000);
     PROFILE("Game", framename.str(), InstantEvent);
 #endif
-    theEntityManager.entityTemplateLibrary.update();
-    theEntityManager.entityTemplateLibrary.updateReload();
 
     // update game state
 #if SAC_INGAME_EDITORS
@@ -538,6 +544,7 @@ void Game::render() {
     PROFILE("Game", "render-game", BeginEvent);
     theRenderingSystem.render();
 
+#if SAC_DEBUG
     {
         static int count = 0;
         static float prevT = 0;
@@ -559,6 +566,7 @@ void Game::render() {
             fpsStats.reset(t);
         }
     }
+#endif
     PROFILE("Game", "render-game", EndEvent);
 }
 

@@ -68,7 +68,7 @@ class TouchInputManager {
 
         const glm::vec2& getTouchLastPositionScreen(int idx = 0) const { return lastTouchedPositionScreen[idx]; }
 
-		void Update(float dt);
+		void Update();
 
 		void setNativeTouchStatePtr(NativeTouchState* p) { ptr = p; }
 

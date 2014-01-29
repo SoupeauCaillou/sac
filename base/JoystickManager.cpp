@@ -107,7 +107,7 @@ int JoystickManager::eventSDL(void* inEvent) {
     return 0;
 }
 
-void JoystickManager::Update(float) {
+void JoystickManager::Update() {
     #if ! SAC_ANDROID
         unsigned newCount = SDL_NumJoysticks();
 

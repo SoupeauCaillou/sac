@@ -83,7 +83,7 @@ class JoystickManager {
 
         const glm::vec2& getPadDirection(int idx, JoystickPad::Enum pad) const { return joysticks[idx].lastDirection[pad]; }
 
-		void Update(float dt);
+		void Update();
 
 		int eventSDL(void* event);
 	private:
