@@ -13,6 +13,7 @@ set(CXX_FLAGS_RELEASE "-O2")
 if (${BUILD_TARGET} STREQUAL "DEBUG")
     add_definitions(-DSAC_ENABLE_LOG=1)
     add_definitions(-DSAC_DEBUG=1)
+    add_definitions(-DSAC_INGAME_EDITORS=1)
 endif()
 # if (${CMAKE_C_COMPILER} MATCHES "(.*)clang")
     # workaround bug http://llvm.org/bugs/show_bug.cgi?id=12730
