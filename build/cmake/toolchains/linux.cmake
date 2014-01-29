@@ -1,7 +1,7 @@
 add_definitions(-DSAC_DESKTOP=1)
-add_definitions(-DSAC_INGAME_EDITORS=1)
+# add_definitions(-DSAC_INGAME_EDITORS=1)
 add_definitions(-DSAC_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets/")
-add_definitions(-DSAC_ENABLE_PROFILING=1)
+# add_definitions(-DSAC_ENABLE_PROFILING=1)
     # -DSAC_USE_VBO=1)
 
 # Enable '-D_GLIBCXX_DEBUG' to debug stl containers related issues
@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pthread -g -Wall -W ")
 set(CXX_FLAGS_DEBUG "-O0")
 set(CXX_FLAGS_RELEASE "-O2")
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "DEBUG")
+if (${BUILD_TARGET} STREQUAL "DEBUG")
     add_definitions(-DSAC_ENABLE_LOG=1)
     add_definitions(-DSAC_DEBUG=1)
 endif()
