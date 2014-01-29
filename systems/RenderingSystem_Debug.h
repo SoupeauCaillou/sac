@@ -1,4 +1,4 @@
-
+#pragma once
 namespace BatchFlushReason {
     enum Enum {
         NewCamera,
@@ -26,6 +26,7 @@ struct BatchFlushInfo {
     };
 };
 static std::vector<std::pair<BatchFlushInfo, int> > batchSizes;
+static std::vector<std::vector<RenderingSystem::RenderCommand>> batchContent;
 static std::string enumToString(BatchFlushReason::Enum e) {
     switch (e) {
         case BatchFlushReason::NewCamera:
@@ -57,15 +58,15 @@ inline std::ostream& operator<<(std::ostream& stream, const BatchFlushInfo & v) 
             stream << " [ ";
             if (v.newFlags & EnableZWriteBit)
                 stream << "EnableZWriteBit ";
-            if (v.newFlags & DisableZWriteBit)
+            else
                 stream << "DisableZWriteBit ";
             if (v.newFlags & EnableBlendingBit)
                 stream << "EnableBlendingBit ";
-            if (v.newFlags & DisableBlendingBit)
+            else
                 stream << "DisableBlendingBit ";
             if (v.newFlags & EnableColorWriteBit)
                 stream << "EnableColorWriteBit ";
-            if (v.newFlags & DisableColorWriteBit)
+            else
                 stream << "DisableColorWriteBit ";
             stream << "]";
             break;

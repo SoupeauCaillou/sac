@@ -1,3 +1,5 @@
+#pragma once
+
 #include "OpenglHelper.h"
 #include "../../base/Color.h"
 

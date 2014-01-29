@@ -54,6 +54,7 @@ struct RenderingSystem::RenderCommand {
         FramebufferRef framebuffer;
         InternalTexture glref;
     };
+    int atlasIndex;
     glm::vec2 uv[2];
     glm::vec2 halfSize;
     Color color;
@@ -61,6 +62,9 @@ struct RenderingSystem::RenderCommand {
     float rotation;
     int flags, shapeType, vertices;
     bool mirrorH, fbo, rotateUV;
+#if SAC_DEBUG
+    Entity e;
+#endif
 };
 
 struct CameraComponent;

@@ -181,25 +181,49 @@ void RenderingSystem::init() {
 
 // [z][flags][effect][texture][color]
 //   flags:      3 bits
-//   z:         10 bits
 //  effect:      8 bits
-// texture:     11 bits
+// atlasIndex:     8 bits
 //   color:     32 bits
-static uint64_t makeKey(const RenderingSystem::RenderCommand& rc) {
+//   z:         4 bits
+static uint64_t makeKeyOpaque(const RenderingSystem::RenderCommand& rc) {
     uint64_t key = 0;
 
     // end goal is to sort object by key
     // flags:   63...61
     key |= ((uint64_t)(rc.flags & 0x7)) << 61;
-    uint64_t s = (((uint64_t)(rc.zi)) >> 22); // 10 bits
-    // z:       60...51
+    // z:       60...53
+    key |= (((uint64_t)rc.effectRef) & 0xFF) << 53;
+    // texture: 52...45
+    key |= ((uint64_t)rc.atlasIndex & 0xFF) << 45;
+    // color:   44...12
+    key |= ((uint64_t)rc.color.asInt()) << 12;
+    uint64_t s = (((uint64_t)(rc.zi)) >> 20);
+    // z:       11...00
+    s = (~s) & 0x3;
+    key |= s;
+
+    return key;
+}
+
+// [z][flags][effect][texture][color]
+//   z:         13 bits
+//   flags:      3 bits
+//  effect:      8 bits
+// texture:      8 bits
+//   color:     32 bits
+static uint64_t makeKeyBlended(const RenderingSystem::RenderCommand& rc) {
+    uint64_t key = 0;
+
+    // z:       63...51
+    uint64_t s = (((uint64_t)(rc.zi)) >> 19); // 13 bits
     key |= s << 51;
-    // effect:  50..43
-    key |= (((uint64_t)rc.effectRef) & 0xFF) << 43;
-    // texture: 42...32
-    uint64_t t = rc.texture & 0x7FF;
-    key |= ((uint64_t)(rc.texture & 0xFFFF)) << 32;
-    // color:   32...00
+    // flags:   50...48
+    key |= ((uint64_t)(rc.flags & 0x7)) << 48;
+    // effect:  47..40
+    key |= (((uint64_t)rc.effectRef) & 0xFF) << 40;
+    // texture: 39...32
+    key |= ((uint64_t)(rc.atlasIndex & 0xFF)) << 32;
+    // color:   31...00
     key |= rc.color.asInt();
     return key;
 }
@@ -362,7 +386,7 @@ void RenderingSystem::DoUpdate(float) {
 
     		RenderCommand c;
     		c.z = tc->z;
-    		c.texture = rc->texture;
+    		c.texture = c.atlasIndex = rc->texture;
     		c.effectRef = rc->effectRef;
     		c.halfSize = tc->size * 0.5f;
     		c.color = rc->color;
@@ -374,8 +398,12 @@ void RenderingSystem::DoUpdate(float) {
     		c.uv[1] = glm::vec2(1.0f);
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
+#if SAC_DEBUG
+            c.e = a;
+#endif
 
             if (rc->zPrePass) {
+                continue;
 #if SAC_INGAME_EDITORS
                 if (highLight.zPrePass) {
                     c.color.g = c.color.r = 0;
@@ -403,7 +431,7 @@ void RenderingSystem::DoUpdate(float) {
             if (c.texture != InvalidTextureRef && !c.fbo) {
                 const TextureInfo* info = textureLibrary.get(c.texture, false);
                 if (info) {
-                    int atlasIdx = info->atlasIndex;
+                    int atlasIdx = c.atlasIndex = info->atlasIndex;
                     // If atlas texture is not loaded yet, load it
                     if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
                         atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
@@ -423,7 +451,7 @@ void RenderingSystem::DoUpdate(float) {
                         c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
                         !rc->zPrePass &&
-                        (c.halfSize.x * c.halfSize.y * cameraInvSize) > 0.001) {
+                        ((c.halfSize.x * info->opaqueSize.x) * (c.halfSize.y * info->opaqueSize.y) * cameraInvSize) > 0.001) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
 #if SAC_INGAME_EDITORS
@@ -439,7 +467,7 @@ void RenderingSystem::DoUpdate(float) {
                         modifyR(cCenter, info->opaqueStart, info->opaqueSize);
 
                         if (cull(camTrans, cCenter)) {
-                            cCenter.key = makeKey(cCenter);
+                            cCenter.key = makeKeyOpaque(cCenter);
                             opaqueCommands.push_back(cCenter);
                         }
 
@@ -449,7 +477,7 @@ void RenderingSystem::DoUpdate(float) {
                             c.color.a *= 0.6;
                         }
 #endif
-                        c.key = makeKey(c);
+                        c.key = makeKeyBlended(c);
                         semiOpaqueCommands.push_back(c);
                         continue;
                     }
@@ -463,7 +491,7 @@ void RenderingSystem::DoUpdate(float) {
              }
 
             if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
-                c.key = makeKey(c);
+                c.key = makeKeyOpaque(c);
                 opaqueCommands.push_back(c);
             } else {
 #if SAC_INGAME_EDITORS
@@ -472,7 +500,7 @@ void RenderingSystem::DoUpdate(float) {
                     c.color.a *= 0.6;
                 }
 #endif
-                c.key = makeKey(c);
+                c.key = makeKeyBlended(c);
                 semiOpaqueCommands.push_back(c);
             }
         END_FOR_EACH()
@@ -504,12 +532,12 @@ void RenderingSystem::DoUpdate(float) {
             [this, invSize] (const RenderCommand& a) -> void {
             if (a.texture == BeginFrameMarker) return;
             if (a.flags & EnableZWriteBit) {
-                if (a.flags & DisableColorWriteBit) {
-                    renderingStats[2].count++;
-                    renderingStats[2].area += a.halfSize.x * a.halfSize.y * invSize;
-                } else {
+                if (a.flags & EnableColorWriteBit) {
                     renderingStats[0].count++;
                     renderingStats[0].area += a.halfSize.x * a.halfSize.y * invSize;
+                } else {
+                    renderingStats[2].count++;
+                    renderingStats[2].area += a.halfSize.x * a.halfSize.y * invSize;
                 }
             } else {
                 renderingStats[1].count++;

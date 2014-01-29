@@ -234,6 +234,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
     #if SAC_DEBUG
     batchSizes.clear();
+    batchContent.clear();
     #endif
 
     #define TEX chooseTextures(boundTexture, fboRef, useFbo)
@@ -379,7 +380,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
         // TEXTURE OR COLOR HAS CHANGED ?
         const bool condUseFbo = (useFbo != rc.fbo);
-        const bool condTexture = (!rc.fbo && boundTexture != rc.glref);
+        const bool condTexture = (!rc.fbo && boundTexture != rc.glref && (currentFlags & EnableColorWriteBit));
         const bool condFbo = (rc.fbo && fboRef != rc.framebuffer);
         const bool condColor = (currentColor != rc.color);
         if (condUseFbo | condTexture | condFbo | condColor) {
@@ -415,6 +416,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             }
         }
 
+#if SAC_DEBUG
+        batchContent.resize(batchSizes.size() + 1);
+        batchContent[batchSizes.size() - 1].push_back(rc);
+#endif
+
         // ADD TO BATCH
         addRenderCommandToBatch(rc,
             vertices + batchVertexCount,
@@ -444,6 +450,16 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         for (unsigned i=0; i<batchSizes.size(); i++) {
             const auto& p = batchSizes[i];
             LOGI("   # batch " << i << ", size: "<< p.second << ", reason: " << p.first);
+
+            const auto& cnt = batchContent[i];
+            for (unsigned j=0; j<cnt.size(); j++) {
+                const auto& rc = cnt[j];
+                auto tex = RENDERING(rc.e)->texture;
+                LOGI("      > rc " << j << "[" << std::hex << rc.key << "]: '" << theEntityManager.entityName(rc.e)
+                    << "', z:" << rc.z << ", flags:" << std::hex << rc.flags << std::dec
+                    << ", texture: '" << (tex == InvalidTextureRef ? "None" : theRenderingSystem.textureLibrary.ref2Name(tex))
+                    << "', color:" << rc.color);
+            }
         }
     }
     batchSizes.clear();
