@@ -62,16 +62,14 @@ static int drawBatchES2(
     , int batchTriangleCount) {
 
     if (batchTriangleCount > 0) {
-        GL_OPERATION(glActiveTexture(GL_TEXTURE0))
-        // GL_OPERATION(glEnable(GL_TEXTURE_2D)
         GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
 
-        // GL_OPERATION(glEnable(GL_TEXTURE_2D))
         if (firstCall) {
             // GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
         } else {
             GL_OPERATION(glActiveTexture(GL_TEXTURE1))
             GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
+            GL_OPERATION(glActiveTexture(GL_TEXTURE0))
         }
 
 #if SAC_USE_VBO
@@ -96,6 +94,8 @@ static int drawBatchES2(
             batchVertexCount * 2 * sizeof(float), uvs))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, 0, 2 * sizeof(float), 0))
+
+        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
 #else
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, vertices))
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
@@ -103,7 +103,6 @@ static int drawBatchES2(
         GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
 #endif
 
-        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
         // orphan
         GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
             sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_STREAM_DRAW))
@@ -217,7 +216,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     FramebufferRef fboRef = DefaultFrameBufferRef;
     EffectRef currentEffect = InvalidTextureRef;
     Color currentColor(1,1,1,1);
-    int currentFlags = 0;
+    int currentFlags = glState.flags.current;
     bool useFbo = false;
 
     // Batch variable
@@ -229,11 +228,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     LOGV(2, "Begin frame rendering: " << commands.count);
 
     // Setup initial GL state
-    GL_OPERATION(glDepthMask(true))
-    GL_OPERATION(glEnable(GL_DEPTH_TEST))
-    GL_OPERATION(glDepthFunc(GL_GREATER))
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
+    GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 
     #if SAC_DEBUG
     batchSizes.clear();
@@ -268,11 +265,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             FramebufferRef fboRef = camera.cameraAttr.fb;
             if (fboRef == DefaultFrameBufferRef) {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                GL_OPERATION(glViewport(0, 0, windowW, windowH))
+                glState.viewport.update(windowW, windowH);
             } else {
                 const Framebuffer& fb = ref2Framebuffers[fboRef];
                 glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
-                GL_OPERATION(glViewport(0, 0, fb.width, fb.height))
+                glState.viewport.update(fb.width, fb.height);
             }
 
             // setup transformation matrix (based on camera attributes)
@@ -287,14 +284,17 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             // setup initial GL state
             currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, true, currentColor, camViewPerspMatrix);
-            GL_OPERATION(glDepthMask(true))
-            GL_OPERATION(glDisable(GL_BLEND))
+
+            glState.flags.update(OpaqueFlagSet);
+            currentFlags = glState.flags.current;
+            // GL_OPERATION(glDepthMask(true))
+            /*GL_OPERATION(glDisable(GL_BLEND))
             GL_OPERATION(glColorMask(true, true, true, true))
+            currentFlags = OpaqueFlagSet;*/
             if (camera.cameraAttr.clear) {
-                GL_OPERATION(glClearColor(camera.cameraAttr.clearColor.r, camera.cameraAttr.clearColor.g, camera.cameraAttr.clearColor.b, camera.cameraAttr.clearColor.a))
+                glState.clear.update(camera.cameraAttr.clearColor);
                 GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
             }
-            currentFlags = OpaqueFlagSet;
             continue;
         } else if (rc.texture == EndFrameMarker) {
             break;
@@ -309,28 +309,25 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, uvs, indices, batchVertexCount, batchTriangleCount);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
 
-            GL_OPERATION(glDepthMask(rc.flags & EnableZWriteBit))
+            const int flagBitsChanged = glState.flags.update(rc.flags);
 
-            if (rc.flags & EnableBlendingBit) {
-                firstCall = false;
-                GL_OPERATION(glEnable(GL_BLEND))
+            // iff EnableBlendingBit changed
+            if (flagBitsChanged & EnableBlendingBit ) {
+                if (rc.flags & EnableBlendingBit) {
+                    firstCall = false;
+                    if (currentEffect == DefaultEffectRef) {
+                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
+                    }
+                }
+            }
+
+            // iff EnableColorWriteBit changed
+            if (flagBitsChanged & EnableColorWriteBit ) {
                 if (currentEffect == DefaultEffectRef) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
-                }
-            } else {
-                 GL_OPERATION(glDisable(GL_BLEND))
-            }
-
-            const bool colorMask = rc.flags & EnableColorWriteBit;
-
-            GL_OPERATION(glColorMask(colorMask, colorMask, colorMask, colorMask))
-
-            if (currentEffect == DefaultEffectRef) {
-                if ( 1 ||(currentFlags ^ rc.flags) & EnableColorWriteBit ) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, colorMask);
+                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, rc.flags & EnableColorWriteBit);
                 }
             }
-            currentFlags = rc.flags;
+            currentFlags = glState.flags.current;
         }
         // EFFECT HAS CHANGED ?
         if (rc.effectRef != currentEffect) {
@@ -451,6 +448,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     }
     batchSizes.clear();
     #endif
+
+    glState.flags.current = currentFlags;
 }
 
 void RenderingSystem::waitDrawingComplete() {

@@ -18,22 +18,10 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #define EndFrameMarker -10
 #define BeginFrameMarker -12
-
-// Bits values choosen in order to get:
-//    opaque > alpha-blended
-//    z-pre-pass-opaque > opaque
-//    z-pre-pass-alpha-blended > alpha-blended
-//    opaque > z-pre-pass-alpha-blended
-
-#define EnableZWriteBit       0x1
-#define EnableBlendingBit     0x2
-#define EnableColorWriteBit   0x4
 
 // Possible flags
 #define ZPrePassFlagSet       0x1

@@ -39,6 +39,7 @@
 #if SAC_DEBUG
 // #include <GL/glew.h>
 #include <stdint.h>
+#include "opengl/GLState.h"
 #endif
 
 #if SAC_INGAME_EDITORS
@@ -161,13 +162,21 @@ void RenderingSystem::init() {
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
     GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
         sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_STREAM_DRAW))
-    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0))
 
 #if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[1]))
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[2]))
 #endif
+
+    GL_OPERATION(glActiveTexture(GL_TEXTURE0))
+
+    glState.viewport.update(windowW, windowH);
+    glState.clear.update(Color());
+    glState.flags.current = OpaqueFlagSet;
+    GL_OPERATION(glDepthMask(true))
+    GL_OPERATION(glDisable(GL_BLEND))
+    GL_OPERATION(glColorMask(true, true, true, true))
 }
 
 // [z][flags][effect][texture][color]

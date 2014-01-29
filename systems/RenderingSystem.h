@@ -34,6 +34,7 @@
 
 #include "System.h"
 #include "opengl/Polygon.h"
+#include "opengl/GLState.h"
 
 typedef uint8_t FramebufferRef;
 #define DefaultFrameBufferRef 0
@@ -43,6 +44,7 @@ typedef int VerticesRef;
 #define DefaultVerticesRef -1
 
 struct TransformationComponent;
+struct GLState;
 
 struct RenderingComponent {
 	RenderingComponent() :
@@ -209,4 +211,8 @@ public:
         bool runtimeOpaque;
     } highLight;
 #endif
+
+private:
+    // GL state
+    GLState glState;
 };
