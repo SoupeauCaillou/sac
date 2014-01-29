@@ -171,11 +171,29 @@ void RenderingSystem::init() {
 }
 
 // [z][flags][effect][texture][color]
-//   z:         16 bits
 //   flags:      3 bits
-//  effect:      4 bits
-// texture:     16 bits
-//   color:     16 bits
+//   z:         10 bits
+//  effect:      8 bits
+// texture:     11 bits
+//   color:     32 bits
+static uint64_t makeKey(const RenderingSystem::RenderCommand& rc) {
+    uint64_t key = 0;
+
+    // end goal is to sort object by key
+    // flags:   63...61
+    key |= ((uint64_t)(rc.flags & 0x7)) << 61;
+    uint64_t s = (((uint64_t)(rc.zi)) >> 22); // 10 bits
+    // z:       60...51
+    key |= s << 51;
+    // effect:  50..43
+    key |= (((uint64_t)rc.effectRef) & 0xFF) << 43;
+    // texture: 42...32
+    uint64_t t = rc.texture & 0x7FF;
+    key |= ((uint64_t)(rc.texture & 0xFFFF)) << 32;
+    // color:   32...00
+    key |= rc.color.asInt();
+    return key;
+}
 
 
 // The goal of this sort function is to group sprites to reduce OpenGL state changes.
@@ -203,6 +221,7 @@ static bool sortToMinizeStateChanges(const RenderingSystem::RenderCommand& r1, c
 // Note: the sort algorithm sort from min to max, so in this case, r1 < r2
 // means r1.z > r2.z
 static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
+    return r1.key < r2.key;
     static const double EPSILON = 0.0001;
     if (glm::abs(r1.z - r2.z) <= EPSILON) {
         return sortToMinizeStateChanges(r1, r2);
@@ -213,6 +232,7 @@ static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const Rend
 
 // This function is used to sort alpha-blended sprites from back to front.
 static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
+    return r1.key < r2.key;
     static const double EPSILON = 0.0001;
     if (glm::abs(r1.z - r2.z) <= EPSILON) {
         return sortToMinizeStateChanges(r1, r2);
@@ -409,8 +429,10 @@ void RenderingSystem::DoUpdate(float) {
                         // (opaqueStart/Size attributes do not depend on this)
                         modifyR(cCenter, info->opaqueStart, info->opaqueSize);
 
-                        if (cull(camTrans, cCenter))
+                        if (cull(camTrans, cCenter)) {
+                            cCenter.key = makeKey(cCenter);
                             opaqueCommands.push_back(cCenter);
+                        }
 
 #if SAC_INGAME_EDITORS
                         if (highLight.nonOpaque) {
@@ -418,6 +440,7 @@ void RenderingSystem::DoUpdate(float) {
                             c.color.a *= 0.6;
                         }
 #endif
+                        c.key = makeKey(c);
                         semiOpaqueCommands.push_back(c);
                         continue;
                     }
@@ -431,6 +454,7 @@ void RenderingSystem::DoUpdate(float) {
              }
 
             if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
+                c.key = makeKey(c);
                 opaqueCommands.push_back(c);
             } else {
 #if SAC_INGAME_EDITORS
@@ -439,6 +463,7 @@ void RenderingSystem::DoUpdate(float) {
                     c.color.a *= 0.6;
                 }
 #endif
+                c.key = makeKey(c);
                 semiOpaqueCommands.push_back(c);
             }
         END_FOR_EACH()

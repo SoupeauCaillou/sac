@@ -25,6 +25,12 @@
 #define EndFrameMarker -10
 #define BeginFrameMarker -12
 
+// Bits values choosen in order to get:
+//    opaque > alpha-blended
+//    z-pre-pass-opaque > opaque
+//    z-pre-pass-alpha-blended > alpha-blended
+//    opaque > z-pre-pass-alpha-blended
+
 #define EnableZWriteBit       0x1
 #define EnableBlendingBit     0x2
 #define EnableColorWriteBit   0x4
@@ -49,21 +55,24 @@ struct RenderingSystem::RenderQueue {
 };
 
 struct RenderingSystem::RenderCommand {
-    float z;
+    uint64_t key;
+    union {
+        float z;
+        int zi;
+    };
     EffectRef effectRef;
     union {
         TextureRef texture;
         FramebufferRef framebuffer;
         InternalTexture glref;
     };
-    bool rotateUV;
     glm::vec2 uv[2];
     glm::vec2 halfSize;
     Color color;
     glm::vec2 position;
     float rotation;
     int flags, shapeType, vertices;
-    bool mirrorH, fbo;
+    bool mirrorH, fbo, rotateUV;
 };
 
 struct CameraComponent;
