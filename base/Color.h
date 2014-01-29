@@ -56,6 +56,8 @@ struct Color {
     bool operator<(const Color& c) const;
     bool operator>(const Color& c) const;
 
+    uint32_t asInt() const;
+
     bool isGrey(float epsilon = 0.001f) const;
 
     void reducePrecision(float maxPrecision);

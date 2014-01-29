@@ -89,6 +89,15 @@ bool Color::operator==(const Color& c) const {
 	return (memcmp(rgba, c.rgba, sizeof(rgba))==0);
 }
 
+uint32_t Color::asInt() const {
+    uint32_t result =
+        ((((uint32_t)(r * 255))& 0xFF) << 24)
+        | ((((uint32_t)(g * 255))& 0xFF) << 16)
+        | ((((uint32_t)(b * 255))& 0xFF) << 8)
+        | (((uint32_t)(a * 255))& 0xFF);
+    return result;
+}
+
 bool Color::isGrey(float epsilon) const {
 	return (glm::abs(r - g) < epsilon) &&
 		(glm::abs(r -b) < epsilon) &&
