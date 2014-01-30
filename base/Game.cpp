@@ -429,7 +429,7 @@ void Game::step() {
     theJoystickManager.Update();
 #endif
     float timeBeforeThisStep = TimeUtil::GetTime();
-    float delta = timeBeforeThisStep - lastUpdateTime;
+    float delta = timestep.smooth(timeBeforeThisStep - lastUpdateTime);
 
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;

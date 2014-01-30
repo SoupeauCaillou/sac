@@ -27,6 +27,7 @@
 #include <vector>
 #include <set>
 #include "GameContext.h"
+#include "TimestepSmoother.h"
 
 class AssetApi;
 class ComponentSystem;
@@ -70,6 +71,7 @@ class Game {
 		void loadFont(AssetAPI* asset, const std::string& name);
     private:
         virtual void tick(float dt) = 0;
+        TimestepSmoother timestep;
 
     public:
         GameContext* gameThreadContext, *renderThreadContext;
