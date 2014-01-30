@@ -1,6 +1,7 @@
 set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/build/cmake/toolchains/android.toolchain.cmake)
 
 ADD_DEFINITIONS(-DSAC_MOBILE=1)
+ADD_DEFINITIONS(-DSAC_USE_VBO=1)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -W")
