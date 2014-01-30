@@ -630,7 +630,7 @@ static bool loadSingleProperty(const std::string& context,
             break;
         }
         default:
-            LOGW("Unhandled property type: " << type << " for '" << name << "'");
+            LOGW("Property '" << name << "' uses unhandled type " << type);
             break;
     }
     #undef LOAD_INTERVAL_TEMPL

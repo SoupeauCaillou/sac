@@ -431,8 +431,6 @@ void Game::step() {
 
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
-    LOGI_EVERY_N(60, "dt=" << delta);
-    LOGV(2, "dt = " << delta);
 
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
