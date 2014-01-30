@@ -33,14 +33,14 @@ Polygon Polygon::create(Shape::Enum e) {
 			p.indices.push_back(0);
             p.indices.push_back(1);
             p.indices.push_back(2);
-			p.indices.push_back(1);
 			p.indices.push_back(3);
-			p.indices.push_back(2);
+			// p.indices.push_back(3);
+			// p.indices.push_back(2);
 			// 2 triangles -> 4 vertices
-			p.vertices.push_back(glm::vec2(-0.5, -0.5));
-			p.vertices.push_back(glm::vec2(0.5, -0.5));
-			p.vertices.push_back(glm::vec2(-0.5, 0.5));
-			p.vertices.push_back(glm::vec2(0.5, 0.5));
+			p.vertices.push_back(glm::vec2(-0.5, -0.5)); //a
+			p.vertices.push_back(glm::vec2(0.5, -0.5)); // c
+			p.vertices.push_back(glm::vec2(-0.5, 0.5)); // b
+			p.vertices.push_back(glm::vec2(0.5, 0.5)); // d
 			break;
 		case Shape::Triangle:
 			// 1 triangle -> 3 indices
@@ -53,12 +53,19 @@ Polygon Polygon::create(Shape::Enum e) {
 			p.vertices.push_back(glm::vec2(0, 0.5));
 			break;
 		case Shape::Hexagon:
-			// 6 triangles -> 18 indices
-			for (int i = 1; i <= 6; ++i) {
-				p.indices.push_back(0);
-				p.indices.push_back(i);
-				p.indices.push_back((i < 6) ? (i + 1) : 1);
-			}
+            // top half
+			p.indices.push_back(1);
+            p.indices.push_back(2);
+            p.indices.push_back(0);
+            p.indices.push_back(3);
+            p.indices.push_back(4);
+            // bottom half
+            p.indices.push_back(4);
+            p.indices.push_back(5);
+            p.indices.push_back(0);
+            p.indices.push_back(6);
+            p.indices.push_back(1);
+
 			// 6 triangles -> 7 vertices
 			p.vertices.push_back(glm::vec2(0));
 			for (int i = 0; i<6; ++i) {
@@ -69,7 +76,7 @@ Polygon Polygon::create(Shape::Enum e) {
 		default:
 			LOGF("Shape::Enum not handled: " << e);
 	}
-	LOGF_IF(p.indices.size() % 3, "Shapes are drawn as triangles, so indices count must be 3N. Invalid value for shape " << e << ":" << p.indices.size());
+	// LOGF_IF(p.indices.size() % 3, "Shapes are drawn as triangles, so indices count must be 3N. Invalid value for shape " << e << ":" << p.indices.size());
 	return p;
 }
 
