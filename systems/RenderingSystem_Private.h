@@ -36,8 +36,20 @@
 #define C_RENDER_DONE 0
 #define C_FRAME_READY 1
 
+namespace RenderQueueState
+{
+    enum Enum {
+        NotReady = 0,
+        WaitingRendering,
+        Rendering,
+        RenderingDone
+    };
+}
+
 struct RenderingSystem::RenderQueue {
-    RenderQueue() : count(0) {}
+    RenderQueue() : state(RenderQueueState::NotReady), count(0) {}
+
+    RenderQueueState::Enum state;
     uint16_t count;
     std::vector<RenderCommand> commands;
 };

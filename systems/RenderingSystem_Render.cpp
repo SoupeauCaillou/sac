@@ -457,9 +457,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             const auto& cnt = batchContent[i];
             for (unsigned j=0; j<cnt.size(); j++) {
+                const auto& rc = cnt[j];
                 if (!rc.e)
                     continue;
-                const auto& rc = cnt[j];
                 auto tex = RENDERING(rc.e)->texture;
                 LOGI("      > rc " << j << "[" << std::hex << rc.key << "]: '" << theEntityManager.entityName(rc.e)
                     << "', z:" << rc.z << ", flags:" << std::hex << rc.flags << std::dec
@@ -477,11 +477,20 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 void RenderingSystem::waitDrawingComplete() {
 #if ! SAC_EMSCRIPTEN
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
-    int readQueue = (currentWriteQueue + 1) % 2;
+
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
-    while (renderQueue[readQueue].count > 0 && frameQueueWritable)
+    if (nextFrameQueue.size() < 2)
+        return;
+
+    int waitOn = nextFrameQueue.front();
+    while (renderQueue[waitOn].state != RenderQueueState::RenderingDone
+        && frameQueueWritable) {
         cond[C_RENDER_DONE].wait(lock);
-    lock.unlock();
+    }
+
+    renderQueue[waitOn].state = RenderQueueState::NotReady;
+    nextFrameQueue.pop();
+
     PROFILE("Renderer", "wait-drawing-donE", EndEvent);
 #endif
 }
@@ -492,52 +501,62 @@ void RenderingSystem::render() {
         return;
     PROFILE("Renderer", "wait-frame", BeginEvent);
 
+    // Lock
     std::unique_lock<std::mutex> lock(mutexes[L_QUEUE]);
-    // processDelayedTextureJobs();
-    while (!newFrameReady && frameQueueWritable) {
+
+    // Wait for Game-Thread to produce a frame to render
+    while (frameQueueWritable) {
+        int next = nextFrameQueue.front();
+        if (renderQueue[next].state == RenderQueueState::WaitingRendering)
+            break;
         cond[C_FRAME_READY].wait(lock);
     }
 #endif
-    int readQueue = (currentWriteQueue + 1) % 2;
-    newFrameReady = false;
+
+    // Handle special case (shutdown, etc)
     if (!frameQueueWritable) {
-        LOGV(1, "Rendering disabled");
-        renderQueue[readQueue].count = 0;
-#if ! SAC_EMSCRIPTEN
-        lock.unlock();
-#endif
         return;
     }
+
+    // A frame is ready
+    int nextFrame = nextFrameQueue.front();
+
+    LOGF_IF(renderQueue[nextFrame].state != RenderQueueState::WaitingRendering,
+        "RenderQueue " << nextFrame << " inconsistancy. State is " << renderQueue[nextFrame].state
+        << ". Expected " << RenderQueueState::WaitingRendering);
+
+    // Release lock
 #if ! SAC_EMSCRIPTEN
     lock.unlock();
     PROFILE("Renderer", "wait-frame", EndEvent);
 #endif
+
     PROFILE("Renderer", "load-textures", BeginEvent);
     processDelayedTextureJobs();
-#if SAC_ENABLE_LOG && ! SAC_EMSCRIPTEN
-    //float aftertexture= TimeUtil::GetTime();
-#endif
     PROFILE("Renderer", "load-textures", EndEvent);
+
+    // Lock render-mutex
 #if ! SAC_EMSCRIPTEN
-    if (!mutexes[L_RENDER].try_lock()) {
-        LOGV(1, "HMM Busy render lock");
-        mutexes[L_RENDER].lock();
-    }
+    mutexes[L_RENDER].lock();
 #endif
 
+    LOGW_IF(renderQueue[nextFrame].count == 0, "nothing to render - probably a bug (queue=" << nextFrame << ')');
+
+    // Render
     PROFILE("Renderer", "render", BeginEvent);
-    if (renderQueue[readQueue].count == 0) {
-        LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')');
-    } else {
-        RenderQueue& inQueue = renderQueue[readQueue];
-        drawRenderCommands(inQueue);
-        inQueue.count = 0;
-    }
+    RenderQueue& inQueue = renderQueue[nextFrame];
+    drawRenderCommands(inQueue);
+    inQueue.count = 0;
+    inQueue.state = RenderQueueState::RenderingDone;
+    PROFILE("Renderer", "render", EndEvent);
+
+    // Notify that drawing is done
 #if ! SAC_EMSCRIPTEN
     cond[C_RENDER_DONE].notify_all();
     mutexes[L_RENDER].unlock();
 #endif
-    PROFILE("Renderer", "render", EndEvent);
+
+    // Draw debug UI
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();
     TwDraw();

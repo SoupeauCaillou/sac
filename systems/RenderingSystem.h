@@ -24,6 +24,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <queue>
 
 #include "opengl/OpenglHelper.h"
 #include "opengl/TextureLibrary.h"
@@ -164,8 +165,8 @@ public:
     std::map<std::string, FramebufferRef> nameToFramebuffer;
     std::map<FramebufferRef, Framebuffer> ref2Framebuffers;
 
-    bool newFrameReady, frameQueueWritable;
-    int currentWriteQueue;
+    std::queue<int> nextFrameQueue;
+    bool frameQueueWritable;
     RenderQueue* renderQueue;
 
     TextureLibrary textureLibrary;

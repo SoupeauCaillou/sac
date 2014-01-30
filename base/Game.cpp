@@ -421,14 +421,13 @@ void Game::step() {
     theEntityManager.entityTemplateLibrary.updateReload();
 #endif
 
+    theRenderingSystem.waitDrawingComplete();
+
     theTouchInputManager.Update();
 
 #if !SAC_MOBILE
     theJoystickManager.Update();
 #endif
-
-    theRenderingSystem.waitDrawingComplete();
-
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
 

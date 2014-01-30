@@ -50,9 +50,7 @@ INSTANCE_IMPL(RenderingSystem);
 
 RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
     nextValidFBRef = 1;
-    currentWriteQueue = 0;
     frameQueueWritable = false;
-    newFrameReady = false;
 #if ! SAC_EMSCRIPTEN
     mutexes = new std::mutex[3];
     cond = new std::condition_variable[2];
@@ -74,7 +72,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;
 
-    renderQueue = new RenderQueue[2];
+    renderQueue = new RenderQueue[3];
 
     for (unsigned i=0; i<Shape::Count; i++) {
         shapes.push_back(Polygon::create((Shape::Enum)i));
@@ -310,11 +308,16 @@ void RenderingSystem::DoUpdate(float) {
 #endif
 
 #if SAC_DEBUG
-    static unsigned int cccc = 0;
+    static unsigned int _frameID = 0;
 #endif
-    RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
-    LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
+    // Prepare next render queue
+    int nextRenderQueue = (nextFrameQueue.empty() ? 0 : (nextFrameQueue.back() + 1) % 3);
+    RenderQueue& outQueue = renderQueue[nextRenderQueue];
+
+    LOGF_IF(outQueue.state != RenderQueueState::NotReady,
+        "RenderQueue " << nextRenderQueue << " inconsistancy. State is " << outQueue.state
+        << ". Expected " << RenderQueueState::NotReady);
 
     // retrieve all cameras
     std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
@@ -518,33 +521,35 @@ void RenderingSystem::DoUpdate(float) {
     RenderCommand dummy;
     dummy.texture = EndFrameMarker;
 #if SAC_DEBUG
-    dummy.rotateUV = cccc;
+    dummy.rotateUV = _frameID;
 #endif
     if (outQueue.commands.size() <= outQueue.count)
         outQueue.commands.push_back(dummy);
     else
         outQueue.commands[outQueue.count] = dummy;
     outQueue.count++;
-    // outQueue.count++;
+
 #if SAC_DEBUG
     std::stringstream framename;
-    framename << "create-frame-" << cccc;
+    framename << "create-frame-" << _frameID;
     PROFILE("Render", framename.str(), InstantEvent);
-    cccc++;
+    _frameID++;
 #endif
+
+    // Mark render queue as ready
+    outQueue.state = RenderQueueState::WaitingRendering;
 
 #if ! SAC_EMSCRIPTEN
     // Lock to not change queue while ther thread is reading it
-    mutexes[L_RENDER].lock();
+    std::unique_lock<std::mutex> lock1(mutexes[L_RENDER]);
     // Lock for notifying queue change
-    mutexes[L_QUEUE].lock();
+    std::unique_lock<std::mutex> lock2(mutexes[L_QUEUE]);
 #endif
-    currentWriteQueue = (currentWriteQueue + 1) % 2;
-    newFrameReady = true;
+
+    nextFrameQueue.push(nextRenderQueue);
+
 #if ! SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();
-    mutexes[L_QUEUE].unlock();
-    mutexes[L_RENDER].unlock();
 #endif
 }
 
