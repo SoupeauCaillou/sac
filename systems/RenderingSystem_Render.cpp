@@ -37,6 +37,9 @@
 #include "RenderingSystem_Debug.h"
 #endif
 
+#define MAX_VERTEX_COUNT 512
+#define MAX_INDICE_COUNT 1024
+
 struct VertexData {
     glm::vec3 position;
     glm::vec2 uv;
@@ -82,7 +85,7 @@ static int drawBatchES2(
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
         // orphan previous storage
         GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
-            MAX_BATCH_TRIANGLE_COUNT * 3 * sizeof(VertexData), 0, GL_STREAM_DRAW))
+            MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
         // update buffer
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
             batchVertexCount * sizeof(VertexData), vertices))
@@ -102,7 +105,7 @@ static int drawBatchES2(
 
         // orphan
         GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 4, 0, GL_STREAM_DRAW))
+            sizeof(unsigned short) * MAX_INDICE_COUNT, 0, GL_STREAM_DRAW))
         // update
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
             (indiceCount - 2) /*batchTriangleCount * 3*/ * sizeof(unsigned short), &indices[1]))
@@ -153,14 +156,12 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
 }
 
 static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand& rc,
+    const Polygon& polygon,
     VertexData* outVertices,
     unsigned short* outIndices,
     unsigned* verticesCount,
     unsigned* triangleCount,
     unsigned* indiceCount) {
-
-    // lookup shape
-    const Polygon& polygon = theRenderingSystem.shapes[rc.shapeType];
 
     // vertices
     const std::vector<glm::vec2>& vert =
@@ -203,8 +204,8 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, b
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // Worst case scenario: 3 vertices per triangle (no shared vertices)
-    static VertexData vertices[MAX_BATCH_TRIANGLE_COUNT * 3];
-    static unsigned short indices[MAX_BATCH_TRIANGLE_COUNT * 4];
+    static VertexData vertices[MAX_VERTEX_COUNT];
+    static unsigned short indices[MAX_INDICE_COUNT];
 
     unsigned indiceCount = 0;
     // Rendering state
@@ -421,18 +422,22 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         batchContent[batchSizes.size() - 1].push_back(rc);
 #endif
 
-        // ADD TO BATCH
-        addRenderCommandToBatch(rc,
-            vertices + batchVertexCount,
-            indices + indiceCount,
-            &batchVertexCount, &batchTriangleCount, &indiceCount);
+        // lookup shape
+        const Polygon& polygon = theRenderingSystem.shapes[rc.shapeType];
 
-        if ((batchTriangleCount + 6) >= MAX_BATCH_TRIANGLE_COUNT) {
+        if (((batchVertexCount + polygon.vertices.size()) >= MAX_VERTEX_COUNT) | ((indiceCount + polygon.indices.size()) >= MAX_INDICE_COUNT)) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::Full, batchTriangleCount));
             #endif
             indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount);
         }
+
+        // ADD TO BATCH
+        addRenderCommandToBatch(rc,
+            polygon,
+            vertices + batchVertexCount,
+            indices + indiceCount,
+            &batchVertexCount, &batchTriangleCount, &indiceCount);
     }
     #if SAC_DEBUG
     batchSizes.push_back(std::make_pair(BatchFlushReason::End, batchTriangleCount));
@@ -452,6 +457,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             const auto& cnt = batchContent[i];
             for (unsigned j=0; j<cnt.size(); j++) {
+                if (!rc.e)
+                    continue;
                 const auto& rc = cnt[j];
                 auto tex = RENDERING(rc.e)->texture;
                 LOGI("      > rc " << j << "[" << std::hex << rc.key << "]: '" << theEntityManager.entityName(rc.e)

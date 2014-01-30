@@ -78,9 +78,3 @@ void unpackCameraAttributes(
     const RenderingSystem::RenderCommand& in,
     TransformationComponent* cameraTrans,
     CameraComponent* cameraComp);
-
-#if SAC_USE_VBO
-#define MAX_BATCH_TRIANGLE_COUNT 128
-#else
-#define MAX_BATCH_TRIANGLE_COUNT 128
-#endif

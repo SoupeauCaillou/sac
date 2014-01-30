@@ -160,8 +160,6 @@ void RenderingSystem::init() {
 
     // create a VBO for indices
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
-    GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(unsigned short) * MAX_BATCH_TRIANGLE_COUNT * 3, 0, GL_STREAM_DRAW))
 
 #if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
@@ -480,6 +478,9 @@ void RenderingSystem::DoUpdate(float) {
 
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
+#if SAC_DEBUG
+        dummy.e = 0;
+#endif
         packCameraAttributes(camTrans, camComp, dummy);
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
