@@ -214,11 +214,11 @@ static uint64_t makeKeyOpaque(const RenderingSystem::RenderCommand& rc) {
 static uint64_t makeKeyBlended(const RenderingSystem::RenderCommand& rc) {
     uint64_t key = 0;
 
-    // z:       63...51
-    uint64_t s = (((uint64_t)(rc.zi)) >> 18); // 14 bits, but we remove the leading sign bit
-    key |= s << 51;
+    // z:       63...48
+    uint64_t s = (((uint64_t)(rc.zi)) >> 15); // 14 bits, but we remove the leading sign bit
+    key |= s << 48;
     // flags:   50...48
-    key |= ((uint64_t)(rc.flags & 0x7)) << 48;
+    // key |= ((uint64_t)(rc.flags & 0x7)) << 48;
     // effect:  47..40
     key |= (((uint64_t)rc.effectRef) & 0xFF) << 40;
     // texture: 39...32

@@ -427,7 +427,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             indices + indiceCount,
             &batchVertexCount, &batchTriangleCount, &indiceCount);
 
-        if (batchTriangleCount >= 2) {//(batchTriangleCount + 6) >= MAX_BATCH_TRIANGLE_COUNT) {
+        if ((batchTriangleCount + 6) >= MAX_BATCH_TRIANGLE_COUNT) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::Full, batchTriangleCount));
             #endif
