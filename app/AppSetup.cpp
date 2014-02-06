@@ -158,6 +158,28 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
         return 1;
     }
 
+    // hard coded icon path
+    {
+        std::stringstream iconPath;
+        iconPath << SAC_ASSETS_DIR << "../res/drawable-hdpi/ic_launcher.png";
+        AssetAPILinuxImpl api;
+        FileBuffer fb = api.loadFile(iconPath.str());
+        if (fb.size) {
+            ImageDesc image = ImageLoader::loadPng(iconPath.str(), fb);
+            SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(image.datas,
+                image.width, image.height,
+                image.channels * 8,
+                image.width * image.channels,
+                0xFF << 00, 0xFF << 8, 0xFF << 16, 0xFF << 24
+                );
+
+            SDL_WM_SetIcon(surf, NULL);
+            SDL_FreeSurface(surf);
+            delete[] fb.data;
+            delete[] image.datas;
+        }
+    }
+
     //display git revision if available
     #ifdef SAC_REVISION_TAG
         SDL_WM_SetCaption((title + " " + SAC_REVISION_TAG).c_str(), 0);
