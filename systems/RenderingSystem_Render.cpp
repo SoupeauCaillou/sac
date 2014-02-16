@@ -457,9 +457,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             const auto& cnt = batchContent[i];
             for (unsigned j=0; j<cnt.size(); j++) {
+                const auto& rc = cnt[j];
                 if (!rc.e)
                     continue;
-                const auto& rc = cnt[j];
                 auto tex = RENDERING(rc.e)->texture;
                 LOGI("      > rc " << j << "[" << std::hex << rc.key << "]: '" << theEntityManager.entityName(rc.e)
                     << "', z:" << rc.z << ", flags:" << std::hex << rc.flags << std::dec
