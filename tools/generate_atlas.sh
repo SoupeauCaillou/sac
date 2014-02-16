@@ -32,8 +32,10 @@ hasPVRTool=false
 if hash PVRTexToolCL 2>/dev/null; then
     info "PVRTexToolCL found."
     hasPVRTool=true
+    dpis="hdpi mdpi ldpi"
 else
     info "Warning: PVRTexToolCL not found -> compressed format won't be created" $orange
+    dpis="hdpi"
 fi
 
 current=0
@@ -51,8 +53,9 @@ for directory_path in $@; do
     fi
 
     divide_by=1
+
     TMP_FILEDIR=$(mktemp)
-    for quality in "hdpi" "mdpi" "ldpi"; do
+    for quality in ${dpis}; do
         info "Generate $quality atlas"
         
         ############# STEP 1: preparation
