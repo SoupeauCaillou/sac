@@ -212,7 +212,6 @@ void CollisionSystem::DoUpdate(float dt) {
                     };
                     const glm::vec2 s1 = TRANSFORM(refEntity)->size * 1.01f;
 
-                    float minT = 1.0;
                     for (auto collision: collisionDuringTheFrame) {
                         const glm::vec2 p2[] = {
                             COLLISION(collision.other)->previousPosition,
@@ -225,34 +224,25 @@ void CollisionSystem::DoUpdate(float dt) {
                         const glm::vec2 s2 = TRANSFORM(collision.other)->size * 1.01f;
 
                         // resolve collision, and keep only 1
-                        collision.t = 0.5;
-                        float step = 0.25;
-                        int iteration = 10;
+                        Interval<float> timing (0, 1);
+                        int iteration = 5;
                         do {
-                            glm::vec2 _pos1 = glm::lerp(p1[0], p1[1], collision.t);
-                            float _r1 = glm::lerp(r1[0], r1[1], collision.t);
-                            glm::vec2 _pos2 = glm::lerp(p2[0], p2[1], collision.t);
-                            float _r2 = glm::lerp(r2[0], r2[1], collision.t);
+                            const float t = timing.lerp(0.5);
+                            glm::vec2 _pos1 = glm::lerp(p1[0], p1[1], t);
+                            float _r1 = glm::lerp(r1[0], r1[1], t);
+                            glm::vec2 _pos2 = glm::lerp(p2[0], p2[1], t);
+                            float _r2 = glm::lerp(r2[0], r2[1], t);
 
                             if (IntersectionUtil::rectangleRectangle(
                                 _pos1, s1, _r1,
                                 _pos2, s2, _r2)) {
-                                collision.t -= step;
+                                timing.t2 = t;
                             } else {
-                                collision.t += step;
-                                if (collision.t > minT)
-                                    break;
+                                timing.t1 = t;
                             }
-                            step *= 0.5;
 
                             if (--iteration == 0) {
-                                /*
-                                LOGI(t);
-                                TRANSFORM(refEntity)->position = _pos1;
-                                TRANSFORM(refEntity)->rotation = _r1;
-                                TRANSFORM(collision.other)->position = _pos2;
-                                TRANSFORM(collision.other)->rotation = _r2;
-                                */
+                                collision.t = timing.t1;
                                 break;
                             }
                         } while (true);

@@ -153,7 +153,6 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(AutoDestroySystem::GetInstancePointer());
     ADD_IF_EXISTING(AutonomousAgentSystem::GetInstancePointer());
     ADD_IF_EXISTING(ButtonSystem::GetInstancePointer());
-    ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
     ADD_IF_EXISTING(ContainerSystem::GetInstancePointer());
     ADD_IF_EXISTING(DebuggingSystem::GetInstancePointer());
     ADD_IF_EXISTING(GraphSystem::GetInstancePointer());
@@ -162,6 +161,7 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
     ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
+    ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
     ADD_IF_EXISTING(ScrollingSystem::GetInstancePointer());
     ADD_IF_EXISTING(SoundSystem::GetInstancePointer());
     ADD_IF_EXISTING(SpotSystem::GetInstancePointer());
