@@ -33,6 +33,8 @@ inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
     return stream << v.x << ", " << v.y;
 }
 
+#define __(var) #var <<':' << var
+
 #undef ERROR
 #include <map>
 
