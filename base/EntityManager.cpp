@@ -189,6 +189,11 @@ void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool failIfA
 	entityComponents[e].push_back(system);
 }
 
+void EntityManager::RemoveComponent(Entity e, ComponentSystem* system) {
+    system->Delete(e);
+    entityComponents[e].remove(system);
+}
+
 void EntityManager::deleteAllEntities() {
     std::vector<Entity> entities = allEntities();
     for (auto it=entities.rbegin(); it!=entities.rend(); ++it)
