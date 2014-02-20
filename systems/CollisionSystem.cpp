@@ -202,26 +202,31 @@ void CollisionSystem::DoUpdate(float dt) {
                     collisionDuringTheFrame);
 
                 if (!collisionDuringTheFrame.empty()) {
+                    auto* cc = COLLISION(refEntity);
+                    auto* tc = TRANSFORM(refEntity);
+
                     const glm::vec2 p1[] = {
-                        COLLISION(refEntity)->previousPosition,
-                        TRANSFORM(refEntity)->position
+                        cc->previousPosition,
+                        tc->position
                     };
                     const float r1[] = {
-                        COLLISION(refEntity)->previousRotation,
-                        TRANSFORM(refEntity)->rotation
+                        cc->previousRotation,
+                        tc->rotation
                     };
-                    const glm::vec2 s1 = TRANSFORM(refEntity)->size * 1.01f;
+                    const glm::vec2 s1 = tc->size * 1.01f;
 
                     for (auto collision: collisionDuringTheFrame) {
+                        const auto* cc2 = COLLISION(collision.other);
+                        const auto* tc2 = TRANSFORM(collision.other);
                         const glm::vec2 p2[] = {
-                            COLLISION(collision.other)->previousPosition,
-                            TRANSFORM(collision.other)->position
+                            cc2->previousPosition,
+                            tc2->position
                         };
                         const float r2[2] = {
-                            COLLISION(collision.other)->previousRotation,
-                            TRANSFORM(collision.other)->rotation
+                            cc2->previousRotation,
+                            tc2->rotation
                         };
-                        const glm::vec2 s2 = TRANSFORM(collision.other)->size * 1.01f;
+                        const glm::vec2 s2 = tc2->size * 1.01f;
 
                         // resolve collision, and keep only 1
                         Interval<float> timing (0, 1);
@@ -258,26 +263,29 @@ void CollisionSystem::DoUpdate(float dt) {
                     collisionDuringTheFrame.resize(1);
 
                     const Coll& collision = collisionDuringTheFrame[0];
+                    auto* cc2 = COLLISION(collision.other);
+                    auto* tc2 = TRANSFORM(collision.other);
+
                     const glm::vec2 p2[] = {
-                        COLLISION(collision.other)->previousPosition,
-                        TRANSFORM(collision.other)->position
+                        cc2->previousPosition,
+                        tc2->position
                     };
                     const float r2[2] = {
-                        COLLISION(collision.other)->previousRotation,
-                        TRANSFORM(collision.other)->rotation
+                        cc2->previousRotation,
+                        tc2->rotation
                     };
 
-                    if (COLLISION(refEntity)->restorePositionOnCollision) {
-                        TRANSFORM(refEntity)->position = glm::lerp(p1[0], p1[1], collision.t);
-                        TRANSFORM(refEntity)->rotation = glm::lerp(r1[0], r1[1], collision.t);
+                    if (cc->restorePositionOnCollision && cc->prevPositionIsValid) {
+                        tc->position = glm::lerp(p1[0], p1[1], collision.t);
+                        tc->rotation = glm::lerp(r1[0], r1[1], collision.t);
                     }
-                    COLLISION(refEntity)->collidedWithLastFrame = collision.other;
+                    cc->collidedWithLastFrame = collision.other;
 
-                    if (COLLISION(collision.other)->restorePositionOnCollision) {
-                        TRANSFORM(collision.other)->position = glm::lerp(p2[0], p2[1], collision.t);
-                        TRANSFORM(collision.other)->rotation = glm::lerp(r2[0], r2[1], collision.t);
+                    if (cc2->restorePositionOnCollision && cc2->prevPositionIsValid) {
+                        tc2->position = glm::lerp(p2[0], p2[1], collision.t);
+                        tc2->rotation = glm::lerp(r2[0], r2[1], collision.t);
                     }
-                    COLLISION(collision.other)->collidedWithLastFrame = refEntity;
+                    cc2->collidedWithLastFrame = refEntity;
                     LOGV(2, "Collision: " << theEntityManager.entityName(refEntity) << " -> " << theEntityManager.entityName(collision.other));
                 }
             }
@@ -376,6 +384,7 @@ void CollisionSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
         cc->previousPosition = TRANSFORM(entity)->position;
         cc->previousRotation = TRANSFORM(entity)->rotation;
+        cc->prevPositionIsValid = true;
     END_FOR_EACH()
 }
 
