@@ -40,6 +40,8 @@ std::map<std::string, bool> verboseFilenameFilters;
 
 class NullStream : public std::ostream {
 public:
+	NullStream(std::basic_streambuf<char, std::char_traits<char>> *t = 0) : std::ostream(t) {}
+
     template<class T>
     std::ostream& operator<<(const T& ) {
         return *this;

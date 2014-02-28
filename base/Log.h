@@ -83,6 +83,10 @@ static const android_LogPriority level2prio[] {
 #define SAC_LOG_POST
 #endif
 
+#if SAC_WINDOWS
+#define __PRETTY_FUNCTION__ __FUNCTION__
+#endif
+
 #define __LOG(level, x) \
     if ((int)logLevel >= (int)level) {\
         SAC_LOG_PRE \

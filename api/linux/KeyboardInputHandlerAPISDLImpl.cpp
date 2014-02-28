@@ -30,7 +30,7 @@
 #include "base/EntityManager.h"
 #include "base/Log.h"
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 void KeyboardInputHandlerAPIGLFWImpl::update() {
     //each dt, if the key is pressed, call the function

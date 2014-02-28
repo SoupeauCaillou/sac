@@ -24,7 +24,7 @@
 
 #include "base/Log.h"
 
-#include "SDL/SDL.h"
+#include "SDL.h"
 
 void StringInputAPISDLImpl::askUserInput(const std::string& initialText, const int imaxSize) {
     LOGI("Please enter something...");

@@ -20,7 +20,6 @@
 
 #include "OpenURLAPILinuxImpl.h"
 #include <cstdlib>
-#include <unistd.h>
 
 #include "../../base/Log.h"
 

@@ -460,6 +460,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 const auto& rc = cnt[j];
                 if (!rc.e)
                     continue;
+
                 auto tex = RENDERING(rc.e)->texture;
                 LOGI("      > rc " << j << "[" << std::hex << rc.key << "]: '" << theEntityManager.entityName(rc.e)
                     << "', z:" << rc.z << ", flags:" << std::hex << rc.flags << std::dec

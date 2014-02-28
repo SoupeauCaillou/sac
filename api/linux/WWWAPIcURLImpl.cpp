@@ -26,7 +26,7 @@
 
 #include "api/AssetAPI.h"
 
-#if ! SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN && ! SAC_WINDOWS
 #include <curl/curl.h>
 #include <curl/easy.h>
 #endif
@@ -42,7 +42,7 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FileBuffer *fb) {
 }
 
 FileBuffer WWWAPIcURLImpl::downloadFile(const std::string &url) {
-#if ! SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN && ! SAC_WINDOWS
     //check url
     unsigned found = url.find_last_of("/");
     //if url ends with a '/' or there is no '/' at all, it's a bad url

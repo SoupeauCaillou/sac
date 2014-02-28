@@ -24,7 +24,7 @@
 #include "Recorder.h"
 #include <iostream>
 #include <ctime>
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <cstring>
 #include <string>
 #include <sstream>

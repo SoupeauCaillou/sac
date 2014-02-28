@@ -165,11 +165,13 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                 break;
             case PropertyType::Texture:
                 TwAddVarCB(bar, varName(name, vname).c_str(),
-                    TW_TYPE_STDSTRING, textureSetCB, textureGetCB, comp + prop->offset, varParams(group, vname).c_str());
+					TW_TYPE_STDSTRING, (TwSetVarCallback)textureSetCB, (TwGetVarCallback)textureGetCB, 
+					comp + prop->offset, varParams(group, vname).c_str());
                 break;
             case PropertyType::Entity:
                 TwAddVarCB(bar, varName(name, vname).c_str(),
-                    TW_TYPE_STDSTRING, 0, entityGetCB, comp + prop->offset, varParams(group, vname).c_str());
+					TW_TYPE_STDSTRING, 0, (TwGetVarCallback)entityGetCB, 
+					comp + prop->offset, varParams(group, vname).c_str());
                 break;
             default:
                 break;

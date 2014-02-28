@@ -461,7 +461,8 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     memcpy(&l, (*it).second, sizeof(int));
                     bool toLocalize;
                     memcpy(&toLocalize, (*it).second + sizeof(int), sizeof(bool));
-                    char tmp[l];
+					LOGT("To be changed, previously it was tmp[l]");
+                    char tmp[100];
                     memcpy(tmp, (*it).second + sizeof(int) + sizeof(bool), l);
                     tmp[l] = '\0';
                     std::string* s = TYPE_2_PTR(std::string);

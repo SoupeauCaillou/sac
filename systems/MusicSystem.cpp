@@ -33,7 +33,7 @@
 #endif
 
 #if SAC_EMSCRIPTEN
-#include <SDL/SDL_mixer.h>
+#include <SDL_mixer.h>
 #include <sstream>
 #elif SAC_ANDROID
 #include "tremor/ivorbisfile.h"

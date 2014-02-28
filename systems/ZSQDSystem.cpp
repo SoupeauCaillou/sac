@@ -122,7 +122,7 @@ void ZSQDSystem::DoUpdate(float dt) {
         }
 
         if (zc->rotateToFaceDirection && zc->currentSpeed > 0.01) {
-            const float t = glm::atan2(zc->currentDirection.y, zc->currentDirection.x);
+            const float t = glm::atan2<float, glm::mediump>(zc->currentDirection.y, zc->currentDirection.x);
             float diffRot = t - TRANSFORM(a)->rotation;
             if (glm::abs(diffRot) > glm::pi<float>()) {
                 diffRot = diffRot - glm::sign(diffRot) * glm::pi<float>() * 2;

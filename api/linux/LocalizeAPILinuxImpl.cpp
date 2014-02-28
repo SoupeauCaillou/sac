@@ -25,17 +25,49 @@
 
 #include "base/Log.h"
 #if SAC_EMSCRIPTEN
-#elif SAC_WINDOWS || SAC_DARWIN
-	//TODO
+#elif SAC_WINDOWS
+#include <Windows.h>
 #else
 #include <libintl.h>
 #include <locale.h>
 #endif
 
+#include <algorithm>
 
-#if SAC_DARWIN || SAC_WINDOWS || SAC_EMSCRIPTEN
+//return user locale (DE, EN, FR, etc.)
+static std::string getLocaleInfo() {
+#if SAC_WINDOWS
+    WCHAR szISOLang[5] = {0};
+    WCHAR szISOCountry[5] = {0};
+    int iLen = 0;
 
-int LocalizeAPILinuxImpl::init(AssetAPI* , const std::string & ) {
+    ::GetLocaleInfo(LOCALE_USER_DEFAULT,
+                    LOCALE_SISO639LANGNAME,
+                    (LPSTR)szISOLang,
+                    sizeof(szISOLang) / sizeof(WCHAR));
+
+    ::GetLocaleInfo(LOCALE_USER_DEFAULT,
+                    LOCALE_SISO3166CTRYNAME,
+					(LPSTR)szISOCountry,
+                    sizeof(szISOCountry) / sizeof(WCHAR));
+    
+	std::wstring ws(szISOCountry);
+
+	std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
+#else
+    std::string lang(getenv("LANG"));
+    //cut part after the '_' underscore
+    lang.resize(2);
+#endif
+
+    //convert to lower case
+    transform(lang.begin(), lang.end(), lang.begin(), ::tolower);
+    return lang;
+}
+
+#if SAC_DARWIN || SAC_EMSCRIPTEN
+
+int LocalizeAPILinuxImpl::init(AssetAPI*) {
 	return 0;
 }
 
@@ -45,9 +77,10 @@ int LocalizeAPILinuxImpl::init(AssetAPI* , const std::string & ) {
 #include "base/Log.h"
 #include "api/AssetAPI.h"
 
-int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI, const std::string & lang) {
+int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
 
     std::string filename = "../res/values";
+    std::string lang = getLocaleInfo();
 
     if (lang != "en") {
         filename += "-";

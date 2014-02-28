@@ -25,9 +25,9 @@
 #include "base/Log.h"
 
 #ifdef __SAC_EMSCRIPTEN
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_rwops.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_rwops.h>
 #else
 #include <png.h>
 #endif

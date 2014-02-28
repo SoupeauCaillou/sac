@@ -125,7 +125,7 @@ foreach (FILE ${SHADER_SOURCE_FILES})
 
     add_custom_command(
         OUTPUT ${Output}.h
-        COMMAND xxd -i ${REL_FILE} | sed s/}/,0x00}/ > ${Output}.h
+        COMMAND python ${PROJECT_SOURCE_DIR}/sac/tools/xxd_python.py ${REL_FILE}
         DEPENDS ${FILE}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
         COMMENT "Building shader ${REL_FILE}"
@@ -408,7 +408,6 @@ function (generate_sublime_clang_configuration)
                 }
             }
         \")
-        message(\"post build planished\")
 
         #replace simple quotes with double quotes
         string(REPLACE \"'\" \"\\\"\" SUBLIME_CLANG_PARAMETERS \${SUBLIME_CLANG_PARAMETERS})

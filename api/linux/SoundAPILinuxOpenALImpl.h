@@ -26,7 +26,7 @@
 #if ! SAC_EMSCRIPTEN
 
 #else
-#include <SDL/SDL_mixer.h>
+#include <SDL_mixer.h>
 #endif
 class AssetAPI;
 

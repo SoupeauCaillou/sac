@@ -1,4 +1,5 @@
 #pragma once
+#include <base/Color.h>
 namespace BatchFlushReason {
     enum Enum {
         NewCamera,
@@ -19,11 +20,15 @@ struct BatchFlushInfo {
     BatchFlushInfo(const BatchFlushReason::Enum e, const Color& r) : reason(e), newColor(r) {}
 
     BatchFlushReason::Enum reason;
-    union {
-        unsigned newFlags;
-        TextureRef newTexture;
-        Color newColor;
-    };
+#if ! SAC_WINDOWS
+	union {
+#endif
+		unsigned newFlags;
+		TextureRef newTexture;
+		Color newColor;
+#if ! SAC_WINDOWS
+	};
+#endif
 };
 static std::vector<std::pair<BatchFlushInfo, int> > batchSizes;
 static std::vector<std::vector<RenderingSystem::RenderCommand>> batchContent;

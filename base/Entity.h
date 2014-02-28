@@ -22,6 +22,6 @@
 
 #pragma once
 
-#include "Log.h"
 #include <cstdint>
+#include <base/SacDefs.h>
 typedef uint64_t Entity;

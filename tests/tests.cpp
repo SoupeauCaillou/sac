@@ -23,7 +23,7 @@
 #include <UnitTest++.h>
 #undef CHECK
 #define GLEW_STATIC
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <base/EntityManager.h>
 
 int main(int argc, char **) {

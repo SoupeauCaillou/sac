@@ -69,7 +69,7 @@
 #include "util/LevelEditor.h"
 
 #if ! SAC_ANDROID
-#include <SDL/SDL.h>
+#include <SDL.h>
 #endif
 
 
@@ -357,8 +357,9 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
     delete[] file.data;
     // h2wratio[' '] = h2wratio['r'];
     // h2wratio[0x97] = 1;
-    theTextSystem.registerFont(name, h2wratio);
+    
     LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
+    theTextSystem.registerFont(name, h2wratio);
 }
 
 void Game::sacInit(int windowW, int windowH) {

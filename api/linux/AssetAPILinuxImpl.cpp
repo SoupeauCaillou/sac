@@ -29,23 +29,38 @@
 #include <sstream>
 
 #include <sys/stat.h>
-//#include <sys/types.h>
-
-//for getenv
 #include <cstdlib>
 
-//for rmdir
-#include <unistd.h>
 
 #if SAC_EMSCRIPTEN
 #include <emscripten.h>
 #endif
 
 #if SAC_WINDOWS
-
+	#include <util/windows/dirent.h>
+	#include <windows.h>
+	#include <shlobj.h>
 #else
-#include <dirent.h>
+	#include <dirent.h>
+	#include <unistd.h>
 #endif
+
+//Returns -1 if the path does not exist, 1 if path is a directory, 2 if its a file, 0 otherwise
+static int getPathType(const char* path) {
+	struct stat s_buf;
+
+	if (stat(path, &s_buf)) {
+		LOGW("path does not exist: " << path);
+		return -1;
+	}
+
+	if (s_buf.st_mode & S_IFDIR) {
+		return 1;
+	} else if (s_buf.st_mode & S_IFREG) {
+		return 2;
+	}
+	return 0;
+}
 
 void AssetAPILinuxImpl::init(const std::string & gName) {
     gameName = gName;
@@ -96,42 +111,42 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
 
 std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& directory, const std::string& extension, const std::string& subfolder) {
     std::list<std::string> content;
-    const std::string realDirectory = directory +  "/" + subfolder;
-#if SAC_WINDOWS
-        // TODO
-#else
-        // TODO : Use scandir ?
-        DIR* dir = opendir(realDirectory.c_str());
-        if (dir == NULL)
-            return content;
-        dirent* file;
-        while ( (file = readdir(dir)) != NULL) {
-            // Check if file is a directory
-            if (file->d_type == DT_DIR) {
-                // Check if file is not current dir (.) or its parent (..)
-                if (std::strcmp (file->d_name, "..") != 0 &&
-                    std::strcmp (file->d_name, ".") != 0) {
-                    std::list<std::string> tmp;
-                    tmp = listContent(realDirectory, extension, subfolder + '/' + file->d_name);
-                    for (auto i: tmp) {
-                        content.push_back(std::string(file->d_name) + '/' + i);
-                    }
-                }
-#if SAC_EMSCRIPTEN
-            } else if (file->d_type == 8) {
-#else
-            } else if (file->d_type == DT_REG) {
-#endif
-                std::string s = file->d_name;
-                size_t pos;
-                // We're looking for file with good extension
-                 if ((pos = s.find(extension)) != std::string::npos) {
-                    content.push_back(s.substr(0, pos));
+    std::string realDirectory = directory +  "/" + subfolder + "/";
+	size_t pos;
+	while ((pos = realDirectory.find("//")) != std::string::npos)
+		realDirectory.replace(pos, 2, "/");
+
+    DIR* dir = opendir(realDirectory.c_str());
+    if (dir == NULL)
+        return content;
+    dirent* file;
+    while ( (file = readdir(dir)) != NULL) {
+        // Check if file is a directory
+        if (1 == getPathType((realDirectory + file->d_name).c_str())) {
+            // Check if file is not current dir (.) or its parent (..)
+            if (std::strcmp (file->d_name, "..") != 0 &&
+                std::strcmp (file->d_name, ".") != 0) {
+                std::list<std::string> tmp;
+                tmp = listContent(realDirectory, extension, subfolder + '/' + file->d_name);
+                for (auto &i: tmp) {
+                    content.push_back(std::string(file->d_name) + '/' + i);
                 }
             }
-        }
-        closedir(dir);
+		//otherwise it might be a file
+#if SAC_EMSCRIPTEN
+        } else if (file->d_type == 8) {
+#else
+		} else if (2 == getPathType((realDirectory + file->d_name).c_str())) {
 #endif
+            std::string s = file->d_name;
+            size_t pos;
+            // We're looking for file with good extension
+            if ((pos = s.find(extension)) != std::string::npos) {
+                content.push_back(s.substr(0, pos));
+            }
+        }
+    }
+    closedir(dir);
     return content;
 }
 
@@ -158,23 +173,29 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
         } else {
             ss << "/tmp/";
         }
-        ss << gameName;
-
-        // create folder if needed
-        struct stat statFolder;
-        int st = stat(ss.str().c_str(), &statFolder);
-        if (st || (statFolder.st_mode & S_IFMT) != S_IFDIR) {
-            if (mkdir(ss.str().c_str(), S_IRWXU | S_IWGRP | S_IROTH)) {
-                LOGE("Failed to create : '" << ss.str() << "'");
-            }
-        }
-
 #elif SAC_EMSCRIPTEN
         ss << "/sac_temp/";
-#else
-        ss << "not-handled-os";
-#endif
+#elif SAC_WINDOWS
+		wchar_t* localAppData = 0;
+		SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &localAppData);
 
+		ss << localAppData;
+
+		CoTaskMemFree(static_cast<void*>(localAppData));
+#else
+		return "not-handled-os";
+#endif
+		//add game name to the path
+		ss << gameName;
+
+		// create folder if needed
+		int permission = 0;
+#if ! SAC_WINDOWS
+		permission = S_IRWXU | S_IWGRP | S_IROTH;
+#endif
+		createDirectory(ss.str().c_str(), permission);
+
+        //update path
         path = ss.str();
     }
     return path;
@@ -189,20 +210,11 @@ void AssetAPILinuxImpl::synchronize() {
 #endif
 }
 
-static int isPathADirectory (const char* path) {
-    struct stat s_buf;
-
-    if (stat(path, &s_buf))
-        return 0;
-
-    return S_ISDIR(s_buf.st_mode);
-}
-
-void AssetAPILinuxImpl::createDirectory(const std::string& fullpath) {
+void AssetAPILinuxImpl::createDirectory(const std::string& fullpath, int permission) {
     struct stat st;
 
     if (stat(fullpath.c_str(), &st) == -1) {
-        mkdir(fullpath.c_str(), 0700);
+        mkdir(fullpath.c_str(), permission);
     } else {
         LOGE("Couldn't create directory '" << fullpath << "' since it already exist!");
     }
@@ -235,7 +247,7 @@ void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {
             continue;
         }
         subfolder = fullpath + "/" + ep->d_name;
-        if (isPathADirectory(subfolder.c_str())) {
+        if (1 == getPathType(subfolder.c_str())) {
             removeFileOrDirectory(subfolder.c_str());
         } else {
             unlink(subfolder.c_str());
@@ -243,6 +255,7 @@ void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {
     }
     closedir(dp);
     rmdir(fullpath.c_str());
+	
 }
 
 

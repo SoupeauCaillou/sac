@@ -26,7 +26,7 @@
 #include "base/TimeUtil.h"
 
 #if ! SAC_ANDROID
-#include <SDL/SDL.h>
+#include <SDL.h>
 #endif
 JoystickManager* JoystickManager::instance = 0;
 

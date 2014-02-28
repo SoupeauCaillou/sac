@@ -66,7 +66,11 @@ void ButtonSystem::DoUpdate(float) {
 
     theButtonSystem.forEachECDo([&] (Entity e, ButtonComponent *bt) -> void {
     	const auto* rc = theRenderingSystem.Get(e, false);
-    	if (rc) {
+		if (camerasAdaptedPos.empty()) {
+			LOGW_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
+		}
+
+    	if (rc && ! camerasAdaptedPos.empty()) {
     		UpdateButton(e, bt, touch, camerasAdaptedPos[(int) (rc->cameraBitMask / 2)]);
     	} else {
     		UpdateButton(e, bt, touch, theTouchInputManager.getTouchLastPosition(0));

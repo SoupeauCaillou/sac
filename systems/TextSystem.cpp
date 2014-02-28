@@ -505,6 +505,8 @@ relayout:
 
 void TextSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
     uint32_t highestUnicode = 0;
+
+	LOGT("Use unordered map or mevode this useless for each since map are ordered by key-value");
     std::for_each(charH2Wratio.begin(), charH2Wratio.end(),
         [&highestUnicode] (std::pair<uint32_t, float> a) { 
             if (a.first > highestUnicode)
@@ -514,7 +516,7 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
 
     std::string invalidChar = "00_" + fontName;
     TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);
-    float invalidRatio = charH2Wratio.find(0)->second;
+	float invalidRatio = 1;
     FontDesc font;
     font.highestUnicode = highestUnicode;
     font.entries = new CharInfo[highestUnicode + 1];

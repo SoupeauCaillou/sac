@@ -36,7 +36,7 @@ typedef int MusicRef;
 class CircularBuffer;
 
 #if SAC_EMSCRIPTEN
-    #include <SDL/SDL_mixer.h>
+    #include <SDL_mixer.h>
 #endif
 
 // #define SAC_MUSIC_VISU

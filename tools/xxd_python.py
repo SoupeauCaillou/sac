@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/env python
+
 import sys
 import os
 
@@ -24,7 +25,8 @@ with open(sys.argv[1], 'r') as i:
 				hexList.append(hex(ord(c)))
 		
 		o.write(TEMP1.format(filename) + '{\n')
-		for i in range (0, (len(hexList)/12)+1):
+
+		for i in range (0, (int)(len(hexList)/12)+1):
 			o.write(', '.join(hexList[i*12:i*12+12])+',\n')
 		o.write('0x00 };\n')
 		o.write(TEMP2.format(filename, len(hexList)))

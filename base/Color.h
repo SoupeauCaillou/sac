@@ -22,11 +22,13 @@
 
 #pragma once
 #if SAC_WINDOWS
-#pragma warning(disable:4201) //disable warning about nameless unions
+//disable warning about nameless unions
+//#pragma warning(disable:4201) 
 #endif
 
 #include <string>
 #include <iostream>
+#include <base/SacDefs.h>
 
 struct Color {
     public:

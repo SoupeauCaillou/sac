@@ -23,7 +23,7 @@
 #include "base/Game.h"
 #include "base/GameContext.h"
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #if SAC_EMSCRIPTEN
 #include <emscripten/emscripten.h>
@@ -286,7 +286,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (game->wantsAPI(ContextAPI::Sound))
         ctx->soundAPI = new SoundAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::Storage))
-        ctx->storageAPI = new SqliteStorageAPIImpl();
+       ctx->storageAPI = new SqliteStorageAPIImpl();
     if (game->wantsAPI(ContextAPI::StringInput))
         ctx->stringInputAPI = new StringInputAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Vibrate))
@@ -302,7 +302,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (game->wantsAPI(ContextAPI::Asset) || true) {
         static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(title);
     }
-
+	
     if (game->wantsAPI(ContextAPI::Music)) {
         theMusicSystem.musicAPI = ctx->musicAPI;
         theMusicSystem.assetAPI = ctx->assetAPI;
@@ -315,9 +315,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
-        char* lang = strdup(getenv("LANG"));
-        lang[2] = '\0';
-        static_cast<LocalizeAPILinuxImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, lang);
+        static_cast<LocalizeAPILinuxImpl*>(ctx->localizeAPI)->init(ctx->assetAPI);
     }
 
     /////////////////////////////////////////////////////
@@ -363,7 +361,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         game->render();
         SDL_GL_SwapBuffers();
         float t = TimeUtil::GetTime();
+#if ! SAC_WINDOWS
         Recorder::Instance().record(t - prevT);
+#endif
         prevT = t;
 
 #if SAC_DEBUG

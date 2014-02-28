@@ -105,8 +105,8 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
             LOGV(1, "No 'opaque_rect' in section '" << section << "' for image " << assetName);
             opaqueRect = glm::vec4(0.0f);
         }
-        glm::vec2 start(opaqueRect.swizzle(glm::X, glm::Y));
-        glm::vec2 size(opaqueRect.swizzle(glm::Z, glm::W));
+        glm::vec2 start(opaqueRect.x, opaqueRect.y);
+        glm::vec2 size(opaqueRect.z, opaqueRect.w);
         const TextureInfo info(InternalTexture::Invalid, posInAtlas, sizeInAtlas, rotate, atlasSize, reduxOffset, originalSize, start, size, atlasIndex);
         textureLibrary.add(assetName, info);
         count++;

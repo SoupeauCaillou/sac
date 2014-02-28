@@ -46,7 +46,7 @@ int MouseNativeTouchState::eventSDL(SDL_Event* event) {
     return 0;
 }
 #else
-#include <SDL/SDL.h>
+#include <SDL.h>
 int MouseNativeTouchState::eventSDL(void* inEvent) {
     auto event = (SDL_Event*)inEvent;
 

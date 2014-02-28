@@ -28,8 +28,8 @@
 #include <GLES2/gl2ext.h>
 #elif SAC_EMSCRIPTEN
 #include <sstream>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #endif
 
 #include "OpenglHelper.h"

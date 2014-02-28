@@ -25,6 +25,7 @@
 #include "Log.h"
 #include <string>
 #include <map>
+#include <base/SacDefs.h>
 
 template<typename T>
 class StateHandler {
