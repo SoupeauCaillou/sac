@@ -203,7 +203,9 @@ static void entityGetCB(void* valueOut, void* clientData) {
         TwCopyStdStringToLibrary(*s, "none");
     } else {
         // see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twcopystdstringtolibrary
-        TwCopyStdStringToLibrary(*s, theEntityManager.entityName(*r));
+        std::stringstream a;
+        a << theEntityManager.entityName(*r) << '_' << *r;
+        TwCopyStdStringToLibrary(*s, a.str());
     }
 }
 
