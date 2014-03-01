@@ -370,7 +370,7 @@ std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos&
     std::vector<GridPos> line;
 
 
-    float E = 1e-6 * (positiveEps ? 1.f : -1.f);
+    float E = (float)1e-6 * (positiveEps ? 1.f : -1.f);
 
     float fromQ = from.q + E;
     float fromR = from.r - 2 * E;

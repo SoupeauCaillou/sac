@@ -128,34 +128,6 @@ void rewinddir(DIR *dir)
     }
 }
 
-int rmdir(char *path)
-{
-    int result = - 1;
-    if(path)
-    {
-        result = _rmdir(path);
-    }
-    else
-    {
-        errno = EBADF;
-    }
-	return result;
-}
-
-int mkdir(const char * path, int chmod)
-{
-    int result = - 1;
-    if(path)
-    {
-        result = _mkdir(path);
-    }
-    else
-    {
-        errno = EBADF;
-    }
-	return result;
-}
-
 #ifdef __cplusplus
 }
 #endif

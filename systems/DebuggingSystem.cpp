@@ -272,7 +272,9 @@ void DebuggingSystem::DoUpdate(float dt) {
 
         auto it = debugEntities.find(systemNames[i]);
         if (it == debugEntities.end()) {
-            it = debugEntities.insert(std::make_pair(systemNames[i], createSystemGraphEntity(systemNames[i], systems, debugEntities.size(), SystemsTextureName, 0.020))).first;
+			Entity graph = createSystemGraphEntity(systemNames[i], systems, debugEntities.size(),
+				SystemsTextureName, 0.02f);
+            it = debugEntities.insert(std::make_pair(systemNames[i], graph)).first;
         }
         Entity e = it->second;
         GraphComponent* graphC = GRAPH(e);

@@ -180,6 +180,6 @@ void PhysicsSystem::DoUpdate(float dt) {
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	// add 2 opposed forces
     //WARNING: shouldn't be +size,0 and -size,0 instead of 1,0 / -1, 0?
-	pc->addForce(glm::vec2(1, 0), glm::vec2(0, m * 0.5), 0.016);
-	pc->addForce(glm::vec2(-1, 0), glm::vec2(0, -m * 0.5), 0.016);
+	pc->addForce(glm::vec2(1, 0), glm::vec2(0, m * 0.5), 0.016f);
+	pc->addForce(glm::vec2(-1, 0), glm::vec2(0, -m * 0.5), 0.016f);
 }

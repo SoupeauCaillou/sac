@@ -41,10 +41,10 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
 
     ButtonComponent bc;
     componentSerializer.add(new Property<bool>("enabled", OFFSET(enabled, bc)));
-    componentSerializer.add(new Property<float>("over_size", OFFSET(overSize, bc), 0.001));
-    componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, bc), 0.001));
-    componentSerializer.add(new Property<float>("trigger", OFFSET(trigger, bc), 0.001));
-    componentSerializer.add(new Property<float>("first_touch", OFFSET(firstTouch, bc), 0.001));
+    componentSerializer.add(new Property<float>("over_size", OFFSET(overSize, bc), 0.001f));
+    componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, bc), 0.001f));
+    componentSerializer.add(new Property<float>("trigger", OFFSET(trigger, bc), 0.001f));
+    componentSerializer.add(new Property<float>("first_touch", OFFSET(firstTouch, bc), 0.001f));
     componentSerializer.add(new Property<int>("type", OFFSET(type, bc)));
     componentSerializer.add(new Property<TextureRef>("texture_active", PropertyType::Texture, OFFSET(textureActive, bc), 0));
     componentSerializer.add(new Property<TextureRef>("texture_inactive", PropertyType::Texture, OFFSET(textureInactive, bc), 0));

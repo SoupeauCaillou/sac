@@ -32,6 +32,7 @@
 
 struct Color {
     public:
+	PRAGMA_WARNING(warning(disable: 4201))
 	union {
 		struct {
 			float rgba[4];

@@ -11,6 +11,8 @@
     
 */
 
+#include <direct.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -27,8 +29,6 @@ DIR           *opendir(const char *);
 int           closedir(DIR *);
 struct dirent *readdir(DIR *);
 void          rewinddir(DIR *);
-int           rmdir(const char *);
-int           mkdir(const char *, int);
 /*
 
     Copyright Kevlin Henney, 1997, 2003. All rights reserved.
@@ -47,5 +47,7 @@ int           mkdir(const char *, int);
 #ifdef __cplusplus
 }
 #endif
+
+#define mkdir(path, chmod) _mkdir(path)
 
 #endif

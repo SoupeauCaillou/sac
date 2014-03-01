@@ -38,7 +38,6 @@
 
 #if SAC_WINDOWS
 	#include <util/windows/dirent.h>
-	#include <windows.h>
 	#include <shlobj.h>
 #else
 	#include <dirent.h>
@@ -255,9 +254,6 @@ void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {
     }
     closedir(dp);
     rmdir(fullpath.c_str());
-	
+
 }
-
-
-
 

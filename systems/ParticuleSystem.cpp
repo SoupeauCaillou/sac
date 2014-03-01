@@ -126,7 +126,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                             glm::sin(angle)
                         ) * pc->forceAmplitude.random(),
                         glm::vec2(0.0f),//tc->size * glm::linearRand(-0.5f, 0.5f),
-                        0.016);
+                        0.016f);
                     PhysicsSystem::addMoment(ppc, pc->moment.random());
                 }
                 internal.color = Interval<Color> (rc->color, pc->finalColor.random());

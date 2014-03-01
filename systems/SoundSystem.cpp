@@ -30,7 +30,7 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextV
     SoundComponent sc;
 
     componentSerializer.add(new Property<SoundRef>("sound", PropertyType::Sound, OFFSET(sound, sc), 0));
-    componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001));
+    componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001f));
 }
 
 SoundSystem::~SoundSystem() {

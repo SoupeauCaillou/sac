@@ -27,26 +27,32 @@
 #include "base/Log.h"
 
 template <>
-inline Property<float>::Property(const std::string& name, unsigned long offset, float pEpsilon) : IProperty(name, PropertyType::Float, PropertyAttribute::None, offset, sizeof(float)), epsilon(pEpsilon) {}
+inline Property<float>::Property(const std::string& name, unsigned long offset, float pEpsilon) :
+	IProperty(name, PropertyType::Float, PropertyAttribute::None, offset, sizeof(float)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<int>::Property(const std::string& name, unsigned long offset, int pEpsilon) : IProperty(name, PropertyType::Int, PropertyAttribute::None, offset, sizeof(int)), epsilon(pEpsilon) {}
+inline Property<int>::Property(const std::string& name, unsigned long offset, int pEpsilon) :
+	IProperty(name, PropertyType::Int, PropertyAttribute::None, offset, sizeof(int)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<bool>::Property(const std::string& name, unsigned long offset, bool pEpsilon) : IProperty(name, PropertyType::Bool, PropertyAttribute::None, offset, sizeof(bool)), epsilon(pEpsilon) {}
+inline Property<bool>::Property(const std::string& name, unsigned long offset, bool pEpsilon) :
+	IProperty(name, PropertyType::Bool, PropertyAttribute::None, offset, sizeof(bool)), epsilon(pEpsilon) {}
 
 template <>
 inline Property<Color>::Property(const std::string& name, unsigned long offset, Color pEpsilon) :
     IProperty(name, PropertyType::Color, PropertyAttribute::None, offset, sizeof(Color)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<glm::vec2>::Property(const std::string& name, unsigned long offset, glm::vec2 pEpsilon) : IProperty(name, PropertyType::Vec2, PropertyAttribute::None, offset, sizeof(glm::vec2)), epsilon(pEpsilon) {}
+inline Property<glm::vec2>::Property(const std::string& name, unsigned long offset, glm::vec2 pEpsilon) :
+	IProperty(name, PropertyType::Vec2, PropertyAttribute::None, offset, sizeof(glm::vec2)), epsilon(pEpsilon) {}
 
 template <class T>
-inline Property<T>::Property(const std::string& name, unsigned long offset, T pEpsilon) : IProperty(name, PropertyType::Unsupported, PropertyAttribute::None, offset, sizeof(T)), epsilon(pEpsilon) {}
+inline Property<T>::Property(const std::string& name, unsigned long offset, T pEpsilon) :
+	IProperty(name, PropertyType::Unsupported, PropertyAttribute::None, offset, sizeof(T)), epsilon(pEpsilon) {}
 
 template <class T>
-inline Property<T>::Property(const std::string& name, PropertyType::Enum type, unsigned long offset, T pEpsilon) : IProperty(name, type, PropertyAttribute::None, offset, sizeof(T)), epsilon(pEpsilon) {}
+inline Property<T>::Property(const std::string& name, PropertyType::Enum type, unsigned long offset, T pEpsilon) :
+	IProperty(name, type, PropertyAttribute::None, offset, sizeof(T)), epsilon(pEpsilon) {}
 
 template <>
 inline bool Property<Color>::different(void* object, void* refObject) const {
@@ -67,7 +73,7 @@ template <typename T>
 inline bool Property<T>::different(void* object, void* refObject) const {
     T* a = (T*) ((uint8_t*)object + offset);
     T* b = (T*) ((uint8_t*)refObject + offset);
-    return (glm::abs(*a - *b) > epsilon);
+    return (glm::abs(*a - *b) - epsilon > 0);
 }
 
 template <>
