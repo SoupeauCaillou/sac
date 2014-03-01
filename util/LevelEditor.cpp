@@ -35,6 +35,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "DebugConsole.h"
+#if SAC_NETWORK
+#include "../systems/NetworkSystem.h"
+#endif
 
 namespace EditorMode {
     enum Enum {
@@ -253,6 +256,17 @@ void LevelEditor::init() {
     for (auto it : ComponentSystem::registeredSystems()) {
         TwAddButton(dumpEntities, it.first.c_str(), DumpSystemEntities, strdup(it.first.c_str()), "");
     }
+
+#if SAC_DEBUG
+    // init network debug
+    auto* netbar = TwNewBar("Network");
+    TwDefine(" Network iconified=true ");
+    TwAddVarRO(netbar, "download b/s", TW_TYPE_FLOAT, &theNetworkSystem.dlRate, "precision=1");
+    TwAddVarRO(netbar, "upload b/s", TW_TYPE_FLOAT, &theNetworkSystem.ulRate, "precision=1");
+    TwAddVarRO(netbar, "nb packet rcvd", TW_TYPE_INT32, &theNetworkSystem.packetRcvd, NULL);
+    TwAddVarRO(netbar, "nb packet sent", TW_TYPE_INT32, &theNetworkSystem.packetSent, NULL);
+
+#endif
 }
 
 static std::string displayGroup(Entity e) {

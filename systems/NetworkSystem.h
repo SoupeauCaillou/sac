@@ -28,11 +28,13 @@ class NetworkAPI;
 struct NetworkComponentPriv;
 
 struct NetworkComponent {
-    NetworkComponent() : newOwnerShipRequest(-1) {
+    NetworkComponent() {
 
     }
     std::vector<std::string> sync;
+#if 0
     int newOwnerShipRequest;
+#endif
 };
 
 #define theNetworkSystem NetworkSystem::GetInstance()
@@ -54,14 +56,19 @@ public:
     bool isOwnedLocally(Entity e);
 public:
     NetworkAPI* networkAPI;
-    unsigned bytesSent, bytesReceived;
-    float ulRate, dlRate;
 
 protected:
     NetworkComponent* CreateComponent();
 private:
     NetworkComponentPriv* guidToComponent(unsigned int guid);
-    void updateEntity(Entity e, NetworkComponent* c, float dt);
+    void updateEntity(Entity e, NetworkComponent* c, float dt, bool onlyCreate);
     unsigned int nextGuid;
     std::list<unsigned int> deletedEntities;
+
+#if SAC_DEBUG
+public:
+    unsigned bytesSent, bytesReceived;
+    unsigned packetSent, packetRcvd;
+    float ulRate, dlRate;
+#endif
 };

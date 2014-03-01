@@ -344,7 +344,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         startProfiler();
 #endif
 
-
+    SDL_JoystickEventState(SDL_ENABLE);
 
     //used for text translation, if needed
     setlocale( LC_ALL, "" );

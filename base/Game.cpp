@@ -155,7 +155,6 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(AutoDestroySystem::GetInstancePointer());
     ADD_IF_EXISTING(AutonomousAgentSystem::GetInstancePointer());
     ADD_IF_EXISTING(ButtonSystem::GetInstancePointer());
-    ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
     ADD_IF_EXISTING(ContainerSystem::GetInstancePointer());
     ADD_IF_EXISTING(DebuggingSystem::GetInstancePointer());
     ADD_IF_EXISTING(GraphSystem::GetInstancePointer());
@@ -164,6 +163,7 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
     ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
+    ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
     ADD_IF_EXISTING(ScrollingSystem::GetInstancePointer());
     ADD_IF_EXISTING(SoundSystem::GetInstancePointer());
     ADD_IF_EXISTING(SpotSystem::GetInstancePointer());
@@ -494,8 +494,8 @@ void Game::step() {
 
     #if SAC_ENABLE_LOG
         static int timer = 0;
-        //every 20 secs, log it
-        if (++timer == 60*20) {
+        //every 60 secs, log it
+        if (++timer == 60*60) {
             timer = 0;
             for (auto* sys : unusedSystems) {
                 LOGW("System " << sys->getName() << " has (yet) not been used");

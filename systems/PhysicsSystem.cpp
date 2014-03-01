@@ -106,7 +106,7 @@ void PhysicsSystem::DoUpdate(float dt) {
 		float angAccel = 0;
 
         if (pc->frottement != 0.f) {
-            pc->addForce(glm::vec2(0.f), - pc->frottement * pc->linearVelocity, dt);
+            pc->addForce(- pc->frottement * pc->linearVelocity, glm::vec2(0.f), dt);
         }
 
 		for (unsigned int i=0; i<pc->forces.size(); i++) {

@@ -24,12 +24,19 @@
 
 #include "System.h"
 #include <functional>
+#if SAC_DEBUG
+#include "base/Frequency.h"
+#endif
 
 struct CollisionComponent {
-    CollisionComponent() : group(0), collideWith(0), restorePositionOnCollision(false), isARay(false), rayTestDone(false), collidedWithLastFrame(0) {}
+    CollisionComponent() :
+        group(0), collideWith(0),
+        restorePositionOnCollision(false), isARay(false), rayTestDone(false), prevPositionIsValid(false),
+        previousPosition(0.0f), previousRotation(0.0f),
+        collidedWithLastFrame(0), collisionAt(0.0f) {}
     int group;
     int collideWith;
-    bool restorePositionOnCollision, isARay, rayTestDone;
+    bool restorePositionOnCollision, isARay, rayTestDone, prevPositionIsValid;
 
     glm::vec2 previousPosition;
     float previousRotation;
@@ -49,6 +56,10 @@ UPDATABLE_SYSTEM(Collision)
 
     public:
         glm::vec2 worldSize;
+#if SAC_DEBUG
+        bool showDebug;
+        float maximumRayCastPerSec, maximumRayCastPerSecAccum;
+#endif
     private:
         std::vector<Entity> debug;
 };

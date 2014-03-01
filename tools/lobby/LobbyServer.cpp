@@ -27,26 +27,70 @@
 #include <map>
 #include <cstring>
 #include <list>
+#include <algorithm>
 #include <vector>
 #include <glm/gtc/random.hpp>
 
 #include "base/Log.h"
+#include "api/linux/NetworkAPILinuxPacket.h"
+#include "api/NetworkAPI.h"
+#include "api/NetworkAPI.h"
+#include "base/TimeUtil.h"
+#include "base/Frequency.h"
 
-#define NICKNAME_PKT 1
-#define PORT_PKT 2
-struct LobbyPacket {
-    uint8_t type, nameLength, server;
-    unsigned int remoteIp;
-    unsigned short remotePort, localPort;
+
+/////////////////////// Example packets sequence
+// PNL: packet sent by Player N to Lobby
+// LPN: packet sent by Lobby to Player N
+//
+/*
+  1. P1L: Login
+  2. LP1: AckLogin
+  3. P1L: CreateRoom
+  4. LP1: RoomId
+  5. P1L: ConnectionInfo
+  6. P2L: Login
+  7. L2P: AckLogin
+  8. L2P: Invite
+  9. L1P: Entering
+ 10. P2L: JoinRoom
+ 11. L2P: ConnectionInfo
+ 12. P2L: ConnectionInfo
+ 13. L1P: ConnectionInfo
+*/
+
+
+struct Player {
+    Player(const std::string& n, ENetPeer* p) : name(n), peer(p) {}
+    std::string name;
+    ENetPeer* peer;
 };
 
-struct MatchMaking {
-    ENetPeer* serverModePeer;
-    ENetPeer* clientModePeer;
-    uint16_t serverPort;
+struct ConnectionDetails {
+    ConnectionDetails() {
+        address.host = address.port = 0;
+    }
+    ENetAddress address;
 };
 
-static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB, bool server);
+struct Room {
+    Room(Player* p, const std::string& n) : name(n), creator(p), participantListUpdate(1.0) {}
+
+    std::string name;
+
+    Player* creator;
+    std::map<Player*, NetworkStatus::Enum> participants;
+
+    Frequency<float> participantListUpdate;
+    ConnectionDetails details;
+
+    bool acceptsParticipants() const {
+        return details.address.port != 0;
+    }
+};
+
+
+static Player* lookupPlayer(std::vector<Player*> players, ENetPeer* peer);
 
 int main() {
     enet_initialize();
@@ -61,107 +105,244 @@ int main() {
                                   0      /* assume any amount of incoming bandwidth */,
                                   0      /* assume any amount of outgoing bandwidth */);
 
-    std::map<ENetPeer*, std::string> peer2Name;
-    std::list<ENetPeer*> peerWaiting;
-    std::vector<MatchMaking> inProgress;
+    std::vector<Player*> loggedIn;
+    std::vector<Room*> rooms;
+
+    // Process network received packets
     ENetEvent event;
+    float before = TimeUtil::GetTime();
+
     while (enet_host_service(server, &event, 1000) >= 0) {
         switch (event.type) {
+            // New incoming connection
             case ENET_EVENT_TYPE_CONNECT: {
                 LOGI("Client connection: @" << event.peer->address.host << ":" << event.peer->address.port);
-                peer2Name.erase(event.peer);
                 break;
             }
+            // Client disconnected
             case ENET_EVENT_TYPE_DISCONNECT: {
                 LOGI("Client disconnection: @" << event.peer->address.host << ":" << event.peer->address.port);
-                peer2Name.erase(event.peer);
-                break;
-            }
-            case ENET_EVENT_TYPE_RECEIVE: {
-                ENetPacket * packet = event.packet;
-                uint8_t type = packet->data[0];
-
-                if (type == PORT_PKT) {
-                    uint16_t port;
-                    memcpy(&port, &packet->data[1], sizeof(port));
-                    port = ntohs(port);
-
-                    for (unsigned i = 0; i < inProgress.size(); i++) {
-                        if (inProgress[i].clientModePeer == event.peer) {
-                            LOGI("Received client mode local port (" << port << ")");
-                            // create packet for player2
-                            ENetPacket* p2 = peerAndNickToPacket(
-                                inProgress[i].clientModePeer,
-                                peer2Name[inProgress[i].clientModePeer],
-                                port,
-                                inProgress[i].serverPort,
-                                true);
-                            enet_peer_send(inProgress[i].serverModePeer, 0, p2);
-
-                            inProgress.erase(inProgress.begin() + i);
+                // Destroy associated player
+                Player* player = lookupPlayer(loggedIn, event.peer);
+                if (player) {
+                    for (auto it=rooms.begin(); it!=rooms.end(); ++it) {
+                        auto* room = *it;
+                        if (room) {
+                            if (room->creator == player) {
+                                // close room, notify other
+                                for (auto& p: room->participants) {
+                                    RoomClosedPacket rc(room->name);
+                                    enet_peer_send(p.first->peer, 0, rc.toENetPacket());
+                                }
+                                delete room;
+                                *it = 0;
+                            }
                         }
                     }
-                } else if (type == NICKNAME_PKT) {
-                    peerWaiting.push_back(event.peer);
-                    uint8_t length = packet->data[1];
-                    char tmp[256];
-                    memcpy(tmp, &packet->data[2], length);
-                    tmp[length] = 0;
-                    LOGI("Client name: '" << tmp << "'");
-                    peer2Name[event.peer] = tmp;
-                    break;
-                } else {
-                    LOGW("Ignored packet type : " << (int)type);
+                    std::remove_if(loggedIn.begin(), loggedIn.end(), [player] (Player* p) -> bool { return p == player; });
+                    delete player;
+                }
+
+                break;
+            }
+            // Packet received
+            case ENET_EVENT_TYPE_RECEIVE: {
+                ENetPacket * packet = event.packet;
+
+                LOGI("TYPE: " << LobbyPacket::getPacketType(packet));
+                switch (LobbyPacket::getPacketType(packet)) {
+                    case Packet::Login: {
+                        LoginPacket login;
+                        login.fromENetPacket(event.packet);
+                        // remember player
+                        Player* player = new Player(login.name, event.peer);
+                        loggedIn.push_back(player);
+
+                        LOGI("Player '" << login.name << "' logged in from '" << event.peer->address.host << "'");
+
+                        // send ack
+                        AckLoginPacket ack;
+                        enet_peer_send(event.peer, 0, ack.toENetPacket());
+
+                        // if a room exist, send an invite too
+                        for (auto* room: rooms) {
+                            if (room && room->acceptsParticipants()) {
+                                InvitePacket r (room->name);
+                                enet_peer_send(event.peer, 0, r.toENetPacket());
+
+                                room->participants.insert(std::make_pair(player, NetworkStatus::JoiningRoom));
+                                LOGI("Sent '" << login.name << "' an invite to join room '" << room->name << "'");
+
+                                EnteringRoomPacket enter(room->name, player->name);
+                                enet_peer_send(room->creator->peer, 0, enter.toENetPacket());
+                            }
+                        }
+
+                        break;
+                    }
+                    case Packet::CreateRoom: {
+                        Player* player = lookupPlayer(loggedIn, event.peer);
+                        if (!player) {
+                            LOGW("Unkown peer from '" << event.peer->address.host << " 'requested room creation");
+                        } else {
+                            // Create room
+                            std::stringstream roomId;
+                            roomId << "room_" << rooms.size();
+                            RoomIdPacket r (roomId.str());
+
+                            rooms.push_back(new Room(player, roomId.str()));
+
+                            enet_peer_send(event.peer, 0, r.toENetPacket());
+
+                            LOGI("Created room '" << roomId.str() << "' - requested by: '" << player->name << "'");
+                        }
+                        break;
+                    }
+                    case Packet::ConnectionInfo: {
+                        Player* player = lookupPlayer(loggedIn, event.peer);
+                        ConnectionInfoPacket conn;
+                        conn.fromENetPacket(event.packet);
+
+                        for (auto* room: rooms) {
+                            if (!room) continue;
+                            // player is either the creator of a room, or a participant
+                            if (room->creator == player) {
+                                LOGI("Connection info received from creator of room '" << room->name << "'");
+                                // fill room connection details
+                                room->details.address.host = event.peer->address.host;
+                                room->details.address.port = conn.address.port;
+                                char tmp[50];
+                                if (enet_address_get_host(&event.peer->address, tmp, 50) == 0 && strncmp(tmp, "localhost", 9) == 0) {
+                                    room->details.address.host = 0;
+                                }
+
+                                LOGI("room->details.address = " << room->details.address.host << ":" << room->details.address.port);
+                                LOGE_IF(!room->acceptsParticipants(), "Room still doesn't accept participant... weird");
+
+                                // Invite every idle players
+                                for (auto* p: loggedIn) {
+                                    bool idle = true;
+                                    for (auto* r: rooms) {
+                                        if (!r) continue;
+                                        if (r->creator == p) idle = false;
+                                        else {
+                                            for (auto& q: r->participants) {
+                                                if (q.first == p) idle = false;
+                                            }
+                                        }
+                                    }
+                                    if (idle) {
+                                        InvitePacket r (room->name);
+                                        enet_peer_send(p->peer, 0, r.toENetPacket());
+
+                                        room->participants.insert(std::make_pair(p, NetworkStatus::JoiningRoom));
+                                        LOGI("Sent '" << p->name << "' an invite to join room '" << room->name << "'");
+
+                                        EnteringRoomPacket enter(room->name, p->name);
+                                        enet_peer_send(room->creator->peer, 0, enter.toENetPacket());
+                                    }
+
+                                }
+                                break;
+                            } else {
+                                for (auto& p: room->participants) {
+                                    if (p.first == player) {
+                                        // notify room creator to enable him to send nat-punch through packets
+                                        enet_peer_send(room->creator->peer, 0, conn.toENetPacket());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case Packet::JoinRoom: {
+                        Player* player = lookupPlayer(loggedIn, event.peer);
+
+                        for (auto* room: rooms) {
+                            if (!room) continue;
+                            // player is either the creator of a room, or a participant
+                            if (room->creator == player) {
+                                LOGE("JoinRoom packet received from room creator (" << player->name << ')');
+                                break;
+                            } else {
+                                for (auto& p: room->participants) {
+                                    if (p.first == player) {
+                                        LOGE("JoinRoom packet received from '" << player->name << "'. Sending room '" << room->name << "' connection details.");
+                                        // send player connection info
+                                        ConnectionInfoPacket conn(room->details.address);
+                                        enet_peer_send(event.peer, 0, conn.toENetPacket());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case Packet::EnteringRoom: {
+                        EnteringRoomPacket enter;
+                        enter.fromENetPacket(event.packet);
+                        LOGI("ENTER: '" << enter.roomId << "', '" << enter.playerName << "'");
+                        for (auto* room: rooms) {
+                            if (!room) continue;
+                            if (room->name == enter.roomId) {
+                                LOGI("Found room");
+                                for (auto& p: room->participants) {
+                                    if (p.first->name == enter.playerName) {
+                                        LOGI("Found player");
+                                        room->participants[p.first] = NetworkStatus::ConnectedToServer;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case Packet::AckLogin:
+                    case Packet::RoomId:
+                    case Packet::RoomClosed:
+                    case Packet::Invitation:
+                    case Packet::PlayersInRoom:
+                        LOGE("Received invalid message type");
+                        break;
                 }
                 enet_packet_destroy (event.packet);
             }
-            case ENET_EVENT_TYPE_NONE: {
-				}
-
         }
-        // if we have 2 players with a name : connect them
-        if (peerWaiting.size() >= 2) {
-            LOGI("Matchmaking in progress!");
-            int portA = glm::linearRand(55000.0f, 56000.0f);
-            // *** int portB = MathUtil::RandomIntInRange(55000, 56000);
-            MatchMaking match;
+        enet_host_flush(server);
 
-            std::list<ENetPeer*>::iterator it = peerWaiting.begin();
-            match.clientModePeer = *it;
-            peerWaiting.erase(it);
-            it = peerWaiting.begin();
-            match.serverModePeer = *it;
-            peerWaiting.erase(it);
-            match.serverPort = portA;
+        float now = TimeUtil::GetTime();
+        float dt = now - before;
+        before = now;
+        for (auto* room: rooms) {
+            if (room) {
+                if ((room->participantListUpdate.accum += dt) > room->participantListUpdate.value) {
+                    room->participantListUpdate.accum = 0;
 
-            // send packet to client player
-            ENetPacket* p = peerAndNickToPacket(match.serverModePeer, peer2Name[match.serverModePeer], match.serverPort, 0, false);
-
-            std::stringstream ss;
-            ss << "   -> '" << peer2Name[match.serverModePeer] << "' (S) versus '";
-
-            inProgress.push_back(match);
-
-            ss << peer2Name[match.clientModePeer] << "'";
-            LOGI(ss.str());
-
-            LOGI("Send connection info to client");
-            enet_peer_send(match.clientModePeer, 0, p);
-
-            enet_host_flush(server);
+                    PlayersInRoomPacket pkt;
+                    pkt.names.push_back(room->creator->name);
+                    pkt.states.push_back(NetworkStatus::InRoomAsMaster);
+                    for (auto& p: room->participants) {
+                        pkt.names.push_back(p.first->name);
+                        pkt.states.push_back(p.second);
+                    }
+                    for (auto& p: room->participants) {
+                        enet_peer_send(p.first->peer, 0, pkt.toENetPacket());
+                    }
+                    enet_peer_send(room->creator->peer, 0, pkt.toENetPacket());
+                }
+            }
         }
     }
     return 0;
 }
 
-static ENetPacket* peerAndNickToPacket(ENetPeer* peer, const std::string& name, unsigned short portA, unsigned short portB, bool server) {
-    uint8_t buffer[1024];
-    LobbyPacket* pkt = (LobbyPacket*)&buffer;
-    pkt->nameLength = (uint8_t)name.size();
-    pkt->remoteIp = peer->address.host;
-    pkt->remotePort = portA;
-    pkt->localPort = portB;
-    pkt->server = server;
-    memcpy(&buffer[sizeof(LobbyPacket)], name.c_str(), name.size());
-    return enet_packet_create(buffer, sizeof(LobbyPacket) + name.size(), ENET_PACKET_FLAG_RELIABLE);
+static Player* lookupPlayer(std::vector<Player*> players, ENetPeer* peer) {
+    for (auto* p: players) {
+        if (p->peer == peer) {
+            return p;
+        }
+    }
+    return 0;
 }

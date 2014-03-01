@@ -318,9 +318,10 @@ class ComponentSystemImpl: public ComponentSystem {
 
         uint8_t* saveComponent(Entity entity, uint8_t* out) {
             if (!out) {
-                out = new uint8_t[sizeof(T)];
+                out = (uint8_t*)(new T);//new uint8_t[sizeof(T)];
             }
-            memcpy(out, Get(entity), sizeof(T));
+            T* t = (T*)out;
+            *t = *Get(entity);
             return out;
         }
 

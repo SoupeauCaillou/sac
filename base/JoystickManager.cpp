@@ -113,8 +113,6 @@ void JoystickManager::Update() {
 
         if (joysticks.size() != newCount) {
             LOGW("joysticks.size() changed from " << joysticks.size() << " to " << SDL_NumJoysticks());
-        
-            SDL_JoystickEventState(SDL_ENABLE);
 
             auto oldCount = joysticks.size();
             joysticks.resize(newCount);
@@ -127,6 +125,8 @@ void JoystickManager::Update() {
 }
 
 void JoystickManager::resetDoubleClick(int idx, JoystickButton::Enum btn) {
-    joysticks[idx].lastClickTime[btn] = 0;
+    if (joysticks.size() > (unsigned)idx) {
+        joysticks[idx].lastClickTime[btn] = 0;
+    }
 }
 #endif

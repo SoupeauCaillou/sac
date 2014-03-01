@@ -75,13 +75,20 @@ class JoystickManager {
 		static JoystickManager* Instance();
 		static void DestroyInstance();
 		
-        bool hasClicked(int idx, JoystickButton::Enum btn) const { return joysticks[idx].clicked[btn]; }
+        bool hasClicked(int idx, JoystickButton::Enum btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].clicked[btn]; }
 
-        bool hasDoubleClicked(int idx, JoystickButton::Enum btn) const { return joysticks[idx].doubleclicked[btn]; }
+        bool hasDoubleClicked(int idx, JoystickButton::Enum btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].doubleclicked[btn]; }
 
         void resetDoubleClick(int idx, JoystickButton::Enum btn);
 
-        const glm::vec2& getPadDirection(int idx, JoystickPad::Enum pad) const { return joysticks[idx].lastDirection[pad]; }
+        const glm::vec2& getPadDirection(int idx, JoystickPad::Enum pad) const {
+            if (joysticks.size() > (unsigned)idx) {
+                return joysticks[idx].lastDirection[pad];
+            } else {
+                static const glm::vec2 zero(0.0f);
+                return zero;
+            }
+        }
 
 		void Update();
 

@@ -38,28 +38,34 @@ struct AutoDestroyComponent {
     std::function<void(Entity)> onDeletionCall;
 
 #if SAC_WINDOWS
-	struct _params {
+    struct _params {
 #else
-	union _params {
-		_params() {
-			memset(this, 0, sizeof(_params));
-		}
+    union _params {
+        _params() {
+            memset(this, 0, sizeof(_params));
+        }
 #endif
-		struct _area : glm::vec2 {
-			_area() : position(1.f), size(1.f) {}
-			glm::vec2 position, size;
-		} area;
-		struct _lifetime {
-			Frequency<float> freq;
-			bool map2AlphaRendering, map2AlphaText;
-		} lifetime;
-#if SAC_WINDOWS
-	};
-	_params params;
-#else
-	} params;
-#endif
+        _params& operator=(const _params& p) {
+            area = p.area;
+            lifetime = p.lifetime;
+            return *this;
+        }
 
+        struct _area : glm::vec2 {
+            _area() : position(1.f), size(1.f) {}
+            glm::vec2 position, size;
+        } area;
+        struct _lifetime {
+            Frequency<float> freq;
+            bool map2AlphaRendering, map2AlphaText;
+        } lifetime;
+#if SAC_WINDOWS
+    };
+    _params params;
+#else
+    } params;
+#endif
+    // ARG TODO
     bool hasText;
 };
 

@@ -69,6 +69,7 @@ class EntityManager {
 
     	void DeleteEntity(Entity e);
 		void AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas = true);
+        void RemoveComponent(Entity e, ComponentSystem* system);
 		void deleteAllEntities();
 		std::vector<Entity> allEntities();
 
