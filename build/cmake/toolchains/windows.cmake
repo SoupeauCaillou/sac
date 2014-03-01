@@ -40,4 +40,8 @@ endfunction()
 
 function (import_specific_libs)
     target_link_libraries (sac opengl32 Winmm)
+
+    if (NETWORK_BUILD)
+        target_link_libraries("sac" ws2_32)
+    endif()
 endfunction()

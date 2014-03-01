@@ -27,7 +27,14 @@
 #include <base/Log.h>
 
 #include <enet/enet.h>
+
+#if SAC_WINDOWS
+#include <WinSock2.h>
+#include <Ws2tcpip.h>
+#define inet_ntop InetNtop
+#else
 #include <arpa/inet.h>
+#endif
 
 #include <thread>
 #include <mutex>
@@ -387,6 +394,7 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
         LOGE("sendto error");
 
     char tmmmm[INET6_ADDRSTRLEN];
+
     if (inet_ntop(AF_INET, &c, tmmmm, INET6_ADDRSTRLEN) == 0) {
         LOGE("plouf");
     } else

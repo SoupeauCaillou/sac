@@ -214,10 +214,17 @@ if (NETWORK_BUILD)
     ########## build enet lib ###########
     # following defs replace enet's config.h
     add_definitions(-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1
-    -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1
+    -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1
     -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1
     -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1
     -DHAS_SOCKLEN_T=1 -DSAC_NETWORK=1)
+
+    # Windows is already different... sight
+    if (VARPLATFORM STREQUAL "WINDOWS")
+        add_definitions(-DHAVE_STRING_H=1)
+    else ()
+        add_definitions(-DHAVE_STRINGS_H=1)
+    endif()
 
     set (enet_base ${PROJECT_SOURCE_DIR}/sac/libs/enet)
     file(
