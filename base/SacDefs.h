@@ -8,5 +8,5 @@ typedef unsigned __int32 uint32_t;
 #if SAC_WINDOWS
 #define PRAGMA_WARNING(x) __pragma(x)
 #else
-#define PRAGMA_WARNING(x) _Pragma(#x)
+#define PRAGMA_WARNING(x)
 #endif
