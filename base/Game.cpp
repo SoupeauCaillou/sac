@@ -138,7 +138,9 @@ Game::Game() {
 void Game::buildOrderedSystemsToUpdateList() {
     orderedSystemsToUpdate.clear();
 
-    #define ADD_IF_EXISTING(ptr) do { \
+    #define ADD_IF_EXISTING(ptr) \
+	PRAGMA_WARNING(warning(disable: 4127)) \
+	do { \
         auto* _ptr = (ptr); \
         if (_ptr) orderedSystemsToUpdate.push_back(_ptr); \
     } while (false)
@@ -462,7 +464,7 @@ void Game::step() {
             delta = 0;
             break;
         case GameType::SingleStep:
-            delta = 1.0/60;
+            delta = 1.0f/60;
             LOGI("Single stepping the game (delta: " << delta << " ms)");
             tick(delta);
             gameType = GameType::LevelEditor;

@@ -66,7 +66,7 @@ void CollisionSystem::DoUpdate(float) {
                 TRANSFORM(d)->position =
                     -worldSize * 0.5f + glm::vec2(CELL_SIZE * (i+.5f), CELL_SIZE *(j+.5f));
                 TRANSFORM(d)->size = glm::vec2(CELL_SIZE);
-                TRANSFORM(d)->z = 0.95;
+                TRANSFORM(d)->z = 0.95f;
                 ADD_COMPONENT(d, Rendering);
                 float r = j / (float)h;
                 float g = i / (float)w;
@@ -75,9 +75,9 @@ void CollisionSystem::DoUpdate(float) {
                 RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
                 ADD_COMPONENT(d, Text);
                 TEXT(d)->fontName = "typo";
-                TEXT(d)->charHeight = CELL_SIZE * 0.2;
+                TEXT(d)->charHeight = CELL_SIZE * 0.2f;
                 TEXT(d)->show = 1;
-                TEXT(d)->color.a = 0.3;
+                TEXT(d)->color.a = 0.3f;
                 debug.push_back(d);
             }
         }
@@ -292,8 +292,8 @@ void CollisionSystem::DoUpdate(float) {
                 const int stepX = glm::sign(axis.x);
                 const int stepY = glm::sign(axis.y);
 
-                float tMaxX = (CELL_SIZE * (xStart + stepX + 0.5) - (origin.x + worldSize.x * 0.5)) / axis.x;
-                float tMaxY = (CELL_SIZE * (yStart + stepY + 0.5) - (origin.y + worldSize.y * 0.5)) / axis.y;
+                float tMaxX = (CELL_SIZE * (xStart + stepX + 0.5f) - (origin.x + worldSize.x * 0.5f)) / axis.x;
+                float tMaxY = (CELL_SIZE * (yStart + stepY + 0.5f) - (origin.y + worldSize.y * 0.5f)) / axis.y;
                 const float tDeltaX = (CELL_SIZE / axis.x) * stepX;
                 const float tDeltaY = (CELL_SIZE / axis.y) * stepY;
 

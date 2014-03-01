@@ -272,7 +272,7 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
                 }
                 c.uv[1].x *= (1 - prop);
                 c.halfSize.x *= (1 - prop);
-                c.position.x += 0.5 * cullLeftX;
+                c.position.x += 0.5f * cullLeftX;
                 return true;
             }
         }
@@ -288,7 +288,7 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
                 }
                 c.uv[1].x *= (1 - prop);
                 c.halfSize.x *= (1 - prop);
-                c.position.x -= 0.5 * cullRightX;
+                c.position.x -= 0.5f * cullRightX;
                 return true;
             }
         }
@@ -367,15 +367,15 @@ void RenderingSystem::DoUpdate(float) {
 
             if (rc->zPrePass) {
                 continue;
-#if SAC_INGAME_EDITORS
-                if (highLight.zPrePass) {
-                    c.color.g = c.color.r = 0;
-                    c.color.a = 0.5;
-                    c.flags = DebugFlagSet;
-                    c.texture = InvalidTextureRef;
-                } else
-#endif
-                c.flags = ZPrePassFlagSet;
+//#if SAC_INGAME_EDITORS
+//                if (highLight.zPrePass) {
+//                    c.color.g = c.color.r = 0;
+//                    c.color.a = 0.5;
+//                    c.flags = DebugFlagSet;
+//                    c.texture = InvalidTextureRef;
+//                } else
+//#endif
+//                c.flags = ZPrePassFlagSet;
             } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
                 c.flags = OpaqueFlagSet;
 #if SAC_INGAME_EDITORS
@@ -436,8 +436,8 @@ void RenderingSystem::DoUpdate(float) {
 
 #if SAC_INGAME_EDITORS
                         if (highLight.nonOpaque) {
-                            c.color.b = 0;
-                            c.color.a *= 0.6;
+                            c.color.b = 0.f;
+                            c.color.a *= 0.6f;
                         }
 #endif
                         c.key = makeKeyBlended(c);
@@ -459,8 +459,8 @@ void RenderingSystem::DoUpdate(float) {
             } else {
 #if SAC_INGAME_EDITORS
                 if (highLight.nonOpaque) {
-                    c.color.b = 0;
-                    c.color.a *= 0.6;
+                    c.color.b = 0.f;
+                    c.color.a *= 0.6f;
                 }
 #endif
                 c.key = makeKeyBlended(c);
@@ -491,7 +491,7 @@ void RenderingSystem::DoUpdate(float) {
     }
 
 #if SAC_DEBUG
-    float invSize = 400.0 / (theRenderingSystem.screenW * theRenderingSystem.screenH);
+    float invSize = 400.0f / (theRenderingSystem.screenW * theRenderingSystem.screenH);
     for (int i=0; i<3; ++i)
         renderingStats[i].reset();
         std::for_each(outQueue.commands.begin(), outQueue.commands.begin() + outQueue.count,

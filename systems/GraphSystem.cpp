@@ -132,8 +132,8 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
         maxScaleY = gc->maxY;
     }
 
-    minScaleY -= 0.1 * std::abs(minScaleY);
-    maxScaleY += 0.1 * std::abs(minScaleY);
+    minScaleY -= 0.1f * std::abs(minScaleY);
+    maxScaleY += 0.1f * std::abs(minScaleY);
 
 	if (gc->maxX != gc->minX) {
 		int value_xmin = (gc->minX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);

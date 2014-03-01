@@ -35,36 +35,36 @@ INSTANCE_IMPL(PhysicsSystem);
 
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
     PhysicsComponent tc;
-    componentSerializer.add(new Property<glm::vec2>("linear_velocity", OFFSET(linearVelocity, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>("angular_velocity", OFFSET(angularVelocity, tc), 0.001));
-    componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc), 0.001));
-    componentSerializer.add(new Property<float>("frottement", OFFSET(frottement, tc), 0.001));
-    componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>("linear_velocity", OFFSET(linearVelocity, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>("angular_velocity", OFFSET(angularVelocity, tc), 0.001f));
+    componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc), 0.001f));
+    componentSerializer.add(new Property<float>("frottement", OFFSET(frottement, tc), 0.001f));
+    componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001f, 0)));
 }
 
 #if SAC_DEBUG
 void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2 & size) {
     return;
-    float norm2 = glm::length2(size);
-    if (norm2 < 0.00001f)
-        return;
+    //float norm2 = glm::length2(size);
+    //if (norm2 < 0.00001f)
+    //    return;
+	
+    //norm2Max = glm::max(norm2Max, norm2);
 
-    norm2Max = glm::max(norm2Max, norm2);
 
+    //if (currentDraw == drawForceVectors.size()) {
+    //    std::pair<Entity, std::vector<glm::vec2>> couple;
 
-    if (currentDraw == drawForceVectors.size()) {
-        std::pair<Entity, std::vector<glm::vec2>> couple;
+    //    couple.first = DrawSomething::DrawVec2("PhysicsDebug", pos, size, true);
+    //    couple.second.push_back(pos);
+    //    couple.second.push_back(size);
+    //    drawForceVectors.push_back(couple);
+    //} else {
+    //    drawForceVectors[currentDraw].second[0] = pos;
+    //    drawForceVectors[currentDraw].second[1] = size;
+    //}
 
-        couple.first = DrawSomething::DrawVec2("PhysicsDebug", pos, size, true);
-        couple.second.push_back(pos);
-        couple.second.push_back(size);
-        drawForceVectors.push_back(couple);
-    } else {
-        drawForceVectors[currentDraw].second[0] = pos;
-        drawForceVectors[currentDraw].second[1] = size;
-    }
-
-    ++currentDraw;
+    //++currentDraw;
 }
 #else
 #define addDebugOnlyDrawForce(a,b) {}
@@ -142,7 +142,7 @@ void PhysicsSystem::DoUpdate(float dt) {
         // velocity varies over dt: use Verlet integration for position
         pc->linearVelocity = nextVelocity;
 		const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
-		tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5;
+		tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
         pc->angularVelocity = nextAngularVelocity;
 	END_FOR_EACH()
 

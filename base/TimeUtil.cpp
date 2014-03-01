@@ -97,7 +97,7 @@ float TimeUtil::GetTime() {
 		__int64 intv;
 		QueryPerformanceCounter((LARGE_INTEGER*)&intv);
         intv -= startup_time;
-		float tv = intv * frequency;
+		double tv = intv * frequency;
 #endif
 	return timeconverter(tv);
 }

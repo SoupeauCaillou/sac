@@ -139,6 +139,7 @@ int rmdir(char *path)
     {
         errno = EBADF;
     }
+	return result;
 }
 
 int mkdir(const char * path, int chmod)
@@ -152,6 +153,7 @@ int mkdir(const char * path, int chmod)
     {
         errno = EBADF;
     }
+	return result;
 }
 
 #ifdef __cplusplus

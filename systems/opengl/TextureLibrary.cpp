@@ -125,12 +125,12 @@ void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
         doLoad(name, info, ref);
     }
     return;
-    std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
-    if (it == dataSource.end()) {
-        LOGW("TextureLibrary::doReload (" << name << ") -> TODO");
-    } else {
-        const ImageDesc& imageDesc = it->second;
-        LOGV(1, "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')');
-        OpenGLTextureCreator::updateFromImageDesc(imageDesc, info.glref.color, OpenGLTextureCreator::COLOR_ALPHA);
-    }
+    //std::map<TextureRef, ImageDesc>::iterator it = dataSource.find(ref);
+    //if (it == dataSource.end()) {
+    //    LOGT("TextureLibrary::doReload (" << name << ")");
+    //} else {
+    //    const ImageDesc& imageDesc = it->second;
+    //    LOGV(1, "update texture: '" << name << "' from ImageDesc (" << imageDesc.width << "x" << imageDesc.height << "@" << imageDesc.channels << ')');
+    //    OpenGLTextureCreator::updateFromImageDesc(imageDesc, info.glref.color, OpenGLTextureCreator::COLOR_ALPHA);
+    //}
 }

@@ -30,9 +30,9 @@ MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morph
     /* nothing saved */
     MorphingComponent mc;
     componentSerializer.add(new Property<bool>("active", OFFSET(active, mc)));
-    componentSerializer.add(new Property<float>("value", OFFSET(value, mc), 0.001));
-    componentSerializer.add(new Property<float>("activation_time", OFFSET(activationTime, mc), 0.001));
-    componentSerializer.add(new Property<float>("timing", OFFSET(timing, mc), 0.001));
+    componentSerializer.add(new Property<float>("value", OFFSET(value, mc), 0.001f));
+    componentSerializer.add(new Property<float>("activation_time", OFFSET(activationTime, mc), 0.001f));
+    componentSerializer.add(new Property<float>("timing", OFFSET(timing, mc), 0.001f));
 }
 
 void MorphingSystem::DoUpdate(float dt) {

@@ -40,8 +40,8 @@ Entity GameCenterAPIDebugImpl::createAutodestroySuccess(float duration) {
     ADD_COMPONENT(e, AutoDestroy);
 
     TRANSFORM(e)->size = glm::vec2(4,1);    
-    TRANSFORM(e)->position = glm::vec2(0, PlacementHelper::ScreenSize.y / 2. - .5);
-    TRANSFORM(e)->z = .95;
+    TRANSFORM(e)->position = glm::vec2(0, PlacementHelper::ScreenSize.y / 2.f - .5);
+    TRANSFORM(e)->z = .95f;
 
     RENDERING(e)->color = Color::random();
     RENDERING(e)->show = true;

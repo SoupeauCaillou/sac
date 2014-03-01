@@ -80,12 +80,12 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TRANSFORM(fpsLabel)->size = TRANSFORM(fps)->size;
     ADD_COMPONENT(fpsLabel, Anchor);
     ANCHOR(fpsLabel)->parent = fps;
-    ANCHOR(fpsLabel)->z = -0.002;
+    ANCHOR(fpsLabel)->z = -0.002f;
 
     ADD_COMPONENT(fpsLabel, Text);
     TEXT(fpsLabel)->positioning = TextComponent::LEFT;
     // TEXT(fpsLabel)->flags = TextComponent::AdjustHeightToFillWidthBit;
-    TEXT(fpsLabel)->maxCharHeight = 0.4;
+    TEXT(fpsLabel)->maxCharHeight = 0.4f;
     TEXT(fpsLabel)->show = true;
 
     entityCount = theEntityManager.CreateEntity("__debug_entityCount");
@@ -106,12 +106,12 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TRANSFORM(entityCountLabel)->size = TRANSFORM(entityCount)->size;
     ADD_COMPONENT(entityCountLabel, Anchor);
     ANCHOR(entityCountLabel)->parent = entityCount;
-    ANCHOR(entityCountLabel)->z = -0.002;
+    ANCHOR(entityCountLabel)->z = -0.002f;
 
     ADD_COMPONENT(entityCountLabel, Text);
     TEXT(entityCountLabel)->positioning = TextComponent::LEFT;
     // TEXT(entityCountLabel)->flags = TextComponent::AdjustHeightToFillWidthBit;
-    TEXT(entityCountLabel)->maxCharHeight = 0.4;
+    TEXT(entityCountLabel)->maxCharHeight = 0.4f;
     TEXT(entityCountLabel)->show = true;
 
     systems = theEntityManager.CreateEntity("__debug_systems");
@@ -134,14 +134,14 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
     ADD_COMPONENT(e, Anchor);
     ANCHOR(e)->parent = parent;
-    ANCHOR(e)->z = -0.002;
+    ANCHOR(e)->z = -0.002f;
     ANCHOR(e)->position = TRANSFORM(parent)->size * (-0.5f) - glm::vec2(0.0f, (index + 1) * 0.6f);
 
     ADD_COMPONENT(e, Text);
     TEXT(e)->color = color;
     TEXT(e)->positioning = TextComponent::LEFT;
     // TEXT(e)->flags = TextComponent::AdjustHeightToFillWidthBit;
-    TEXT(e)->maxCharHeight = 0.4;
+    TEXT(e)->maxCharHeight = 0.4f;
     TEXT(e)->text = name;
     TEXT(e)->show = true;
 
@@ -293,7 +293,7 @@ void DebuggingSystem::DoUpdate(float dt) {
     }
 
 
-    timeUntilGraphUpdate += reloadTextures * .5;
+    timeUntilGraphUpdate += reloadTextures * .5f;
 
 #if 0
 

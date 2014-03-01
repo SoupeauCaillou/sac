@@ -113,7 +113,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
         auto* tc = ANCHOR(se.e[i]);
         tc->parent = e;
         tc->position = -glm::vec2(sc->direction.x * ptc->size.x, sc->direction.y * ptc->size.y) * (float)i;
-        tc->z = i * 0.001;
+        tc->z = i * 0.001f;
 
         RenderingComponent* rc = RENDERING(se.e[i]);
         se.imageIndex[i] = i % sc->images.size();

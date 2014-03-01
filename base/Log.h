@@ -24,6 +24,8 @@
 
 extern bool AssertOnFatal;
 
+#include <base/SacDefs.h>
+
 //to handle vec2 operator<<
 #include <ostream>
 #include <iomanip>
@@ -98,76 +100,51 @@ static const android_LogPriority level2prio[] {
         } \
     }
 
-#define __LOG_WHILE(level, x) do { \
-    __LOG(level, x) \
-} while (false)
+#define __LOG_WHILE(level, x) \
+	PRAGMA_WARNING(warning(disable: 4127)) \
+	do { \
+		__LOG(level, x) \
+	} while (false)
 
-#define __LOG_IF_WHILE(cond, level, x) do { \
-    if ((cond)) \
-        __LOG(level, x) \
-} while (false)
+#define __LOG_IF_WHILE(cond, level, x) \
+	PRAGMA_WARNING(warning(disable: 4127)) \
+	do { \
+		if ((cond)) \
+			__LOG(level, x) \
+	} while (false)
 
+#define __LOG_EVERY_N_WHILE(cond, n, x) \
+	PRAGMA_WARNING(warning(disable: 4127)) \
+	do { \
+		static unsigned __log_count = 0; \
+		if ((++__log_count % n) == 0) { \
+			__LOG(cond, x) \
+		} \
+	} while (false)
 
 #if SAC_ENABLE_LOG
     #define LOG_USAGE_ONLY(x) x
 
-    #define LOG_OFFSET() \
-        logHeaderLength(__FILE__,__LINE__)
+    #define LOG_OFFSET() logHeaderLength(__FILE__,__LINE__)
 
     #define LOGF(x) __LOG_WHILE(LogVerbosity::FATAL, x)
     #define LOGE(x) __LOG_WHILE(LogVerbosity::ERROR, x)
     #define LOGT(x) __LOG_WHILE(LogVerbosity::TODO, "<--TODO-->" << x)
     #define LOGW(x) __LOG_WHILE(LogVerbosity::WARNING, x)
     #define LOGI(x) __LOG_WHILE(LogVerbosity::INFO, x)
-    #define LOGV(verbosity, x) do {\
-        if ((int)logLevel >= ((int)(LogVerbosity::INFO) + verbosity)) {\
-            SAC_LOG_PRE\
-            vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl;\
-            SAC_LOG_POST\
-        }\
-    } while (false)
+	#define LOGV(verbosity, x) __LOG_WHILE((LogVerbosity::Enum)((int)LogVerbosity::INFO + verbosity), x)
 
     #define LOGF_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::FATAL, x)
     #define LOGE_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::ERROR, x)
     #define LOGT_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::TODO, x)
     #define LOGW_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::WARNING, x)
     #define LOGI_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::INFO, x)
-    #define LOGV_IF(verbosity, cond, x) do {\
-        if ((cond) && (int)logLevel >= (int)LogVerbosity::INFO + verbosity) {\
-            SAC_LOG_PRE \
-            vlogToStream(SAC_LOG_STREAM, verbosity, __FILE__, __LINE__) << x << std::endl; \
-            SAC_LOG_POST \
-        } \
-    } while (false)
+	#define LOGV_IF(verbosity, cond, x) __LOG_IF_WHILE(cond, (LogVerbosity::Enum)((int)LogVerbosity::INFO + verbosity), x)
 
-    #define LOGE_EVERY_N(n, x) do {\
-        static unsigned __log_count = 0;\
-        if ((++__log_count % n) == 0) {\
-            __LOG(LogVerbosity::ERROR, x) \
-        } \
-    } while (false)
-
-    #define LOGW_EVERY_N(n, x) do {\
-        static unsigned __log_count = 0;\
-        if ((++__log_count % n) == 0) {\
-            __LOG(LogVerbosity::WARNING, x) \
-        } \
-    } while (false)
-
-    #define LOGI_EVERY_N(n, x) do {\
-        static unsigned __log_count = 0;\
-        if ((++__log_count % n) == 0) {\
-            __LOG(LogVerbosity::INFO, x) \
-        } \
-    } while (false)
-
-    #define LOGT_EVERY_N(n, x) do {\
-        static unsigned __log_count = 0;\
-        if ((++__log_count % n) == 0) {\
-            __LOG(LogVerbosity::TODO, x) \
-        } \
-    } while (false)
-
+	#define LOGE_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::ERROR, n, x)
+	#define LOGW_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::WARNING, n, x)
+	#define LOGI_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::INFO, n, x)
+	#define LOGT_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::TODO, n, x)
 #else
     #define LOG_USAGE_ONLY(x) 
 

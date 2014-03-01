@@ -88,10 +88,10 @@ TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     componentSerializer.add(new StringProperty("text", OFFSET(text, tc)));
     componentSerializer.add(new StringProperty("font_name", OFFSET(fontName, tc)));
     componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
-    componentSerializer.add(new Property<float>("char_height", OFFSET(charHeight, tc), 0.001));
+    componentSerializer.add(new Property<float>("char_height", OFFSET(charHeight, tc), 0.001f));
     componentSerializer.add(new Property<int>("flags", OFFSET(flags, tc), 0));
     componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
-    componentSerializer.add(new Property<float>("positioning", OFFSET(positioning, tc), 0.001));
+    componentSerializer.add(new Property<float>("positioning", OFFSET(positioning, tc), 0.001f));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
     componentSerializer.add(new Property<int>("max_line_to_use", OFFSET(maxLineToUse, tc)));
 }
@@ -300,7 +300,7 @@ relayout:
         int lineCount = 1, layoutCount = 0;
         // Variables
 		const float startX = (trc->flags & TextComponent::MultiLineBit) ?
-			(trans->size.x * -0.5) : computeStartX(trc, charHeight, fontDesc);
+			(trans->size.x * -0.5f) : computeStartX(trc, charHeight, fontDesc);
 		float x = startX, y = 0;
 		bool newWord = true;
 
@@ -340,7 +340,7 @@ relayout:
 				if (newLine) {
                     adjustLineHorizontalCentering(charInLine, startX, trc, trans);
                     lineCount++;
-					y -= 1.2 * charHeight;
+					y -= 1.2f * charHeight;
 					x = startX;
 					if (lineEnd == i) {
 					  continue;
@@ -427,14 +427,14 @@ relayout:
             }
             // Advance position
             letterCount++;
-			x += tc->size.x * 0.5;
+			x += tc->size.x * 0.5f;
 			tc->position.x = x;
             tc->position.y = y; // + (inlineImage ? tc->size.x * 0.25 : 0);
-			x += tc->size.x * 0.5;
+			x += tc->size.x * 0.5f;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
  			if (trc->flags & TextComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
-				x += fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75;
+				x += fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75f;
 			}
 
             // Fastforward to skip some chars (e.g: inline image description)
@@ -458,7 +458,7 @@ relayout:
         // update position
         AnchorComponent ac;
         ac.parent = entity;
-        ac.z = 0.001; // put text in front
+        ac.z = 0.001f; // put text in front
         for (unsigned i=firstEntity; i<letterCount; i++) {
             auto* tc = TRANSFORM(renderingEntitiesPool[i]);
             ac.position = tc->position;
@@ -589,7 +589,7 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
     float width = 0;
     // If it's a number, pre-add grouping spacing
     if (trc->flags & TextComponent::IsANumberBit) {
-        float spaceW = fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75;
+        float spaceW = fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75f;
         int count = toInc - from;
         // count [0, 3] -> 0 space
         // count [4, 6] -> 1 space

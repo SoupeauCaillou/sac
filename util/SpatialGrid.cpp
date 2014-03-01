@@ -79,8 +79,8 @@ SpatialGridData::SpatialGridData(int pW, int pH, float hexagonWidth) : w(pW), h(
     LOGF_IF((h % 2) == 0, "Must use odd height");
     LOGF_IF((w % 2) == 0, "Must use odd width");
 
-    float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5);
-    size = hexaHeight * 0.5;
+    float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5f);
+    size = hexaHeight * 0.5f;
 
     const float vertSpacing = (3.0f/4) * hexaHeight;
     const float horiSpacing = hexagonWidth;
@@ -370,7 +370,7 @@ std::vector<GridPos> SpatialGrid::lineDrawer(const GridPos& from, const GridPos&
     std::vector<GridPos> line;
 
 
-    float E = 1e-6 * (positiveEps ? 1 : -1);
+    float E = 1e-6 * (positiveEps ? 1.f : -1.f);
 
     float fromQ = from.q + E;
     float fromR = from.r - 2 * E;

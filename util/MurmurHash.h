@@ -29,7 +29,9 @@ class MurmurHash {
     public:
 #if SAC_DEBUG
         static inline unsigned staticHash(const char *s, unsigned value) {
-            LOGF_IF(compute(s, strlen(s), 0) != value, "Invalid precalculated hash value. Expected: " << compute(s, strlen(s), 0)  << ". Actual: " << value);
+            LOGF_IF(compute(s, strlen(s), 0) != value, 	
+				"Invalid precalculated hash value. Expected: " << compute(s, strlen(s), 0) << 
+				". Actual: " << value);
             return value;
         }
 #else

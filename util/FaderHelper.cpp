@@ -46,7 +46,7 @@ void FaderHelper::init(Entity camera) {
 	RENDERING(fadingEntity)->opaqueType = RenderingComponent::NON_OPAQUE;
 	ADD_COMPONENT(fadingEntity, Anchor);
 	ANCHOR(fadingEntity)->parent = camera;
-	ANCHOR(fadingEntity)->z = 0.999 - TRANSFORM(camera)->z;
+	ANCHOR(fadingEntity)->z = 0.999f - TRANSFORM(camera)->z;
 	ADD_COMPONENT(fadingEntity, Transformation);
 	TRANSFORM(fadingEntity)->size = TRANSFORM(camera)->size;
 }
@@ -90,7 +90,7 @@ static void updateFading(Fading::Enum type, Entity e, float progress) {
 			if (progress < 0.5) {
 				updateFading(Fading::Out, e, 2 * progress);
 			} else {
-				updateFading(Fading::In, e, 2 * (progress - 0.5));
+				updateFading(Fading::In, e, 2 * (progress - 0.5f));
 			}
 			break;
 	}

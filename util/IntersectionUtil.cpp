@@ -28,7 +28,7 @@
 #include <cmath>
 
 //never trust floats, they're evils
-const float eps = 0.0001;
+const float eps = 0.0001f;
 
 bool IntersectionUtil::pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB) {
     const float norm2 = glm::length2(qB - qA);

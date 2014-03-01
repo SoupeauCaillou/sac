@@ -57,14 +57,14 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), muted
     componentSerializer.add(new Property<int>("loop_next", OFFSET(loopNext, sc)));
     componentSerializer.add(new Property<int>("previous_ending", OFFSET(previousEnding, sc)));
 
-    componentSerializer.add(new Property<float>("loop_at", OFFSET(loopAt, sc), 0.001));
+    componentSerializer.add(new Property<float>("loop_at", OFFSET(loopAt, sc), 0.001f));
     componentSerializer.add(new Property<int>("position_i", OFFSET(positionI, sc)));
 #if SAC_MUSIC_VISU
-    componentSerializer.add(new Property<float>("position_f", OFFSET(positionF, sc), 0.001));
+    componentSerializer.add(new Property<float>("position_f", OFFSET(positionF, sc), 0.001f));
 #endif
-    componentSerializer.add(new Property<float>("fade_out", OFFSET(fadeOut, sc), 0.001));
-    componentSerializer.add(new Property<float>("fade_in", OFFSET(fadeIn, sc), 0.001));
-    componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001));
+    componentSerializer.add(new Property<float>("fade_out", OFFSET(fadeOut, sc), 0.001f));
+    componentSerializer.add(new Property<float>("fade_in", OFFSET(fadeIn, sc), 0.001f));
+    componentSerializer.add(new Property<float>("volume", OFFSET(volume, sc), 0.001f));
     componentSerializer.add(new Property<bool>("looped", OFFSET(looped, sc)));
     componentSerializer.add(new Property<bool>("paused", OFFSET(paused, sc)));
     componentSerializer.add(new StringProperty("auto_loop_name", OFFSET(autoLoopName, sc)));
@@ -627,7 +627,7 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
 
     MusicInfo info;
     info.ovf = f;
-    info.totalTime = ov_time_total(f, -1) + 1; // hum hum
+    info.totalTime = ov_time_total(f, -1.f) + 1; // hum hum
     vorbis_info* inf = ov_info(f, -1);
     info.toRemove = false;
     info.sampleRate = inf->rate * inf->channels;

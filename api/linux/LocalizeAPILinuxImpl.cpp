@@ -39,7 +39,6 @@ static std::string getLocaleInfo() {
 #if SAC_WINDOWS
     WCHAR szISOLang[5] = {0};
     WCHAR szISOCountry[5] = {0};
-    int iLen = 0;
 
     ::GetLocaleInfo(LOCALE_USER_DEFAULT,
                     LOCALE_SISO639LANGNAME,

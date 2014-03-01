@@ -263,10 +263,10 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         int32_t h;
         std::istringstream iss(html);
         iss >> std::hex >> h;
-        *out = Color(((h >> 16) & 0xff) / 255.0
-            , ((h >> 8) & 0xff) / 255.0
-            , ((h >> 0) & 0xff) / 255.0
-            , 1);
+        *out = Color(((h >> 16) & 0xff) / 255.0f
+            , ((h >> 8) & 0xff) / 255.0f
+            , ((h >> 0) & 0xff) / 255.0f
+            , 1.f);
         LOG_SUCCESS_ << *out << "'");
         return 1;
     }

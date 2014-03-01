@@ -44,10 +44,10 @@ SwypeButtonSystem::SwypeButtonSystem() : ComponentSystemImpl<SwypeButtonComponen
 
     SwypeButtonComponent sc;
     componentSerializer.add(new Property<bool>("enabled", OFFSET(enabled, sc)));
-    componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, sc), 0.001));
+    componentSerializer.add(new Property<float>("vibration", OFFSET(vibration, sc), 0.001f));
     componentSerializer.add(new Property<bool>("animated", OFFSET(animated, sc)));
-    componentSerializer.add(new Property<glm::vec2>("final_pos", OFFSET(finalPos, sc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<glm::vec2>("idle_pos", OFFSET(idlePos, sc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>("final_pos", OFFSET(finalPos, sc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<glm::vec2>("idle_pos", OFFSET(idlePos, sc), glm::vec2(0.001f, 0)));
     
 }
 
@@ -156,16 +156,16 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
             break;
         case SwypeIdleState::Animating:
             // idle anim drag to the middle
-            if (!pastTravelPerc(pos, direction, comp, 0.4) && comp->activeIdleTime > 0) {
+            if (!pastTravelPerc(pos, direction, comp, 0.4f) && comp->activeIdleTime > 0) {
                 comp->speed += SteeringBehavior::arrive(
-                    pos, comp->speed, comp->finalPos, 3, 0.1);
+                    pos, comp->speed, comp->finalPos, 3, 0.1f);
             } else {
                 comp->speed = glm::vec2(0.0f);
                 comp->animationPlaying = SwypeIdleState::GoingBackToHalt;
             }
             break;
         case SwypeIdleState::GoingBackToHalt:
-            if (glm::length(comp->idlePos - pos) < 0.01) {
+            if (glm::length(comp->idlePos - pos) < 0.01f) {
                 comp->animationPlaying = SwypeIdleState::Halted;
                 comp->activeIdleTime = 0;
             }
@@ -200,9 +200,9 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     // Button released at low speed
     if (!touching && glm::length(comp->speed) < 1.f) {
         // If we're at < middle -> get back to idle position, otherwise continue to final position
-        if (!pastTravelPerc(pos, direction, comp, 0.5) || comp->animationPlaying == SwypeIdleState::GoingBackToHalt) {//} || (comp->animationPlaying && comp->activeIdleTime <= 0)) {
+        if (!pastTravelPerc(pos, direction, comp, 0.5f) || comp->animationPlaying == SwypeIdleState::GoingBackToHalt) {//} || (comp->animationPlaying && comp->activeIdleTime <= 0)) {
             comp->speed += SteeringBehavior::arrive(
-                pos, comp->speed, comp->idlePos, 5, 0.1);
+                pos, comp->speed, comp->idlePos, 5, 0.1f);
         } else {
             comp->speed += SteeringBehavior::arrive(
                 pos, comp->speed, comp->finalPos, 50, 0);
@@ -210,7 +210,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     }
 
     // check if the button is arrived at its final pos
-    if ( pastTravelPerc(pos, direction, comp, 0.95) && comp->animationPlaying == SwypeIdleState::Used) {
+    if ( pastTravelPerc(pos, direction, comp, 0.95f) && comp->animationPlaying == SwypeIdleState::Used) {
         LOGI("Button clicked !");
         comp->speed = glm::vec2(0.0f);
         comp->clicked = true;

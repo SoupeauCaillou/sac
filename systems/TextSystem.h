@@ -78,6 +78,9 @@ struct TextComponent {
 };
 
 #define theTextSystem TextSystem::GetInstance()
+#if SAC_WINDOWS
+#undef TEXT
+#endif
 #if SAC_DEBUG
 #define TEXT(e) theTextSystem.Get(e,true,__FILE__,__LINE__)
 #else

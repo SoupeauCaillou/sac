@@ -64,7 +64,7 @@ Entity DrawSomething::DrawPoint(const std::string& groupID, const glm::vec2& pos
             ADD_COMPONENT(vector, Transformation);
             ADD_COMPONENT(vector, Rendering);
 
-            TRANSFORM(vector)->z = .9;
+            TRANSFORM(vector)->z = .9f;
 
             instance.drawPointList.push_back(std::make_pair(vector, groupID));
             vector = instance.drawPointList.back().first;
@@ -117,7 +117,7 @@ Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& posi
             ADD_COMPONENT(vector, Transformation);
             ADD_COMPONENT(vector, Rendering);
 
-            TRANSFORM(vector)->z = .9;
+            TRANSFORM(vector)->z = .9f;
 
             instance.drawVec2List.push_back(std::make_pair(vector, groupID));
            vector = instance.drawVec2List.back().first;
@@ -167,7 +167,7 @@ Entity DrawSomething::DrawTriangle(const std::string& groupID, const glm::vec2& 
             ADD_COMPONENT(vector, Transformation);
             ADD_COMPONENT(vector, Rendering);
 
-            TRANSFORM(vector)->z = .9;
+            TRANSFORM(vector)->z = .9f;
 
             dynamicVertices = instance.drawTriangleList.size();
             instance.drawTriangleList.push_back(std::make_pair(vector, groupID));
