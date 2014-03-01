@@ -396,12 +396,16 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
 #else
 
 NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
+void NetworkAPILinuxImpl::init() {}
+void NetworkAPILinuxImpl::login(const std::string& nickName, const std::string& lobby) {}
+void NetworkAPILinuxImpl::createRoom() {}
+unsigned NetworkAPILinuxImpl::getPendingInvitationCount() const { return 0u; }
+void NetworkAPILinuxImpl::acceptInvitation() {}
+std::map<std::string, NetworkStatus::Enum> NetworkAPILinuxImpl::getPlayersInRoom() { return std::map<std::string, NetworkStatus::Enum>(); }
+NetworkStatus::Enum NetworkAPILinuxImpl::getStatus() const { return NetworkStatus::None; }
+NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();  }
+void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {}
+unsigned NetworkAPILinuxImpl::guidTag() const { return 0u; }
 void NetworkAPILinuxImpl::runLobbyThread() {}
-bool NetworkAPILinuxImpl::connectToOtherPlayerServerMode(const char*, uint16_t, uint16_t) { return false; }
-void NetworkAPILinuxImpl::sendPacket(NetworkPacket) {}
-bool NetworkAPILinuxImpl::amIGameMaster() const { return false; }
-void NetworkAPILinuxImpl::connectToLobby(const std::string&, const char*) { }
-bool NetworkAPILinuxImpl::isConnectedToAnotherPlayer() { return false; }
-NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();}
 
 #endif

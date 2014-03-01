@@ -19,6 +19,8 @@
 */
 #pragma once
 
+#if SAC_NETWORK
+
 #include <enet/enet.h>
 class Serializer;
 #include <string>
@@ -135,3 +137,5 @@ struct GuidPacket : LobbyPacket {
 
     void addProperties(Serializer& );
 };
+
+#endif

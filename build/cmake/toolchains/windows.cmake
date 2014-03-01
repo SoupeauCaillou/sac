@@ -8,6 +8,17 @@ set(DESKTOP_BUILD 1)
 
 SET (SAC_LIB_TYPE STATIC)
 
+function (get_platform_dependent_sources)
+    file(
+        GLOB_RECURSE platform_source_files PARENT_SCOPE
+        ${PROJECT_SOURCE_DIR}/sac/app/*
+        ${PROJECT_SOURCE_DIR}/sac/api/linux/* #oops! should be renamed
+        ${PROJECT_SOURCE_DIR}/sac/api/windows/*
+        ${PROJECT_SOURCE_DIR}/platforms/default/api/*
+    )
+    set (platform_source_files ${platform_source_files} PARENT_SCOPE)
+endfunction()
+
 function (others_specific_executables)
 endfunction()
 

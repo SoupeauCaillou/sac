@@ -33,12 +33,13 @@
 
 
 #if SAC_EMSCRIPTEN
-#include <emscripten.h>
+	#include <emscripten.h>
 #endif
 
 #if SAC_WINDOWS
-	#include <util/windows/dirent.h>
+	#include <api/windows/dirent.h>
 	#include <shlobj.h>
+	#include <Shobjidl.h>
 #else
 	#include <dirent.h>
 	#include <unistd.h>
@@ -175,12 +176,7 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 #elif SAC_EMSCRIPTEN
         ss << "/sac_temp/";
 #elif SAC_WINDOWS
-		wchar_t* localAppData = 0;
-		SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &localAppData);
-
-		ss << localAppData;
-
-		CoTaskMemFree(static_cast<void*>(localAppData));
+		ss << getenv("APPDATA") << "/";
 #else
 		return "not-handled-os";
 #endif

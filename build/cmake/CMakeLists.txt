@@ -202,24 +202,7 @@ else()
 endif()
 
 #include platform dependent APIs
-if (DESKTOP_BUILD OR WEB_BUILD)
-    file(
-        GLOB_RECURSE platform_source_files
-        ${PROJECT_SOURCE_DIR}/sac/app/*
-        ${PROJECT_SOURCE_DIR}/sac/api/linux/*
-        ${PROJECT_SOURCE_DIR}/platforms/default/api/*
-    )
-elseif (MOBILE_BUILD)
-    file(
-        GLOB_RECURSE platform_source_files
-        ${PROJECT_SOURCE_DIR}/sac/api/android/*
-        ${PROJECT_SOURCE_DIR}/sources/api/android/*
-        ${PROJECT_SOURCE_DIR}/sac/android/*
-        ${PROJECT_SOURCE_DIR}/platforms/android/*.cpp
-    )
-else()
-    message(SEND_ERROR "which platform?")
-endif()
+get_platform_dependent_sources()
 
 add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files} ${extra_source_files})
 add_dependencies( sac generate_shaders ${extra_custom_target})

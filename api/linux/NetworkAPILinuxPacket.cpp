@@ -2,6 +2,8 @@
 
 #include "util/Serializer.h"
 
+#if SAC_NETWORK
+
 Packet::Enum LobbyPacket::getPacketType(ENetPacket * packet) {
         LOGF_IF(packet->dataLength < sizeof(Packet::Enum), "Invalid packet size: " << packet->dataLength);
         Packet::Enum type;
@@ -63,5 +65,6 @@ void PlayersInRoomPacket::addProperties(Serializer& s) {
 }
 
 void GuidPacket::addProperties(Serializer& s) {
-    s.add(new Property<int>("guid", OFFSET_PTR(guid, this)));
+	s.add(new Property<int>("guid", OFFSET_PTR(guid, this)));
 }
+#endif

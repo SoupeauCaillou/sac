@@ -96,9 +96,8 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
 
     //test if we can connect to the db
     bool r = request("", 0, 0);
-
     if (r) {
-        LOGV(1, "initializing database...");
+        LOGV(1, "initializing database on path " << _dbPath << "...");
 
         createTable("info", "opt varchar2(10) primary key, value varchar2(10)");
     }

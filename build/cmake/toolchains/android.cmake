@@ -34,6 +34,18 @@ include_directories(${PROJECT_SOURCE_DIR}/sac/libs/)
 #     file(COPY ${ANDROID_NDK}/prebuilt/android-arm/gdbserver/gdbserver DESTINATION ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/)
 # endif()
 
+function (get_platform_dependent_sources)
+    file(
+        GLOB_RECURSE platform_source_files
+        ${PROJECT_SOURCE_DIR}/sac/api/android/*
+        ${PROJECT_SOURCE_DIR}/sources/api/android/*
+        ${PROJECT_SOURCE_DIR}/sac/android/*
+        ${PROJECT_SOURCE_DIR}/platforms/android/*.cpp
+    )
+    set (platform_source_files ${platform_source_files} PARENT_SCOPE)
+endfunction()
+
+
 function (others_specific_executables)
 endfunction()
 

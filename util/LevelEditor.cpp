@@ -24,11 +24,11 @@
 
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
-#include "../base/EntityManager.h"
-#include "../systems/TransformationSystem.h"
-#include "../systems/RenderingSystem.h"
-#include "../systems/CameraSystem.h"
-#include "../systems/TextSystem.h"
+#include <base/EntityManager.h>
+#include <systems/TransformationSystem.h>
+#include <systems/RenderingSystem.h>
+#include <systems/CameraSystem.h>
+#include <systems/TextSystem.h>
 #include <AntTweakBar.h>
 #include <mutex>
 #include <set>
@@ -257,11 +257,11 @@ void LevelEditor::init() {
         TwAddButton(dumpEntities, it.first.c_str(), DumpSystemEntities, strdup(it.first.c_str()), "");
     }
 
-#if SAC_DEBUG
+#if SAC_DEBUG && SAC_NETWORK
     // init network debug
     auto* netbar = TwNewBar("Network");
     TwDefine(" Network iconified=true ");
-    TwAddVarRO(netbar, "download b/s", TW_TYPE_FLOAT, &theNetworkSystem.dlRate, "precision=1");
+	TwAddVarRO(netbar, "download b/s", TW_TYPE_FLOAT, &theNetworkSystem.dlRate, "precision=1");
     TwAddVarRO(netbar, "upload b/s", TW_TYPE_FLOAT, &theNetworkSystem.ulRate, "precision=1");
     TwAddVarRO(netbar, "nb packet rcvd", TW_TYPE_INT32, &theNetworkSystem.packetRcvd, NULL);
     TwAddVarRO(netbar, "nb packet sent", TW_TYPE_INT32, &theNetworkSystem.packetSent, NULL);

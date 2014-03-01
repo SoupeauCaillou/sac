@@ -13,6 +13,16 @@ set(WEB_BUILD 1)
 
 SET (SAC_LIB_TYPE SHARED)
 
+function (get_platform_dependent_sources)
+    file(
+        GLOB_RECURSE platform_source_files
+        ${PROJECT_SOURCE_DIR}/sac/app/*
+        ${PROJECT_SOURCE_DIR}/sac/api/linux/*
+        ${PROJECT_SOURCE_DIR}/platforms/default/api/*
+    )
+    set (platform_source_files ${platform_source_files} PARENT_SCOPE)
+endfunction()
+
 function (others_specific_executables)
 endfunction()
 
