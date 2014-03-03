@@ -37,11 +37,20 @@
 #endif
 
 #include <thread>
+#include <list>
 #include <mutex>
 #include <cstring>
 #include <iostream>
 #include <glm/gtc/random.hpp>
 #include "NetworkAPILinuxPacket.h"
+
+static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t port);
+
+static const char* addressToIp(const ENetAddress * address) {
+    static char hostName[16];
+    enet_address_get_host_ip (address, hostName, 16);
+    return hostName;
+}
 
 class NetworkAPILinuxImpl::NetworkAPILinuxImplDatas {
 public:
@@ -60,6 +69,7 @@ public:
         std::string server;
         ENetHost * client;
         ENetPeer *peer;
+        std::list<ENetAddress> needsNATPunchThrough;
     } lobby;
 
     struct {
@@ -83,19 +93,44 @@ public:
         return status;
     }
 
+    void doNATPunchThrough(const ENetAddress& addr) {
+        std::unique_lock<std::mutex> lock(mutex);
+        LOGI("Add: " << addressToIp(&addr) << ':' << addr.port << " to NAT punch list");
+        lobby.needsNATPunchThrough.push_back(addr);
+    }
+
+    void updateNATPunchTrough() {
+        std::unique_lock<std::mutex> lock(mutex);
+        int skt = match.host->socket;
+
+        for (const auto& addr: lobby.needsNATPunchThrough) {
+            sendNatPunchThroughPacket(skt, addressToIp(&addr), addr.port);
+        }
+    }
+
+    void connectionReceived(const ENetAddress& from) {
+        std::unique_lock<std::mutex> lock(mutex);
+        for (auto it = lobby.needsNATPunchThrough.begin(); it!=lobby.needsNATPunchThrough.end(); ++it) {
+            if ((*it).host == from.host && (*it).port == from.port) {
+                lobby.needsNATPunchThrough.erase(it);
+                return;
+            }
+        }
+        LOGW("Didn't found address in NAT list");
+    }
+
     std::vector<std::string> pendingInvites;
     std::string acceptedInvite;
 
     std::map<std::string, NetworkStatus::Enum> connectedPlayers;
 private:
     NetworkStatus::Enum status;
+public:
     std::mutex mutex;
 
     // debug UI
     // Entity background, playButton;
 };
-
-static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t port);
 
 NetworkAPILinuxImpl::NetworkAPILinuxImpl() {
     datas = new NetworkAPILinuxImplDatas();
@@ -173,6 +208,8 @@ void NetworkAPILinuxImpl::runLobbyThread() {
 
     datas->match.guidTag = 0;
 
+    uint16_t localPort = 0;
+
     // Process incoming messages from lobby
     while (true) {
         int ret = enet_host_service(datas->lobby.client, &event, 1000);
@@ -238,9 +275,10 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                             conn.fromENetPacket(event.packet);
                             switch(datas->getStatus()) {
                                 case NetworkStatus::InRoomAsMaster: {
-                                    // send punch through nat-packet
+                                    // send punch through nat-packet until we received a connection event...
+                                    LOGI("Send Nat punch through packets");
+                                    datas->doNATPunchThrough(conn.address);
                                     // sendNatPunchThroughPacket(datas->match.host->socket, addr, remotePort);
-                                    LOGW("Send Nat punch through packets");
                                     break;
                                 }
                                 case NetworkStatus::JoiningRoom: {
@@ -249,8 +287,11 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                                         // server is running on the lobby_server machine 
                                         enet_address_set_host (&conn.address, datas->lobby.server.c_str());
                                     }
+
                                     LOGI("Connecting to room's host: " << conn.address.host << ':' << conn.address.port);
                                     datas->match.peer = enet_host_connect (datas->match.host, &conn.address, 2, 0);
+                                    // Forward connection info to server (prepare NAT punch through)
+
                                     break;
                                 }
                                 default: {
@@ -275,6 +316,31 @@ void NetworkAPILinuxImpl::runLobbyThread() {
             }
         }
         enet_host_flush(datas->lobby.client);
+
+        switch (datas->getStatus()) {
+            case NetworkStatus::InRoomAsMaster: {
+                datas->updateNATPunchTrough();
+                break;
+            }
+            case NetworkStatus::JoiningRoom: {
+                if (localPort == 0) {
+                    struct sockaddr_in sin;
+                    socklen_t addrlen = sizeof(sin);
+                    int ret = getsockname(datas->match.host->socket, (struct sockaddr *)&sin, &addrlen);
+                    if( ret == 0 && sin.sin_family == AF_INET && addrlen == sizeof(sin)) {
+                        localPort = ntohs(sin.sin_port);
+                        if (localPort) {
+                            ConnectionInfoPacket conn;
+                            conn.address.port = localPort;
+                            LOGI("Local port: " << localPort);
+                            enet_peer_send(datas->lobby.peer, 0, conn.toENetPacket());
+                            enet_host_flush(datas->lobby.client);
+                        }
+                    }
+                }
+                break;
+            }
+        }
 
         if (datas->acceptedInvite != "") {
             datas->setStatus(NetworkStatus::JoiningRoom);
@@ -305,6 +371,7 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
     if (datas->match.host == 0)
         return result;
     ENetEvent event;
+
     int ret = enet_host_service(datas->match.host, &event, 0);
     if (ret < 0) {
         LOGE("enet_host_service error");
@@ -324,6 +391,7 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                 }
                 else {
                     LOGI("New incoming connection");
+                    datas->connectionReceived(event.peer->address);
                     datas->match.peers.push_back(event.peer);
                     // send guid
                     GuidPacket p;

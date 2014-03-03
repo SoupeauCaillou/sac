@@ -247,6 +247,7 @@ int main() {
                             } else {
                                 for (auto& p: room->participants) {
                                     if (p.first == player) {
+                                        conn.address.host = event.peer->address.host;
                                         // notify room creator to enable him to send nat-punch through packets
                                         enet_peer_send(room->creator->peer, 0, conn.toENetPacket());
                                         break;
