@@ -483,5 +483,4 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket()
 void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {}
 unsigned NetworkAPILinuxImpl::guidTag() const { return 0u; }
 void NetworkAPILinuxImpl::runLobbyThread() {}
-
 #endif

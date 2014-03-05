@@ -39,21 +39,21 @@ class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::En
 	public:
 		AssetAPIAndroidImpl();
 
-        std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder);
 
-    	FileBuffer loadAsset(const std::string& asset);
-
-        const std::string & getWritableAppDatasPath();
-
+        FileBuffer loadAsset(const std::string& asset);
         FileBuffer loadFile(const std::string&);
 
         std::list<std::string> listContent(const std::string&, const std::string&,
             const std::string&);
+        std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder);
 
-        void createDirectory(const std::string& ) { LOGT(""); }
+
+
+        void createDirectory(const std::string&, int) { LOGT(""); }
         bool doesExistFileOrDirectory(const std::string& ) { LOGT(""); return false; }
         void removeFileOrDirectory(const std::string& ) { LOGT(""); }
 
 
+        const std::string & getWritableAppDatasPath();
         void synchronize() {}
 };

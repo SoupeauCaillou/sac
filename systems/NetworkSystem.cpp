@@ -20,7 +20,6 @@
 
 #include "NetworkSystem.h"
 #include "../api/NetworkAPI.h"
-#include "api/linux/NetworkAPILinuxImpl.h"
 #include "../base/EntityManager.h"
 #include <queue>
 
@@ -40,7 +39,12 @@ static float counterTime;
 #define SEND(pkt) do { networkAPI->sendPacket(pkt); } while (false)
 #endif
 
-#define GUID_TAG (static_cast<NetworkAPILinuxImpl*>(networkAPI))->guidTag()
+#if SAC_ANDROID
+    #define GUID_TAG 0
+#else
+    #include "api/linux/NetworkAPILinuxImpl.h"
+    #define GUID_TAG (static_cast<NetworkAPILinuxImpl*>(networkAPI))->guidTag()
+#endif
 
 struct NetworkComponentPriv : NetworkComponent {
     NetworkComponentPriv() : NetworkComponent(), guid(0), entityExistsGlobally(false) /* ownedLocally(true)*/ {}
@@ -103,7 +107,11 @@ void NetworkSystem::DoUpdate(float dt) {
     if (!networkAPI)
         return;
 
-    bool isHosting = ((static_cast<NetworkAPILinuxImpl*>(networkAPI))->getStatus() == NetworkStatus::InRoomAsMaster);
+    bool isHosting = false;
+
+    #if ! SAC_ANDROID
+    isHosting = ((static_cast<NetworkAPILinuxImpl*>(networkAPI))->getStatus() == NetworkStatus::InRoomAsMaster);
+    #endif
 
     // Pull packets from networkAPI
     // We want to retrieve received packets, and then treat them as needed.
@@ -171,14 +179,18 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
 #endif
+                default: {
+                    break;
+                }
             }
         }
     }
     // Process update type packets received
     {
-        uint8_t temp[1024];
 #if USE_SYSTEM_IDX
         const auto& name2ptr = ComponentSystem::registeredSystems();
+#else
+        uint8_t temp[1024];
 #endif
 
         FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
