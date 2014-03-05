@@ -178,9 +178,6 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
             CMAKE_CONFIG+=(-G "Sublime Text 2 - $REAL_NAME")
         fi
 
-        CMAKE_CONFIG+=(-G "MSYS Makefiles")
-
-
         compilation_before
         if ! (cmake "${CMAKE_CONFIG[@]}" $rootPath); then
             compilation_after
