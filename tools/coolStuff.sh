@@ -52,7 +52,7 @@
             msg+="(PATH should be '$2')"
         fi
 
-        type $1 >/dev/null 2>&1 || { info "$msg" $red; exit 3; }
+        type &>/dev/null || { info "$msg" $red; exit 3; }
     }
 	check_package() {
 		msg="Program '$1' is missing. Please ensure you have installed "

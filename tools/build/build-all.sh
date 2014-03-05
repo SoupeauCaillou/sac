@@ -167,7 +167,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 
         if [ ! -z "$BUILD_SYSTEM" ]; then
             REAL_NAME=""
-            if ! [[ " $BUILD_SYSTEM_LIST " =~ " $BUILD_SYSTEM " ]]; then
+            if ! [ " $BUILD_SYSTEM_LIST " =~ " $BUILD_SYSTEM " ]; then
                 error_and_quit "Unknown build system '$BUILD_SYSTEM'."
             elif [ "$BUILD_SYSTEM" = "ninja" ]; then
                 check_package ninja ninja-build
@@ -177,6 +177,9 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
             fi
             CMAKE_CONFIG+=(-G "Sublime Text 2 - $REAL_NAME")
         fi
+
+        CMAKE_CONFIG+=(-G "MSYS Makefiles")
+
 
         compilation_before
         if ! (cmake "${CMAKE_CONFIG[@]}" $rootPath); then
