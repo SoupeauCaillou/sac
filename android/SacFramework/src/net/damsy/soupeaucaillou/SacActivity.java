@@ -362,6 +362,7 @@ public abstract class SacActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	SacPluginManager.instance().onActivityResult(requestCode, resultCode, data);
     }
+
     
     final static public int V = android.util.Log.VERBOSE;
     final static public int I = android.util.Log.INFO;

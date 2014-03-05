@@ -22,6 +22,7 @@
 
 package net.damsy.soupeaucaillou.googleplaygameservices;
 
+import java.util.Arrays;
 import java.util.List;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.leaderboard.SubmitScoreResult;
@@ -33,6 +34,7 @@ import com.google.android.gms.games.leaderboard.OnScoreSubmittedListener;
 
 import net.damsy.soupeaucaillou.SacActivity;
 import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
+import net.damsy.soupeaucaillou.api.GameCenterAPI;
 import net.damsy.soupeaucaillou.api.GameCenterAPI.IGameCenterProvider;
 
 import android.app.Activity;
@@ -40,34 +42,23 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Resources;
+import android.os.Bundle;
 
 public class SacGooglePlayGameServicesPlugin extends SacPlugin implements IGameCenterProvider,
 GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedListener, OnAchievementsLoadedListener {
-	public SacGooglePlayGameServicesPlugin() { 
-		super(); 
-	}
-	
 	int[] achievementsStep = null;
-
 	
-	public class GooglePlayGameServicesParams {
-		final boolean enableDebugLog;
-		final List<String> achievementsID;
-		final List<String> leaderboardsID;
+	@Override
+    public void onActivityCreate(Activity oActivity, Bundle savedInstanceState) {
+		mActivity = oActivity;
 		
-		public GooglePlayGameServicesParams(boolean inEnableDebugLog, List<String> achID, List<String> ldID) {
-			this.enableDebugLog = inEnableDebugLog;
-			this.achievementsID = achID;
-			this.leaderboardsID = ldID;
-		}
-	}
-	
-	public void init(Activity activity, GooglePlayGameServicesParams googlePlayGameServicesParams) {			
-		//check that dev did not forget to add the needed meta-data in the AndroidManifest... (just in case ;))
+		//check that dev did not forget to add the needed meta-data 
+		//in the AndroidManifest... (just in case ;))
 		ApplicationInfo appInfo;
 		try {
-			appInfo = activity.getApplicationContext().getPackageManager().getApplicationInfo(
-					activity.getApplicationContext().getPackageName(), PackageManager.GET_META_DATA);
+			appInfo = mActivity.getApplicationContext().getPackageManager().getApplicationInfo(
+					mActivity.getApplicationContext().getPackageName(), PackageManager.GET_META_DATA);
 			if (appInfo.metaData == null || appInfo.metaData.getString("com.google.android.gms.games.APP_ID") == null) {
 				SacActivity.LogF("[SacGooglePlayGameServicesPlugin] Could not find com.google.android.gms.games.APP_ID in your AndroidManifest.xml!\n" +
 					"Please add '<meta-data android:name=\"com.google.android.gms.games.APP_ID\" android:=\"your_google_game_app_id\"/>' in your AndroidManifest.xml");
@@ -76,15 +67,35 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
 			SacActivity.LogF("[SacGooglePlayGameServicesPlugin] Could not read AndroidManifest.xml");
 		}
 
-		mActivity = activity;
-		mHelper = new GameHelper(mActivity);
-		if (googlePlayGameServicesParams != null) {
-			mHelper.enableDebugLog(googlePlayGameServicesParams.enableDebugLog, "SacGooglePlayGameServicesPlugin");
-			leaderboardsID = googlePlayGameServicesParams.leaderboardsID;
-			achievementsID = googlePlayGameServicesParams.achievementsID;
-			
-			achievementsStep = new int[achievementsID.size()];
+		//read parameters from resources
+		Resources res = mActivity.getResources();
+		int achId = mActivity.getResources().getIdentifier(
+				"gpgs_achievements", "array", mActivity.getPackageName());
+		int lbId = mActivity.getResources().getIdentifier(
+				"gpgs_leaderboards", "array", mActivity.getPackageName());
+		int enableDebugLogId = mActivity.getResources().getIdentifier(
+				"gpgs_debug_log_enabled", "bool", mActivity.getPackageName());
+		
+		if (achId == 0 || lbId == 0 || enableDebugLogId == 0) {
+			SacActivity.LogF("Tried to instancy Google Play Game Services plugin but it was expecting" +
+					"2 string-arrays (gpgs_achievements, gpgs_leaderboards) " +
+					"and one boolean (gpgs_debug_log_enabled) resources");
 		}
+		
+		achievementsID = Arrays.asList(res.getStringArray(achId));
+		leaderboardsID = Arrays.asList(res.getStringArray(lbId));
+		
+		boolean enableDebugLog = res.getBoolean(enableDebugLogId);
+		
+		
+		//register to game center API!
+        GameCenterAPI.Instance().init(mActivity, this);
+        
+		
+		mHelper = new GameHelper(mActivity);
+		mHelper.enableDebugLog(enableDebugLog, "SacGooglePlayGameServicesPlugin");
+			
+		achievementsStep = new int[achievementsID.size()];
 		
 		mHelper.setup(this);
 	}
@@ -107,6 +118,7 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
     @Override
     public void onActivityStart(Activity oActivity) {
     	mActivity = oActivity;
+    	    	
         mHelper.onStart(mActivity);
     }
 

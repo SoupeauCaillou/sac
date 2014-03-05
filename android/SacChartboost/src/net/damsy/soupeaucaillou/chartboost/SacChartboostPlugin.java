@@ -18,9 +18,8 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 package net.damsy.soupeaucaillou.chartboost;
+
 
 import net.damsy.soupeaucaillou.SacActivity;
 import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
@@ -28,39 +27,38 @@ import net.damsy.soupeaucaillou.api.AdAPI.IAdCompletionAction;
 import net.damsy.soupeaucaillou.api.AdAPI.IAdProvider;
 
 import android.app.Activity;
+import android.content.res.Resources;
+import android.os.Bundle;
 
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 
 public class SacChartboostPlugin extends SacPlugin implements IAdProvider, ChartboostDelegate {
-	public SacChartboostPlugin() { 
-		super(); 
-	}
-
-	
-	public class ChartboostParams {
-		final String appId, appSignature;
-
-		public ChartboostParams(String id, String sign) {
-			this.appId = id;
-			this.appSignature = sign;
-		}
-	}
-	
 	private Chartboost chartboost;
 	
-	public void init(Activity activity, ChartboostParams chartboostParams) {			
-		if (chartboostParams != null) {
-			chartboost = Chartboost.sharedChartboost();
-			
-			SacActivity.LogW("[SacChartboostPlugin] Chartboost id" + chartboostParams.appId + " sign:" + chartboostParams.appSignature);
-			chartboost.onCreate(activity, chartboostParams.appId,
-					chartboostParams.appSignature, this);
-			chartboost.setImpressionsUseActivities(true);
-			chartboost.startSession();		
-		} else {
-			SacActivity.LogW("[SacChartboostPlugin] Chartboost not initialized");
+	
+	@Override
+	public void onActivityCreate(Activity activity, Bundle savedInstanceState) {
+		//read parameters from resources
+		Resources res = activity.getResources();
+		int cbAppId = activity.getResources().getIdentifier(
+				"chartboost_appid", "string", activity.getPackageName());
+		int cbAppSig = activity.getResources().getIdentifier(
+				"chartboost_appsignature", "signature", activity.getPackageName());
+		
+		if (cbAppId == 0 || cbAppSig == 0) {
+			SacActivity.LogF("Tried to instancy Chartboost plugin but it was expecting" +
+					"2 string (chartboost_appid, chartboost_appsignature) resources");
 		}
+		
+		String appId = res.getString(cbAppId);
+		String appSignature = res.getString(cbAppSig);
+		
+		chartboost = Chartboost.sharedChartboost();
+		
+		chartboost.onCreate(activity, appId, appSignature, this);
+		chartboost.setImpressionsUseActivities(true);
+		chartboost.startSession();
 	}
 	
 	// ---

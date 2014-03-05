@@ -30,6 +30,7 @@ import android.app.Activity;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
 
 import com.revmob.RevMob;
 import com.revmob.RevMobAdsListener;
@@ -39,7 +40,8 @@ public class SacRevmobPlugin extends SacPlugin implements IAdProvider, RevMobAds
 	private RevMob revmob;
 	private RevMobFullscreen revmobFullscreen;
 
-	public void init(Activity activity) {
+	@Override
+	public void onActivityCreate(Activity activity, Bundle savedInstanceState) {
 		//check that dev did not forget to add the needed meta-data in the AndroidManifest... (just in case ;))
 		ApplicationInfo appInfo;
 		try {

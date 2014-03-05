@@ -26,7 +26,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
-import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 

@@ -36,10 +36,6 @@ import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
 import net.damsy.soupeaucaillou.api.InAppPurchaseAPI.IInAppPurchaseProvider;
 
 public class SacGooglePlayInAppBillingPlugin extends SacPlugin implements IInAppPurchaseProvider {
-	public SacGooglePlayInAppBillingPlugin() { 
-		super(); 
-	}
-	
 	IInAppBillingService mService = null;
 	Activity activity = null;
 	
