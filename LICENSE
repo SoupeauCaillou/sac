@@ -1,0 +1,11 @@
+GPL3 for everything except:
+	- tools/texture_packer/TexturePacker.[h|cpp] from John W. Ratcliff, MIT license.
+	- api/windows/dirent.[h|c] from Kevlin Henney.
+	- libs used (see their own LICENSE file):
+		- libs/glm
+		- libs/enet
+		- libs/libpng
+		- libs/sqlite3
+		- libs/tinyxml2
+		- libs/tremor
+
