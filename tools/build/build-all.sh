@@ -1,16 +1,5 @@
 #!/bin/bash
 
-###################################################
-###################################################
-###################################################
-echo "[1m[31mSTILL TO DO:\
-- interactive mode
-[0m
-"
-###################################################
-###################################################
-###################################################
-
 #from where are we calling it
 fromWhereAmIBeingCalled=$PWD
 #where the script is
@@ -165,6 +154,8 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 	if [ ! -z "$(echo $TARGETS | grep -e n)" ]; then
         info "Compiling.."
 
+        check_package cmake
+        
         if [ ! -z "$BUILD_SYSTEM" ]; then
             REAL_NAME=""
             if ! [[ " $BUILD_SYSTEM_LIST " =~ " $BUILD_SYSTEM " ]]; then
