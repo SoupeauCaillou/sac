@@ -473,14 +473,14 @@ static void sendNatPunchThroughPacket(int socket, const char* addr, uint16_t por
 
 NetworkAPILinuxImpl::NetworkAPILinuxImpl() {}
 void NetworkAPILinuxImpl::init() {}
-void NetworkAPILinuxImpl::login(const std::string& nickName, const std::string& lobby) {}
+void NetworkAPILinuxImpl::login(const std::string&, const std::string&) {}
 void NetworkAPILinuxImpl::createRoom() {}
 unsigned NetworkAPILinuxImpl::getPendingInvitationCount() const { return 0u; }
 void NetworkAPILinuxImpl::acceptInvitation() {}
 std::map<std::string, NetworkStatus::Enum> NetworkAPILinuxImpl::getPlayersInRoom() { return std::map<std::string, NetworkStatus::Enum>(); }
 NetworkStatus::Enum NetworkAPILinuxImpl::getStatus() const { return NetworkStatus::None; }
 NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() { return NetworkPacket();  }
-void NetworkAPILinuxImpl::sendPacket(NetworkPacket packet) {}
+void NetworkAPILinuxImpl::sendPacket(NetworkPacket) {}
 unsigned NetworkAPILinuxImpl::guidTag() const { return 0u; }
 void NetworkAPILinuxImpl::runLobbyThread() {}
 #endif

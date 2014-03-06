@@ -118,8 +118,8 @@ void NetworkSystem::DoUpdate(float dt) {
     {
         NetworkPacket pkt;
         while ((pkt = networkAPI->pullReceivedPacket()).size) {
-            bytesReceivedLastSec += pkt.size;
 #if SAC_DEBUG
+            bytesReceivedLastSec += pkt.size;
             ++packetRcvd;
 #endif
             NetworkMessageHeader* header = (NetworkMessageHeader*) pkt.data;
@@ -340,7 +340,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
             }
         }
     }
-    if (!nc->entityExistsGlobally || pkt.size > sizeof(NetworkMessageHeader)) {
+    if (!nc->entityExistsGlobally || pkt.size > (int)sizeof(NetworkMessageHeader)) {
         nc->entityExistsGlobally = true;
         // finish up packet
         pkt.data = temp;

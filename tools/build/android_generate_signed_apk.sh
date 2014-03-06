@@ -97,9 +97,9 @@ else
 fi
 
 ######### 4 : compile game for both versions. #########
-if ! ./sac/tools/build/build-all.sh --target android --g ninja -x86 -release n -c $OTHERS_ARGS; then
+if ! ./sac/tools/build/build-all.sh --target android -x86 -release n -c $OTHERS_ARGS; then
     error_and_quit "Error when building x86 version"
-elif ! ./sac/tools/build/build-all.sh --target android --g ninja -arm -release -p n -c $OTHERS_ARGS; then
+elif ! ./sac/tools/build/build-all.sh --target android -arm -release -p n -c $OTHERS_ARGS; then
     error_and_quit "Error when building ARM version"
 fi        
 info "Saving apk to $rootPath/bin/$gameName-$versionCode-$versionName.apk"

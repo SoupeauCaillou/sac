@@ -43,7 +43,7 @@ PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics"
 }
 
 #if SAC_DEBUG
-void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2 & size) {
+void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & /*pos*/, const glm::vec2 & /*size*/) {
     return;
     //float norm2 = glm::length2(size);
     //if (norm2 < 0.00001f)
