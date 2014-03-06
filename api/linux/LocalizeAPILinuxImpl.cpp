@@ -86,7 +86,6 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
         filename += lang.c_str();
     }
     filename += "/strings.xml";
-    LOGI("[INIT]Found language:" << lang << " -> " << filename);
 
     //first, clean the map
     _idToMessage.clear();
@@ -116,7 +115,8 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
         _idToMessage[pElem->Attribute("name")] = s;
         LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'");
     }
-    LOGI("[INIT]Localize strings count: " << _idToMessage.size());
+    LOGI("Found language '" << lang << "' with file '" << filename << "'. " <<
+        _idToMessage.size() << " localized strings are available.");
 
     delete[] fb.data;
 

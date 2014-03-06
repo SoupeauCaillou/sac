@@ -84,20 +84,20 @@ void SqliteStorageAPIImpl::init(AssetAPI * assetAPI, const std::string & databas
     #if SAC_EMSCRIPTEN
     LOGT("sqlite3 support");
     #else
-    LOGF_IF(_initialized, "The database has already been initialized!");
+    LOGF_IF(initialized, "The database has already been initialized!");
 
-    _initialized = true;
+    initialized = true;
 
-    _assetAPI = assetAPI;
+    this->assetAPI = assetAPI;
 
     std::stringstream ss;
-    ss << _assetAPI->getWritableAppDatasPath() << "/" << databaseName <<".db";
-    _dbPath = ss.str();
+    ss << assetAPI->getWritableAppDatasPath() << "/" << databaseName <<".db";
+    databasePath = ss.str();
 
     //test if we can connect to the db
     bool r = request("", 0, 0);
     if (r) {
-        LOGV(1, "initializing database on path " << _dbPath << "...");
+        LOGV(1, "initializing database on path " << databasePath << "...");
 
         createTable("info", "opt varchar2(10) primary key, value varchar2(10)");
     }
@@ -120,17 +120,17 @@ bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int
     #if SAC_EMSCRIPTEN
     LOGT("sqlite3 support");
     #else
-    LOGF_IF(!_initialized, "The database hasn't been initialized before first request!");
+    LOGF_IF(!initialized, "The database hasn't been initialized before first request!");
 
     LOGV(1, "sqlite request: " << statement);
 
     sqlite3 *db;
     char *zErrMsg = 0;
 
-    int rc = sqlite3_open(_dbPath.c_str(), &db);
+    int rc = sqlite3_open(databasePath.c_str(), &db);
     if( rc ){
         sqlite3_close(db);
-        LOGF("Can't open database " << _dbPath << " : " << sqlite3_errmsg(db));
+        LOGF("Can't open database " << databasePath << " : " << sqlite3_errmsg(db));
         return false;
     }
 

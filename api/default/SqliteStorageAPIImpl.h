@@ -32,7 +32,7 @@ class AssetAPI;
 
 class SqliteStorageAPIImpl : public StorageAPI {
 	public:
-        SqliteStorageAPIImpl() : _initialized(false) {}
+        SqliteStorageAPIImpl() : initialized(false) {}
 
         void init(AssetAPI * assetAPI, const std::string & databaseName);
 
@@ -52,10 +52,10 @@ class SqliteStorageAPIImpl : public StorageAPI {
         bool request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**));
         void checkInTable(const std::string & option, const std::string & valueIfExist, const std::string & valueIf404);
         void createTable(const std::string & tableName, const std::string & statement);
-        std::string _dbPath;
-
-        bool _initialized;
+        
+        std::string databasePath;
+        bool initialized;
 
         /*Needed to get the datapath on filesystem which is platform dependent*/
-        AssetAPI* _assetAPI;
+        AssetAPI* assetAPI;
 };

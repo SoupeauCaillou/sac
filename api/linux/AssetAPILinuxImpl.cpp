@@ -188,7 +188,9 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 #if ! SAC_WINDOWS
 		permission = S_IRWXU | S_IWGRP | S_IROTH;
 #endif
-		createDirectory(ss.str().c_str(), permission);
+        if (! doesExistFileOrDirectory(ss.str().c_str())) {
+            createDirectory(ss.str().c_str(), permission);
+        }
 
         //update path
         path = ss.str();
@@ -211,7 +213,7 @@ void AssetAPILinuxImpl::createDirectory(const std::string& fullpath, int permiss
     if (stat(fullpath.c_str(), &st) == -1) {
         mkdir(fullpath.c_str(), permission);
     } else {
-        LOGE("Couldn't create directory '" << fullpath << "' since it already exist!");
+        LOGW("Couldn't create directory '" << fullpath << "' since it already exist!");
     }
 }
 

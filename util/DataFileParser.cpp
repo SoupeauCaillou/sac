@@ -100,7 +100,7 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
     std::string s("");
     while (getline(f, s)) {
-        if (s.empty())
+        if (s.find_first_not_of("\t\n ") == std::string::npos) 
             continue;
         if (s[0] == '#')
             continue;
