@@ -1,16 +1,46 @@
-You'll need to install the following packages to use fully sac engine:
+You'll need to install the following packages to use the SAC engine.
 
-cmake libglew-dev libsqlite3-dev libvorbis-dev libopenal-dev \
-zlib1g-dev libunittest++-dev libglfw-dev libvpx-dev python-imaging \
-libsdl-dev libcurl4-openssl-dev
+Available from repository:
+	Necessary:
+		cmake libcurl4-openssl-dev libgl1-mesa-dev libvorbis-dev libvpx-dev libtinyxml2-dev libsqlite3-dev libsdl-dev libopenal-dev libglew-dev
+		g++ OR clang++
+	Not necessary:
+		libunittest++-dev
+Not available in repository:
+	AntTweakBar(1)
 
-#To compile on android you'll need at least:
-ant ia32-libs lib32bz2-1.0  lib32asound2  lib32gcc1  lib32ncurses5  lib32stdc++6  lib32v4l-0  lib32z1 libc6-i386
+cmake: used to generate build files
+g++ OR clang++: any c++ compiler supporting C++11 features
+libcurl4-openssl-dev: used by the WWWCurlAPI to download file from WWW from within a game.
+libgl1-mesa-dev: used for rendering
+libglew-dev: used for rendering
+libvpx-dev: used by the recorder (converting screen activity to a movie file, for doing a trailer or...)
+libtinyxml2: used by the localizationAPI, to parse the XML files where strings are localized (we are using file used by Android platform)
+libsqlite3-dev: used by the sqliteStorageAPI to store data in a database
+libsdl-dev: library used for managing the window and inputs (keyboard / mouse / joystick)
+libopenal-dev: used for playing sounds/musics
+libvorbis-dev: used for playing sounds/musics 
+AntTweakBar: a graphical interface to help us debug the game from within it. It is available at anttweakbar.sourceforge.net
+libunittest++-dev: used to do unit tests on systems / parts of the engine
 
+(1) To install Ant Tweak Bar (or any third party library):
+	(a) Download it from site
+	(b) Compile it. Go into the src/ directory, type make
+	(c) Then you have 3 choices. To tell cmake where the library is located, you can:
+		(i) put it in heriswap/../sac_libs_dep/AntTweakBar
+		or
+		(ii) set environment variable SAC_LIBS_DIR to the folder containing the different libraries
+		(iii) set environment variable ANTTWEAKBARDIR to the path of the folder
 
-#in order to use some scripts, you may need to add in your path:
-# location of texture_packer (your_build_dir/sac/build/cmake)
-# location of PVRTexTool (get it: http://www.imgtec.com/powervr/insider/powervr-pvrtextool.asp)
-# location of etc1tool (android-sdk-linux/tools)
+For Android build, you will also need:
+	Available from repository:
+		Necessary:
+			ant default-jdk
+	ant: used for building Android project 
+	default-jdk or any JDK: because we are developing Java stuff ;-)
 
-
+	Set ANDROID_NDK environment variable to the path you installed it. (https://developer.android.com/tools/sdk/ndk/index.html)
+	Add to your PATH environement variable the location of:
+		- ndk-build (ANDROID_NDK)
+		- android (ANDROID_HOME/tools)
+		- adb (ANDROID_HOME/platform-tools)

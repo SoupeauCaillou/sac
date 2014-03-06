@@ -6,7 +6,7 @@ export PLATFORM_OPTIONS="\
 \t-arm: build ARM version
 \t-x86: build x86 version
 \t-a|-atlas: generate all atlas from unprepared_assets directory
-\t-g|-gradle: use gradle(android studio) instead of ant(eclipse)
+\t-g|-gradle: use gradle(android studio) instead of ant(eclipse) - NOT HANDLED YET
 \t-p|-project: regenerate ant files and run it
 \t-i|-install: install on device
 \t-u|-uninstall: uninstall game from device
@@ -157,7 +157,8 @@ compilation_after() {
         info "Updating android project"
         cd $rootPath
 
-        # -t "android-8" is required for installLocation, glEsVersion, targetSdkVersion and allowBackup attributes
+        # -t "android-8" is required for installLocation, 
+        # glEsVersion, targetSdkVersion and allowBackup attributes
         # but currently all ndk <= 9 produce buggy builds for android-8, so use android-10
         if ! android update project -p . -t "android-10" -n $gameName --subprojects; then
             error_and_quit "Error while updating project"
