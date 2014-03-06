@@ -49,7 +49,7 @@ TEST(IntRandomRepartition) {
         sum += Random::Int(min_value, max_value);
     }
 
-    CHECK_CLOSE(5, sum/10000.f, 0.05);
+    CHECK_CLOSE(5, sum/10000.f, 0.1);
 }
 
 TEST(FloatRandomInInterval) {
