@@ -7,7 +7,7 @@ export SAC_EXAMPLE="$0 /tmp/heriswap Prototype"
 #where the script is
 whereAmI=$(cd "$(dirname "$0")" && pwd)
 #import cool stuff
-source $whereAmI/coolStuff.sh
+source $whereAmI/cool_stuff.sh
 
 ######### 0 : Check arguments. #########
    #check arg count

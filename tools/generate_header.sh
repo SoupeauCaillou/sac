@@ -12,7 +12,7 @@ rootPath=$whereAmI"/../.."
 gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
-source coolStuff.sh
+source cool_stuff.sh
 #how to use the script
 export SAC_USAGE="$0 [options]. Generate header for source files ('This file is part of...')"
 export SAC_OPTIONS="\

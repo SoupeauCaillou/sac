@@ -14,7 +14,7 @@ rootPath=$whereAmI"/../../.."
 gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
-source ../coolStuff.sh
+source ../cool_stuff.sh
 
 export SAC_USAGE="$0 [options]. This will generate apk which can be uploaded on google console https://play.google.com/apps/publish/"
 export SAC_OPTIONS="\
@@ -47,7 +47,7 @@ cd $rootPath
 				RUN+=" -u -i"
 				;;
             "--args")
-				shift
+                shift
                 OTHERS_ARGS+=($1)
                 ;;
              "--vn" | "--versionName")

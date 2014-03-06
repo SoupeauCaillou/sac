@@ -10,7 +10,7 @@ rootPath=$whereAmI"/../.."
 gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
-source $whereAmI/coolStuff.sh
+source $whereAmI/cool_stuff.sh
 
 export SAC_USAGE="$0"
 export SAC_OPTIONS=""

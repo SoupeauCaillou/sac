@@ -25,7 +25,7 @@ rootPath=$whereAmI"/../../.."
 gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
-source ../coolStuff.sh
+source ../cool_stuff.sh
 
 #get the list of available targets (need to be displayed in OPTIONS help
 TARGETS_LIST=$(grep SUPPORTED_TARGETS ../../build/cmake/CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
@@ -167,7 +167,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 
         if [ ! -z "$BUILD_SYSTEM" ]; then
             REAL_NAME=""
-            if ! [ " $BUILD_SYSTEM_LIST " =~ " $BUILD_SYSTEM " ]; then
+            if ! [[ " $BUILD_SYSTEM_LIST " =~ " $BUILD_SYSTEM " ]]; then
                 error_and_quit "Unknown build system '$BUILD_SYSTEM'."
             elif [ "$BUILD_SYSTEM" = "ninja" ]; then
                 check_package ninja ninja-build

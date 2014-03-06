@@ -16,7 +16,7 @@ fi
 outPath="$current/.."
 
 #import cool stuff
-source $whereAmI/coolStuff.sh
+source $whereAmI/cool_stuff.sh
 
 export SAC_USAGE="$0 image_folder1 image_folder2 image..."
 export SAC_OPTIONS="Note: you can use * for listing directories"

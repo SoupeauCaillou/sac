@@ -14,7 +14,7 @@ rootPath=$whereAmI"/../.."
 gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
-source coolStuff.sh
+source cool_stuff.sh
 
 #how to use the script
 export SAC_USAGE="$0 alphabet-directory font-name: generate the font descriptor file in assets/ directory for the given font"

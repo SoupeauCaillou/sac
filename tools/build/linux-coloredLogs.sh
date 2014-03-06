@@ -13,7 +13,7 @@ fi
 rootPath=$whereAmI"/../../.."
 
 #import cool stuff
-source ../coolStuff.sh
+source ../cool_stuff.sh
 
 #how to use the script
 export SAC_USAGE="$0 [options]"
