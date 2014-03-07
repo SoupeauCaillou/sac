@@ -77,19 +77,21 @@ int LocalizeAPILinuxImpl::init(AssetAPI*) {
 #include "api/AssetAPI.h"
 
 int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
-
-    std::string filename = "../res/values";
-    std::string lang = getLocaleInfo();
-
-    if (lang != "en") {
-        filename += "-";
-        filename += lang.c_str();
-    }
-    filename += "/strings.xml";
-
     //first, clean the map
     _idToMessage.clear();
 
+    //first parse the english version
+    parseXMLfile(assetAPI, "../res/values/strings.xml");
+
+    //then the user locale default, if different
+    std::string lang = getLocaleInfo();
+    if (lang != "en") {
+        parseXMLfile(assetAPI, "../res/values-" + lang + "/strings.xml");
+    }
+    return 0;
+}
+
+void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & filename) {
     FileBuffer fb = assetAPI->loadAsset(filename);
 
     tinyxml2::XMLDocument doc;
@@ -106,21 +108,25 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
 
         std::string s = pElem->GetText();
 
+        // replace new line in strings by a real new line
         while (s.find("\\n") != std::string::npos) {
             s.replace(s.find("\\n"), 2, "\n");
         }
+
+        // and delete escape character before quote
         if (s.find("\"") == 0) {
             s = s.substr(1, s.length() - 2);
         }
+
+        // then save it in the key
         _idToMessage[pElem->Attribute("name")] = s;
         LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'");
     }
-    LOGI("Found language '" << lang << "' with file '" << filename << "'. " <<
-        _idToMessage.size() << " localized strings are available.");
+    LOGI("Found " << _idToMessage.size() << " localized strings in file '" 
+        << filename << "'. ");
+        
 
     delete[] fb.data;
-
-    return 0;
 }
 #endif
 
