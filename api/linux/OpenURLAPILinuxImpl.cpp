@@ -24,7 +24,7 @@
 #include "../../base/Log.h"
 
 void OpenURLAPILinuxImpl::openURL(const std::string& url) {
-    LOGI("try to open ...");
-    std::string s = "xdg-open " + url;
+    LOGI("try to open URL " << url);
+    std::string s = "xdg-open '" + url + "'";
     std::system(s.c_str());
 }
