@@ -172,7 +172,10 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         compilation_before
         if ! (cmake "${CMAKE_CONFIG[@]}" $rootPath); then
             compilation_after
-            error_and_quit "Error in cmake. Maybe should run with C option?"
+
+            error_and_quit "Error in cmake: 
+            - If this is the first time you run cmake, please view $(readlink -f ${rootPath}/sac/INSTALL). 
+            - Otherwise, your cmake configuration might be wrong, considere cleaning it (add parameter 'C' to $0)?\n"
         fi
 
         if [ -f Makefile ]; then
