@@ -94,11 +94,37 @@ parse_arguments() {
 }
 
 check_necessary() {
+    check_environment_variable 'ANDROID_HOME'
+    check_environment_variable 'ANDROID_NDK'
+
+    # Add to your PATH environement variable the location of:
+        # - ndk-build (ANDROID_NDK)
+        # - android (ANDROID_HOME/tools)
+        # - adb (ANDROID_HOME/platform-tools)
+    if ! is_package_installed android; then
+        export PATH=$PATH:$ANDROID_HOME/tools
+    fi
+    if ! is_package_installed adb; then
+        export PATH=$PATH:$ANDROID_HOME/platform-tools
+    fi
+    if ! is_package_installed ndk-build; then
+        export PATH=$PATH:$ANDROID_NDK
+    fi
+
     #test that the path contains android SDK and android NDK as required
 	check_package_in_PATH "android" "android-sdk/tools"
     check_package_in_PATH "ndk-build" "android-ndk"
 	check_package_in_PATH "adb" "android-sdk/platform-tools"
 	check_package "ant"
+
+    #we need 32 bits library to use the NDK tools. If the library is not 
+    #installed we will get a "No such file or directory" when executing any tool
+    aapt_location=$(find $ANDROID_HOME -name 'aapt' | head -n 1)
+    $aapt_location &>/dev/null
+    # "No such file or directory" code is 127
+    if [ $? = 127 ]; then
+        error_and_quit "The android NDK requires 32 bits compatibility library. Please ensure you have installed ia32-libs"
+    fi
 
     #change build dir!
     builddir=$builddir-$ARCHI
@@ -164,7 +190,9 @@ compilation_after() {
             error_and_quit "Error while updating project"
         fi
 
+        # if ant failed, redo it in verbose mode
         if ! ant -q release; then
+            ant release
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi

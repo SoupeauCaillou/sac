@@ -35,12 +35,10 @@ libunittest++-dev: used to do unit tests on systems / parts of the engine
 For Android build, you will also need:
 	Available from repository:
 		Necessary:
-			ant default-jdk
+			ant lib32z1 lib32gcc1 lib32stdc++6
+			
 	ant: used for building Android project 
-	default-jdk or any JDK: because we are developing Java stuff ;-)
+	lib32z1 lib32gcc1 lib32stdc++6: 32 bits library needed to execute SDK tools
 
-	Set ANDROID_NDK environment variable to the path you installed it. (https://developer.android.com/tools/sdk/ndk/index.html)
-	Add to your PATH environement variable the location of:
-		- ndk-build (ANDROID_NDK)
-		- android (ANDROID_HOME/tools)
-		- adb (ANDROID_HOME/platform-tools)
+	Set ANDROID_HOME environment variable to the path you installed the SDK. (http://developer.android.com/sdk/index.html)
+	Set ANDROID_NDK environment variable to the path you installed the NDK. (https://developer.android.com/tools/sdk/ndk/index.html)

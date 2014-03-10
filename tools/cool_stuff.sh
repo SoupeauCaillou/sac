@@ -45,6 +45,11 @@
 		exit 2
 	}
 
+	is_package_installed() {
+		type $1 &>/dev/null
+		return $?
+	}
+
 	#ensure that a package ($1, first arg) is installed (optionnaly in $2)
     check_package_in_PATH() {
         msg="Please ensure you have installed AND added '$1' to your PATH variable"
@@ -52,8 +57,9 @@
             msg+="(PATH should be '$2')"
         fi
 
-        type $1 &>/dev/null || { info "$msg" $red; exit 3; }
+        is_package_installed $1 || { info "$msg" $red; exit 3; }
     }
+
 	check_package() {
 		msg="Program '$1' is missing. Please ensure you have installed "
 		if [ $# = 2 ]; then
@@ -62,5 +68,13 @@
             msg+="it."
 		fi
 
-		type $1 >/dev/null 2>&1 || { info "$msg" $red; exit 3; }
+		is_package_installed $1 || { info "$msg" $red; exit 3; }
 	}
+
+	check_environment_variable() {
+		eval "PATH_V=\$$1"
+		if [ -z "$PATH_V" ]; then
+			info "You did NOT define environment variable '$1'. Please do it before continuing." $red;
+			exit 4;
+		fi
+	} 
