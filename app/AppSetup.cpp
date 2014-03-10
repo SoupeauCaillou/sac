@@ -158,6 +158,7 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
         return 1;
     }
 
+#if !SAC_EMSCRIPTEN
     // hard coded icon path
     {
         std::stringstream iconPath;
@@ -179,6 +180,7 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
             delete[] image.datas;
         }
     }
+#endif
 
     //display git revision if available
     #ifdef SAC_REVISION_TAG
