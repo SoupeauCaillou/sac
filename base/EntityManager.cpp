@@ -24,8 +24,8 @@
 #include "systems/System.h"
 #include <cstring>
 
-#if SAC_ANDROID || SAC_EMSCRIPTEN || SAC_WINDOWS || SAC_DARWIN
-void* mempcpy(void* dst, const void* src, size_t size)
+#if SAC_ANDROID || SAC_WINDOWS || SAC_DARWIN
+static void* mempcpy(void* dst, const void* src, size_t size)
 #if SAC_ANDROID
 throw()
 #endif

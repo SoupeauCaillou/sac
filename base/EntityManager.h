@@ -37,12 +37,6 @@
 
 class ComponentSystem;
 
-#if SAC_EMSCRIPTEN || SAC_WINDOWS || SAC_DARWIN
-void* mempcpy(void* dst, const void* src, size_t size);
-#elif SAC_ANDROID
-void* mempcpy(void* dst, const void* src, size_t size) throw();
-#endif
-
 namespace EntityType {
     enum Enum {
         Volatile,
