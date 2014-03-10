@@ -155,7 +155,7 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
         }
     }
 #else
-	Mix_PlayChannel(-1, ptr->sample, 1);
+	Mix_PlayChannel(-1, ptr->sample, 0);
 	Mix_Volume(-1, MIX_MAX_VOLUME);
 #endif
     return false;

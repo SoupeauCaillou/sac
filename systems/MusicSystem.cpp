@@ -584,7 +584,7 @@ void MusicSystem::toggleMute(bool enable) {
         muted = false;
     }
 #else
-    muted = true;
+    muted = enable;
 #endif
 }
 

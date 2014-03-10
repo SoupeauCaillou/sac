@@ -38,6 +38,7 @@ function (postbuild_specific_actions)
         COMMAND mkdir assets
         COMMAND cp -r ${PROJECT_SOURCE_DIR}/assets/* ${PROJECT_SOURCE_DIR}/assetspc/* assets
         COMMAND find assets/ -name '*pvr*' -or -name '*pkm*' -exec rm -r {} '\;'
+        COMMAND rm -r assets/ldpi assets/mdpi
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Building 'assets' folder"
     )
