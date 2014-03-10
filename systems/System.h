@@ -266,7 +266,7 @@ class ComponentSystemImpl: public ComponentSystem {
         T* Get(Entity entity, bool failIfNotfound = true, const char* file = "\0", int line = 0) {
             theEntityManager.validateEntity(entity);
 #else
-        T* Get(Entity entity, bool failIfNotfound = true, const char* = 0, int = 0) {
+        T* Get(Entity entity, bool failIfNotfound = true, const char* file = 0, int line = 0) {
 #endif
             if (entity != previous) {
 #if SAC_USE_VECTOR_STORAGE
