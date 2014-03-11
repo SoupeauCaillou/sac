@@ -139,7 +139,7 @@ void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & 
 
 #else
     std::stringstream n;
-    n << "../res" << filename;
+    n << "../res/" << filename;
     FileBuffer fb = assetAPI->loadAsset(n.str());
 
     tinyxml2::XMLDocument doc;
