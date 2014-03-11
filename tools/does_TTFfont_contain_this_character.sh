@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source $(dirname $0)/cool_stuff.sh
+
+check_package "bc"
+
 if [ $# -lt 2 ]; then
     echo "expected 2 args (.ttf + char)"
     exit 10
