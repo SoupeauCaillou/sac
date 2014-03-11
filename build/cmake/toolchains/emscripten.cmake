@@ -1,4 +1,4 @@
-ADD_DEFINITIONS(-DSAC_WEB=1 -DSAC_USE_VBO=1 -DSAC_ENABLE_LOG=1)
+ADD_DEFINITIONS(-DSAC_WEB=1 -DSAC_USE_VBO=1 -DSAC_ENABLE_LOG=1 -DSAC_RESTRICTIVE_PLUGINS=0)
 
 set(CMAKE_C_COMPILER emcc)
 set(CMAKE_CXX_COMPILER emcc)
@@ -36,7 +36,7 @@ function (postbuild_specific_actions)
         TARGET ${EXECUTABLE_NAME} PRE_LINK
         COMMAND rm -rf assets
         COMMAND mkdir assets
-        COMMAND cp -r ${PROJECT_SOURCE_DIR}/assets/* ${PROJECT_SOURCE_DIR}/assetspc/* assets
+        COMMAND cp -r ${PROJECT_SOURCE_DIR}/assets/* ${PROJECT_SOURCE_DIR}/assetspc/* ${PROJECT_SOURCE_DIR}/res/* assets
         COMMAND find assets/ -name '*pvr*' -or -name '*pkm*' -exec rm -r {} '\;'
         COMMAND rm -r assets/ldpi assets/mdpi
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

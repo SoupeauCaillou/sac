@@ -25,11 +25,15 @@
 
 #include "base/Log.h"
 #if SAC_EMSCRIPTEN
+#include <emscripten.h>
 #elif SAC_WINDOWS
 #include <Windows.h>
 #else
 #include <libintl.h>
 #include <locale.h>
+#include <tinyxml2.h>
+#include "base/Log.h"
+#include "api/AssetAPI.h"
 #endif
 
 #include <algorithm>
@@ -53,6 +57,9 @@ static std::string getLocaleInfo() {
 	std::wstring ws(szISOCountry);
 
 	std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
+#elif SAC_EMSCRIPTEN
+    std::string lang = emscripten_run_script_string( "navigator.language;" );
+    lang.resize(2);
 #else
     std::string lang(getenv("LANG"));
     //cut part after the '_' underscore
@@ -61,38 +68,78 @@ static std::string getLocaleInfo() {
 
     //convert to lower case
     transform(lang.begin(), lang.end(), lang.begin(), ::tolower);
+
+    LOGI("Using locale: '" << lang << "'");
     return lang;
 }
-
-#if SAC_DARWIN || SAC_EMSCRIPTEN
-
-int LocalizeAPILinuxImpl::init(AssetAPI*) {
-	return 0;
-}
-
-#else
-
-#include <tinyxml2.h>
-#include "base/Log.h"
-#include "api/AssetAPI.h"
 
 int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
     //first, clean the map
     _idToMessage.clear();
 
-    //first parse the english version
-    parseXMLfile(assetAPI, "../res/values/strings.xml");
+#if SAC_DARWIN
 
+#else
+    //first parse the english version
+    parseXMLfile(assetAPI, "values/strings.xml");
+
+#if SAC_EMSCRIPTEN
+    // parsing values-fr crashes the app
+    return 0;
+#endif
     //then the user locale default, if different
     std::string lang = getLocaleInfo();
     if (lang != "en") {
-        parseXMLfile(assetAPI, "../res/values-" + lang + "/strings.xml");
+        parseXMLfile(assetAPI, std::string("values-") + lang + "/strings.xml");
     }
+#endif    
     return 0;
 }
 
+#if !SAC_DARWIN
 void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & filename) {
-    FileBuffer fb = assetAPI->loadAsset(filename);
+#if SAC_EMSCRIPTEN
+    LOGI("ParseXML: " << filename);
+    // weeee
+    std::string javascript (
+                "a = FS.readFile('/assets/FILENAME', { encoding: 'utf8' });"
+        "parser = new DOMParser();"
+        "doc = parser.parseFromString(a, 'text/xml');"
+        "ssss = doc.getElementsByTagName('string');"
+        "result = '';"
+        "for (i=0; i<ssss.length; i++) {"
+        "   result += ssss[i].attributes[0].value;"
+        "   result += ',';"
+        "   result += ssss[i].childNodes[0].nodeValue;"
+        "   result += ',';"
+        "}"
+        "result;");
+    javascript.replace(javascript.find("FILENAME"), strlen("FILENAME"), filename);
+
+    std::string plop = emscripten_run_script_string (javascript.c_str());
+    int next = 0;
+    while(next < plop.length()) {
+        // find key delimiter
+        int end = plop.find(',', next);
+        if (end == std::string::npos)
+            break;
+
+        std::string key = plop.substr(next, end - next);
+
+        next = end + 1;
+        // find value delimiter
+        end = plop.find(',', next);
+        // remove ""
+        std::string value = plop.substr(next + 1, end - next - 2);
+        next = end + 1;
+
+        _idToMessage[key] = value;
+    }
+
+#else
+    std::stringstream n;
+    n << "../res" << filename;
+    FileBuffer fb = assetAPI->loadAsset(n.str());
 
     tinyxml2::XMLDocument doc;
     doc.Parse((const char*)fb.data);
@@ -127,6 +174,7 @@ void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & 
         
 
     delete[] fb.data;
+#endif
 }
 #endif
 
