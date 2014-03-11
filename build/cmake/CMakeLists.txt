@@ -370,11 +370,14 @@ function (generate_sublime_clang_configuration)
 
     get_property(include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
     list(REMOVE_DUPLICATES include_dirs)
-    set(INCLUDE_DIRECTORIES "'-I/usr/include/x86_64-linux-gnu/c++/4.8/',")
+    set(INCLUDE_DIRECTORIES "")
     foreach(dir ${include_dirs})
         string(REPLACE "\"" "\\\\\\\"" dir ${dir})
         set (INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES} '-I${dir}',\n")
     endforeach()
+    if (DESKTOP_BUILD)
+        set (INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES} '-I/usr/include/x86_64-linux-gnu/c++/4.8/',\n")
+    endif()
 
     #this is the content of the created .cmake file
     set(SUBLIME_CLANG_PARAMETERS 
@@ -410,15 +413,12 @@ function (generate_sublime_clang_configuration)
     "
     )
 
-
-
-
     #write the upon defined variable in a custom cmake file
     #we do NOT execute this directly (would be too easy :-)) because we need to wait 
     #POST_BUILD step since the sublime-project file is generated during it
     file(WRITE ${CMAKE_BINARY_DIR}/sublime_clang_plugin_support.cmake ${SUBLIME_CLANG_PARAMETERS})
     add_custom_command(
-        TARGET ${EXECUTABLE_NAME} POST_BUILD
+        TARGET sac POST_BUILD
         #we execute the generated cmake file at post build!
         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/sublime_clang_plugin_support.cmake
     )
