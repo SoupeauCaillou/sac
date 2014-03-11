@@ -37,6 +37,7 @@
 #endif
 
 #include <algorithm>
+#include <sstream>
 
 //return user locale (DE, EN, FR, etc.)
 static std::string getLocaleInfo() {
