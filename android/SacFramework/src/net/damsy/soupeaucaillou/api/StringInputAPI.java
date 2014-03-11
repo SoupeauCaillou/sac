@@ -22,11 +22,17 @@
 
 package net.damsy.soupeaucaillou.api;
 
+import java.util.Arrays;
+
 import net.damsy.soupeaucaillou.SacActivity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 
 public class StringInputAPI {
 	private static StringInputAPI instance = null;
@@ -44,23 +50,45 @@ public class StringInputAPI {
 	private EditText nameEdit;
 	private View playerNameInputView;
 	private InputMethodManager inputMethodManager;
+	private ListView namesList;
+	//private List<String> namesList;
 
-	private static String filterPlayerName(String name) {
-		String n = name.trim();
-		return n.replaceAll("[^a-zA-Z0-9 ]", " ").substring(0,
-				Math.min(11, n.length()));
+	// private static String filterPlayerName(String name) {
+	// 	String n = name.trim();
+	// 	return n.replaceAll("[^a-zA-Z0-9 ]", " ").substring(0,
+	// 			Math.min(11, n.length()));
+	// }
+
+	public void init(Button nameInput, EditText nameEdit, ListView namesList, View playerNameInputView, InputMethodManager inputMethodManager) {
+		this.nameButton = nameInput;
+		this.nameEdit = nameEdit;
+		this.namesList = namesList; 
+		this.playerNameInputView = playerNameInputView;
+		this.inputMethodManager = inputMethodManager;
 	}
 
-	public void init(Button nameInputButton, EditText text, View pPlayerNameInputView, InputMethodManager pInputMethodManager) {
-		this.nameButton = nameInputButton;
-		this.nameEdit = text;
-		this.playerNameInputView = pPlayerNameInputView;
-		this.inputMethodManager = pInputMethodManager;
+	public void setNamesList(String[] names) {
+		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(namesList.getContext(), 
+			android.R.layout.simple_list_item_1, Arrays.asList(names));
+
+		namesList.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				String playerName = (String)parent.getItemAtPosition(position);
+				
+				onNameInputComplete(playerName);
+			}
+		});
+		
+		namesList.post(new Runnable() {
+			@Override
+			public void run() {
+				namesList.setAdapter(adapter);				
+			}
+		});
 	}
 
-	// -------------------------------------------------------------------------
-	// StringInputAPI
-	// -------------------------------------------------------------------------
 	public void showPlayerKeyboardUI() {
 		nameReady = false;
 		playerName = "";
@@ -81,13 +109,13 @@ public class StringInputAPI {
 				playerNameInputView.invalidate();
 				playerNameInputView.forceLayout();
 				playerNameInputView.bringToFront();
-				nameEdit.setText("");
 			}
 		});
 	}
 
 	public void onNameInputComplete(final String newName) {
-		playerName = filterPlayerName(newName);
+		// playerName = filterPlayerName(newName);
+		playerName = newName;
 
 		if (playerName != null && playerName.length() > 0) {
 			playerNameInputView.setVisibility(View.GONE);
@@ -107,7 +135,7 @@ public class StringInputAPI {
 	}
 
     public void closePlayerKeyboardUI() {
-        SacActivity.LogI("Not implemented yet!");
+        SacActivity.LogW("Not implemented yet!");
         //nameReady = true;
         //playerName = null;
     }

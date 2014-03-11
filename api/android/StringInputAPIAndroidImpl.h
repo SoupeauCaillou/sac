@@ -21,8 +21,10 @@
 
 
 #pragma once
+#if SAC_ANDROID
 
 #include "api/StringInputAPI.h"
+
 #include "JNIWrapper.h"
 
 namespace jni_name_api {
@@ -30,6 +32,7 @@ namespace jni_name_api {
         AskUserInput,
         Done,
         CancelUserInput,
+        SetNamesList,
     };
 }
 
@@ -40,4 +43,8 @@ class StringInputAPIAndroidImpl : public StringInputAPI, public JNIWrapper<jni_n
         void askUserInput(const std::string& initial, const int imaxSize);
         bool done(std::string & entry);
         void cancelUserInput();
+
+        void setNamesList(const std::vector<std::string> & names);
+
 };
+#endif

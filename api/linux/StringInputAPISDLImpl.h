@@ -32,6 +32,8 @@ class StringInputAPISDLImpl : public StringInputAPI {
         void cancelUserInput();
         bool done(std::string & entry);
 
+        void setNamesList(const std::vector<std::string> & names);
+        
         int eventSDL(const void* event);
     private:
         bool textIsReady;

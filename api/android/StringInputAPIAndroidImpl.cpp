@@ -19,6 +19,7 @@
 */
 
 
+#if SAC_ANDROID
 
 #include "StringInputAPIAndroidImpl.h"
 #include "base/Log.h"
@@ -28,6 +29,7 @@ StringInputAPIAndroidImpl::StringInputAPIAndroidImpl() : JNIWrapper<jni_name_api
 	declareMethod(jni_name_api::AskUserInput, "showPlayerKeyboardUI", "()V");
     declareMethod(jni_name_api::Done, "askUserInput", "()Ljava/lang/String;");
     declareMethod(jni_name_api::CancelUserInput, "closePlayerKeyboardUI", "()V");
+    declareMethod(jni_name_api::SetNamesList, "setNamesList", "([Ljava/lang/String;)V");
 }
 
 void StringInputAPIAndroidImpl::askUserInput(const std::string&, const int) {
@@ -49,3 +51,14 @@ bool StringInputAPIAndroidImpl::done(std::string& name) {
 void StringInputAPIAndroidImpl::cancelUserInput() {
     env->CallVoidMethod(instance, methods[jni_name_api::CancelUserInput]);
 }
+
+void StringInputAPIAndroidImpl::setNamesList(const std::vector<std::string> & names) {
+    jclass stringObject = env->FindClass("java/lang/String");
+    jobjectArray stringArray = env->NewObjectArray(names.size(), stringObject, NULL);
+    for (unsigned i = 0; i < names.size(); ++i) {
+        jstring javaname = env->NewStringUTF(names[i].c_str());
+        env->SetObjectArrayElement(stringArray, i, javaname);
+    }
+    env->CallVoidMethod(instance, methods[jni_name_api::SetNamesList], stringArray);
+}
+#endif

@@ -24,7 +24,7 @@
 
 #include "base/Log.h"
 
-#include "SDL.h"
+#include <SDL.h>
 
 void StringInputAPISDLImpl::askUserInput(const std::string& initialText, const int imaxSize) {
     LOGI("Please enter something...");
@@ -53,10 +53,10 @@ int StringInputAPISDLImpl::eventSDL(const void* inEvent) {
 
     auto event = (SDL_Event*)inEvent;
     int key = event->key.keysym.sym;
-    auto unicode = (char)event->key.keysym.unicode;
+    auto unicode = event->key.keysym.unicode;
 
     if (event->type == SDL_KEYDOWN) {
-        LOGV(2, "key pressed: " << key << " unicode value: " << event->key.keysym.unicode);
+        LOGV(2, "key pressed: " << key << " unicode value: " << unicode);
 
         //remove last char
         if (key == SDLK_BACKSPACE) {
@@ -68,13 +68,23 @@ int StringInputAPISDLImpl::eventSDL(const void* inEvent) {
             if (currentText.size() > 0) {
                 textIsReady = true;
             }
-        //check the character is valid
-        } else if ((unicode == ' ') || isalnum(unicode)) {
-            if ((int)currentText.size() < maxSize) {
-                currentText.append(1u, unicode);
-            }
         } else {
-            return 0;
+            if ((int)currentText.size() < maxSize) {
+                // thanks to http://www.gamedev.net/topic/543442-uint16-unicode-to-utf-8-string-using-libiconv-for-sdl/
+                char buf[4] = {0};
+                if (unicode < 0x80) {
+                    buf[0] = unicode;
+                } else if (unicode < 0x800) {
+                    buf[0] = (0xC0 | unicode>>6);
+                    buf[1] = (0x80 | (unicode & 0x3F));
+                } else {
+                    buf[0] = (0xE0 | unicode>>12);
+                    buf[1] = (0x80 | (unicode>>6 & 0x3F));
+                    buf[2] = (0x80 | (unicode & 0x3F));
+                }
+
+                currentText += buf;
+            }
         }
 
         LOGI("current text: " << currentText);
@@ -82,4 +92,10 @@ int StringInputAPISDLImpl::eventSDL(const void* inEvent) {
     }
 
     return 0;
+}
+
+void StringInputAPISDLImpl::setNamesList(const std::vector<std::string> & names) {
+    for (auto & n : names) {
+        LOGT("setNamesList, adding name '" << n << "'");
+    }
 }

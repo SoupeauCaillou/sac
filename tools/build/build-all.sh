@@ -170,7 +170,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         fi
 
         compilation_before
-        if ! (cmake "${CMAKE_CONFIG[@]}" $rootPath); then
+        if ! cmake "${CMAKE_CONFIG[@]}" $rootPath; then
             compilation_after
 
             error_and_quit "Error in cmake: 
