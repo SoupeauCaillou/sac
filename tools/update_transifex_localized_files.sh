@@ -31,7 +31,7 @@ export SAC_EXAMPLE="$0: will download localized texts from transifex and automat
 	check_package tx transifex-client
 
 	cd $rootPath
-	if (!(tx status &>/dev/null)); then
+	if ! tx status 1>/dev/null; then
 		info "You didn't initialize transifex yet! Please run 'tx init' in $(cd $rootPath && pwd) then 'tx set --auto-remote <url>'" $red
 		info "It should create a .tx/config file and you should modify it as:" $orange
 		echo '[main]
@@ -45,12 +45,24 @@ source_lang = en'
 	fi
 
 ######### 1 : Pull files. #########
-    info "Removing old files..."
-    rm -rf res/values*
+	temp=$(mktemp -d)
+	cp -r res/. $temp
+	find res -name 'strings.xml' -exec rm {} \;
 
     info "Pulling files..."
-	tx pull -s -a &>/dev/null
-	
+	if ! tx pull -s -a 1>/dev/null; then
+		cp -r $temp/. res/
+		error_and_quit "Your credidentials are wrong! File ~/.transifexrc should look like:
+[https://www.transifex.com]
+username = user
+token =
+password = p@ssw0rd
+hostname = https://www.transifex.com
+"
+	else 
+    	info "Removing old files..."
+		rm -rf $temp
+	fi
 ######### 2 : Rename some folders. #########
 ######### These are folders with a local like fr-BE, which must be renamed fr-rbe for Android ########
 	info "Renaming values* folder (if needed)"
