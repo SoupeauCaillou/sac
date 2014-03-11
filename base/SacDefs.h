@@ -10,3 +10,8 @@ typedef unsigned __int32 uint32_t;
 #else
 #define PRAGMA_WARNING(x)
 #endif
+
+
+#define MEMPCPY(type, a, b, s) \
+	a = (type)memcpy(a, b, s); \
+	a += s

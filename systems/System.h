@@ -263,16 +263,21 @@ class ComponentSystemImpl: public ComponentSystem {
         }
 
 #if SAC_DEBUG
-        T* Get(Entity entity, bool failIfNotfound = true, const char* file = "\0", int line = 0) {
+        T* Get(Entity entity, bool failIfNotfound = true, 
+            const char* file = "\0", int line = 0) {
+
             theEntityManager.validateEntity(entity);
 #else
-        T* Get(Entity entity, bool failIfNotfound = true, const char* file = 0, int line = 0) {
+        T* Get(Entity entity, bool failIfNotfound = true, 
+            const char* LOG_USAGE_ONLY(file) = 0, int LOG_USAGE_ONLY(line) = 0) {
 #endif
             if (entity != previous) {
 #if SAC_USE_VECTOR_STORAGE
                 std::map<Entity, unsigned>::iterator it = entityToIndice.find(entity);
                 if (it == entityToIndice.end()) {
-                    LOGF_IF(failIfNotfound, "Entity '" << theEntityManager.entityName(entity) << "' has no component of type '" << getName() << "'")
+                    LOGF_IF(failIfNotfound, "Entity '" << 
+                        theEntityManager.entityName(entity) << "' has no component of type '" 
+                        << getName() << "' [@ " << file << ':' << line << ']')
                 }
                 previousComp = &components[it->second];
 #else
@@ -281,7 +286,8 @@ class ComponentSystemImpl: public ComponentSystem {
                     // crash here
                     if (failIfNotfound) {
                         LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << entity << ") has no component of type '" << getName() << "' [@ " << file << ':' << line << ']');
+                            << "' (" << entity << ") has no component of type '" << 
+                            getName() << "' [@ " << file << ':' << line << ']');
                     }
                     return 0;
                 }
