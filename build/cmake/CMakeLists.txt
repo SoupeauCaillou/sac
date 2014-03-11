@@ -117,7 +117,7 @@ foreach (FILE ${SHADER_SOURCE_FILES})
         ${FILE})
 
     #output format: foo.vs -> foo_vs.h
-    STRING(REGEX REPLACE "\\." "_" Output ${FILE} )
+    STRING(REGEX REPLACE "\\.([vf])s$" "_\\1s" Output ${FILE} )
     message ("Add rule to build shader: ${REL_FILE} -> ${Output}.h")
 
     SET_SOURCE_FILES_PROPERTIES(${Output}.h
