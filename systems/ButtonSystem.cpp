@@ -67,7 +67,7 @@ void ButtonSystem::DoUpdate(float) {
     theButtonSystem.forEachECDo([&] (Entity e, ButtonComponent *bt) -> void {
     	const auto* rc = theRenderingSystem.Get(e, false);
 		if (camerasAdaptedPos.empty()) {
-			LOGW_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
+			LOGT_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
 		}
 
     	if (rc && ! camerasAdaptedPos.empty()) {

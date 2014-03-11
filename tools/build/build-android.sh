@@ -26,7 +26,7 @@ parse_arguments() {
     RUN_LOGCAT=0
     STACK_TRACE=0
     SIGN_APK=
-    FORE_CLEAN=0
+    FORCE_CLEAN=0
     while [ "$1" != "" ]; do
         case $1 in
             #ignore higher level commands
@@ -68,7 +68,7 @@ parse_arguments() {
                 ;;
             "-c" | "-clean")
                 TARGETS=$TARGETS" "
-                FORE_CLEAN=1
+                FORCE_CLEAN=1
                 ;;
             "-arm")
                 ARCHI=arm
@@ -131,7 +131,7 @@ check_necessary() {
 }
 
 init() {
-    if [ $FORE_CLEAN = 1 ]; then
+    if [ $FORCE_CLEAN = 1 ]; then
         to_trash_destination=$(find $rootPath -type d  -name bin -o -name gen)
         if [ ! -z "$to_trash_destination" ]; then
             info "Removing all bin/ and gen/ directories ($(echo $to_trash_destination | tr ' ' '\n' | rev | cut -d/ -f1-2 | rev | tr '\n' ' '))"
