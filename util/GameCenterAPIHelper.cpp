@@ -35,14 +35,9 @@ void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool dis
     bUIdisplayed = false;
 
     //create entities
-    signButton = theEntityManager.CreateEntity("gg/sign_in_out_button",
-        EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/signinout_button"));
-
-    achievementsButton = !useAchievements ? 0 : theEntityManager.CreateEntity("gg/achievements_button",
-        EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/achievements_button"));
-
-    leaderboardsButton = !useLeaderboards ? 0 : theEntityManager.CreateEntity("gg/leaderboards_button",
-        EntityType::Persistent, theEntityManager.entityTemplateLibrary.load("googleplay/leaderboards_button"));
+    leaderboardsButton = !useLeaderboards ? 0 : theEntityManager.CreateEntityFromTemplate("googleplay/leaderboards_button");
+    achievementsButton = !useAchievements ? 0 : theEntityManager.CreateEntityFromTemplate("googleplay/achievements_button");
+    signButton = theEntityManager.CreateEntityFromTemplate("googleplay/signinout_button");
 
     onLeaderboardClick = f;
 
