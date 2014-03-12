@@ -32,6 +32,10 @@
 #include <glm/gtx/vector_angle.hpp>
 #include "glm/gtx/projection.hpp"
 
+#if SAC_DEBUG
+#include "util/DrawSomething.h"
+#endif
+
 glm::vec2 SteeringBehavior::seek(Entity e, const glm::vec2& targetPos, float maxSpeed) {
     return seek(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed);
 }
@@ -110,8 +114,9 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
 
 
 
-    const glm::vec2 & rectPos = TRANSFORM(e)->position + 5.f * velocity / 2.f;
-    const glm::vec2 & rectSize = glm::vec2(5 * glm::length(velocity), 1);
+    float size = TRANSFORM(e)->size.x * (3 + glm::length(velocity) / maxSpeed);
+    const glm::vec2 & rectSize = glm::vec2(size, TRANSFORM(e)->size.y);
+    const glm::vec2 & rectPos = TRANSFORM(e)->position + glm::rotate(glm::vec2(rectSize.x * 0.5, 0), TRANSFORM(e)->rotation);
     float rectRot = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(velocity));
 
     #if SAC_DEBUG
@@ -120,48 +125,81 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         TRANSFORM(box)->rotation = rectRot;
 
         TRANSFORM(biggerBox)->size = glm::vec2(0);
+
+        DrawSomething::DrawPointRestart("avoid");
     #endif
-    glm::vec2 nearest;
+
+    glm::vec2 intersectionPoints[4], normals[4];
+    const float halfWidth = TRANSFORM(e)->size.y * 0.5;
+    glm::vec2 nearest, normal;
+    Entity obs;
     float minDist = 1000;
     for (auto obstacle : obstacles) {
         auto & pos = TRANSFORM(obstacle)->position;
+
         if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size, 
             TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
 
+
             // we need to get the point of intersection of them to know if its the
             // closer rectangle from entity e
-            glm::vec2 intersectionPoints[4];
 
             #if SAC_DEBUG
+            DrawSomething::DrawPoint("avoid", TRANSFORM(obstacle)->position);
                 TRANSFORM(biggerBox)->position = pos;
-                TRANSFORM(biggerBox)->size = TRANSFORM(obstacle)->size + rectSize * .5f;
+                TRANSFORM(biggerBox)->size = TRANSFORM(obstacle)->size + glm::vec2(halfWidth);
                 TRANSFORM(biggerBox)->rotation = TRANSFORM(obstacle)->rotation;
                 for (int i = 0; i < 4; ++i) TRANSFORM(inter[i])->size = glm::vec2(0.);
 
-            #endif  
-            LOGE_IF(!
-                IntersectionUtil::lineRectangle(rectPos - rectSize / 2.f, rectPos + rectSize / 2.f,
-                pos, TRANSFORM(obstacle)->size + rectSize * .5f, TRANSFORM(obstacle)->rotation, intersectionPoints), "should be true");
+            #endif
+
+            int intersectCount = IntersectionUtil::lineRectangle(
+                // open-ended line starting at e's position
+                TRANSFORM(e)->position, TRANSFORM(e)->position + glm::rotate(glm::vec2(1000, 0), TRANSFORM(e)->rotation),
+                // rectangle
+                pos, TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
+                // result
+                intersectionPoints, normals);
             
-            for (int i = 0; i < 4 && intersectionPoints[i] != glm::vec2(0.); ++i) {
+            for (int i = 0; i < intersectCount; ++i) {
                 #if SAC_DEBUG
                     TRANSFORM(inter[i])->position = intersectionPoints[i];
                     TRANSFORM(inter[i])->size = glm::vec2(.1);
+
+                    DrawSomething::DrawPoint("avoid", intersectionPoints[i], Color(0, 1, 1));
                 #endif
-                float dist = glm::length2(intersectionPoints[i] - rectPos);
+                float dist = glm::distance(intersectionPoints[i], TRANSFORM(e)->position);
 
                 if (dist < minDist) {
                     minDist = dist;
                     nearest = intersectionPoints[i];
+                    normal = normals[i];
+                    obs = obstacle;
                 }
             }   
         }
     }
     glm::vec2 force;
     if (minDist != 1000) {
-        float multiplier = 1 * maxSpeed * (1.0f + (rectSize.x - glm::sqrt(minDist)) / rectSize.x);
+        #if SAC_DEBUG
+        DrawSomething::DrawPoint("avoid", nearest, Color(0, 0, 0));
+        #endif
 
-        force = multiplier * (nearest - TRANSFORM(e)->position);
+        // deduce collision normal
+        glm::vec2 p (nearest - TRANSFORM(e)->position);
+        float projNormal = glm::dot(p, normal);
+
+        glm::vec2 lateralForceDirection = normal;//glm::normalize(p - 2 * projNormal * normal);
+        glm::vec2 breakingForceDirection = glm::normalize(-p);
+
+        float multiplier = 1.0f + (rectSize.x - minDist) / rectSize.x;
+        float latDist = glm::dot(TRANSFORM(e)->position - TRANSFORM(obs)->position, normal);
+
+        force =
+            lateralForceDirection * multiplier * latDist + 
+            breakingForceDirection * (((rectSize.x - minDist) / rectSize.x) * 0.2f);
+        
+        force = glm::normalize(force) * maxSpeed;
     } else {
         force = glm::vec2(0);
     } 
