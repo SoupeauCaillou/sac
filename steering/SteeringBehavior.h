@@ -38,11 +38,13 @@ class SteeringBehavior {
 
         static glm::vec2 seek(const glm::vec2& pos, const glm::vec2& linearVel, const glm::vec2& targetPos, float maxSpeed);
 
-		static glm::vec2 flee(Entity e, const glm::vec2& targetPos, float maxSpeed);
+        static glm::vec2 flee(Entity e, const glm::vec2& targetPos, float maxSpeed);
 
-		static glm::vec2 arrive(Entity e, const glm::vec2& targetPos, float maxSpeed, float deceleration);
+        static glm::vec2 arrive(Entity e, const glm::vec2& targetPos, float maxSpeed, float deceleration);
 
         static glm::vec2 arrive(const glm::vec2& pos, const glm::vec2& linearVel,const glm::vec2& targetPos, float maxSpeed, float deceleration);
 
-		static glm::vec2 wander(Entity e, WanderParams& params, float maxSpeed);
+        static glm::vec2 wander(Entity e, WanderParams& params, float maxSpeed);
+        
+        static glm::vec2 avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed);
 };

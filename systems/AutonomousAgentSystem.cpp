@@ -34,6 +34,9 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
     AutonomousAgentComponent ac;
     componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, ac), 0.0001f));
     componentSerializer.add(new Property<float>("max_force", OFFSET(maxForce, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("flee_weight", OFFSET(fleeWeight, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("flee_radius", OFFSET(fleeRadius, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("obstacles_weight", OFFSET(obstaclesWeight, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_weight", OFFSET(wanderWeight, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_radius", OFFSET(wander.radius, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_distance", OFFSET(wander.distance, ac), 0.0001f));
@@ -67,11 +70,15 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 			force += SteeringBehavior::wander(e, agent->wander, agent->maxSpeed) * agent->wanderWeight;
 		}
 
+		if (! agent->obstacles.empty() && agent->obstaclesWeight > 0) {
+			force += SteeringBehavior::avoid(e, PHYSICS(e)->linearVelocity, agent->obstacles, agent->maxSpeed) * agent->obstaclesWeight;
+		}
+
 		if (force == glm::vec2(0.0f))
 			continue;
 		float norm = glm::length(force);
         force = glm::normalize(force);
 
-		PHYSICS(e)->addForce(glm::vec2(0.f), force * glm::min(norm, agent->maxForce), dt);
+		PHYSICS(e)->addForce(force * glm::min(norm, agent->maxForce), glm::vec2(0.f), dt);
 	END_FOR_EACH()
 }

@@ -55,7 +55,9 @@ struct PhysicsComponent {
 
     //a force must be applied for a fixed duration: good value for "singular" force would be ~= 1/60.f
     void addForce(const Force & f, float duration) { forces.push_back(std::pair<Force, float>(f, duration)); }
-    void addForce(const glm::vec2 & vector, const glm::vec2 & point, float duration) { forces.push_back(std::pair<Force, float>(Force(vector, point), duration)); }
+    inline void addForce(const glm::vec2 & vector, const glm::vec2 & point, float duration) { 
+        forces.push_back(std::pair<Force, float>(Force(vector, point), duration)); 
+    }
 
     //don't modify this directly, use 'addForce' instead
     std::vector<std::pair<Force, float> > forces;

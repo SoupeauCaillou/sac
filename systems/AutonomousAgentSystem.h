@@ -27,12 +27,12 @@
 #include "System.h"
 
 struct AutonomousAgentComponent {
-	AutonomousAgentComponent() : maxSpeed(1.), maxForce(1.), seekTarget(0), fleeTarget(0) {}
+	AutonomousAgentComponent() : maxSpeed(1.), maxForce(1.), seekTarget(0), fleeTarget(0), fleeRadius(1) {}
 
 	float maxSpeed, maxForce;
 	union {
-		Entity seekTarget;
-		Entity arriveTarget;
+		Entity seekTarget; // keep speed until target reached
+		Entity arriveTarget; // slow down when approching the target
 	};
 	union {
 		float seekWeight;
@@ -43,6 +43,9 @@ struct AutonomousAgentComponent {
 	Entity fleeTarget;
 	float fleeWeight;
 	float fleeRadius;
+
+	std::list<Entity> obstacles;
+	float obstaclesWeight;
 
 	SteeringBehavior::WanderParams wander;
 	float wanderWeight;

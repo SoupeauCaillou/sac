@@ -116,18 +116,17 @@ void PhysicsSystem::DoUpdate(float dt) {
 
 			float& durationLeft = pc->forces[i].second;
 
-			if (durationLeft < dt) {
-				force.vector *= durationLeft / dt;
-			}
+            if (durationLeft < dt) {
+                force.vector *= durationLeft / dt;
+            }
 
-			linearAccel += force.vector;
-
+            linearAccel += force.vector;
 	        if (force.point != glm::vec2(0.0f, 0.0f)) {
 		        angAccel += glm::dot(glm::vec2(- force.point.y, force.point.x), force.vector);
 	        }
 
 			durationLeft -= dt;
-			if (durationLeft < 0) {
+			if (durationLeft <= 0.f) {
 				pc->forces.erase(pc->forces.begin() + i);
 				i--;
 			}
@@ -180,6 +179,6 @@ void PhysicsSystem::DoUpdate(float dt) {
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
 	// add 2 opposed forces
     //WARNING: shouldn't be +size,0 and -size,0 instead of 1,0 / -1, 0?
-	pc->addForce(glm::vec2(1, 0), glm::vec2(0, m * 0.5), 0.016f);
-	pc->addForce(glm::vec2(-1, 0), glm::vec2(0, -m * 0.5), 0.016f);
+	pc->addForce(glm::vec2(0, m * 0.5), glm::vec2(1, 0), 0.016f);
+	pc->addForce(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0), 0.016f);
 }

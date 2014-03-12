@@ -53,7 +53,6 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const Transformati
 
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
     glm::vec2 p(glm::rotate(point - rectPos, -rectRotation));
-
 	return (glm::abs(p.x) < rectSize.x * 0.5 &&
 		glm::abs(p.y) < rectSize.y * 0.5);
 }
@@ -166,6 +165,7 @@ int IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
     //try the 4 lines of the rectangle!
     int count = 0;
     glm::vec2 temp;
+
     if (lineLine(pA1, pA2, rectBNWPoint, rectBNEPoint, &temp)) {
         if (intersectionPoint)
             intersectionPoint[count] = temp;
