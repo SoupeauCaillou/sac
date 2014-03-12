@@ -33,6 +33,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class StringInputAPI {
 	private static StringInputAPI instance = null;
@@ -49,6 +50,7 @@ public class StringInputAPI {
 	private Button nameButton;
 	private EditText nameEdit;
 	private View playerNameInputView;
+	private int textViewId;
 	private InputMethodManager inputMethodManager;
 	private ListView namesList;
 	//private List<String> namesList;
@@ -59,17 +61,17 @@ public class StringInputAPI {
 	// 			Math.min(11, n.length()));
 	// }
 
-	public void init(Button nameInput, EditText nameEdit, ListView namesList, View playerNameInputView, InputMethodManager inputMethodManager) {
+	public void init(Button nameInput, EditText nameEdit, ListView namesList, View playerNameInputView, int tView, InputMethodManager inputMethodManager) {
 		this.nameButton = nameInput;
 		this.nameEdit = nameEdit;
+		this.textViewId = tView;
 		this.namesList = namesList; 
 		this.playerNameInputView = playerNameInputView;
 		this.inputMethodManager = inputMethodManager;
 	}
 
 	public void setNamesList(String[] names) {
-		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(namesList.getContext(), 
-			android.R.layout.simple_list_item_1, Arrays.asList(names));
+		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(namesList.getContext(), textViewId, Arrays.asList(names));
 
 		namesList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
