@@ -117,6 +117,8 @@ void ParticuleSystem::DoUpdate(float dt) {
 
                 if (pc->mass) {
                     PhysicsComponent* ppc = PHYSICS(e);
+                    ppc->linearVelocity = glm::vec2(0.0f);
+                    ppc->angularVelocity = 0;
                     ppc->gravity = pc->gravity;
                     ppc->mass = pc->mass;
                     float angle = ptc->rotation + pc->forceDirection.random();
