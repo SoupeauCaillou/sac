@@ -149,9 +149,13 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
     return true;
 }
 
+static glm::vec2 produceNormal(const glm::vec2& p1, const glm::vec2& p2) {
+    glm::vec2 n (glm::normalize(p1 - p2));
+    return glm::vec2(-n.y, n.x);
+}
 //should be enhanced
 int IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
-            const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot, glm::vec2* intersectionPoint) {
+            const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot, glm::vec2* intersectionPoint, glm::vec2* normalAtCollision) {
 
     //NW
     glm::vec2 rectBNWPoint = rectBPos + glm::rotate(glm::vec2(- rectBSize.x, rectBSize.y) * .5f, rectBRot);
@@ -167,23 +171,39 @@ int IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
     glm::vec2 temp;
 
     if (lineLine(pA1, pA2, rectBNWPoint, rectBNEPoint, &temp)) {
-        if (intersectionPoint)
+        if (intersectionPoint) {
             intersectionPoint[count] = temp;
+        }
+        if (normalAtCollision) {
+            normalAtCollision[count] = produceNormal(rectBNEPoint, rectBNWPoint);
+        }
         count++;
     }
     if (lineLine(pA1, pA2, rectBNWPoint, rectBSWPoint, &temp)) {
-        if (intersectionPoint)
+        if (intersectionPoint) {
             intersectionPoint[count] = temp;
+        }
+        if (normalAtCollision) {
+            normalAtCollision[count] = produceNormal(rectBNWPoint, rectBSWPoint);
+        }
         count++;
     }
     if (lineLine(pA1, pA2, rectBNEPoint, rectBSEPoint, &temp)) {
-        if (intersectionPoint)
+        if (intersectionPoint) {
             intersectionPoint[count] = temp;
+        }
+        if (normalAtCollision) {
+            normalAtCollision[count] = produceNormal(rectBSEPoint, rectBNEPoint);
+        }
         count++;
     }
     if (lineLine(pA1, pA2, rectBSWPoint, rectBSEPoint, &temp)) {
-        if (intersectionPoint)
+        if (intersectionPoint) {
             intersectionPoint[count] = temp;
+        }
+        if (normalAtCollision) {
+            normalAtCollision[count] = produceNormal(rectBSWPoint, rectBSEPoint);
+        }
         count++;
     }
     return count;
