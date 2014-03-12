@@ -13,7 +13,7 @@ whereAmI=$(cd "$(dirname "$0")" && pwd)
 if [ -h $0 ]; then
     whereAmI+=/$(dirname $(readlink $0))
 fi
-outPath="$current/.."
+outPath="$whereAmI/../.."
 
 #import cool stuff
 source $whereAmI/cool_stuff.sh
