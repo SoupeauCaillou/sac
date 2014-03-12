@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
-package net.damsy.soupeaucaillou.sacgoogleplayinappbilling;
+package net.damsy.soupeaucaillou.googleplayinappbilling;
 
 import org.json.JSONObject;
 
@@ -33,6 +33,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import net.damsy.soupeaucaillou.SacActivity;
 import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
+import net.damsy.soupeaucaillou.api.InAppPurchaseAPI;
 import net.damsy.soupeaucaillou.api.InAppPurchaseAPI.IInAppPurchaseProvider;
 
 public class SacGooglePlayInAppBillingPlugin extends SacPlugin implements IInAppPurchaseProvider {
@@ -59,6 +60,8 @@ public class SacGooglePlayInAppBillingPlugin extends SacPlugin implements IInApp
 	@Override
 	public void onActivityCreate(Activity act, Bundle savedInstanceState) {
 		activity = act;
+		InAppPurchaseAPI.Instance().init(activity,  this);
+		
 	    act.bindService(new 
 	            Intent("com.android.vending.billing.InAppBillingService.BIND"),
 	                    mServiceConn, Context.BIND_AUTO_CREATE);

@@ -134,7 +134,7 @@ public abstract class SacActivity extends Activity {
         int viewWidth = (int)(getWindowManager().getDefaultDisplay().getWidth() * factor);
         android.view.SurfaceHolder holder = mGLView.getHolder();
         holder.setFixedSize(viewWidth, viewHeight);
-        layout.addView(mGLView);
+        layout.addView(mGLView, 0);
         
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);

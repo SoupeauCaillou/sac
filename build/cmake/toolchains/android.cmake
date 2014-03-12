@@ -52,20 +52,23 @@ endif()
         OUTPUT_VARIABLE PLUGINS_LIST
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
-
+    message(${PLUGINS_LIST})
+    string(REPLACE "\n" ";" PLUGINS_LIST ${PLUGINS_LIST})
     # and find package/class names for each of these plugins
     foreach (PLUGIN_PATH ${PLUGINS_LIST})
+        message(qqqq ${PLUGIN_PATH}.${PLUGIN_PATH})
         # Assume that package name convention is 
         # net.damsy.soupeaucaillou.[plugin folder in lowercase and without 'sac' prefix ]
         string (TOLOWER "${PLUGIN_PATH}" plugin_path)
-        string(REGEX REPLACE ".*/sac(.*)\n$" "net.damsy.soupeaucaillou.\\1" PACKAGE_NAME ${plugin_path})
+        string(REGEX REPLACE ".+/sac(.*)$" "net.damsy.soupeaucaillou.\\1" PACKAGE_NAME ${plugin_path})
         
         # Assume that plugin name convention is
         # [plugin folder with 'Plugin' suffix]
-        string(REGEX REPLACE ".*/(.*)\n$" "\\1Plugin" CLASS_NAME ${PLUGIN_PATH})
+        string(REGEX REPLACE ".*/(.*)$" "\\1Plugin" CLASS_NAME ${PLUGIN_PATH})
 
         file (APPEND "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
-            "\t\t<item>${PACKAGE_NAME}.${CLASS_NAME}</item>\n")        
+            "\t\t<item>${PACKAGE_NAME}.${CLASS_NAME}</item>\n")
+        message(${PACKAGE_NAME}.${CLASS_NAME})
     endforeach()
 
     file (APPEND "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
