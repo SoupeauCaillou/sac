@@ -28,6 +28,11 @@ fi
 
 ############# STEP 0: verify env
 check_package_in_PATH "texture_packer" "sac binary! (build/ directory)"
+
+if ! $(python -c "import PIL" &> /dev/null); then
+    check_package "python-pil"
+fi
+
 hasPVRTool=false
 if hash PVRTexToolCL 2>/dev/null; then
     info "PVRTexToolCL found."
