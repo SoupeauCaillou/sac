@@ -40,18 +40,7 @@ public class SacGooglePlayInAppBillingPlugin extends SacPlugin implements IInApp
 	IInAppBillingService mService = null;
 	Activity activity = null;
 	
-	ServiceConnection mServiceConn = new ServiceConnection() {
-	   @Override
-	   public void onServiceDisconnected(ComponentName name) {
-	       mService = null;
-	   }
-
-	   @Override
-	   public void onServiceConnected(ComponentName name, 
-	      IBinder service) {
-	       mService = IInAppBillingService.Stub.asInterface(service);
-	   }
-	};
+	ServiceConnection mServiceConn;
 	
 	// ---
 	// ----------------------------------------------------------------------
@@ -62,9 +51,20 @@ public class SacGooglePlayInAppBillingPlugin extends SacPlugin implements IInApp
 		activity = act;
 		InAppPurchaseAPI.Instance().init(activity,  this);
 		
-	    act.bindService(new 
-	            Intent("com.android.vending.billing.InAppBillingService.BIND"),
-	                    mServiceConn, Context.BIND_AUTO_CREATE);
+		mServiceConn = new ServiceConnection() {
+			   @Override
+			   public void onServiceDisconnected(ComponentName name) {
+			       mService = null;
+			   }
+
+			   @Override
+			   public void onServiceConnected(ComponentName name, 
+			      IBinder service) {
+			       mService = IInAppBillingService.Stub.asInterface(service);
+			   }
+			};
+		activity.bindService(new Intent("com.android.vending.billing.InAppBillingService.BIND"),
+		                    mServiceConn, Context.BIND_AUTO_CREATE);
 	}
 	
 	@Override
@@ -72,7 +72,9 @@ public class SacGooglePlayInAppBillingPlugin extends SacPlugin implements IInApp
 		activity = null;
 		
 	    if (mServiceConn != null) {
-	    	act.unbindService(mServiceConn);
+	    	if (mService != null) {
+	    		act.unbindService(mServiceConn);
+	    	}
 	    	mServiceConn = null;
 	    }
 		
