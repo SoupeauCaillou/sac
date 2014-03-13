@@ -95,11 +95,11 @@ static void updateAndRender() {
 #else
 std::mutex m;
 
-static void updateLoop(const std::string& title) {
+static void updateLoop(const std::string& gameName) {
     unsigned char * keys = SDL_GetKeyState(NULL);
 
     while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
-#if SAC_DESKTOP
+        #if SAC_DESKTOP
         if (keys[SDLK_LSHIFT]) {
             LOGI("****************** Testing Restore");
             uint8_t* ptr;
@@ -109,7 +109,7 @@ static void updateLoop(const std::string& title) {
                 LOGI("*  Nothing saved by game... continuing execution then");
             } else {
                 std::stringstream name;
-                name << title << ".restore.bin";
+                name << gameName << ".restore.bin";
                 LOGI("*  " << size << " bytes saved. Writing to '" << name.str() << "' file");
                 std::ofstream of(name.str(), std::ios::binary);
                 of.write((char*)ptr, size);
@@ -118,7 +118,7 @@ static void updateLoop(const std::string& title) {
                 break;
             }
         }
-#endif
+        #endif
         // game->eventsHandler();
 
         game->step();
@@ -137,9 +137,9 @@ static void updateLoop(const std::string& title) {
     theRenderingSystem.disableRendering();
 }
 
-static void* callback_thread(const std::string& title){
+static void* callback_thread(const std::string& gameName){
     m.lock();
-    updateLoop(title);
+    updateLoop(gameName);
     m.unlock();
     return NULL;
 }
@@ -148,10 +148,10 @@ static void* callback_thread(const std::string& title){
 // hum hum
 extern bool profilerEnabled;
 glm::vec2 resolution;
-std::string title;
-int initGame(const std::string& pTitle, const glm::ivec2& res) {
+std::string gameName;
+int initGame(const std::string& gameN, const glm::ivec2& res, const std::string& gameVersion) {
     resolution = res;
-    title = pTitle;
+    gameName = gameN;
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
@@ -183,8 +183,8 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
     }
 #endif
 
-    //display current revision too (debug purpose)
-    SDL_WM_SetCaption(title.c_str(), 0);
+    //set title - display current revision too (debug purpose)
+    SDL_WM_SetCaption((gameName + gameVersion).c_str(), 0);
 
     SDL_EnableUNICODE(1);
 
@@ -237,7 +237,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (restore) {
         // TODO: portability
         std::stringstream restoreFile;
-        restoreFile << title << ".restore.bin";
+        restoreFile << gameName << ".restore.bin";
         FILE* file = fopen(restoreFile.str().c_str(), "r+b");
         if (file) {
             fseek(file, 0, SEEK_END);
@@ -299,7 +299,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     theRenderingSystem.assetAPI = ctx->assetAPI;
 
     if (game->wantsAPI(ContextAPI::Asset) || true) {
-        static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(title);
+        static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(gameName);
     }
 	
     if (game->wantsAPI(ContextAPI::Music)) {
@@ -351,7 +351,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     setlocale( LC_ALL, "" );
     setlocale( LC_NUMERIC, "C" );
 
-    std::thread th1(callback_thread, title);
+    std::thread th1(callback_thread, gameName);
     float prevT = 0;
 #if SAC_DEBUG
     std::string currentHint = game->titleHint;
@@ -370,10 +370,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #if SAC_DEBUG
         if (game->titleHint != currentHint) {
             std::stringstream str;
-            str << title;
-#ifdef SAC_REVISION_TAG
-            str << " / " << SAC_REVISION_TAG;
-#endif
+            str << gameName;
             str << " / " << (currentHint = game->titleHint);
             SDL_WM_SetCaption(str.str().c_str(), 0);
         }

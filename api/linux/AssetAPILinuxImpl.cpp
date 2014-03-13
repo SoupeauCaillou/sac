@@ -30,8 +30,8 @@
 
 #include <sys/stat.h>
 #include <cstdlib>
-
-
+#include <algorithm>
+    
 #if SAC_EMSCRIPTEN
 	#include <emscripten.h>
 #endif
@@ -183,17 +183,20 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 		//add game name to the path
 		ss << gameName;
 
-		// create folder if needed
-		int permission = 0;
-#if ! SAC_WINDOWS
-		permission = S_IRWXU | S_IWGRP | S_IROTH;
-#endif
-        if (! doesExistFileOrDirectory(ss.str().c_str())) {
-            createDirectory(ss.str().c_str(), permission);
-        }
-
         //update path
-        path = ss.str();
+        path = gameName.c_str();
+        
+        // remove non alphanum characters
+        path.erase(std::remove_if(path.begin(), path.end(), (int(*)(int))std::isalnum), path.end());
+
+        // create folder if needed
+        int permission = 0;
+#if ! SAC_WINDOWS
+        permission = S_IRWXU | S_IWGRP | S_IROTH;
+#endif
+        if (! doesExistFileOrDirectory(path.c_str())) {
+            createDirectory(path.c_str(), permission);
+        }
     }
     return path;
  }

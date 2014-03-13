@@ -27,6 +27,6 @@
 class Game;
 
 // SETUP WINDOW, GL, stuff
-int initGame(const std::string& title, const glm::ivec2& resolution);
+int initGame(const std::string& title, const glm::ivec2& resolution, const std::string& gameVersion);
 // START GAME
 int launchGame(Game* gameImpl, int argc, char** argv);
