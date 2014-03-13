@@ -58,6 +58,12 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 	    LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
 		glm::vec2 force(glm::vec2(0.0f));
 
+        auto* pc = PHYSICS(e);
+        float length = glm::length(pc->linearVelocity);
+        if (length > agent->maxSpeed) {
+            pc->linearVelocity *= agent->maxSpeed / length;
+        }
+
 		if (agent->seekTarget && agent->seekWeight > 0) {
 			if (agent->arriveDeceleration > 0) {
 				force += SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration) * agent->arriveWeight;
