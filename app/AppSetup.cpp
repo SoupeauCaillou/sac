@@ -337,7 +337,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
 #if SAC_EMSCRIPTEN
-    emscripten_set_main_loop(updateAndRender, 60, 0);
+    emscripten_set_main_loop(updateAndRender, 0, 0);
 #else
 
 #if SAC_ENABLE_PROFILING
