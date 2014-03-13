@@ -19,8 +19,8 @@ source cool_stuff.sh
 #how to use the script
 export SAC_USAGE="$0 fonts-directory output-directory [option]"
 export SAC_OPTIONS="\
--c|-check: test if every symbols are already in atlas\
--i|-inputs: inputs dir to search symbols"
+-c|-check: test if every symbols are already in atlas
+\t-i|-inputs: inputs dir to search symbols"
 export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
@@ -46,7 +46,8 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
     shift #second arg is output directory
 
     preview_mode=0
-    src_dir=''
+    src_dir=()
+
     while [ "$1" != "" ]; do
         case $1 in
             "-c" | "-check")
