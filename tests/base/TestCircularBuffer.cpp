@@ -27,14 +27,14 @@
 
 TEST(InitialDataAndSpaceAvailable)
 {
-	CircularBuffer buffer(10);
+	CircularBuffer<int8_t> buffer(10);
 	CHECK_EQUAL((unsigned)0, buffer.readDataAvailable());
 	CHECK_EQUAL((unsigned)10, buffer.writeSpaceAvailable());
 }
 
 TEST(DataAndSpaceAvailableAfterPartialWrite)
 {
-	CircularBuffer buffer(10);
+	CircularBuffer<int8_t> buffer(10);
 	int8_t i[] = {0, 1, 2, 3, 4};
 	buffer.write(i, 5);
 	CHECK_EQUAL((unsigned)5, buffer.readDataAvailable());
@@ -43,7 +43,7 @@ TEST(DataAndSpaceAvailableAfterPartialWrite)
 
 TEST(DataAndSpaceAvailableAfterTwoWrite)
 {
-	CircularBuffer buffer(10);
+	CircularBuffer<int8_t> buffer(10);
 	int8_t i[] = {0, 1, 2, 3, 4};
 	buffer.write(i, 5);
 	buffer.write(i, 5);
@@ -53,7 +53,7 @@ TEST(DataAndSpaceAvailableAfterTwoWrite)
 
 TEST(DataAndSpaceAvailableAfterWriteLoop)
 {
-	CircularBuffer buffer(10);
+	CircularBuffer<int8_t> buffer(10);
 	int8_t i[] = {0, 1, 2, 3, 4, 5, 6};
 	int8_t o[] = {0, 0, 0, 0, 0, 0, 0, 0};
 	// R X X X X W - - - -

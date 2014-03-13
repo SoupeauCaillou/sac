@@ -35,10 +35,8 @@ class MusicAPI {
         // create internal state (source for OpenAL, AudioTrack for Android, etc...)
         virtual OpaqueMusicPtr* createPlayer(int sampleRate) = 0;
         virtual int pcmBufferSize(int sampleRate) = 0;
-        virtual int8_t* allocate(int size) = 0;
-        virtual void deallocate(int8_t* deallocate) = 0;
         virtual int initialPacketCount(OpaqueMusicPtr* ptr) = 0;
-        virtual void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate)=0;
+        virtual void queueMusicData(OpaqueMusicPtr* ptr, short* data, int count, int sampleRate)=0;
         virtual bool isPlaying(OpaqueMusicPtr* ptr)=0;
         virtual void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset)=0;
         virtual void stopPlayer(OpaqueMusicPtr* ptr)=0;

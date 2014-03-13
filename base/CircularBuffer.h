@@ -23,10 +23,17 @@
 #pragma once
 
 #include <stdint.h>
-#include <ctype.h>
 #include <sys/types.h>
+#include <ctype.h>
 #include <cstdint>
+#include <cstring>
 
+#include "base/Log.h"
+#include <glm/glm.hpp>
+
+
+
+template<typename T>
 class CircularBuffer {
 	public:
 		CircularBuffer(unsigned int pBufferSize);
@@ -34,19 +41,92 @@ class CircularBuffer {
 
 		unsigned int getBufferSize() const { return bufferSize; }
 
-		// byte count available for reading
 		unsigned int readDataAvailable() const;
 
-		unsigned int read(int8_t* out, unsigned int size);
+		unsigned int read(T* out, unsigned int size);
 
 		unsigned int writeSpaceAvailable() const;
 
-		unsigned int write(int8_t* in, unsigned int size);
+		unsigned int write(T* in, unsigned int size);
 
 	private:
-		int8_t* buffer;
+		T* buffer;
 		unsigned int bufferSize;
 		unsigned int readPos, writePos;
 		unsigned int readLoopCount, writeLoopCount;
 };
+
+
+template<typename T>
+CircularBuffer<T>::CircularBuffer(unsigned int pBufferSize) : bufferSize(pBufferSize) {
+    buffer = new T[bufferSize];
+    readPos = writePos = 0;
+    readLoopCount = writeLoopCount = 0;
+
+}
+
+template<typename T>
+CircularBuffer<T>::~CircularBuffer() {
+    delete[] buffer;
+}
+
+template<typename T>
+unsigned int CircularBuffer<T>::readDataAvailable() const {
+    if (readPos == writePos && readLoopCount == writeLoopCount) {
+        return 0;
+    } else if (readPos < writePos) {
+        return writePos - readPos;
+    } else {
+        return (bufferSize - readPos) + writePos;
+    }
+}
+
+template<typename T>
+unsigned int CircularBuffer<T>::read(T* out, unsigned int size) {
+    unsigned int count = 0;
+    LOGW_IF(readDataAvailable() < size, "Inconsistent data available: " << readDataAvailable() << '<' << size);
+    if (size == 0)
+        return 0;
+
+    do {
+        unsigned int amount = glm::min(size - count, bufferSize - readPos);
+        memcpy(&out[count], &buffer[readPos], amount * sizeof(T));
+        count += amount;
+        readPos += amount;
+        LOGW_IF (readPos > bufferSize, "Invalid readPos value: " << readPos << '>' << bufferSize);
+        if (readPos == bufferSize) {
+            readPos = 0;
+            readLoopCount++;
+        }
+    } while (count < size);
+
+    return count;
+}
+
+template<typename T>
+unsigned int CircularBuffer<T>::writeSpaceAvailable() const {
+    return bufferSize - readDataAvailable();
+}
+
+template<typename T>
+unsigned int CircularBuffer<T>::write(T* in, unsigned int size) {
+    unsigned int count = 0;
+    LOGW_IF(writeSpaceAvailable() < size, "Not enough write-space available: " << writeSpaceAvailable() << '<' << size);
+
+    if (size == 0)
+        return 0;
+
+    do {
+        unsigned int amount = glm::min(size - count, bufferSize - writePos);
+        memcpy(&buffer[writePos], &in[count], amount * sizeof(T));
+        count += amount;
+        writePos  += amount;
+        LOGW_IF (writePos > bufferSize, "Incoherent writePos " << writePos << " is > " << bufferSize);
+        if (writePos == bufferSize) {
+            writePos = 0;
+            writeLoopCount++;
+        }
+    } while (count < size);
+    return count;
+}
 
