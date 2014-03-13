@@ -22,24 +22,18 @@
 
 #pragma once
 
-struct OggVorbis_File;
 #include "System.h"
 #include "../api/AssetAPI.h"
 #include "../api/MusicAPI.h"
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+#include "util/OggDecoder.h"
 
 typedef int MusicRef;
 
 #define InvalidMusicRef -1
-class CircularBuffer;
 
 #if SAC_EMSCRIPTEN
     #include <SDL_mixer.h>
 #endif
-
-// #define SAC_MUSIC_VISU
 
 namespace MusicControl {
     enum Enum {
@@ -61,9 +55,6 @@ struct MusicComponent {
     MusicComponent* master;
     float loopAt; // sec
     int positionI; // in [0,1]
-    #if SAC_MUSIC_VISU
-        float positionF;
-    #endif
     float fadeOut, fadeIn; // sec
     float volume;
     float currentVolume; //handled by system - do not modify
@@ -90,7 +81,6 @@ UPDATABLE_SYSTEM(Music)
         bool isMuted() const { return muted; }
 
         MusicRef loadMusicFile(const std::string& assetName);
-        void unloadMusic(MusicRef ref);
 
         void toggleMute(bool enable);
 
@@ -98,45 +88,24 @@ UPDATABLE_SYSTEM(Music)
         /* textures cache */
         MusicRef nextValidRef;
 
-        #if SAC_EMSCRIPTEN
-            std::map<MusicRef, Mix_Chunk*> musics;
-        #else
-            struct MusicInfo {
-                MusicInfo() : ovf(0) {}
-                OggVorbis_File* ovf;
-                // track info
-                float totalTime;
-                int nbSamples;
-                int sampleRate;
-                // raw data
-                int pcmBufferSize;
-                CircularBuffer* buffer;
-                float leftOver;
-                bool toRemove;
-            #if SAC_MUSIC_VISU
-                std::string name;
-            #endif
-            };
-            std::map<MusicRef, MusicInfo> musics;
-        #endif
+        struct MusicInfo {
+            MusicInfo() {}
+            OggHandle* handle;
+            // track info
+            float totalTime;
+            int nbSamples;
+            int sampleRate, numChannels;
+            
+            float queuedDuration;
+            bool toRemove;
+        };
+        std::map<MusicRef, MusicInfo> musics;
 
         bool muted;
-        #if ! SAC_EMSCRIPTEN
-            std::thread oggDecompressionThread;
-            std::mutex mutex;
-            std::condition_variable cond;
-            // map<filename, audio_compressed_content>
-            std::map<std::string, FileBuffer> name2buffer;
-        #endif
+        // map<filename, audio_compressed_content>
+        std::map<std::string, FileBuffer> name2buffer;
 
-        #if SAC_MUSIC_VISU
-            std::map<Entity, std::pair<Entity, Entity> > visualisationEntities;
-        #endif
-
-        #if ! SAC_EMSCRIPTEN
-            int decompressNextChunk(OggVorbis_File* file, int8_t* data, int chunkSize);
-            bool feed(OpaqueMusicPtr* ptr, MusicRef m, int forceCount, float dt);
-        #endif
+        void feed(OpaqueMusicPtr* ptr, MusicRef m, float dt);
             
         OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, 
             MusicComponent* master, int offset);
@@ -145,8 +114,5 @@ UPDATABLE_SYSTEM(Music)
     public:
         MusicAPI* musicAPI;
         AssetAPI* assetAPI;
-
-        void oggDecompRunLoop();
-        bool runDecompLoop;
 };
 

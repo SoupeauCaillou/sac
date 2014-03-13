@@ -23,16 +23,12 @@
 #include "MusicAPILinuxOpenALImpl.h"
 #include "base/Log.h"
 
-#if ! SAC_EMSCRIPTEN
-#include <al.h>
-#include <alc.h>
-#else
-#include <SDL_mixer.h>
-#endif
+#include <AL/al.h>
+#include <AL/alc.h>
 
 #include <vector>
 
-#if ! SAC_EMSCRIPTEN
+#if SAC_DEBUG
     static const char* errToString(ALenum err);
     static void check_AL_errors(const char* context);
     #define AL_OPERATION(x)  \
@@ -41,26 +37,17 @@
 #else
     #define AL_OPERATION(x)
 #endif
-         
-#define MUSIC_CHUNK_SIZE(freq) SEC_TO_BYTE(0.5, freq)
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
-#if ! SAC_EMSCRIPTEN
     ALuint source;
     std::vector<ALuint> queuedBuffers;
-    int queuedSize;
-#else
-    int channel;
-#endif
 };
 
 void MusicAPILinuxOpenALImpl::init() {
-#if ! SAC_EMSCRIPTEN
     ALCdevice* device = alcOpenDevice(0);
     ALCcontext* context = alcCreateContext(device, 0);
     if (!(device && context && alcMakeContextCurrent(context)))
         LOGE("Could not init AL library");
-#endif
 }
 
 OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int) {
@@ -74,37 +61,23 @@ int MusicAPILinuxOpenALImpl::pcmBufferSize(int sampleRate) {
     return SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.05, sampleRate), sampleRate);
 }
 
-int8_t* MusicAPILinuxOpenALImpl::allocate(int size) {
-    return new int8_t[size];
-}
-
-void MusicAPILinuxOpenALImpl::deallocate(int8_t* b) {
-    delete[] b;
-}
-
 int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr*) {
     return 10;
 }
 
-void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate) {
-	OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#if ! SAC_EMSCRIPTEN
+void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, short* data, int count, int sampleRate) {
+    OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     // create buffer
     ALuint buffer;
     AL_OPERATION(alGenBuffers(1, &buffer))
-    AL_OPERATION(alBufferData(buffer, AL_FORMAT_MONO16, data, size, sampleRate))
+    AL_OPERATION(alBufferData(buffer, AL_FORMAT_MONO16, data, count * 2, sampleRate))
 
     AL_OPERATION(alSourceQueueBuffers(openalptr->source, 1, &buffer))
     openalptr->queuedBuffers.push_back(buffer);
-    openalptr->queuedSize += size;
     delete[] data;
-#else
-	openalptr->channel = Mix_PlayChannel(-1, static_cast<Mix_Chunk*>((void*)data), 0);
-#endif
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {
-#if ! SAC_EMSCRIPTEN
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     if (master) {
 	    int pos;
@@ -112,27 +85,17 @@ void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* 
 	    setPosition(ptr, pos + offset);
     }
     AL_OPERATION(alSourcePlay(openalptr->source))
-#else
-    // Mix_Resume(-1);
-#endif
+    LOGW_IF(!isPlaying(ptr), "Source was started but is not playing :-s");
 }
 
 void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alSourceStop(openalptr->source))
-#else
-	Mix_HaltChannel(openalptr->channel);
-#endif
 }
 
 void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alSourcePause(openalptr->source))
-#else
-    Mix_Pause(openalptr->channel);
-#endif
 }
 
 int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
@@ -149,26 +112,18 @@ void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
 
 void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alSourcef(openalptr->source, AL_GAIN, volume))
-#else
-	Mix_Volume(openalptr->channel, volume * MIX_MAX_VOLUME * 0.6);
-#endif
 }
 
 bool MusicAPILinuxOpenALImpl::isPlaying(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-#if ! SAC_EMSCRIPTEN
+
     ALint state;
     AL_OPERATION(alGetSourcei(openalptr->source, AL_SOURCE_STATE, &state))
     return state == AL_PLAYING;
-#else
-    return true;//Mix_Playing(openalptr->channel);
-#endif
 }
 
 void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
-#if ! SAC_EMSCRIPTEN
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     stopPlayer(ptr);
     // destroy buffers
@@ -178,11 +133,10 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     }
     // destroy source
     AL_OPERATION(alDeleteSources(1, &openalptr->source))
-#endif
     delete ptr;
 }
 
-#if ! SAC_EMSCRIPTEN
+#if SAC_DEBUG
 static void check_AL_errors(const char* context) {
     int maxIterations=10;
     ALenum error;

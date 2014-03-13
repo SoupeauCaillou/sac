@@ -35,6 +35,8 @@
 #include "base/Log.h"
 #include "api/AssetAPI.h"
 
+#include "util/OggDecoder.h"
+
 #if ! SAC_EMSCRIPTEN
 static const char* errToString(ALenum err);
 static void check_AL_errors(const char* context);
@@ -88,41 +90,23 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
         LOGW("Cannot read sound file: '" << asset << "'");
         return 0;
     }
-    ov_callbacks cb;
-    cb.read_func = &FileBufferWithCursor::read_func;
-    cb.seek_func = &FileBufferWithCursor::seek_func;
-    cb.close_func = &FileBufferWithCursor::close_func;
-    cb.tell_func = &FileBufferWithCursor::tell_func;
-    OggVorbis_File vf;
-    if (ov_open_callbacks(&fbc, &vf, 0, 0, cb)) {
+
+    short* ptr = 0;
+    OggInfo::Values info;
+    int samples = OggDecoder::decode(fbc, &ptr, info);
+
+    if (samples <= 0) {
         LOGW("Failed loading sound file: '" << asset << "'");
         delete[] fbc.data;
         return 0;
     }
 
-    int bitstream;
-    int sizeInBytes = ov_pcm_total(&vf, -1) * 2;
-    int8_t* data = new int8_t[sizeInBytes];
-    int readCount = 0;
-    do {
-#if SAC_ANDROID
-        int n = ov_read(&vf, (char*)&data[readCount], sizeInBytes, &bitstream);
-#else
-        int n = ov_read(&vf, (char*)&data[readCount], sizeInBytes, 0, 2, 1, &bitstream);
-#endif
-        if (n == 0)
-            break;
-        readCount += n;
-    } while (true);
-    LOGW_IF(readCount != sizeInBytes, "Weird byte count read: " << readCount << '/' << sizeInBytes);
-
     OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
     AL_OPERATION(alGenBuffers(1, &out->buffer))
-    AL_OPERATION(alBufferData(out->buffer, AL_FORMAT_MONO16, data, sizeInBytes, ov_info(&vf, -1)->rate))
+    AL_OPERATION(alBufferData(out->buffer, AL_FORMAT_MONO16, ptr, samples * sizeof(short), info.sampleRate))
 
-    delete[] data;
+    delete[] ptr;
 
-    ov_clear(&vf);
     delete[] fbc.data;
 #else
     std::stringstream a;

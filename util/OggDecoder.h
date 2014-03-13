@@ -18,5 +18,41 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
 
+struct OggHandle;
 
+struct FileBuffer;
+
+namespace OggInfo
+{
+    struct Values {
+        float durationSeconds;
+        int durationSamples;
+        int sampleRate;
+        int numChannels;
+    };
+}
+
+namespace OggOption
+{
+    enum Decoding {
+        Sync,
+        Async
+    };
+}
+
+class OggDecoder {
+    public:
+        static OggHandle* load(const FileBuffer* fb, OggOption::Decoding d = OggOption::Sync);
+
+        static const FileBuffer* release(OggHandle* handle);
+
+        static int availableSamples(OggHandle* handle);
+
+        static int readSamples(OggHandle* handle, int numSamples, short* output);
+
+        static OggInfo::Values query(OggHandle* handle);
+
+        static int decode(const FileBuffer& fb, short** output, OggInfo::Values& info);
+};
