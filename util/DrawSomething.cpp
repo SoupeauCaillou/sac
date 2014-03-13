@@ -128,7 +128,7 @@ Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& posi
         }
     }
 
-    TRANSFORM(vector)->size = glm::vec2(glm::length(size), .01f);
+    TRANSFORM(vector)->size = glm::vec2(glm::length(size), .05f);
     TRANSFORM(vector)->rotation = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(size));
     //LOGV(1, "normalize : " << glm::normalize(size).x << "," << glm::normalize(size).y << " : " << glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(size)));
 
