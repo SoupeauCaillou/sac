@@ -52,11 +52,9 @@ endif()
         OUTPUT_VARIABLE PLUGINS_LIST
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
-    message(${PLUGINS_LIST})
     string(REPLACE "\n" ";" PLUGINS_LIST ${PLUGINS_LIST})
     # and find package/class names for each of these plugins
     foreach (PLUGIN_PATH ${PLUGINS_LIST})
-        message(qqqq ${PLUGIN_PATH}.${PLUGIN_PATH})
         # Assume that package name convention is 
         # net.damsy.soupeaucaillou.[plugin folder in lowercase and without 'sac' prefix ]
         string (TOLOWER "${PLUGIN_PATH}" plugin_path)
@@ -68,7 +66,6 @@ endif()
 
         file (APPEND "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
             "\t\t<item>${PACKAGE_NAME}.${CLASS_NAME}</item>\n")
-        message(${PACKAGE_NAME}.${CLASS_NAME})
     endforeach()
 
     file (APPEND "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
