@@ -65,16 +65,12 @@ execute_process(
         OUTPUT_VARIABLE SAC_REVISION
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
-if (SAC_REVISION_TAG OR SAC_REVISION)
-    if (SAC_REVISION_TAG)
-        set ( SAC_REVISION_TAG "${SAC_REVISION_TAG} - " )
-    endif()
-    set (SAC_REVISION_TAG "${SAC_REVISION_TAG}${SAC_REVISION}")
-    string(STRIP ${SAC_REVISION_TAG} SAC_REVISION_TAG)
-
-    message("Revision tag: '${SAC_REVISION_TAG}'")
-    add_definitions(-DSAC_REVISION_TAG="${SAC_REVISION_TAG}")
-endif()
+file(WRITE ${CMAKE_SOURCE_DIR}/sac/base/SacGitVersion.h 
+"
+#pragma once
+    #define TAG_NAME \"${SAC_REVISION_TAG}\"
+    #define VERSION_NAME \"${SAC_REVISION}\"
+")
 
 
 #######################################################################

@@ -28,5 +28,5 @@
 
 class InAppPurchaseAPIDebugImpl : public InAppPurchaseAPI {
     public:
-        void purchase(const std::string & name) { LOGI("Purchased item '" << name << "'"); }
+        void purchase(const std::string & LOG_USAGE_ONLY(name)) { LOGI("Purchased item '" << name << "'"); }
 };

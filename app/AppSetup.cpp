@@ -50,6 +50,8 @@
 #include "base/TimeUtil.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
+#include "base/SacGitVersion.h"
+    
 #include "systems/RenderingSystem.h"
 #include "systems/SoundSystem.h"
 #include "systems/MusicSystem.h"
@@ -182,12 +184,8 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
     }
 #endif
 
-    //display git revision if available
-    #ifdef SAC_REVISION_TAG
-        SDL_WM_SetCaption((title + " " + SAC_REVISION_TAG).c_str(), 0);
-    #else
-        SDL_WM_SetCaption(title.c_str(), 0);
-    #endif
+    //display current revision too (debug purpose)
+    SDL_WM_SetCaption((title + " - " + TAG_NAME + " - " + VERSION_NAME).c_str(), 0);
 
     SDL_EnableUNICODE(1);
 
