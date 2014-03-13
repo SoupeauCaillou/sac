@@ -30,7 +30,6 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#include "glm/gtx/projection.hpp"
 
 #if SAC_DEBUG
 #include "util/DrawSomething.h"
@@ -85,13 +84,14 @@ glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpee
 }
 
 
+#define BASIC_STEERING_GRAPHICAL_DEBUG 0
 glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed) {
-    float size = TRANSFORM(e)->size.x * (3 + glm::length(velocity) / maxSpeed);
+    float size = TRANSFORM(e)->size.x * (1 + 2 * glm::length(velocity) / maxSpeed);
     const glm::vec2 & rectSize = glm::vec2(size, TRANSFORM(e)->size.y);
     const glm::vec2 & rectPos = TRANSFORM(e)->position + glm::rotate(glm::vec2(rectSize.x * 0.5, 0), TRANSFORM(e)->rotation);
     float rectRot = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(velocity));
 
-    #if SAC_DEBUG
+    #if BASIC_STEERING_GRAPHICAL_DEBUG
         DrawSomething::DrawPointRestart("basicsteeringbehavior");
         DrawSomething::DrawRectangleRestart("basicsteeringbehavior");
         DrawSomething::DrawVec2Restart("basicsteeringbehavior");
@@ -111,7 +111,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size, 
             TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
 
-            #if SAC_DEBUG
+            #if BASIC_STEERING_GRAPHICAL_DEBUG
             // display a box containing the obstacle
             DrawSomething::DrawRectangle("basicsteeringbehavior", pos, 
                 TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
@@ -129,7 +129,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
                 intersectionPoints, normals);
             
             for (int i = 0; i < intersectCount; ++i) {
-                #if SAC_DEBUG
+                #if BASIC_STEERING_GRAPHICAL_DEBUG
                     // display the intersection points with the obstacle
                     DrawSomething::DrawPoint("basicsteeringbehavior", intersectionPoints[i], Color(0, 1, 1));
                 #endif
@@ -146,16 +146,15 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     }
     glm::vec2 force;
     if (minDist != 1000) {
-        #if SAC_DEBUG
+        #if BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
         DrawSomething::DrawPoint("basicsteeringbehavior", nearest, Color(0, 0, 0));
         #endif
 
         // deduce collision normal
         glm::vec2 p (nearest - TRANSFORM(e)->position);
-        float projNormal = glm::dot(p, normal);
 
-        glm::vec2 lateralForceDirection = normal;//glm::normalize(p - 2 * projNormal * normal);
+        glm::vec2 lateralForceDirection = normal;
         glm::vec2 breakingForceDirection = glm::normalize(-p);
 
         float multiplier = 1.0f + (rectSize.x - minDist) / rectSize.x;
@@ -169,7 +168,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     } else {
         force = glm::vec2(0);
     } 
-    #if SAC_DEBUG
+    #if BASIC_STEERING_GRAPHICAL_DEBUG
     // finally display the final force!
     DrawSomething::DrawVec2("basicsteeringbehavior", TRANSFORM(e)->position, force,
         Color(0, 0, 1, 1));
@@ -177,14 +176,64 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     return force;
 }
 
-glm::vec2 SteeringBehavior::groupCohesion(Entity e, std::list<Entity>& obstacles, float maxSpeed) {
-    return glm::vec2(0.);
+glm::vec2 SteeringBehavior::groupCohesion(Entity e, std::list<Entity>& group, float maxSpeed) {
+    if (group.size() == 0) {
+        return glm::vec2(0.);
+    }
+
+    glm::vec2 averagePosition;
+
+    for (Entity neighbor : group) {
+        averagePosition += TRANSFORM(neighbor)->position;
+    }
+    
+    //normalize
+    averagePosition /= group.size();
+
+    return seek(e, averagePosition, maxSpeed);
 }
 
-glm::vec2 SteeringBehavior::groupAlign(Entity e, std::list<Entity>& obstacles, float maxSpeed) {
-    return glm::vec2(0.);
+glm::vec2 SteeringBehavior::groupAlign(Entity e, std::list<Entity>& group, float maxSpeed) {
+    if (group.size() == 0) {
+        return glm::vec2(0.);
+    }
+
+    glm::vec2 averageDirection;
+
+    for (Entity neighbor : group) {
+        averageDirection += glm::rotate(glm::vec2(1, 0), TRANSFORM(neighbor)->rotation);
+    }
+    
+    //normalize
+    averageDirection /= group.size();
+
+    if (averageDirection != glm::vec2(0.)) {
+        averageDirection = glm::normalize(averageDirection) * maxSpeed;
+    }
+
+    auto currentSpeed = PHYSICS(e)->linearVelocity;
+    if (currentSpeed != glm::vec2(0.)) {
+        currentSpeed = glm::normalize(currentSpeed);
+    }
+    return averageDirection - currentSpeed;
 }
 
-glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& obstacles, float maxSpeed) {
-    return glm::vec2(0.);
+glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, float maxSpeed) {
+    glm::vec2 force;
+
+    auto & myPos = TRANSFORM(e)->position;
+    for (Entity neighbor : group) {
+        auto & neighborPos = TRANSFORM(neighbor)->position;
+
+        auto direction = (myPos - neighborPos);
+
+        // the more neighbor is far away, the less we are attracted by it (norm2)
+        force += direction / glm::length2(direction);
+    }
+    
+    if (force != glm::vec2(0.)) {
+        force = glm::normalize(force) * maxSpeed;
+    }
+
+    return force;
 }

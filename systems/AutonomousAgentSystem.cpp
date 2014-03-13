@@ -84,13 +84,11 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             force += SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed) * agent->cohesionWeight;
         }
         if (! agent->alignementNeighbors.empty() && agent->alignementWeight > 0) {
-            force += SteeringBehavior::groupCohesion(e, agent->alignementNeighbors, agent->maxSpeed) * agent->alignementWeight;
+            force += SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->maxSpeed) * agent->alignementWeight;
         }
         if (! agent->separationNeighbors.empty() && agent->separationWeight > 0) {
-            force += SteeringBehavior::groupCohesion(e, agent->separationNeighbors, agent->maxSpeed) * agent->separationWeight;
+            force += SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->maxSpeed) * agent->separationWeight;
         }
-
-
 
 		if (force == glm::vec2(0.0f))
 			continue;

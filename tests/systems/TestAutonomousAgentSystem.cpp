@@ -23,38 +23,41 @@
 #include <UnitTest++.h>
 #include "systems/AutonomousAgentSystem.h"
 #include "systems/TransformationSystem.h"
+#include "systems/PhysicsSystem.h"
 
-Entity obstacle(glm::vec2 position) {
+Entity groupEntity(glm::vec2 position, float rotationDegrees) {
     static int i = 1000;
     Entity e = i++;
     ADD_COMPONENT(e, Transformation);
+    ADD_COMPONENT(e, Physics);
     TRANSFORM(e)->position = position;
+    TRANSFORM(e)->rotation = glm::radians(rotationDegrees);
     return e;
 }
 
-TEST(AvoidSteeringBehavior)
+TEST(GrooupAlignementBehavior)
 {
- //    TransformationSystem::CreateInstance();
+    TransformationSystem::CreateInstance();
+    PhysicsSystem::CreateInstance();
 
-	// Entity e = 1;
-	// ADD_COMPONENT(e, Transformation);
-	// glm::vec2 velocity(1, 0);
-	// std::list<Entity> obstacles;
-	// float maxSpeed = 1;
+	Entity e = groupEntity(glm::vec2(0), 0);
+	std::list<Entity> group;
+	float maxSpeed = 1;
 
-	// glm::vec2 result = SteeringBehavior::avoid(e, velocity, obstacles, maxSpeed);
-	// CHECK_CLOSE(0, result.x, 0.0001);
-	// CHECK_CLOSE(0, result.y, 0.0001);
+	glm::vec2 result = SteeringBehavior::groupAlign(e, group, maxSpeed);
+	CHECK_CLOSE(0, result.x, 0.0001);
+	CHECK_CLOSE(0, result.y, 0.0001);
 
- //    obstacles.push_back(obstacle(glm::vec2(0.5, 0)));
- //    result = SteeringBehavior::avoid(e, velocity, obstacles, maxSpeed);
- //    CHECK_CLOSE(-.5, result.x, 0.0001);
- //    CHECK_CLOSE(0, result.y, 0.0001);
+    group.push_back(groupEntity(glm::vec2(1, 0), 90));
+    result = SteeringBehavior::groupAlign(e, group, maxSpeed);
+    CHECK_CLOSE(0, result.x, 0.0001);
+    CHECK_CLOSE(1, result.y, 0.0001);
 
- //    obstacles.push_back(obstacle(glm::vec2(.125, .125)));
- //    result = SteeringBehavior::avoid(e, velocity, obstacles, maxSpeed);
- //    CHECK_CLOSE(-.125, result.x, 0.0001);
- //    CHECK_CLOSE(-.125, result.y, 0.0001);
+    group.push_back(groupEntity(glm::vec2(0, 1), 0));
+    result = SteeringBehavior::groupAlign(e, group, maxSpeed);
+    CHECK_CLOSE(1.f / glm::sqrt(2.f), result.x, 0.0001);
+    CHECK_CLOSE(1.f / glm::sqrt(2.f), result.y, 0.0001);
 
- //    TransformationSystem::DestroyInstance();
+    TransformationSystem::DestroyInstance();
+    PhysicsSystem::DestroyInstance();
 }
