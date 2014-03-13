@@ -47,4 +47,10 @@ class SteeringBehavior {
         static glm::vec2 wander(Entity e, WanderParams& params, float maxSpeed);
         
         static glm::vec2 avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed);
+
+        static glm::vec2 groupCohesion(Entity e, std::list<Entity>& obstacles, float maxSpeed);
+
+        static glm::vec2 groupAlign(Entity e, std::list<Entity>& obstacles, float maxSpeed);
+
+        static glm::vec2 groupSeparate(Entity e, std::list<Entity>& obstacles, float maxSpeed);
 };

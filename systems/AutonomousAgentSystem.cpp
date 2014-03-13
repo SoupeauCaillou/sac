@@ -41,6 +41,11 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
     componentSerializer.add(new Property<float>("wander_radius", OFFSET(wander.radius, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_distance", OFFSET(wander.distance, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_jitter", OFFSET(wander.jitter, ac), 0.0001f));
+
+
+    componentSerializer.add(new Property<float>("alignement_weight", OFFSET(alignementWeight, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("separation_weight", OFFSET(separationWeight, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("cohesion_weight", OFFSET(cohesionWeight, ac), 0.0001f));
 }
 
 bool AutonomousAgentSystem::isArrived(Entity e) {
@@ -73,6 +78,19 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 		if (! agent->obstacles.empty() && agent->obstaclesWeight > 0) {
 			force += SteeringBehavior::avoid(e, PHYSICS(e)->linearVelocity, agent->obstacles, agent->maxSpeed) * agent->obstaclesWeight;
 		}
+
+        //group behaviors
+        if (! agent->cohesionNeighbors.empty() && agent->cohesionWeight > 0) {
+            force += SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed) * agent->cohesionWeight;
+        }
+        if (! agent->alignementNeighbors.empty() && agent->alignementWeight > 0) {
+            force += SteeringBehavior::groupCohesion(e, agent->alignementNeighbors, agent->maxSpeed) * agent->alignementWeight;
+        }
+        if (! agent->separationNeighbors.empty() && agent->separationWeight > 0) {
+            force += SteeringBehavior::groupCohesion(e, agent->separationNeighbors, agent->maxSpeed) * agent->separationWeight;
+        }
+
+
 
 		if (force == glm::vec2(0.0f))
 			continue;

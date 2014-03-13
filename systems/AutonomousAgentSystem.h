@@ -49,6 +49,18 @@ struct AutonomousAgentComponent {
 
 	SteeringBehavior::WanderParams wander;
 	float wanderWeight;
+
+	// Group behaviors
+	std::list<Entity> cohesionNeighbors;
+	float cohesionWeight;
+
+	// Group behaviors
+	std::list<Entity> alignementNeighbors;
+	float alignementWeight;
+
+	// Group behaviors
+	std::list<Entity> separationNeighbors;
+	float separationWeight;
 };
 
 #define theAutonomousAgentSystem AutonomousAgentSystem::GetInstance()
