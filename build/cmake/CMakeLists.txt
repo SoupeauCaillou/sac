@@ -68,8 +68,13 @@ execute_process(
 set (NEW_BUILD_VALUES "\"${SAC_REVISION_TAG}\" - \"${SAC_REVISION}\"")
 
 # get current values and don't rewrite them is their are the same
-file (STRINGS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h BUILD_FILE)
-STRING(REGEX REPLACE ".*TAG_NAME (.*)#.*VERSION_NAME (.*)" "\\1 - \\2" CURRENT_BUILD_VALUES ${BUILD_FILE} )
+if (EXISTS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h)
+    file (STRINGS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h BUILD_FILE)
+    STRING(REGEX REPLACE ".*TAG_NAME (.*)#.*VERSION_NAME (.*)" "\\1 - \\2" CURRENT_BUILD_VALUES ${BUILD_FILE} )
+else()
+    set (CURRENT_BUILD_VALUES "")
+endif()
+
 if (NOT CURRENT_BUILD_VALUES STREQUAL NEW_BUILD_VALUES)
     message("Updating current git tag / commit version")
     file(WRITE ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h     
