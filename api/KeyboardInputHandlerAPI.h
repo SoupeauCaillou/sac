@@ -64,7 +64,30 @@ namespace KeyboardInputHandler {
         { "azerty_:", 60 },
         { "azerty_!", 61 },
         { "azerty_lshift", 62 },
+
+        { "azerty_esc", 9 },
+
+        { "azerty_1", 10 },
+        { "azerty_2", 11 },
+        { "azerty_3", 12 },
+        { "azerty_4", 13 },
+        { "azerty_5", 14 },
+        { "azerty_6", 15 },
+        { "azerty_7", 16 },
+        { "azerty_8", 17 },
+        { "azerty_9", 18 },
+        { "azerty_0", 19 },
+        { "azerty_=", 20 },
+        { "azerty_%", 21 },
     };
+
+    static inline int k2v(const std::string & key) {
+        auto it = keyNameToCodeValue.find(key);
+        if (it  != keyNameToCodeValue.end()) {
+            return it->second;
+        }
+        return -1;
+    }
 }
 
 class KeyboardInputHandlerAPI {
