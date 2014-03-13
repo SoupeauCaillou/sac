@@ -1,4 +1,3 @@
-
 #pragma once
-    #define TAG_NAME ""
-    #define VERSION_NAME "6c0a8f9a"
+#define TAG_NAME "2.0.3"
+#define VERSION_NAME "6fa25881"
