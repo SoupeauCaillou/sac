@@ -50,7 +50,6 @@
 #include "base/TimeUtil.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
-#include "base/SacGitVersion.h"
     
 #include "systems/RenderingSystem.h"
 #include "systems/SoundSystem.h"
@@ -185,7 +184,7 @@ int initGame(const std::string& pTitle, const glm::ivec2& res) {
 #endif
 
     //display current revision too (debug purpose)
-    SDL_WM_SetCaption((title + " - " + TAG_NAME + " - " + VERSION_NAME).c_str(), 0);
+    SDL_WM_SetCaption(title.c_str(), 0);
 
     SDL_EnableUNICODE(1);
 

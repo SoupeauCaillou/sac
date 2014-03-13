@@ -7,8 +7,8 @@ whereAmI=$(cd "$(dirname "$0")" && pwd)
 cd $whereAmI
 #if we executed a linked script; go to the real one
 if [  -h $0 ]; then
-	whereAmI+=/$(dirname $(readlink $0))
-	cd $whereAmI
+    whereAmI+=/$(dirname $(readlink $0))
+    cd $whereAmI
 fi
 rootPath=$whereAmI"/../../.."
 gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
