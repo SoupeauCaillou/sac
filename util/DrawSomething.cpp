@@ -65,6 +65,7 @@ Entity DrawSomething::DrawPoint(const std::string& groupID, const glm::vec2& pos
             ADD_COMPONENT(vector, Rendering);
 
             TRANSFORM(vector)->z = .9f;
+            RENDERING(vector)->opaqueType = RenderingComponent::NON_OPAQUE;
 
             instance.drawPointList.push_back(std::make_pair(vector, groupID));
             vector = instance.drawPointList.back().first;
@@ -118,6 +119,7 @@ Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& posi
             ADD_COMPONENT(vector, Rendering);
 
             TRANSFORM(vector)->z = .9f;
+            RENDERING(vector)->opaqueType = RenderingComponent::NON_OPAQUE;
 
             instance.drawVec2List.push_back(std::make_pair(vector, groupID));
            vector = instance.drawVec2List.back().first;
@@ -168,6 +170,7 @@ Entity DrawSomething::DrawTriangle(const std::string& groupID, const glm::vec2& 
             ADD_COMPONENT(vector, Rendering);
 
             TRANSFORM(vector)->z = .9f;
+            RENDERING(vector)->opaqueType = RenderingComponent::NON_OPAQUE;
 
             dynamicVertices = instance.drawTriangleList.size();
             instance.drawTriangleList.push_back(std::make_pair(vector, groupID));
@@ -197,6 +200,50 @@ Entity DrawSomething::DrawTriangle(const std::string& groupID, const glm::vec2& 
 }
 void DrawSomething::DrawTriangleRestart(const std::string & groupID) {
     for (auto e : instance.drawTriangleList) {
+        if (e.second == groupID) {
+            RENDERING(e.first)->show = false;
+        }
+    }
+}
+
+Entity DrawSomething::DrawRectangle(const std::string& groupID, const glm::vec2& 
+    centerPosition, const glm::vec2& size, float rotation, const Color & color, 
+    const std::string name, Entity vector) {
+    
+    if (vector == 0) {
+        auto firstUnused = instance.drawRectangleList.begin();
+        for (; firstUnused != instance.drawRectangleList.end(); ++firstUnused) {
+            if (RENDERING(firstUnused->first)->show ==false) {
+                break;
+            }
+        }
+
+        if (firstUnused == instance.drawRectangleList.end()) {
+            vector = theEntityManager.CreateEntity(name);
+            ADD_COMPONENT(vector, Transformation);
+            ADD_COMPONENT(vector, Rendering);
+
+            TRANSFORM(vector)->z = .9f;
+            RENDERING(vector)->opaqueType = RenderingComponent::NON_OPAQUE;
+            
+            instance.drawRectangleList.push_back(std::make_pair(vector, groupID));
+            vector = instance.drawRectangleList.back().first;
+        } else {
+            vector = firstUnused->first;
+        }
+    }
+
+    TRANSFORM(vector)->size = size;
+    TRANSFORM(vector)->rotation = rotation;
+    TRANSFORM(vector)->position = centerPosition;
+
+    RENDERING(vector)->color = color;
+    RENDERING(vector)->show = true;
+
+    return vector;
+}
+void DrawSomething::DrawRectangleRestart(const std::string & groupID) {
+    for (auto e : instance.drawRectangleList) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
         }

@@ -46,13 +46,20 @@ class DrawSomething {
             const Color & color = Color(), const std::string name = "triangle", Entity vector = 0, int dynamicVertices = 0);
         static void DrawTriangleRestart(const std::string & groupID);
 
+
+        static Entity DrawRectangle(const std::string& groupID, const glm::vec2& centerPosition, const glm::vec2& size,
+            float rotation, const Color & color = Color(), const std::string name = "rectangle", Entity vector = 0);
+        static void DrawRectangleRestart(const std::string & groupID);
+
+
         static void Clear();
     private:
         static DrawSomething instance;
-        DrawSomething() { drawPointList.clear(); drawVec2List.clear(); drawTriangleList.clear(); }
+        DrawSomething() { drawPointList.clear(); drawVec2List.clear(); drawTriangleList.clear(); drawRectangleList.clear(); }
 
         std::vector<std::pair<Entity, std::string>> drawPointList;
         std::vector<std::pair<Entity, std::string>> drawVec2List;
         std::vector<std::pair<Entity, std::string>> drawTriangleList;
+        std::vector<std::pair<Entity, std::string>> drawRectangleList;
 };
 
