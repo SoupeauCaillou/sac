@@ -28,6 +28,8 @@
 #include "util/IntersectionUtil.h"
 #include "base/Log.h"
 
+#include <glm/gtx/norm.hpp>
+
 #if SAC_DEBUG
 #include "util/DrawSomething.h"
 #endif
@@ -158,18 +160,22 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         glm::vec2 averageDelta(0.0f);
         float sumWeight = 0;
         for (const auto& wv: velocities) {
-            averageDelta += std::get<0>(wv) * std::get<1>(wv);
-            sumWeight += std::get<0>(wv);
+            const auto& v = std::get<1>(wv);
+            if (glm::length2(v) > 0) {
+                averageDelta += std::get<0>(wv) * v;
+                sumWeight += std::get<0>(wv);
+            }
         }
+
+        if (sumWeight <= 0) {
+            continue;
+        }
+
         // Weights are used only to prioritize steering behavior - so we now cancel
         // them from averageDelta
         averageDelta /= sumWeight;
 
 		float norm = glm::length(averageDelta);
-
-        if (norm == 0) {
-            continue;
-        }
 
         averageDelta /= norm;
 
