@@ -170,7 +170,7 @@ info "Symbols 0->9..."
 iterate_through_list {0..9} 
 
 info "Symbols punctuation..."
-ponct=", - . / : ; < = > ? _ ! \" # ' ( )"
+ponct=", - . / : ; < = > ? _ ! \" # ' ( ) @"
 iterate_through_list $ponct
 
 info "Symbols missing..."

@@ -22,7 +22,7 @@ export SAC_OPTIONS=""
 export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
-    if [ $# != 1 ]; then
+    if [ $# != 2 ]; then
         error_and_usage_and_quit "Need the path to the alphabet directory"
     fi
 
