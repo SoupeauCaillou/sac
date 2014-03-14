@@ -44,7 +44,7 @@ glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& linearVe
     float d = glm::length(toTarget); 
     
     if (d > 0) {
-        return toTarget * (maxSpeed / d) - linearVel;
+        return toTarget * (maxSpeed / d);
     } else {
         return glm::vec2(.0f);
     }
@@ -52,7 +52,7 @@ glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& linearVe
 
 glm::vec2 SteeringBehavior::flee(Entity e, const glm::vec2& targetPos, float maxSpeed) {
 	glm::vec2 d (glm::normalize(TRANSFORM(e)->position - targetPos) * maxSpeed);
-	return d - PHYSICS(e)->linearVelocity;
+	return d;
 }
 
 glm::vec2 SteeringBehavior::arrive(Entity e, const glm::vec2& targetPos, float maxSpeed, float deceleration) {
@@ -67,7 +67,7 @@ glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& linear
         toTarget = glm::normalize(toTarget);
         float speed = glm::min(d / deceleration, maxSpeed);
         glm::vec2 desiredVelocity(toTarget * speed);
-        return desiredVelocity - linearVel;
+        return desiredVelocity;
     }
     return glm::vec2(0.0f, 0.0f);
 }
@@ -84,7 +84,10 @@ glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpee
 }
 
 
-#define BASIC_STEERING_GRAPHICAL_DEBUG 0
+// TODO: pour calculer la vitesse désirée on peut faire aussi:
+// - tourner la vitesse actuelle (pour qu'elle soit tangente à l'obstacle considéré)
+// - puis réduire la vitesse tant qu'une collision est détectée (avec n'importe quel obstacle)
+#define BASIC_STEERING_GRAPHICAL_DEBUG 1
 glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed) {
     float size = TRANSFORM(e)->size.x * (1 + 0.5 * glm::length(velocity) / maxSpeed);
 
@@ -172,6 +175,25 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         glm::vec2 tangentSurfaceCollision = glm::vec2(-normal.y, normal.x);
         glm::vec2 lateralForceDirection = tangentSurfaceCollision;
 
+        lateralForceDirection = glm::vec2(0);
+
+        int count = obs[1] ? 1 : 1;
+        for (int i=0; i<count; i++) {
+            const auto* otc = TRANSFORM(obs[i]);
+            float localY = glm::dot(otc->position - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation));
+            lateralForceDirection +=
+                glm::rotate(
+                    glm::vec2(0.0f,
+                            -glm::sign(localY) * (
+                                glm::max(otc->size.x, otc->size.y) - // how big the obstacle is
+                                glm::abs(localY) // gets smaller as obstacle gets more in front of e (on its way)
+                            )
+                        ),
+                    tc->rotation);
+        }
+        lateralForceDirection /= (float)count;
+
+#if 0
         if (obs[1]) {
             // if there's a 2nd obstacle, try to move away from it
             glm::vec2 p2(nearest[1] - tc->position);
@@ -180,6 +202,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
             // if we have 1 obstacle: try to move along the tangent and to keep our direction
             lateralForceDirection *= glm::sign(glm::dot(p, tangentSurfaceCollision));
         }
+#endif
         glm::vec2 breakingForceDirection = glm::normalize(-p);
 
         float multiplier = 1.0f + (rectSize.x - minDist[0]) / rectSize.x;
