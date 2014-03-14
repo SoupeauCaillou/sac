@@ -27,9 +27,9 @@
 #include "System.h"
 
 struct AutonomousAgentComponent {
-	AutonomousAgentComponent() : maxSpeed(1.f), maxForce(1.f), seekTarget(0), seekWeight(1.f),
-	fleeTarget(0), fleeWeight(1.f), fleeRadius(1.f), obstaclesWeight(1.f), wanderWeight(1.f),
-	cohesionWeight(1.f), alignementWeight(1.f), separationWeight(1.f) {}
+	AutonomousAgentComponent() : maxSpeed(1.f), maxForce(1.f), seekTarget(0), seekWeight(0.f),
+	fleeTarget(0), fleeWeight(0.f), fleeRadius(1.f), obstaclesWeight(0.f), wanderWeight(0.f),
+	cohesionWeight(0.f), alignementWeight(0.f), separationWeight(0.f) {}
 
 	float maxSpeed, maxForce;
 	union {

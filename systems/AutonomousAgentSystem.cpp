@@ -28,6 +28,10 @@
 #include "util/IntersectionUtil.h"
 #include "base/Log.h"
 
+#if SAC_DEBUG
+#include "util/DrawSomething.h"
+#endif
+
 INSTANCE_IMPL(AutonomousAgentSystem);
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") {
@@ -52,11 +56,20 @@ bool AutonomousAgentSystem::isArrived(Entity e) {
    return IntersectionUtil::rectangleRectangle(TRANSFORM(e), TRANSFORM(AUTONOMOUS(e)->arriveTarget));
 }
 
+// TODO
+// - modifier les SteeringBehavior pour qu'ils renvoient la vitesse qu'ils désirent avoir (et dont la norme est <= maxSpeed)
+// - modifier AutonomousAgent pour faire la moyenne pondérée de ces vitesse sous la forme:
+//        vitesse_moyenne = Somme(poids * (vitesse_desiree - vitesse actuelle)) / somme(poids_des_vitesse_non_nuls)
+// - enfin, appliquer une force dont l'amplitude dépend de la vitesse_moyenne et de forceMax
 void AutonomousAgentSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
 	    LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");
 	    LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
 		glm::vec2 force(glm::vec2(0.0f));
+
+        std::vector<std::tuple<float, glm::vec2>> velocities;
+
+        DrawSomething::DrawVec2Restart(__FILE__);
 
         auto* pc = PHYSICS(e);
         float length = glm::length(pc->linearVelocity);
@@ -66,41 +79,108 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
 		if (agent->seekTarget && agent->seekWeight > 0) {
 			if (agent->arriveDeceleration > 0) {
-				force += SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration) * agent->arriveWeight;
+                velocities.push_back(
+                    std::make_tuple(
+                        agent->arriveWeight,
+                        SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration)
+                    ));
+                DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "arrive", Color(0.9, 1, 1));
 			} else {
-				force += SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->maxSpeed) * agent->seekWeight;
+                velocities.push_back(
+                    std::make_tuple(
+                        agent->seekWeight,
+                        SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->maxSpeed)
+                    ));
+                DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "seek", Color(0.9, 1, 1));
 			}
 		}
 		if (agent->fleeTarget && agent->fleeWeight > 0) {
 			if (glm::distance(TRANSFORM(e)->position, TRANSFORM(agent->fleeTarget)->position) < agent->fleeRadius) {
-				force += SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->maxSpeed) * agent->fleeWeight;
+                velocities.push_back(
+                    std::make_tuple(
+                        agent->fleeWeight,
+                        SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->maxSpeed)
+                    ));
+
+                DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "flee", Color(0.9, 1, 1));
 			}
 		}
 
 		if (agent->wanderWeight > 0) {
-			force += SteeringBehavior::wander(e, agent->wander, agent->maxSpeed) * agent->wanderWeight;
+            velocities.push_back(
+                std::make_tuple(
+                    agent->wanderWeight,
+                    SteeringBehavior::wander(e, agent->wander, agent->maxSpeed)
+                ));
+            DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "wander", Color(0.9, 1, 1));
 		}
 
 		if (! agent->obstacles.empty() && agent->obstaclesWeight > 0) {
-			force += SteeringBehavior::avoid(e, PHYSICS(e)->linearVelocity, agent->obstacles, agent->maxSpeed) * agent->obstaclesWeight;
-		}
+            velocities.push_back(
+                std::make_tuple(
+                    agent->obstaclesWeight,
+                    SteeringBehavior::avoid(e, pc->linearVelocity, agent->obstacles, agent->maxSpeed)
+                ));
+            DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "obstacle", Color(0.9, 1, 1));
+        }
 
         //group behaviors
         if (! agent->cohesionNeighbors.empty() && agent->cohesionWeight > 0) {
-            force += SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed) * agent->cohesionWeight;
+            velocities.push_back(
+                std::make_tuple(
+                    agent->cohesionWeight,
+                    SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed)
+                ));
+            DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "cohesion", Color(0.9, 1, 1));
         }
         if (! agent->alignementNeighbors.empty() && agent->alignementWeight > 0) {
-            force += SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->maxSpeed) * agent->alignementWeight;
+            velocities.push_back(
+                std::make_tuple(
+                    agent->alignementWeight,
+                    SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->maxSpeed)
+                ));
+            DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "alignement", Color(0.9, 1, 1));
         }
         if (! agent->separationNeighbors.empty() && agent->separationWeight > 0) {
-            force += SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->maxSpeed) * agent->separationWeight;
+            velocities.push_back(
+                std::make_tuple(
+                    agent->separationWeight,
+                    SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->maxSpeed)
+                ));
+            DrawSomething::Vec2Text(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), "separation", Color(0.9, 1, 1));
         }
 
-		if (force == glm::vec2(0.0f))
-			continue;
-		float norm = glm::length(force);
-        force = glm::normalize(force);
+        if (velocities.empty()) {
+            continue;
+        }
 
-		PHYSICS(e)->addForce(force * glm::min(norm, agent->maxForce), glm::vec2(0.f), dt);
+        // Compute weighted average of: desired_velocity - current_velocity
+        glm::vec2 averageDelta(0.0f);
+        float sumWeight = 0;
+        for (const auto& wv: velocities) {
+            averageDelta += std::get<0>(wv) * std::get<1>(wv);
+            sumWeight += std::get<0>(wv);
+        }
+        // Weights are used only to prioritize steering behavior - so we now cancel
+        // them from averageDelta
+        averageDelta /= sumWeight;
+
+		float norm = glm::length(averageDelta);
+
+        if (norm == 0) {
+            continue;
+        }
+
+        averageDelta /= norm;
+
+        norm = agent->maxForce * norm / agent->maxSpeed;
+        averageDelta *= norm;
+
+        if (norm > agent->maxForce) {
+            averageDelta *= agent->maxForce / norm;
+        }
+        LOGI_EVERY_N(60, __(glm::length(averageDelta)) << " vs " << __(agent->maxForce));
+
+		PHYSICS(e)->addForce(averageDelta, glm::vec2(0.f), dt);
 	END_FOR_EACH()
 }
