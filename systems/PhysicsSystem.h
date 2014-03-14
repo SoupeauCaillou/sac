@@ -79,11 +79,4 @@ UPDATABLE_SYSTEM(Physics)
 public:
 	static void addMoment(PhysicsComponent* pc, float m);
 
-#if SAC_DEBUG
-private:
-    void addDebugOnlyDrawForce(const glm::vec2 & pos, const glm::vec2 & size);
-    std::vector<std::pair<Entity,std::vector<glm::vec2>>> drawForceVectors;
-    unsigned currentDraw;
-    float norm2Max;
-#endif
 };

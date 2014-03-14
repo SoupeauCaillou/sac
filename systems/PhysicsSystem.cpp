@@ -27,8 +27,6 @@
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/norm.hpp>
 
-#include "util/DrawSomething.h"
-
 #include <utility>
 
 INSTANCE_IMPL(PhysicsSystem);
@@ -43,40 +41,7 @@ PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics"
     componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, tc), 0.001f));
 }
 
-#if SAC_DEBUG
-void PhysicsSystem::addDebugOnlyDrawForce(const glm::vec2 & /*pos*/, const glm::vec2 & /*size*/) {
-    return;
-    //float norm2 = glm::length2(size);
-    //if (norm2 < 0.00001f)
-    //    return;
-	
-    //norm2Max = glm::max(norm2Max, norm2);
-
-
-    //if (currentDraw == drawForceVectors.size()) {
-    //    std::pair<Entity, std::vector<glm::vec2>> couple;
-
-    //    couple.first = DrawSomething::DrawVec2("PhysicsDebug", pos, size, true);
-    //    couple.second.push_back(pos);
-    //    couple.second.push_back(size);
-    //    drawForceVectors.push_back(couple);
-    //} else {
-    //    drawForceVectors[currentDraw].second[0] = pos;
-    //    drawForceVectors[currentDraw].second[1] = size;
-    //}
-
-    //++currentDraw;
-}
-#else
-#define addDebugOnlyDrawForce(a,b) {}
-#endif
-
 void PhysicsSystem::DoUpdate(float dt) {
-#if SAC_DEBUG
-    currentDraw = 0;
-    norm2Max = 0.f;
-#endif
-
     FOR_EACH_ENTITY_COMPONENT(Physics, a, pc)
         // no mass -> no physics
         if (pc->mass <= 0)
@@ -101,8 +66,6 @@ void PhysicsSystem::DoUpdate(float dt) {
 		// linear accel
 		glm::vec2 linearAccel(pc->gravity * pc->mass);
 
-        addDebugOnlyDrawForce(tc->position, pc->gravity * pc->mass);
-
 		// angular accel
 		float angAccel = 0;
 
@@ -112,8 +75,6 @@ void PhysicsSystem::DoUpdate(float dt) {
 
 		for (unsigned int i=0; i<pc->forces.size(); i++) {
 			Force force(pc->forces[i].first);
-
-            addDebugOnlyDrawForce(tc->position + force.point, force.vector);
 
 			float& durationLeft = pc->forces[i].second;
 
@@ -153,35 +114,6 @@ void PhysicsSystem::DoUpdate(float dt) {
 		tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
         pc->angularVelocity = nextAngularVelocity;
 	END_FOR_EACH()
-
-#if SAC_DEBUG
-    const float sizeForMaxForce = 2.f;
-    float normMax = glm::sqrt(norm2Max) / sizeForMaxForce;
-
-    for (unsigned i = 0; i < currentDraw; ++i) {
-        glm::vec2 pos = drawForceVectors[i].second[0];
-        glm::vec2 size = drawForceVectors[i].second[1];
-
-        size /= normMax;
-        float currentNorm = glm::length(size);
-
-        //force vectors size must be in [0;sizeForMaxForce] (sizeForMaxForce = max vector)
-        //but if the final force size is too small, change color/size
-        if (currentNorm < 0.1f * sizeForMaxForce) {
-            size = 0.1f * sizeForMaxForce * glm::normalize(size);
-            //RENDERING(drawForceVectors[i].first)->color = Color(0.5,1.,0.,1.);
-        } else {
-            //RENDERING(drawForceVectors[i].first)->color = Color(1.,1.,1.,1.);
-        }
-
-
-        DrawSomething::DrawVec2("PhysicsDebug", pos, size, true, "force", drawForceVectors[i].first);
-    }
-
-    for (unsigned i = currentDraw; i < drawForceVectors.size(); ++i) {
-        RENDERING(drawForceVectors[i].first)->show = false;
-    }
-#endif
 }
 
 

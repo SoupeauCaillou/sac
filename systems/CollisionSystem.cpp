@@ -31,7 +31,7 @@
 #include <glm/gtx/compatibility.hpp>
 #include <glm/gtx/norm.hpp>
 
-#include "util/DrawSomething.h"
+#include "util/Draw.h"
 INSTANCE_IMPL(CollisionSystem);
 
 CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Collision") {

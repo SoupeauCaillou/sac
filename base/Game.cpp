@@ -63,7 +63,7 @@
 #include "systems/opengl/OpenGLTextureCreator.h"
 
 #include "util/DataFileParser.h"
-#include "util/DrawSomething.h"
+#include "util/Draw.h"
 #include "util/Recorder.h"
 #include "util/Random.h"
 #include "util/LevelEditor.h"
@@ -184,7 +184,7 @@ void Game::buildOrderedSystemsToUpdateList() {
 }
 
 Game::~Game() {
-    DrawSomething::Clear();
+    Draw::ClearAll();
 
 #if !SAC_MOBILE
     JoystickManager::DestroyInstance();
