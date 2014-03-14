@@ -96,7 +96,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     const glm::vec2 & rectPos = tc->position + glm::rotate(glm::vec2(rectSize.x * 0.5, 0), tc->rotation);
     float rectRot = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(velocity));
 
-    #if BASIC_STEERING_GRAPHICAL_DEBUG
+    #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
         Draw::Clear("basicsteeringbehavior");
 
         // display box-view of the object (where it wants to go)
@@ -116,7 +116,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size, 
             TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
 
-            #if BASIC_STEERING_GRAPHICAL_DEBUG
+            #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
             // display a box containing the obstacle
             Draw::Rectangle("basicsteeringbehavior", pos, 
                 TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
@@ -134,7 +134,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
                 intersectionPoints, normals);
             
             for (int i = 0; i < intersectCount; ++i) {
-                #if BASIC_STEERING_GRAPHICAL_DEBUG
+                #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
                     // display the intersection points with the obstacle
                     Draw::Point("basicsteeringbehavior", intersectionPoints[i], Color(0, 1, 1));
                 #endif
@@ -162,7 +162,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     }
 
     if (obs[0]) {
-        #if BASIC_STEERING_GRAPHICAL_DEBUG
+        #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
         Draw::Point("basicsteeringbehavior", nearest[0], Color(0, 0, 0));
         #endif
@@ -208,7 +208,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
 
         latDist = glm::max(0.1f, (rectSize.x - latDist) / rectSize.x);
 
-        #if BASIC_STEERING_GRAPHICAL_DEBUG
+        #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
         Draw::Vec2("basicsteeringbehavior", tc->position,
             lateralForceDirection, Color(0, 1, 1));
         Draw::Vec2("basicsteeringbehavior", tc->position,
@@ -218,7 +218,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         lateralForceDirection *= multiplier * latDist;
         breakingForceDirection *= ((rectSize.x - minDist[0]) / rectSize.x);
 
-        #if BASIC_STEERING_GRAPHICAL_DEBUG
+        #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
         Draw::Vec2("basicsteeringbehavior", tc->position,
             lateralForceDirection, Color(0, 0.8, 0.8, 0.5));
         Draw::Vec2("basicsteeringbehavior", tc->position,
@@ -231,7 +231,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         force = glm::vec2(0.0f);
     }
 
-    #if BASIC_STEERING_GRAPHICAL_DEBUG
+    #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
     // finally display the final force!
     Draw::Vec2("basicsteeringbehavior", TRANSFORM(e)->position, force,
         Color(0, 0, 1, 0.5));

@@ -71,8 +71,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
         std::vector<std::tuple<float, glm::vec2>> velocities;
 
+#if SAC_DEBUG
         Draw::Clear(__FILE__);
-
+#endif
         auto* pc = PHYSICS(e);
         float length = glm::length(pc->linearVelocity);
         if (length > agent->maxSpeed) {
@@ -86,14 +87,18 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                         agent->arriveWeight,
                         SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration)
                     ));
+#if SAC_DEBUG
                 Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "arrive");
+#endif
 			} else {
                 velocities.push_back(
                     std::make_tuple(
                         agent->seekWeight,
                         SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->maxSpeed)
                     ));
+#if SAC_DEBUG
                 Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "seek");
+#endif
 			}
 		}
 		if (agent->fleeTarget && agent->fleeWeight > 0) {
@@ -104,7 +109,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                         SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->maxSpeed)
                     ));
 
+#if SAC_DEBUG
                 Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "flee");
+#endif
 			}
 		}
 
@@ -114,7 +121,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                     agent->wanderWeight,
                     SteeringBehavior::wander(e, agent->wander, agent->maxSpeed)
                 ));
+#if SAC_DEBUG
             Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "wander");
+#endif
 		}
 
 		if (! agent->obstacles.empty() && agent->obstaclesWeight > 0) {
@@ -123,7 +132,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                     agent->obstaclesWeight,
                     SteeringBehavior::avoid(e, pc->linearVelocity, agent->obstacles, agent->maxSpeed)
                 ));
+#if SAC_DEBUG
             Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "obstacle");
+#endif
         }
 
         //group behaviors
@@ -133,7 +144,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                     agent->cohesionWeight,
                     SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed)
                 ));
+#if SAC_DEBUG
             Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "cohesion");
+#endif
         }
         if (! agent->alignementNeighbors.empty() && agent->alignementWeight > 0) {
             velocities.push_back(
@@ -141,7 +154,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                     agent->alignementWeight,
                     SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->maxSpeed)
                 ));
+#if SAC_DEBUG
             Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "alignement");
+#endif
         }
         if (! agent->separationNeighbors.empty() && agent->separationWeight > 0) {
             velocities.push_back(
@@ -149,7 +164,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                     agent->separationWeight,
                     SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->maxSpeed)
                 ));
+#if SAC_DEBUG
             Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "separation");
+#endif
         }
 
         if (velocities.empty()) {
