@@ -184,10 +184,11 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 		ss << gameName;
 
         //update path
-        path = gameName.c_str();
+        path = ss.str().c_str();
         
-        // remove non alphanum characters
-        path.erase(std::remove_if(path.begin(), path.end(), (int(*)(int))std::isalnum), path.end());
+        // remove non alphanum characters. Problem yet: it erase '/' too...
+        // path.erase(std::remove_if(path.begin(), path.end(), 
+            // std::not1(std::ptr_fun((int(*)(int))std::isalnum))), path.end());
 
         // create folder if needed
         int permission = 0;
