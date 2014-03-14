@@ -84,11 +84,13 @@ glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpee
 }
 
 
-#define BASIC_STEERING_GRAPHICAL_DEBUG 1
+#define BASIC_STEERING_GRAPHICAL_DEBUG 0
 glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed) {
     float size = TRANSFORM(e)->size.x * (1 + 0.5 * glm::length(velocity) / maxSpeed);
+
+    const auto* tc = TRANSFORM(e);
     const glm::vec2 & rectSize = glm::vec2(size, TRANSFORM(e)->size.y);
-    const glm::vec2 & rectPos = TRANSFORM(e)->position + glm::rotate(glm::vec2(rectSize.x * 0.5, 0), TRANSFORM(e)->rotation);
+    const glm::vec2 & rectPos = tc->position + glm::rotate(glm::vec2(rectSize.x * 0.5, 0), tc->rotation);
     float rectRot = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(velocity));
 
     #if BASIC_STEERING_GRAPHICAL_DEBUG
@@ -100,13 +102,15 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         DrawSomething::DrawRectangle("basicsteeringbehavior", rectPos, rectSize, rectRot, Color(1, 0, 0, .5));
     #endif
 
+    glm::vec2 force;
     glm::vec2 intersectionPoints[4], normals[4];
-    const float halfWidth = TRANSFORM(e)->size.y * 0.5;
-    glm::vec2 nearest, normal;
-    Entity obs;
-    float minDist = 1000;
+    const float halfWidth = tc->size.y * 0.5;
+    float minDist[] = {1000, 1000};
+    Entity obs[] = {0, 0};
+    glm::vec2 nearest[2], normal;
+
     for (auto obstacle : obstacles) {
-        auto & pos = TRANSFORM(obstacle)->position;
+        const auto & pos = TRANSFORM(obstacle)->position;
 
         if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size, 
             TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
@@ -122,7 +126,7 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
             // closer rectangle from entity e
             int intersectCount = IntersectionUtil::lineRectangle(
                 // open-ended line starting at e's position
-                TRANSFORM(e)->position, TRANSFORM(e)->position + glm::rotate(glm::vec2(1000, 0), TRANSFORM(e)->rotation),
+                tc->position, tc->position + glm::rotate(glm::vec2(1000, 0), tc->rotation),
                 // rectangle
                 pos, TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
                 // result
@@ -133,59 +137,79 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
                     // display the intersection points with the obstacle
                     DrawSomething::DrawPoint("basicsteeringbehavior", intersectionPoints[i], Color(0, 1, 1));
                 #endif
-                float dist = glm::distance(intersectionPoints[i], TRANSFORM(e)->position);
+                float dist = glm::distance(intersectionPoints[i], tc->position);
 
-                if (dist < minDist) {
-                    minDist = dist;
-                    nearest = intersectionPoints[i];
+                // Find the 2 nearest obstacles
+                if (dist < minDist[0]) {
+                    if (obs[0] != obstacle) {
+                        minDist[1] = minDist[0];
+                        nearest[1] = nearest[0];
+                        obs[1] = obs[0];
+                    }
+
+                    minDist[0] = dist;
+                    nearest[0] = intersectionPoints[i];
                     normal = normals[i];
-                    obs = obstacle;
+                    obs[0] = obstacle;
+                } else if (dist < minDist[1] && obstacle != obs[0]) {
+                    minDist[1] = dist;
+                    nearest[1] = intersectionPoints[i];
+                    obs[1] = obstacle;
                 }
-            }   
+            }
         }
     }
-    glm::vec2 force;
-    if (minDist != 1000) {
+
+    if (obs[0]) {
         #if BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
-        DrawSomething::DrawPoint("basicsteeringbehavior", nearest, Color(0, 0, 0));
+        DrawSomething::DrawPoint("basicsteeringbehavior", nearest[0], Color(0, 0, 0));
         #endif
 
         // deduce collision normal
-        glm::vec2 p (nearest - TRANSFORM(e)->position);
+        glm::vec2 p (nearest[0] - tc->position);
 
         glm::vec2 tangentSurfaceCollision = glm::vec2(-normal.y, normal.x);
-        glm::vec2 lateralForceDirection = glm::sign(glm::dot(p, tangentSurfaceCollision)) * tangentSurfaceCollision;
+        glm::vec2 lateralForceDirection = tangentSurfaceCollision;
+
+        if (obs[1]) {
+            // if there's a 2nd obstacle, try to move away from it
+            glm::vec2 p2(nearest[1] - tc->position);
+            lateralForceDirection *= -glm::sign(glm::dot(p2, tangentSurfaceCollision));
+        } else {
+            // if we have 1 obstacle: try to move along the tangent and to keep our direction
+            lateralForceDirection *= glm::sign(glm::dot(p, tangentSurfaceCollision));
+        }
         glm::vec2 breakingForceDirection = glm::normalize(-p);
 
-        float multiplier = 1.0f + (rectSize.x - minDist) / rectSize.x;
-        float latDist = glm::dot(TRANSFORM(e)->position - TRANSFORM(obs)->position, normal);
+        float multiplier = 1.0f + (rectSize.x - minDist[0]) / rectSize.x;
+        float latDist = glm::dot(tc->position - TRANSFORM(obs[0])->position, normal);
 
         latDist = glm::max(0.1f, (rectSize.x - latDist) / rectSize.x);
 
         #if BASIC_STEERING_GRAPHICAL_DEBUG
-        DrawSomething::DrawVec2("basicsteeringbehavior", TRANSFORM(e)->position,
+        DrawSomething::DrawVec2("basicsteeringbehavior", tc->position,
             lateralForceDirection, Color(0, 1, 1));
-        DrawSomething::DrawVec2("basicsteeringbehavior", TRANSFORM(e)->position,
+        DrawSomething::DrawVec2("basicsteeringbehavior", tc->position,
             breakingForceDirection, Color(1, 1, 0));
         #endif
 
         lateralForceDirection *= multiplier * latDist;
-        breakingForceDirection *= ((rectSize.x - minDist) / rectSize.x);
+        breakingForceDirection *= ((rectSize.x - minDist[0]) / rectSize.x);
 
         #if BASIC_STEERING_GRAPHICAL_DEBUG
-        DrawSomething::DrawVec2("basicsteeringbehavior", TRANSFORM(e)->position,
+        DrawSomething::DrawVec2("basicsteeringbehavior", tc->position,
             lateralForceDirection, Color(0, 0.8, 0.8, 0.5));
-        DrawSomething::DrawVec2("basicsteeringbehavior", TRANSFORM(e)->position,
+        DrawSomething::DrawVec2("basicsteeringbehavior", tc->position,
             breakingForceDirection, Color(0.8, 0.8, 0, 0.5));
         #endif
 
         force = lateralForceDirection + breakingForceDirection;
-        
         force = glm::normalize(force) * maxSpeed;
     } else {
-        force = glm::vec2(0);
-    } 
+        force = glm::vec2(0.0f);
+    }
+
     #if BASIC_STEERING_GRAPHICAL_DEBUG
     // finally display the final force!
     DrawSomething::DrawVec2("basicsteeringbehavior", TRANSFORM(e)->position, force,
