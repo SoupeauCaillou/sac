@@ -24,6 +24,8 @@
 
 #include "systems/TransformationSystem.h"
 #include "systems/RenderingSystem.h"
+#include "systems/TextSystem.h"
+#include "systems/AnchorSystem.h"
 
 #include "base/Log.h"
 
@@ -42,6 +44,11 @@ void DrawSomething::Clear() {
         theEntityManager.DeleteEntity(item.first);
     }
     instance.drawVec2List.clear();
+
+    for (auto item : instance.drawVec2TextList) {
+        theEntityManager.DeleteEntity(item.first);
+    }
+    instance.drawVec2TextList.clear();
 
     for (auto item : instance.drawTriangleList) {
         theEntityManager.DeleteEntity(item.first);
@@ -103,6 +110,39 @@ Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& posi
     return e;
 }
 
+Entity DrawSomething::Vec2Text(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
+    const std::string& text, const Color & color, const std::string name, Entity vector) {
+    Entity e = DrawVec2(groupID, position, size, color, name, vector);
+
+    {
+        Entity t = 0;
+        auto firstUnused = instance.drawVec2TextList.begin();
+        for (; firstUnused != instance.drawVec2TextList.end(); ++firstUnused) {
+            if (TEXT(firstUnused->first)->show ==false) {
+                break;
+            }
+        }
+        if (firstUnused == instance.drawVec2TextList.end()) {
+            t = theEntityManager.CreateEntity(name + "_text");
+            ADD_COMPONENT(t, Transformation);
+            ADD_COMPONENT(t, Anchor);
+            ANCHOR(t)->z = 0;
+            ADD_COMPONENT(t, Text);
+
+            instance.drawVec2TextList.push_back(std::make_pair(t, groupID));
+        } else {
+            t = firstUnused->first;
+        }
+        ANCHOR(t)->parent = e;
+        TEXT(t)->charHeight = glm::min(TRANSFORM(e)->size.x, 0.5f);
+        ANCHOR(t)->position = glm::vec2(0.0f, TEXT(t)->charHeight * 0.5);
+        TEXT(t)->text = text;
+        TEXT(t)->color = Color(0,0,0);
+        TEXT(t)->show = true;
+    }
+    return e;
+}
+
 Entity DrawSomething::DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
  const Color & color, const std::string name, Entity vector) {
     if (vector == 0) {
@@ -146,6 +186,11 @@ void DrawSomething::DrawVec2Restart(const std::string & groupID) {
     for (auto e : instance.drawVec2List) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
+        }
+    }
+    for (auto e : instance.drawVec2TextList) {
+        if (e.second == groupID) {
+            TEXT(e.first)->show = false;
         }
     }
 }

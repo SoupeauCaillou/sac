@@ -36,6 +36,8 @@ class DrawSomething {
         static void DrawPointRestart(const std::string & groupID);
 
 
+        static Entity Vec2Text(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
+            const std::string& text, const Color & color = Color(), const std::string name = "glm::vec2", Entity vector = 0);
         static Entity DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
             const Color & color = Color(), const std::string name = "glm::vec2", Entity vector = 0);
         static Entity DrawVec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size,
@@ -59,6 +61,7 @@ class DrawSomething {
 
         std::vector<std::pair<Entity, std::string>> drawPointList;
         std::vector<std::pair<Entity, std::string>> drawVec2List;
+        std::vector<std::pair<Entity, std::string>> drawVec2TextList;
         std::vector<std::pair<Entity, std::string>> drawTriangleList;
         std::vector<std::pair<Entity, std::string>> drawRectangleList;
 };
