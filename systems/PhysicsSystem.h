@@ -37,7 +37,7 @@ struct Force {
 
 struct PhysicsComponent {
     PhysicsComponent() : linearVelocity(0.0f, 0.0f), angularVelocity(0.0f), mass(0.0f),
-    gravity(0.0f, 0.0f), frottement(0.f) {}
+    gravity(0.0f, 0.0f), frottement(0.f), maxSpeed(-1) {}
 
     //current velocity
     glm::vec2 linearVelocity;
@@ -64,6 +64,8 @@ struct PhysicsComponent {
 
     //physics stuff related to rotation :-). It depends on the shape of the object
     float momentOfInertia;
+
+    float maxSpeed;
 };
 
 #define thePhysicsSystem PhysicsSystem::GetInstance()

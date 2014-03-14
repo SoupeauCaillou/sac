@@ -40,6 +40,7 @@ PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics"
     componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc), 0.001f));
     componentSerializer.add(new Property<float>("frottement", OFFSET(frottement, tc), 0.001f));
     componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, tc), 0.001f));
 }
 
 #if SAC_DEBUG
@@ -136,7 +137,15 @@ void PhysicsSystem::DoUpdate(float dt) {
 		angAccel /= pc->momentOfInertia;
 
 		// acceleration is constant over dt: use basic Euler integration for velocity
-        const glm::vec2 nextVelocity(pc->linearVelocity + linearAccel * dt);
+        glm::vec2 nextVelocity(pc->linearVelocity + linearAccel * dt);
+        // limit linearVelocity if requested
+        if (pc->maxSpeed > 0) {
+            float l2 = glm::length2(nextVelocity);
+            if (l2 > (pc->maxSpeed * pc->maxSpeed)) {
+                nextVelocity *= pc->maxSpeed / glm::sqrt(l2);
+            }
+        }
+
         tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5f;
         // velocity varies over dt: use Verlet integration for position
         pc->linearVelocity = nextVelocity;
