@@ -459,6 +459,12 @@ relayout:
         AnchorComponent ac;
         ac.parent = entity;
         ac.z = 0.001f; // put text in front
+
+        #if SAC_DEBUG
+        LOGW_IF (trans->z + ac.z > 1.0,
+            "'" << theEntityManager.entityName(entity) << "' (text='"
+                << trc->text << "') has z = " << trans->z << " -> letters won't be visible");
+        #endif
         for (unsigned i=firstEntity; i<letterCount; i++) {
             auto* tc = TRANSFORM(renderingEntitiesPool[i]);
             ac.position = tc->position;
