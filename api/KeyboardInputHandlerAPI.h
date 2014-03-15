@@ -26,6 +26,7 @@
 #include <functional>
 #include <map>
 
+
 namespace KeyboardInputHandler {
     const std::map<std::string, int> keyNameToCodeValue = {
         { "azerty_space", 65 },
@@ -90,17 +91,42 @@ namespace KeyboardInputHandler {
     }
 }
 
+struct Key {
+    enum Type { byPosition, byName };
+
+    Type type;
+    union {
+        int position;
+        int keysym;
+    };
+
+    inline static Key ByName(int sym) {
+        Key k; 
+        k.type = byName;
+        k.keysym = sym;
+        return k;
+    }
+    inline static Key ByPosition(int pos) {
+        Key k; 
+        k.type = byPosition;
+        k.position = pos;
+        return k;
+    }
+
+    bool operator< (const Key & rhs) const { return this->position < rhs.position; }
+};
+
 class KeyboardInputHandlerAPI {
     public:
-        virtual void registerToKeyPress(int key, std::function<void()>) = 0;
+        virtual void registerToKeyPress(Key key, std::function<void()>) = 0;
 
-        virtual void registerToKeyRelease(int key, std::function<void()>) = 0;
+        virtual void registerToKeyRelease(Key key, std::function<void()>) = 0;
 
         virtual void update() = 0;
 
         virtual int eventSDL(const void* event) = 0;
 
-        virtual bool isKeyPressed(int key) = 0;
+        virtual bool isKeyPressed(Key key) = 0;
 
-        virtual bool isKeyReleased(int key) = 0;
+        virtual bool isKeyReleased(Key key) = 0;
 };

@@ -38,22 +38,22 @@ namespace KeyState {
 
 class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
     public:
-        void registerToKeyPress(int value, std::function<void()> f);
+        void registerToKeyPress(Key value, std::function<void()> f);
 
-        void registerToKeyRelease(int value, std::function<void()> f);
+        void registerToKeyRelease(Key value, std::function<void()> f);
 
         void update();
 
         int eventSDL(const void* event);
 
-        bool isKeyPressed(int key) { return queryKeyState(key, KeyState::Pressed); }
+        bool isKeyPressed(Key key) { return queryKeyState(key, KeyState::Pressed); }
 
-        bool isKeyReleased(int key) { return queryKeyState(key, KeyState::Released); }
+        bool isKeyReleased(Key key) { return queryKeyState(key, KeyState::Released); }
 
-        bool queryKeyState(int key, KeyState::Enum state);
+        bool queryKeyState(Key key, KeyState::Enum state);
 
     private:
-        std::map<int, KeyState::Enum> keyState;
-        std::map<int, std::function<void()> > keyPressed2callback;
-        std::map<int, std::function<void()> > keyReleased2callback;
+        std::map<Key, KeyState::Enum> keyState;
+        std::map<Key, std::function<void()> > keyPressed2callback;
+        std::map<Key, std::function<void()> > keyReleased2callback;
 };
