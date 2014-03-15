@@ -317,7 +317,60 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
     return force;
 }
 
-glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity, const std::list<Entity>& walls, float maxSpeed) {
-    // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along the normal of the wall proportionnal to the hit
-    return glm::vec2(0.0f);
+glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity, 
+    const std::list<Entity>& walls, float maxSpeed) {
+    Draw::Clear(__FILE__);
+    
+    auto myPos = TRANSFORM(e)->position;
+
+    glm::vec2 desiredSpeed;
+
+    // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along 
+    // the normal of the wall proportionnal to the hit
+    std::array<float, 3> feelers = {
+        glm::radians(0.f),
+        glm::radians(45.f),
+        glm::radians(-45.f),
+    };
+
+    // magic number.. to be changed
+    float closestIP = 3;
+
+    for (auto & feeler : feelers) {
+        for (auto & wall : walls) {
+            auto dir = glm::rotate(TRANSFORM(wall)->size, TRANSFORM(wall)->rotation);
+            auto wallA = TRANSFORM(wall)->position - dir / 2.f;
+            auto wallB = TRANSFORM(wall)->position + dir / 2.f;
+
+            glm::vec2 intersectionPoint;
+
+            if (IntersectionUtil::lineLine(
+                    myPos, 
+                    myPos + 100.f * glm::rotate(PHYSICS(e)->linearVelocity, feeler),
+                    wallA, 
+                    wallB, 
+                    &intersectionPoint)) {
+            Draw::Vec2(__FILE__, 
+                myPos,
+                myPos + 100.f * glm::rotate(PHYSICS(e)->linearVelocity, feeler),
+                Color(1, 0, 0), "feeler");
+            Draw::Vec2(__FILE__, 
+                wallA,
+                wallB,
+                Color(0, 0, 1), "wall");
+
+                auto dist = glm::distance2(myPos, intersectionPoint);
+
+                if (dist < closestIP) {
+                    closestIP = dist;
+                    auto overShoot = feeler - intersectionPoint;
+                    auto w = wallA - wallB;
+                    auto wallNormal = glm::normalize(glm::vec2(-w.y, w.x));
+                    desiredSpeed = wallNormal  * glm::length(overShoot) *
+                        glm::sign(glm::dot(overShoot, wallNormal));
+                }
+            }
+        }
+    }
+    return desiredSpeed;
 }
