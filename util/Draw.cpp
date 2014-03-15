@@ -177,11 +177,11 @@ void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition
     TRANSFORM(rect)->position = centerPosition;
     TRANSFORM(rect)->size = size;
     TRANSFORM(rect)->rotation = rotation;
-
+/*
     float y = TRANSFORM(rect)->size.x * glm::sin(TRANSFORM(rect)->rotation);
     float x = TRANSFORM(rect)->size.x * glm::cos(TRANSFORM(rect)->rotation);
     TRANSFORM(rect)->position = centerPosition + glm::vec2(x, y) / 2.f;
-
+*/
     RENDERING(rect)->color = color;
     RENDERING(rect)->show = true;
 
