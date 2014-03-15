@@ -83,11 +83,29 @@ glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpee
 	return seek(e, params.debugTarget, maxSpeed);
 }
 
+#define BASIC_STEERING_GRAPHICAL_DEBUG (1 & SAC_DEBUG)
+static std::tuple<glm::vec2, glm::vec2> computeOverlappingObstaclesPosSize(Entity refObstacle, const std::list<Entity>& obs) {
+    const auto* tc = TRANSFORM(refObstacle);
+    glm::vec2 position = tc->position, size = tc->size;
+    int count = 1;
+    for (Entity o: obs) {
+        if (o == refObstacle) continue;
+        const auto* tc2 = TRANSFORM(o);
+        if (IntersectionUtil::rectangleRectangle(tc, tc2)) {
+            #if BASIC_STEERING_GRAPHICAL_DEBUG
+            Draw::Rectangle(__FILE__, tc2->position, tc2->size, tc2->rotation, Color(1, 0, 0, 0.5));
+            #endif
+            position += tc2->position;
+            size += tc2->size;
+            ++count;
+        }
+    }
+    return std::make_tuple(position / (float)count, size / (float)count);
+}
 
 // TODO: pour calculer la vitesse désirée on peut faire aussi:
 // - tourner la vitesse actuelle (pour qu'elle soit tangente à l'obstacle considéré)
 // - puis réduire la vitesse tant qu'une collision est détectée (avec n'importe quel obstacle)
-#define BASIC_STEERING_GRAPHICAL_DEBUG 1
 glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed) {
     float size = TRANSFORM(e)->size.x * (1 + 0.5 * glm::length(velocity) / maxSpeed);
 
@@ -96,11 +114,11 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     const glm::vec2 & rectPos = tc->position + glm::rotate(glm::vec2(rectSize.x * 0.5, 0), tc->rotation);
     float rectRot = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(velocity));
 
-    #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
-        Draw::Clear("basicsteeringbehavior");
+    #if BASIC_STEERING_GRAPHICAL_DEBUG
+        Draw::Clear(__FILE__);
 
         // display box-view of the object (where it wants to go)
-        Draw::Rectangle("basicsteeringbehavior", rectPos, rectSize, rectRot, Color(1, 0, 0, .5));
+        Draw::Rectangle(__FILE__, rectPos, rectSize, rectRot, Color(1, 0, 0, .5));
     #endif
 
     glm::vec2 force;
@@ -116,9 +134,9 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size, 
             TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
 
-            #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
+            #if BASIC_STEERING_GRAPHICAL_DEBUG
             // display a box containing the obstacle
-            Draw::Rectangle("basicsteeringbehavior", pos, 
+            Draw::Rectangle(__FILE__, pos, 
                 TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
                 Color(0, 1, 0, .5));
             #endif
@@ -134,9 +152,9 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
                 intersectionPoints, normals);
             
             for (int i = 0; i < intersectCount; ++i) {
-                #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
+                #if BASIC_STEERING_GRAPHICAL_DEBUG
                     // display the intersection points with the obstacle
-                    Draw::Point("basicsteeringbehavior", intersectionPoints[i], Color(0, 1, 1));
+                    Draw::Point(__FILE__, intersectionPoints[i], Color(0, 1, 1));
                 #endif
                 float dist = glm::distance(intersectionPoints[i], tc->position);
 
@@ -162,9 +180,9 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
     }
 
     if (obs[0]) {
-        #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
+        #if BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
-        Draw::Point("basicsteeringbehavior", nearest[0], Color(0, 0, 0));
+        Draw::Point(__FILE__, nearest[0], Color(0, 0, 0));
         #endif
 
         // deduce collision normal
@@ -175,22 +193,19 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
 
         lateralForceDirection = glm::vec2(0);
 
-        int count = obs[1] ? 1 : 1;
-        for (int i=0; i<count; i++) {
-            const auto* otc = TRANSFORM(obs[i]);
-            float localY = glm::dot(otc->position - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation));
-            lateralForceDirection +=
-                glm::rotate(
-                    glm::vec2(0.0f,
-                            -glm::sign(localY) * (
-                                glm::max(otc->size.x, otc->size.y) - // how big the obstacle is
-                                glm::abs(localY) // gets smaller as obstacle gets more in front of e (on its way)
-                            )
-                        ),
-                    tc->rotation);
-        }
-        lateralForceDirection /= (float)count;
-
+        auto groupPosSize = computeOverlappingObstaclesPosSize(obs[0], obstacles);
+        
+        float localY = glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation));
+        lateralForceDirection +=
+            glm::rotate(
+                glm::vec2(0.0f,
+                        -glm::sign(localY) * (
+                            glm::max(std::get<1>(groupPosSize).x, std::get<1>(groupPosSize).y) - // how big the obstacle is
+                            glm::abs(localY) // gets smaller as obstacle gets more in front of e (on its way)
+                        )
+                    ),
+                tc->rotation);
+        
 #if 0
         if (obs[1]) {
             // if there's a 2nd obstacle, try to move away from it
@@ -204,24 +219,25 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         glm::vec2 breakingForceDirection = glm::normalize(-p);
 
         float multiplier = 1.0f + (rectSize.x - minDist[0]) / rectSize.x;
-        float latDist = glm::dot(tc->position - TRANSFORM(obs[0])->position, normal);
+
+        float latDist = glm::dot(tc->position - std::get<0>(groupPosSize), normal);
 
         latDist = glm::max(0.1f, (rectSize.x - latDist) / rectSize.x);
 
-        #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
-        Draw::Vec2("basicsteeringbehavior", tc->position,
+        #if BASIC_STEERING_GRAPHICAL_DEBUG
+        Draw::Vec2(__FILE__, tc->position,
             lateralForceDirection, Color(0, 1, 1));
-        Draw::Vec2("basicsteeringbehavior", tc->position,
+        Draw::Vec2(__FILE__, tc->position,
             breakingForceDirection, Color(1, 1, 0));
         #endif
 
         lateralForceDirection *= multiplier * latDist;
         breakingForceDirection *= ((rectSize.x - minDist[0]) / rectSize.x);
 
-        #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
-        Draw::Vec2("basicsteeringbehavior", tc->position,
+        #if BASIC_STEERING_GRAPHICAL_DEBUG
+        Draw::Vec2(__FILE__, tc->position,
             lateralForceDirection, Color(0, 0.8, 0.8, 0.5));
-        Draw::Vec2("basicsteeringbehavior", tc->position,
+        Draw::Vec2(__FILE__, tc->position,
             breakingForceDirection, Color(0.8, 0.8, 0, 0.5));
         #endif
 
@@ -231,9 +247,9 @@ glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list
         force = glm::vec2(0.0f);
     }
 
-    #if SAC_DEBUG && BASIC_STEERING_GRAPHICAL_DEBUG
+    #if BASIC_STEERING_GRAPHICAL_DEBUG
     // finally display the final force!
-    Draw::Vec2("basicsteeringbehavior", TRANSFORM(e)->position, force,
+    Draw::Vec2(__FILE__, TRANSFORM(e)->position, force,
         Color(0, 0, 1, 0.5));
     #endif
     return force;
