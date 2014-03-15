@@ -318,5 +318,6 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
 }
 
 glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity, const std::list<Entity>& walls, float maxSpeed) {
+    // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along the normal of the wall proportionnal to the hit
     return glm::vec2(0.0f);
 }

@@ -138,6 +138,17 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #endif
         }
 
+        if (! agent->walls.empty() && agent->wallsWeight > 0) {
+            velocities.push_back(
+                std::make_tuple(
+                    agent->wallsWeight,
+                    SteeringBehavior::wallAvoidance(e, pc->linearVelocity, agent->walls, agent->maxSpeed)
+                ));
+#if SAC_DEBUG
+            Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "wall");
+#endif
+        }
+
         //group behaviors
         if (! agent->cohesionNeighbors.empty() && agent->cohesionWeight > 0) {
             velocities.push_back(
