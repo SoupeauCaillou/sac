@@ -43,6 +43,7 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
     componentSerializer.add(new Property<float>("flee_weight", OFFSET(fleeWeight, ac), 0.0001f));
     componentSerializer.add(new Property<float>("flee_radius", OFFSET(fleeRadius, ac), 0.0001f));
     componentSerializer.add(new Property<float>("obstacles_weight", OFFSET(obstaclesWeight, ac), 0.0001f));
+    componentSerializer.add(new Property<float>("walls_weight", OFFSET(wallsWeight, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_weight", OFFSET(wanderWeight, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_radius", OFFSET(wander.radius, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_distance", OFFSET(wander.distance, ac), 0.0001f));
@@ -130,7 +131,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->obstaclesWeight,
-                    SteeringBehavior::avoid(e, pc->linearVelocity, agent->obstacles, agent->maxSpeed)
+                    SteeringBehavior::obstacleAvoidance(e, pc->linearVelocity, agent->obstacles, agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             Draw::Vec2(__FILE__, TRANSFORM(e)->position, std::get<1>(velocities.back()), Color(0.9, 1, 1), "obstacle");

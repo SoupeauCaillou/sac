@@ -106,7 +106,7 @@ static std::tuple<glm::vec2, glm::vec2> computeOverlappingObstaclesPosSize(Entit
 // TODO: pour calculer la vitesse désirée on peut faire aussi:
 // - tourner la vitesse actuelle (pour qu'elle soit tangente à l'obstacle considéré)
 // - puis réduire la vitesse tant qu'une collision est détectée (avec n'importe quel obstacle)
-glm::vec2 SteeringBehavior::avoid(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed) {
+glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed) {
     float size = TRANSFORM(e)->size.x * (1 + 0.5 * glm::length(velocity) / maxSpeed);
 
     const auto* tc = TRANSFORM(e);
@@ -315,4 +315,8 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
     }
 
     return force;
+}
+
+glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity, const std::list<Entity>& walls, float maxSpeed) {
+    return glm::vec2(0.0f);
 }

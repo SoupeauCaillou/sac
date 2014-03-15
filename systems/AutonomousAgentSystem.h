@@ -28,7 +28,7 @@
 
 struct AutonomousAgentComponent {
 	AutonomousAgentComponent() : maxSpeed(1.f), maxForce(1.f), seekTarget(0), seekWeight(0.f),
-	fleeTarget(0), fleeWeight(0.f), fleeRadius(1.f), obstaclesWeight(0.f), wanderWeight(0.f),
+	fleeTarget(0), fleeWeight(0.f), fleeRadius(1.f), obstaclesWeight(0.f), wallsWeight(0.f), wanderWeight(0.f),
 	cohesionWeight(0.f), alignementWeight(0.f), separationWeight(0.f) {}
 
 	float maxSpeed, maxForce;
@@ -48,6 +48,9 @@ struct AutonomousAgentComponent {
 
 	std::list<Entity> obstacles;
 	float obstaclesWeight;
+
+    std::list<Entity> walls;
+    float wallsWeight;
 
 	SteeringBehavior::WanderParams wander;
 	float wanderWeight;
