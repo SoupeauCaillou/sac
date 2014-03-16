@@ -329,7 +329,7 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
 
     // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along 
     // the normal of the wall proportionnal to the hit
-    std::array<float, 3> feelers = {
+    float feelers[3] = {
         glm::radians(0.f),
         glm::radians(45.f),
         glm::radians(-45.f),
