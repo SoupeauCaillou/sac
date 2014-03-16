@@ -33,8 +33,8 @@ rootPath=$whereAmI/../../..
 
 cd $rootPath
 
-rm -rf build/android-release-arm android-release-x86
-mkdir build/android-release-arm android-release-x86
+rm -rf build/android-release-arm build/android-release-x86
+mkdir -p build/android-release-arm build/android-release-x86
 
 # Generate arm & x86 APK
 if ! compilation x86; then
