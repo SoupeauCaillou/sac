@@ -319,7 +319,9 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
 
 glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity, 
     const std::list<Entity>& walls, float maxSpeed) {
+    #if SAC_DEBUG
     Draw::Clear(__FILE__);
+    #endif
     
     auto myPos = TRANSFORM(e)->position;
 
@@ -350,6 +352,7 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
                     wallA, 
                     wallB, 
                     &intersectionPoint)) {
+            #if SAC_DEBUG
             Draw::Vec2(__FILE__, 
                 myPos,
                 myPos + 100.f * glm::rotate(PHYSICS(e)->linearVelocity, feeler),
@@ -358,6 +361,7 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
                 wallA,
                 wallB,
                 Color(0, 0, 1), "wall");
+            #endif
 
                 auto dist = glm::distance2(myPos, intersectionPoint);
 
