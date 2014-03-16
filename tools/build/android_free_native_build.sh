@@ -4,6 +4,9 @@
 # non-opensource plugins (Google Play Game Services, etc.)
 # It is mainly used for the fdroid build
 
+#exit on first error encountered
+set -e 
+
 compilation() {
     ARCHI=$1
 
@@ -34,7 +37,7 @@ rootPath=$whereAmI/../../..
 cd $rootPath
 
 rm -rf build/android-release-arm build/android-release-x86
-mkdir -p build/android-release-arm build/android-release-x86
+mkdir build/android-release-arm build/android-release-x86
 
 # Generate arm & x86 APK
 if ! compilation x86; then

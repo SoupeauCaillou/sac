@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#exit on first error encountered
+set -e 
+
 ######### Cool things #########
 	#colors
 	reset="[0m"
