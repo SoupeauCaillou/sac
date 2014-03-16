@@ -39,6 +39,8 @@ mkdir build/android-release-arm android-release-x86
 # Generate arm & x86 APK
 if ! compilation x86; then
     echo "Error when building x86 version"
+    exit 1
 elif ! compilation arm; then
     echo "Error when building ARM version"
+    exit 2
 fi        

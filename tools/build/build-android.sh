@@ -145,11 +145,6 @@ init() {
         info "Generating atlas..."
         $rootPath/sac/tools/generate_atlas.sh $rootPath/unprepared_assets/*
     fi
-
-    if [ $UNINSTALL_FROM_DEVICE = 1 ]; then
-        info "Uninstalling from device..."
-        adb uninstall $(cat $rootPath/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
-    fi
 }
 
 compilation_before() {
@@ -225,6 +220,12 @@ get_APK_name() {
 }
 
 launch_the_application() {
+    if [ $UNINSTALL_FROM_DEVICE = 1 ]; then
+        info "Uninstalling from device..."
+        adb uninstall $(cat $rootPath/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
+    fi
+
+
     if [ ! -z "$SIGN_APK" ]; then
         cd $fromWhereAmIBeingCalled
         if [ ! -e "$SIGN_APK" ]; then

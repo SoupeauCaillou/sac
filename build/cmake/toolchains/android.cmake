@@ -52,7 +52,10 @@ endif()
         OUTPUT_VARIABLE PLUGINS_LIST
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
-    string(REPLACE "\n" ";" PLUGINS_LIST ${PLUGINS_LIST})
+    if (PLUGINS_LIST)
+        string(REPLACE "\n" ";" PLUGINS_LIST ${PLUGINS_LIST})
+    endif()
+
     # and find package/class names for each of these plugins
     foreach (PLUGIN_PATH ${PLUGINS_LIST})
         # Assume that package name convention is 
