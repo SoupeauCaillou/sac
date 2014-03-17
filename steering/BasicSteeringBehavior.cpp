@@ -188,37 +188,39 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
         // deduce collision normal
         glm::vec2 p (nearest[0] - tc->position);
 
-        glm::vec2 tangentSurfaceCollision = glm::vec2(-normal.y, normal.x);
-        glm::vec2 lateralForceDirection = tangentSurfaceCollision;
-
-        lateralForceDirection = glm::vec2(0);
-
         auto groupPosSize = computeOverlappingObstaclesPosSize(obs[0], obstacles);
 
-        float localY = glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation));
-        lateralForceDirection +=
-            glm::rotate(
-                glm::vec2(0.0f,
-                        -glm::sign(localY) * (
-                            glm::max(std::get<1>(groupPosSize).x, std::get<1>(groupPosSize).y) - // how big the obstacle is
-                            glm::abs(localY) // gets smaller as obstacle gets more in front of e (on its way)
-                        )
-                    ),
-                tc->rotation);
+        // local coords of obstacle
+        glm::vec2 local =
+            glm::vec2(
+                glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(1, 0), tc->rotation)),
+                glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation))
+            );
 
-#if 0
-        if (obs[1]) {
-            // if there's a 2nd obstacle, try to move away from it
-            glm::vec2 p2(nearest[1] - tc->position);
-            lateralForceDirection *= -glm::sign(glm::dot(p2, tangentSurfaceCollision));
-        } else {
-            // if we have 1 obstacle: try to move along the tangent and to keep our direction
-            lateralForceDirection *= glm::sign(glm::dot(p, tangentSurfaceCollision));
-        }
-#endif
+
+        glm::vec2 localForce (0.0f);
+        // try to avoid obstacle (by increasing local Y)
+        localForce.y = -glm::sign(local.y) * (
+            glm::max(std::get<1>(groupPosSize).x, std::get<1>(groupPosSize).y) - // how big the obstacle is
+            glm::abs(local.y)); // gets smaller as obstacle gets more in front of e (on its way)
+
+        // brake if necessary
+        localForce.x = -glm::sign(local.x) * glm::abs(localForce.y) * (1 - local.x / rectSize.x);
+
+        glm::vec2 worldDir = glm::normalize(glm::rotate(localForce, tc->rotation));
+
+        float multiplier = (rectSize.x - minDist[0]) / rectSize.x;
+/*
+        Draw::Vec2(__FILE__, tc->position,
+            glm::normalize(worldDir) * 3.0f, Color(0, 0.2, 0.2, 1), "ddd");
+*/
+        return glm::normalize(velocity) * (1 - multiplier) * maxSpeed + worldDir * multiplier * maxSpeed;
+        #if 0
+
         glm::vec2 breakingForceDirection = glm::normalize(-p);
 
-        float multiplier = 1.0f + (rectSize.x - minDist[0]) / rectSize.x;
+
+
 
         float latDist = glm::dot(tc->position - std::get<0>(groupPosSize), normal);
 
@@ -242,16 +244,14 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
         #endif
 
         force = lateralForceDirection + breakingForceDirection;
+
+        return
         force = glm::normalize(force) * maxSpeed;
+        #endif
     } else {
-        force = glm::vec2(0.0f);
+        return velocity;
     }
 
-    #if BASIC_STEERING_GRAPHICAL_DEBUG
-    // finally display the final force!
-    Draw::Vec2(__FILE__, TRANSFORM(e)->position, force,
-        Color(0, 0, 1, 0.5));
-    #endif
     return force;
 }
 
@@ -319,9 +319,6 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
 
 glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
     const std::list<Entity>& walls, float maxSpeed) {
-    #if SAC_DEBUG
-    Draw::Clear(__FILE__);
-    #endif
 
     const auto& myPos = TRANSFORM(e)->position;
 
