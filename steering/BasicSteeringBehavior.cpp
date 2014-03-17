@@ -41,8 +41,8 @@ glm::vec2 SteeringBehavior::seek(Entity e, const glm::vec2& targetPos, float max
 
 glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& linearVel, const glm::vec2& targetPos, float maxSpeed) {
     glm::vec2 toTarget (targetPos - pos);
-    float d = glm::length(toTarget); 
-    
+    float d = glm::length(toTarget);
+
     if (d > 0) {
         return toTarget * (maxSpeed / d);
     } else {
@@ -51,18 +51,18 @@ glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& linearVe
 }
 
 glm::vec2 SteeringBehavior::flee(Entity e, const glm::vec2& targetPos, float maxSpeed) {
-	glm::vec2 d (glm::normalize(TRANSFORM(e)->position - targetPos) * maxSpeed);
-	return d;
+    glm::vec2 d (glm::normalize(TRANSFORM(e)->position - targetPos) * maxSpeed);
+    return d;
 }
 
 glm::vec2 SteeringBehavior::arrive(Entity e, const glm::vec2& targetPos, float maxSpeed, float deceleration) {
-	return arrive(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed, deceleration);
+    return arrive(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed, deceleration);
 }
 
 glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& linearVel,const glm::vec2& targetPos, float maxSpeed, float deceleration) {
     glm::vec2 toTarget (targetPos - pos);
-    float d = glm::length(toTarget); 
-    
+    float d = glm::length(toTarget);
+
     if (d > 0) {
         toTarget = glm::normalize(toTarget);
         float speed = glm::min(d / deceleration, maxSpeed);
@@ -73,14 +73,14 @@ glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& linear
 }
 
 glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpeed) {
-	params.target += glm::vec2(
-		glm::linearRand(-1.0f, 1.0f) * params.jitter,
-		glm::linearRand(-1.0f, 1.0f) * params.jitter);
-	params.target = glm::normalize(params.target);
-	params.target *= params.radius;
-	params.debugTarget = TRANSFORM(e)->position + glm::rotate(glm::vec2(params.distance, 0.0f) + params.target, TRANSFORM(e)->rotation);
-	
-	return seek(e, params.debugTarget, maxSpeed);
+    params.target += glm::vec2(
+        glm::linearRand(-1.0f, 1.0f) * params.jitter,
+        glm::linearRand(-1.0f, 1.0f) * params.jitter);
+    params.target = glm::normalize(params.target);
+    params.target *= params.radius;
+    params.debugTarget = TRANSFORM(e)->position + glm::rotate(glm::vec2(params.distance, 0.0f) + params.target, TRANSFORM(e)->rotation);
+
+    return seek(e, params.debugTarget, maxSpeed);
 }
 
 #define BASIC_STEERING_GRAPHICAL_DEBUG (1 & SAC_DEBUG)
@@ -131,12 +131,12 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
     for (auto obstacle : obstacles) {
         const auto & pos = TRANSFORM(obstacle)->position;
 
-        if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size, 
+        if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size,
             TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
 
             #if BASIC_STEERING_GRAPHICAL_DEBUG
             // display a box containing the obstacle
-            Draw::Rectangle(__FILE__, pos, 
+            Draw::Rectangle(__FILE__, pos,
                 TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
                 Color(0, 1, 0, .5));
             #endif
@@ -150,7 +150,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
                 pos, TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
                 // result
                 intersectionPoints, normals);
-            
+
             for (int i = 0; i < intersectCount; ++i) {
                 #if BASIC_STEERING_GRAPHICAL_DEBUG
                     // display the intersection points with the obstacle
@@ -194,7 +194,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
         lateralForceDirection = glm::vec2(0);
 
         auto groupPosSize = computeOverlappingObstaclesPosSize(obs[0], obstacles);
-        
+
         float localY = glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation));
         lateralForceDirection +=
             glm::rotate(
@@ -205,7 +205,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
                         )
                     ),
                 tc->rotation);
-        
+
 #if 0
         if (obs[1]) {
             // if there's a 2nd obstacle, try to move away from it
@@ -265,7 +265,7 @@ glm::vec2 SteeringBehavior::groupCohesion(Entity e, std::list<Entity>& group, fl
     for (Entity neighbor : group) {
         averagePosition += TRANSFORM(neighbor)->position;
     }
-    
+
     //normalize
     averagePosition /= group.size();
 
@@ -282,7 +282,7 @@ glm::vec2 SteeringBehavior::groupAlign(Entity e, std::list<Entity>& group, float
     for (Entity neighbor : group) {
         averageDirection += glm::rotate(glm::vec2(1, 0), TRANSFORM(neighbor)->rotation);
     }
-    
+
     //normalize
     averageDirection /= group.size();
 
@@ -309,7 +309,7 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
         // the more neighbor is far away, the less we are attracted by it (norm2)
         force += direction / glm::length2(direction);
     }
-    
+
     if (force != glm::vec2(0.)) {
         force = glm::normalize(force) * maxSpeed;
     }
@@ -317,64 +317,92 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
     return force;
 }
 
-glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity, 
+glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
     const std::list<Entity>& walls, float maxSpeed) {
     #if SAC_DEBUG
     Draw::Clear(__FILE__);
     #endif
-    
-    auto myPos = TRANSFORM(e)->position;
 
-    glm::vec2 desiredSpeed;
+    const auto& myPos = TRANSFORM(e)->position;
 
-    // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along 
+    // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along
     // the normal of the wall proportionnal to the hit
-    float feelers[3] = {
-        glm::radians(0.f),
-        glm::radians(45.f),
-        glm::radians(-45.f),
+    float feelers[3*2] = {
+        glm::radians(0.f), 1,
+        glm::radians(40.f), 0.85,
+        glm::radians(-40.f), 0.85
     };
 
-    // magic number.. to be changed
-    float closestIP = 3;
+    float closestIP = 0;
+    Entity closestWall = 0;
+    float overShoot = 0;
+    glm::vec2 wallNormal;
 
-    for (auto & feeler : feelers) {
+    const glm::vec2 feelerStart = myPos + glm::rotate(glm::vec2(TRANSFORM(e)->size.x * 0.25f, 0.0f), TRANSFORM(e)->rotation);
+
+    for (int i=0; i<3; i++) {
+        const glm::vec2 feelerEnd = feelerStart + feelers[2*i + 1] * glm::rotate(glm::vec2(TRANSFORM(e)->size.x * feelers[2*i+1], 0.0f), TRANSFORM(e)->rotation + feelers[2*i]);
+        // glm::rotate(PHYSICS(e)->linearVelocity, feelers[2*i]);
+
+        #if SAC_DEBUG
+            Draw::Vec2(__FILE__,
+                feelerStart,
+                feelerEnd - feelerStart,
+                Color(0, 1, 0, 0.75));
+        #endif
+
         for (auto & wall : walls) {
-            auto dir = glm::rotate(TRANSFORM(wall)->size, TRANSFORM(wall)->rotation);
-            auto wallA = TRANSFORM(wall)->position - dir / 2.f;
-            auto wallB = TRANSFORM(wall)->position + dir / 2.f;
+            LOGT_EVERY_N(6000, "Assuming min dimension of wall = 0");
+            const auto* tc2 = TRANSFORM(wall);
+            glm::vec2 dir, wallA, wallB;
+            if (tc2->size.x < tc2->size.y) {
+                dir = glm::rotate(glm::vec2(0.0f, tc2->size.y * 0.5f), tc2->rotation);
+                wallA = tc2->position - dir;
+                wallB = tc2->position + dir;
+            } else {
+                dir = glm::rotate(glm::vec2(tc2->size.x * 0.5f, 0.0f), tc2->rotation);
+                wallA = tc2->position + dir;
+                wallB = tc2->position - dir;
+            }
 
             glm::vec2 intersectionPoint;
 
             if (IntersectionUtil::lineLine(
-                    myPos, 
-                    myPos + 100.f * glm::rotate(PHYSICS(e)->linearVelocity, feeler),
-                    wallA, 
-                    wallB, 
+                    feelerStart,
+                    feelerEnd,
+                    wallA,
+                    wallB,
                     &intersectionPoint)) {
-            #if SAC_DEBUG
-            Draw::Vec2(__FILE__, 
-                myPos,
-                myPos + 100.f * glm::rotate(PHYSICS(e)->linearVelocity, feeler),
-                Color(1, 0, 0), "feeler");
-            Draw::Vec2(__FILE__, 
-                wallA,
-                wallB,
-                Color(0, 0, 1), "wall");
-            #endif
+                #if SAC_DEBUG
+                Draw::Vec2(__FILE__,
+                    feelerStart,
+                    feelerEnd - feelerStart,
+                    Color(1, 0, 0, 1));
+                Draw::Vec2(__FILE__,
+                    wallA,
+                    wallB,
+                    Color(0, 0, 1));
+                #endif
 
-                auto dist = glm::distance2(myPos, intersectionPoint);
+                auto dist = glm::distance2(feelerStart, intersectionPoint);
 
-                if (dist < closestIP) {
+                if (closestWall == 0 || dist < closestIP) {
                     closestIP = dist;
-                    auto overShoot = feeler - intersectionPoint;
+                    closestWall = wall;
+                    overShoot = glm::distance(feelerEnd, intersectionPoint) / glm::distance(feelerEnd, feelerStart);
                     auto w = wallA - wallB;
-                    auto wallNormal = glm::normalize(glm::vec2(-w.y, w.x));
-                    desiredSpeed = wallNormal  * glm::length(overShoot) *
-                        glm::sign(glm::dot(overShoot, wallNormal));
+                    wallNormal = glm::normalize(glm::vec2(-w.y, w.x));
+                    // orient wall normal toward vehicle
+                    wallNormal *= glm::sign(glm::dot(myPos - intersectionPoint, wallNormal));
                 }
             }
         }
     }
-    return desiredSpeed;
+
+    if (closestWall) {
+        float reactionLength = overShoot * maxSpeed;
+        return glm::normalize(velocity) * (maxSpeed - reactionLength) + wallNormal * reactionLength;
+    } else {
+        return velocity;
+    }
 }
