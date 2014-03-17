@@ -294,7 +294,7 @@ glm::vec2 SteeringBehavior::groupAlign(Entity e, std::list<Entity>& group, float
     if (currentSpeed != glm::vec2(0.)) {
         currentSpeed = glm::normalize(currentSpeed);
     }
-    return averageDirection - currentSpeed;
+    return averageDirection;
 }
 
 glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, float maxSpeed) {
