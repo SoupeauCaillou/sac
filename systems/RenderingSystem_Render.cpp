@@ -410,7 +410,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #endif
             }
             useFbo = rc.fbo;
-            if (currentColor != rc.color) {
+            if (currentColor != rc.color || condTexture) {
                 currentColor = rc.color;
                 currentEffect =
                     changeShaderProgram(currentEffect, firstCall, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
@@ -448,7 +448,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
     #if SAC_DEBUG
     static unsigned ______debug = 0;
-    if ((++______debug % 3000) == 0) {
+    if ((++______debug % 300) == 0) {
         ______debug = 0;
         LOGI("Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
         for (unsigned i=0; i<batchSizes.size(); i++) {
@@ -547,11 +547,11 @@ void RenderingSystem::render() {
 }
 
 static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, const int rotateUV, VertexData* out) {
-    const static int mapping[][8] = {
-        { 0, 1, 2, 3, 4, 5, 6, 7},
-        { 2, 0, 3, 1, 4, 5, 6, 7}
+    const static int mapping[][12] = {
+        { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+        { 2, 0, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11}
     };
-    LOGF_IF(points.size() > 8, "Fix mapping to handle: " << points.size() << " vertices");
+    LOGF_IF(points.size() > 12, "Fix mapping to handle: " << points.size() << " vertices");
 
     for (unsigned i=0; i<points.size(); i++) {
         out[mapping[rotateUV][i]].position = glm::vec3(position + glm::rotate(points[i] * (2.0f * hSize), rotation), z);
