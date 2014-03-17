@@ -423,7 +423,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #endif
 
         // lookup shape
-        const Polygon& polygon = theRenderingSystem.shapes[rc.shapeType];
+        const Polygon& polygon = theTransformationSystem.shapes[rc.shapeType];
 
         if (((batchVertexCount + polygon.vertices.size()) >= MAX_VERTEX_COUNT) | ((indiceCount + polygon.indices.size()) >= MAX_INDICE_COUNT)) {
             #if SAC_DEBUG

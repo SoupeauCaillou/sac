@@ -69,16 +69,11 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     componentSerializer.add(new Property<bool>("fast_culling", OFFSET(fastCulling, tc)));
     componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
     componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
-    componentSerializer.add(new Property<int>("shape", OFFSET(shape, tc)));
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;
 
     renderQueue = new RenderQueue[2];
-
-    for (unsigned i=0; i<Shape::Count; i++) {
-        shapes.push_back(Polygon::create((Shape::Enum)i));
-    }
 
 #if SAC_INGAME_EDITORS
     memset(&highLight, 0, sizeof(highLight));
@@ -96,11 +91,11 @@ RenderingSystem::~RenderingSystem() {
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
-	windowW = width;
-	windowH = height;
-	screenW = sW;
-	screenH = sH;
-	GL_OPERATION(glViewport(0, 0, windowW, windowH))
+    windowW = width;
+    windowH = height;
+    screenW = sW;
+    screenH = sH;
+    GL_OPERATION(glViewport(0, 0, windowW, windowH))
 #if SAC_INGAME_EDITORS
     TwWindowSize(width, height);
 #endif
@@ -123,37 +118,37 @@ void RenderingSystem::init() {
     textureLibrary.init(assetAPI);
     effectLibrary.init(assetAPI);
 
-	defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
-	defaultShaderNoAlpha = effectLibrary.load(DEFAULT_NO_ALPHA_FRAGMENT);
+    defaultShader = effectLibrary.load(DEFAULT_FRAGMENT);
+    defaultShaderNoAlpha = effectLibrary.load(DEFAULT_NO_ALPHA_FRAGMENT);
     defaultShaderEmpty = effectLibrary.load(EMPTY_FRAGMENT);
     defaultShaderNoTexture = effectLibrary.load(DEFAULT_NO_TEXTURE_FRAGMENT);
 
-	// create 1px white texture
-	uint8_t data[] = {255, 255, 255, 255};
-	GL_OPERATION(glGenTextures(1, &whiteTexture))
-	GL_OPERATION(glBindTexture(GL_TEXTURE_2D, whiteTexture))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT))// CLAMP_TO_EDGE))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT))// CLAMP_TO_EDGE))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-	GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
+    // create 1px white texture
+    uint8_t data[] = {255, 255, 255, 255};
+    GL_OPERATION(glGenTextures(1, &whiteTexture))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, whiteTexture))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT))// CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT))// CLAMP_TO_EDGE))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
+    GL_OPERATION(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
+    GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
 
-	// GL_OPERATION(glEnable(GL_BLEND))
-	GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
-	GL_OPERATION(glEnable(GL_DEPTH_TEST))
-	GL_OPERATION(glDepthFunc(GL_GREATER))
+    // GL_OPERATION(glEnable(GL_BLEND))
+    GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
+    GL_OPERATION(glEnable(GL_DEPTH_TEST))
+    GL_OPERATION(glDepthFunc(GL_GREATER))
 #if SAC_DESKTOP
     GL_OPERATION(glClearDepth(0.0))
 #else
     GL_OPERATION(glClearDepthf(0.0))
 #endif
-	// GL_OPERATION(glDepthRangef(0, 1))
-	GL_OPERATION(glDepthMask(false))
+    // GL_OPERATION(glDepthRangef(0, 1))
+    GL_OPERATION(glDepthMask(false))
 
 #if SAC_USE_VBO
-	GL_OPERATION(glGenBuffers(3, glBuffers))
+    GL_OPERATION(glGenBuffers(3, glBuffers))
 #else
     GL_OPERATION(glGenBuffers(1, glBuffers))
 #endif
@@ -330,16 +325,16 @@ void RenderingSystem::DoUpdate(float) {
         const TransformationComponent* camTrans = TRANSFORM(camera);
 
         const float cameraInvSize = 1.0f / (camTrans->size.x * camTrans->size.y);
-    	std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
+        std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
 
-    	/* render */
+        /* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
             bool ccc = rc->cameraBitMask & (0x1 << camComp->id);
-    		if (!rc->show || rc->color.a <= 0 || !ccc ) {
-    			continue;
-    		}
+            if (!rc->show || rc->color.a <= 0 || !ccc ) {
+                continue;
+            }
 
-    		const TransformationComponent* tc = TRANSFORM(a);
+            const TransformationComponent* tc = TRANSFORM(a);
             if (!IntersectionUtil::rectangleRectangle(camTrans, tc)) {
                 continue;
             }
@@ -347,18 +342,18 @@ void RenderingSystem::DoUpdate(float) {
             LOGW_IF(tc->z <= 0 || tc->z > 1, "Entity '" << theEntityManager.entityName(a) <<
                 "' has invalid z value: " << tc->z << ". Will not be drawn");
 
-    		RenderCommand c;
-    		c.z = tc->z;
-    		c.texture = c.atlasIndex = rc->texture;
-    		c.effectRef = rc->effectRef;
-    		c.halfSize = tc->size * 0.5f;
-    		c.color = rc->color;
-            c.shapeType = (int)rc->shape;
+            RenderCommand c;
+            c.z = tc->z;
+            c.texture = c.atlasIndex = rc->texture;
+            c.effectRef = rc->effectRef;
+            c.halfSize = tc->size * 0.5f;
+            c.color = rc->color;
+            c.shapeType = (int)tc->shape;
             c.vertices = rc->dynamicVertices;
-    		c.position = tc->position;
-    		c.rotation = tc->rotation;
-    		c.uv[0] = glm::vec2(0.0f);
-    		c.uv[1] = glm::vec2(1.0f);
+            c.position = tc->position;
+            c.rotation = tc->rotation;
+            c.uv[0] = glm::vec2(0.0f);
+            c.uv[1] = glm::vec2(1.0f);
             c.mirrorH = rc->mirrorH;
             c.fbo = rc->fbo;
 #if SAC_DEBUG
@@ -447,7 +442,7 @@ void RenderingSystem::DoUpdate(float) {
                 }
             }
 
-             if (!rc->fastCulling && rc->shape == Shape::Square) {
+             if (!rc->fastCulling && tc->shape == Shape::Square) {
                 if (!cull(camTrans, c)) {
                     continue;
                 }
@@ -473,8 +468,8 @@ void RenderingSystem::DoUpdate(float) {
         if (outQueue.commands.size() < cnt)
             outQueue.commands.resize(cnt);
 
-    	std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
-    	std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
+        std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
+        std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
 
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
@@ -579,20 +574,20 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc) const {
         return false;
     }
     const Camera& camera = cameras[cameraIndex];
-	const Vector2 pos(tc->position - camera.position);
+    const Vector2 pos(tc->position - camera.position);
     const Vector2 camHalfSize(camera.worldSize * .5);
 
     const float biggestHalfEdge = MathUtil::Max(tc->size.X * 0.5, tc->size.Y * 0.5);
-	if ((pos.X + biggestHalfEdge) < -camHalfSize.X) return false;
-	if ((pos.X - biggestHalfEdge) > camHalfSize.X) return false;
-	if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
-	if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
-	return true;
+    if ((pos.X + biggestHalfEdge) < -camHalfSize.X) return false;
+    if ((pos.X - biggestHalfEdge) > camHalfSize.X) return false;
+    if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
+    if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
+    return true;
 #endif
 }
 
 int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
-	int size = 0;
+    int size = 0;
     LOGT("");
 #if 0
     for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
@@ -601,52 +596,52 @@ int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
         size += sizeof(TextureInfo);
     }
 
-	*out = new uint8_t[size];
-	uint8_t* ptr = *out;
+    *out = new uint8_t[size];
+    uint8_t* ptr = *out;
 
-	for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
-		ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
-		ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
-		ptr = (uint8_t*) mempcpy(ptr, &(textures[it->second]), sizeof(TextureInfo));
-	}
+    for (std::map<std::string, TextureRef>::iterator it=assetTextures.begin(); it!=assetTextures.end(); ++it) {
+        ptr = (uint8_t*) mempcpy(ptr, (*it).first.c_str(), (*it).first.length() + 1);
+        ptr = (uint8_t*) mempcpy(ptr, &(*it).second, sizeof(TextureRef));
+        ptr = (uint8_t*) mempcpy(ptr, &(textures[it->second]), sizeof(TextureInfo));
+    }
 #endif
-	return size;
+    return size;
 }
 
 void RenderingSystem::restoreInternalState(const uint8_t* /*in*/, int /*size*/) {
     LOGT("");
 #if 0
-	assetTextures.clear();
-	textures.clear();
-	nextValidRef = 1;
-	nextEffectRef = 1;
-	int idx = 0;
+    assetTextures.clear();
+    textures.clear();
+    nextValidRef = 1;
+    nextEffectRef = 1;
+    int idx = 0;
 
-	while (idx < size) {
-		char name[128];
-		int i=0;
-		do {
-			name[i] = in[idx++];
-		} while (name[i++] != '\0');
-		TextureRef ref;
-		memcpy(&ref, &in[idx], sizeof(TextureRef));
-		idx += sizeof(TextureRef);
-		TextureInfo info;
-		memcpy(&info, &in[idx], sizeof(TextureInfo));
-		idx += sizeof(TextureInfo);
+    while (idx < size) {
+        char name[128];
+        int i=0;
+        do {
+            name[i] = in[idx++];
+        } while (name[i++] != '\0');
+        TextureRef ref;
+        memcpy(&ref, &in[idx], sizeof(TextureRef));
+        idx += sizeof(TextureRef);
+        TextureInfo info;
+        memcpy(&info, &in[idx], sizeof(TextureInfo));
+        idx += sizeof(TextureInfo);
 
-		assetTextures[name] = ref;
-		if (info.atlasIndex >= 0) {
-			info.glref = atlas[info.atlasIndex].glref;
-			textures[ref] = info;
-		}
-		nextValidRef = MathUtil::Max(nextValidRef, ref + 1);
-	}
-	for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
-		it != nameToEffectRefs.end();
-		++it) {
-		nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
-	}
+        assetTextures[name] = ref;
+        if (info.atlasIndex >= 0) {
+            info.glref = atlas[info.atlasIndex].glref;
+            textures[ref] = info;
+        }
+        nextValidRef = MathUtil::Max(nextValidRef, ref + 1);
+    }
+    for (std::map<std::string, EffectRef>::iterator it=nameToEffectRefs.begin();
+        it != nameToEffectRefs.end();
+        ++it) {
+        nextEffectRef = MathUtil::Max(nextEffectRef, it->second + 1);
+    }
 #endif
 }
 

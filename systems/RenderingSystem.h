@@ -33,7 +33,6 @@
 #include <base/Color.h>
 
 #include "System.h"
-#include "opengl/Polygon.h"
 #include "opengl/GLState.h"
 
 typedef uint8_t FramebufferRef;
@@ -47,11 +46,10 @@ struct TransformationComponent;
 struct GLState;
 
 struct RenderingComponent {
-	RenderingComponent() :
+    RenderingComponent() :
         texture(InvalidTextureRef),
         effectRef(DefaultEffectRef),
         color(Color()),
-        shape(Shape::Square),
         dynamicVertices(DefaultVerticesRef),
         show(false), mirrorH(false), zPrePass(false), fastCulling(false),
         opaqueType(FULL_OPAQUE),
@@ -61,19 +59,18 @@ struct RenderingComponent {
     }
 
     union {
-	    TextureRef texture;
+        TextureRef texture;
         FramebufferRef framebuffer;
     };
-	EffectRef effectRef;
-	Color color;
-    Shape::Enum shape;
+    EffectRef effectRef;
+    Color color;
     VerticesRef dynamicVertices;
-	bool show, mirrorH, zPrePass, fastCulling, fbo;
-	enum Opacity {
-		NON_OPAQUE = 0,
-		FULL_OPAQUE
-	} ;
-	Opacity opaqueType;
+    bool show, mirrorH, zPrePass, fastCulling, fbo;
+    enum Opacity {
+        NON_OPAQUE = 0,
+        FULL_OPAQUE
+    } ;
+    Opacity opaqueType;
     unsigned cameraBitMask;
 };
 
@@ -198,7 +195,6 @@ public:
     GLuint glBuffers[1];
 #endif
     std::vector<std::vector<glm::vec2> > dynamicVertices;
-    std::vector<Polygon> shapes;
     // std::vector<Polygon> dynamicShapes;
 
     void defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v);

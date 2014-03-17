@@ -30,6 +30,11 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
     componentSerializer.add(new Property<glm::vec2>("size", OFFSET(size, tc), glm::vec2(0.001f, 0)));
     componentSerializer.add(new Property<float>("rotation", OFFSET(rotation, tc), 0.001f));
     componentSerializer.add(new Property<float>("z", OFFSET(z, tc), 0.001f));
+    componentSerializer.add(new Property<int>("shape", OFFSET(shape, tc)));
+
+    for (unsigned i=0; i<Shape::Count; i++) {
+        shapes.push_back(Polygon::create((Shape::Enum)i));
+    }
 }
 
 void TransformationSystem::DoUpdate(float) {

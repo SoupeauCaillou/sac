@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "opengl/Polygon.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
@@ -29,11 +30,13 @@
 
 
 struct TransformationComponent {
-	TransformationComponent(): position(0.0f), size(1.0f), rotation(0), z(0.5) {}
+    TransformationComponent(): position(0.0f), size(1.0f), rotation(0), z(0.5), shape(Shape::Square) {}
 
-	glm::vec2 position, size;
-	float rotation; //in radians
-	float z;
+    glm::vec2 position;
+    glm::vec2 size;
+    float rotation; //in radians
+    float z;
+    Shape::Enum shape;
 };
 
 #define theTransformationSystem TransformationSystem::GetInstance()
@@ -48,6 +51,8 @@ UPDATABLE_SYSTEM(Transformation)
 public:
     template<typename T>
     static void appendVerticesTo(const TransformationComponent* tc, T& out);
+
+    std::vector<Polygon> shapes;
 };
 
 template<typename T>
