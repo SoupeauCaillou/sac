@@ -45,7 +45,7 @@ struct VertexData {
     glm::vec2 uv;
 };
 
-static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, const int rotateUV, VertexData* out);
+static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, VertexData* out);
 
 bool firstCall;
 
@@ -168,7 +168,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
         (rc.vertices == DefaultVerticesRef) ? polygon.vertices : theRenderingSystem.dynamicVertices[rc.vertices];
 
     // perform world -> screen position transformation
-    computeVerticesScreenPos(vert, rc.position, rc.halfSize, rc.rotation, -rc.z, (rc.shapeType == Shape::Square) & rc.rotateUV, outVertices);
+    computeVerticesScreenPos(vert, rc.position, rc.halfSize, rc.rotation, -rc.z, outVertices);
 
     // copy indices
     *outIndices++ = *verticesCount + polygon.indices[0];
@@ -178,10 +178,14 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     *outIndices++ = *verticesCount + polygon.indices.back();
 
     // copy uvs
-    outVertices[0].uv = glm::vec2(rc.uv[0].x, 1 - rc.uv[0].y);
-    outVertices[1].uv = glm::vec2(rc.uv[1].x, 1 - rc.uv[0].y);
-    outVertices[2].uv = glm::vec2(rc.uv[0].x, 1 - rc.uv[1].y);
-    outVertices[3].uv = glm::vec2(rc.uv[1].x, 1 - rc.uv[1].y);
+    int mapping[][4] = {
+        {0, 1, 3, 2},
+        {1, 2, 0, 3}
+    };
+    outVertices[mapping[rc.rotateUV][0]].uv = glm::vec2(rc.uv[0].x, 1 - rc.uv[0].y);
+    outVertices[mapping[rc.rotateUV][1]].uv = glm::vec2(rc.uv[1].x, 1 - rc.uv[0].y);
+    outVertices[mapping[rc.rotateUV][2]].uv = glm::vec2(rc.uv[0].x, 1 - rc.uv[1].y);
+    outVertices[mapping[rc.rotateUV][3]].uv = glm::vec2(rc.uv[1].x, 1 - rc.uv[1].y);
 
     *verticesCount += polygon.vertices.size();
     *triangleCount += polygon.indices.size() / 3;
@@ -546,15 +550,9 @@ void RenderingSystem::render() {
 #endif
 }
 
-static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, const int rotateUV, VertexData* out) {
-    const static int mapping[][12] = {
-        { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-        { 2, 0, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11}
-    };
-    LOGF_IF(points.size() > 12, "Fix mapping to handle: " << points.size() << " vertices");
-
+static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, VertexData* out) {
     for (unsigned i=0; i<points.size(); i++) {
-        out[mapping[rotateUV][i]].position = glm::vec3(position + glm::rotate(points[i] * (2.0f * hSize), rotation), z);
+        out[i].position = glm::vec3(position + glm::rotate(points[i] * (2.0f * hSize), rotation), z);
     }
 }
 
