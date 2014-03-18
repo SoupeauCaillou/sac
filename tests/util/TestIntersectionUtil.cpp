@@ -23,6 +23,7 @@
 #include <UnitTest++.h>
 
 #include "util/IntersectionUtil.h"
+#include "systems/TransformationSystem.h"
 
 TEST(parallelLinesCollision)
 {
@@ -57,13 +58,80 @@ TEST(CoincidentLinesCollisionInclusion)
 
 TEST(pointIsInside)
 {
-	CHECK(IntersectionUtil::pointRectangle(glm::vec2(0, 0), glm::vec2(0, 0), glm::vec2(1, 1), 0.));
-	CHECK(IntersectionUtil::pointRectangle(glm::vec2(1.5, 0), glm::vec2(1, -1), glm::vec2(2, 3), 0.));
+    CHECK(IntersectionUtil::pointRectangle(glm::vec2(0, 0), glm::vec2(0, 0), glm::vec2(1, 1), 0.));
+    CHECK(IntersectionUtil::pointRectangle(glm::vec2(1.5, 0), glm::vec2(1, -1), glm::vec2(2, 3), 0.));
 }
 
 TEST(pointIsNotInside)
 {
-	CHECK(!IntersectionUtil::pointRectangle(glm::vec2(1.1, 0), glm::vec2(0, 0), glm::vec2(1, 1), 0.));
-	CHECK(!IntersectionUtil::pointRectangle(glm::vec2(0.9, 1.1), glm::vec2(0, 0), glm::vec2(1, 1), 0.));
+    CHECK(!IntersectionUtil::pointRectangle(glm::vec2(1.1, 0), glm::vec2(0, 0), glm::vec2(1, 1), 0.));
+    CHECK(!IntersectionUtil::pointRectangle(glm::vec2(0.9, 1.1), glm::vec2(0, 0), glm::vec2(1, 1), 0.));
+}
+
+TEST(lineRectangleSimple)
+{
+    TransformationSystem::CreateInstance();
+
+    glm::vec2 l1(-10, 0), l2(10, 0);
+    glm::vec2 intersections[2];
+
+    int result = IntersectionUtil::lineRectangle(
+        l1, l2,
+        glm::vec2(0, 0), glm::vec2(1, 1), 0,
+        intersections);
+    CHECK_EQUAL(2, result);
+
+    for (int i=0; i<2; i++) {
+        CHECK_CLOSE(0.0f, intersections[i].y, 0.001);
+        CHECK_CLOSE(0.5, glm::abs(intersections[i].x), 0.001);
+    }
+    CHECK(intersections[0].x != intersections[1].x);
+
+    TransformationSystem::DestroyInstance();
+}
+
+TEST(lineRectangleSimple2)
+{
+    TransformationSystem::CreateInstance();
+
+    glm::vec2 l1(-10, 0), l2(10, 0);
+    glm::vec2 intersections[2];
+
+    int result = IntersectionUtil::lineRectangle(
+        l1, l2,
+        glm::vec2(0, 0), glm::vec2(4, 1), 0,
+        intersections);
+    CHECK_EQUAL(2, result);
+
+    for (int i=0; i<2; i++) {
+        CHECK_CLOSE(0.0f, intersections[i].y, 0.001);
+        CHECK_CLOSE(2, glm::abs(intersections[i].x), 0.001);
+    }
+    CHECK(intersections[0].x != intersections[1].x);
+
+    TransformationSystem::DestroyInstance();
+}
+
+
+TEST(lineRectangleSimple3)
+{
+    TransformationSystem::CreateInstance();
+
+    glm::vec2 l1(-10, 0), l2(10, 0);
+    glm::vec2 intersections[2];
+
+    int result = IntersectionUtil::lineRectangle(
+        l1, l2,
+        glm::vec2(0, 0), glm::vec2(4, 1), glm::radians(90.0f),
+        intersections);
+    CHECK_EQUAL(2, result);
+
+    for (int i=0; i<2; i++) {
+        CHECK_CLOSE(0.0f, intersections[i].y, 0.001);
+        CHECK_CLOSE(0.5, glm::abs(intersections[i].x), 0.001);
+    }
+    CHECK(intersections[0].x != intersections[1].x);
+
+    TransformationSystem::DestroyInstance();
 }
 

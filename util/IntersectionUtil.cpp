@@ -53,14 +53,14 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const Transformati
 
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
     glm::vec2 p(glm::rotate(point - rectPos, -rectRotation));
-	return (glm::abs(p.x) < rectSize.x * 0.5 &&
-		glm::abs(p.y) < rectSize.y * 0.5);
+    return (glm::abs(p.x) < rectSize.x * 0.5 &&
+        glm::abs(p.y) < rectSize.y * 0.5);
 }
 
 // from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
 bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
             const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint, bool pIsStraigth, bool qIsStraigth) {
-	float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
+    float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
                       ((qB.x - qA.x)*(pB.y - pA.y));
 
     float nume_a = ((qB.x - qA.x)*(pA.y - qA.y)) -
@@ -140,7 +140,7 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
         return false;
     }
 
-	if (intersectionPoint) {
+    if (intersectionPoint) {
         // Get the intersection point.
         intersectionPoint->x = pA.x + ua*(pB.x - pA.x);
         intersectionPoint->y = pA.y + ua*(pB.y - pA.y);
@@ -153,59 +153,60 @@ static glm::vec2 produceNormal(const glm::vec2& p1, const glm::vec2& p2) {
     glm::vec2 n (glm::normalize(p1 - p2));
     return glm::vec2(-n.y, n.x);
 }
+
 //should be enhanced
 int IntersectionUtil::lineRectangle(const glm::vec2& pA1, const glm::vec2& pA2,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot, glm::vec2* intersectionPoint, glm::vec2* normalAtCollision) {
 
-    //NW
-    glm::vec2 rectBNWPoint = rectBPos + glm::rotate(glm::vec2(- rectBSize.x, rectBSize.y) * .5f, rectBRot);
-    //NE
-    glm::vec2 rectBNEPoint = rectBPos + glm::rotate(glm::vec2(rectBSize.x, rectBSize.y) * .5f, rectBRot);
-    //SW
-    glm::vec2 rectBSWPoint = rectBPos + glm::rotate(glm::vec2(- rectBSize.x, - rectBSize.y) * .5f, rectBRot);
-    //SE
-    glm::vec2 rectBSEPoint = rectBPos + glm::rotate(glm::vec2(rectBSize.x, - rectBSize.y) * .5f, rectBRot);
+    return linePolygon(pA1, pA2, theTransformationSystem.shapes[Shape::Square], rectBPos, rectBSize, rectBRot, intersectionPoint, normalAtCollision);
+}
 
-    //try the 4 lines of the rectangle!
+int IntersectionUtil::linePolygon(const glm::vec2& pA1, const glm::vec2& pA2,
+            const Polygon& p, const glm::vec2& position, const glm::vec2& size, float rotation, glm::vec2* intersectionPoints, glm::vec2* normalAtCollision) {
+
+    std::vector<std::tuple<glm::vec2, glm::vec2>> lines;
+
+    // transform pA1/pA2 in Polygon base
+    const auto t1 = glm::rotate((pA1 - position), -rotation) / size;
+    const auto t2 = glm::rotate((pA2 - position), -rotation) / size;
+
+    const unsigned count = p.vertices.size();
+    for (unsigned i=0; i<count; ++i) {
+        lines.push_back(std::make_tuple(p.vertices[i], p.vertices[(i + 1) % count]));
+    }
+
+    int intersections = lineLines(t1, t2, lines, intersectionPoints, normalAtCollision);
+
+    if (intersections) {
+        for (int i=0; i<intersections; i++) {
+            if (intersectionPoints)
+                intersectionPoints[i] = position + glm::rotate(intersectionPoints[i] * size, rotation);
+            if (normalAtCollision)
+                normalAtCollision[i] = glm::rotate(normalAtCollision[i], rotation);
+        }
+    }
+
+    return intersections;
+}
+
+int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, const std::vector<std::tuple<glm::vec2, glm::vec2>> lines, glm::vec2* intersectionPoints, glm::vec2* normalAtCollision) {
+    glm::vec2 intersection;
     int count = 0;
-    glm::vec2 temp;
 
-    if (lineLine(pA1, pA2, rectBNWPoint, rectBNEPoint, &temp)) {
-        if (intersectionPoint) {
-            intersectionPoint[count] = temp;
+    for (const auto& line: lines) {
+
+        const auto& pB1 (std::get<0>(line));
+        const auto& pB2 (std::get<1>(line));
+        if (lineLine(pA1, pA2, pB1, pB2, &intersection)) {
+            if (intersectionPoints)
+                intersectionPoints[count] = intersection;
+            if (normalAtCollision)
+                normalAtCollision[count] = produceNormal(pB1, pB2);
+            count++;
         }
-        if (normalAtCollision) {
-            normalAtCollision[count] = produceNormal(rectBNEPoint, rectBNWPoint);
-        }
-        count++;
     }
-    if (lineLine(pA1, pA2, rectBNWPoint, rectBSWPoint, &temp)) {
-        if (intersectionPoint) {
-            intersectionPoint[count] = temp;
-        }
-        if (normalAtCollision) {
-            normalAtCollision[count] = produceNormal(rectBNWPoint, rectBSWPoint);
-        }
-        count++;
-    }
-    if (lineLine(pA1, pA2, rectBNEPoint, rectBSEPoint, &temp)) {
-        if (intersectionPoint) {
-            intersectionPoint[count] = temp;
-        }
-        if (normalAtCollision) {
-            normalAtCollision[count] = produceNormal(rectBSEPoint, rectBNEPoint);
-        }
-        count++;
-    }
-    if (lineLine(pA1, pA2, rectBSWPoint, rectBSEPoint, &temp)) {
-        if (intersectionPoint) {
-            intersectionPoint[count] = temp;
-        }
-        if (normalAtCollision) {
-            normalAtCollision[count] = produceNormal(rectBSWPoint, rectBSEPoint);
-        }
-        count++;
-    }
+
+
     return count;
 }
 
