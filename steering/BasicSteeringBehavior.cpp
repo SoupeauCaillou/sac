@@ -190,6 +190,10 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
 
         auto groupPosSize = computeOverlappingObstaclesPosSize(obs[0], obstacles);
 
+
+        // bounding radius
+        float bRadius = glm::max(std::get<1>(groupPosSize).x, std::get<1>(groupPosSize).y);
+
         // local coords of obstacle
         glm::vec2 local =
             glm::vec2(
@@ -197,24 +201,35 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
                 glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation))
             );
 
+        glm::vec2 dir = glm::normalize(glm::rotate(glm::vec2(0.0f, -local.y), tc->rotation));//normals[0] * (-local.y));
+        float correction = glm::min(1.0f, 10.0f * glm::max(0.0f, (rectSize.x - minDist[0]) / rectSize.x));
 
+        Draw::Vec2(__FILE__, tc->position, dir, Color(1, 0, 1));
+        LOGI(__(correction));
+        correction *= maxSpeed;
+        return glm::normalize(velocity) * (maxSpeed - correction) + dir * correction;
+
+        float multiplier = 1 + (rectSize.x - minDist[0]) / rectSize.x;
         glm::vec2 localForce (0.0f);
         // try to avoid obstacle (by increasing local Y)
         localForce.y = -glm::sign(local.y) * (
-            glm::max(std::get<1>(groupPosSize).x, std::get<1>(groupPosSize).y) - // how big the obstacle is
-            glm::abs(local.y)); // gets smaller as obstacle gets more in front of e (on its way)
+            bRadius - // how big the obstacle is
+            glm::abs(local.y)) * multiplier; // gets smaller as obstacle gets more in front of e (on its way)
+
+        localForce.x = -glm::sign(local.x) * (
+            bRadius - // how big the obstacle is
+            glm::abs(local.x)) * 0.2; // gets smaller as obstacle gets more in front of e (on its way)
 
         // brake if necessary
-        localForce.x = -glm::sign(local.x) * glm::abs(localForce.y) * (1 - local.x / rectSize.x);
 
         glm::vec2 worldDir = glm::normalize(glm::rotate(localForce, tc->rotation));
 
-        float multiplier = (rectSize.x - minDist[0]) / rectSize.x;
+        LOGI(__(localForce) << '/' << __(worldDir));
 /*
         Draw::Vec2(__FILE__, tc->position,
             glm::normalize(worldDir) * 3.0f, Color(0, 0.2, 0.2, 1), "ddd");
 */
-        return glm::normalize(velocity) * (1 - multiplier) * maxSpeed + worldDir * multiplier * maxSpeed;
+        return worldDir * maxSpeed; //glm::normalize(velocity) * (1 - multiplier) * maxSpeed + worldDir * multiplier * maxSpeed;
         #if 0
 
         glm::vec2 breakingForceDirection = glm::normalize(-p);
