@@ -30,11 +30,13 @@
 #include <Windows.h>
 #else
 #include <libintl.h>
+#endif
+
+
 #include <locale.h>
 #include <tinyxml2.h>
 #include "base/Log.h"
 #include "api/AssetAPI.h"
-#endif
 
 #include <algorithm>
 #include <sstream>
