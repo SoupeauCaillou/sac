@@ -68,8 +68,6 @@ Entity Draw::textEntity(const std::string& groupID) {
     if (firstUnused == text.end()) {
         t = theEntityManager.CreateEntity("__draw");
         ADD_COMPONENT(t, Transformation);
-        ADD_COMPONENT(t, Anchor);
-        ANCHOR(t)->z = 0;
         ADD_COMPONENT(t, Text);
 
         text.push_back(std::make_pair(t, groupID));
@@ -81,9 +79,10 @@ Entity Draw::textEntity(const std::string& groupID) {
 }
 
 static void addText(Entity t, Entity parent, const std::string& text) {
-    ANCHOR(t)->parent = parent;
+    AnchorComponent c;
+    c.position = glm::vec2(0.0f, TEXT(t)->charHeight * 0.5);
+    AnchorSystem::adjustTransformWithAnchor(TRANSFORM(t), TRANSFORM(parent), &c);
     TEXT(t)->charHeight = glm::min(TRANSFORM(parent)->size.x, 0.5f);
-    ANCHOR(t)->position = glm::vec2(0.0f, TEXT(t)->charHeight * 0.5);
     TEXT(t)->text = text;
     TEXT(t)->color = Color(0,0,0);
     TEXT(t)->show = true;
@@ -169,9 +168,9 @@ Entity Draw::Triangle(const std::string& groupID, const glm::vec2& firstPoint, c
 }
 #endif
 
-void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color, 
+void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
     const std::string& text) {
-    
+
     Entity rect = instance.renderingEntity(groupID);
 
     TRANSFORM(rect)->position = centerPosition;
