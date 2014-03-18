@@ -116,7 +116,7 @@ void Draw::ClearAll() {
 void Draw::Point(const std::string& groupID, const glm::vec2& position, const Color & color, const std::string& text) {
     Entity pt = instance.renderingEntity(groupID);
 
-    TRANSFORM(pt)->size = glm::vec2(0.5f);
+    TRANSFORM(pt)->size = glm::vec2(0.2f);
     TRANSFORM(pt)->position = position;
 
     RENDERING(pt)->color = color;
