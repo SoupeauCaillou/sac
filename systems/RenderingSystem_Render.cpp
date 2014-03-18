@@ -448,7 +448,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
     #if SAC_DEBUG
     static unsigned ______debug = 0;
-    if ((++______debug % 300) == 0) {
+    if ((++______debug % 3000) == 0) {
         ______debug = 0;
         LOGI("Render command size: " << count << ". Drawn using: " << batchSizes.size() << " batches");
         for (unsigned i=0; i<batchSizes.size(); i++) {
