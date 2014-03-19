@@ -46,7 +46,7 @@ Entity Draw::renderingEntity(const std::string& groupID) {
         t = theEntityManager.CreateEntity("__draw");
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Rendering);
-        TRANSFORM(t)->z = 0.9;
+        TRANSFORM(t)->z = 1;
         RENDERING(t)->opaqueType = RenderingComponent::NON_OPAQUE;
 
         rendering.push_back(std::make_pair(t, groupID));
@@ -68,6 +68,7 @@ Entity Draw::textEntity(const std::string& groupID) {
     if (firstUnused == text.end()) {
         t = theEntityManager.CreateEntity("__draw");
         ADD_COMPONENT(t, Transformation);
+        TRANSFORM(t)->z = 1;
         ADD_COMPONENT(t, Text);
 
         text.push_back(std::make_pair(t, groupID));
