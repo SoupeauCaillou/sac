@@ -32,6 +32,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+
 Draw Draw::instance;
 
 Entity Draw::renderingEntity(const std::string& groupID) {
@@ -114,6 +115,10 @@ void Draw::ClearAll() {
     instance.text.clear();
 }
 
+void Draw::Point(const glm::vec2& position, const Color & color, const std::string& text) {
+    Point(__FILE__, position, color, text);
+}
+
 void Draw::Point(const std::string& groupID, const glm::vec2& position, const Color & color, const std::string& text) {
     Entity pt = instance.renderingEntity(groupID);
 
@@ -126,6 +131,10 @@ void Draw::Point(const std::string& groupID, const glm::vec2& position, const Co
     if (!text.empty()) {
         addText(instance.textEntity(groupID), pt, text);
     }
+}
+
+void Draw::Vec2(const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
+    Vec2(__FILE__, position, size, color, text);
 }
 
 void Draw::Vec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
@@ -169,6 +178,10 @@ Entity Draw::Triangle(const std::string& groupID, const glm::vec2& firstPoint, c
 }
 #endif
 
+void Draw::Rectangle(const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
+    const std::string& text) {
+    Rectangle(__FILE__, centerPosition, size, rotation, color, text);
+}
 void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
     const std::string& text) {
 
@@ -188,4 +201,8 @@ void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition
     if (!text.empty()) {
         addText(instance.textEntity(groupID), rect, text);
     }
+}
+
+void Draw::Update() {
+    Clear(__FILE__);
 }

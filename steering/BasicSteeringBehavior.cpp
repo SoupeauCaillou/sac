@@ -93,7 +93,7 @@ static std::tuple<glm::vec2, glm::vec2> computeOverlappingObstaclesPosSize(Entit
         const auto* tc2 = TRANSFORM(o);
         if (IntersectionUtil::rectangleRectangle(tc, tc2)) {
             #if BASIC_STEERING_GRAPHICAL_DEBUG
-            Draw::Rectangle(__FILE__, tc2->position, tc2->size, tc2->rotation, Color(1, 0, 0, 0.5));
+            Draw::Rectangle(tc2->position, tc2->size, tc2->rotation, Color(1, 0, 0, 0.5));
             #endif
             position += tc2->position;
             size += tc2->size;
@@ -115,10 +115,8 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
     float rectRot = glm::orientedAngle(glm::vec2(1.f, 0.f), glm::normalize(velocity));
 
     #if BASIC_STEERING_GRAPHICAL_DEBUG
-        Draw::Clear(__FILE__);
-
         // display box-view of the object (where it wants to go)
-        Draw::Rectangle(__FILE__, rectPos, rectSize, rectRot, Color(1, 0, 0, .5));
+        Draw::Rectangle(rectPos, rectSize, rectRot, Color(1, 0, 0, .5));
     #endif
 
     glm::vec2 force;
@@ -136,7 +134,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
 
             #if BASIC_STEERING_GRAPHICAL_DEBUG
             // display a box containing the obstacle
-            Draw::Rectangle(__FILE__, tcObstacle->position,
+            Draw::Rectangle(tcObstacle->position,
                 tcObstacle->size + glm::vec2(halfWidth), tcObstacle->rotation,
                 Color(0, 1, 0, .5));
             #endif
@@ -158,7 +156,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
                 for (int i = 0; i < intersectCount; ++i) {
                     #if BASIC_STEERING_GRAPHICAL_DEBUG
                         // display the intersection points with the obstacle
-                        Draw::Point(__FILE__, intersectionPoints[i], Color(0, 1, 1));
+                        Draw::Point(intersectionPoints[i], Color(0, 1, 1));
                     #endif
                     float dist = glm::distance(intersectionPoints[i], tc->position);
 
@@ -177,7 +175,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
     if (obs) {
         #if BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
-        Draw::Vec2(__FILE__, nearest, normal, Color(0, 0, 0));
+        Draw::Vec2(nearest, normal, Color(0, 0, 0));
         #endif
 
         // deduce collision normal
@@ -200,7 +198,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
             );
 
         glm::vec2 shift = glm::vec2(-normal.y, normal.x) * glm::sign(local.y) * bRadius;
-        Draw::Vec2(__FILE__, tc->position, shift, Color(1, 0, 1), "shift");
+        Draw::Vec2(tc->position, shift, Color(1, 0, 1), "shift");
 
         float l = glm::length(velocity);
         glm::vec2 dv = velocity + shift;
@@ -308,7 +306,7 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
         // glm::rotate(PHYSICS(e)->linearVelocity, feelers[2*i]);
 
         #if SAC_DEBUG
-            Draw::Vec2(__FILE__,
+            Draw::Vec2(
                 feelerStart,
                 feelerEnd - feelerStart,
                 Color(0, 1, 0, 0.75));
@@ -337,11 +335,11 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
                     wallB,
                     &intersectionPoint)) {
                 #if SAC_DEBUG
-                Draw::Vec2(__FILE__,
+                Draw::Vec2(
                     feelerStart,
                     feelerEnd - feelerStart,
                     Color(1, 0, 0, 1));
-                Draw::Vec2(__FILE__,
+                Draw::Vec2(
                     wallA,
                     wallB,
                     Color(0, 0, 1));

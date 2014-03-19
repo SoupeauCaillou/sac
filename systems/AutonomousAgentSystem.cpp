@@ -65,6 +65,9 @@ bool AutonomousAgentSystem::isArrived(Entity e) {
 //        vitesse_moyenne = Somme(poids * (vitesse_desiree - vitesse actuelle)) / somme(poids_des_vitesse_non_nuls)
 // - enfin, appliquer une force dont l'amplitude dépend de la vitesse_moyenne et de forceMax
 void AutonomousAgentSystem::DoUpdate(float dt) {
+#if SAC_DEBUG
+    Draw::Clear(__FILE__);
+#endif
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
         LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");
         LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
@@ -72,9 +75,6 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
         std::vector<std::tuple<float, glm::vec2>> velocities;
 
-#if SAC_DEBUG
-        Draw::Clear(__FILE__);
-#endif
         auto* pc = PHYSICS(e);
         float length = glm::length(pc->linearVelocity);
         if (length > agent->maxSpeed) {

@@ -139,8 +139,8 @@ void Game::buildOrderedSystemsToUpdateList() {
     orderedSystemsToUpdate.clear();
 
     #define ADD_IF_EXISTING(ptr) \
-	PRAGMA_WARNING(warning(disable: 4127)) \
-	do { \
+    PRAGMA_WARNING(warning(disable: 4127)) \
+    do { \
         auto* _ptr = (ptr); \
         if (_ptr) orderedSystemsToUpdate.push_back(_ptr); \
     } while (false)
@@ -359,7 +359,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
     delete[] file.data;
     // h2wratio[' '] = h2wratio['r'];
     // h2wratio[0x97] = 1;
-    
+
     LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
     theTextSystem.registerFont(name, h2wratio);
 }
@@ -420,7 +420,7 @@ void Game::step() {
 
     theEntityManager.entityTemplateLibrary.update();
 
-#if SAC_DESKTOP    
+#if SAC_DESKTOP
     theEntityManager.entityTemplateLibrary.updateReload();
 #endif
 
@@ -431,6 +431,8 @@ void Game::step() {
 #endif
 
     theRenderingSystem.waitDrawingComplete();
+
+    Draw::Update();
 
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
