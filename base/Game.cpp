@@ -432,8 +432,6 @@ void Game::step() {
 
     theRenderingSystem.waitDrawingComplete();
 
-    Draw::Update();
-
     float timeBeforeThisStep = TimeUtil::GetTime();
     float delta = timeBeforeThisStep - lastUpdateTime;
 
@@ -468,9 +466,12 @@ void Game::step() {
         case GameType::SingleStep:
             delta = 1.0f/60;
             LOGI("Single stepping the game (delta: " << delta << " ms)");
+            Draw::Update();
             tick(delta);
             gameType = GameType::LevelEditor;
+            break;
         default:
+            Draw::Update();
             if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
                 speedFactor = glm::max(speedFactor - 1 * delta, 0.0f);
             } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
@@ -487,6 +488,7 @@ void Game::step() {
     }
 #else
     LOGV(1, "Update game");
+    Draw::Update();
     tick(delta);
 #endif
 
