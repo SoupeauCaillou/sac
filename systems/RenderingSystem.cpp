@@ -77,6 +77,7 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
 #if SAC_INGAME_EDITORS
     memset(&highLight, 0, sizeof(highLight));
+    wireframe = false;
 #endif
 }
 

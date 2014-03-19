@@ -232,6 +232,17 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
     LOGV(2, "Begin frame rendering: " << commands.count);
 
+    #if SAC_INGAME_EDITORS
+    GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL))
+    if (wireframe) {
+        GL_OPERATION(glLineWidth(2))
+        GL_OPERATION(glEnable(GL_LINE_SMOOTH))
+    } else {
+        GL_OPERATION(glDisable(GL_LINE_SMOOTH))
+    }
+    #endif
+
+
     // Setup initial GL state
     GL_OPERATION(glActiveTexture(GL_TEXTURE1))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))

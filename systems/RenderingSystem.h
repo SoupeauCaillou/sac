@@ -206,6 +206,8 @@ public:
         bool opaque;
         bool runtimeOpaque;
     } highLight;
+
+    bool wireframe;
 #endif
 
 private:

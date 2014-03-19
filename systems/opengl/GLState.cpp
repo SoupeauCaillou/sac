@@ -1,5 +1,9 @@
 #include "GLState.h"
 
+#if SAC_INGAME_EDITORS
+#include "../RenderingSystem.h"
+#endif
+
 void GLState::Viewport::update(int _w, int _h) {
     if (_w != w || _h != h) {
         w = _w;
@@ -25,6 +29,9 @@ uint32_t GLState::Flags::update(uint32_t bits) {
     // iff EnableBlendingBit changed
     if (bitsChanged & EnableBlendingBit ) {
         if (bits & EnableBlendingBit) {
+            #if SAC_INGAME_EDITORS
+            if (!theRenderingSystem.wireframe)
+            #endif
             GL_OPERATION(glEnable(GL_BLEND))
         } else {
              GL_OPERATION(glDisable(GL_BLEND))
