@@ -361,7 +361,8 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
     }
 
     if (closestWall) {
-        float reactionLength = overShoot * maxSpeed;
+        float currentSpeed = glm::length(velocity);
+        float reactionLength = (0.1 + overShoot * 1.2) * maxSpeed;
         return glm::normalize(velocity) * (maxSpeed - reactionLength) + wallNormal * reactionLength;
     } else {
         return velocity;
