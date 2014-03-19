@@ -198,7 +198,9 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
             );
 
         glm::vec2 shift = glm::vec2(-normal.y, normal.x) * glm::sign(local.y) * bRadius;
-        Draw::Vec2(tc->position, shift, Color(1, 0, 1), "shift");
+	#if SAC_DEBUG
+	        Draw::Vec2(tc->position, shift, Color(1, 0, 1), "shift");
+	#endif
 
         float l = glm::length(velocity);
         glm::vec2 dv = velocity + shift;
