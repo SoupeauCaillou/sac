@@ -124,9 +124,9 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
     glm::vec2 force;
     glm::vec2 intersectionPoints[4], normals[4];
     const float halfWidth = tc->size.y * 0.5;
-    float minDist[] = {1000, 1000};
-    Entity obs[] = {0, 0};
-    glm::vec2 nearest[2], normal;
+    float minDist = 1000;
+    Entity obs = 0;
+    glm::vec2 nearest, normal;
 
     for (auto obstacle : obstacles) {
         const auto* tcObstacle = TRANSFORM(obstacle);
@@ -141,56 +141,53 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
                 Color(0, 1, 0, .5));
             #endif
 
-            // we need to get the point of intersection of them to know if its the
-            // closer rectangle from entity e
-            int intersectCount = IntersectionUtil::linePolygon(
-                // open-ended line starting at e's position
-                tc->position, tc->position + glm::rotate(glm::vec2(1000, 0), tc->rotation),
-                // rectangle
-                theTransformationSystem.shapes[tcObstacle->shape],
-                tcObstacle->position, tcObstacle->size + glm::vec2(halfWidth), tcObstacle->rotation,
-                // result
-                intersectionPoints, normals);
+            float angles[] = {0, glm::radians(25.0f), glm::radians(-25.0f)};
 
-            for (int i = 0; i < intersectCount; ++i) {
-                #if BASIC_STEERING_GRAPHICAL_DEBUG
-                    // display the intersection points with the obstacle
-                    Draw::Point(__FILE__, intersectionPoints[i], Color(0, 1, 1));
-                #endif
-                float dist = glm::distance(intersectionPoints[i], tc->position);
+            for (int i=0; i<3; i++) {
+                // we need to get the point of intersection of them to know if its the
+                // closer rectangle from entity e
+                int intersectCount = IntersectionUtil::linePolygon(
+                    // open-ended line starting at e's position
+                    tc->position, tc->position + glm::rotate(glm::vec2(1000, 0), tc->rotation + angles[i]),
+                    // rectangle
+                    theTransformationSystem.shapes[tcObstacle->shape],
+                    tcObstacle->position, tcObstacle->size /*+ glm::vec2(halfWidth)*/, tcObstacle->rotation,
+                    // result
+                    intersectionPoints, normals);
 
-                // Find the 2 nearest obstacles
-                if (dist < minDist[0]) {
-                    if (obs[0] != obstacle) {
-                        minDist[1] = minDist[0];
-                        nearest[1] = nearest[0];
-                        obs[1] = obs[0];
+                for (int i = 0; i < intersectCount; ++i) {
+                    #if BASIC_STEERING_GRAPHICAL_DEBUG
+                        // display the intersection points with the obstacle
+                        Draw::Point(__FILE__, intersectionPoints[i], Color(0, 1, 1));
+                    #endif
+                    float dist = glm::distance(intersectionPoints[i], tc->position);
+
+                    // Find the 2 nearest obstacles
+                    if (dist < minDist) {
+                        minDist= dist;
+                        nearest = intersectionPoints[i];
+                        normal = normals[i];
+                        obs = obstacle;
                     }
-
-                    minDist[0] = dist;
-                    nearest[0] = intersectionPoints[i];
-                    normal = normals[i];
-                    obs[0] = obstacle;
-                } else if (dist < minDist[1] && obstacle != obs[0]) {
-                    minDist[1] = dist;
-                    nearest[1] = intersectionPoints[i];
-                    obs[1] = obstacle;
                 }
             }
         }
     }
 
-    if (obs[0]) {
+    if (obs) {
         #if BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
-        Draw::Vec2(__FILE__, nearest[0], normal, Color(0, 0, 0));
+        Draw::Vec2(__FILE__, nearest, normal, Color(0, 0, 0));
         #endif
 
         // deduce collision normal
-        glm::vec2 p (nearest[0] - tc->position);
+        glm::vec2 p (nearest - tc->position);
 
-        auto groupPosSize = computeOverlappingObstaclesPosSize(obs[0], obstacles);
-
+        #if 0
+        auto groupPosSize = computeOverlappingObstaclesPosSize(obs, obstacles);
+        #else
+        auto groupPosSize = std::make_tuple(TRANSFORM(obs)->position, TRANSFORM(obs)->size);
+        #endif
 
         // bounding radius
         float bRadius = glm::max(std::get<1>(groupPosSize).x, std::get<1>(groupPosSize).y);
@@ -202,68 +199,21 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
                 glm::dot(std::get<0>(groupPosSize) - tc->position, glm::rotate(glm::vec2(0, 1), tc->rotation))
             );
 
-        glm::vec2 dir = glm::normalize(glm::rotate(glm::vec2(0.0f, -local.y), tc->rotation));//normals[0] * (-local.y));
-        float correction = glm::min(1.0f, 10.0f * glm::max(0.0f, (rectSize.x - minDist[0]) / rectSize.x));
+        glm::vec2 shift = glm::vec2(-normal.y, normal.x) * glm::sign(local.y) * bRadius;
+        Draw::Vec2(__FILE__, tc->position, shift, Color(1, 0, 1), "shift");
 
-        Draw::Vec2(__FILE__, tc->position, dir, Color(1, 0, 1));
-        LOGI(__(correction));
-        correction *= maxSpeed;
-        return glm::normalize(velocity) * (maxSpeed - correction) + dir * correction;
-
-        float multiplier = 1 + (rectSize.x - minDist[0]) / rectSize.x;
-        glm::vec2 localForce (0.0f);
-        // try to avoid obstacle (by increasing local Y)
-        localForce.y = -glm::sign(local.y) * (
-            bRadius - // how big the obstacle is
-            glm::abs(local.y)) * multiplier; // gets smaller as obstacle gets more in front of e (on its way)
-
-        localForce.x = -glm::sign(local.x) * (
-            bRadius - // how big the obstacle is
-            glm::abs(local.x)) * 0.2; // gets smaller as obstacle gets more in front of e (on its way)
-
+        float l = glm::length(velocity);
+        glm::vec2 dv = velocity + shift;
         // brake if necessary
+        float brake = glm::max(0.0f, tc->size.x / local.x - 1);
 
-        glm::vec2 worldDir = glm::normalize(glm::rotate(localForce, tc->rotation));
+        dv += velocity * (-brake);
 
-        LOGI(__(localForce) << '/' << __(worldDir));
-/*
-        Draw::Vec2(__FILE__, tc->position,
-            glm::normalize(worldDir) * 3.0f, Color(0, 0.2, 0.2, 1), "ddd");
-*/
-        return worldDir * maxSpeed; //glm::normalize(velocity) * (1 - multiplier) * maxSpeed + worldDir * multiplier * maxSpeed;
-        #if 0
+        if ((l = glm::length(dv)) > maxSpeed) {
+            dv *= maxSpeed / l;
+        }
 
-        glm::vec2 breakingForceDirection = glm::normalize(-p);
-
-
-
-
-        float latDist = glm::dot(tc->position - std::get<0>(groupPosSize), normal);
-
-        latDist = glm::max(0.1f, (rectSize.x - latDist) / rectSize.x);
-
-        #if BASIC_STEERING_GRAPHICAL_DEBUG
-        Draw::Vec2(__FILE__, tc->position,
-            lateralForceDirection, Color(0, 1, 1));
-        Draw::Vec2(__FILE__, tc->position,
-            breakingForceDirection, Color(1, 1, 0));
-        #endif
-
-        lateralForceDirection *= multiplier * latDist;
-        breakingForceDirection *= ((rectSize.x - minDist[0]) / rectSize.x);
-
-        #if BASIC_STEERING_GRAPHICAL_DEBUG
-        Draw::Vec2(__FILE__, tc->position,
-            lateralForceDirection, Color(0, 0.8, 0.8, 0.5));
-        Draw::Vec2(__FILE__, tc->position,
-            breakingForceDirection, Color(0.8, 0.8, 0, 0.5));
-        #endif
-
-        force = lateralForceDirection + breakingForceDirection;
-
-        return
-        force = glm::normalize(force) * maxSpeed;
-        #endif
+        return dv;
     } else {
         return velocity;
     }
