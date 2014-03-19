@@ -129,25 +129,26 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
     glm::vec2 nearest[2], normal;
 
     for (auto obstacle : obstacles) {
-        const auto & pos = TRANSFORM(obstacle)->position;
+        const auto* tcObstacle = TRANSFORM(obstacle);
 
-        if (IntersectionUtil::rectangleRectangle(pos, TRANSFORM(obstacle)->size,
-            TRANSFORM(obstacle)->rotation, rectPos, rectSize, rectRot)) {
+        if (IntersectionUtil::rectangleRectangle(tcObstacle->position, tcObstacle->size,
+            tcObstacle->rotation, rectPos, rectSize, rectRot)) {
 
             #if BASIC_STEERING_GRAPHICAL_DEBUG
             // display a box containing the obstacle
-            Draw::Rectangle(__FILE__, pos,
-                TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
+            Draw::Rectangle(__FILE__, tcObstacle->position,
+                tcObstacle->size + glm::vec2(halfWidth), tcObstacle->rotation,
                 Color(0, 1, 0, .5));
             #endif
 
             // we need to get the point of intersection of them to know if its the
             // closer rectangle from entity e
-            int intersectCount = IntersectionUtil::lineRectangle(
+            int intersectCount = IntersectionUtil::linePolygon(
                 // open-ended line starting at e's position
                 tc->position, tc->position + glm::rotate(glm::vec2(1000, 0), tc->rotation),
                 // rectangle
-                pos, TRANSFORM(obstacle)->size + glm::vec2(halfWidth), TRANSFORM(obstacle)->rotation,
+                theTransformationSystem.shapes[tcObstacle->shape],
+                tcObstacle->position, tcObstacle->size + glm::vec2(halfWidth), tcObstacle->rotation,
                 // result
                 intersectionPoints, normals);
 
@@ -182,7 +183,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
     if (obs[0]) {
         #if BASIC_STEERING_GRAPHICAL_DEBUG
         // display the real nearest intersection point with any obstacle
-        Draw::Point(__FILE__, nearest[0], Color(0, 0, 0));
+        Draw::Vec2(__FILE__, nearest[0], normal, Color(0, 0, 0));
         #endif
 
         // deduce collision normal
