@@ -87,7 +87,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                 velocities.push_back(
                     std::make_tuple(
                         agent->arriveParams.weight,
-                        SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration)
+                        SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->arriveParams.coeff * agent->maxSpeed, agent->arriveDeceleration)
                     ));
 #if SAC_DEBUG
                 const auto& v = std::get<1>(velocities.back());
@@ -99,7 +99,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                 velocities.push_back(
                     std::make_tuple(
                         agent->seekParams.weight,
-                        SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->maxSpeed)
+                        SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->seekParams.coeff * agent->maxSpeed)
                     ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
@@ -114,7 +114,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                 velocities.push_back(
                     std::make_tuple(
                         agent->fleeParams.weight,
-                        SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->maxSpeed)
+                        SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->fleeParams.coeff * agent->maxSpeed)
                     ));
 
 #if SAC_DEBUG
@@ -130,7 +130,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->wanderParams.weight,
-                    SteeringBehavior::wander(e, agent->wander, agent->maxSpeed)
+                    SteeringBehavior::wander(e, agent->wander, agent->wanderParams.coeff * agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
@@ -144,7 +144,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->obstaclesParams.weight,
-                    SteeringBehavior::obstacleAvoidance(e, pc->linearVelocity, agent->obstacles, agent->maxSpeed)
+                    SteeringBehavior::obstacleAvoidance(e, pc->linearVelocity, agent->obstacles, agent->obstaclesParams.coeff * agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
@@ -158,7 +158,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->wallsParams.weight,
-                    SteeringBehavior::wallAvoidance(e, pc->linearVelocity, agent->walls, agent->maxSpeed)
+                    SteeringBehavior::wallAvoidance(e, pc->linearVelocity, agent->walls, agent->wallsParams.coeff * agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
@@ -173,7 +173,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->cohesionParams.weight,
-                    SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed)
+                    SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->cohesionParams.coeff * agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
@@ -186,7 +186,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->alignementParams.weight,
-                    SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->maxSpeed)
+                    SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->alignementParams.coeff * agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
@@ -199,7 +199,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             velocities.push_back(
                 std::make_tuple(
                     agent->separationParams.weight,
-                    SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->maxSpeed)
+                    SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->separationParams.coeff * agent->maxSpeed)
                 ));
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
