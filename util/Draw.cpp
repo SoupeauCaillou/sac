@@ -68,7 +68,6 @@ Entity Draw::textEntity(const std::string& groupID) {
     if (firstUnused == text.end()) {
         t = theEntityManager.CreateEntity("__draw");
         ADD_COMPONENT(t, Transformation);
-        TRANSFORM(t)->z = 1;
         ADD_COMPONENT(t, Text);
 
         text.push_back(std::make_pair(t, groupID));
@@ -81,6 +80,7 @@ Entity Draw::textEntity(const std::string& groupID) {
 
 static void addText(Entity t, Entity parent, const std::string& text) {
     AnchorComponent c;
+    c.z = -0.01; // to compensate TextSystem 0.001
     c.position = glm::vec2(0.0f, TEXT(t)->charHeight * 0.5);
     AnchorSystem::adjustTransformWithAnchor(TRANSFORM(t), TRANSFORM(parent), &c);
     TEXT(t)->charHeight = glm::min(TRANSFORM(parent)->size.x, 0.5f);
