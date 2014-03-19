@@ -36,23 +36,28 @@
 
 INSTANCE_IMPL(AutonomousAgentSystem);
 
+#define EXPORT_BEHAVIOR_PARAM(type) \
+    do { \
+        componentSerializer.add(new Property<float>( #type "_weight", OFFSET(type##Params.weight, ac), 0.001f)); \
+        componentSerializer.add(new Property<float>( #type "_coeff", OFFSET(type##Params.coeff, ac), 0.001f)); \
+    } while (false)
+
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") {
     AutonomousAgentComponent ac;
     componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, ac), 0.0001f));
     componentSerializer.add(new Property<float>("max_force", OFFSET(maxForce, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("flee_weight", OFFSET(fleeWeight, ac), 0.0001f));
+
+    EXPORT_BEHAVIOR_PARAM(flee);
     componentSerializer.add(new Property<float>("flee_radius", OFFSET(fleeRadius, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("obstacles_weight", OFFSET(obstaclesWeight, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("walls_weight", OFFSET(wallsWeight, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("wander_weight", OFFSET(wanderWeight, ac), 0.0001f));
+    EXPORT_BEHAVIOR_PARAM(obstacles);
+    EXPORT_BEHAVIOR_PARAM(walls);
+    EXPORT_BEHAVIOR_PARAM(wander);
     componentSerializer.add(new Property<float>("wander_radius", OFFSET(wander.radius, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_distance", OFFSET(wander.distance, ac), 0.0001f));
     componentSerializer.add(new Property<float>("wander_jitter", OFFSET(wander.jitter, ac), 0.0001f));
-
-
-    componentSerializer.add(new Property<float>("alignement_weight", OFFSET(alignementWeight, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("separation_weight", OFFSET(separationWeight, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("cohesion_weight", OFFSET(cohesionWeight, ac), 0.0001f));
+    EXPORT_BEHAVIOR_PARAM(alignement);
+    EXPORT_BEHAVIOR_PARAM(separation);
+    EXPORT_BEHAVIOR_PARAM(cohesion);
 }
 
 bool AutonomousAgentSystem::isArrived(Entity e) {
@@ -76,16 +81,12 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         std::vector<std::tuple<float, glm::vec2>> velocities;
 
         auto* pc = PHYSICS(e);
-        float length = glm::length(pc->linearVelocity);
-        if (length > agent->maxSpeed) {
-            pc->linearVelocity *= agent->maxSpeed / length;
-        }
 
-        if (agent->seekTarget && agent->seekWeight > 0) {
+        if (agent->seekTarget && agent->seekParams.weight > 0) {
             if (agent->arriveDeceleration > 0) {
                 velocities.push_back(
                     std::make_tuple(
-                        agent->arriveWeight,
+                        agent->arriveParams.weight,
                         SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->maxSpeed, agent->arriveDeceleration)
                     ));
 #if SAC_DEBUG
@@ -97,7 +98,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             } else {
                 velocities.push_back(
                     std::make_tuple(
-                        agent->seekWeight,
+                        agent->seekParams.weight,
                         SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->maxSpeed)
                     ));
 #if SAC_DEBUG
@@ -108,11 +109,11 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #endif
             }
         }
-        if (agent->fleeTarget && agent->fleeWeight > 0) {
+        if (agent->fleeTarget && agent->fleeParams.weight > 0) {
             if (glm::distance(TRANSFORM(e)->position, TRANSFORM(agent->fleeTarget)->position) < agent->fleeRadius) {
                 velocities.push_back(
                     std::make_tuple(
-                        agent->fleeWeight,
+                        agent->fleeParams.weight,
                         SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->maxSpeed)
                     ));
 
@@ -125,10 +126,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             }
         }
 
-        if (agent->wanderWeight > 0) {
+        if (agent->wanderParams.weight > 0) {
             velocities.push_back(
                 std::make_tuple(
-                    agent->wanderWeight,
+                    agent->wanderParams.weight,
                     SteeringBehavior::wander(e, agent->wander, agent->maxSpeed)
                 ));
 #if SAC_DEBUG
@@ -139,10 +140,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #endif
         }
 
-        if (! agent->obstacles.empty() && agent->obstaclesWeight > 0) {
+        if (! agent->obstacles.empty() && agent->obstaclesParams.weight > 0) {
             velocities.push_back(
                 std::make_tuple(
-                    agent->obstaclesWeight,
+                    agent->obstaclesParams.weight,
                     SteeringBehavior::obstacleAvoidance(e, pc->linearVelocity, agent->obstacles, agent->maxSpeed)
                 ));
 #if SAC_DEBUG
@@ -153,10 +154,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #endif
         }
 
-        if (! agent->walls.empty() && agent->wallsWeight > 0) {
+        if (! agent->walls.empty() && agent->wallsParams.weight > 0) {
             velocities.push_back(
                 std::make_tuple(
-                    agent->wallsWeight,
+                    agent->wallsParams.weight,
                     SteeringBehavior::wallAvoidance(e, pc->linearVelocity, agent->walls, agent->maxSpeed)
                 ));
 #if SAC_DEBUG
@@ -168,10 +169,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         }
 
         //group behaviors
-        if (! agent->cohesionNeighbors.empty() && agent->cohesionWeight > 0) {
+        if (! agent->cohesionNeighbors.empty() && agent->cohesionParams.weight > 0) {
             velocities.push_back(
                 std::make_tuple(
-                    agent->cohesionWeight,
+                    agent->cohesionParams.weight,
                     SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->maxSpeed)
                 ));
 #if SAC_DEBUG
@@ -181,10 +182,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             }
 #endif
         }
-        if (! agent->alignementNeighbors.empty() && agent->alignementWeight > 0) {
+        if (! agent->alignementNeighbors.empty() && agent->alignementParams.weight > 0) {
             velocities.push_back(
                 std::make_tuple(
-                    agent->alignementWeight,
+                    agent->alignementParams.weight,
                     SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->maxSpeed)
                 ));
 #if SAC_DEBUG
@@ -194,10 +195,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             }
 #endif
         }
-        if (! agent->separationNeighbors.empty() && agent->separationWeight > 0) {
+        if (! agent->separationNeighbors.empty() && agent->separationParams.weight > 0) {
             velocities.push_back(
                 std::make_tuple(
-                    agent->separationWeight,
+                    agent->separationParams.weight,
                     SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->maxSpeed)
                 ));
 #if SAC_DEBUG

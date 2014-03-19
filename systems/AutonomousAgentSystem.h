@@ -26,46 +26,59 @@
 
 #include "System.h"
 
+struct BehaviorParams {
+    BehaviorParams() : weight(0.0f), coeff(1.0) {}
+
+    float weight;
+    float coeff;
+};
+
 struct AutonomousAgentComponent {
-	AutonomousAgentComponent() : maxSpeed(1.f), maxForce(1.f), seekTarget(0), seekWeight(0.f),
-	fleeTarget(0), fleeWeight(0.f), fleeRadius(1.f), obstaclesWeight(0.f), wallsWeight(0.f), wanderWeight(0.f),
-	cohesionWeight(0.f), alignementWeight(0.f), separationWeight(0.f) {}
+    AutonomousAgentComponent() :
+        maxSpeed(1.f), maxForce(1.f),
+        seekTarget(0), seekParams(),
+        fleeTarget(0), fleeParams(), fleeRadius(1.f),
+        obstaclesParams(),
+        wallsParams(),
+        wanderParams(),
+        cohesionParams(),
+        alignementParams() {}
 
-	float maxSpeed, maxForce;
-	union {
-		Entity seekTarget; // keep speed until target reached
-		Entity arriveTarget; // slow down when approching the target
-	};
-	union {
-		float seekWeight;
-		float arriveWeight;
-	};
-	float arriveDeceleration;
+    float maxSpeed, maxForce;
+    union {
+        Entity seekTarget; // keep speed until target reached
+        Entity arriveTarget; // slow down when approching the target
+    };
+    union {
+        BehaviorParams seekParams;
+        BehaviorParams arriveParams;
+    };
+    float arriveDeceleration;
 
-	Entity fleeTarget;
-	float fleeWeight;
-	float fleeRadius;
+    Entity fleeTarget;
+    BehaviorParams fleeParams;
+    float fleeRadius;
 
-	std::list<Entity> obstacles;
-	float obstaclesWeight;
+    std::list<Entity> obstacles;
+    BehaviorParams obstaclesParams;
 
     std::list<Entity> walls;
-    float wallsWeight;
+    BehaviorParams wallsParams;
 
-	SteeringBehavior::WanderParams wander;
-	float wanderWeight;
+    SteeringBehavior::WanderParams wander;
+    BehaviorParams wanderParams;
 
-	// Group behaviors
-	std::list<Entity> cohesionNeighbors;
-	float cohesionWeight;
+    // Group behaviors
+    std::list<Entity> cohesionNeighbors;
+    BehaviorParams cohesionParams;
 
-	// Group behaviors
-	std::list<Entity> alignementNeighbors;
-	float alignementWeight;
+    // Group behaviors
+    std::list<Entity> alignementNeighbors;
+    BehaviorParams alignementParams;
 
-	// Group behaviors
-	std::list<Entity> separationNeighbors;
-	float separationWeight;
+    // Group behaviors
+    std::list<Entity> separationNeighbors;
+    BehaviorParams separationParams;
 };
 
 #define theAutonomousAgentSystem AutonomousAgentSystem::GetInstance()
@@ -77,6 +90,6 @@ struct AutonomousAgentComponent {
 
 UPDATABLE_SYSTEM(AutonomousAgent)
 public:
-	static bool isArrived(Entity e);
+    static bool isArrived(Entity e);
 
 };
