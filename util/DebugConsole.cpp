@@ -24,26 +24,67 @@
 
 #include "DebugConsole.h"
 #include "base/Log.h"
+#include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
 #include "systems/RenderingSystem.h"
+#include "systems/TransformationSystem.h"
+#include "Draw.h"
+
+static bool showGrid = false;
 
 DebugConsole & DebugConsole::Instance() {
     static DebugConsole _instance;
     return _instance;
 }
 
+static void setShowGridCallback(const void* value, void* ) {
+    showGrid = *(static_cast<const bool*> (value));
+
+    #define PREF __FILE__"grid"
+    if (showGrid) {
+        glm::vec2 topLeft = glm::vec2(-3 * theRenderingSystem.screenW, 3 * theRenderingSystem.screenH);
+        topLeft.x = floor(topLeft.x); topLeft.y = ceil(topLeft.y);
+        for (int i=0; i<=ceil(theRenderingSystem.screenW * 6); i++) {
+            Draw::Vec2(PREF, topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.2));
+
+            for (int j=1; j<=4; j++) {
+                Draw::Vec2(PREF, topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
+            }
+        }
+
+        for (int i=0; i<=ceil(theRenderingSystem.screenH * 6); i++) {
+            Draw::Vec2(PREF, topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.2));
+
+            for (int j=1; j<=4; j++) {
+                Draw::Vec2(PREF, topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
+            }
+        }
+
+    } else {
+        Draw::Clear(PREF);
+    }
+}
+
+static void getShowGridCallback(void* value, void* ) {
+    *(static_cast<bool*>(value)) = showGrid;
+}
+
 void DebugConsole::initTW() {
     bar = TwNewBar("Debug_Console");
-    TwDefine(" Debug_Console size='400 200' iconified=true valueswidth=250");
+    TwDefine(" Debug_Console size='400 200' iconified=true ");
 
+    TwAddVarCB(bar, "Show grid", TW_TYPE_BOOLCPP, setShowGridCallback, getShowGridCallback, 0, 0 );
     // Rendering debug
-    TwAddVarRW(bar, "render - show opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.opaque, 0); 
-    TwAddVarRW(bar, "render - show non-opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.nonOpaque, 0);
-    TwAddVarRW(bar, "render - show runtime opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.runtimeOpaque, 0);
-    TwAddVarRW(bar, "render - show z prepass", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.zPrePass, 0);
+    TwAddVarRW(bar, "Show opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.opaque, "group=Rendering");
+    TwAddVarRW(bar, "Show non-opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.nonOpaque, "group=Rendering");
+    TwAddVarRW(bar, "Show runtime opaque", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.runtimeOpaque, "group=Rendering");
+    TwAddVarRW(bar, "Show z prepass", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.zPrePass, "group=Rendering");
+    TwAddVarRW(bar, "Wireframe", TW_TYPE_BOOLCPP, &theRenderingSystem.wireframe, "group=Rendering");
+
     // Collision debug
-    TwAddVarRW(bar, "collision - show debug", TW_TYPE_BOOLCPP, &theCollisionSystem.showDebug, 0);
-    TwAddVarRW(bar, "collision - max raycast per sec", TW_TYPE_FLOAT, &theCollisionSystem.maximumRayCastPerSec, 0);
+    TwAddVarRW(bar, "Show debug", TW_TYPE_BOOLCPP, &theCollisionSystem.showDebug, "group=Collision");
+    TwAddVarRW(bar, "Max raycast per sec", TW_TYPE_FLOAT, &theCollisionSystem.maximumRayCastPerSec, "group=Collision");
+
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
@@ -54,13 +95,13 @@ void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(voi
 
     LOGV(1, "New entry for debug console: " << name);
 
-    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "");
+    TwAddButton(Instance().bar, name.c_str(), (TwButtonCallback)callback, storingPlace, "group=Game");
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
     const std::string & argumentName, TwType type, void* storingPlace) {
 
-    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "");
+    TwAddVarRW(Instance().bar, argumentName.c_str(), type, storingPlace, "group=Game");
     RegisterMethod(name, callback, storingPlace);
 }
 
