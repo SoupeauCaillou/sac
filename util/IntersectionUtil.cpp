@@ -53,6 +53,7 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const Transformati
 
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
     glm::vec2 p(glm::rotate(point - rectPos, -rectRotation));
+
     return (glm::abs(p.x) < rectSize.x * 0.5 &&
         glm::abs(p.y) < rectSize.y * 0.5);
 }
@@ -210,11 +211,41 @@ int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, cons
     return count;
 }
 
+struct AABB {
+    float left, right, top, bottom;
+};
+
+static void computeAABB(const TransformationComponent* tc, AABB& aabb) {
+    glm::vec2 halfsize(0.0f);
+    if (glm::abs(tc->rotation) < 0.001) {
+        halfsize = tc->size * 0.5f;
+    } else {
+        glm::vec2 p = tc->size * glm::vec2(0.5, 0.5);
+        glm::vec2 q = tc->size * glm::vec2(0.5, -0.5);
+        p = glm::rotate(p, tc->rotation);
+        q = glm::rotate(q, tc->rotation);
+        halfsize.x = glm::max(glm::abs(p.x), glm::abs(q.x));
+        halfsize.y = glm::max(glm::abs(p.y), glm::abs(q.y));
+    }
+    aabb.left = tc->position.x - halfsize.x;
+    aabb.right = tc->position.x + halfsize.x;
+    aabb.bottom = tc->position.y - halfsize.y;
+    aabb.top = tc->position.y + halfsize.y;
+}
+
+bool IntersectionUtil::rectangleRectangleAABB(const TransformationComponent* tc1, const TransformationComponent* tc2) {
+    AABB a1, a2;
+    computeAABB(tc1, a1);
+    computeAABB(tc2, a2);
+
+    return !(a1.right < a2.left || a2.right < a1.left || a1.top < a2.bottom || a2.top < a1.bottom);
+}
+
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot) {
     // quick out
     //~ if (Vector2::DistanceSquared(rectAPos, rectBPos) > pow(MathUtil::Max(rectASize.X, rectASize.Y) + MathUtil::Max(rectBSize.X, rectBSize.Y), 2)) {
-    if (glm::distance(rectAPos, rectBPos) > glm::max(rectASize.x, rectASize.y) + glm::max(rectBSize.x, rectBSize.y)) {
+    if (glm::distance2(rectAPos, rectBPos) > glm::pow(glm::max(rectASize.x, rectASize.y) + glm::max(rectBSize.x, rectBSize.y), 2.0f)) {
         return false;
     }
 
@@ -287,6 +318,9 @@ bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::
 }
 
 bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1, const TransformationComponent* tc2) {
+    if (glm::abs(tc1->rotation) < 0.001 && glm::abs(tc2->rotation) < 0.001)
+        return rectangleRectangleAABB(tc1, tc2);
+
     return rectangleRectangle(
         tc1->position, tc1->size, tc1->rotation,
         tc2->position, tc2->size, tc2->rotation);

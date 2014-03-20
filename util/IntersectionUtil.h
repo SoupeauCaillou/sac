@@ -58,6 +58,9 @@ class IntersectionUtil {
         static bool rectangleRectangle(const TransformationComponent* tc1,
             const TransformationComponent* tc2);
 
+        static bool rectangleRectangleAABB(const TransformationComponent* tc1,
+            const TransformationComponent* tc2);
+
         static bool rectangleRectangle(const TransformationComponent* tc1,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot);
 };
