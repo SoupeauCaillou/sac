@@ -80,7 +80,9 @@ class NamedAssetLibrary : public ResourceHotReload {
                     ref2asset.insert(std::make_pair(result, asset));
                 }
 #if SAC_LINUX && SAC_DESKTOP
-                registerNewAsset(name);
+                // Monitor file change if not loaded from memory
+                if (dataSource.find(result) == dataSource.end())
+                    registerNewAsset(name);
 #endif
             } else {
                 result = it->second;
