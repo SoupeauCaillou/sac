@@ -432,8 +432,17 @@ void Game::step() {
 
     theRenderingSystem.waitDrawingComplete();
 
-    float timeBeforeThisStep = TimeUtil::GetTime();
-    float delta = timeBeforeThisStep - lastUpdateTime;
+    float timeBeforeThisStep, delta = 0;
+#if SAC_WEB
+    do {
+        if (delta > 0.0f)
+            TimeUtil::Wait(0.015 - delta);
+#endif
+        timeBeforeThisStep = TimeUtil::GetTime();
+        delta = timeBeforeThisStep - lastUpdateTime;
+#if SAC_WEB
+    } while (delta < 0.015);
+#endif
 
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
@@ -549,7 +558,7 @@ void Game::render() {
     PROFILE("Game", "render-game", BeginEvent);
     theRenderingSystem.render();
 
-#if SAC_DEBUG
+#if 1 //SAC_DEBUG
     {
         static int count = 0;
         static float prevT = 0;
@@ -564,9 +573,9 @@ void Game::render() {
             fpsStats.minDt = dt;
         }
         ++count;
-        if (count == 1000) {
-            LOGV(LogVerbosity::VERBOSE1, "FPS avg/min/max : " <<
-                (1000.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt));
+        if (count == 300) {
+            LOGI("FPS avg/min/max : " <<
+                (300.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt));
             count = 0;
             fpsStats.reset(t);
         }
