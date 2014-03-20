@@ -37,14 +37,10 @@ struct AutoDestroyComponent {
 
     std::function<void(Entity)> onDeletionCall;
 
-#if SAC_WINDOWS
     struct _params {
-#else
-    union _params {
         _params() {
             memset(this, 0, sizeof(_params));
         }
-#endif
         _params& operator=(const _params& p) {
             area = p.area;
             lifetime = p.lifetime;
@@ -59,12 +55,8 @@ struct AutoDestroyComponent {
             Frequency<float> freq;
             bool map2AlphaRendering, map2AlphaText;
         } lifetime;
-#if SAC_WINDOWS
     };
     _params params;
-#else
-    } params;
-#endif
     // ARG TODO
     bool hasText;
 };

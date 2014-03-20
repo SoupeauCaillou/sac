@@ -59,45 +59,45 @@ void PhysicsSystem::DoUpdate(float dt) {
         }
 #endif
 
-		TransformationComponent* tc = TRANSFORM(a);
+        TransformationComponent* tc = TRANSFORM(a);
 
-		pc->momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6;
+        pc->momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6;
 
-		// linear accel
-		glm::vec2 linearAccel(pc->gravity * pc->mass);
+        // linear accel
+        glm::vec2 linearAccel(pc->gravity * pc->mass);
 
-		// angular accel
-		float angAccel = 0;
+        // angular accel
+        float angAccel = 0;
 
         if (pc->frottement != 0.f) {
             pc->addForce(- pc->frottement * pc->linearVelocity, glm::vec2(0.f), dt);
         }
 
-		for (unsigned int i=0; i<pc->forces.size(); i++) {
-			Force force(pc->forces[i].first);
+        for (unsigned int i=0; i<pc->forces.size(); i++) {
+            Force force(pc->forces[i].first);
 
-			float& durationLeft = pc->forces[i].second;
+            float& durationLeft = pc->forces[i].second;
 
             if (durationLeft < dt) {
                 force.vector *= durationLeft / dt;
             }
 
             linearAccel += force.vector;
-	        if (force.point != glm::vec2(0.0f, 0.0f)) {
-		        angAccel += glm::dot(glm::vec2(- force.point.y, force.point.x), force.vector);
-	        }
+            if (force.point != glm::vec2(0.0f, 0.0f)) {
+                angAccel += glm::dot(glm::vec2(- force.point.y, force.point.x), force.vector);
+            }
 
-			durationLeft -= dt;
-			if (durationLeft <= 0.f) {
-				pc->forces.erase(pc->forces.begin() + i);
-				i--;
-			}
-		}
+            durationLeft -= dt;
+            if (durationLeft <= 0.f) {
+                pc->forces.erase(pc->forces.begin() + i);
+                i--;
+            }
+        }
 
-		linearAccel /= pc->mass;
-		angAccel /= pc->momentOfInertia;
+        linearAccel /= pc->mass;
+        angAccel /= pc->momentOfInertia;
 
-		// acceleration is constant over dt: use basic Euler integration for velocity
+        // acceleration is constant over dt: use basic Euler integration for velocity
         glm::vec2 nextVelocity(pc->linearVelocity + linearAccel * dt);
         // limit linearVelocity if requested
         if (pc->maxSpeed > 0) {
@@ -110,16 +110,17 @@ void PhysicsSystem::DoUpdate(float dt) {
         tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5f;
         // velocity varies over dt: use Verlet integration for position
         pc->linearVelocity = nextVelocity;
-		const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
-		tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
+        const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
+        tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
         pc->angularVelocity = nextAngularVelocity;
-	END_FOR_EACH()
+
+    END_FOR_EACH()
 }
 
 
 void PhysicsSystem::addMoment(PhysicsComponent* pc, float m) {
-	// add 2 opposed forces
+    // add 2 opposed forces
     //WARNING: shouldn't be +size,0 and -size,0 instead of 1,0 / -1, 0?
-	pc->addForce(glm::vec2(0, m * 0.5), glm::vec2(1, 0), 0.016f);
-	pc->addForce(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0), 0.016f);
+    pc->addForce(glm::vec2(0, m * 0.5), glm::vec2(1, 0), 0.016f);
+    pc->addForce(glm::vec2(0, -m * 0.5), glm::vec2(-1, 0), 0.016f);
 }

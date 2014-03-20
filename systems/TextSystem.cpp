@@ -78,7 +78,7 @@ static Entity createRenderingEntity();
 static void parseInlineImageString(const std::string& s, std::string* image, float* scale);
 static float computePartialStringWidth(TextComponent* trc, size_t from, size_t to, float charHeight, const TextSystem::FontDesc& fontDesc);
 static float computeStringWidth(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc);
-static float computeStartX(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc);
+static float computeStartX(float stringWidth, const TextComponent* trc);
 
 // System implementation
 INSTANCE_IMPL(TextSystem);
@@ -120,7 +120,7 @@ struct CharSequenceToUnicode {
 
     bool update(unsigned char newChar) {
         switch (index) {
-            case NewSequence: {      
+            case NewSequence: {
                 // 1st byte can be in these ranges:
                 //    * [00, 7F] -> 1 byte  UTF8 char
                 //    * [C2, DF] -> 2 bytes UTF char
@@ -175,7 +175,7 @@ struct CharSequenceToUnicode {
         sequence[(int)index] = newChar;
 
         if (index == LastChar) {
-            unicode = 
+            unicode =
                 (sequence[(int)FirstChar] - offsets[(int)FirstChar]) * 0x1000 +
                     (sequence[(int)MiddleChar] - offsets[(int)MiddleChar]) * 0x40 +
                     sequence[(int)LastChar] - offsets[(int)LastChar];
@@ -229,10 +229,10 @@ void TextSystem::DoUpdate(float dt) {
         }
         LOGV(3, "Text: '" << trc->text << "'");
 
-		// early quit if hidden
-		if (!trc->show) {
-			continue;
-		}
+        // early quit if hidden
+        if (!trc->show) {
+            continue;
+        }
 
 #if SAC_DEBUG
         const std::string invalidChar ("00_" + trc->fontName);
@@ -240,17 +240,17 @@ void TextSystem::DoUpdate(float dt) {
 #endif
 
         // append a caret if needed
-		bool caretInserted = false;
-		if (trc->caret.speed > 0) {
-			trc->caret.dt += dt;
-			if (trc->caret.dt > trc->caret.speed) {
-				trc->caret.dt = 0;
-				trc->caret.show = !trc->caret.show;
-			}
+        bool caretInserted = false;
+        if (trc->caret.speed > 0) {
+            trc->caret.dt += dt;
+            if (trc->caret.dt > trc->caret.speed) {
+                trc->caret.dt = 0;
+                trc->caret.show = !trc->caret.show;
+            }
 
-			caretInserted = true;
-			trc->text.push_back('_');
-		}
+            caretInserted = true;
+            trc->text.push_back('_');
+        }
         // text blinking
         if (trc->blink.onDuration > 0) {
             if (trc->blink.accum >= 0) {
@@ -278,7 +278,7 @@ void TextSystem::DoUpdate(float dt) {
         // Cache various attributes
         const FontDesc& fontDesc = fontIt->second;
         const TransformationComponent* trans = TRANSFORM(entity);
-		unsigned int length = trc->text.length();
+        unsigned int length = trc->text.length();
         // caret is always inserted for string length calculation,
         // but is not supposed to be always displayed
         if (caretInserted && !trc->caret.show) {
@@ -286,23 +286,29 @@ void TextSystem::DoUpdate(float dt) {
         }
 
         // Determine font size (character height)
-		float charHeight = trc->charHeight;
-		if (trc->flags & TextComponent::AdjustHeightToFillWidthBit) {
-			const float targetWidth = trans->size.x;
-			charHeight = targetWidth / computeStringWidth(trc, 1, fontDesc);
+        float stringWidth = 0;
+        float charHeight = trc->charHeight;
+        if (trc->flags & TextComponent::AdjustHeightToFillWidthBit) {
+            const float targetWidth = trans->size.x;
+            stringWidth = computeStringWidth(trc, 1, fontDesc);
+            charHeight = targetWidth / stringWidth;
             // Limit to maxCharHeight if defined
-			if (trc->maxCharHeight > 0 ) {
-				charHeight = glm::min(trc->maxCharHeight, charHeight);
-			}
-		}
+            if (trc->maxCharHeight > 0 ) {
+                charHeight = glm::min(trc->maxCharHeight, charHeight);
+            }
+            stringWidth *= charHeight;
+        }
 
 relayout:
+        if (stringWidth <= 0) {
+            stringWidth = computeStringWidth(trc, charHeight, fontDesc);
+        }
         int lineCount = 1, layoutCount = 0;
         // Variables
-		const float startX = (trc->flags & TextComponent::MultiLineBit) ?
-			(trans->size.x * -0.5f) : computeStartX(trc, charHeight, fontDesc);
-		float x = startX, y = 0;
-		bool newWord = true;
+        const float startX = (trc->flags & TextComponent::MultiLineBit) ?
+            (trans->size.x * -0.5f) : computeStartX(stringWidth, trc);
+        float x = startX, y = 0;
+        bool newWord = true;
 
 #if SAC_DEBUG
         int lastValidCharIndex = -1;
@@ -312,44 +318,44 @@ relayout:
         std::vector<Entity> charInLine;
 
         // Setup rendering for each individual letter
-		for(unsigned int i=0; i<length; i++) {
+        for(unsigned int i=0; i<length; i++) {
             // If it's a multiline text, we must compute words/lines boundaries
-			if (trc->flags & TextComponent::MultiLineBit) {
-				size_t wordEnd = trc->text.find_first_of(" ,:.", i);
-				size_t lineEnd = trc->text.find_first_of("\n", i);
-				bool newLine = false;
-				if (wordEnd == i) {
+            if (trc->flags & TextComponent::MultiLineBit) {
+                size_t wordEnd = trc->text.find_first_of(" ,:.", i);
+                size_t lineEnd = trc->text.find_first_of("\n", i);
+                bool newLine = false;
+                if (wordEnd == i) {
                     // next letter will be the start of a new word
-					newWord = true;
-				} else if (lineEnd == i) {
+                    newWord = true;
+                } else if (lineEnd == i) {
                     // next letter will be the start of a new line
-					newLine = true;
-				} else if (newWord) {
-					if (wordEnd == std::string::npos) {
-						wordEnd = trc->text.length();
-					}
-					// compute length of next word
-					const float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, fontDesc);
+                    newLine = true;
+                } else if (newWord) {
+                    if (wordEnd == std::string::npos) {
+                        wordEnd = trc->text.length();
+                    }
+                    // compute length of next word
+                    const float w = computePartialStringWidth(trc, i, wordEnd - 1, charHeight, fontDesc);
                     // If it doesn't fit on current line -> start new line
-					if (x + w >= trans->size.x * 0.5) {
-						newLine = true;
-					}
-					newWord = false;
-				}
+                    if (x + w >= trans->size.x * 0.5) {
+                        newLine = true;
+                    }
+                    newWord = false;
+                }
                 // Begin new line if requested
-				if (newLine) {
+                if (newLine) {
                     adjustLineHorizontalCentering(charInLine, startX, trc, trans);
                     lineCount++;
-					y -= 1.2f * charHeight;
-					x = startX;
-					if (lineEnd == i) {
-					  continue;
-					}
-				}
-			}
+                    y -= 1.2f * charHeight;
+                    x = startX;
+                    if (lineEnd == i) {
+                      continue;
+                    }
+                }
+            }
 
-			std::stringstream a;
-			unsigned char letter = (unsigned char)trc->text[i];
+            std::stringstream a;
+            unsigned char letter = (unsigned char)trc->text[i];
             int skip = -1;
 
             if (!seqToUni.update(letter))
@@ -370,7 +376,7 @@ relayout:
             }
             RenderingComponent* rc = RENDERING(e);
             TransformationComponent* tc = TRANSFORM(e);
-            
+
             /*
             AnchorComponent ac = ANCHOR(e);
             ac->parent = entity;
@@ -427,30 +433,31 @@ relayout:
             }
             // Advance position
             letterCount++;
-			x += tc->size.x * 0.5f;
-			tc->position.x = x;
+            x += tc->size.x * 0.5f;
+            tc->position.x = x;
             tc->position.y = y; // + (inlineImage ? tc->size.x * 0.25 : 0);
-			x += tc->size.x * 0.5f;
+            x += tc->size.x * 0.5f;
 
             // Special case for numbers rendering, add semi-space to group (e.g: X XXX XXX)
- 			if (trc->flags & TextComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
-				x += fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75f;
-			}
+            if (trc->flags & TextComponent::IsANumberBit && ((length - i - 1) % 3) == 0) {
+                x += fontDesc.entries[(unsigned)'0'].h2wRatio * charHeight * 0.75f;
+            }
 
             // Fastforward to skip some chars (e.g: inline image description)
             if (skip >= 0) {
                 i = skip;
             }
-		}
+        }
 
         adjustLineHorizontalCentering(charInLine, startX, trc, trans);
 
         if (trc->maxLineToUse > 0 && lineCount > trc->maxLineToUse && ++layoutCount < 3) {
-            float target = charHeight * ((float)trc->maxLineToUse) / lineCount; 
+            float target = charHeight * ((float)trc->maxLineToUse) / lineCount;
             if (target < charHeight) {
                 float weight = 0.5;
                 charHeight = charHeight * (1 - weight) + target * weight;
                 letterCount -= (letterCount - firstEntity);
+                stringWidth = 0;
                 goto relayout;
             }
         }
@@ -491,10 +498,10 @@ relayout:
 #endif
 
         // if we appended a caret, remove it
-		if (caretInserted) {
-			trc->text.resize(trc->text.length() - 1);
-		}
-	END_FOR_EACH()
+        if (caretInserted) {
+            trc->text.resize(trc->text.length() - 1);
+        }
+    END_FOR_EACH()
 
     if (renderingEntitiesPool.size() > letterCount*2) {
         for (unsigned i=letterCount*2; i<renderingEntitiesPool.size(); i++) {
@@ -512,9 +519,9 @@ relayout:
 void TextSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
     uint32_t highestUnicode = 0;
 
-	LOGT("Use unordered map or remove this useless foreach loop since map are ordered by key-value");
+    LOGT("Use unordered map or remove this useless foreach loop since map are ordered by key-value");
     std::for_each(charH2Wratio.begin(), charH2Wratio.end(),
-        [&highestUnicode] (std::pair<uint32_t, float> a) { 
+        [&highestUnicode] (std::pair<uint32_t, float> a) {
             if (a.first > highestUnicode)
                 highestUnicode = a.first;
             }
@@ -522,7 +529,7 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
 
     std::string invalidChar = "00_" + fontName;
     TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);
-	float invalidRatio = 1;
+    float invalidRatio = 1;
     FontDesc font;
     font.highestUnicode = highestUnicode;
     font.entries = new CharInfo[highestUnicode + 1];
@@ -636,7 +643,7 @@ static float computeStringWidth(TextComponent* trc, float charHeight, const Text
     return width;
 }
 
-static float computeStartX(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc) {
-    const float result = -computeStringWidth(trc, charHeight, fontDesc) * trc->positioning;
+static float computeStartX(float stringWidth, const TextComponent* trc) {
+    const float result = -stringWidth * trc->positioning;
     return result;
 }

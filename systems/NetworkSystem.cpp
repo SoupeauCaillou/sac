@@ -299,7 +299,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
     // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
     for (auto& name : nc->sync) {
         // time to update
-        
+
 #if USE_SYSTEM_IDX
         auto it = name2ptr.find(name);
         ComponentSystem* system = it->second;
@@ -350,6 +350,9 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
 
 
 void NetworkSystem::Delete(Entity e) {
+#if SAC_USE_VECTOR_STORAGE
+    LOGT("TODO " << e);
+#else
     // mark the entity as deleted
     auto it = components.find(e);
 
@@ -361,6 +364,7 @@ void NetworkSystem::Delete(Entity e) {
 
     // delete it here
     ComponentSystemImpl<NetworkComponent>::Delete(e);
+#endif
 }
 
 NetworkComponent* NetworkSystem::CreateComponent() {

@@ -27,6 +27,7 @@
 
 #include <map>
 #include <list>
+#include <forward_list>
 #include <vector>
 #if SAC_DEBUG
 #include <string>
@@ -44,36 +45,36 @@ namespace EntityType {
     };
 }
 class EntityManager {
-	private:
-		static EntityManager* instance;
-		EntityManager();
-	public:
-		static EntityManager* Instance();
-		static void CreateInstance();
-		static void DestroyInstance();
+    private:
+        static EntityManager* instance;
+        EntityManager();
+    public:
+        static EntityManager* Instance();
+        static void CreateInstance();
+        static void DestroyInstance();
 
-	public:
+    public:
 
-		Entity CreateEntity(const std::string& name = "noname"
+        Entity CreateEntity(const std::string& name = "noname"
             , EntityType::Enum type = EntityType::Volatile,
             EntityTemplateRef tmpl = InvalidEntityTemplateRef);
 
-		Entity CreateEntityFromTemplate(const std::string& name = "noname"
+        Entity CreateEntityFromTemplate(const std::string& name = "noname"
             , EntityType::Enum type = EntityType::Volatile);
 
-    	void DeleteEntity(Entity e);
-		void AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas = true);
+        void DeleteEntity(Entity e);
+        void AddComponent(Entity e, ComponentSystem* system, bool failIfAlreadyHas = true);
         void RemoveComponent(Entity e, ComponentSystem* system);
-		void deleteAllEntities();
-		std::vector<Entity> allEntities();
+        void deleteAllEntities();
+        std::vector<Entity> allEntities();
 
         void SuspendEntity(Entity e);
         void ResumeEntity(Entity e);
 
-		int serialize(uint8_t** result);
-		void deserialize(const uint8_t* in, int size);
+        int serialize(uint8_t** result);
+        void deserialize(const uint8_t* in, int size);
 
-		Entity getEntityByName(const std::string& name) const;
+        Entity getEntityByName(const std::string& name) const;
 
         const std::string& entityName(Entity e) const;
 
@@ -82,8 +83,11 @@ class EntityManager {
 #if SAC_DEBUG
         void validateEntity(Entity e) const;
 #endif
-	private:
-		Entity nextEntity;
+    private:
+        Entity nextEntity;
+        std::forward_list<Entity> recyclableEntities;
+
+        std::list<Entity> permanentEntities;
         std::map<Entity, std::string> entity2name;
         std::map<Entity, std::list<ComponentSystem*> > entityComponents;
         std::map<Entity, std::list<ComponentSystem*> > suspendedEntityComponents;

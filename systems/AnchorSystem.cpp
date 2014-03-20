@@ -99,9 +99,9 @@ void AnchorSystem::DoUpdate(float) {
     std::set<std::pair<Entity, AnchorComponent*> , CompareParentChain> cp;
 
     // sort all, root node first
-    std::for_each(components.begin(), components.end(), [&cp] (std::pair<Entity, AnchorComponent*> a) -> void {
-        cp.insert(a);
-    });
+    FOR_EACH_ENTITY_COMPONENT(Anchor, e, comp)
+        cp.insert(std::make_pair(e, comp));
+    }
 
     for (auto p: cp) {
         const auto anchor = p.second;

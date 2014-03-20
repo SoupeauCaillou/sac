@@ -24,4 +24,4 @@
 
 #include <cstdint>
 #include <base/SacDefs.h>
-typedef uint64_t Entity;
+typedef uint32_t Entity;

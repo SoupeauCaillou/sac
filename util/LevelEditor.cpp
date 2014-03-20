@@ -48,7 +48,7 @@ namespace EditorMode {
 
 std::mutex twMutex;
 static void _lock() {
-	twMutex.lock();
+    twMutex.lock();
 }
 
 static void _unlock() {
@@ -143,7 +143,8 @@ static void showTweakBarForEntity(Entity e) {
 }
 
 static void buttonCallback(void* e) {
-    showTweakBarForEntity((Entity)(e));
+    uint64_t ptr = reinterpret_cast<uint64_t>(e);
+    showTweakBarForEntity((Entity)ptr);
 }
 
 void LevelEditor::LevelEditorDatas::select(Entity e) {
@@ -261,7 +262,7 @@ void LevelEditor::init() {
     // init network debug
     auto* netbar = TwNewBar("Network");
     TwDefine(" Network iconified=true ");
-	TwAddVarRO(netbar, "download b/s", TW_TYPE_FLOAT, &theNetworkSystem.dlRate, "precision=1");
+    TwAddVarRO(netbar, "download b/s", TW_TYPE_FLOAT, &theNetworkSystem.dlRate, "precision=1");
     TwAddVarRO(netbar, "upload b/s", TW_TYPE_FLOAT, &theNetworkSystem.ulRate, "precision=1");
     TwAddVarRO(netbar, "nb packet rcvd", TW_TYPE_INT32, &theNetworkSystem.packetRcvd, NULL);
     TwAddVarRO(netbar, "nb packet sent", TW_TYPE_INT32, &theNetworkSystem.packetSent, NULL);
@@ -340,7 +341,7 @@ void LevelEditor::tick(float dt) {
                 break;
             }
 
-        } 
+        }
         entities.resize(newEnd - entities.begin());
         const auto existing = entities;
 
@@ -367,7 +368,8 @@ void LevelEditor::tick(float dt) {
             if (groups[displayGroup(e)].size() > 1) {
                 define = "group='" + displayGroup(e) + "'";
             }
-            TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)entities[i], define.c_str());
+            uint64_t ptr = entities[i];
+            TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)ptr, define.c_str());
             bool added = datas->barVar.insert(std::make_pair(e, n.str())).second;
             LOGF_IF(!added, "Added is false: " << e << '/' << n.str());
 

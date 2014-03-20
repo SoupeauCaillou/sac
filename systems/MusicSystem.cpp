@@ -168,13 +168,11 @@ void MusicSystem::DoUpdate(float dt) {
         return;
     }
 
-    for (auto& p: components) {
-        auto* m = p.second;
-
+    FOR_EACH_ENTITY_COMPONENT(Music, entity, m)
         m->looped = false;
 
         if (m->loopNext == InvalidMusicRef && !m->autoLoopName.empty()) {
-            LOGI("Music '" << theEntityManager.entityName(p.first) << "': prepare next loop '" << m->autoLoopName << "'");
+            LOGI("Music '" << theEntityManager.entityName(entity) << "': prepare next loop '" << m->autoLoopName << "'");
             m->loopNext = loadMusicFile(m->autoLoopName);
         }
 
@@ -236,7 +234,7 @@ void MusicSystem::DoUpdate(float dt) {
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
             LOGE_IF (m->music == InvalidMusicRef, "Invalid music ref: " << m->music);
-            
+
         #if ! SAC_EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0]))
@@ -590,7 +588,7 @@ void MusicSystem::toggleMute(bool enable) {
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     LOGI("loadMusicFile " << assetName);
-    
+
     LOGF_IF(!assetAPI, "Asked to load a music file but invalid assetAPI given. Did you init MusicSystem?");
 
     PROFILE("Music", "loadMusicFile", BeginEvent);

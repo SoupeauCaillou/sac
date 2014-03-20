@@ -319,6 +319,10 @@ void RenderingSystem::DoUpdate(float) {
     // sort along order
     std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
 
+    RenderCommand* opaqueCommands = (RenderCommand*) alloca(entityCount() * sizeof(RenderCommand));
+    RenderCommand* blendedCommands = (RenderCommand*) alloca(entityCount() * sizeof(RenderCommand));
+
+    unsigned opaqueIndex = 0, blendedIndex = 0;
     outQueue.count = 0;
     for (unsigned idx = 0; idx<cameras.size(); idx++) {
         const Entity camera = cameras[idx];
@@ -326,7 +330,7 @@ void RenderingSystem::DoUpdate(float) {
         const TransformationComponent* camTrans = TRANSFORM(camera);
 
         const float cameraInvSize = 1.0f / (camTrans->size.x * camTrans->size.y);
-        std::vector<RenderCommand> opaqueCommands, semiOpaqueCommands;
+        opaqueIndex = blendedIndex = 0;
 
         /* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
@@ -336,7 +340,8 @@ void RenderingSystem::DoUpdate(float) {
             }
 
             const TransformationComponent* tc = TRANSFORM(a);
-            if (!IntersectionUtil::rectangleRectangle(camTrans, tc)) {
+
+            if (!IntersectionUtil::rectangleRectangleAABB(camTrans, tc)) {
                 continue;
             }
 
@@ -427,7 +432,7 @@ void RenderingSystem::DoUpdate(float) {
 
                         if (cull(camTrans, cCenter)) {
                             cCenter.key = makeKeyOpaque(cCenter);
-                            opaqueCommands.push_back(cCenter);
+                            opaqueCommands[opaqueIndex++] = cCenter;
                         }
 
 #if SAC_INGAME_EDITORS
@@ -437,7 +442,7 @@ void RenderingSystem::DoUpdate(float) {
                         }
 #endif
                         c.key = makeKeyBlended(c);
-                        semiOpaqueCommands.push_back(c);
+                        blendedCommands[blendedIndex++] = c;
                         continue;
                     }
                 }
@@ -451,7 +456,7 @@ void RenderingSystem::DoUpdate(float) {
 
             if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
                 c.key = makeKeyOpaque(c);
-                opaqueCommands.push_back(c);
+                opaqueCommands[opaqueIndex++] = c;
             } else {
 #if SAC_INGAME_EDITORS
                 if (highLight.nonOpaque) {
@@ -460,17 +465,17 @@ void RenderingSystem::DoUpdate(float) {
                 }
 #endif
                 c.key = makeKeyBlended(c);
-                semiOpaqueCommands.push_back(c);
+                blendedCommands[blendedIndex++] = c;
             }
         END_FOR_EACH()
 
-        unsigned cnt = outQueue.count + opaqueCommands.size() + semiOpaqueCommands.size() + 1;
+        unsigned cnt = outQueue.count + opaqueIndex + blendedIndex + 1;
 
         if (outQueue.commands.size() < cnt)
             outQueue.commands.resize(cnt);
 
-        std::sort(opaqueCommands.begin(), opaqueCommands.end(), sortFrontToBack);
-        std::sort(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), sortBackToFront);
+        std::sort(opaqueCommands, opaqueCommands + opaqueIndex, sortFrontToBack);
+        std::sort(blendedCommands, blendedCommands + blendedIndex, sortBackToFront);
 
         RenderCommand dummy;
         dummy.texture = BeginFrameMarker;
@@ -480,10 +485,10 @@ void RenderingSystem::DoUpdate(float) {
         packCameraAttributes(camTrans, camComp, dummy);
         outQueue.commands[outQueue.count] = dummy;
         outQueue.count++;
-        std::copy(opaqueCommands.begin(), opaqueCommands.end(), outQueue.commands.begin() + outQueue.count);
-        outQueue.count += opaqueCommands.size();
-        std::copy(semiOpaqueCommands.begin(), semiOpaqueCommands.end(), outQueue.commands.begin() + outQueue.count);
-        outQueue.count += semiOpaqueCommands.size();
+        std::copy(opaqueCommands, opaqueCommands + opaqueIndex, outQueue.commands.begin() + outQueue.count);
+        outQueue.count += opaqueIndex;
+        std::copy(blendedCommands, blendedCommands + blendedIndex, outQueue.commands.begin() + outQueue.count);
+        outQueue.count += blendedIndex;
     }
 
 #if SAC_DEBUG

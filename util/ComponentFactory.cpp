@@ -37,6 +37,7 @@
 
 #include <glm/glm.hpp>
 
+#include <alloca.h>
 #include <string>
 
 const std::string floatmodifiers[] =
@@ -462,15 +463,14 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     memcpy(&l, (*it).second, sizeof(int));
                     bool toLocalize;
                     memcpy(&toLocalize, (*it).second + sizeof(int), sizeof(bool));
-					LOGT("To be changed, previously it was tmp[l]");
-                    char tmp[100];
+                    char* tmp = (char*)alloca(l);
                     memcpy(tmp, (*it).second + sizeof(int) + sizeof(bool), l);
                     tmp[l] = '\0';
                     std::string* s = TYPE_2_PTR(std::string);
                     if (toLocalize)
                         *s = localizeAPI->text(tmp);
                     else
-                        *s = tmp;
+                        *s = std::string(tmp, l);
                 }
                 break;
             }
@@ -494,7 +494,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
                     ANCHOR(*e)->parent = entity;
                 } else if (a[0] == 1) {
-                    char* s = (char*)&a[1]; 
+                    char* s = (char*)&a[1];
                     Entity byName = theEntityManager.getEntityByName(s);
                     LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << name << "'");
                     memcpy(TYPE_2_PTR(Entity), &byName, sizeof(Entity));

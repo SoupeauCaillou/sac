@@ -29,15 +29,50 @@
 
 std::map<std::string, ComponentSystem*> ComponentSystem::registry;
 
+
+ComponentSystem::ComponentSystem(const std::string& n) : name(n)
+#if SAC_DEBUG
+    , updateDuration(0)
+#endif
+{
+    bool inserted = registry.insert(std::make_pair(name, this)).second;
+    LOGF_IF(!inserted, "System with name '" << name << "' already exists");
+}
+
+ComponentSystem::~ComponentSystem() {
+    registry.erase(name);
+}
+
+void ComponentSystem::Update(float dt) {
+    PROFILE("SystemUpdate", name, BeginEvent);
+#if SAC_DEBUG
+    float before = TimeUtil::GetTime();
+#endif
+    DoUpdate(dt);
+#if SAC_DEBUG
+    updateDuration = TimeUtil::GetTime() - before;
+#endif
+    PROFILE("SystemUpdate", name, EndEvent);
+}
+
+ComponentSystem* ComponentSystem::Named(const std::string& n) {
+    std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
+    if (it == registry.end()) {
+        LOGE("System with name: '" << n << "' does not exist");
+        return 0;
+    }
+    return (*it).second;
+}
+
 std::vector<std::string> ComponentSystem::registeredSystemNames() {
-	std::vector<std::string> result;
-	result.reserve(registry.size());
-	for (std::map<std::string, ComponentSystem*>::iterator it=registry.begin();
-		it!=registry.end();
-		++it) {
-		result.push_back(it->first);
-	}
-	return result;
+    std::vector<std::string> result;
+    result.reserve(registry.size());
+    for (std::map<std::string, ComponentSystem*>::iterator it=registry.begin();
+        it!=registry.end();
+        ++it) {
+        result.push_back(it->first);
+    }
+    return result;
 }
 
 const std::map<std::string, ComponentSystem*>& ComponentSystem::registeredSystems() {
@@ -112,7 +147,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
         return false;
     if (componentSerializer.getProperties().empty())
         return false;
-    
+
     const std::string& group = name;
     // Browse properties, and add them to the TwBar
     for(IProperty* prop: componentSerializer.getProperties()) {
@@ -165,13 +200,13 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                 break;
             case PropertyType::Texture:
                 TwAddVarCB(bar, varName(name, vname).c_str(),
-					TW_TYPE_STDSTRING, (TwSetVarCallback)textureSetCB, (TwGetVarCallback)textureGetCB, 
-					comp + prop->offset, varParams(group, vname).c_str());
+                    TW_TYPE_STDSTRING, (TwSetVarCallback)textureSetCB, (TwGetVarCallback)textureGetCB,
+                    comp + prop->offset, varParams(group, vname).c_str());
                 break;
             case PropertyType::Entity:
                 TwAddVarCB(bar, varName(name, vname).c_str(),
-					TW_TYPE_STDSTRING, 0, (TwGetVarCallback)entityGetCB, 
-					comp + prop->offset, varParams(group, vname).c_str());
+                    TW_TYPE_STDSTRING, 0, (TwGetVarCallback)entityGetCB,
+                    comp + prop->offset, varParams(group, vname).c_str());
                 break;
             default:
                 break;

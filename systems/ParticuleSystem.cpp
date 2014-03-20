@@ -59,16 +59,14 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
-    for (auto& p: components) {
-        Entity a = p.first;
-        ParticuleComponent* pc = p.second;
+    FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         TransformationComponent* ptc = TRANSFORM(a);
         if (pc->duration >= 0) {
-        	pc->duration -= dt;
-        	if (pc->duration <= 0) {
-        		pc->duration = 0;
-        		continue;
-         	}
+            pc->duration -= dt;
+            if (pc->duration <= 0) {
+                pc->duration = 0;
+                continue;
+            }
         }
 
         // emit particules
@@ -101,7 +99,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                     e = internal.e = pool[poolLastValidElement--];
                     theEntityManager.ResumeEntity(e);
                 }
-                
+
                 TransformationComponent* tc = internal.tc = TRANSFORM(e);
                 tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
                 tc->rotation = ptc->rotation;

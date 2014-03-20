@@ -53,117 +53,118 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
 void ButtonSystem::DoUpdate(float) {
     bool touch = theTouchInputManager.isTouched(0);
 
-	std::vector<glm::vec2> camerasAdaptedPos;
-	if (touch) {
-		glm::vec2 pos = theTouchInputManager.getTouchLastPositionScreen(0);
+    std::vector<glm::vec2> camerasAdaptedPos;
+    if (touch) {
+        glm::vec2 pos = theTouchInputManager.getTouchLastPositionScreen(0);
 
-		theCameraSystem.forEachECDo([pos, &camerasAdaptedPos] (Entity c, CameraComponent* cc) -> void {
-			camerasAdaptedPos.resize(glm::max((int)camerasAdaptedPos.size(), cc->id + 1));
-			camerasAdaptedPos[cc->id] = CameraSystem::ScreenToWorld(TRANSFORM(c), pos);
-		});
-	}
+        theCameraSystem.forEachECDo([pos, &camerasAdaptedPos] (Entity c, CameraComponent* cc) -> void {
+            camerasAdaptedPos.resize(glm::max((int)camerasAdaptedPos.size(), cc->id + 1));
+            camerasAdaptedPos[cc->id] = CameraSystem::ScreenToWorld(TRANSFORM(c), pos);
+        });
+    }
 
 
     theButtonSystem.forEachECDo([&] (Entity e, ButtonComponent *bt) -> void {
-    	const auto* rc = theRenderingSystem.Get(e, false);
-		if (camerasAdaptedPos.empty()) {
-			LOGT_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
-		}
+        const auto* rc = theRenderingSystem.Get(e, false);
+        if (camerasAdaptedPos.empty()) {
+            LOGT_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
+        }
 
-    	if (rc && ! camerasAdaptedPos.empty()) {
-    		UpdateButton(e, bt, touch, camerasAdaptedPos[(int) (rc->cameraBitMask / 2)]);
-    	} else {
-    		UpdateButton(e, bt, touch, theTouchInputManager.getTouchLastPosition(0));
-    	}
+        if (rc && ! camerasAdaptedPos.empty()) {
+            UpdateButton(e, bt, touch, camerasAdaptedPos[(int) (rc->cameraBitMask / 2)]);
+        } else {
+            UpdateButton(e, bt, touch, theTouchInputManager.getTouchLastPosition(0));
+        }
     });
 }
 
 void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
-	if (!comp->enabled) {
-		auto* rc = theRenderingSystem.Get(entity, false);
-		if (rc && rc->show && rc->texture == InvalidTextureRef)
-			rc->texture = comp->textureInactive;
-		comp->mouseOver = comp->clicked = comp->touchStartOutside = false;
-		return;
-	}
+    if (!comp->enabled) {
+        auto* rc = theRenderingSystem.Get(entity, false);
+        if (rc && rc->show && rc->texture == InvalidTextureRef)
+            rc->texture = comp->textureInactive;
+        comp->mouseOver = comp->clicked = comp->touchStartOutside = false;
+        return;
+    }
 
     comp->clicked = false;
 
     if (!touching)
         comp->touchStartOutside = false;
 
-	const glm::vec2& pos = TRANSFORM(entity)->position;
-	const glm::vec2& size = TRANSFORM(entity)->size;
+    const auto* tc = TRANSFORM(entity);
+    const glm::vec2& pos = tc->position;
+    const glm::vec2& size = tc->size;
 
-	bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize, TRANSFORM(entity)->rotation);
+    bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size * comp->overSize, tc->rotation);
 
-	auto* rc = theRenderingSystem.Get(entity, false);
-	if (rc) {
-		if (comp->textureActive != InvalidTextureRef) {
-			#ifdef SAC_DEBUG
-			if (oldTexture.find(entity) != oldTexture.end() && rc->texture != oldTexture[entity])
-				LOGW("Texture is changed in another place! Current=" << rc->texture << "!= old=" << oldTexture[entity]);
-			#endif
+    auto* rc = theRenderingSystem.Get(entity, false);
+    if (rc) {
+        if (comp->textureActive != InvalidTextureRef) {
+            #ifdef SAC_DEBUG
+            if (oldTexture.find(entity) != oldTexture.end() && rc->texture != oldTexture[entity])
+                LOGW("Texture is changed in another place! Current=" << rc->texture << "!= old=" << oldTexture[entity]);
+            #endif
 
-			// Adapt texture to button state
-			if (touching && over && !comp->touchStartOutside)
-				rc->texture = comp->textureActive;
-			else
-				rc->texture = comp->textureInactive;
-			
-			#ifdef SAC_DEBUG
-			oldTexture[entity] = rc->texture;
-			#endif
-		}
-	}
-	// If button is enabled and we have clicked on button at beginning
-	if (comp->enabled && !comp->touchStartOutside) {
+            // Adapt texture to button state
+            if (touching && over && !comp->touchStartOutside)
+                rc->texture = comp->textureActive;
+            else
+                rc->texture = comp->textureInactive;
+
+            #ifdef SAC_DEBUG
+            oldTexture[entity] = rc->texture;
+            #endif
+        }
+    }
+    // If button is enabled and we have clicked on button at beginning
+    if (comp->enabled && !comp->touchStartOutside) {
         // If we are clicking on the button
         if (comp->mouseOver) {
-			if (touching) {
-				comp->mouseOver = over;
-				if (comp->type == ButtonComponent::LONGPUSH) {
-					float t =TimeUtil::GetTime();
-					if (comp->firstTouch == 0) {
-						comp->firstTouch = t;
-					}
-					LOGI_EVERY_N(100, t-comp->firstTouch);
-					if (t - comp->firstTouch > comp->trigger) {
-						comp->firstTouch = 0;
-						comp->lastClick = t;
-						comp->clicked = true;
-					}
-				}
-			} else {
-				if (!comp->touchStartOutside) {
-					float t =TimeUtil::GetTime();
-					// at least 200 ms between 2 clicks
-					
-					if (t - comp->lastClick > .2) {
-						if (comp->type == ButtonComponent::NORMAL) {
-							comp->lastClick = t;
-							comp->clicked = true;
-						}
+            if (touching) {
+                comp->mouseOver = over;
+                if (comp->type == ButtonComponent::LONGPUSH) {
+                    float t =TimeUtil::GetTime();
+                    if (comp->firstTouch == 0) {
+                        comp->firstTouch = t;
+                    }
+                    LOGI_EVERY_N(100, t-comp->firstTouch);
+                    if (t - comp->firstTouch > comp->trigger) {
+                        comp->firstTouch = 0;
+                        comp->lastClick = t;
+                        comp->clicked = true;
+                    }
+                }
+            } else {
+                if (!comp->touchStartOutside) {
+                    float t =TimeUtil::GetTime();
+                    // at least 200 ms between 2 clicks
+
+                    if (t - comp->lastClick > .2) {
+                        if (comp->type == ButtonComponent::NORMAL) {
+                            comp->lastClick = t;
+                            comp->clicked = true;
+                        }
 
                         LOGI("Entity '" << theEntityManager.entityName(entity) << "' clicked");
 
                         if (vibrateAPI && comp->vibration > 0) {
                             vibrateAPI->vibrate(comp->vibration);
                         }
-					}
-					
-					comp->firstTouch = 0;	
-				}
+                    }
 
-				comp->mouseOver = false;
-			}
-		} else {
-			comp->touchStartOutside = touching & !over;
-			comp->mouseOver = touching & over;
-			
-			comp->firstTouch = 0;
-		}
-	} else {
+                    comp->firstTouch = 0;
+                }
+
+                comp->mouseOver = false;
+            }
+        } else {
+            comp->touchStartOutside = touching & !over;
+            comp->mouseOver = touching & over;
+
+            comp->firstTouch = 0;
+        }
+    } else {
         comp->mouseOver = false;
     }
 }
