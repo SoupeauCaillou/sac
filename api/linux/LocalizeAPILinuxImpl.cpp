@@ -54,12 +54,12 @@ static std::string getLocaleInfo() {
 
     ::GetLocaleInfo(LOCALE_USER_DEFAULT,
                     LOCALE_SISO3166CTRYNAME,
-					(LPSTR)szISOCountry,
+                    (LPSTR)szISOCountry,
                     sizeof(szISOCountry) / sizeof(WCHAR));
-    
-	std::wstring ws(szISOCountry);
 
-	std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
+    std::wstring ws(szISOCountry);
+
+    std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
 #elif SAC_EMSCRIPTEN
     std::string lang = emscripten_run_script_string( "navigator.language;" );
     lang.resize(2);
@@ -72,7 +72,7 @@ static std::string getLocaleInfo() {
     //convert to lower case
     transform(lang.begin(), lang.end(), lang.begin(), ::tolower);
 
-    LOGI("Using locale: '" << lang << "'");
+    LOGV(1, "Using locale: '" << lang << "'");
     return lang;
 }
 
@@ -95,7 +95,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
     if (lang != "en") {
         parseXMLfile(assetAPI, std::string("values-") + lang + "/strings.xml");
     }
-#endif    
+#endif
     return 0;
 }
 
@@ -172,9 +172,9 @@ void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & 
         _idToMessage[pElem->Attribute("name")] = s;
         LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'");
     }
-    LOGI("Found " << _idToMessage.size() << " localized strings in file '" 
+    LOGV(1, "Found " << _idToMessage.size() << " localized strings in file '"
         << filename << "'. ");
-        
+
 
     delete[] fb.data;
 #endif

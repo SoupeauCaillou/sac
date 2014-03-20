@@ -398,7 +398,7 @@ void RenderingSystem::DoUpdate(float) {
                     // If atlas texture is not loaded yet, load it
                     if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
                         atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
-                        LOGI("Requested effective load of atlas '" << atlas[atlasIdx].name << "' -> ref=" << atlas[atlasIdx].ref);
+                        LOGV(1, "Requested effective load of atlas '" << atlas[atlasIdx].name << "' -> ref=" << atlas[atlasIdx].ref);
                     }
 
                     // Only display the required area of the texture
@@ -656,7 +656,6 @@ void RenderingSystem::enableRendering() {
     setFrameQueueWritable(true);
 }
 void RenderingSystem::disableRendering() {
-    LOGW("HELO");
     setFrameQueueWritable(false);
 }
 
@@ -664,7 +663,7 @@ void RenderingSystem::setFrameQueueWritable(bool b) {
 #if ! SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
-    LOGI("Set rendering queue writable= " << b << " and flush queues");
+    LOGV(1, "Set rendering queue writable= " << b << " and flush queues");
     // Change writable state
     frameQueueWritable = b;
     // Flush queues

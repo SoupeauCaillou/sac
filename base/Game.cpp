@@ -180,7 +180,7 @@ void Game::buildOrderedSystemsToUpdateList() {
 #endif
 
 
-    LOGI(orderedSystemsToUpdate.size() << " active systems");
+    LOGV(1, orderedSystemsToUpdate.size() << " active systems");
 }
 
 Game::~Game() {
@@ -360,7 +360,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
     // h2wratio[' '] = h2wratio['r'];
     // h2wratio[0x97] = 1;
 
-    LOGI("Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
+    LOGV(1, "Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
     theTextSystem.registerFont(name, h2wratio);
 }
 
@@ -389,7 +389,7 @@ void Game::sacInit(int windowW, int windowH) {
         const std::string dpiFolder(OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi));
         std::list<std::string> atlas = renderThreadContext->assetAPI->listAssetContent(
             ".atlas", dpiFolder);
-        LOGI("Autoloading " << atlas.size() << " atlas");
+        LOGV(1, "Autoloading " << atlas.size() << " atlas");
         std::for_each(atlas.begin(), atlas.end(), [dpiFolder] (const std::string& a) -> void {
             theRenderingSystem.loadAtlas(dpiFolder + '/' + a);
         });
@@ -399,7 +399,7 @@ void Game::sacInit(int windowW, int windowH) {
     {
         std::list<std::string> fonts = renderThreadContext->assetAPI->listAssetContent(
             ".font");
-        LOGI("Autoloading " << fonts.size() << " fonts");
+        LOGV(1, "Autoloading " << fonts.size() << " fonts");
         std::for_each(fonts.begin(), fonts.end(), [this] (const std::string& typo) -> void {
             loadFont(renderThreadContext->assetAPI, typo);
         });

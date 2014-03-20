@@ -135,7 +135,7 @@ bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const Effe
         out = buildShaderFromAsset(assetAPI, "default.vs", assetName);
     } else {
         const FileBuffer& fb = it->second;
-        LOGI("loadShader: '" << assetName << "' from InMemoryShader (" << fb.size << ')');
+        LOGV(1, "loadShader: '" << assetName << "' from InMemoryShader (" << fb.size << ')');
         out = buildShaderFromFileBuffer("default.vs", fb);
     }
 

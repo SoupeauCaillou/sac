@@ -65,9 +65,9 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
 #if SAC_ANDROID
     pkmFormatSupported = true;
 #endif
-    LOGI("Supported texture format:");
-    LOGI(" - PVR: " << pvrFormatSupported);
-    LOGI(" - PKM: " << pkmFormatSupported);
+    LOGV(1, "Supported texture format:");
+    LOGV(1, " - PVR: " << pvrFormatSupported);
+    LOGV(1, " - PKM: " << pkmFormatSupported);
 }
 
 static GLenum channelCountToGLFormat(int channelCount) {

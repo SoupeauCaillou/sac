@@ -77,7 +77,7 @@ MusicSystem::~MusicSystem() {
     cond.notify_all();
     if (oggDecompressionThread.joinable())
         oggDecompressionThread.join();
-    LOGI("MusicSystem uninitinalized");
+    LOGV(1, "MusicSystem uninitinalized");
 #endif
 #if ! SAC_EMSCRIPTEN
     for (std::map<MusicRef, MusicInfo>::iterator it=musics.begin(); it!=musics.end(); ++it) {
@@ -587,7 +587,7 @@ void MusicSystem::toggleMute(bool enable) {
 }
 
 MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
-    LOGI("loadMusicFile " << assetName);
+    LOGV(1, "loadMusicFile " << assetName);
 
     LOGF_IF(!assetAPI, "Asked to load a music file but invalid assetAPI given. Did you init MusicSystem?");
 
