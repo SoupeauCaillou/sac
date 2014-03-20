@@ -27,42 +27,58 @@
 #include <sys/inotify.h>
 #include <fstream>
 #include <unistd.h>
+#include <stdio.h>
 
-ResourceHotReload::InotifyDatas::InotifyDatas(const std::string & file, const std::string & asset)
-	: _filename(file), _assetname(asset) {
-	LOGV(1, "New asset to monitor: " << _assetname << " from file " << _filename);
+ResourceHotReload::InotifyDatas::InotifyDatas(int fd, const std::string & file, const std::string & asset)
+    : _filename(file), _assetname(asset) {
+    LOGV(1, "New asset to monitor: " << _assetname << " from file " << _filename);
 
-	inotifyFd = inotify_init();
-	wd = inotify_add_watch(inotifyFd, _filename.c_str(), IN_CLOSE_WRITE);
+    wd = inotify_add_watch(fd, _filename.c_str(), IN_CLOSE_WRITE);
 }
 #endif
 
+ResourceHotReload::ResourceHotReload() {
+#if SAC_LINUX && SAC_DESKTOP
+    inotifyFd = inotify_init();
+
+    if (inotifyFd == -1) {
+        perror(0);
+        LOGF("Inotify failure, stopping");
+    }
+#endif
+}
+
 void ResourceHotReload::updateReload() {
 #if SAC_LINUX && SAC_DESKTOP
-    for (auto& it : filenames) {
-        InotifyDatas& idata = it.second;
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(idata.inotifyFd, &fds);
-        struct timeval tv = (struct timeval){0,0};
-        if (select(idata.inotifyFd + 1, &fds, NULL, NULL, &tv) > 0) {
-            char buffer[8192];
-            struct inotify_event *event;
 
-            if (read(idata.inotifyFd, buffer, sizeof(buffer)) > 0) {
-                event = (struct inotify_event *) buffer;
-                //it has changed! reload it
-                if (event->wd == idata.wd) {
-                    LOGI(idata._filename << " has changed! Reloading." << event->wd);
-                    idata.wd = inotify_add_watch(idata.inotifyFd,
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(inotifyFd, &fds);
+    struct timeval tv = (struct timeval){0,0};
+
+    int toRead = select(inotifyFd + 1, &fds, NULL, NULL, &tv);
+
+    LOGV_IF(1, toRead, toRead << " inotify events");
+    char* buffer = (char*)alloca(8192);
+    for (int i=0; i<toRead; i++) {
+        if (read(inotifyFd, buffer, 8192) > 0) {
+            struct inotify_event *event;
+            event = (struct inotify_event *) buffer;
+
+            // look up file
+            for (auto& it: filenames) {
+                InotifyDatas& idata = it.second;
+                if (idata.wd == event->wd) {
+                    LOGV(1, idata._filename << " has changed! Reloading." << event->wd);
+                    idata.wd = inotify_add_watch(inotifyFd,
                         idata._filename.c_str(),
                         IN_CLOSE_WRITE);
                     reload(idata._assetname);
-                } else {
-                    LOGW("Ugh ?" << idata.wd << "/" << event->wd);
                 }
-
             }
+
+        } else {
+            LOGW("Failed to read event #" << i << " from inotify");
         }
     }
 #endif
@@ -92,7 +108,7 @@ void ResourceHotReload::registerNewAsset(const std::string & asset, const std::s
     }
 
     if (filenames.find(full) == filenames.end())
-        filenames.insert(std::make_pair(full, InotifyDatas(full, asset)));
+        filenames.insert(std::make_pair(full, InotifyDatas(inotifyFd, full, asset)));
 }
 #else
     void ResourceHotReload::registerNewAsset(const std::string &, const std::string &) {}

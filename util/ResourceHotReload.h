@@ -27,7 +27,9 @@
 
 class ResourceHotReload {
     public:
-    	virtual ~ResourceHotReload() {}
+        ResourceHotReload();
+
+        virtual ~ResourceHotReload() {}
 
         void updateReload();
 
@@ -42,12 +44,13 @@ class ResourceHotReload {
         //for inotify
         struct InotifyDatas {
             int wd;
-            int inotifyFd;
             std::string _filename;
             std::string _assetname;
 
-            InotifyDatas(const std::string & file, const std::string & asset);
+            InotifyDatas(int fd, const std::string & file, const std::string & asset);
         };
+
+        int inotifyFd;
 
         std::map<std::string, InotifyDatas> filenames;
 #endif
