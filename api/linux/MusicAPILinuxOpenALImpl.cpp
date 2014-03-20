@@ -28,14 +28,14 @@
 
 #include <vector>
 
-#if SAC_DEBUG
+#if SAC_DEBUG || SAC_EMSCRIPTEN
     static const char* errToString(ALenum err);
-    static void check_AL_errors(const char* context);
+    static void check_AL_errors(const char* func, const char* context);
     #define AL_OPERATION(x)  \
          (x); \
-         check_AL_errors(#x);
+         check_AL_errors(__FUNCTION__, #x);
 #else
-    #define AL_OPERATION(x)
+    #define AL_OPERATION(x) (x);
 #endif
 
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
@@ -80,12 +80,12 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, short* data, i
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     if (master) {
-	    int pos;
-	    AL_OPERATION(alGetSourcei((static_cast<OpenALOpaqueMusicPtr*>(master))->source, AL_SAMPLE_OFFSET, &pos))
-	    setPosition(ptr, pos + offset);
+        int pos;
+        AL_OPERATION(alGetSourcei((static_cast<OpenALOpaqueMusicPtr*>(master))->source, AL_SAMPLE_OFFSET, &pos))
+        setPosition(ptr, pos + offset);
     }
     AL_OPERATION(alSourcePlay(openalptr->source))
-    LOGW_IF(!isPlaying(ptr), "Source was started but is not playing :-s");
+    LOGW_IF(!isPlaying(ptr), "Source was started but is not playing");
 }
 
 void MusicAPILinuxOpenALImpl::stopPlayer(OpaqueMusicPtr* ptr) {
@@ -136,13 +136,13 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     delete ptr;
 }
 
-#if SAC_DEBUG
-static void check_AL_errors(const char* context) {
+#if SAC_DEBUG || SAC_EMSCRIPTEN
+static void check_AL_errors(const char* func, const char* context) {
     int maxIterations=10;
     ALenum error;
     bool err = false;
     while (((error = alGetError()) != AL_NO_ERROR) && maxIterations > 0) {
-        LOGW("OpenAL error during '" << context << "' -> " << errToString(error));
+        LOGW("OpenAL error during '" << func << ':' << context << "' -> " << errToString(error));
         maxIterations--;
         err = true;
     }

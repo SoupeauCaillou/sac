@@ -24,12 +24,7 @@
 
 #include <base/Log.h>
 
-#if SAC_EMSCRIPTEN
-#include <SDL_mixer.h>
-#include <sstream>
-#else
 #include "util/OggDecoder.h"
-#endif
 
 #if SAC_LINUX
 #include <linux/sched.h>
@@ -186,12 +181,8 @@ void MusicSystem::DoUpdate(float dt) {
 
             LOGE_IF (m->music == InvalidMusicRef, "Invalid music ref: " << m->music);
 
-        #if ! SAC_EMSCRIPTEN
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0]))
-        #else
-            if (!musicAPI->isPlaying(m->opaque[0]))
-        #endif
             {
                 LOGI("(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music);
                 m->positionI = 0;
@@ -208,17 +199,11 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->master) {
                     loop = m->master->looped;
                 } else {
-                    #if SAC_EMSCRIPTEN
-                        loop = ((m->loopAt > 0) & !musicAPI->isPlaying(m->opaque[0]));
-                    #else
                         loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
-                    #endif
                 }
 
                 if (loop) {
-                    #if ! SAC_EMSCRIPTEN
-                        LOGV(1, "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']');
-                    #endif
+                    LOGV(1, "(music) " << m << " Begin loop (" << m->positionI << " >= " << SEC_TO_SAMPLES(m->loopAt, sampleRate0) << ") - m->music:" << m->music << " becomes loopNext:" << m->loopNext << " [master=" << m->master << ']');
 
                     m->looped = true;
                     m->opaque[1] = m->opaque[0];
@@ -232,11 +217,7 @@ void MusicSystem::DoUpdate(float dt) {
                     if (m->master) {
                         m->opaque[0] = startOpaque(m, m->music, m->master, 0);
                     } else {
-#if ! SAC_EMSCRIPTEN
                         int offset = m->positionI - SEC_TO_SAMPLES(m->loopAt, sampleRate0);
-#else
-                        int offset = 0;
-#endif
                         m->opaque[0] = startOpaque(m, m->music, 0, offset);
                     }
 
@@ -380,7 +361,11 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
     }
     MusicInfo info;
 
+#if SAC_WEB
+    info.handle = OggDecoder::load(&b, OggOption::Sync);
+#else
     info.handle = OggDecoder::load(&b, OggOption::Async);
+#endif
     OggInfo::Values in = OggDecoder::query(info.handle);
 
     info.totalTime = in.durationSeconds + SILENCE_AT_BEGINNING_SEC;

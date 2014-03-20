@@ -31,10 +31,6 @@ typedef int MusicRef;
 
 #define InvalidMusicRef -1
 
-#if SAC_EMSCRIPTEN
-    #include <SDL_mixer.h>
-#endif
-
 namespace MusicControl {
     enum Enum {
         Play,

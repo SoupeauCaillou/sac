@@ -21,15 +21,10 @@
 
 
 #include "SoundAPILinuxOpenALImpl.h"
-#if ! SAC_EMSCRIPTEN
-#if SAC_ANDROID
-#include "tremor/ivorbisfile.h"
-#else
-#include "vorbis/vorbisfile.h"
-#endif
-#include <al.h>
-#include <alc.h>
-#endif
+
+#include <AL/al.h>
+#include <AL/alc.h>
+
 #include <sstream>
 #include <vector>
 #include "base/Log.h"
@@ -37,35 +32,25 @@
 
 #include "util/OggDecoder.h"
 
-#if ! SAC_EMSCRIPTEN
 static const char* errToString(ALenum err);
 static void check_AL_errors(const char* context);
 #define AL_OPERATION(x)  \
      (x); \
      check_AL_errors(#x);
-#else
-#define AL_OPERATION(x)
 
-#endif
 
 struct OpenALOpaqueSoundPtr : public OpaqueSoundPtr {
-#if ! SAC_EMSCRIPTEN
     ALuint buffer;
-#else
-	Mix_Chunk* sample;
-#endif
 };
 
 SoundAPILinuxOpenALImpl::~SoundAPILinuxOpenALImpl() {
-#if ! SAC_EMSCRIPTEN
     AL_OPERATION(alDeleteSources(16, soundSources));
     delete[] soundSources;
-#endif
 }
 
 void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI, bool openALAlreadyInit) {
     assetAPI = pAssetAPI;
-#if ! SAC_EMSCRIPTEN
+
     if (!openALAlreadyInit) {
         ALCdevice* device = alcOpenDevice(0);
         ALCcontext* context = alcCreateContext(device, 0);
@@ -75,16 +60,9 @@ void SoundAPILinuxOpenALImpl::init(AssetAPI* pAssetAPI, bool openALAlreadyInit) 
     soundSources = new ALuint[16];
     // open al init is done earlier by MusicAPI
     AL_OPERATION(alGenSources(16, soundSources));
-#else
-	int ret = Mix_OpenAudio(0, 0, 0, 0);
-	if (ret != 0) {
-		LOGE("Mix_OpenAudio failed: " <<ret);
-	}
-#endif
 }
 
 OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
-#if ! SAC_EMSCRIPTEN
     FileBufferWithCursor fbc(assetAPI->loadAsset(asset));
     if (fbc.size == 0) {
         LOGW("Cannot read sound file: '" << asset << "'");
@@ -106,28 +84,13 @@ OpaqueSoundPtr* SoundAPILinuxOpenALImpl::loadSound(const std::string& asset) {
     AL_OPERATION(alBufferData(out->buffer, AL_FORMAT_MONO16, ptr, samples * sizeof(short), info.sampleRate))
 
     delete[] ptr;
-
     delete[] fbc.data;
-#else
-    std::stringstream a;
-#ifdef SAC_ASSETS_DIR
-    a << SAC_ASSETS_DIR;
-#else
-    a << "./assets/";
-#endif
-    a << asset;
-	OpenALOpaqueSoundPtr* out = new OpenALOpaqueSoundPtr();
-	out->sample = Mix_LoadWAV(a.str().c_str());
-	if (out->sample == 0) {
-		LOGW("Cannot load " << a.str());
-	}
-#endif
+
     return out;
 }
 
 bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
     OpenALOpaqueSoundPtr* ptr = static_cast<OpenALOpaqueSoundPtr*>(p);
-#if ! SAC_EMSCRIPTEN
     for (int i=0; i<16; i++) {
         int state;
         AL_OPERATION(alGetSourcei(soundSources[i], AL_SOURCE_STATE, &state))
@@ -138,14 +101,9 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
             return true;
         }
     }
-#else
-	Mix_PlayChannel(-1, ptr->sample, 0);
-	Mix_Volume(-1, MIX_MAX_VOLUME);
-#endif
     return false;
 }
 
-#if ! SAC_EMSCRIPTEN
 static void check_AL_errors(const char* context) {
     int maxIterations=10;
     ALenum error;
@@ -169,4 +127,3 @@ static const char* errToString(ALenum err) {
     default: return "AL(Unknown)";
     }
 }
-#endif
