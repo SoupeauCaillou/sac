@@ -44,7 +44,7 @@ function (postbuild_specific_actions)
     )
     add_custom_command(
         TARGET ${EXECUTABLE_NAME} POST_BUILD
-        COMMAND EMCC_DEBUG=1 emcc --llvm-lto 1 -O2 -s TOTAL_MEMORY=1073741824 -s WARN_ON_UNDEFINED_SYMBOLS=1
+        COMMAND EMCC_DEBUG=1 emcc --llvm-lto 1 -s ASM_JS=1 --closure 1 -O2 -s TOTAL_MEMORY=1073741824 -s WARN_ON_UNDEFINED_SYMBOLS=1
         ${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME} ${CMAKE_BINARY_DIR}/libsac.so -o ${PROJECT_NAME}.html
          --preload-file assets
         COMMAND sed -i "s/Emscripten-Generated\ Code/${PROJECT_NAME} - ${DATE_VAR} - ${COMMIT_VAR}/" ${PROJECT_NAME}.html
