@@ -26,7 +26,7 @@
 #include "opengl/AnimDescriptor.h"
 
 static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, const AnimDescriptor::AnimFrame& frame) {
-    LOGV(1, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");
+    LOGV(2, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");
 
     // hum..RENDERING(e)->show = (frame.texture != InvalidTextureRef);
     RENDERING(e)->texture = frame.texture;
