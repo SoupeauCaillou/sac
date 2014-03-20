@@ -38,7 +38,9 @@ namespace OggOption
 {
     enum Decoding {
         Sync,
+#if !SAC_WEB
         Async
+#endif
     };
 }
 

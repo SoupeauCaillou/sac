@@ -22,19 +22,24 @@
 
 #include "LocalizeAPILinuxImpl.h"
 
-
 #include "base/Log.h"
+
 #if SAC_EMSCRIPTEN
 #include <emscripten.h>
-#elif SAC_WINDOWS
+#else
+#include <tinyxml2.h>
+
+#if SAC_WINDOWS
 #include <Windows.h>
 #else
 #include <libintl.h>
 #endif
 
+#endif
+
+
 
 #include <locale.h>
-#include <tinyxml2.h>
 #include "base/Log.h"
 #include "api/AssetAPI.h"
 

@@ -47,9 +47,11 @@ struct OggHandle {
     const FileBuffer* fb;
     bool finished;
     bool async;
+#if !SAC_WEB
     std::thread decodeThread;
     std::mutex mutex;
     std::condition_variable condition;
+#endif
     CircularBuffer<short>* buffer;
 };
 
@@ -75,6 +77,7 @@ static void initHandle(OggHandle* r) {
     r->finished = false;
 }
 
+#if !SAC_WEB
 static void DecodeThread(OggHandle* hdl, std::mutex* ready, std::condition_variable* cond) {
     ready->lock();
 
@@ -106,6 +109,7 @@ static void DecodeThread(OggHandle* hdl, std::mutex* ready, std::condition_varia
         }
     }
 }
+#endif
 
 OggHandle* OggDecoder::load(const FileBuffer* fb, OggOption::Decoding d) {
     OggHandle* r = new OggHandle;
@@ -113,10 +117,13 @@ OggHandle* OggDecoder::load(const FileBuffer* fb, OggOption::Decoding d) {
 
     switch (d) {
         case OggOption::Sync:
+            LOGV(1, "OggDecoder loading in Sync mode");
             r->async = false;
             initHandle(r);
             break;
+#if !SAC_WEB
         case OggOption::Async:
+            LOGV(1, "OggDecoder loading in Async mode");
             r->async = true;
             std::mutex m;
             std::condition_variable c;
@@ -124,6 +131,7 @@ OggHandle* OggDecoder::load(const FileBuffer* fb, OggOption::Decoding d) {
             r->decodeThread = std::thread(DecodeThread, r, &m, &c);
             c.wait(lock);
             break;
+#endif
     }
 
     return r;
@@ -133,6 +141,7 @@ const FileBuffer* OggDecoder::release(OggHandle* handle) {
     LOGE_IF(!handle, "Releasing a null handle");
     LOGW_IF(!handle->vb, "OggHandle without valid vorbis?");
 
+#if !SAC_WEB
     if (handle->async) {
         {
             std::unique_lock<std::mutex> lock(handle->mutex);
@@ -141,6 +150,7 @@ const FileBuffer* OggDecoder::release(OggHandle* handle) {
         }
         handle->decodeThread.join();
     }
+#endif
 
     if (handle->vb) {
         stb_vorbis_close(handle->vb);
@@ -152,18 +162,26 @@ const FileBuffer* OggDecoder::release(OggHandle* handle) {
 }
 
 int OggDecoder::availableSamples(OggHandle* handle) {
+#if !SAC_WEB
     std::unique_lock<std::mutex> lock(handle->mutex);
     int ret = handle->buffer->readDataAvailable();
     return ret;
+#else
+    return stb_vorbis_stream_length_in_samples(handle->vb) -
+        stb_vorbis_get_sample_offset(handle->vb);
+#endif
 }
 
 int OggDecoder::readSamples(OggHandle* handle, int numSamples, short* output) {
+#if !SAC_WEB
     if (handle->async) {
         std::unique_lock<std::mutex> lock(handle->mutex);
         handle->buffer->read(output, numSamples);
         handle->condition.notify_one();
         return numSamples;
-    } else {
+    } else
+#endif
+    {
         stb_vorbis_info i = stb_vorbis_get_info(handle->vb);
         int count = stb_vorbis_get_samples_short_interleaved(
                 handle->vb, i.channels, output, numSamples);
