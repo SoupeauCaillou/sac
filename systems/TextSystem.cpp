@@ -235,8 +235,7 @@ void TextSystem::DoUpdate(float dt) {
         }
 
 #if SAC_DEBUG
-        const std::string invalidChar ("00_" + trc->fontName);
-        const TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);
+        const TextureRef invalidCharTexture = InvalidTextureRef;
 #endif
 
         // append a caret if needed
@@ -527,9 +526,8 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
             }
         );
 
-    std::string invalidChar = "00_" + fontName;
-    TextureRef invalidCharTexture = theRenderingSystem.loadTextureFile(invalidChar);
-    float invalidRatio = 1;
+    TextureRef invalidCharTexture = InvalidTextureRef;
+    float invalidRatio = 0.5;
     FontDesc font;
     font.highestUnicode = highestUnicode;
     font.entries = new CharInfo[highestUnicode + 1];
