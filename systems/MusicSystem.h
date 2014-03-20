@@ -89,13 +89,13 @@ UPDATABLE_SYSTEM(Music)
         MusicRef nextValidRef;
 
         struct MusicInfo {
-            MusicInfo() {}
+            MusicInfo() : handle(0) {}
             OggHandle* handle;
             // track info
             float totalTime;
             int nbSamples;
             int sampleRate, numChannels;
-            
+
             float queuedDuration;
             bool toRemove;
         };
@@ -106,8 +106,8 @@ UPDATABLE_SYSTEM(Music)
         std::map<std::string, FileBuffer> name2buffer;
 
         void feed(OpaqueMusicPtr* ptr, MusicRef m, float dt);
-            
-        OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r, 
+
+        OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r,
             MusicComponent* master, int offset);
         void stopMusic(MusicComponent* m);
         void clearAndRemoveInfo(MusicRef ref);

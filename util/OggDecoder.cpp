@@ -98,8 +98,9 @@ static void DecodeThread(OggHandle* hdl, std::mutex* ready, std::condition_varia
                 LOGV(1, "End of ogg reached. Stop decoding");
                 // hdl->finished = true;
                 hdl->condition.wait(lock);
+            } else {
+                hdl->buffer->write(temp, count);
             }
-            hdl->buffer->write(temp, count);
         } else {
             hdl->condition.wait(lock);
         }
@@ -131,6 +132,16 @@ OggHandle* OggDecoder::load(const FileBuffer* fb, OggOption::Decoding d) {
 const FileBuffer* OggDecoder::release(OggHandle* handle) {
     LOGE_IF(!handle, "Releasing a null handle");
     LOGW_IF(!handle->vb, "OggHandle without valid vorbis?");
+
+    if (handle->async) {
+        {
+            std::unique_lock<std::mutex> lock(handle->mutex);
+            handle->finished = true;
+            handle->condition.notify_one();
+        }
+        handle->decodeThread.join();
+    }
+
     if (handle->vb) {
         stb_vorbis_close(handle->vb);
         handle->vb = 0;

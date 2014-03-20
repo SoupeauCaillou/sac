@@ -79,27 +79,17 @@ void MusicSystem::init() {
 }
 
 void MusicSystem::clearAndRemoveInfo(MusicRef ref) {
-#if 0
-
-#if ! SAC_EMSCRIPTEN
     if (ref == InvalidMusicRef)
         return;
-    mutex.lock();
+
     std::map<MusicRef, MusicInfo>::iterator it = musics.find(ref);
     if (it == musics.end()) {
-        LOGW("Weird, cannot find: " << ref << " music ref");
+        LOGE("Weird, cannot find: " << ref << " music ref");
     } else {
-        // LOGW("Delayed erase music ref: %d", ref);
-        it->second.toRemove = true;
+        if (it->second.handle)
+            OggDecoder::release(it->second.handle);
+        musics.erase(it);
     }
-    mutex.unlock();
-    cond.notify_all();
-#else
-    Mix_FreeChunk(musics[ref]);
-    musics.erase(ref);
-#endif
-
-#endif
 }
 
 void MusicSystem::stopMusic(MusicComponent* m) {
