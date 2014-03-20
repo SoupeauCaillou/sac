@@ -50,7 +50,7 @@
 #include "base/TimeUtil.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
-    
+
 #include "systems/RenderingSystem.h"
 #include "systems/SoundSystem.h"
 #include "systems/MusicSystem.h"
@@ -223,12 +223,14 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     emscripten_run_script(script);
 
 #else
-    bool restore = false;
+    bool restore = false, verbose = false;
 #if SAC_ENABLE_PROFILING
     profilerEnabled = false;
 #endif
     for (int i=1; i<argc; i++) {
         restore |= !strcmp(argv[i], "-restore");
+        verbose |= !strcmp(argv[i], "-v");
+        verbose |= !strcmp(argv[i], "--verbose");
 #if SAC_ENABLE_PROFILING
         profilerEnabled |= !strcmp("-profile", argv[i]);
 #endif
@@ -248,6 +250,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
             fclose(file);
             LOGI("Restoring game state from file (size: " << size << ")");
         }
+    }
+
+    if (verbose) {
+        logLevel = LogVerbosity::VERBOSE1;
     }
 #endif
 
@@ -301,7 +307,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     if (game->wantsAPI(ContextAPI::Asset) || true) {
         static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(gameName);
     }
-	
+
     if (game->wantsAPI(ContextAPI::Music)) {
         theMusicSystem.musicAPI = ctx->musicAPI;
         theMusicSystem.assetAPI = ctx->assetAPI;
@@ -329,7 +335,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #if SAC_LINUX && SAC_DESKTOP
     Recorder::Instance().init(resolution.x, resolution.y);
 #endif
-    
+
 
     LOGV(1, "Run game loop");
 
