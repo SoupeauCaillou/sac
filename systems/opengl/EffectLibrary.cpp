@@ -114,16 +114,16 @@ void EffectLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading) {
     FileBuffer fb;
     fb.data = default_fs;
     fb.size = default_fs_len;
-    registerDataSource(load(DEFAULT_FRAGMENT), fb);
+    registerDataSource(name2ref(DEFAULT_FRAGMENT), fb);
     fb.data = default_no_alpha_fs;
     fb.size = default_no_alpha_fs_len;
-    registerDataSource(load(DEFAULT_NO_ALPHA_FRAGMENT), fb);
+    registerDataSource(name2ref(DEFAULT_NO_ALPHA_FRAGMENT), fb);
     fb.data = empty_fs;
     fb.size = empty_fs_len;
-    registerDataSource(load(EMPTY_FRAGMENT), fb);
+    registerDataSource(name2ref(EMPTY_FRAGMENT), fb);
     fb.data = default_no_texture_fs;
     fb.size = default_no_texture_fs_len;
-    registerDataSource(load(DEFAULT_NO_TEXTURE_FRAGMENT), fb);
+    registerDataSource(name2ref(DEFAULT_NO_TEXTURE_FRAGMENT), fb);
 }
 
 bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const EffectRef& ref) {

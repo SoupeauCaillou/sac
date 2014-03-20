@@ -56,13 +56,17 @@ class NamedAssetLibrary : public ResourceHotReload {
         virtual ~NamedAssetLibrary() {
         }
 
+        TRef name2ref(const std::string& name) const {
+            return MurmurHash::compute(name.c_str(), name.size());
+        }
+
         TRef load(const std::string& name) {
             TRef result = InvalidRef;
             if (useDeferredLoading)
                 mutex.lock();
             typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
             if (it == nameToRef.end()) {
-                result = MurmurHash::compute(name.c_str(), name.size());
+                result = name2ref(name);
                 LOGF_IF(ref2asset.find(result) != ref2asset.end(), "Hash collision: '" << result << "' - change resource : '" << name << "' name");
 
                 nameToRef.insert(std::make_pair(name, result));
@@ -225,7 +229,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         void add(const std::string& name, const T& info) {
             if (useDeferredLoading) mutex.lock();
-            TRef ref = MurmurHash::compute(name.c_str(), name.length());
+            TRef ref = name2ref(name);
             nameToRef.insert(std::make_pair(name, ref));
             ref2asset.insert(std::make_pair(ref, info));
             if (useDeferredLoading) mutex.unlock();
