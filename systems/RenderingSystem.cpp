@@ -60,7 +60,6 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
     RenderingComponent tc;
     componentSerializer.add(new Property<TextureRef>("texture", PropertyType::Texture, OFFSET(texture, tc), 0));
-    componentSerializer.add(new Property<EffectRef>("effectRef", OFFSET(effectRef, tc)));
     componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
     componentSerializer.add(new Property<bool>("fbo", OFFSET(fbo, tc)));
