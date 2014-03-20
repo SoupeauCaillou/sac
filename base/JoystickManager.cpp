@@ -32,8 +32,8 @@ JoystickManager* JoystickManager::instance = 0;
 
 
 JoystickManager* JoystickManager::Instance() {
-	if (instance == 0) instance = new JoystickManager();
-	return instance;
+    if (instance == 0) instance = new JoystickManager();
+    return instance;
 }
 
 void JoystickManager::DestroyInstance() {
@@ -52,7 +52,7 @@ int JoystickManager::eventSDL(void* inEvent) {
         if (event->type == SDL_JOYAXISMOTION) {
             int joystick = event->jaxis.which;
 
-            //0: X left 
+            //0: X left
             //1: Y left
             //2: X right
             //3: Y right
@@ -74,7 +74,7 @@ int JoystickManager::eventSDL(void* inEvent) {
                 // Right stick
                 joysticks[joystick].lastDirection[pad].y = - value;
             }
-            LOGV(2, "SDL_JOYAXISMOTION: direction=" << joysticks[joystick].lastDirection[pad] 
+            LOGV(2, "SDL_JOYAXISMOTION: direction=" << joysticks[joystick].lastDirection[pad]
                 << " axis=" << (int)event->jaxis.axis << " value=" << event->jaxis.value << " valuef=" << value);
             return 1;
         } else if (event->type == SDL_JOYBUTTONDOWN) {
