@@ -113,7 +113,7 @@ int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
     float elapsed = TimeUtil::GetTime() - openalptr->startTime;
     return elapsed * openalptr->sampleRate;
     #else
-    // AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
+    AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
     #endif
     return pos;
 }

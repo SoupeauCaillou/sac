@@ -184,7 +184,7 @@ void MusicSystem::DoUpdate(float dt) {
             int sampleRate0 = musics[m->music].sampleRate;
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0]))
             {
-                LOGI("(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music);
+                LOGV(1, "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music << ')');
                 m->positionI = 0;
                 musicAPI->deletePlayer(m->opaque[0]);
                 m->opaque[0] = 0;
