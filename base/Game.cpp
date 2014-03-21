@@ -433,14 +433,14 @@ void Game::step() {
     theRenderingSystem.waitDrawingComplete();
 
     float timeBeforeThisStep, delta = 0;
-#if SAC_WEB
+#if 0
     do {
         if (delta > 0.0f)
             TimeUtil::Wait(0.015 - delta);
 #endif
         timeBeforeThisStep = TimeUtil::GetTime();
         delta = timeBeforeThisStep - lastUpdateTime;
-#if SAC_WEB
+#if 0
     } while (delta < 0.015);
 #endif
 

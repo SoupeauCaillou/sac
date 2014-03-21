@@ -23,6 +23,7 @@
 #include "base/Log.h"
 #include "base/CircularBuffer.h"
 
+#include <cmath>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wtype-limits"

@@ -27,6 +27,9 @@
 #include <AL/alc.h>
 
 #include <vector>
+#if SAC_EMSCRIPTEN
+#include "base/TimeUtil.h"
+#endif
 
 #if SAC_DEBUG || SAC_EMSCRIPTEN
     static const char* errToString(ALenum err);
@@ -41,6 +44,10 @@
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
     ALuint source;
     std::vector<ALuint> queuedBuffers;
+    #if SAC_EMSCRIPTEN
+    float startTime;
+    int sampleRate;
+    #endif
 };
 
 void MusicAPILinuxOpenALImpl::init() {
@@ -74,14 +81,22 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, short* data, i
 
     AL_OPERATION(alSourceQueueBuffers(openalptr->source, 1, &buffer))
     openalptr->queuedBuffers.push_back(buffer);
+
+#if SAC_EMSCRIPTEN
+    openalptr->sampleRate = sampleRate;
+#endif
+
     delete[] data;
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+
+#if SAC_EMSCRIPTEN
+    openalptr->startTime = TimeUtil::GetTime();
+#endif
     if (master) {
-        int pos;
-        AL_OPERATION(alGetSourcei((static_cast<OpenALOpaqueMusicPtr*>(master))->source, AL_SAMPLE_OFFSET, &pos))
+        int pos = getPosition(openalptr);
         setPosition(ptr, pos + offset);
     }
     AL_OPERATION(alSourcePlay(openalptr->source))
@@ -101,13 +116,23 @@ void MusicAPILinuxOpenALImpl::pausePlayer(OpaqueMusicPtr* ptr) {
 int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     int pos = 0;
-    AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
+    #if SAC_EMSCRIPTEN
+    LOGT_EVERY_N(100, "AL_SAMPLE_OFFSET support missing in emscripten");
+    float elapsed = TimeUtil::GetTime() - openalptr->startTime;
+    return elapsed * openalptr->sampleRate;
+    #else
+    // AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
+    #endif
     return pos;
 }
 
 void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
+    #if SAC_EMSCRIPTEN
+    LOGT("AL_SAMPLE_OFFSET support missing in emscripten");
+    #else
     AL_OPERATION(alSourcei(openalptr->source, AL_SAMPLE_OFFSET, pos))
+    #endif
 }
 
 void MusicAPILinuxOpenALImpl::setVolume(OpaqueMusicPtr* ptr, float volume) {

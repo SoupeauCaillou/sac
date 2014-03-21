@@ -77,8 +77,8 @@ endif()
 
 if (NOT CURRENT_BUILD_VALUES STREQUAL NEW_BUILD_VALUES)
     message("Updating current git tag / commit version")
-    file(WRITE ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h     
-        "#pragma once\n#define TAG_NAME \"${SAC_REVISION_TAG}\"\n#define VERSION_NAME \"${SAC_REVISION}\"")    
+    file(WRITE ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h
+        "#pragma once\n#define TAG_NAME \"${SAC_REVISION_TAG}\"\n#define VERSION_NAME \"${SAC_REVISION}\"")
 endif()
 #######################################################################
 ########Library path finding related tools#############################
@@ -242,7 +242,7 @@ if (NETWORK_BUILD)
 endif()
 
 if (DESKTOP_BUILD)
-    check_and_link_libs("sac" AntTweakBar GLEW Ogg OpenAL SDL Sqlite3 Tinyxml2 VorbisFile Vorbis ZLIB)
+    check_and_link_libs("sac" AntTweakBar GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)
@@ -257,38 +257,10 @@ if (MOBILE_BUILD OR WEB_BUILD)
         include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
         add_library("sqlite3" STATIC ${sqlite3_sources})
 
-        target_link_libraries("sac" GLESv2 z ogg log sqlite3)
+        target_link_libraries("sac" GLESv2 z log sqlite3)
     else ()
-        target_link_libraries("sac" GLESv2 z ogg log)
+        target_link_libraries("sac" GLESv2 z)
     endif()
-endif()
-
-if(MOBILE_BUILD)
-   ########## build ogg lib ###########
-   set (ogg_base ${PROJECT_SOURCE_DIR}/sac/libs/tremor)
-
-    if (NOT ANDROID_ABI STREQUAL x86)
-        enable_language(ASM)
-        file(
-            GLOB_RECURSE ogg_sources
-            ${ogg_base}/*.s
-            ${ogg_base}/*.c
-        )
-        add_library("ogg" STATIC ${ogg_sources})
-        set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
-            "-DLITTLE_ENDIAN=1 -DBIG_ENDIAN=2 -DBYTE_ORDER=LITTLE_ENDIAN -D_ARM_ASSEM_")
-    else()
-        file(
-            GLOB_RECURSE ogg_sources
-            ${ogg_base}/*.c
-        )
-        add_library("ogg" STATIC ${ogg_sources})
-        set_target_properties("ogg" PROPERTIES COMPILE_FLAGS
-            "-DLITTLE_ENDIAN=1 -DBYTE_ORDER=LITTLE_ENDIAN")
-    endif()
-
-    ##########do the linkage with sac ###########
-    target_link_libraries("sac" GLESv2 z ogg log)
 endif()
 
 #######################################################################
@@ -306,7 +278,7 @@ if (NOT MOBILE_BUILD)
         ${PROJECT_SOURCE_DIR}/platforms/default/*.cpp
     )
     add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
-    target_link_libraries(${EXECUTABLE_NAME} sac)
+    target_link_libraries(${EXECUTABLE_NAME} sac m)
     cotire(${EXECUTABLE_NAME})
 endif()
 
@@ -360,10 +332,10 @@ function (generate_sublime_clang_configuration)
     #retrieve all our defines
     get_directory_property(defs COMPILE_DEFINITIONS)
     set (DEFINES "")
-    #and for each, add them to our custom variables DEFINES, adding -D before 
+    #and for each, add them to our custom variables DEFINES, adding -D before
     #them and comma separated
     foreach(value ${defs})
-        #.... because this will be placed in another .cmake file so we must 
+        #.... because this will be placed in another .cmake file so we must
         #meta-escape quotes
         string(REPLACE "\"" "\\\\\\\"" value ${value})
 
@@ -383,7 +355,7 @@ function (generate_sublime_clang_configuration)
     endif()
 
     #this is the content of the created .cmake file
-    set(SUBLIME_CLANG_PARAMETERS 
+    set(SUBLIME_CLANG_PARAMETERS
         "set (SUBLIME_CLANG_PARAMETERS \",
                 'settings':
                 {
@@ -417,7 +389,7 @@ function (generate_sublime_clang_configuration)
     )
 
     #write the upon defined variable in a custom cmake file
-    #we do NOT execute this directly (would be too easy :-)) because we need to wait 
+    #we do NOT execute this directly (would be too easy :-)) because we need to wait
     #POST_BUILD step since the sublime-project file is generated during it
     file(WRITE ${CMAKE_BINARY_DIR}/sublime_clang_plugin_support.cmake ${SUBLIME_CLANG_PARAMETERS})
     add_custom_command(
