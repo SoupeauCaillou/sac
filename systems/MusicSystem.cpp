@@ -282,6 +282,8 @@ void MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, float dt) {
         int avail = 0;
 
         while (info.queuedDuration < 0.75 && (avail = OggDecoder::availableSamples(info.handle))) {
+            LOGT_EVERY_N(100, "Consider replacing this with either a static buffer or alloca");
+            LOGT_EVERY_N(100, "Even better, let the api read directly from circularbuffer");
             short* b = new short[avail];
             int count = OggDecoder::readSamples(info.handle, avail, b);
             musicAPI->queueMusicData(ptr, b, count, info.sampleRate);

@@ -66,7 +66,7 @@ public class MusicAPI {
 		return r;
 	}
 
-	public byte[] allocate(int size) {
+	public short[] allocate(int size) {
 		synchronized (DumbAndroid.bufferPool) {
 			int s = DumbAndroid.bufferPool.size();
 			if (s > 0) {
@@ -76,12 +76,12 @@ public class MusicAPI {
 			} else {
 				// Log.i(HeriswapActivity.Tag, "Create new buffer: " + size);
 				// assert(size <= dumb.track.getSampleRate() * 2);
-				return new byte[size];
+				return new short[size];
 			}
 		}
 	}
 
-	public void deallocate(byte[] b) {
+	public void deallocate(short[] b) {
 		synchronized (DumbAndroid.bufferPool) {
 			DumbAndroid.bufferPool.add(b);
 		}
@@ -92,7 +92,7 @@ public class MusicAPI {
 		return dumb.initialCount;
 	}
 
-	public byte[] queueMusicData(Object o, byte[] audioData, int size,
+	public void queueMusicData(Object o, short[] audioData, int size,
 			int sampleRate) {
 		DumbAndroid dumb = (DumbAndroid) o;
 		// Log.i(TilematchActivity.Tag, "queue data");
@@ -114,7 +114,6 @@ public class MusicAPI {
 			}
 			dumb.track.notify();
 		}
-		return null;
 	}
 
 	public void startPlaying(Object o, Object master, int offset) {

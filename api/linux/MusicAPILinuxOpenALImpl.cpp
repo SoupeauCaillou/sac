@@ -64,14 +64,6 @@ OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int) {
     return result;
 }
 
-int MusicAPILinuxOpenALImpl::pcmBufferSize(int sampleRate) {
-    return SAMPLES_TO_BYTE(SEC_TO_SAMPLES(0.05, sampleRate), sampleRate);
-}
-
-int MusicAPILinuxOpenALImpl::initialPacketCount(OpaqueMusicPtr*) {
-    return 10;
-}
-
 void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, short* data, int count, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     // create buffer

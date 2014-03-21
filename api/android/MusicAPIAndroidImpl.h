@@ -46,14 +46,12 @@ namespace jni_music_api {
 
 class MusicAPIAndroidImpl : public MusicAPI, public JNIWrapper<jni_music_api::Enum> {
     public:
-    	MusicAPIAndroidImpl();
+        MusicAPIAndroidImpl();
 
         OpaqueMusicPtr* createPlayer(int sampleRate);
         int pcmBufferSize(int sampleRate);
-        int8_t* allocate(int size);
-        void deallocate(int8_t* b);
         int initialPacketCount(OpaqueMusicPtr* ptr);
-        void queueMusicData(OpaqueMusicPtr* ptr, int8_t* data, int size, int sampleRate);
+        void queueMusicData(OpaqueMusicPtr* ptr, short* data, int size, int sampleRate);
         void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
         void stopPlayer(OpaqueMusicPtr* ptr);
         void pausePlayer(OpaqueMusicPtr* ptr);

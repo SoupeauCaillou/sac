@@ -50,7 +50,7 @@ public class DumbAndroid {
 		};
 
 		public Command.Type type;
-		public byte[] buffer;
+		public short[] buffer;
 		public int bufferSize;
 		public AudioTrack master;
 		public int offset;
@@ -193,6 +193,6 @@ public class DumbAndroid {
 	}
 
 	// buffer pool shared accross all instances
-	public static List<byte[]> bufferPool = new ArrayList<byte[]>();
+	public static List<short[]> bufferPool = new ArrayList<short[]>();
 	public static List<AudioTrack> audioTrackPool = new ArrayList<AudioTrack>(10);
 }
