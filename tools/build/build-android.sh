@@ -112,12 +112,12 @@ check_necessary() {
     fi
 
     #test that the path contains android SDK and android NDK as required
-	check_package_in_PATH "android" "android-sdk/tools"
+    check_package_in_PATH "android" "android-sdk/tools"
     check_package_in_PATH "ndk-build" "android-ndk"
-	check_package_in_PATH "adb" "android-sdk/platform-tools"
-	check_package "ant"
+    check_package_in_PATH "adb" "android-sdk/platform-tools"
+    check_package "ant"
 
-    #we need 32 bits library to use the NDK tools. If the library is not 
+    #we need 32 bits library to use the NDK tools. If the library is not
     #installed we will get a "No such file or directory" when executing any tool
     aapt_location=$(find $ANDROID_HOME -name 'aapt' | head -n 1)
     $aapt_location &>/dev/null
@@ -148,8 +148,6 @@ init() {
 }
 
 compilation_before() {
-    info "Building tremor lib..."
-    cd $rootPath/sac/libs/tremor; git checkout *; ../convert_tremor_asm.sh; cd - 1>/dev/null
     info "Adding specific toolchain for android..."
 
     if [ "$ARCHI" = "x86" ]; then
@@ -178,7 +176,7 @@ compilation_after() {
         info "Updating android project"
         cd $rootPath
 
-        # -t "android-8" is required for installLocation, 
+        # -t "android-8" is required for installLocation,
         # glEsVersion, targetSdkVersion and allowBackup attributes
         # but currently all ndk <= 9 produce buggy builds for android-8, so use android-10
         if ! android update project -p . -t "android-10" -n $gameName --subprojects; then
@@ -213,9 +211,9 @@ get_APK_name() {
             fi
             APK=$(echo $APK | head -n1)
             info "Couldn't find a usual name for the apk... will use '$(echo $APK | sed 's|.*/||')'" $orange
-        else 
+        else
             error_and_quit "Could not find any APK (did you forget to use -p option?)"
-        fi 
+        fi
     fi
 }
 
@@ -270,7 +268,7 @@ Continuing..."
 
     packageName=$(grep 'package=' $rootPath/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
     activityName=$(grep '<activity' $rootPath/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
-    
+
     #debug required
     if [ ! -z "$(echo $TARGETS | grep d)" ]; then
         info "A bug? gdb on the way!"
