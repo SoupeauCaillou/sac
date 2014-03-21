@@ -558,7 +558,7 @@ void Game::render() {
     PROFILE("Game", "render-game", BeginEvent);
     theRenderingSystem.render();
 
-#if 1 //SAC_DEBUG
+#if SAC_DEBUG
     {
         static int count = 0;
         static float prevT = 0;
@@ -573,7 +573,7 @@ void Game::render() {
             fpsStats.minDt = dt;
         }
         ++count;
-        if (count == 300) {
+        if (count == 3000) {
             LOGI("FPS avg/min/max : " <<
                 (300.0 / (t - fpsStats.since)) << '/' << (1.0 / fpsStats.maxDt) << '/' << (1.0 / fpsStats.minDt));
             count = 0;

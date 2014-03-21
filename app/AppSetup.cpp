@@ -83,14 +83,34 @@
 
 Game* game = 0;
 
+#define BENCHMARK_MODE 0
+
+#if BENCHMARK_MODE
+static int frameCount = 0;
+static float startTime = 0;
+#endif
+
 #if SAC_EMSCRIPTEN
 static void updateAndRender() {
+#if !BENCHMARK_MODE
     LOGV(1, "gameloop - events handle");
     game->eventsHandler();
+#else
+    frameCount++;
+    if (frameCount == 300) {
+        startTime = TimeUtil::GetTime();
+    } else if ((frameCount - 300) % 1000 == 0) {
+        float dt = TimeUtil::GetTime() - startTime;
+        std::cout << "1000 frames: " << dt << " sec" << std::endl;
+        startTime = TimeUtil::GetTime();
+    }
+#endif
     LOGV(1, "gameloop - step");
     game->step();
     LOGV(1, "gameloop - render");
+#if !BENCHMARK_MODE
     game->render();
+#endif
 }
 #else
 std::mutex m;

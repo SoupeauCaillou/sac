@@ -491,7 +491,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 }
 
 void RenderingSystem::waitDrawingComplete() {
-#if ! SAC_EMSCRIPTEN
+#if ! SAC_EMSCRIPTEN || BENCHMARK_MODE
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
     int readQueue = (currentWriteQueue + 1) % 2;
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
