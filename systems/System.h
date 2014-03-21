@@ -259,20 +259,22 @@ class ComponentSystemImpl: public ComponentSystem {
 #endif
         }
 
-        std::vector<Entity> RetrieveAllEntityWithComponent() {
-            std::vector<Entity> result;
+
 #if SAC_USE_VECTOR_STORAGE
-            result.reserve(entityWithComponent.size());
-            for (Entity e: entityWithComponent) {
-                result.push_back(e);
-            }
+        const std::list<Entity>&
+#else
+        std::vector<Entity>
+#endif
+         RetrieveAllEntityWithComponent() {
+#if SAC_USE_VECTOR_STORAGE
+            return entityWithComponent;
 #else
             result.reserve(components.size());
             for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
                 result.push_back((*it).first);
             }
-#endif
             return result;
+#endif
         }
 
         void forEachEntityDo(std::function<void(Entity)> func) {

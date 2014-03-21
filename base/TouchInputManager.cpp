@@ -38,13 +38,13 @@ TouchInputManager* TouchInputManager::instance = 0;
 
 
 TouchInputManager* TouchInputManager::Instance() {
-	if (instance == 0) instance = new TouchInputManager();
-	return instance;
+    if (instance == 0) instance = new TouchInputManager();
+    return instance;
 }
 
 void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
-	worldSize = pWorldSize;
-	windowSize = pWindowSize;
+    worldSize = pWorldSize;
+    windowSize = pWindowSize;
 #if SAC_DEBUG
     for (int i=0; i<MAX_TOUCH_POINT; i++) {
         debugState[i] = 0;
@@ -69,13 +69,11 @@ void TouchInputManager::activateDebug(Entity camera) {
 
 void TouchInputManager::Update() {
     Entity camera = 0;
-    const std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
-    for (auto c: cameras) {
-        if (CAMERA(c)->fb == DefaultFrameBufferRef) {
+    theCameraSystem.forEachECDo([&camera] (Entity c, CameraComponent* cc) -> void {
+        if (cc->fb == DefaultFrameBufferRef) {
             camera = c;
-            break;
         }
-    }
+    });
     if (!camera) {
         LOGW("No camera defined -> no input handling");
         return;
@@ -87,7 +85,7 @@ void TouchInputManager::Update() {
     const unsigned pointers = ptr->maxTouchingCount();
 
     for (unsigned i=0; i<pointers; i++) {
-    	wasTouching[i] = touching[i];
+        wasTouching[i] = touching[i];
         moving[i] = ptr->isMoving(i);
         touching[i] = ptr->isTouching(i, &coords);
         if (touching[i]) {
@@ -97,7 +95,7 @@ void TouchInputManager::Update() {
             if (!wasTouching[i]) {
                 onTouchPosition[i] = lastTouchedPositionScreen[i];
             }
-    	}
+        }
 
         // first click condition: was touched + is released
         if (!touching[i] && wasTouching[i]) {
@@ -109,7 +107,7 @@ void TouchInputManager::Update() {
                 glm::vec2 pos = lastTouchedPositionScreen[i];
 
                 if ((t - lastClickTime[i] < 0.3) && glm::distance2(pos, lastClickPosition[i]) < 0.005) {
-                    doubleclicked[i] = true;    
+                    doubleclicked[i] = true;
                     LOGV(1, "DOUBLE CLICKED("<< i << ") TOO!");
                 } else {
                     lastClickPosition[i] = pos;
@@ -157,11 +155,11 @@ glm::vec2 TouchInputManager::windowToScreen(const glm::vec2& windowCoords) const
 
 glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
     glm::vec2 camLocal;
-	camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
+    camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
         - cameraTrans->size.x * 0.5f;
-	camLocal.y = ((theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH) * cameraTrans->size.y
+    camLocal.y = ((theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH) * cameraTrans->size.y
         - cameraTrans->size.y * 0.5f;
-	return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
+    return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
 }
 
 #if !ANDROID

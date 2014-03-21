@@ -312,19 +312,22 @@ void RenderingSystem::DoUpdate(float) {
     LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
 
     // retrieve all cameras
-    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    auto cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     // remove non active ones
     std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
     // sort along order
+    #if SAC_USE_VECTOR_STORAGE
+    cameras.sort(CameraSystem::sort);
+    #else
     std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
+    #endif
 
     RenderCommand* opaqueCommands = (RenderCommand*) alloca(entityCount() * sizeof(RenderCommand));
     RenderCommand* blendedCommands = (RenderCommand*) alloca(entityCount() * sizeof(RenderCommand));
 
     unsigned opaqueIndex = 0, blendedIndex = 0;
     outQueue.count = 0;
-    for (unsigned idx = 0; idx<cameras.size(); idx++) {
-        const Entity camera = cameras[idx];
+    for (auto camera: cameras) {
         const CameraComponent* camComp = CAMERA(camera);
         const TransformationComponent* camTrans = TRANSFORM(camera);
 
@@ -553,7 +556,7 @@ bool RenderingSystem::isVisible(Entity e) const {
 }
 
 bool RenderingSystem::isVisible(const TransformationComponent* tc) const {
-    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    const auto& cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     if (cameras.empty()) {
         return false;
     }

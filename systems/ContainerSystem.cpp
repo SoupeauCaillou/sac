@@ -61,8 +61,6 @@ void ContainerSystem::DoUpdate(float) {
     if (!atLeastOneEnabled)
         return;
 
-    const std::vector<Entity> allEntities(theTransformationSystem.RetrieveAllEntityWithComponent());
-
     FOR_EACH_ENTITY_COMPONENT(Container, a, bc)
         if (!bc->enable || bc->entities.empty())
             continue;

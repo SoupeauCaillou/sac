@@ -272,9 +272,11 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         }
     }
 
+#if SAC_ENABLE_LOG
     if (verbose) {
         logLevel = LogVerbosity::VERBOSE1;
     }
+#endif
 #endif
 
     /////////////////////////////////////////////////////
