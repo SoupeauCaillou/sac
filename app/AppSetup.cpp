@@ -83,32 +83,46 @@
 
 Game* game = 0;
 
-#define BENCHMARK_MODE 0
+#define SAC_BENCHMARK_MODE 1
 
-#if BENCHMARK_MODE
+#if SAC_BENCHMARK_MODE
 static int frameCount = 0;
-static float startTime = 0;
+static uint64_t totalFrameCount = 0;
+static float startTime = 5;
+
+static void updateBench() {
+    float t = TimeUtil::GetTime();
+
+
+    float dt = t - startTime;
+    if (dt > 0) {
+        frameCount++;
+        if (dt >= 1) {
+            std::cout << frameCount << " frames in " << dt << " sec. Avg: " << (1000 * dt) /frameCount << " ms/frame\n";
+            totalFrameCount += frameCount;
+            frameCount = 0;
+            startTime = t;
+        }
+    }
+    if (t > 20) {
+        std::cout << "TOTAL FRAME COUNT:" << totalFrameCount << std::endl;
+        exit(0);
+    }
+}
 #endif
 
 #if SAC_EMSCRIPTEN
 static void updateAndRender() {
-#if !BENCHMARK_MODE
+#if !SAC_BENCHMARK_MODE
     LOGV(1, "gameloop - events handle");
     game->eventsHandler();
 #else
-    frameCount++;
-    if (frameCount == 300) {
-        startTime = TimeUtil::GetTime();
-    } else if ((frameCount - 300) % 1000 == 0) {
-        float dt = TimeUtil::GetTime() - startTime;
-        std::cout << "1000 frames: " << dt << " sec" << std::endl;
-        startTime = TimeUtil::GetTime();
-    }
+    updateBench();
 #endif
     LOGV(1, "gameloop - step");
     game->step();
     LOGV(1, "gameloop - render");
-#if !BENCHMARK_MODE
+#if !SAC_BENCHMARK_MODE
     game->render();
 #endif
 }
@@ -141,6 +155,9 @@ static void updateLoop(const std::string& gameName) {
         #endif
         // game->eventsHandler();
 
+#if SAC_BENCHMARK_MODE
+    updateBench();
+#endif
         game->step();
 
         bool focus = (SDL_GetAppState() & SDL_APPINPUTFOCUS);
@@ -352,7 +369,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     game->sacInit(resolution.x, resolution.y);
     game->init(state, size);
 
+#if !SAC_BENCHMARK_MODE
     theRenderingSystem.enableRendering();
+#endif
 
 #if SAC_LINUX && SAC_DESKTOP
     Recorder::Instance().init(resolution.x, resolution.y);
@@ -385,6 +404,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     std::string currentHint = game->titleHint;
 #endif
 
+#if !SAC_BENCHMARK_MODE
     do {
         game->eventsHandler();
         game->render();
@@ -404,6 +424,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         }
 #endif
     } while (!m.try_lock());
+#endif
     th1.join();
 
     delete ctx;
