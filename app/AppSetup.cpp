@@ -83,8 +83,6 @@
 
 Game* game = 0;
 
-#define SAC_BENCHMARK_MODE 1
-
 #if SAC_BENCHMARK_MODE
 static int frameCount = 0;
 static uint64_t totalFrameCount = 0;

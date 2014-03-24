@@ -48,8 +48,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
 add_definitions(-DSAC_${BUILD_TARGET})
 
 if (SAC_CUSTOM_DEFINES)
-    message("Adding the following defines: ${SAC_CUSTOM_DEFINES}")
-    add_definitions(${SAC_CUSTOM_DEFINES})
+    STRING(REPLACE "," ";" SAC_CUSTOM_DEFINES_LIST ${SAC_CUSTOM_DEFINES})
+    foreach(def ${SAC_CUSTOM_DEFINES_LIST})
+        message("Adding the following define: ${def}")
+        add_definitions(${def})
+    endforeach()
 endif()
 
 #set a variable used for the window title
