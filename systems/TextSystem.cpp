@@ -532,7 +532,6 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
         font.entries[i].h2wRatio = invalidRatio;
     }
 
-    LOGT("Replace this map with a plain array/std::vector");
     for (std::map<uint32_t, float>::const_iterator it=charH2Wratio.begin(); it!=charH2Wratio.end(); ++it) {
         CharInfo& info = font.entries[it->first];
         info.h2wRatio = it->second;
