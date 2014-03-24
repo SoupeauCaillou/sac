@@ -318,7 +318,11 @@ void RenderingSystem::DoUpdate(float) {
     // remove non active ones
     std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
     // sort along order
+#if SAC_USE_VECTOR_STORAGE
     std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
+#else
+    cameras.sort(CameraSystem::sort);
+#endif
 
     // alloca here is dangerous
     RenderCommand* opaqueCommands = (RenderCommand*) malloc(entityCount() * sizeof(RenderCommand));
