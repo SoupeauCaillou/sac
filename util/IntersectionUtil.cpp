@@ -211,13 +211,9 @@ int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, cons
     return count;
 }
 
-struct AABB {
-    float left, right, top, bottom;
-};
-
-static void computeAABB(const TransformationComponent* tc, AABB& aabb) {
+void IntersectionUtil::computeAABB(const TransformationComponent* tc, AABB& aabb, bool useRotation) {
     glm::vec2 halfsize(0.0f);
-    if (glm::abs(tc->rotation) < 0.001) {
+    if (!useRotation || glm::abs(tc->rotation) < 0.001) {
         halfsize = tc->size * 0.5f;
     } else {
         glm::vec2 p = tc->size * glm::vec2(0.5, 0.5);
@@ -238,7 +234,7 @@ bool IntersectionUtil::rectangleRectangleAABB(const TransformationComponent* tc1
     computeAABB(tc1, a1);
     computeAABB(tc2, a2);
 
-    return !(a1.right < a2.left || a2.right < a1.left || a1.top < a2.bottom || a2.top < a1.bottom);
+    return rectangleRectangleAABB(a1, a2);
 }
 
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,

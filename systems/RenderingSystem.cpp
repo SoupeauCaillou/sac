@@ -333,6 +333,9 @@ void RenderingSystem::DoUpdate(float) {
         const float cameraInvSize = 1.0f / (camTrans->size.x * camTrans->size.y);
         opaqueIndex = blendedIndex = 0;
 
+        IntersectionUtil::AABB camAABB;
+        IntersectionUtil::computeAABB(camTrans, camAABB);
+
         /* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
             bool ccc = rc->cameraBitMask & (0x1 << camComp->id);
@@ -342,8 +345,13 @@ void RenderingSystem::DoUpdate(float) {
 
             const TransformationComponent* tc = TRANSFORM(a);
 
-            if (!IntersectionUtil::rectangleRectangleAABB(camTrans, tc)) {
-                continue;
+            {
+                IntersectionUtil::AABB entityAABB;
+                IntersectionUtil::computeAABB(tc, entityAABB, !rc->fastCulling);
+
+                if (!IntersectionUtil::rectangleRectangleAABB(camAABB, entityAABB)) {
+                    continue;
+                }
             }
 
             LOGW_IF(tc->z <= 0 || tc->z > 1, "Entity '" << theEntityManager.entityName(a) <<

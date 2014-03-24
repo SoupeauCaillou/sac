@@ -31,6 +31,10 @@ struct Polygon;
 
 class IntersectionUtil {
     public:
+        struct AABB {
+            float left, right, top, bottom;
+        };
+
         static bool pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB);
 
         static bool pointRectangle(const glm::vec2& point, const TransformationComponent* tc2 );
@@ -61,6 +65,12 @@ class IntersectionUtil {
         static bool rectangleRectangleAABB(const TransformationComponent* tc1,
             const TransformationComponent* tc2);
 
+        static inline bool rectangleRectangleAABB(const AABB& a1,
+            const AABB& a2) { return !(a1.right < a2.left || a2.right < a1.left || a1.top < a2.bottom || a2.top < a1.bottom); }
+
         static bool rectangleRectangle(const TransformationComponent* tc1,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot);
+
+
+        static void computeAABB(const TransformationComponent* tc, AABB& aabb, bool useRotation = true);
 };
