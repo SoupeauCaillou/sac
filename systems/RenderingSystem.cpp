@@ -309,21 +309,20 @@ void RenderingSystem::DoUpdate(float) {
 #endif
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
-    LOGW_IF(outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
+#if SAC_DEBUG
+    LOGV_IF(1, outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
+#endif
 
     // retrieve all cameras
     auto cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     // remove non active ones
     std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
     // sort along order
-    #if SAC_USE_VECTOR_STORAGE
     cameras.sort(CameraSystem::sort);
-    #else
-    std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
-    #endif
 
-    RenderCommand* opaqueCommands = (RenderCommand*) alloca(entityCount() * sizeof(RenderCommand));
-    RenderCommand* blendedCommands = (RenderCommand*) alloca(entityCount() * sizeof(RenderCommand));
+    // alloca here is dangerous
+    RenderCommand* opaqueCommands = (RenderCommand*) malloc(entityCount() * sizeof(RenderCommand));
+    RenderCommand* blendedCommands = (RenderCommand*) malloc(entityCount() * sizeof(RenderCommand));
 
     unsigned opaqueIndex = 0, blendedIndex = 0;
     outQueue.count = 0;
@@ -516,6 +515,9 @@ void RenderingSystem::DoUpdate(float) {
     );
 #endif
 
+    free (opaqueCommands);
+    free (blendedCommands);
+
     outQueue.commands.reserve(outQueue.count + 1);
 
     RenderCommand dummy;
@@ -571,27 +573,6 @@ bool RenderingSystem::isVisible(const TransformationComponent* tc) const {
         return false;
 
     return IntersectionUtil::rectangleRectangle(camTrans, tc);
-
-#if 0
-    if (cameraIndex < 0) {
-        for (unsigned camIdx = 0; camIdx < cameras.size(); camIdx++) {
-            if (isVisible(tc, camIdx)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    const Camera& camera = cameras[cameraIndex];
-    const Vector2 pos(tc->position - camera.position);
-    const Vector2 camHalfSize(camera.worldSize * .5);
-
-    const float biggestHalfEdge = MathUtil::Max(tc->size.X * 0.5, tc->size.Y * 0.5);
-    if ((pos.X + biggestHalfEdge) < -camHalfSize.X) return false;
-    if ((pos.X - biggestHalfEdge) > camHalfSize.X) return false;
-    if ((pos.Y + biggestHalfEdge) < -camHalfSize.Y) return false;
-    if ((pos.Y - biggestHalfEdge) > camHalfSize.Y) return false;
-    return true;
-#endif
 }
 
 int RenderingSystem::saveInternalState(uint8_t** /*out*/) {
