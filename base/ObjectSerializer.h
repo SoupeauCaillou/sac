@@ -35,10 +35,12 @@ class ObjectSerializer {
         }
 
         static std::string object2string(T value) {
+            return std::to_string(value);
+            /*
             std::stringstream ss;
 
             ss << value;
 
-            return ss.str();
+            return ss.str();*/
         }
 };

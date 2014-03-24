@@ -359,7 +359,6 @@ relayout:
                 }
             }
 
-            std::stringstream a;
             unsigned char letter = (unsigned char)trc->text[i];
             int skip = -1;
 
