@@ -58,9 +58,14 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     poolLastValidElement = -1;
 }
 
+#if SAC_USE_VECTOR_STORAGE
+static bool InternalParticuleCompare(const InternalParticule& i1, const InternalParticule& i2) {
+    return i1.e < i2.e;
+}
+#endif
+
 void ParticuleSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
-        TransformationComponent* ptc = TRANSFORM(a);
         if (pc->duration >= 0) {
             pc->duration -= dt;
             if (pc->duration <= 0) {
@@ -80,33 +85,41 @@ void ParticuleSystem::DoUpdate(float dt) {
             count = glm::min(count, MAX_PARTICULE_COUNT - (int)particules.size());
             particules.resize(particules.size() + count);
             std::list<InternalParticule>::reverse_iterator intP = particules.rbegin();
+
+            {
+                int missing = count - (poolLastValidElement + 1);
+                pool.resize(glm::max(pool.size(), pool.size() + missing));
+                for (int i=0; i<missing; i++) {
+                    Entity e = pool[++poolLastValidElement] = theEntityManager.CreateEntity("_particule");
+                    ADD_COMPONENT(e, Transformation);
+                    ADD_COMPONENT(e, Rendering);
+                    ADD_COMPONENT(e, Physics);
+                    theEntityManager.SuspendEntity(e);
+                }
+            }
+
+            const TransformationComponent* ptc = TRANSFORM(a);
             for (int i=0; i<count; i++) {
                 InternalParticule& internal = *intP++;
                 internal.time = -dt;
                 internal.lifetime = pc->lifetime.random();
 
-                Entity e = 0;
-                if (poolLastValidElement < 0) {
-#if SAC_DEBUG
-                    e = internal.e = theEntityManager.CreateEntity(name.str());
-#else
-                    e = internal.e = theEntityManager.CreateEntity("_particule");
-#endif
-                    ADD_COMPONENT(e, Transformation);
-                    ADD_COMPONENT(e, Rendering);
-                    ADD_COMPONENT(e, Physics);
-                } else {
-                    e = internal.e = pool[poolLastValidElement--];
-                    theEntityManager.ResumeEntity(e);
-                }
+                Entity e = internal.e = pool[poolLastValidElement--];
+                theEntityManager.ResumeEntity(e);
 
-                TransformationComponent* tc = internal.tc = TRANSFORM(e);
+                TransformationComponent* tc = TRANSFORM(e);
+                #if !SAC_USE_VECTOR_STORAGE
+                internal.tc = tc;
+                #endif
                 tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
                 tc->rotation = ptc->rotation;
                 tc->size.x = tc->size.y = pc->initialSize.random();
                 tc->z = ptc->z;
 
-                RenderingComponent* rc = internal.rc = RENDERING(e);
+                RenderingComponent* rc = RENDERING(e);
+                #if !SAC_USE_VECTOR_STORAGE
+                internal.rc = rc;
+                #endif
                 rc->fastCulling = true;
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
@@ -135,6 +148,9 @@ void ParticuleSystem::DoUpdate(float dt) {
         }
     }
 
+#if SAC_USE_VECTOR_STORAGE
+    // particules.sort(InternalParticuleCompare);
+#endif
     // update emitted particules
     for (std::list<InternalParticule>::iterator it=particules.begin(); it!=particules.end(); ) {
         InternalParticule& internal = *it;
@@ -143,15 +159,31 @@ void ParticuleSystem::DoUpdate(float dt) {
         if (internal.time >= internal.lifetime) {
             std::list<InternalParticule>::iterator next = it;
             next++;
-            pool.resize(++poolLastValidElement + 1);
-            pool[poolLastValidElement] = internal.e;
+
+            poolLastValidElement++;
+            // make sure pool is big enough
+            if (pool.size() < (poolLastValidElement + 1)) {
+                pool.push_back(internal.e);
+            } else {
+                pool[poolLastValidElement] = internal.e;
+            }
             theEntityManager.SuspendEntity(internal.e);
             internal.e = 0;
             particules.erase(it);
             it = next;
         } else {
-            internal.rc->color = internal.color.lerp(internal.time / internal.lifetime);
-            internal.tc->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
+            #if SAC_USE_VECTOR_STORAGE
+                RENDERING(internal.e)
+            #else
+                internal.rc
+            #endif
+                ->color = internal.color.lerp(internal.time / internal.lifetime);
+            #if SAC_USE_VECTOR_STORAGE
+                TRANSFORM(internal.e)
+            #else
+                internal.tc
+            #endif
+                ->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
             ++it;
         }
     }

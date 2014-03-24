@@ -316,6 +316,12 @@ relayout:
         CharSequenceToUnicode seqToUni;
         std::vector<Entity> charInLine;
 
+        // Add rendering entity if needed
+        int missingCount = length - (renderingEntitiesPool.size() - letterCount);
+        for (int i=0; i <= missingCount; i++) {
+            renderingEntitiesPool.push_back(createRenderingEntity());
+        }
+
         // Setup rendering for each individual letter
         for(unsigned int i=0; i<length; i++) {
             // If it's a multiline text, we must compute words/lines boundaries
@@ -365,10 +371,7 @@ relayout:
             lastValidCharIndex++;
 #endif
 
-            // Add rendering entity if needed
-            if (letterCount >= renderingEntitiesPool.size()) {
-                renderingEntitiesPool.push_back(createRenderingEntity());
-            }
+            LOGW_IF(renderingEntitiesPool.size() <= letterCount, "Missing rendering text entities");
             const Entity e = renderingEntitiesPool[letterCount];
             if (trc->flags & TextComponent::MultiLineBit) {
                 charInLine.push_back(e);
@@ -529,6 +532,7 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
         font.entries[i].h2wRatio = invalidRatio;
     }
 
+    LOGT("Replace this map with a plain array/std::vector");
     for (std::map<uint32_t, float>::const_iterator it=charH2Wratio.begin(); it!=charH2Wratio.end(); ++it) {
         CharInfo& info = font.entries[it->first];
         info.h2wRatio = it->second;
