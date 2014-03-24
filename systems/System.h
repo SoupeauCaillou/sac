@@ -227,8 +227,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 !failIfNotfound;
 #endif
             if (check) {
-                auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
-                if (it == entityWithComponent.end()) {
+                if (!std::binary_search(entityWithComponent.begin(), entityWithComponent.end(), entity)) {
                     if (failIfNotfound) {
                         LOGF("Entity '" << theEntityManager.entityName(entity)
                             << "' (" << entity << ") has no component of type '" << getName() << "' [@ " << file << ':' << line << ']');
@@ -259,7 +258,7 @@ class ComponentSystemImpl: public ComponentSystem {
 
 
 #if SAC_USE_VECTOR_STORAGE
-        const std::list<Entity>&
+        const std::vector<Entity>&
 #else
         std::list<Entity>
 #endif
@@ -331,7 +330,7 @@ class ComponentSystemImpl: public ComponentSystem {
 
     protected:
 #if SAC_USE_VECTOR_STORAGE
-        std::list<Entity> entityWithComponent;
+        std::vector<Entity> entityWithComponent;
         std::list<Entity> suspended;
         std::vector<T> components;
 #else
