@@ -197,12 +197,12 @@ void DebuggingSystem::DoUpdate(float dt) {
     timeUntilGraphUpdate -= dt;
 
     Entity activeCamera = 0;
-    std::vector<Entity> cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+    const auto& cameras = theCameraSystem.RetrieveAllEntityWithComponent();
     if (cameras.empty()) {
         return;
     }
 
-    for (std::vector<Entity>::iterator it = cameras.begin(); it != cameras.end(); ++it) {
+    for (auto it = cameras.begin(); it != cameras.end(); ++it) {
         if (CAMERA(*it)->fb == DefaultFrameBufferRef) {
             activeCamera = *it;
             break;
@@ -272,8 +272,8 @@ void DebuggingSystem::DoUpdate(float dt) {
 
         auto it = debugEntities.find(systemNames[i]);
         if (it == debugEntities.end()) {
-			Entity graph = createSystemGraphEntity(systemNames[i], systems, debugEntities.size(),
-				SystemsTextureName, 0.02f);
+            Entity graph = createSystemGraphEntity(systemNames[i], systems, debugEntities.size(),
+                SystemsTextureName, 0.02f);
             it = debugEntities.insert(std::make_pair(systemNames[i], graph)).first;
         }
         Entity e = it->second;
