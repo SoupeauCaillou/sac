@@ -80,14 +80,14 @@ void ParticuleSystem::DoUpdate(float dt) {
             std::stringstream name;
             name << "particule_" << theEntityManager.entityName(a);
 #endif
-            int count = pc->emissionRate * (dt + pc->spawnLeftOver);
-            pc->spawnLeftOver += dt - count / pc->emissionRate;
-            count = glm::min(count, MAX_PARTICULE_COUNT - (int)particules.size());
-            particules.resize(particules.size() + count);
-            std::list<InternalParticule>::reverse_iterator intP = particules.rbegin();
+            int added = pc->emissionRate * (dt + pc->spawnLeftOver);
+            pc->spawnLeftOver += dt - added / pc->emissionRate;
+            unsigned pCount = particules.size();
+            added = glm::min(added, MAX_PARTICULE_COUNT - (int)pCount);
+            particules.resize(pCount + added);
 
             {
-                int missing = count - (poolLastValidElement + 1);
+                int missing = added - (poolLastValidElement + 1);
                 pool.resize(glm::max(pool.size(), pool.size() + missing));
                 for (int i=0; i<missing; i++) {
                     Entity e = pool[++poolLastValidElement] = theEntityManager.CreateEntity("_particule");
@@ -99,8 +99,8 @@ void ParticuleSystem::DoUpdate(float dt) {
             }
 
             const TransformationComponent* ptc = TRANSFORM(a);
-            for (int i=0; i<count; i++) {
-                InternalParticule& internal = *intP++;
+            for (int i=0; i<added; i++) {
+                InternalParticule& internal = particules[pCount++];
                 internal.time = -dt;
                 internal.lifetime = pc->lifetime.random();
 
@@ -152,14 +152,13 @@ void ParticuleSystem::DoUpdate(float dt) {
     // particules.sort(InternalParticuleCompare);
 #endif
     // update emitted particules
-    for (std::list<InternalParticule>::iterator it=particules.begin(); it!=particules.end(); ) {
-        InternalParticule& internal = *it;
+    unsigned eraseFromIndex = 0, eraseCount = 0;
+    unsigned count = particules.size();
+    for (unsigned i=0; i<count; i++) {
+        InternalParticule& internal = particules[i];
         internal.time += dt;
 
         if (internal.time >= internal.lifetime) {
-            std::list<InternalParticule>::iterator next = it;
-            next++;
-
             poolLastValidElement++;
             // make sure pool is big enough
             if (pool.size() < (poolLastValidElement + 1)) {
@@ -169,8 +168,24 @@ void ParticuleSystem::DoUpdate(float dt) {
             }
             theEntityManager.SuspendEntity(internal.e);
             internal.e = 0;
-            particules.erase(it);
-            it = next;
+
+            if ((i - eraseFromIndex) == eraseCount) {
+                eraseCount++;
+            } else {
+                if (eraseCount) {
+                    particules.erase(
+                        particules.begin() + eraseFromIndex,
+                        particules.begin() + eraseFromIndex + eraseCount
+                    );
+                }
+
+                i -= eraseCount;
+                count -= eraseCount;
+
+                eraseFromIndex = i;
+                eraseCount = 1;
+            }
+            // i--;
         } else {
             #if SAC_USE_VECTOR_STORAGE
                 RENDERING(internal.e)
@@ -184,7 +199,13 @@ void ParticuleSystem::DoUpdate(float dt) {
                 internal.tc
             #endif
                 ->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
-            ++it;
         }
+    }
+
+    if (eraseCount) {
+        particules.erase(
+            particules.begin() + eraseFromIndex,
+            particules.begin() + eraseFromIndex + eraseCount
+        );
     }
 }

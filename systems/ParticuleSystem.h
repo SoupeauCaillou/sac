@@ -81,7 +81,7 @@ struct InternalParticule {
 UPDATABLE_SYSTEM(Particule)
 
 private:
-    std::list<InternalParticule> particules;
+    std::vector<InternalParticule> particules;
     int minUsedIdx, maxUsedIdx;
     std::vector<Entity> pool;
     int poolLastValidElement;
