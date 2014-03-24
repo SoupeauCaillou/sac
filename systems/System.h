@@ -43,8 +43,6 @@ class LocalizeAPI;
 #include "AntTweakBar.h"
 #endif
 
-#define SAC_USE_VECTOR_STORAGE 1
-
 class ComponentSystem {
     public:
         ComponentSystem(const std::string& n) ;
@@ -128,7 +126,7 @@ class ComponentSystemImpl: public ComponentSystem {
             }
             entityWithComponent.insert(it, entity);
 #else
-            T* comp = CreateComponent();
+            T* comp = new T(); //CreateComponent();
 
             components.insert(std::make_pair(entity, comp));
 #endif
@@ -263,13 +261,14 @@ class ComponentSystemImpl: public ComponentSystem {
 #if SAC_USE_VECTOR_STORAGE
         const std::list<Entity>&
 #else
-        std::vector<Entity>
+        std::list<Entity>
 #endif
          RetrieveAllEntityWithComponent() {
 #if SAC_USE_VECTOR_STORAGE
             return entityWithComponent;
 #else
-            result.reserve(components.size());
+            std::list<Entity> result;
+            // result.reserve(components.size());
             for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
                 result.push_back((*it).first);
             }
