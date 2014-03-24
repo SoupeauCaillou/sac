@@ -48,6 +48,34 @@ TEST(AnchorParentingChain)
         }
     }
     theAnchorSystem.Update(1.0f);
+    // chain: 1 -> 2 -> 3
+    CHECK_CLOSE(1, TRANSFORM(e[0])->position.x, 0.001);
+    CHECK_CLOSE(2, TRANSFORM(e[1])->position.x, 0.001);
+    CHECK_CLOSE(3, TRANSFORM(e[2])->position.x, 0.001);
+    TransformationSystem::DestroyInstance();
+    AnchorSystem::DestroyInstance();
+}
+
+TEST(AnchorParentingChainReverse)
+{
+    TransformationSystem::CreateInstance();
+    AnchorSystem::CreateInstance();
+    Entity e[3];
+    for (int i=0; i<3; i++) {
+        int idx = 3 - i;
+        e[i] = idx;
+        theTransformationSystem.Add(e[i]);
+        theAnchorSystem.Add(e[i]);
+        glm::vec2 position = glm::vec2(1, 0);
+        if (idx < 3) {
+            ANCHOR(e[i])->position = position;
+            ANCHOR(e[i])->parent = idx + 1;
+        } else {
+            TRANSFORM(e[i])->position = position;
+        }
+    }
+    theAnchorSystem.Update(1.0f);
+    // chain: 3 -> 2 -> 1
     CHECK_CLOSE(1, TRANSFORM(e[0])->position.x, 0.001);
     CHECK_CLOSE(2, TRANSFORM(e[1])->position.x, 0.001);
     CHECK_CLOSE(3, TRANSFORM(e[2])->position.x, 0.001);
@@ -82,7 +110,7 @@ TEST(TransformationTestCentralRotationRandomDegrees) {
     theTransformationSystem.Add(f);
     theTransformationSystem.Add(e);
     theAnchorSystem.Add(e);
-    
+
     theTransformationSystem.Add(ref1);
     theTransformationSystem.Add(ref2);
     theAnchorSystem.Add(ref1);
@@ -99,14 +127,14 @@ TEST(TransformationTestCentralRotationRandomDegrees) {
     ANCHOR(ref2)->anchor = -ANCHOR(e)->anchor;
 
     // We can do a random number of test there
-    for (int i=0; i<50; ++i) {    
+    for (int i=0; i<50; ++i) {
         ANCHOR(e)->position = glm::vec2(Random::Float(0, 10), Random::Float(0, 10));
         ANCHOR(e)->rotation = Random::Float(-2, 2) * glm::pi<float>();
 
         ANCHOR(ref1)->position = ANCHOR(e)->position;
 
         theAnchorSystem.Update(1.0f);
-        
+
         CHECK_CLOSE(TRANSFORM(ref1)->position.x, TRANSFORM(ref2)->position.x, 0.001);
         CHECK_CLOSE(TRANSFORM(ref1)->position.y, TRANSFORM(ref2)->position.y, 0.001);
     }
@@ -125,7 +153,7 @@ TEST(TransformationTestNorthWestRotationRandomDegrees) {
     theTransformationSystem.Add(f);
     theTransformationSystem.Add(e);
     theAnchorSystem.Add(e);
-    
+
     theTransformationSystem.Add(ref1);
     theTransformationSystem.Add(ref2);
     theAnchorSystem.Add(ref1);
@@ -142,14 +170,14 @@ TEST(TransformationTestNorthWestRotationRandomDegrees) {
     ANCHOR(ref2)->anchor = -ANCHOR(e)->anchor;
 
     // We can do a random number of test there
-    for (int i=0; i<50; ++i) {    
+    for (int i=0; i<50; ++i) {
         ANCHOR(e)->position = glm::vec2(Random::Float(0, 10), Random::Float(0, 10));
         ANCHOR(e)->rotation = Random::Float(-2, 2) * glm::pi<float>();
 
         ANCHOR(ref1)->position = ANCHOR(e)->position;
 
         theAnchorSystem.Update(1.0f);
-        
+
         CHECK_CLOSE(TRANSFORM(ref1)->position.x, TRANSFORM(ref2)->position.x, 0.001);
         CHECK_CLOSE(TRANSFORM(ref1)->position.y, TRANSFORM(ref2)->position.y, 0.001);
     }
@@ -168,7 +196,7 @@ TEST(TransformationTestSouthRotationRandomDegrees) {
     theTransformationSystem.Add(f);
     theTransformationSystem.Add(e);
     theAnchorSystem.Add(e);
-    
+
     theTransformationSystem.Add(ref1);
     theTransformationSystem.Add(ref2);
     theAnchorSystem.Add(ref1);
@@ -179,20 +207,20 @@ TEST(TransformationTestSouthRotationRandomDegrees) {
     ANCHOR(e)->parent = f;
     // Anchor on S
     ANCHOR(e)->anchor = glm::vec2(0, -0.5);
-    
+
     ANCHOR(ref1)->parent = f; // it's position vector
     ANCHOR(ref2)->parent = e; // it's anchor vector
     ANCHOR(ref2)->anchor = -ANCHOR(e)->anchor;
 
     // We can do a random number of test there
-    for (int i=0; i<50; ++i) {    
+    for (int i=0; i<50; ++i) {
         ANCHOR(e)->position = glm::vec2(Random::Float(0, 10), Random::Float(0, 10));
         ANCHOR(e)->rotation = Random::Float(-2, 2) * glm::pi<float>();
 
         ANCHOR(ref1)->position = ANCHOR(e)->position;
 
         theAnchorSystem.Update(1.0f);
-        
+
         CHECK_CLOSE(TRANSFORM(ref1)->position.x, TRANSFORM(ref2)->position.x, 0.001);
         CHECK_CLOSE(TRANSFORM(ref1)->position.y, TRANSFORM(ref2)->position.y, 0.001);
     }

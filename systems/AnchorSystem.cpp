@@ -23,7 +23,7 @@
 #include "AnchorSystem.h"
 
 #include "TransformationSystem.h"
-#include <set>
+#include <forward_list>
 #include <glm/gtx/rotate_vector.hpp>
 
 INSTANCE_IMPL(AnchorSystem);
@@ -39,32 +39,32 @@ AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>("Anchor") {
 
 struct CompareParentChain {
     bool operator() (const std::pair<Entity, AnchorComponent*>& t1, const std::pair<Entity, AnchorComponent*>& t2) const {
+        const auto& p1 = t1.second->parent;
+        const auto& p2 = t2.second->parent;
+
         // if both have the same parent/none, update order doesn't matter
-        if (t1.second->parent == t2.second->parent) {
+        if (p1 == p2) {
             return (t1.first < t2.first);
         }
         // if they both have parents
-        else if (t1.second->parent && t2.second->parent) {
-            const auto p1 = theAnchorSystem.Get(t1.second->parent, false);
-            const auto p2 = theAnchorSystem.Get(t2.second->parent, false);
+        else if (p1 && p2) {
+            const auto ap1 = theAnchorSystem.Get(p1, false);
+            const auto ap2 = theAnchorSystem.Get(p2, false);
+
             // p1 or p2 may be null
-            if (p1 && p2)
+            if (ap1 && ap2)
                 return operator()
-                    (std::make_pair(t1.second->parent, p1), std::make_pair(t2.second->parent, p2));
-            else if (p1)
+                    (std::make_pair(p1, ap1), std::make_pair(p2, ap2));
+            else if (ap1)
                 return false;
-            else if (p2)
+            else if (ap2)
                 return true;
             else
                 return (t1.first < t2.first);
         }
-        // if only t1 has a parent, update it last
-        else if (t1.second->parent) {
-            return false;
-        }
-        // else, only t2 has a parent -> t1 first
+        // else parent-less (parent == 0) is < parented one (parent > 0)
         else {
-            return true;
+            return p1 < p2;
         }
     }
 };
@@ -96,20 +96,22 @@ void AnchorSystem::adjustTransformWithAnchor(TransformationComponent* tc, const 
 }
 
 void AnchorSystem::DoUpdate(float) {
-    std::set<std::pair<Entity, AnchorComponent*> , CompareParentChain> cp;
+    std::forward_list<std::pair<Entity, AnchorComponent*>> cp;
 
     // sort all, root node first
     FOR_EACH_ENTITY_COMPONENT(Anchor, e, comp)
-        cp.insert(std::make_pair(e, comp));
+        if (comp->parent) {
+            cp.push_front(std::make_pair(e, comp));
+        }
     }
+
+    cp.sort(CompareParentChain());
 
     for (auto p: cp) {
         const auto anchor = p.second;
-        if (anchor->parent) {
-            const auto pTc = TRANSFORM(anchor->parent);
-            auto tc = TRANSFORM(p.first);
-            adjustTransformWithAnchor(tc, pTc, anchor);
-        }
+        const auto pTc = TRANSFORM(anchor->parent);
+        auto tc = TRANSFORM(p.first);
+        adjustTransformWithAnchor(tc, pTc, anchor);
     }
 }
 
