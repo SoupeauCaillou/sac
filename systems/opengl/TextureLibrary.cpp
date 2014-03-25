@@ -107,7 +107,7 @@ bool TextureLibrary::doLoad(const std::string& assetName, TextureInfo& out, cons
 }
 
 void TextureLibrary::doUnload(const std::string& LOG_USAGE_ONLY(name), const TextureInfo& in) {
-    
+
     LOGI("Unload atlas: '" << name << "'");
     if (in.glref.color) {
         LOGV(1, "   delete color texture");
@@ -120,7 +120,7 @@ void TextureLibrary::doUnload(const std::string& LOG_USAGE_ONLY(name), const Tex
 }
 
 void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
-    TextureInfo& info = ref2asset[ref];
+    TextureInfo& info = assets[ref2index[ref]];
     if (info.atlasIndex == -1) {
         doLoad(name, info, ref);
     }

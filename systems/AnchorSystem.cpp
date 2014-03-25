@@ -128,14 +128,14 @@ void AnchorSystem::DoUpdate(float) {
         }
     }
 
-    LOGF_IF(entityWithComponent.size() != count, "Insertion sort is broken: " count << " elements before, " << entityWithComponent.size() << " after");
+    LOGF_IF(entityWithComponent.size() != count, "Insertion sort is broken: " << count << " elements before, " << entityWithComponent.size() << " after");
 
     for (auto e: entityWithComponent) {
         const auto anchor = &components[e];
         if (!anchor->parent) {
             continue;
         }
-#endif
+
         const auto pTc = TRANSFORM(anchor->parent);
         auto tc = TRANSFORM(e);
         adjustTransformWithAnchor(tc, pTc, anchor);

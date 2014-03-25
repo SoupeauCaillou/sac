@@ -25,6 +25,7 @@
 #include <map>
 #include <string>
 #include <set>
+#include <vector>
 
 #include <mutex>
 #include <condition_variable>
@@ -51,9 +52,12 @@ class NamedAssetLibrary : public ResourceHotReload {
         virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true) {
             assetAPI = pAssetAPI;
             useDeferredLoading = pUseDeferredLoading;
+            assets.reserve(8);
         }
 
         virtual ~NamedAssetLibrary() {
+            nameToRef.clear();
+            ref2index.clear();
         }
 
         TRef name2ref(const std::string& name) const {
@@ -67,17 +71,20 @@ class NamedAssetLibrary : public ResourceHotReload {
             typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
             if (it == nameToRef.end()) {
                 result = name2ref(name);
-                LOGF_IF(ref2asset.find(result) != ref2asset.end(), "Hash collision: '" << result << "' - change resource : '" << name << "' name");
+                LOGF_IF(ref2index.find(result) != ref2index.end(), "Hash collision: '" << result << "' - change resource : '" << name << "' name");
 
+                LOGT_EVERY_N(100, "Probably useless, because the load method should take a hash");
                 nameToRef.insert(std::make_pair(name, result));
 
                 if (useDeferredLoading) {
                     delayed.loads.insert(name);
                     LOGV(1, "Put asset '" << name << "' (" << name.size() << ") on delayed load queue. Ref value: " << result << ". NameToRef size: " << nameToRef.size());
                 } else {
-                    T asset;
-                    doLoad(name, asset, result);
-                    ref2asset.insert(std::make_pair(result, asset));
+                    unsigned countBefore = assets.size();
+                    assets.reserve(countBefore * 2);
+                    assets.push_back(T());
+                    doLoad(name, assets.back(), result);
+                    ref2index[result] = countBefore;
                 }
 #if SAC_LINUX && SAC_DESKTOP
                 // Monitor file change if not loaded from memory
@@ -131,15 +138,19 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         void update() {
             LOGV_IF(1, !delayed.loads.empty(), "Process delayed loads");
+
+            unsigned countBefore = assets.size();
+            assets.reserve(countBefore + delayed.loads.size() * 2);
+            assets.resize(countBefore + delayed.loads.size());
+
             for (std::set<std::string>::iterator it=delayed.loads.begin();
                 it!=delayed.loads.end();
                 ++it) {
                 mutex.lock();
-                T asset;
                 TRef ref = nameToRef[*it];
                 LOGV(2, "\tLoad '" << *it << "' -> " << ref);
-                doLoad(*it, asset, ref);
-                ref2asset.insert(std::make_pair(ref, asset));
+                doLoad(*it, assets[countBefore], ref);
+                ref2index[ref] = countBefore++;
                 mutex.unlock();
             }
 
@@ -151,8 +162,8 @@ class NamedAssetLibrary : public ResourceHotReload {
                 const std::string& name = *it;
                 LOGV(2, "\tUnload '" << name << "'");
                 TRef ref = nameToRef[name];
-                doUnload(name, ref2asset[ref]);
-                ref2asset.erase(ref);
+                doUnload(name, assets[ref2index[ref]]);
+                ref2index.erase(ref);
                 nameToRef.erase(name);
                 mutex.unlock();
             }
@@ -180,8 +191,8 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         const T* get(const TRef& ref, bool waitIfLoadingInProgress) {
             std::unique_lock<std::mutex> lock(mutex);
-            typename std::map<TRef, T>::const_iterator it = ref2asset.find(ref);
-            if (it == ref2asset.end()) {
+            auto it = ref2index.find(ref);
+            if (it == ref2index.end()) {
 #if SAC_DEBUG
                 LOGW("Unavailable resource requested " << ref << " '" << ref2Name(ref) << "'");
 #else
@@ -192,7 +203,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                     // wait for next load end, the requested resource might be loaded in the next batch
                     while (!delayed.loads.empty())
                         cond.wait(lock);
-                    it = ref2asset.find(ref);
+                    it = ref2index.find(ref);
                 } else {
 #endif
                     lock.unlock();
@@ -200,9 +211,9 @@ class NamedAssetLibrary : public ResourceHotReload {
                 }
             }
 
-            LOGF_IF(it == ref2asset.end(), "Unkown ref requested: " << ref << ". Asset count: " << ref2asset.size());
+            LOGF_IF(it == ref2index.end(), "Unkown ref requested: " << ref << ". Asset count: " << ref2index.size());
             lock.unlock();
-            return &(it->second);
+            return &assets[it->second];
         }
 
         const T& get(const std::string& name) {
@@ -233,7 +244,8 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (useDeferredLoading) mutex.lock();
             TRef ref = name2ref(name);
             nameToRef.insert(std::make_pair(name, ref));
-            ref2asset.insert(std::make_pair(ref, info));
+            ref2index[ref] = assets.size();
+            assets.push_back(info);
             if (useDeferredLoading) mutex.unlock();
         }
 
@@ -262,7 +274,8 @@ class NamedAssetLibrary : public ResourceHotReload {
         bool useDeferredLoading;
 
         std::map<std::string, TRef> nameToRef;
-        std::map<TRef, T> ref2asset;
+        std::map<TRef, int> ref2index;
+        std::vector<T> assets;
         std::map<TRef, SourceDataType> dataSource;
         struct {
             std::set<std::string> loads;

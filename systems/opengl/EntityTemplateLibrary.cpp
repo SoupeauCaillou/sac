@@ -29,15 +29,14 @@
 #include "api/LocalizeAPI.h"
 
 EntityTemplateLibrary::~EntityTemplateLibrary() {
-    for (auto r2a: ref2asset) {
-        EntityTemplate& tmp = r2a.second;
+    for (auto& tmp: assets) {
         for (auto it: tmp) {
             for (auto jt: it.second) {
                 delete[] jt.second;
             }
         }
     }
-    ref2asset.clear();
+    assets.clear();
 }
 
 void EntityTemplateLibrary::registerDataSource(EntityTemplateRef ref, FileBuffer fb) {
@@ -48,7 +47,9 @@ bool EntityTemplateLibrary::isRegisteredDataSource(EntityTemplateRef ref) {
     return NamedAssetLibrary::isRegisteredDataSource(ref);
 }
 
-void EntityTemplateLibrary::unregisterDataSource(EntityTemplateRef ref) {
+void EntityTemplateLibrary::unregisterDataSource(EntityTemplateRef ) {
+    LOGT("Pfff");
+    #if 0
     NamedAssetLibrary::unregisterDataSource(ref);
     ref2asset.erase(ref);
     for (auto it = nameToRef.begin(); it != nameToRef.end(); ++it) {
@@ -57,6 +58,7 @@ void EntityTemplateLibrary::unregisterDataSource(EntityTemplateRef ref) {
             return;
         }
     }
+    #endif
 }
 
 
@@ -79,11 +81,7 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
                 std::string fullName (context + std::string("#") + subName);
                 EntityTemplateRef subRef = Murmur::Hash(fullName.c_str(), fullName.length());
 
-                auto jt = ref2asset.find(subRef);
-                if (jt == ref2asset.end()) {
-                    jt = ref2asset.insert(std::make_pair(subRef, EntityTemplate())).first;
-                }
-                EntityTemplate& sub = jt->second;
+                EntityTemplate sub;
                 loadTemplate(context, subName + std::string("#"), dfp, subRef, sub);
                 add(fullName, sub);
             }
@@ -170,7 +168,7 @@ void EntityTemplateLibrary::doReload(const std::string& name, const EntityTempla
     LOGE("RELOAD: " << name);
     EntityTemplate newTempl;
     if (doLoad(name, newTempl, ref)) {
-        ref2asset[ref] = newTempl;
+        assets[ref2index[ref]] = newTempl;
         #if SAC_LINUX && SAC_DESKTOP
             applyTemplateToAll(ref);
         #endif
@@ -187,11 +185,10 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
         LOGV(1, "apply parent first");
         applyEntityTemplate(e, parentIt->second);
     }
-    // typedef std::map<std::string, uint8_t*> PropertyNameValueMap;
-    // typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
-    const auto tIt = ref2asset.find(templRef);
-    LOGF_IF(tIt == ref2asset.end(), "Unknown entity template ref ! " << templRef);;
-    const EntityTemplate& templ = tIt->second;
+
+    const auto tIt = ref2index.find(templRef);
+    LOGF_IF(tIt == ref2index.end(), "Unknown entity template ref ! " << templRef);;
+    const EntityTemplate& templ = assets[tIt->second];
     // Small hack, always load Transformation first
     auto transfS = TransformationSystem::GetInstancePointer();
     auto hack = templ.find(transfS);

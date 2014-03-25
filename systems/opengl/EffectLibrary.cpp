@@ -148,5 +148,5 @@ void EffectLibrary::doUnload(const std::string&, const Shader&) {
 
 void EffectLibrary::doReload(const std::string& name, const EffectRef& ref) {
     //Shader& info = ref2asset[ref];
-    doLoad(name, ref2asset[ref], ref);
+    doLoad(name, assets[ref2index[ref]], ref);
 }
