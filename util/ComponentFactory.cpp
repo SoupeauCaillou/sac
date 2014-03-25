@@ -387,6 +387,11 @@ int ComponentFactory::build(
         delete it.second;
     }
 
+#if SAC_DEBUG
+    const auto propertiesInFile = dfp.sectionSize(section);
+    std::list<std::string> loaded;
+#endif
+
     // Browse properties for the given system
     for (auto it = properties.begin(); it!=properties.end(); ++it) {
         // Retrieve property name
@@ -401,17 +406,57 @@ int ComponentFactory::build(
             const std::string v[] = { "NE", "N", "NW", "E", "W", "SW", "S", "SE"};
             for (unsigned i=0; i<8; i++) {
                 if (loadSingleProperty(context, dfp, section, name + v[i], type, (*it)->getAttribute(), propMap, subEntities)) {
+                    success = true;
                     break;
                 }
             }
         }
+#if SAC_DEBUG
+        if (success) {
+            loaded.push_back(name);
+        }
+#endif
     }
 
+#if SAC_DEBUG
+    if (loaded.size() != propertiesInFile) {
+        LOGE(propertiesInFile << " declared in " << context << ".entity [" << section << "] and only " << loaded.size() << " actually loaded");
+        LOGV(1, "Loaded:");
+        for (auto& s: loaded) {
+            LOGV(1, "   '" << s << "'");
+        }
+        LOGV(1, "Missing:");
+        for (unsigned i=0; i<propertiesInFile; ++i) {
+            std::string key, value;
+            dfp.get(section, i, key, &value);
+
+            bool done = false;
+            for (auto s: loaded) {
+                if (key.find(s) == 0) {
+                    done = true;
+                    break;
+                }
+            }
+            if (!done) {
+                LOGE("   '" << key << "' = ... not loaded");
+            }
+        }
+    }
+#endif
     return propMap.size();
 }
 
 void ComponentFactory::applyTemplate(Entity entity, void* component, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties, LocalizeAPI* localizeAPI) {
     #define TYPE_2_PTR(_type_) (_type_ * )((uint8_t*)component + prop->offset)
+    #define ASSIGN2(_type1_, _type2_) { \
+        Interval< _type1_ > itv; \
+        memcpy(&itv, (*it).second, sizeof(itv)); \
+        if (prop->getAttribute() == PropertyAttribute::Interval){ \
+            (TYPE_2_PTR(Interval < _type2_ > ))->t1 = itv.t1; \
+            (TYPE_2_PTR(Interval < _type2_ > ))->t2 = itv.t2; \
+        } else \
+            *(TYPE_2_PTR(_type2_)) = itv.random(); }
+
     #define ASSIGN(_type_) { \
         Interval< _type_ > itv; \
         memcpy(&itv, (*it).second, sizeof(itv)); \
@@ -446,6 +491,9 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 break;
             case PropertyType::Int:
                 ASSIGN(int);
+                break;
+            case PropertyType::Int8:
+                ASSIGN2(int, int8_t);
                 break;
             case PropertyType::Bool:
                 ASSIGN(bool);
@@ -550,6 +598,7 @@ static bool loadSingleProperty(const std::string& context,
             LOAD_INTERVAL_TEMPL(float);
             break;
         case PropertyType::Int:
+        case PropertyType::Int8:
             LOAD_INTERVAL_TEMPL(int);
             break;
         case PropertyType::Bool:
@@ -575,6 +624,8 @@ static bool loadSingleProperty(const std::string& context,
                         uint8_t* arr = new uint8_t[size];
                         vp.serialize(arr, &a);
                         propMap.insert(std::make_pair(name, arr));
+                        delete[] all;
+                        return true;
                     }
                     delete[] all;
                 }
@@ -594,6 +645,7 @@ static bool loadSingleProperty(const std::string& context,
                     memcpy(&arr[sizeof(int)], &toLocalize, sizeof(bool));
                     memcpy(&arr[sizeof(int) + sizeof(bool)], s.c_str(), l);
                     propMap.insert(std::make_pair(name, arr));
+                    return true;
                 }
             }
             break;
@@ -602,7 +654,7 @@ static bool loadSingleProperty(const std::string& context,
             std::string s;
             if (load(dfp, section, name + "%template", IntervalAsRandom, &s)) {
                 std::string subEntityName(context + std::string("#") + name);
-                EntityTemplateRef r = MurmurHash::compute(subEntityName.c_str(), subEntityName.length());
+                EntityTemplateRef r = Murmur::Hash(subEntityName.c_str(), subEntityName.length());
                 uint8_t* arr = new uint8_t[sizeof(r) + 1];
                 arr[0] = 0;
                 memcpy(arr + 1, &r, sizeof(r));
@@ -610,12 +662,14 @@ static bool loadSingleProperty(const std::string& context,
                 subEntities.push_back(name);
                 theEntityManager.entityTemplateLibrary.defineParent(r,
                     theEntityManager.entityTemplateLibrary.load(s));
+                return true;
             } else if (load(dfp, section, name + "%name", IntervalAsRandom, &s)) {
                 uint8_t* arr = new uint8_t[1 + s.size() + 1];
                 arr[0] = 1;
                 memcpy(arr + 1, s.c_str(), s.size());
                 arr[s.size() + 1] = '\0';
                 propMap.insert(std::make_pair(name, arr));
+                return true;
             }
             break;
         }
@@ -628,6 +682,7 @@ static bool loadSingleProperty(const std::string& context,
                 uint8_t* arr = new uint8_t[sizeof(TextureRef)];
                 *((SoundRef*)arr) = theSoundSystem.loadSoundFile(soundName);
                 propMap.insert(std::make_pair(name, arr));
+                return true;
             }
             break;
         }
@@ -637,6 +692,7 @@ static bool loadSingleProperty(const std::string& context,
                 uint8_t* arr = new uint8_t[sizeof(TextureRef)];
                 *((TextureRef*)arr) = theRenderingSystem.loadTextureFile(textureName);
                 propMap.insert(std::make_pair(name, arr));
+                return true;
             }
             break;
         }

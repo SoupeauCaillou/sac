@@ -128,6 +128,8 @@ static TwType PropertyTypeToType(PropertyType::Enum e) {
             return TW_TYPE_FLOAT;
         case PropertyType::Int:
             return TW_TYPE_INT32;
+        case PropertyType::Int8:
+            return TW_TYPE_INT8;
         case PropertyType::Color:
             return TW_TYPE_COLOR4F;
         case PropertyType::Bool:
@@ -163,6 +165,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
         switch (prop->getType()) {
             case PropertyType::String:
             case PropertyType::Int:
+            case PropertyType::Int8:
             case PropertyType::Bool:
             case PropertyType::Color:
                 TwAddVarRW(bar, varName(name, vname, vt).c_str(),
@@ -172,6 +175,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                     int size = 0;
                     switch (prop->getType()) {
                         case PropertyType::Int: size = sizeof(int); break;
+                        case PropertyType::Int8: size = sizeof(int8_t); break;
                         case PropertyType::Bool: size = sizeof(bool); break;
                         case PropertyType::Color: size = 4 * sizeof(float); break;
                         default: size = 0;

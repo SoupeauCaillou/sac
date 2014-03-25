@@ -34,6 +34,7 @@ namespace PropertyType {
         String,
         Vec2,
         Int,
+        Int8,
         Float,
         Color,
         Texture,
