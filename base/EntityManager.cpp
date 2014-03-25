@@ -158,6 +158,11 @@ Entity EntityManager::getEntityByName(const std::string& name) const {
 
 void EntityManager::DeleteEntity(Entity e) {
     auto i = entityComponents.find(e);
+
+#if SAC_DEBUG
+    auto del = entityDeletionTime.find(e);
+    LOGE_IF(del != entityDeletionTime.end(), "Entity already deleted at: " << del->second.first);
+#endif
     LOGF_IF(i == entityComponents.end(), "DeleteEntity requested with invalid entity " <<
         e << "('" << entityName(e) << "') (did you already removed it?)");
 #if SAC_DEBUG
