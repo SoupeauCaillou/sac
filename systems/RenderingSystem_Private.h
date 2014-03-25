@@ -60,8 +60,9 @@ struct RenderingSystem::RenderCommand {
     Color color;
     glm::vec2 position;
     float rotation;
-    int flags, shapeType, vertices;
-    bool mirrorH, fbo, rotateUV;
+    int flags, shapeType;
+    uint8_t rflags;
+    bool rotateUV;
 #if SAC_DEBUG
     Entity e;
 #endif

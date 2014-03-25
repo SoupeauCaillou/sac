@@ -146,7 +146,7 @@ static inline void computeUV(RenderingSystem::RenderCommand& rc, const TextureIn
         rc.uv[1] = rc.uv[0] + glm::vec2(uvModifierSize.x * uvSize.x, uvModifierSize.y * uvSize.y);
     }
     // Miror UV when doing horizontal miroring
-    if (rc.mirrorH) {
+    if (rc.rflags & RenderingFlags::MirrorHorizontal) {
         if (info.rotateUV)
             std::swap(rc.uv[0].y, rc.uv[1].y);
         else
@@ -164,8 +164,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     unsigned* indiceCount) {
 
     // vertices
-    const std::vector<glm::vec2>& vert =
-        (rc.vertices == DefaultVerticesRef) ? polygon.vertices : theRenderingSystem.dynamicVertices[rc.vertices];
+    const std::vector<glm::vec2>& vert = polygon.vertices;
 
     // perform world -> screen position transformation
     computeVerticesScreenPos(vert, rc.position, rc.halfSize, rc.rotation, -rc.z, outVertices);
@@ -361,8 +360,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #if SAC_DEBUG
         const TextureRef rrr = rc.texture;
 #endif
+        const bool rcUseFbo = rc.rflags & RenderingFlags::TextureIsFBO;
         if (rc.texture != InvalidTextureRef) {
-            if (!rc.fbo) {
+            if (!rcUseFbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
                 LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found");
                 if (info->atlasIndex >= 0) {
@@ -395,9 +395,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         }
 
         // TEXTURE OR COLOR HAS CHANGED ?
-        const bool condUseFbo = (useFbo != rc.fbo);
-        const bool condTexture = (!rc.fbo && boundTexture != rc.glref && (currentFlags & EnableColorWriteBit));
-        const bool condFbo = (rc.fbo && fboRef != rc.framebuffer);
+        const bool condUseFbo = (useFbo != rcUseFbo);
+        const bool condTexture = (!rcUseFbo && boundTexture != rc.glref && (currentFlags & EnableColorWriteBit));
+        const bool condFbo = (rcUseFbo && fboRef != rc.framebuffer);
         const bool condColor = (currentColor != rc.color);
         if (condUseFbo | condTexture | condFbo | condColor) {
             #if SAC_DEBUG
@@ -413,7 +413,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #endif
             // flush before changing texture/color
             indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount);
-            if (rc.fbo) {
+            if (rcUseFbo) {
                 fboRef = rc.framebuffer;
                 boundTexture = InternalTexture::Invalid;
             } else {
@@ -424,7 +424,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     boundTexture.alpha = whiteTexture;
 #endif
             }
-            useFbo = rc.fbo;
+            useFbo = rcUseFbo;
             if (currentColor != rc.color || condTexture) {
                 currentColor = rc.color;
                 currentEffect =

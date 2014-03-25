@@ -80,7 +80,7 @@ void CollisionSystem::DoUpdate(float dt) {
                     ADD_COMPONENT(d, Rendering);
                     RENDERING(d)->color = Color(i%2,j%2,0, 0.1);
                     RENDERING(d)->show = 1;
-                    RENDERING(d)->opaqueType = RenderingComponent::NON_OPAQUE;
+                    RENDERING(d)->flags = RenderingFlags::NonOpaque;
                     ADD_COMPONENT(d, Text);
                     TEXT(d)->fontName = "typo";
                     TEXT(d)->charHeight = CELL_SIZE * 0.2;

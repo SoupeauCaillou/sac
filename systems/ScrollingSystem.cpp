@@ -46,7 +46,7 @@ ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("Sc
     componentSerializer.add(new Property<float>("speed", OFFSET(speed, sc), 0.001f));
     componentSerializer.add(new Property<glm::vec2>("display_size", OFFSET(displaySize, sc), glm::vec2(0.001, 0)));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, sc)));
-    componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, sc)));
+    componentSerializer.add(new Property<uint8_t>("rendering_flags", OFFSET(renderingFlags, sc)));
 }
 
 void ScrollingSystem::DoUpdate(float dt) {
@@ -120,7 +120,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
         rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
         // rc->color = debugColors[se.imageIndex[i]];
         se.hasBeenVisible[i] = false;
-        rc->opaqueType = sc->opaqueType;
+        rc->flags = sc->renderingFlags;
     }
     elements[e] = se;
 }

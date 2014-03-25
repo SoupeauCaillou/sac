@@ -112,6 +112,7 @@ class ComponentSystemImpl: public ComponentSystem {
 #if SAC_USE_VECTOR_STORAGE
             // make sure array is big enough
             while (components.size() <= entity) {
+                LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
                 components.resize(2 * components.size());
             }
             LOGT_EVERY_N(1000, "Add a reset method to components");

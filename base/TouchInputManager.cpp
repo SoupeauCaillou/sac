@@ -61,7 +61,6 @@ void TouchInputManager::activateDebug(Entity camera) {
         ANCHOR(debugState[i])->parent = camera;
         ANCHOR(debugState[i])->z = 0.9999f - TRANSFORM(camera)->z;
         ADD_COMPONENT(debugState[i], Rendering);
-        RENDERING(debugState[i])->opaqueType = RenderingComponent::FULL_OPAQUE;
         RENDERING(debugState[i])->show = 1;
     }
 }

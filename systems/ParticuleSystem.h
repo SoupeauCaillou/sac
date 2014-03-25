@@ -33,7 +33,7 @@
 
 
 struct ParticuleComponent {
-    ParticuleComponent() : emissionRate(10), duration(10), texture(InvalidTextureRef), spawnLeftOver(0) {
+    ParticuleComponent() : emissionRate(10), duration(10), texture(InvalidTextureRef), spawnLeftOver(0), renderingFlags(0) {
         lifetime.t1 = lifetime.t2 = 1;
         initialSize.t1 = initialSize.t2 = 1;
         finalSize.t1 = finalSize.t2 =
@@ -56,7 +56,7 @@ struct ParticuleComponent {
     glm::vec2 gravity;
     float spawnLeftOver;
     float mass;
-    RenderingComponent::Opacity opaqueType;
+    uint8_t renderingFlags;
 };
 
 struct TransformationComponent;

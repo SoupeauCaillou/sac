@@ -26,19 +26,19 @@
 #include "RenderingSystem.h"
 
 struct ScrollingComponent {
-	ScrollingComponent() :
+    ScrollingComponent() :
         direction(0),
         speed(0),
         displaySize(0),
         show(false),
-        opaqueType(RenderingComponent::FULL_OPAQUE) {}
+        renderingFlags(0) {}
     std::vector<std::string> images;
     glm::vec2 direction;
     float speed;
     glm::vec2 displaySize;
     // transitive rendering properties
     bool show;
-    RenderingComponent::Opacity opaqueType;
+    uint8_t renderingFlags;
 };
 
 #define theScrollingSystem ScrollingSystem::GetInstance()
@@ -51,9 +51,9 @@ UPDATABLE_SYSTEM(Scrolling)
 
 private:
 struct ScrollingElement {
-	Entity e[2];
-	int imageIndex[2];
-	bool hasBeenVisible[2];
+    Entity e[2];
+    int imageIndex[2];
+    bool hasBeenVisible[2];
 };
 void initScrolling(Entity e, ScrollingComponent* sc);
 std::map<Entity, ScrollingElement> elements;

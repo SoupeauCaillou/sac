@@ -219,7 +219,7 @@ void TextSystem::DoUpdate(float dt) {
         // compute cache entry
         if (0 && trc->blink.onDuration == 0) {
             unsigned keySize = key.populate(trc);
-            unsigned hash = MurmurHash::compute(&key, keySize, 0x12345678);
+            unsigned hash = Murmur::Hash(&key, keySize);
             std::map<Entity, unsigned int>::iterator c = cache.find(entity);
             if (c != cache.end()) {
                 if (hash == (*c).second)
@@ -386,7 +386,7 @@ relayout:
             */
             rc->show = trc->show;
             rc->cameraBitMask = trc->cameraBitMask;
-            rc->opaqueType = RenderingComponent::NON_OPAQUE;
+            rc->flags = RenderingFlags::NonOpaque | RenderingFlags::FastCulling;
 
             // At this point, we have the proper unicodeId to display,
             // except if it's an image delimiter

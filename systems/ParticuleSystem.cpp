@@ -53,7 +53,7 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     componentSerializer.add(new IntervalProperty<float>("moment", OFFSET(moment, tc)));
     componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc)));
     componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
+    componentSerializer.add(new Property<int8_t>("rendering_flags", OFFSET(renderingFlags, tc)));
 
     poolLastValidElement = -1;
 }
@@ -120,11 +120,10 @@ void ParticuleSystem::DoUpdate(float dt) {
                 #if !SAC_USE_VECTOR_STORAGE
                 internal.rc = rc;
                 #endif
-                rc->fastCulling = true;
+                rc->flags = pc->renderingFlags | RenderingFlags::FastCulling;
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
                 rc->show = true;
-                rc->opaqueType = pc->opaqueType;
 
                 if (pc->mass) {
                     PhysicsComponent* ppc = PHYSICS(e);

@@ -60,14 +60,10 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
     RenderingComponent tc;
     componentSerializer.add(new Property<TextureRef>("texture", PropertyType::Texture, OFFSET(texture, tc), 0));
-    componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
     componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
-    componentSerializer.add(new Property<bool>("fbo", OFFSET(fbo, tc)));
-    componentSerializer.add(new Property<bool>("mirror_h", OFFSET(mirrorH, tc)));
-    componentSerializer.add(new Property<bool>("z_pre_pass", OFFSET(zPrePass, tc)));
-    componentSerializer.add(new Property<bool>("fast_culling", OFFSET(fastCulling, tc)));
-    componentSerializer.add(new Property<int>("opaque_type", OFFSET(opaqueType, tc)));
-    componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<uint8_t>("flags", OFFSET(flags, tc)));
+    componentSerializer.add(new Property<int8_t>("camera_bitmask", OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;
@@ -235,7 +231,7 @@ static bool sortBackToFront(const RenderingSystem::RenderCommand& r1, const Rend
 
 static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
     const glm::vec2 offset =  offsetPos * r.halfSize * 2.0f + size * r.halfSize * 2.0f * 0.5f;
-    r.position = r.position  + glm::vec2((r.mirrorH ? -1.0f : 1.0f), 1.0f) * glm::rotate(- r.halfSize + offset, r.rotation);
+    r.position = r.position  + glm::vec2((r.rflags & RenderingFlags::MirrorHorizontal ? -1.0f : 1.0f), 1.0f) * glm::rotate(- r.halfSize + offset, r.rotation);
     r.halfSize = size * r.halfSize;
 }
 
@@ -243,7 +239,7 @@ static inline void modifyQ(RenderingSystem::RenderCommand& r, const glm::vec2& o
 static void modifyR(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPos, const glm::vec2& size) {
     const glm::vec2 fullSize(r.halfSize * 2.0f);
     const glm::vec2 newCenterFromBL = (offsetPos + size * 0.5f) * fullSize;
-    r.position = r.position + glm::vec2((r.mirrorH ? -1.0f : 1.0f), 1.0f) * glm::rotate(newCenterFromBL - r.halfSize, r.rotation);
+    r.position = r.position + glm::vec2((r.rflags & RenderingFlags::MirrorHorizontal ? -1.0f : 1.0f), 1.0f) * glm::rotate(newCenterFromBL - r.halfSize, r.rotation);
     r.halfSize = size * r.halfSize;
     r.uv[0] = offsetPos;
     r.uv[1] = size;
@@ -262,7 +258,7 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
                 if (cullLeftX >= 2 * c.halfSize.x)
                     return false;
                 const float prop = cullLeftX * invWidth; // € [0, 1]
-                if (!c.mirrorH) {
+                if (!(c.rflags & RenderingFlags::MirrorHorizontal)) {
                     c.uv[0].x += prop * c.uv[1].x;
                 }
                 c.uv[1].x *= (1 - prop);
@@ -278,7 +274,7 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
                 if (cullRightX >= 2 * c.halfSize.x)
                     return false;
                 const float prop = cullRightX * invWidth; // € [0, 1]
-                if (c.mirrorH) {
+                if ((c.rflags & RenderingFlags::MirrorHorizontal)) {
                     c.uv[0].x += prop * c.uv[1].x;
                 }
                 c.uv[1].x *= (1 - prop);
@@ -351,7 +347,7 @@ void RenderingSystem::DoUpdate(float) {
 
             {
                 IntersectionUtil::AABB entityAABB;
-                IntersectionUtil::computeAABB(tc, entityAABB, !rc->fastCulling);
+                IntersectionUtil::computeAABB(tc, entityAABB, !(rc->flags & RenderingFlags::FastCulling));
 
                 if (!IntersectionUtil::rectangleRectangleAABB(camAABB, entityAABB)) {
                     continue;
@@ -368,18 +364,17 @@ void RenderingSystem::DoUpdate(float) {
             c.halfSize = tc->size * 0.5f;
             c.color = rc->color;
             c.shapeType = (int)tc->shape;
-            c.vertices = rc->dynamicVertices;
             c.position = tc->position;
             c.rotation = tc->rotation;
             c.uv[0] = glm::vec2(0.0f);
             c.uv[1] = glm::vec2(1.0f);
-            c.mirrorH = rc->mirrorH;
-            c.fbo = rc->fbo;
+            c.rflags = rc->flags;
 #if SAC_DEBUG
             c.e = a;
 #endif
 
-            if (rc->zPrePass) {
+            if (c.rflags & RenderingFlags::ZPrePass) {
+                LOGT_EVERY_N(1000, "Hu, why are Z-pre-pass disabled?");
                 continue;
 //#if SAC_INGAME_EDITORS
 //                if (highLight.zPrePass) {
@@ -389,8 +384,8 @@ void RenderingSystem::DoUpdate(float) {
 //                    c.texture = InvalidTextureRef;
 //                } else
 //#endif
-//                c.flags = ZPrePassFlagSet;
-            } else if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
+                c.flags = ZPrePassFlagSet;
+            } else if (!(c.rflags & RenderingFlags::NonOpaque)) {
                 c.flags = OpaqueFlagSet;
 #if SAC_INGAME_EDITORS
                 if (highLight.opaque)
@@ -405,7 +400,7 @@ void RenderingSystem::DoUpdate(float) {
 #endif
             }
 
-            if (c.texture != InvalidTextureRef && !c.fbo) {
+            if (c.texture != InvalidTextureRef && !(c.rflags & RenderingFlags::TextureIsFBO)) {
                 const TextureInfo* info = textureLibrary.get(c.texture, false);
                 if (info) {
                     int atlasIdx = c.atlasIndex = info->atlasIndex;
@@ -424,10 +419,10 @@ void RenderingSystem::DoUpdate(float) {
                     // 3. non empty opaque area
                     // 4. sprite is not a z prepass one
                     // 5. sprite cover at least 1.25% of the camera source area
-                    if (rc->opaqueType != RenderingComponent::FULL_OPAQUE &&
+                    if (c.rflags & RenderingFlags::NonOpaque &&
                         c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
-                        !rc->zPrePass &&
+                        !(c.rflags & RenderingFlags::ZPrePass) &&
                         ((c.halfSize.x * info->opaqueSize.x) * (c.halfSize.y * info->opaqueSize.y) * cameraInvSize) > 0.001) {
                         // add a smaller full-opaque block at the center
                         RenderCommand cCenter(c);
@@ -461,16 +456,13 @@ void RenderingSystem::DoUpdate(float) {
                 }
             }
 
-             if (!rc->fastCulling && tc->shape == Shape::Square) {
+             if (!(c.rflags & RenderingFlags::FastCulling) && tc->shape == Shape::Square) {
                 if (!cull(camTrans, c)) {
                     continue;
                 }
              }
 
-            if (rc->opaqueType == RenderingComponent::FULL_OPAQUE) {
-                c.key = makeKeyOpaque(c);
-                opaqueCommands[opaqueIndex++] = c;
-            } else {
+            if (c.rflags & RenderingFlags::NonOpaque) {
 #if SAC_INGAME_EDITORS
                 if (highLight.nonOpaque) {
                     c.color.b = 0.f;
@@ -479,6 +471,9 @@ void RenderingSystem::DoUpdate(float) {
 #endif
                 c.key = makeKeyBlended(c);
                 blendedCommands[blendedIndex++] = c;
+            } else {
+                c.key = makeKeyOpaque(c);
+                opaqueCommands[opaqueIndex++] = c;
             }
         END_FOR_EACH()
 
@@ -747,7 +742,7 @@ void packCameraAttributes(
     out.uv[0] = cameraTrans->position;
     out.uv[1] = cameraTrans->size;
     out.z = cameraTrans->rotation;
-    out.mirrorH = cameraComp->clear;
+    out.rflags = cameraComp->clear;
 
     out.flags = cameraComp->fb;
     out.color = cameraComp->clearColor;
@@ -763,18 +758,5 @@ void unpackCameraAttributes(
 
     ccc->fb = in.flags;
     ccc->clearColor = in.color;
-    ccc->clear = in.mirrorH;
-}
-
-void RenderingSystem::defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v) {
-#if !SAC_EMSCRIPTEN
-    std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
-#endif
-    if (dynamicVertices.size() <= idx) {
-        dynamicVertices.resize(idx + 1);
-    }
-    dynamicVertices[idx] = v;
-#if !SAC_EMSCRIPTEN
-    lock.unlock();
-#endif
+    ccc->clear = in.rflags;
 }

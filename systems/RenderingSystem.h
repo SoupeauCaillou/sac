@@ -45,33 +45,34 @@ typedef int VerticesRef;
 struct TransformationComponent;
 struct GLState;
 
+namespace RenderingFlags
+{
+    const uint8_t NonOpaque        = 0x01;
+    const uint8_t MirrorHorizontal = 0x02;
+    const uint8_t ZPrePass         = 0x04;
+    const uint8_t FastCulling      = 0x08;
+    const uint8_t TextureIsFBO     = 0x10;
+}
+
 struct RenderingComponent {
     RenderingComponent() :
         texture(InvalidTextureRef),
+        show(false),
+        flags(0),
         effectRef(DefaultEffectRef),
-        color(Color()),
-        dynamicVertices(DefaultVerticesRef),
-        show(false), mirrorH(false), zPrePass(false), fastCulling(false),
-        opaqueType(FULL_OPAQUE),
-        cameraBitMask(1)
-        {
-        fbo = false;
-    }
+        cameraBitMask(1),
+        color(Color())
+        {}
 
     union {
-        TextureRef texture;
+        TextureRef texture; // 32 bits
         FramebufferRef framebuffer;
     };
-    EffectRef effectRef;
-    Color color;
-    VerticesRef dynamicVertices;
-    bool show, mirrorH, zPrePass, fastCulling, fbo;
-    enum Opacity {
-        NON_OPAQUE = 0,
-        FULL_OPAQUE
-    } ;
-    Opacity opaqueType;
-    unsigned cameraBitMask;
+    uint8_t show;           // 8 bits
+    uint8_t flags;          // 8 bits
+    EffectRef effectRef;    // 8 bits
+    uint8_t cameraBitMask;  // 8 bits
+    Color color;            // 128 bits
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
@@ -194,10 +195,6 @@ public:
 #else
     GLuint glBuffers[1];
 #endif
-    std::vector<std::vector<glm::vec2> > dynamicVertices;
-    // std::vector<Polygon> dynamicShapes;
-
-    void defineDynamicVertices(unsigned idx, const std::vector<glm::vec2>& v);
 
 #if SAC_INGAME_EDITORS
     struct {
