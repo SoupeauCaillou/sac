@@ -38,24 +38,13 @@ AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>("Anchor") {
 }
 
 struct CompareParentChain {
-#if 0
     bool operator() (const std::pair<Entity, AnchorComponent*>& t1, const std::pair<Entity, AnchorComponent*>& t2) const {
-        const Entity e1 = t1.first;
-        const Entity e2 = t2.first;
         const auto& p1 = t1.second->parent;
         const auto& p2 = t2.second->parent;
-#else
-
-    const std::vector<AnchorComponent>* components;
-    CompareParentChain(const std::vector<AnchorComponent>* _components) : components(_components) {}
-    bool operator() (Entity e1, Entity e2) const {
-        const auto& p1 = (*components)[e1].parent;
-        const auto& p2 = (*components)[e2].parent;
-#endif
 
         // if both have the same parent/none, update order doesn't matter
         if (p1 == p2) {
-            return (e1 < e2);
+            return (t1.first < t2.first);
         }
         // if they both have parents
         else if (p1 && p2) {
@@ -65,17 +54,13 @@ struct CompareParentChain {
             // p1 or p2 may be null
             if (ap1 && ap2)
                 return operator()
-#if 0
                     (std::make_pair(p1, ap1), std::make_pair(p2, ap2));
-#else
-                    (p1, p2);
-#endif
             else if (ap1)
                 return false;
             else if (ap2)
                 return true;
             else
-                return (e1 < e2);
+                return (t1.first < t2.first);
         }
         // else parent-less (parent == 0) is < parented one (parent > 0)
         else {
@@ -111,33 +96,21 @@ void AnchorSystem::adjustTransformWithAnchor(TransformationComponent* tc, const 
 }
 
 void AnchorSystem::DoUpdate(float) {
-    // insertion sort is a good fit: small data set, almost always sorted
-    CompareParentChain cmp(&components);
-    const unsigned count = entityWithComponent.size();
-    for (unsigned i=1; i<count; i++) {
-        int j = i - 1;
-        const auto v = entityWithComponent[i];
-        // decrease j while elt_i < elt_j
-        while (j >= 0 && cmp(v, entityWithComponent[j])) {
-            j--;
-        }
-        // insert at j+1
-        if ((j+1) < i) {
-            entityWithComponent.erase(entityWithComponent.begin() + i);
-            entityWithComponent.emplace(entityWithComponent.begin() + (j+1), v);
+    std::forward_list<std::pair<Entity, AnchorComponent*>> cp;
+
+    // sort all, root node first
+    FOR_EACH_ENTITY_COMPONENT(Anchor, e, comp)
+        if (comp->parent) {
+            cp.push_front(std::make_pair(e, comp));
         }
     }
 
-    LOGF_IF(entityWithComponent.size() != count, "Insertion sort is broken: " << count << " elements before, " << entityWithComponent.size() << " after");
+    cp.sort(CompareParentChain());
 
-    for (auto e: entityWithComponent) {
-        const auto anchor = &components[e];
-        if (!anchor->parent) {
-            continue;
-        }
-
+    for (auto p: cp) {
+        const auto anchor = p.second;
         const auto pTc = TRANSFORM(anchor->parent);
-        auto tc = TRANSFORM(e);
+        auto tc = TRANSFORM(p.first);
         adjustTransformWithAnchor(tc, pTc, anchor);
     }
 }
