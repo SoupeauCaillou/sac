@@ -70,9 +70,7 @@ bool AutonomousAgentSystem::isArrived(Entity e) {
 //        vitesse_moyenne = Somme(poids * (vitesse_desiree - vitesse actuelle)) / somme(poids_des_vitesse_non_nuls)
 // - enfin, appliquer une force dont l'amplitude dépend de la vitesse_moyenne et de forceMax
 void AutonomousAgentSystem::DoUpdate(float dt) {
-#if SAC_DEBUG
-    Draw::Clear(__FILE__);
-#endif
+
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
         LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");
         LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
@@ -92,7 +90,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
                 const auto& v = std::get<1>(velocities.back());
                 if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                    Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "arrive");
+                    Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "arrive");
                 }
 #endif
             } else {
@@ -104,7 +102,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "seek");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "seek");
             }
 #endif
             }
@@ -120,7 +118,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
                 const auto& v = std::get<1>(velocities.back());
                 if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                    Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "flee");
+                    Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "flee");
                 }
 #endif
             }
@@ -135,7 +133,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "wander");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "wander");
             }
 #endif
         }
@@ -149,7 +147,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "obstacle");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "obstacle");
             }
 #endif
         }
@@ -163,7 +161,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "wall");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "wall");
             }
 #endif
         }
@@ -178,7 +176,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "coh");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "coh");
             }
 #endif
         }
@@ -191,7 +189,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "ali");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "ali");
             }
 #endif
         }
@@ -204,7 +202,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
             const auto& v = std::get<1>(velocities.back());
             if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(__FILE__, TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "sep");
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "sep");
             }
 #endif
         }

@@ -28,6 +28,7 @@
 #include "systems/AnchorSystem.h"
 
 #include "base/Log.h"
+#include "util/MurmurHash.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -35,7 +36,9 @@
 
 Draw Draw::instance;
 
-Entity Draw::renderingEntity(const std::string& groupID) {
+static constexpr uint32_t TempGroupId = Murmur::Hash(__FILE__);
+
+Entity Draw::renderingEntity(uint32_t groupID) {
     Entity t = 0;
     auto firstUnused = rendering.begin();
     for (; firstUnused != rendering.end(); ++firstUnused) {
@@ -48,7 +51,7 @@ Entity Draw::renderingEntity(const std::string& groupID) {
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Rendering);
         TRANSFORM(t)->z = 1;
-        RENDERING(t)->opaqueType = RenderingComponent::NON_OPAQUE;
+        RENDERING(t)->flags = RenderingFlags::NonOpaque;
 
         rendering.push_back(std::make_pair(t, groupID));
     } else {
@@ -58,7 +61,7 @@ Entity Draw::renderingEntity(const std::string& groupID) {
     return t;
 }
 
-Entity Draw::textEntity(const std::string& groupID) {
+Entity Draw::textEntity(uint32_t groupID) {
     Entity t = 0;
     auto firstUnused = text.begin();
     for (; firstUnused != text.end(); ++firstUnused) {
@@ -90,7 +93,7 @@ static void addText(Entity t, Entity parent, const std::string& text) {
     TEXT(t)->show = true;
 }
 
-void Draw::Clear(const std::string & groupID) {
+void Draw::Clear(uint32_t groupID) {
     for (auto e : instance.rendering) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
@@ -116,10 +119,10 @@ void Draw::ClearAll() {
 }
 
 void Draw::Point(const glm::vec2& position, const Color & color, const std::string& text) {
-    Point(__FILE__, position, color, text);
+    Point(TempGroupId, position, color, text);
 }
 
-void Draw::Point(const std::string& groupID, const glm::vec2& position, const Color & color, const std::string& text) {
+void Draw::Point(uint32_t groupID, const glm::vec2& position, const Color & color, const std::string& text) {
     Entity pt = instance.renderingEntity(groupID);
 
     TRANSFORM(pt)->size = glm::vec2(0.2f);
@@ -134,10 +137,10 @@ void Draw::Point(const std::string& groupID, const glm::vec2& position, const Co
 }
 
 void Draw::Vec2(const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
-    Vec2(__FILE__, position, size, color, text);
+    Vec2(TempGroupId, position, size, color, text);
 }
 
-void Draw::Vec2(const std::string& groupID, const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
+void Draw::Vec2(uint32_t groupID, const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
     Entity vector = instance.renderingEntity(groupID);
 
     TRANSFORM(vector)->size = glm::vec2(glm::length(size), .05f);
@@ -156,7 +159,7 @@ void Draw::Vec2(const std::string& groupID, const glm::vec2& position, const glm
 }
 
 #if 0
-Entity Draw::Triangle(const std::string& groupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
+Entity Draw::Triangle(uint32_t groupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
  const Color & color, const std::string name, Entity vector, int dynamicVertices) {
     Entity triangle = renderingEntity(groupID);
 
@@ -180,9 +183,9 @@ Entity Draw::Triangle(const std::string& groupID, const glm::vec2& firstPoint, c
 
 void Draw::Rectangle(const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
     const std::string& text) {
-    Rectangle(__FILE__, centerPosition, size, rotation, color, text);
+    Rectangle(TempGroupId, centerPosition, size, rotation, color, text);
 }
-void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
+void Draw::Rectangle(uint32_t groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
     const std::string& text) {
 
     Entity rect = instance.renderingEntity(groupID);
@@ -204,5 +207,5 @@ void Draw::Rectangle(const std::string& groupID, const glm::vec2& centerPosition
 }
 
 void Draw::Update() {
-    Clear(__FILE__);
+    Clear(TempGroupId);
 }

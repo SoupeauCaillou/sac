@@ -31,12 +31,12 @@
 
 class Draw {
     public:
-        static void Point(const std::string& permanentGroupID,
+        static void Point(uint32_t permanentGroupID,
             const glm::vec2& position, const Color & color = Color(), const std::string& text = "");
         static void Point(
             const glm::vec2& position, const Color & color = Color(), const std::string& text = "");
 
-        static void Vec2(const std::string& permanentGroupID,
+        static void Vec2(uint32_t permanentGroupID,
             const glm::vec2& position, const glm::vec2& size, const Color & color = Color(), const std::string& text = "");
 
         static void Vec2(
@@ -47,22 +47,22 @@ class Draw {
             const Color & color = Color(), const std::string& name = "triangle", Entity vector = 0, int dynamicVertices = 0);
 #endif
 
-        static void Rectangle(const std::string& permanentGroupID,
+        static void Rectangle(uint32_t permanentGroupID,
             const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color = Color(), const std::string& text = "");
         static void Rectangle(
             const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color = Color(), const std::string& text = "");
 
         static void Update();
 
-        static void Clear(const std::string & permanentGroupID);
+        static void Clear(uint32_t permanentGroupID);
 
         static void ClearAll();
     private:
         static Draw instance;
 
-        Entity renderingEntity(const std::string& groupID);
-        Entity textEntity(const std::string& groupID);
-        std::vector<std::pair<Entity, std::string>> rendering;
-        std::vector<std::pair<Entity, std::string>> text;
+        Entity renderingEntity(uint32_t groupID);
+        Entity textEntity(uint32_t groupID);
+        std::vector<std::pair<Entity, uint32_t>> rendering;
+        std::vector<std::pair<Entity, uint32_t>> text;
 };
 

@@ -29,6 +29,7 @@
 #include "systems/RenderingSystem.h"
 #include "systems/TransformationSystem.h"
 #include "Draw.h"
+#include "util/MurmurHash.h"
 
 static bool showGrid = false;
 
@@ -40,28 +41,27 @@ DebugConsole & DebugConsole::Instance() {
 static void setShowGridCallback(const void* value, void* ) {
     showGrid = *(static_cast<const bool*> (value));
 
-    #define PREF __FILE__"grid"
     if (showGrid) {
         glm::vec2 topLeft = glm::vec2(-3 * theRenderingSystem.screenW, 3 * theRenderingSystem.screenH);
         topLeft.x = floor(topLeft.x); topLeft.y = ceil(topLeft.y);
         for (int i=0; i<=ceil(theRenderingSystem.screenW * 6); i++) {
-            Draw::Vec2(PREF, topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.2));
+            Draw::Vec2(Murmur::Hash(__FILE__), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.2));
 
             for (int j=1; j<=4; j++) {
-                Draw::Vec2(PREF, topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
+                Draw::Vec2(Murmur::Hash(__FILE__), topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
             }
         }
 
         for (int i=0; i<=ceil(theRenderingSystem.screenH * 6); i++) {
-            Draw::Vec2(PREF, topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.2));
+            Draw::Vec2(Murmur::Hash(__FILE__), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.2));
 
             for (int j=1; j<=4; j++) {
-                Draw::Vec2(PREF, topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
+                Draw::Vec2(Murmur::Hash(__FILE__), topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
             }
         }
 
     } else {
-        Draw::Clear(PREF);
+        Draw::Clear(Murmur::Hash(__FILE__));
     }
 }
 
