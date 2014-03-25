@@ -25,18 +25,52 @@
 #include "base/Log.h"
 #include <cstring>
 
-class MurmurHash {
+class Murmur {
+    private:
+        static constexpr uint32_t seed = 0x12345678;
     public:
-#if SAC_DEBUG
-        static inline unsigned staticHash(const char *s, unsigned value) {
-            LOGF_IF(compute(s, strlen(s), 0) != value, 	
-				"Invalid precalculated hash value. Expected: " << compute(s, strlen(s), 0) << 
-				". Actual: " << value);
-            return value;
-        }
-#else
-        #define staticHash(s,v) (v)
-#endif
 
-        static unsigned int compute( const void * key, int len, unsigned int seed = 0x12345678);
+        static uint32_t RuntimeHash(const void * key, int len);
+
+        static constexpr uint32_t Hash(const void * key, int len) {
+            return
+                selfExpShift(
+                    mulM(
+                        selfExpShift(
+                            loop((const char*) key, len, seed ^ len)
+                            , 13)
+                    )
+                , 15);
+        }
+
+        // assume key contains \0
+        static constexpr uint32_t Hash(const char * key) {
+            return Hash(key, strlen(key));
+        }
+    private:
+        static constexpr uint32_t M = 0x5bd1e995;
+        static constexpr int R = 24;
+
+        static constexpr uint32_t mulM(uint32_t k) { return k * M; }
+
+        static constexpr uint32_t selfExpShift(uint32_t h, int n) { return h ^ (h >> n); }
+
+        static constexpr uint32_t loopInt(uint32_t k, uint32_t h) { return mulM(h) ^ mulM(selfExpShift(mulM(k), R)); }
+
+        static constexpr uint32_t leftOver(const char* data, uint32_t h, int len) {
+            return (len == 0) ?
+                h * M :
+                leftOver(data, h ^ (unsigned char)data[len - 1] << (8 * (len - 1)), len - 1);
+        }
+
+        static constexpr uint32_t readAsInt(const char* key) {
+            return key[0] | ((uint32_t)(key[1]) << 8) | ((uint32_t)(key[2]) << 16) | ((uint32_t)(key[3]) << 24);
+        }
+        static constexpr uint32_t loop(const char* key, int len, uint32_t h) {
+
+            return (len >= 4) ?
+                loop(key + 4, len - 4, loopInt(readAsInt(key), h)) :
+                ((len > 0) ? leftOver(key, h, len) : h);
+        }
+
 };

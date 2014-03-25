@@ -23,12 +23,54 @@
 #include "MurmurHash.h"
 
 
+#if 0
+#define M 0x5bd1e995
+#define R 24
+
+static constexpr unsigned int mulM(unsigned int k) {
+    return k * M;
+}
+
+static constexpr unsigned int selfExpShift(unsigned int h, int n) {
+    return h ^ (h >> n);
+}
+
+static constexpr unsigned int loopInt(unsigned int k, unsigned int h) {
+    return mulM(h) ^ mulM(selfExpShift(mulM(k), R));
+}
+
+static constexpr unsigned int leftOver(const unsigned char* data, unsigned int h, int len) {
+
+    return (len == 0) ?
+        h * M :
+        leftOver(data, h ^ data[len - 1] << (8 * (len - 1)), len - 1);
+}
+
+static constexpr unsigned int loop(const unsigned char* key, int len, unsigned int h) {
+
+    return (len >= 4) ?
+        loop(key + 4, len - 4, loopInt(*(const unsigned int *)key, h)) :
+        ((len > 0) ? leftOver(key, h, len) : h);
+}
+
+constexpr unsigned int MurmurHash::compute(const void * key, int len, unsigned int seed) {
+    return
+        selfExpShift(
+            mulM(
+                selfExpShift(
+                    loop((const unsigned char*) key, len, seed ^ len)
+                    , 13)
+            )
+        , 15);
+}
+#endif
+
 // MurmurHash2, by Austin Appleby
-unsigned int MurmurHash::compute( const void * key, int len, unsigned int seed ) {
+uint32_t Murmur::RuntimeHash(const void * key, int len) {
     // 'm' and 'r' are mixing constants generated offline.
     // They're not really 'magic', they just happen to work well.
-    const unsigned int m = 0x5bd1e995;
-    const int r = 24;
+    const unsigned int m = M;
+    const int r = R;
 
     // Initialize the hash to a 'random' value
     unsigned int h = seed ^ len;
@@ -39,6 +81,7 @@ unsigned int MurmurHash::compute( const void * key, int len, unsigned int seed )
 
     while(len >= 4) {
         unsigned int k = *(unsigned int *)data;
+
 
         k *= m;
         k ^= k >> r;
@@ -56,6 +99,7 @@ unsigned int MurmurHash::compute( const void * key, int len, unsigned int seed )
         case 3: h ^= data[2] << 16;
         case 2: h ^= data[1] << 8;
         case 1: h ^= data[0];
+
         h *= m;
     };
 
@@ -68,4 +112,3 @@ unsigned int MurmurHash::compute( const void * key, int len, unsigned int seed )
 
     return h;
 }
-

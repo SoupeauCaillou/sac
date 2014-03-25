@@ -57,7 +57,7 @@ class NamedAssetLibrary : public ResourceHotReload {
         }
 
         TRef name2ref(const std::string& name) const {
-            return MurmurHash::compute(name.c_str(), name.size());
+            return Murmur::Hash(name.c_str(), name.size());
         }
 
         TRef load(const std::string& name) {
