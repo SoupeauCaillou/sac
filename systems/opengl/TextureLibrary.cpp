@@ -120,7 +120,7 @@ void TextureLibrary::doUnload(const std::string& LOG_USAGE_ONLY(name), const Tex
 }
 
 void TextureLibrary::doReload(const std::string& name, const TextureRef& ref) {
-    TextureInfo& info = assets[ref2index[ref]];
+    TextureInfo& info = assets[ref2Index(ref)];
     if (info.atlasIndex == -1) {
         doLoad(name, info, ref);
     }

@@ -168,7 +168,7 @@ void EntityTemplateLibrary::doReload(const std::string& name, const EntityTempla
     LOGE("RELOAD: " << name);
     EntityTemplate newTempl;
     if (doLoad(name, newTempl, ref)) {
-        assets[ref2index[ref]] = newTempl;
+        assets[ref2Index(ref)] = newTempl;
         #if SAC_LINUX && SAC_DESKTOP
             applyTemplateToAll(ref);
         #endif
@@ -186,9 +186,9 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
         applyEntityTemplate(e, parentIt->second);
     }
 
-    const auto tIt = ref2index.find(templRef);
-    LOGF_IF(tIt == ref2index.end(), "Unknown entity template ref ! " << templRef);;
-    const EntityTemplate& templ = assets[tIt->second];
+    const auto tIt = ref2Index(templRef);// ref2index.find(templRef);
+    LOGF_IF(tIt < 0, "Unknown entity template ref ! " << templRef);;
+    const EntityTemplate& templ = assets[tIt];
     // Small hack, always load Transformation first
     auto transfS = TransformationSystem::GetInstancePointer();
     auto hack = templ.find(transfS);
