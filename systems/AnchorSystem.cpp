@@ -118,7 +118,7 @@ void AnchorSystem::DoUpdate(float) {
 #if SAC_DEBUG
 void AnchorSystem::Delete(Entity e) {
     FOR_EACH_ENTITY_COMPONENT(Anchor, child, bc)
-        if (bc->parent == e && strcmp(theEntityManager.entityName(child), "__text_letter")) {
+        if (bc->parent == e && theEntityManager.entityName(child) != "__text_letter") {
             LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')');
         }
     END_FOR_EACH()

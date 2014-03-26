@@ -25,17 +25,15 @@
 
 TEST(ColorIsGrey)
 {
-    Color c(0.2f, 0.2f, 0.2f);
-    CHECK(c.isGrey());
+	Color c(0.2, 0.2, 0.2);
+	CHECK(c.isGrey());
 }
 
 TEST(ColorReducePrecision)
 {
-    #if 0
-    Color c(0.243356f, 0.123545f, 0.974213f);
-    c.reducePrecision(0.1);
-    CHECK_CLOSE(0.2, c.r, 0.0001);
-    CHECK_CLOSE(0.1, c.g, 0.0001);
-    CHECK_CLOSE(1.0, c.b, 0.0001);
-    #endif
+	Color c(0.243356, 0.123545, 0.974213);
+	c.reducePrecision(0.1);
+	CHECK_CLOSE(0.2, c.r, 0.0001);
+	CHECK_CLOSE(0.1, c.g, 0.0001);
+	CHECK_CLOSE(1.0, c.b, 0.0001);
 }

@@ -339,7 +339,7 @@ void RenderingSystem::DoUpdate(float) {
         /* render */
         FOR_EACH_ENTITY_COMPONENT(Rendering, a, rc)
             bool ccc = rc->cameraBitMask & (0x1 << camComp->id);
-            if (!rc->show || rc->color.a.value <= 0 || !ccc ) {
+            if (!rc->show || rc->color.a <= 0 || !ccc ) {
                 continue;
             }
 
@@ -420,7 +420,7 @@ void RenderingSystem::DoUpdate(float) {
                     // 4. sprite is not a z prepass one
                     // 5. sprite cover at least 1.25% of the camera source area
                     if (c.rflags & RenderingFlags::NonOpaque &&
-                        c.color.a.value >= 255 &&
+                        c.color.a >= 1 &&
                         info->opaqueSize != glm::vec2(0.0f) &&
                         !(c.rflags & RenderingFlags::ZPrePass) &&
                         ((c.halfSize.x * info->opaqueSize.x) * (c.halfSize.y * info->opaqueSize.y) * cameraInvSize) > 0.001) {
