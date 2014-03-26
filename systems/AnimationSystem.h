@@ -23,18 +23,18 @@
 #pragma once
 
 #include "System.h"
+#include "util/MurmurHash.h"
 
 class AnimDescriptor;
 
 struct AnimationComponent {
-    AnimationComponent() : accum(0), playbackSpeed(1), loopCount(-1), frameIndex(0) {
+    AnimationComponent() : name(0), previousName(0), accum(0), playbackSpeed(1), loopCount(-1), frameIndex(0) {
         waitAccum = 0;
     }
-    std::string name, previousName;
+    hash_t name, previousName;
     float accum, playbackSpeed;
     int loopCount, frameIndex;
     float waitAccum;
-    std::vector<Entity> subPart;
 };
 
 #define theAnimationSystem AnimationSystem::GetInstance()
@@ -52,6 +52,5 @@ public:
     void loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& file, std::string* variables = 0, int varcount = 0);
 
 private:
-    std::map<std::string, AnimDescriptor*> animations;
-    typedef std::map<std::string, AnimDescriptor*>::iterator AnimIt;
+    std::map<uint32_t, AnimDescriptor*> animations;
 };

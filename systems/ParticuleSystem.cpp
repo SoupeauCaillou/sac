@@ -76,10 +76,6 @@ void ParticuleSystem::DoUpdate(float dt) {
 
         // emit particules
         if (pc->emissionRate > 0) {
-#if SAC_DEBUG
-            std::stringstream name;
-            name << "particule_" << theEntityManager.entityName(a);
-#endif
             int added = pc->emissionRate * (dt + pc->spawnLeftOver);
             pc->spawnLeftOver += dt - added / pc->emissionRate;
             unsigned pCount = particules.size();
@@ -160,7 +156,7 @@ void ParticuleSystem::DoUpdate(float dt) {
         if (internal.time >= internal.lifetime) {
             poolLastValidElement++;
             // make sure pool is big enough
-            if (pool.size() < (poolLastValidElement + 1)) {
+            if ((int)pool.size() < (poolLastValidElement + 1)) {
                 pool.push_back(internal.e);
             } else {
                 pool[poolLastValidElement] = internal.e;

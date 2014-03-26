@@ -100,7 +100,7 @@ static Entity doTest(std::string s) {
 TEST_FIXTURE(TestSetup, TestFloatProperty)
 {
     Entity e = doTest("[Transformation]\nrotation=1.2");
-	CHECK_CLOSE(1.2, TRANSFORM(e)->rotation, 0.001);
+    CHECK_CLOSE(1.2, TRANSFORM(e)->rotation, 0.001);
 }
 
 TEST_FIXTURE(TestSetup, TestFloatFromInterval)
@@ -140,14 +140,14 @@ TEST_FIXTURE(TestSetup, TestStringProperty)
 {
     Entity e = doTest("[Animation]\nname=super_animation");
 
-    CHECK_EQUAL("super_animation", ANIMATION(e)->name);
+    CHECK_EQUAL(Murmur::Hash("super_animation"), ANIMATION(e)->name);
 }
 
 TEST_FIXTURE(TestSetup, TestTextureProperty)
 {
     Entity e = doTest("[Rendering]\ntexture=my_texture");
 
-    CHECK_EQUAL(theRenderingSystem.loadTextureFile("my_texture"), RENDERING(e)->texture);
+    CHECK_EQUAL(Murmur::Hash("my_texture"), RENDERING(e)->texture);
 }
 
 TEST_FIXTURE(TestSetup, TestTransformPercentProperty)

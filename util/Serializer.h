@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <glm/glm.hpp>
 #include "base/Interval.h"
+#include "util/MurmurHash.h"
 #include <string>
 
 namespace PropertyType {
@@ -41,6 +42,7 @@ namespace PropertyType {
         Sound,
         Entity,
         Bool,
+        Hash,
         Unsupported
     };
 }

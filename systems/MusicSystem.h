@@ -76,7 +76,7 @@ UPDATABLE_SYSTEM(Music)
         void init();
         bool isMuted() const { return muted; }
 
-        MusicRef loadMusicFile(const std::string& assetName);
+        MusicRef loadMusicFile(const char* assetName);
 
         void toggleMute(bool enable);
 
@@ -99,7 +99,7 @@ UPDATABLE_SYSTEM(Music)
 
         bool muted;
         // map<filename, audio_compressed_content>
-        std::map<std::string, FileBuffer> name2buffer;
+        std::map<hash_t, FileBuffer> name2buffer;
 
         void feed(OpaqueMusicPtr* ptr, MusicRef m, float dt);
 

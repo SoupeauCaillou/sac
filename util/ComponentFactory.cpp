@@ -34,19 +34,20 @@
 #include "systems/opengl/EntityTemplateLibrary.h"
 #include "systems/TransformationSystem.h"
 #include "systems/AnchorSystem.h"
+#include "util/MurmurHash.h"
 
 #include <glm/glm.hpp>
 
 #include <alloca.h>
 #include <string>
 
-const std::string floatmodifiers[] =
+const char* floatmodifiers[] =
     { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h", "%degrees"};
 
-const std::string vec2modifiers[] =
+const char* vec2modifiers[] =
     { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp_size", "%gimp_pos", "%gimp"};
 
-const std::string vec2singlefloatmodifiers[] = {
+const char* vec2singlefloatmodifiers[] = {
     "%texture_ratio,screen_w",
     "%texture_ratio,screen_h",
     "%screen_w,texture_ratio",
@@ -55,9 +56,9 @@ const std::string vec2singlefloatmodifiers[] = {
     "%abs,texture_ratio",
     "%texture",
 };
-const std::string colormodifiers[] =
+const char* colormodifiers[] =
     { "", "%html", "%255", "%name" };
-const std::string stringmodifiers[] =
+const char* stringmodifiers[] =
     { "%loc" };
 
 static void applyVec2Modifiers(int idx, glm::vec2* out) {
@@ -193,7 +194,6 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     // Try 6 variants with 1 float
     for (int i=0; i<7; i++) {
         if (dfp.get(section, name + vec2singlefloatmodifiers[i], parsed, 1, false)) {
-            // hum oh
             std::string textureName;
             if (dfp.get("Rendering", "texture", &textureName, 1, false)) {
                 const glm::vec2& s = theRenderingSystem.getTextureSize(textureName);
@@ -527,6 +527,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 break;
             case PropertyType::Sound:
             case PropertyType::Texture:
+            case PropertyType::Hash:
                 memcpy((uint8_t*)component + prop->offset, (*it).second, sizeof(TextureRef));
                 break;
             case PropertyType::Entity: {
@@ -593,6 +594,9 @@ static bool loadSingleProperty(const std::string& context,
         memcpy(arr, &itv, sizeof(itv));\
         propMap.insert(std::make_pair(name, arr)); return true; }}
 
+    // temp buffer
+    char* temp = (char*)alloca(512);
+
     switch (type) {
         case PropertyType::Float:
             LOAD_INTERVAL_TEMPL(float);
@@ -651,8 +655,7 @@ static bool loadSingleProperty(const std::string& context,
             break;
         }
         case PropertyType::Entity: {
-            std::string s;
-            if (load(dfp, section, name + "%template", IntervalAsRandom, &s)) {
+            if (dfp.get(section, name + "%template", temp, 512, false)) {
                 std::string subEntityName(context + std::string("#") + name);
                 EntityTemplateRef r = Murmur::Hash(subEntityName.c_str(), subEntityName.length());
                 uint8_t* arr = new uint8_t[sizeof(r) + 1];
@@ -661,13 +664,14 @@ static bool loadSingleProperty(const std::string& context,
                 propMap.insert(std::make_pair(name, arr));
                 subEntities.push_back(name);
                 theEntityManager.entityTemplateLibrary.defineParent(r,
-                    theEntityManager.entityTemplateLibrary.load(s));
+                    theEntityManager.entityTemplateLibrary.load(temp));
                 return true;
-            } else if (load(dfp, section, name + "%name", IntervalAsRandom, &s)) {
-                uint8_t* arr = new uint8_t[1 + s.size() + 1];
+            } else if (dfp.get(section, name + "%name", temp, 512, false)) {
+                const auto len = strlen(temp);
+                uint8_t* arr = new uint8_t[1 + len + 1];
                 arr[0] = 1;
-                memcpy(arr + 1, s.c_str(), s.size());
-                arr[s.size() + 1] = '\0';
+                memcpy(arr + 1, temp, len);
+                arr[len + 1] = '\0';
                 propMap.insert(std::make_pair(name, arr));
                 return true;
             }
@@ -677,20 +681,20 @@ static bool loadSingleProperty(const std::string& context,
             LOAD_INTERVAL_TEMPL(Color);
             break;
         case PropertyType::Sound: {
-            std::string soundName;
-            if (load(dfp, section, name, IntervalAsRandom,&soundName)) {
+            if (dfp.get(section, name, temp, 512, false)) {
                 uint8_t* arr = new uint8_t[sizeof(TextureRef)];
-                *((SoundRef*)arr) = theSoundSystem.loadSoundFile(soundName);
+                *((SoundRef*)arr) = theSoundSystem.loadSoundFile(temp);
                 propMap.insert(std::make_pair(name, arr));
                 return true;
             }
             break;
         }
+        case PropertyType::Hash:
         case PropertyType::Texture: {
-            std::string textureName;
-            if (load(dfp, section, name, IntervalAsRandom,&textureName)) {
-                uint8_t* arr = new uint8_t[sizeof(TextureRef)];
-                *((TextureRef*)arr) = theRenderingSystem.loadTextureFile(textureName);
+            if (dfp.get(section, name, temp, 512, false)) {
+                uint8_t* arr = new uint8_t[sizeof(hash_t)];
+                hash_t h = Murmur::Hash(temp);
+                *((hash_t*)arr) = h;
                 propMap.insert(std::make_pair(name, arr));
                 return true;
             }

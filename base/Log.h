@@ -28,6 +28,7 @@ extern bool AssertOnFatal;
 
 //to handle vec2 operator<<
 #include <ostream>
+#include <sstream>
 #include <iomanip>
 
 #include <glm/glm.hpp>
@@ -43,15 +44,15 @@ inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
 
 
 namespace LogVerbosity {
-	enum Enum {
-		FATAL = 0,
-		ERROR,
+    enum Enum {
+        FATAL = 0,
+        ERROR,
         TODO,
-		WARNING,
-		INFO,
+        WARNING,
+        INFO,
         VERBOSE1,
         VERBOSE2
-	};
+    };
 }
 
 extern LogVerbosity::Enum logLevel;
@@ -103,26 +104,26 @@ static const android_LogPriority level2prio[] {
     }
 
 #define __LOG_WHILE(level, x) \
-	PRAGMA_WARNING(warning(disable: 4127)) \
-	do { \
-		__LOG(level, x) \
-	} while (false)
+    PRAGMA_WARNING(warning(disable: 4127)) \
+    do { \
+        __LOG(level, x) \
+    } while (false)
 
 #define __LOG_IF_WHILE(cond, level, x) \
-	PRAGMA_WARNING(warning(disable: 4127)) \
-	do { \
-		if ((cond)) \
-			__LOG(level, x) \
-	} while (false)
+    PRAGMA_WARNING(warning(disable: 4127)) \
+    do { \
+        if ((cond)) \
+            __LOG(level, x) \
+    } while (false)
 
 #define __LOG_EVERY_N_WHILE(cond, n, x) \
-	PRAGMA_WARNING(warning(disable: 4127)) \
-	do { \
-		static unsigned __log_count = 0; \
-		if ((++__log_count % n) == 0) { \
-			__LOG(cond, x) \
-		} \
-	} while (false)
+    PRAGMA_WARNING(warning(disable: 4127)) \
+    do { \
+        static unsigned __log_count = 0; \
+        if ((++__log_count % n) == 0) { \
+            __LOG(cond, x) \
+        } \
+    } while (false)
 
 #if SAC_ENABLE_LOG
     #define LOG_USAGE_ONLY(x) x
@@ -134,21 +135,21 @@ static const android_LogPriority level2prio[] {
     #define LOGT(x) __LOG_WHILE(LogVerbosity::TODO, "<--TODO-->" << x)
     #define LOGW(x) __LOG_WHILE(LogVerbosity::WARNING, x)
     #define LOGI(x) __LOG_WHILE(LogVerbosity::INFO, x)
-	#define LOGV(verbosity, x) __LOG_WHILE((LogVerbosity::Enum)((int)LogVerbosity::INFO + verbosity), x)
+    #define LOGV(verbosity, x) __LOG_WHILE((LogVerbosity::Enum)((int)LogVerbosity::INFO + verbosity), x)
 
     #define LOGF_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::FATAL, x)
     #define LOGE_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::ERROR, x)
     #define LOGT_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::TODO, x)
     #define LOGW_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::WARNING, x)
     #define LOGI_IF(cond, x) __LOG_IF_WHILE(cond, LogVerbosity::INFO, x)
-	#define LOGV_IF(verbosity, cond, x) __LOG_IF_WHILE(cond, (LogVerbosity::Enum)((int)LogVerbosity::INFO + verbosity), x)
+    #define LOGV_IF(verbosity, cond, x) __LOG_IF_WHILE(cond, (LogVerbosity::Enum)((int)LogVerbosity::INFO + verbosity), x)
 
-	#define LOGE_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::ERROR, n, x)
-	#define LOGW_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::WARNING, n, x)
-	#define LOGI_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::INFO, n, x)
-	#define LOGT_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::TODO, n, x)
+    #define LOGE_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::ERROR, n, x)
+    #define LOGW_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::WARNING, n, x)
+    #define LOGI_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::INFO, n, x)
+    #define LOGT_EVERY_N(n, x) __LOG_EVERY_N_WHILE(LogVerbosity::TODO, n, x)
 #else
-    #define LOG_USAGE_ONLY(x) 
+    #define LOG_USAGE_ONLY(x)
 
     #define LOG_OFFSET() 0
     #define LOGF(x) do { assert(!AssertOnFatal); } while (false)

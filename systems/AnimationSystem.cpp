@@ -30,21 +30,13 @@ static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, con
 
     // hum..RENDERING(e)->show = (frame.texture != InvalidTextureRef);
     RENDERING(e)->texture = frame.texture;
-    LOGW_IF(animComp->subPart.size() != frame.transforms.size(), "Animation entity subpart count " << animComp->subPart.size() << " is different from frame transform count " << frame.transforms.size());
-    for (unsigned i=0; i<frame.transforms.size() && i<animComp->subPart.size(); i++) {
-        TransformationComponent* tc = TRANSFORM(animComp->subPart[i]);
-        const AnimDescriptor::AnimFrame::Transform& trans = frame.transforms[i];
-        tc->position = trans.position;
-        tc->size = trans.size;
-        tc->rotation = trans.rotation;
-    }
 }
 
 INSTANCE_IMPL(AnimationSystem);
 
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") {
     AnimationComponent tc;
-    componentSerializer.add(new StringProperty("name", OFFSET(name, tc)));
+    componentSerializer.add(new Property<hash_t>("name", OFFSET(name, tc)));
     componentSerializer.add(new Property<float>("playback_speed", OFFSET(playbackSpeed, tc), 0.001f));
     componentSerializer.add(new Property<float>("accum", OFFSET(accum, tc), 0.001f));
     componentSerializer.add(new Property<float>("wait_accum", OFFSET(waitAccum, tc), 0.001f));
@@ -53,16 +45,18 @@ AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("An
 }
 
 AnimationSystem::~AnimationSystem() {
-    for(AnimIt it=animations.begin(); it!=animations.end(); ++it) {
+    for(auto it=animations.begin(); it!=animations.end(); ++it) {
         delete it->second;
     }
+    animations.clear();
 }
 
 void AnimationSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Animation, a, bc)
-        if (bc->name.empty())
+        if (!bc->name)
             continue;
-        AnimIt jt = animations.find(bc->name);
+
+        auto jt = animations.find(bc->name);
         if (jt == animations.end()) {
             LOGW("Animation '" << bc->name << "' not found. " << animations.size() << " defined animation(s):");
             for (auto an: animations) {
@@ -71,7 +65,7 @@ void AnimationSystem::DoUpdate(float dt) {
             LOGF_IF(animations.empty(), "Weird, no animations loaded");
             continue;
         }
-        AnimDescriptor* anim = jt->second;
+        const AnimDescriptor* anim = jt->second;
 
         if (bc->previousName != bc->name) {
             bc->frameIndex = 0;
@@ -101,7 +95,7 @@ void AnimationSystem::DoUpdate(float dt) {
                             bc->name = bc->previousName = "";
                             break;
                         }*/
-                    } else if (!anim->nextAnim.empty()) {
+                    } else if (anim->nextAnim) {
                         if ((bc->waitAccum = anim->nextAnimWait.random()) > 0)
                             RENDERING(a)->show = false;
                         bc->name = anim->nextAnim;
@@ -122,17 +116,18 @@ void AnimationSystem::DoUpdate(float dt) {
 
 void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& filename, std::string* variables, int varcount) {
     const std::string fileN("anim/" + filename + ".anim");
+    AnimDescriptor* desc = new AnimDescriptor;
     FileBuffer file = assetAPI->loadAsset(fileN);
     if (file.size) {
-        AnimDescriptor* desc = new AnimDescriptor;
         if (desc->load(fileN, file, variables, varcount)) {
-            animations.insert(std::make_pair(name, desc));
+            animations.insert(std::make_pair(Murmur::Hash(name.c_str()), desc));
         } else {
             LOGE("Invalid animation file: " << filename << ".anim");
             delete desc;
         }
     } else {
         LOGE("Empty animation file: " << filename << ".anim");
+        delete desc;
     }
     delete[] file.data;
 }

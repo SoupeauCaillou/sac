@@ -40,6 +40,7 @@ class ComponentSystem;
 class LocalizeAPI;
 typedef std::map<std::string, uint8_t*> PropertyNameValueMap;
 typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
+// TODO: EntityTemplace = std::vector<ComponentSystem*> + std::vector<int8_t>
 
 class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {
     protected:

@@ -28,7 +28,7 @@
 GameCenterAPIHelper::GameCenterAPIHelper() :
     signButton(0), achievementsButton(0), leaderboardsButton(0), gameCenterAPI(0), bUIdisplayed(false), displayIfNotConnected(false) {}
 
-void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool displayIfNotConnected, 
+void GameCenterAPIHelper::init(GameCenterAPI * g, bool useAchievements, bool displayIfNotConnected,
  bool useLeaderboards, std::function<void()> f) {
     gameCenterAPI = g;
 
@@ -51,7 +51,7 @@ void GameCenterAPIHelper::displayFeatures(bool display) {
             BUTTON(achievementsButton)->enabled = display;
     }
     if (leaderboardsButton) {
-        RENDERING(leaderboardsButton)->show = 
+        RENDERING(leaderboardsButton)->show =
             BUTTON(leaderboardsButton)->enabled = display;
     }
 }
@@ -96,7 +96,7 @@ void GameCenterAPIHelper::hideUI() {
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = false;
 
     displayFeatures(false);
-}  
+}
 
 bool GameCenterAPIHelper::updateUI() {
     LOGF_IF (! gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
@@ -104,13 +104,13 @@ bool GameCenterAPIHelper::updateUI() {
     bool isConnected = gameCenterAPI->isConnected();
 
     displayFeatures((bUIdisplayed & isConnected)||displayIfNotConnected);
-    
+
     if (isConnected) {
-        BUTTON(signButton)->textureInactive = theRenderingSystem.loadTextureFile("gg_signout");
-        BUTTON(signButton)->textureActive = theRenderingSystem.loadTextureFile("gg_signout_active");
+        BUTTON(signButton)->textureInactive = Murmur::Hash("gg_signout");
+        BUTTON(signButton)->textureActive = Murmur::Hash("gg_signout_active");
     } else {
-        BUTTON(signButton)->textureInactive = theRenderingSystem.loadTextureFile("gg_signin");
-        BUTTON(signButton)->textureActive = theRenderingSystem.loadTextureFile("gg_signin_active");
+        BUTTON(signButton)->textureInactive = Murmur::Hash("gg_signin");
+        BUTTON(signButton)->textureActive = Murmur::Hash("gg_signin_active");
     }
 
     if (BUTTON(signButton)->clicked) {
@@ -121,7 +121,7 @@ bool GameCenterAPIHelper::updateUI() {
         return true;
     } else if (leaderboardsButton && BUTTON(leaderboardsButton)->clicked) {
         isConnected ? onLeaderboardClick() : gameCenterAPI->connectOrRegister();
-        
+
         return true;
     }
 

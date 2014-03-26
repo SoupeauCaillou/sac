@@ -25,14 +25,16 @@
 #include "base/Log.h"
 #include <cstring>
 
+typedef uint32_t hash_t;
+
 class Murmur {
     private:
         static constexpr uint32_t seed = 0x12345678;
     public:
 
-        static uint32_t RuntimeHash(const void * key, int len);
+        static hash_t RuntimeHash(const void * key, int len);
 
-        static constexpr uint32_t Hash(const void * key, int len) {
+        static constexpr hash_t Hash(const void * key, int len) {
             return
                 selfExpShift(
                     mulM(
@@ -44,7 +46,7 @@ class Murmur {
         }
 
         // assume key contains \0
-        static constexpr uint32_t Hash(const char * key) {
+        static constexpr hash_t Hash(const char * key) {
             return Hash(key, strlen(key));
         }
     private:

@@ -22,7 +22,6 @@
 
 #include <algorithm>
 #include <string>
-#include <sstream>
 #include "base/Color.h"
 #include "base/Log.h"
 
@@ -33,6 +32,10 @@ inline Property<float>::Property(const std::string& name, unsigned long offset, 
 template <>
 inline Property<int>::Property(const std::string& name, unsigned long offset, int pEpsilon) :
     IProperty(name, PropertyType::Int, PropertyAttribute::None, offset, sizeof(int)), epsilon(pEpsilon) {}
+
+template <>
+inline Property<hash_t>::Property(const std::string& name, unsigned long offset, hash_t pEpsilon) :
+    IProperty(name, PropertyType::Hash, PropertyAttribute::None, offset, sizeof(hash_t)), epsilon(pEpsilon) {}
 
 template <>
 inline Property<int8_t>::Property(const std::string& name, unsigned long offset, int8_t pEpsilon) :

@@ -62,8 +62,8 @@ MusicSystem::~MusicSystem() {
     }
     musics.clear();
 
-    for (std::map<std::string, FileBuffer>::iterator it=name2buffer.begin(); it!=name2buffer.end(); ++it) {
-        delete[] it->second.data;
+    for (auto& it: name2buffer) {
+        delete[] it.second.data;
     }
     name2buffer.clear();
 }
@@ -119,7 +119,7 @@ void MusicSystem::DoUpdate(float dt) {
 
         if (m->loopNext == InvalidMusicRef && !m->autoLoopName.empty()) {
             LOGI("Music '" << theEntityManager.entityName(entity) << "': prepare next loop '" << m->autoLoopName << "'");
-            m->loopNext = loadMusicFile(m->autoLoopName);
+            m->loopNext = loadMusicFile(m->autoLoopName.c_str());
         }
 
         // Music is not started and is startable => launch opaque[0] player
@@ -340,15 +340,17 @@ void MusicSystem::toggleMute(bool enable) {
     }
 }
 
-MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
+MusicRef MusicSystem::loadMusicFile(const char* assetName) {
     LOGV(1, "loadMusicFile " << assetName);
+    hash_t h = Murmur::Hash(assetName);
 
     LOGF_IF(!assetAPI, "Asked to load a music file but invalid assetAPI given. Did you init MusicSystem?");
 
     PROFILE("Music", "loadMusicFile", BeginEvent);
 
     FileBuffer b;
-    if (name2buffer.find(assetName) == name2buffer.end()) {
+    auto it = name2buffer.find(h);
+    if (it == name2buffer.end()) {
         PROFILE("Music", "loadAsset", BeginEvent);
         b = assetAPI->loadAsset(assetName);
         PROFILE("Music", "loadAsset", EndEvent);
@@ -357,9 +359,9 @@ MusicRef MusicSystem::loadMusicFile(const std::string& assetName) {
             PROFILE("Music", "loadMusicFile", EndEvent);
             return InvalidMusicRef;
         }
-        name2buffer[assetName] = b;
+        name2buffer[h] = b;
     } else {
-        b = name2buffer[assetName];
+        b = it->second;
     }
     MusicInfo info;
 

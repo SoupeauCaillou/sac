@@ -24,12 +24,14 @@
 #include "api/AssetAPI.h"
 #include "util/DataFileParser.h"
 #include "systems/RenderingSystem.h"
+#include "util/MurmurHash.h"
 
 bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::string* variables, int varcount) {
     DataFileParser dfp;
     if (!dfp.load(fb, ctx)) {
         return false;
     }
+    LOGV(1, "Loading: " << ctx);
     for (int i=0; i<varcount; i++) {
         dfp.defineVariable(variables[2*i], variables[2*i+1]);
     }
@@ -37,7 +39,7 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
     const std::string meta = "meta";
         // speed
     if (dfp.get(meta, "speed", &playbackSpeed, 1, false)) {
-        LOGV(1, "animation -> playbackSpeed = " << playbackSpeed);
+        LOGV(1, "  -> playbackSpeed = " << playbackSpeed);
     } else {
         playbackSpeed = 1;
     }
@@ -47,33 +49,36 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
     if (dfp.get(meta, "loop", &loop, 1, false)) {
         if (loop == "infinite") {
             loopCount = Interval<int>(-1,-1);
-            LOGV(1, "animation -> loopCount = infinite");
+            LOGV(1, "  -> loopCount = infinite");
         } else if (dfp.get(meta, "loop", &loopCount.t1, 2, false)) {
-            LOGV(1, "animation -> loopCount = [" << loopCount.t1 << ", " << loopCount.t2 << ']');
+            LOGV(1, "  -> loopCount = [" << loopCount.t1 << ", " << loopCount.t2 << ']');
         } else if (dfp.get(meta, "loop", &loopCount.t1, 1, false)) {
             loopCount.t2 = loopCount.t1;
-            LOGV(1, "animation -> loopCount = " << loopCount.t1);
+            LOGV(1, "  -> loopCount = " << loopCount.t1);
         }
     }
         // next anim
-    if (dfp.get(meta, "next_anim", &nextAnim, 1, false)) {
-        LOGV(1, "animation -> nextAnim = " << nextAnim);
+    std::string next;
+    if (dfp.get(meta, "next_anim", &next, 1, false)) {
+        LOGV(1, "  -> nextAnim = " << next);
+        nextAnim = Murmur::Hash(next.c_str());
+        LOGF_IF(nextAnim == 0, "Hash value 0 is reserved, please change anim '" << ctx << "' name");
     } else {
-        nextAnim = "";
+        nextAnim = 0;
     }
         // wait before next
     if (dfp.get(meta, "wait_before_next_anim", &nextAnimWait.t1, 2, false)) {
-        LOGV(1, "animation -> nextAnimWait = [" << nextAnimWait.t1 << ", " << nextAnimWait.t2 << ']');
+        LOGV(1, "  -> nextAnimWait = [" << nextAnimWait.t1 << ", " << nextAnimWait.t2 << ']');
     } else if (dfp.get(meta, "wait_before_next_anim", &nextAnimWait.t1, 1, false)) {
         nextAnimWait.t2 = nextAnimWait.t1;
-        LOGV(1, "animation -> nextAnimWait = " << nextAnimWait.t1);
+        LOGV(1, "  -> nextAnimWait = " << nextAnimWait.t1);
     } else {
         nextAnimWait.t1 = nextAnimWait.t2 = 0;
     }
         // frame count
     int frameCount = 0;
     if (dfp.get(meta, "num_frames", &frameCount, 1)) {
-        LOGV(1, "animation -> frameCount = " << frameCount);
+        LOGV(1, "  -> frameCount = " << frameCount);
 
         for (int i=0; i<frameCount; i++) {
             std::stringstream sect;
@@ -81,26 +86,12 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
             std::string section = sect.str();
             std::string texture;
             if (dfp.get(section, "texture", &texture, 1)) {
-                LOGV(1, "\t" << section << ':' << texture);
+                LOGV(1, "    - " << section << ':' << texture);
                 AnimFrame frame;
                 if (texture.empty())
                     frame.texture = InvalidTextureRef;
                 else
-                    frame.texture = theRenderingSystem.loadTextureFile(texture);
-
-                int subEntityIndex = 0;
-                do {
-                    std::stringstream transformS;
-                    transformS << "entity_transform_" << subEntityIndex;
-
-                    AnimFrame::Transform tr;
-                    if (dfp.get(section, transformS.str(), &tr.position.x, 5, false)) {
-                        frame.transforms.push_back(tr);
-                        subEntityIndex++;
-                    } else {
-                        break;
-                    }
-                } while (true);
+                    frame.texture = Murmur::Hash(texture.c_str());
                 frames.push_back(frame);
             } else {
                 LOGF("Missing texture attribute in section '" << section << "'");

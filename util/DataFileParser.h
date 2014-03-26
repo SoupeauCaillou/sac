@@ -85,11 +85,11 @@ std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp);
 
 template <class T>
 bool DataFileParser::parse(const std::string& value, T* out, const int count, bool warnIfNotFound) const {
-	LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported");
+    LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported");
 
-	size_t endIndexes[MAX_ELEMENTS];
+    size_t endIndexes[MAX_ELEMENTS];
 
-	if (!determineSubStringIndexes(value, count, endIndexes, warnIfNotFound))
+    if (!determineSubStringIndexes(value, count, endIndexes, warnIfNotFound))
         return false;
 
     size_t startIndex = 0;
@@ -117,6 +117,22 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
 
     return parse(val, out, count, warnIfNotFound);
 }
+
+template <>
+inline bool DataFileParser::get(const std::string& section, const std::string& var, char* out, const int maxCount, bool warnIfNotFound)  const{
+    LOGF_IF(maxCount <= 0, "Invalid 'count' param");
+    // Retrieve value
+    std::string val;
+    if (!keyValue(section, var, warnIfNotFound, val))
+        return false;
+
+    strncpy(out, val.c_str(), maxCount);
+    out[maxCount - 1] = 0;
+
+    return true;
+}
+
+
 
 template <class T>
 bool DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count)  const{

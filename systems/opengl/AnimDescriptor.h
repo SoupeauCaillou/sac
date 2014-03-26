@@ -25,7 +25,7 @@
 #include "base/Interval.h"
 #include "TextureLibrary.h"
 #include <vector>
-#include <string>
+#include "util/MurmurHash.h"
 
 struct FileBuffer;
 
@@ -36,17 +36,12 @@ class AnimDescriptor {
     public:
         struct AnimFrame {
             TextureRef texture;
-            struct Transform {
-                glm::vec2 position, size;
-                float rotation;
-            };
-            std::vector<Transform> transforms;
         };
 
     public:
         std::vector<AnimFrame> frames;
         float playbackSpeed;
         Interval<int> loopCount;
-        std::string nextAnim;
+        hash_t nextAnim;
         Interval<float> nextAnimWait;
 };
