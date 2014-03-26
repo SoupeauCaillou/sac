@@ -28,11 +28,11 @@ INSTANCE_IMPL(CameraSystem);
 
 CameraSystem::CameraSystem() : ComponentSystemImpl<CameraComponent>("Camera") {
     CameraComponent tc;
-    componentSerializer.add(new Property<bool>("enable", OFFSET(enable, tc)));
-    componentSerializer.add(new Property<bool>("clear", OFFSET(clear, tc)));
-    componentSerializer.add(new Property<int>("id", OFFSET(id, tc)));
-    componentSerializer.add(new Property<int>("order", OFFSET(order, tc)));
-    componentSerializer.add(new Property<Color>("clear_color", OFFSET(clearColor, tc)));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("enable"), OFFSET(enable, tc)));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("clear"), OFFSET(clear, tc)));
+    componentSerializer.add(new Property<int>(Murmur::Hash("id"), OFFSET(id, tc)));
+    componentSerializer.add(new Property<int>(Murmur::Hash("order"), OFFSET(order, tc)));
+    componentSerializer.add(new Property<Color>(Murmur::Hash("clear_color"), OFFSET(clearColor, tc)));
 }
 
 void CameraSystem::DoUpdate(float) {

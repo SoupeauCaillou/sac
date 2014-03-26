@@ -38,23 +38,23 @@ INSTANCE_IMPL(AutonomousAgentSystem);
 
 #define EXPORT_BEHAVIOR_PARAM(type) \
     do { \
-        componentSerializer.add(new Property<float>( #type "_weight", OFFSET(type##Params.weight, ac), 0.001f)); \
-        componentSerializer.add(new Property<float>( #type "_coeff", OFFSET(type##Params.coeff, ac), 0.001f)); \
+        componentSerializer.add(new Property<float>(Murmur::Hash( #type "_weight"), OFFSET(type##Params.weight, ac), 0.001f)); \
+        componentSerializer.add(new Property<float>(Murmur::Hash( #type "_coeff"), OFFSET(type##Params.coeff, ac), 0.001f)); \
     } while (false)
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") {
     AutonomousAgentComponent ac;
-    componentSerializer.add(new Property<float>("max_speed", OFFSET(maxSpeed, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("max_force", OFFSET(maxForce, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("max_speed"), OFFSET(maxSpeed, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("max_force"), OFFSET(maxForce, ac), 0.0001f));
 
     EXPORT_BEHAVIOR_PARAM(flee);
-    componentSerializer.add(new Property<float>("flee_radius", OFFSET(fleeRadius, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("flee_radius"), OFFSET(fleeRadius, ac), 0.0001f));
     EXPORT_BEHAVIOR_PARAM(obstacles);
     EXPORT_BEHAVIOR_PARAM(walls);
     EXPORT_BEHAVIOR_PARAM(wander);
-    componentSerializer.add(new Property<float>("wander_radius", OFFSET(wander.radius, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("wander_distance", OFFSET(wander.distance, ac), 0.0001f));
-    componentSerializer.add(new Property<float>("wander_jitter", OFFSET(wander.jitter, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("wander_radius"), OFFSET(wander.radius, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("wander_distance"), OFFSET(wander.distance, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("wander_jitter"), OFFSET(wander.jitter, ac), 0.0001f));
     EXPORT_BEHAVIOR_PARAM(alignement);
     EXPORT_BEHAVIOR_PARAM(separation);
     EXPORT_BEHAVIOR_PARAM(cohesion);

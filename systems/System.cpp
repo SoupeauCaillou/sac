@@ -159,7 +159,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
             continue;
         }
 
-        const std::string& vname = prop->getName();
+        const std::string& vname = Murmur::lookup(prop->getId());
         const bool itv = (prop->getAttribute() == PropertyAttribute::Interval);
         VarType::Enum vt = itv ? VarType::INTERVAL_1 : VarType::NORMAL;
         switch (prop->getType()) {

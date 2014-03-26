@@ -26,7 +26,10 @@
 
 const std::string DataFileParser::GlobalSection = "";
 
-typedef std::map<std::string, std::string> Section;
+struct Section {
+    std::map<std::string, std::string> keyValues;
+    std::map<hash_t, std::string> hashValues;
+};
 
 struct DataFileParser::DataFileParserData {
     Section global;
@@ -77,11 +80,11 @@ DataFileParser::~DataFileParser() {
     unload();
 }
 
-void DataFileParser::init() { 
-    if (data) 
+void DataFileParser::init() {
+    if (data)
         delete data;
-    
-    data = new DataFileParserData(); 
+
+    data = new DataFileParserData();
 }
 
 
@@ -100,7 +103,7 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
     std::string s("");
     while (getline(f, s)) {
-        if (s.find_first_not_of("\t\n ") == std::string::npos) 
+        if (s.find_first_not_of("\t\n ") == std::string::npos)
             continue;
         if (s[0] == '#')
             continue;
@@ -120,10 +123,10 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
             // first '='
             int sep = s.find('=');
 
-			if (sep == -1) {
-				LOGE("Expecting to found '=' character in '" << s << "' but did NOT!");
-				continue;
-			}
+            if (sep == -1) {
+                LOGE("Expecting to found '=' character in '" << s << "' but did NOT!");
+                continue;
+            }
             int st = 0, len = sep - st, end = s.size() - 1;
             while (s[st] == ' ' || s[st] == '\t') { st++; len--; }
             while (s[st + len - 1] == ' ' || s[st + len - 1] == '\t') len--;
@@ -133,7 +136,8 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
             std::string key(s.substr(st, len));
             std::string value(s.substr(sep, end));
-            currentSection->insert(std::make_pair(key, value));
+            currentSection->keyValues.insert(std::make_pair(key, value));
+            currentSection->hashValues.insert(std::make_pair(Murmur::Hash(key.c_str()), value));
         }
     }
 
@@ -146,7 +150,8 @@ void DataFileParser::put(const std::string& section, const std::string& var, con
         sectPtr = new Section;
         data->sections.insert(std::make_pair(section, sectPtr));
     }
-    (*sectPtr)[var] = value;
+    sectPtr->keyValues[var] = value;
+    sectPtr->hashValues[Murmur::Hash(var.c_str())] = value;
 }
 
 void DataFileParser::unload() {
@@ -164,8 +169,26 @@ bool DataFileParser::keyValue(const std::string& section, const std::string& var
     if (!data->selectSectionByName(section, &sectPtr)) {
         return false;
     }
-    std::map<std::string, std::string>::const_iterator jt = sectPtr->find(var);
-    if (jt == sectPtr->end()) {
+    auto jt = sectPtr->keyValues.find(var);
+    if (jt == sectPtr->keyValues.end()) {
+        LOGE_IF(warnIfNotFound, context << ": cannot find var '" << var << "' in section '" << section << "'");
+        return false;
+    }
+    out = jt->second;
+    return true;
+}
+
+bool DataFileParser::hashValue(const std::string& section, hash_t var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
+    if (!data) {
+        LOGE("No data loaded before requesting key value : " << section << '/' << var);
+        return false;
+    }
+    const Section* sectPtr = 0;
+    if (!data->selectSectionByName(section, &sectPtr)) {
+        return false;
+    }
+    auto jt = sectPtr->hashValues.find(var);
+    if (jt == sectPtr->hashValues.end()) {
         LOGE_IF(warnIfNotFound, context << ": cannot find var '" << var << "' in section '" << section << "'");
         return false;
     }
@@ -182,12 +205,16 @@ bool DataFileParser::remove(const std::string& section, const std::string& var) 
     if (!data->selectSectionByName(section, &sectPtr)) {
         return false;
     }
-    auto it = sectPtr->find(var);
-    if (it == sectPtr->end()) {
+    auto it = sectPtr->keyValues.find(var);
+    auto jt = sectPtr->hashValues.find(Murmur::Hash(var.c_str()));
+
+    if (it == sectPtr->keyValues.end() || jt == sectPtr->hashValues.end()) {
         LOGE(context << ": cannot find var to remove '" << var << "' in section '" << section << "'");
         return false;
     }
-    sectPtr->erase(it);
+    sectPtr->keyValues.erase(it);
+    sectPtr->hashValues.erase(jt);
+
     return true;
 }
 
@@ -200,11 +227,11 @@ bool DataFileParser::indexValue(const std::string& section, unsigned index, std:
     if (!data->selectSectionByName(section, &sectPtr)) {
         return false;
     }
-    if (sectPtr->size() <= index) {
-        LOGE(context << ": requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->size() << " elements");
+    if (sectPtr->keyValues.size() <= index) {
+        LOGE(context << ": requesting index : " << index << " in section " << section << ", which only contains " << sectPtr->keyValues.size() << " elements");
         return false;
     }
-    Section::const_iterator jt = sectPtr->begin();
+    auto jt = sectPtr->keyValues.begin();
     for (unsigned i=0; i<index; i++) jt++;
     varName = jt->first;
     value = jt->second;
@@ -227,13 +254,13 @@ unsigned DataFileParser::sectionSize(const std::string& section) const {
         return 0;
     }
     if (section == GlobalSection)
-        return data->global.size();
-    std::map<std::string, Section*>::const_iterator it = data->sections.find(section);
+        return data->global.keyValues.size();
+    auto it = data->sections.find(section);
     if (it == data->sections.end()) {
         LOGE(context << ": cannot find section '" << section << "'");
         return 0;
     }
-    return it->second->size();
+    return it->second->keyValues.size();
 }
 
 bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool LOG_USAGE_ONLY(warnIfNotFound)) const{
@@ -258,6 +285,18 @@ bool DataFileParser::determineSubStringIndexes(const std::string& str, int count
 int DataFileParser::getSubStringCount(const std::string& section, const std::string& var) const {
     std::string s;
     if (keyValue(section, var, false, s)) {
+        // let's count ','
+        int splits = 1;
+        std::for_each(s.begin(), s.end(), [&splits](char c) -> void { if (c ==',') splits++;});
+        return splits;
+    } else {
+        return -1;
+    }
+}
+
+int DataFileParser::getSubStringCount(const std::string& section, hash_t id) const {
+    std::string s;
+    if (hashValue(section, id, false, s)) {
         // let's count ','
         int splits = 1;
         std::for_each(s.begin(), s.end(), [&splits](char c) -> void { if (c ==',') splits++;});
@@ -292,13 +331,13 @@ std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp) {
     LOGT("Variables not handled!");
 
     //Global section first
-    for (auto & kv : dfp.data->global) {
+    for (auto & kv : dfp.data->global.keyValues) {
         o << kv.first << "=" << kv.second << std::endl;
     }
 
     for (auto & section : dfp.data->sections) {
         o << "[" << section.first << "]" << std::endl;
-        for (auto & kv : *section.second) {
+        for (auto & kv : section.second->keyValues) {
             o << kv.first << "=" << kv.second << std::endl;
         }
         o << std::endl;

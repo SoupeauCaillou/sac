@@ -36,12 +36,12 @@ INSTANCE_IMPL(AnimationSystem);
 
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") {
     AnimationComponent tc;
-    componentSerializer.add(new Property<hash_t>("name", OFFSET(name, tc)));
-    componentSerializer.add(new Property<float>("playback_speed", OFFSET(playbackSpeed, tc), 0.001f));
-    componentSerializer.add(new Property<float>("accum", OFFSET(accum, tc), 0.001f));
-    componentSerializer.add(new Property<float>("wait_accum", OFFSET(waitAccum, tc), 0.001f));
-    componentSerializer.add(new Property<int>("loop_count", OFFSET(loopCount, tc)));
-    componentSerializer.add(new Property<int>("frame_index", OFFSET(frameIndex, tc)));
+    componentSerializer.add(new Property<hash_t>(Murmur::Hash("name"), OFFSET(name, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("playback_speed"), OFFSET(playbackSpeed, tc), 0.001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("accum"), OFFSET(accum, tc), 0.001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("wait_accum"), OFFSET(waitAccum, tc), 0.001f));
+    componentSerializer.add(new Property<int>(Murmur::Hash("loop_count"), OFFSET(loopCount, tc)));
+    componentSerializer.add(new Property<int>(Murmur::Hash("frame_index"), OFFSET(frameIndex, tc)));
 }
 
 AnimationSystem::~AnimationSystem() {

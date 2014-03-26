@@ -27,6 +27,12 @@
 
 typedef uint32_t hash_t;
 
+#if SAC_DEBUG || SAC_INGAME_EDITORS
+#define CONSTEXPR
+#else
+#define CONSTEXPR constexpr
+#endif
+
 class Murmur {
     private:
         static constexpr uint32_t seed = 0x12345678;
@@ -34,7 +40,7 @@ class Murmur {
 
         static hash_t RuntimeHash(const void * key, int len);
 
-        static constexpr hash_t Hash(const void * key, int len) {
+        static CONSTEXPR hash_t Hash(const void * key, int len) {
             return
                 selfExpShift(
                     mulM(
@@ -46,8 +52,14 @@ class Murmur {
         }
 
         // assume key contains \0
-        static constexpr hash_t Hash(const char * key) {
+        static CONSTEXPR hash_t Hash(const char * key) {
+            #if SAC_DEBUG || SAC_INGAME_EDITORS
+            uint32_t result = Hash(key, strlen(key));
+            _lookup[result] = key;
+            return result;
+            #else
             return Hash(key, strlen(key));
+            #endif
         }
     private:
         static constexpr uint32_t M = 0x5bd1e995;
@@ -74,5 +86,12 @@ class Murmur {
                 loop(key + 4, len - 4, loopInt(readAsInt(key), h)) :
                 ((len > 0) ? leftOver(key, h, len) : h);
         }
+
+    private:
+        #if SAC_DEBUG || SAC_INGAME_EDITORS
+        static std::map<uint32_t, const char*> _lookup;
+    public:
+        static const char* lookup(uint32_t t);
+        #endif
 
 };

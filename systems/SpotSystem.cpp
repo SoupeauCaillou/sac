@@ -29,9 +29,9 @@ INSTANCE_IMPL(SpotSystem);
 
 SpotSystem::SpotSystem() : ComponentSystemImpl<SpotComponent>("Spot") {
     SpotComponent tc;
-    componentSerializer.add(new Property<float>("angle", OFFSET(angle, tc), 0.001f));
-    componentSerializer.add(new Property<float>("distance", OFFSET(distance, tc), 0.001f));
-    componentSerializer.add(new Property<int>("resolution", OFFSET(resolution, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("angle"), OFFSET(angle, tc), 0.001f));
+    componentSerializer.add(new Property<float>(Murmur::Hash("distance"), OFFSET(distance, tc), 0.001f));
+    componentSerializer.add(new Property<int>(Murmur::Hash("resolution"), OFFSET(resolution, tc)));
 }
 
 struct MyRectangle {

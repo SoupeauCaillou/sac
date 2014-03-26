@@ -42,11 +42,11 @@ ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("Sc
     /* nothing saved */
     ScrollingComponent sc;
 
-    componentSerializer.add(new Property<glm::vec2>("direction", OFFSET(direction, sc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>("speed", OFFSET(speed, sc), 0.001f));
-    componentSerializer.add(new Property<glm::vec2>("display_size", OFFSET(displaySize, sc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<bool>("show", OFFSET(show, sc)));
-    componentSerializer.add(new Property<uint8_t>("rendering_flags", OFFSET(renderingFlags, sc)));
+    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("direction"), OFFSET(direction, sc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("speed"), OFFSET(speed, sc), 0.001f));
+    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("display_size"), OFFSET(displaySize, sc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("show"), OFFSET(show, sc)));
+    componentSerializer.add(new Property<uint8_t>(Murmur::Hash("rendering_flags"), OFFSET(renderingFlags, sc)));
 }
 
 void ScrollingSystem::DoUpdate(float dt) {

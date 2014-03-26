@@ -40,20 +40,20 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     minUsedIdx = maxUsedIdx = 0;
 
     ParticuleComponent tc;
-    componentSerializer.add(new Property<float>("emission_rate", OFFSET(emissionRate, tc)));
-    componentSerializer.add(new Property<float>("duration", OFFSET(duration, tc)));
-    componentSerializer.add(new Property<TextureRef>("texture", PropertyType::Texture, OFFSET(texture, tc), 0));
-    componentSerializer.add(new IntervalProperty<float>("lifetime", OFFSET(lifetime, tc)));
-    componentSerializer.add(new IntervalProperty<Color>("initial_color", OFFSET(initialColor, tc)));
-    componentSerializer.add(new IntervalProperty<Color>("final_color", OFFSET(finalColor, tc)));
-    componentSerializer.add(new IntervalProperty<float>("initial_size", OFFSET(initialSize, tc)));
-    componentSerializer.add(new IntervalProperty<float>("final_size", OFFSET(finalSize, tc)));
-    componentSerializer.add(new IntervalProperty<float>("force_direction", OFFSET(forceDirection, tc)));
-    componentSerializer.add(new IntervalProperty<float>("force_amplitude", OFFSET(forceAmplitude, tc)));
-    componentSerializer.add(new IntervalProperty<float>("moment", OFFSET(moment, tc)));
-    componentSerializer.add(new Property<float>("mass", OFFSET(mass, tc)));
-    componentSerializer.add(new Property<glm::vec2>("gravity", OFFSET(gravity, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<int8_t>("rendering_flags", OFFSET(renderingFlags, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("emission_rate"), OFFSET(emissionRate, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("duration"), OFFSET(duration, tc)));
+    componentSerializer.add(new Property<TextureRef>(Murmur::Hash("texture"), PropertyType::Texture, OFFSET(texture, tc), 0));
+    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("lifetime"), OFFSET(lifetime, tc)));
+    componentSerializer.add(new IntervalProperty<Color>(Murmur::Hash("initial_color"), OFFSET(initialColor, tc)));
+    componentSerializer.add(new IntervalProperty<Color>(Murmur::Hash("final_color"), OFFSET(finalColor, tc)));
+    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("initial_size"), OFFSET(initialSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("final_size"), OFFSET(finalSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("force_direction"), OFFSET(forceDirection, tc)));
+    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("force_amplitude"), OFFSET(forceAmplitude, tc)));
+    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("moment"), OFFSET(moment, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("mass"), OFFSET(mass, tc)));
+    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("gravity"), OFFSET(gravity, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<int8_t>(Murmur::Hash("rendering_flags"), OFFSET(renderingFlags, tc)));
 
     poolLastValidElement = -1;
 }

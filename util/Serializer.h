@@ -57,7 +57,7 @@ namespace PropertyAttribute {
 
 class IProperty {
     protected:
-        IProperty(const std::string& name, PropertyType::Enum type, PropertyAttribute::Enum attribute, unsigned long offset, unsigned size);
+        IProperty(hash_t id, PropertyType::Enum type, PropertyAttribute::Enum attribute, unsigned long offset, unsigned size);
     public:
         virtual ~IProperty() {}
         virtual unsigned size(void* object) const;
@@ -65,14 +65,14 @@ class IProperty {
         virtual int serialize(uint8_t* out, void* object) const;
         virtual int deserialize(const uint8_t* in, void* object) const;
 
-        const std::string& getName() const { return name; }
+        hash_t getId() const { return id; }
         PropertyType::Enum getType() const {return type;}
         PropertyAttribute::Enum getAttribute() const { return attribute; }
     public:
         unsigned long offset;
         unsigned _size;
     private:
-        std::string name;
+        hash_t id;
         PropertyType::Enum type;
         PropertyAttribute::Enum attribute;
 
@@ -81,8 +81,8 @@ class IProperty {
 template<typename T>
 class Property : public IProperty {
     public:
-        Property(const std::string& name, PropertyType::Enum type, unsigned long offset, T pEpsilon = 0);
-        Property(const std::string& name, unsigned long offset, T pEpsilon = 0);
+        Property(hash_t id, PropertyType::Enum type, unsigned long offset, T pEpsilon = 0);
+        Property(hash_t id, unsigned long offset, T pEpsilon = 0);
         bool different(void* object, void* refObject) const;
     private:
         T epsilon;
@@ -90,7 +90,7 @@ class Property : public IProperty {
 
 class EntityProperty : public IProperty {
     public:
-        EntityProperty(const std::string& name, unsigned long offset);
+        EntityProperty(hash_t id, unsigned long offset);
         unsigned size(void* object) const;
         int serialize(uint8_t* out, void* object) const;
         int deserialize(const uint8_t* in, void* object) const;
@@ -98,7 +98,7 @@ class EntityProperty : public IProperty {
 
 class StringProperty : public IProperty {
     public:
-        StringProperty(const std::string& name, unsigned long offset);
+        StringProperty(hash_t id, unsigned long offset);
         unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
@@ -108,7 +108,7 @@ class StringProperty : public IProperty {
 template <typename T>
 class VectorProperty : public IProperty {
     public:
-        VectorProperty(const std::string& name, unsigned long offset);
+        VectorProperty(hash_t id, unsigned long offset);
         unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
@@ -118,7 +118,7 @@ class VectorProperty : public IProperty {
 template <typename T>
 class IntervalProperty : public IProperty {
     public:
-        IntervalProperty(const std::string& name, unsigned long offset);
+        IntervalProperty(hash_t id, unsigned long offset);
         bool different(void* object, void* refObject) const;
         int serialize(uint8_t* out, void* object) const;
         int deserialize(const uint8_t* in, void* object) const;
@@ -128,7 +128,7 @@ class IntervalProperty : public IProperty {
 template <typename T, typename U>
 class MapProperty : public IProperty {
     public:
-        MapProperty(const std::string& name, unsigned long offset);
+        MapProperty(hash_t id, unsigned long offset);
         virtual unsigned size(void* object) const;
         bool different(void* object, void* refObject) const;
         virtual int serialize(uint8_t* out, void* object) const;

@@ -123,8 +123,8 @@ static void applyFloatModifiers(int idx, float* out, int count) {
     }
 }
 
-#define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << name << " property: '" << *out << "'");
-#define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << name << " property: '"
+#define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << id << " property: '" << *out << "'");
+#define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << id << " property: '"
 
 enum IntervalMode {
     IntervalAsRandom,
@@ -133,11 +133,13 @@ enum IntervalMode {
 };
 
 template <class T>
-int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, T* out);
+int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, T* out);
 
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, glm::vec2* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, glm::vec2* out) {
+    LOGT("Fix vec2 variants handling");
+    #if 0
     float parsed[4];
 
     // 5 different variants
@@ -230,12 +232,14 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
             }
         }
     }
-
+    #endif
     return 0;
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, Color* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, Color* out) {
+    LOGT("Fix color variants handling");
+    #if 0
     float p[8];
     // 3 different variants: first 4 float (or 8 for an interval)
     if (dfp.get(section, name, p, 8, false)) {
@@ -284,15 +288,16 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
     //uint8_t rgba[4];
     // 128, 255, 0, 128 variant
     // ... todo
+    #endif
     return 0;
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode, std::string* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode, std::string* out) {
     std::string parsed;
 
     // %loc handled by caller
-    if (dfp.get(section, name, &parsed, 1, false)) {
+    if (dfp.get(section, id, &parsed, 1, false)) {
         // we got a single value
         *out = parsed;
         LOG_SUCCESS
@@ -304,9 +309,10 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
 }
 
 template <>
-inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, float* out) {
+inline int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, float* out) {
     float parsed[2];
-
+    LOGT("Fix float variants handling");
+    #if 0
     for (int i=0; i<8; i++) {
         if (dfp.get(section, name + floatmodifiers[i], parsed, 2, false)) {
             applyFloatModifiers(i, parsed, 2);
@@ -327,14 +333,15 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
             return 1;
         }
     }
+    #endif
     return 0;
 }
 
 template <class T>
-inline int  load(const DataFileParser& dfp, const std::string& section, const std::string& name, IntervalMode mode, T* out) {
+inline int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, T* out) {
     T parsed[2];
 
-    if (dfp.get(section, name, parsed, 2, false)) {
+    if (dfp.get(section, id, parsed, 2, false)) {
         // we got an interval
         Interval<T> itv(parsed[0], parsed[1]);
         switch (mode) {
@@ -344,7 +351,7 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
         }
         LOG_SUCCESS
         return 1;
-    } else if (mode == IntervalAsRandom && dfp.get(section, name, parsed, 1, false)) {
+    } else if (mode == IntervalAsRandom && dfp.get(section, id, parsed, 1, false)) {
         // we got a single value
         *out = parsed[0];
         LOG_SUCCESS
@@ -358,7 +365,7 @@ inline int  load(const DataFileParser& dfp, const std::string& section, const st
 static bool loadSingleProperty(const std::string& context,
         const DataFileParser& dfp,
         const std::string& section,
-        const std::string& name,
+        hash_t id,
         PropertyType::Enum type,
         PropertyAttribute::Enum attr,
         PropertyNameValueMap& propMap,
@@ -389,31 +396,35 @@ int ComponentFactory::build(
 
 #if SAC_DEBUG
     const auto propertiesInFile = dfp.sectionSize(section);
-    std::list<std::string> loaded;
+    std::list<hash_t> loaded;
 #endif
 
     // Browse properties for the given system
     for (auto it = properties.begin(); it!=properties.end(); ++it) {
         // Retrieve property name
-        const std::string& name = (*it)->getName();
-        const auto type = (*it)->getType();
+        auto* prop = *it;
+        const hash_t id = prop->getId();
+        const auto type = prop->getType();
 
         // Try to load property from data
-        bool success = loadSingleProperty(context, dfp, section, name, type, (*it)->getAttribute(), propMap, subEntities);
+        bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, subEntities);
 
+        LOGT("position");
+        #if 0
         // special testing case
         if (!success && name == "position") {
             const std::string v[] = { "NE", "N", "NW", "E", "W", "SW", "S", "SE"};
             for (unsigned i=0; i<8; i++) {
-                if (loadSingleProperty(context, dfp, section, name + v[i], type, (*it)->getAttribute(), propMap, subEntities)) {
+                if (loadSingleProperty(context, dfp, section, name + v[i], type, prop->getAttribute(), propMap, subEntities)) {
                     success = true;
                     break;
                 }
             }
         }
+        #endif
 #if SAC_DEBUG
         if (success) {
-            loaded.push_back(name);
+            loaded.push_back(id);
         }
 #endif
     }
@@ -467,9 +478,11 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
 
     int positionHackIndex = -1;
     for (IProperty* prop : properties) {
-        const std::string& name = prop->getName();
-        auto it = propValueMap.find(name);
+        hash_t id = prop->getId();
+        auto it = propValueMap.find(id);
         if (it == propValueMap.end()) {
+            LOGT("position");
+            #if 0
             if (name == "position") {
                 // special testing case
                 const std::string v[] = { "NW", "N", "NE", "W", "E", "SW", "S", "SE"};
@@ -481,6 +494,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     }
                 }
             }
+            #endif
             if (it == propValueMap.end())
                 continue;
         }
@@ -504,7 +518,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
             case PropertyType::String: {
                 if (prop->getAttribute() == PropertyAttribute::Vector) {
                     std::vector<std::string>* out = TYPE_2_PTR(std::vector<std::string>);
-                    VectorProperty<std::string> vp("dummy", 0);
+                    VectorProperty<std::string> vp(Murmur::Hash("dummy"), 0);
                     vp.deserialize((*it).second, out);
                 } else {
                     unsigned l;
@@ -533,6 +547,8 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
             case PropertyType::Entity: {
                 uint8_t* a = (*it).second;
                 if (a[0] == 0) {
+                    LOGT("sub entities");
+                    #if 0
                     a++;
                     EntityTemplateRef r;
                     memcpy(&r, a, sizeof(r));
@@ -542,10 +558,11 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     }
                     *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
                     ANCHOR(*e)->parent = entity;
+                    #endif
                 } else if (a[0] == 1) {
                     char* s = (char*)&a[1];
                     Entity byName = theEntityManager.getEntityByName(s);
-                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << name << "'");
+                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << id << "'");
                     memcpy(TYPE_2_PTR(Entity), &byName, sizeof(Entity));
                 }
                 break;
@@ -564,8 +581,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         };
         // find position
         for (IProperty* prop : properties) {
-            const std::string& name = prop->getName();
-            if (name == "position") {
+            if (prop->getId() == Murmur::Hash("position")) {
                 glm::vec2* position = TYPE_2_PTR(glm::vec2);
                 *position =
                     AnchorSystem::adjustPositionWithAnchor(*position, TRANSFORM(entity)->size * coeff[positionHackIndex]);
@@ -578,7 +594,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
 static bool loadSingleProperty(const std::string& context,
         const DataFileParser& dfp,
         const std::string& section,
-        const std::string& name,
+        hash_t id,
         PropertyType::Enum type,
         PropertyAttribute::Enum attr,
         PropertyNameValueMap& propMap,
@@ -586,13 +602,13 @@ static bool loadSingleProperty(const std::string& context,
 
     #define LOAD_INTERVAL_TEMPL(_type_) { \
         Interval<_type_> itv; \
-        bool success = load(dfp, section, name, IntervalValue1, &itv.t1); \
-        if(success) load(dfp, section, name, IntervalValue2, &itv.t2);\
-        else { success = load(dfp, section, name, IntervalAsRandom, &itv.t1); itv.t2 = itv.t1; } \
+        bool success = load(dfp, section, id, IntervalValue1, &itv.t1); \
+        if(success) load(dfp, section, id, IntervalValue2, &itv.t2);\
+        else { success = load(dfp, section, id, IntervalAsRandom, &itv.t1); itv.t2 = itv.t1; } \
         if (success) {\
         uint8_t* arr = new uint8_t[sizeof(itv)];\
         memcpy(arr, &itv, sizeof(itv));\
-        propMap.insert(std::make_pair(name, arr)); return true; }}
+        propMap.insert(std::make_pair(id, arr)); return true; }}
 
     // temp buffer
     char* temp = (char*)alloca(512);
@@ -615,19 +631,19 @@ static bool loadSingleProperty(const std::string& context,
             std::string s;
             // let's try something simple here
             if (attr == PropertyAttribute::Vector) {
-                int splits = dfp.getSubStringCount(section, name);
+                int splits = dfp.getSubStringCount(section, id);
                 if (splits > 0) {
                     std::string* all = new std::string[splits];
-                    if (dfp.get(section, name, all, splits, true)) {
+                    if (dfp.get(section, id, all, splits, true)) {
                         std::vector<std::string> a;
                         for (int i=0; i<splits; i++)
                             a.push_back(all[i]);
 
-                        VectorProperty<std::string> vp("dummy", 0);
+                        VectorProperty<std::string> vp(Murmur::Hash("dummy"), 0);
                         unsigned size = vp.size(&a);
                         uint8_t* arr = new uint8_t[size];
                         vp.serialize(arr, &a);
-                        propMap.insert(std::make_pair(name, arr));
+                        propMap.insert(std::make_pair(id, arr));
                         delete[] all;
                         return true;
                     }
@@ -635,11 +651,14 @@ static bool loadSingleProperty(const std::string& context,
                 }
             } else {
                 bool toLocalize = false;
-                int success = load(dfp, section, name, IntervalAsRandom, &s);
+                int success = load(dfp, section, id, IntervalAsRandom, &s);
                 if (!success) {
+                    LOGT("Fix loc string");
+                    #if 0
                     if ((success = load(dfp, section, name + stringmodifiers[0], IntervalAsRandom, &s))) {
                         toLocalize = true;
                     }
+                    #endif
                 }
 
                 if (success) {
@@ -648,13 +667,14 @@ static bool loadSingleProperty(const std::string& context,
                     memcpy(arr, &l, sizeof(int));
                     memcpy(&arr[sizeof(int)], &toLocalize, sizeof(bool));
                     memcpy(&arr[sizeof(int) + sizeof(bool)], s.c_str(), l);
-                    propMap.insert(std::make_pair(name, arr));
+                    propMap.insert(std::make_pair(id, arr));
                     return true;
                 }
             }
             break;
         }
         case PropertyType::Entity: {
+            #if 0
             if (dfp.get(section, name + "%template", temp, 512, false)) {
                 std::string subEntityName(context + std::string("#") + name);
                 EntityTemplateRef r = Murmur::Hash(subEntityName.c_str(), subEntityName.length());
@@ -666,7 +686,12 @@ static bool loadSingleProperty(const std::string& context,
                 theEntityManager.entityTemplateLibrary.defineParent(r,
                     theEntityManager.entityTemplateLibrary.load(temp));
                 return true;
-            } else if (dfp.get(section, name + "%name", temp, 512, false)) {
+            } else
+            #endif
+
+            LOGT("Fix entity %name");
+            #if 0
+            if (dfp.get(section, name + "%name", temp, 512, false)) {
                 const auto len = strlen(temp);
                 uint8_t* arr = new uint8_t[1 + len + 1];
                 arr[0] = 1;
@@ -675,33 +700,34 @@ static bool loadSingleProperty(const std::string& context,
                 propMap.insert(std::make_pair(name, arr));
                 return true;
             }
+            #endif
             break;
         }
         case PropertyType::Color:
             LOAD_INTERVAL_TEMPL(Color);
             break;
         case PropertyType::Sound: {
-            if (dfp.get(section, name, temp, 512, false)) {
+            if (dfp.get(section, id, temp, 512, false)) {
                 uint8_t* arr = new uint8_t[sizeof(TextureRef)];
                 *((SoundRef*)arr) = theSoundSystem.loadSoundFile(temp);
-                propMap.insert(std::make_pair(name, arr));
+                propMap.insert(std::make_pair(id, arr));
                 return true;
             }
             break;
         }
         case PropertyType::Hash:
         case PropertyType::Texture: {
-            if (dfp.get(section, name, temp, 512, false)) {
+            if (dfp.get(section, id, temp, 512, false)) {
                 uint8_t* arr = new uint8_t[sizeof(hash_t)];
                 hash_t h = Murmur::Hash(temp);
                 *((hash_t*)arr) = h;
-                propMap.insert(std::make_pair(name, arr));
+                propMap.insert(std::make_pair(id, arr));
                 return true;
             }
             break;
         }
         default:
-            LOGW("Property '" << section << '/' << name << "' uses unhandled type " << type);
+            LOGW("Property '" << section << '/' << id << "' uses unhandled type " << type);
             break;
     }
     #undef LOAD_INTERVAL_TEMPL

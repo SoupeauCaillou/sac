@@ -59,11 +59,11 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 #endif
 
     RenderingComponent tc;
-    componentSerializer.add(new Property<TextureRef>("texture", PropertyType::Texture, OFFSET(texture, tc), 0));
-    componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
-    componentSerializer.add(new Property<uint8_t>("flags", OFFSET(flags, tc)));
-    componentSerializer.add(new Property<int8_t>("camera_bitmask", OFFSET(cameraBitMask, tc)));
-    componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
+    componentSerializer.add(new Property<TextureRef>(Murmur::Hash("texture"), PropertyType::Texture, OFFSET(texture, tc), 0));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("show"), OFFSET(show, tc)));
+    componentSerializer.add(new Property<uint8_t>(Murmur::Hash("flags"), OFFSET(flags, tc)));
+    componentSerializer.add(new Property<int8_t>(Murmur::Hash("camera_bitmask"), OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<Color>(Murmur::Hash("color"), OFFSET(color, tc)));
 
     InternalTexture::Invalid.color = InternalTexture::Invalid.alpha = 0;
     initDone = true;

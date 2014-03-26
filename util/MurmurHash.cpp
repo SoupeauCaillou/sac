@@ -23,45 +23,17 @@
 #include "MurmurHash.h"
 
 
-#if 0
-#define M 0x5bd1e995
-#define R 24
+#if SAC_DEBUG || SAC_INGAME_EDITORS
+std::map<uint32_t, const char*> Murmur::_lookup;
 
-static constexpr unsigned int mulM(unsigned int k) {
-    return k * M;
-}
-
-static constexpr unsigned int selfExpShift(unsigned int h, int n) {
-    return h ^ (h >> n);
-}
-
-static constexpr unsigned int loopInt(unsigned int k, unsigned int h) {
-    return mulM(h) ^ mulM(selfExpShift(mulM(k), R));
-}
-
-static constexpr unsigned int leftOver(const unsigned char* data, unsigned int h, int len) {
-
-    return (len == 0) ?
-        h * M :
-        leftOver(data, h ^ data[len - 1] << (8 * (len - 1)), len - 1);
-}
-
-static constexpr unsigned int loop(const unsigned char* key, int len, unsigned int h) {
-
-    return (len >= 4) ?
-        loop(key + 4, len - 4, loopInt(*(const unsigned int *)key, h)) :
-        ((len > 0) ? leftOver(key, h, len) : h);
-}
-
-constexpr unsigned int MurmurHash::compute(const void * key, int len, unsigned int seed) {
-    return
-        selfExpShift(
-            mulM(
-                selfExpShift(
-                    loop((const unsigned char*) key, len, seed ^ len)
-                    , 13)
-            )
-        , 15);
+const char* Murmur::lookup(uint32_t t) {
+    auto it = _lookup.find(t);
+    if (it == _lookup.end()) {
+        LOGE("Invalid lookup key: " << t);
+        return "";
+    } else {
+        return it->second;
+    }
 }
 #endif
 

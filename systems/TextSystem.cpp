@@ -85,15 +85,15 @@ INSTANCE_IMPL(TextSystem);
 
 TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     TextComponent tc;
-    componentSerializer.add(new StringProperty("text", OFFSET(text, tc)));
-    componentSerializer.add(new StringProperty("font_name", OFFSET(fontName, tc)));
-    componentSerializer.add(new Property<Color>("color", OFFSET(color, tc)));
-    componentSerializer.add(new Property<float>("char_height", OFFSET(charHeight, tc), 0.001f));
-    componentSerializer.add(new Property<int>("flags", OFFSET(flags, tc), 0));
-    componentSerializer.add(new Property<int>("camera_bitmask", OFFSET(cameraBitMask, tc)));
-    componentSerializer.add(new Property<float>("positioning", OFFSET(positioning, tc), 0.001f));
-    componentSerializer.add(new Property<bool>("show", OFFSET(show, tc)));
-    componentSerializer.add(new Property<int>("max_line_to_use", OFFSET(maxLineToUse, tc)));
+    componentSerializer.add(new StringProperty(Murmur::Hash("text"), OFFSET(text, tc)));
+    componentSerializer.add(new StringProperty(Murmur::Hash("font_name"), OFFSET(fontName, tc)));
+    componentSerializer.add(new Property<Color>(Murmur::Hash("color"), OFFSET(color, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("char_height"), OFFSET(charHeight, tc), 0.001f));
+    componentSerializer.add(new Property<int>(Murmur::Hash("flags"), OFFSET(flags, tc), 0));
+    componentSerializer.add(new Property<int>(Murmur::Hash("camera_bitmask"), OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<float>(Murmur::Hash("positioning"), OFFSET(positioning, tc), 0.001f));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("show"), OFFSET(show, tc)));
+    componentSerializer.add(new Property<int>(Murmur::Hash("max_line_to_use"), OFFSET(maxLineToUse, tc)));
 }
 
 struct CharSequenceToUnicode {

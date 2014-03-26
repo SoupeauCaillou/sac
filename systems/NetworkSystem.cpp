@@ -93,7 +93,7 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"
     nextGuid = 1;
 
     NetworkComponentPriv nc;
-    componentSerializer.add(new VectorProperty<std::string>("sync", OFFSET(sync, nc)));
+    componentSerializer.add(new VectorProperty<std::string>(Murmur::Hash("sync"), OFFSET(sync, nc)));
 
 #if SAC_DEBUG
     bytesSentLastSec = bytesReceivedLastSec = 0;

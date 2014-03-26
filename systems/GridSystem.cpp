@@ -26,10 +26,10 @@ INSTANCE_IMPL(GridSystem);
 
 GridSystem::GridSystem() : ComponentSystemImpl<GridComponent>("Grid") {
     GridComponent tc;
-    componentSerializer.add(new Property<int>("type", OFFSET(type, tc)));
-    componentSerializer.add(new Property<bool>("blocks_path", OFFSET(blocksPath, tc)));
-    componentSerializer.add(new Property<bool>("blocks_vision", OFFSET(blocksVision, tc)));
-    componentSerializer.add(new Property<bool>("can_be_on_multiple_cells", OFFSET(canBeOnMultipleCells, tc)));
+    componentSerializer.add(new Property<int>(Murmur::Hash("type"), OFFSET(type, tc)));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("blocks_path"), OFFSET(blocksPath, tc)));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("blocks_vision"), OFFSET(blocksVision, tc)));
+    componentSerializer.add(new Property<bool>(Murmur::Hash("can_be_on_multiple_cells"), OFFSET(canBeOnMultipleCells, tc)));
 }
 
 int GridSystem::GetVisibilityCost(GridComponent::EType type, int distance) {

@@ -26,6 +26,7 @@
 #include <string>
 #include <sstream>
 #include "base/Log.h"
+#include "util/MurmurHash.h"
 
 class DataFileParser {
     public:
@@ -45,6 +46,9 @@ class DataFileParser {
         bool get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true) const;
 
         template <class T>
+        bool get(const std::string& section, hash_t var, T* out, const int count = 1, bool warnIfNotFound = true) const;
+
+        template <class T>
         bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1) const;
 
         bool remove(const std::string& section, const std::string& var);
@@ -54,6 +58,7 @@ class DataFileParser {
 
         void defineVariable(const std::string& name, const std::string& value);
         int getSubStringCount(const std::string& section, const std::string& var) const;
+        int getSubStringCount(const std::string& section, hash_t id) const;
 
         template <class T>
         void set(const std::string& section, const std::string& var, T* value, const int count = 1);
@@ -61,6 +66,7 @@ class DataFileParser {
     private:
         bool keyValue(const std::string& section, const std::string& var, bool warnIfNotFound, std::string& value) const;
         bool indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const;
+        bool hashValue(const std::string& section, hash_t var, bool warnIfNotFound, std::string& value) const;
 
         template <class T>
         bool parse(const std::string& value, T* out, const int count = 1, bool warnIfNotFound = true) const;
@@ -113,6 +119,17 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
     // Retrieve value
     std::string val;
     if (!keyValue(section, var, warnIfNotFound, val))
+        return false;
+
+    return parse(val, out, count, warnIfNotFound);
+}
+
+template <class T>
+bool DataFileParser::get(const std::string& section, hash_t var, T* out, const int count, bool warnIfNotFound)  const{
+    LOGF_IF(count <= 0, "Invalid 'count' param");
+    // Retrieve value
+    std::string val;
+    if (!hashValue(section, var, warnIfNotFound, val))
         return false;
 
     return parse(val, out, count, warnIfNotFound);
