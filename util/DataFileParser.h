@@ -43,18 +43,20 @@ class DataFileParser {
         void unload();
 
         template <class T>
-        bool get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true) const;
+        int get(const std::string& section, const std::string& var, T* out, const int count = 1, bool warnIfNotFound = true) const;
 
         template <class T>
-        bool get(const std::string& section, hash_t var, T* out, const int count = 1, bool warnIfNotFound = true) const;
+        int get(const std::string& section, hash_t var, T* out, const int count = 1, bool warnIfNotFound = true) const;
 
         template <class T>
-        bool get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1) const;
+        int get(const std::string& section, unsigned index, std::string& varName, T* out, const int count = 1) const;
 
         bool remove(const std::string& section, const std::string& var);
 
         unsigned sectionSize(const std::string& section) const;
         bool hasSection(const std::string& section) const;
+
+        hash_t getModifier(const std::string& section, hash_t var) const;
 
         void defineVariable(const std::string& name, const std::string& value);
         int getSubStringCount(const std::string& section, const std::string& var) const;
@@ -69,12 +71,12 @@ class DataFileParser {
         bool hashValue(const std::string& section, hash_t var, bool warnIfNotFound, std::string& value) const;
 
         template <class T>
-        bool parse(const std::string& value, T* out, const int count = 1, bool warnIfNotFound = true) const;
+        int parse(const std::string& value, T* out, int count = 1, bool warnIfNotFound = true) const;
 
         void put(const std::string& section, const std::string& var, const std::string& value);
 
     public:
-        bool determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool warnIfNotFound) const;
+        int determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool warnIfNotFound) const;
         std::string replaceVariables(const std::string& str) const;
 
     private:
@@ -90,13 +92,12 @@ std::ostream & operator<<(std::ostream & o, const DataFileParser & dfp);
 #define MAX_ELEMENTS 50
 
 template <class T>
-bool DataFileParser::parse(const std::string& value, T* out, const int count, bool warnIfNotFound) const {
+int DataFileParser::parse(const std::string& value, T* out, int count, bool warnIfNotFound) const {
     LOGF_IF(count > MAX_ELEMENTS, count << " elements not supported");
 
     size_t endIndexes[MAX_ELEMENTS];
 
-    if (!determineSubStringIndexes(value, count, endIndexes, warnIfNotFound))
-        return false;
+    count = determineSubStringIndexes(value, count, endIndexes, warnIfNotFound);
 
     size_t startIndex = 0;
     for (int i=0; i<count; i++) {
@@ -110,11 +111,11 @@ bool DataFileParser::parse(const std::string& value, T* out, const int count, bo
         startIndex = endIndexes[i] + 2;
         iss >> out[i];
     }
-    return true;
+    return count;
 }
 
 template <class T>
-bool DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound)  const{
+int DataFileParser::get(const std::string& section, const std::string& var, T* out, const int count, bool warnIfNotFound)  const{
     LOGF_IF(count <= 0, "Invalid 'count' param");
     // Retrieve value
     std::string val;
@@ -125,7 +126,7 @@ bool DataFileParser::get(const std::string& section, const std::string& var, T* 
 }
 
 template <class T>
-bool DataFileParser::get(const std::string& section, hash_t var, T* out, const int count, bool warnIfNotFound)  const{
+int DataFileParser::get(const std::string& section, hash_t var, T* out, const int count, bool warnIfNotFound)  const{
     LOGF_IF(count <= 0, "Invalid 'count' param");
     // Retrieve value
     std::string val;
@@ -136,7 +137,7 @@ bool DataFileParser::get(const std::string& section, hash_t var, T* out, const i
 }
 
 template <>
-inline bool DataFileParser::get(const std::string& section, const std::string& var, char* out, const int maxCount, bool warnIfNotFound)  const{
+inline int DataFileParser::get(const std::string& section, const std::string& var, char* out, const int maxCount, bool warnIfNotFound)  const{
     LOGF_IF(maxCount <= 0, "Invalid 'count' param");
     // Retrieve value
     std::string val;
@@ -146,13 +147,13 @@ inline bool DataFileParser::get(const std::string& section, const std::string& v
     strncpy(out, val.c_str(), maxCount);
     out[maxCount - 1] = 0;
 
-    return true;
+    return strlen(out);
 }
 
 
 
 template <class T>
-bool DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count)  const{
+int DataFileParser::get(const std::string& section, unsigned index, std::string& varName, T* out, const int count)  const{
     LOGF_IF(count <= 0, "Invalid 'count' param");
     // Retrieve value
     std::string val;

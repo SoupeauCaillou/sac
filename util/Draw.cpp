@@ -36,7 +36,7 @@
 
 Draw Draw::instance;
 
-static uint32_t TempGroupId = Murmur::Hash(__FILE__);
+static constexpr uint32_t TempGroupId = Murmur::Hash(__FILE__);
 
 Entity Draw::renderingEntity(uint32_t groupID) {
     Entity t = 0;

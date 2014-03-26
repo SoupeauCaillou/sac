@@ -41,11 +41,15 @@
 #include <alloca.h>
 #include <string>
 
-const char* floatmodifiers[] =
-    { "", "%screen_w", "%screen_h", "%gimp_x", "%gimp_y", "%gimp_w", "%gimp_h", "%degrees"};
-
-const char* vec2modifiers[] =
-    { "", "%screen", "%screen_rev", "%screen_w", "%screen_h", "%gimp_size", "%gimp_pos", "%gimp"};
+static const hash_t vec2modifiers[] = {
+    Murmur::Hash("%screen"),
+    Murmur::Hash("%screen_rev"),
+    Murmur::Hash("%screen_w"),
+    Murmur::Hash("%screen_h"),
+    Murmur::Hash("%gimp_size"),
+    Murmur::Hash("%gimp_pos"),
+    Murmur::Hash("%gimp")
+};
 
 const char* vec2singlefloatmodifiers[] = {
     "%texture_ratio,screen_w",
@@ -93,32 +97,34 @@ static void applyVec2Modifiers(int idx, glm::vec2* out) {
     }
 }
 
-static void applyFloatModifiers(int idx, float* out, int count) {
+static void applyFloatModifiers(hash_t modifier, float* out, int count) {
     for (int i=0; i<count; i++) {
-        switch (idx) {
+        switch (modifier) {
             case 0:
                 break;
-            case 1:
+            case Murmur::Hash("screen_w"):
                 out[i] *= PlacementHelper::ScreenSize.x;
                 break;
-            case 2:
+            case Murmur::Hash("screen_h"):
                 out[i] *= PlacementHelper::ScreenSize.y;
                 break;
-            case 3:
+            case Murmur::Hash("gimp_x"):
                 out[i] = PlacementHelper::GimpXToScreen(out[i]);
                 break;
-            case 4:
+            case Murmur::Hash("gimp_y"):
                 out[i] = PlacementHelper::GimpYToScreen(out[i]);
                 break;
-            case 5:
+            case Murmur::Hash("gimp_w"):
                 out[i] = PlacementHelper::GimpWidthToScreen(out[i]);
                 break;
-            case 6:
+            case Murmur::Hash("gimp_h"):
                 out[i] = PlacementHelper::GimpHeightToScreen(out[i]);
                 break;
-            case 7:
+            case Murmur::Hash("degrees"):
                 out[i] = glm::radians(out[i]);
                 break;
+            default:
+                LOGE("Unknown float modifier");
         }
     }
 }
@@ -309,13 +315,15 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
 }
 
 template <>
-inline int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, float* out) {
+inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, float* out) {
     float parsed[2];
-    LOGT("Fix float variants handling");
-    #if 0
-    for (int i=0; i<8; i++) {
-        if (dfp.get(section, name + floatmodifiers[i], parsed, 2, false)) {
-            applyFloatModifiers(i, parsed, 2);
+
+    const int count = dfp.get(section, id, parsed, 2, false);
+
+    if (count > 0) {
+        applyFloatModifiers(dfp.getModifier(section, id), parsed, count);
+
+        if (count == 2) {
             // we got an interval
             Interval<float> itv(parsed[0], parsed[1]);
             switch (mode) {
@@ -323,17 +331,12 @@ inline int  load(const DataFileParser& dfp, const std::string& section, hash_t i
                 case IntervalValue1: *out = itv.t1; break;
                 case IntervalValue2: *out = itv.t2; break;
             }
-            LOG_SUCCESS
-            return 1;
-        } else if (mode == IntervalAsRandom && dfp.get(section, name + floatmodifiers[i], parsed, 1, false)) {
-            applyFloatModifiers(i, parsed, 1);
-            // we got a single value
+        } else {
             *out = parsed[0];
-            LOG_SUCCESS
-            return 1;
         }
+        LOG_SUCCESS
+        return 1;
     }
-    #endif
     return 0;
 }
 

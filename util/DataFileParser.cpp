@@ -29,6 +29,7 @@ const std::string DataFileParser::GlobalSection = "";
 struct Section {
     std::map<std::string, std::string> keyValues;
     std::map<hash_t, std::string> hashValues;
+    std::map<hash_t, hash_t> hashModifiers;
 };
 
 struct DataFileParser::DataFileParserData {
@@ -137,7 +138,17 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
             std::string key(s.substr(st, len));
             std::string value(s.substr(sep, end));
             currentSection->keyValues.insert(std::make_pair(key, value));
-            currentSection->hashValues.insert(std::make_pair(Murmur::Hash(key.c_str()), value));
+
+            // Try something different
+            const auto pct = key.find('%');
+            if (pct == std::string::npos) {
+                currentSection->hashValues.insert(std::make_pair(Murmur::Hash(key.c_str()), value));
+            } else {
+                hash_t h = Murmur::Hash(key.substr(0, pct).c_str());
+                currentSection->hashValues.insert(std::make_pair(h, value));
+                hash_t hm = Murmur::Hash(key.substr(pct + 1, std::string::npos).c_str());
+                currentSection->hashModifiers.insert(std::make_pair(h, hm));
+            }
         }
     }
 
@@ -194,6 +205,22 @@ bool DataFileParser::hashValue(const std::string& section, hash_t var, bool LOG_
     }
     out = jt->second;
     return true;
+}
+
+hash_t DataFileParser::getModifier(const std::string& section, hash_t var) const {
+    if (!data) {
+        LOGE("No data loaded before requesting key value : " << section << '/' << var);
+        return 0;
+    }
+    const Section* sectPtr = 0;
+    if (!data->selectSectionByName(section, &sectPtr)) {
+        return 0;
+    }
+    auto jt = sectPtr->hashModifiers.find(var);
+    if (jt == sectPtr->hashModifiers.end()) {
+        return 0;
+    }
+    return jt->second;
 }
 
 bool DataFileParser::remove(const std::string& section, const std::string& var) {
@@ -263,15 +290,16 @@ unsigned DataFileParser::sectionSize(const std::string& section) const {
     return it->second->keyValues.size();
 }
 
-bool DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool LOG_USAGE_ONLY(warnIfNotFound)) const{
+int DataFileParser::determineSubStringIndexes(const std::string& str, int count, size_t* outIndexes, bool LOG_USAGE_ONLY(warnIfNotFound)) const{
     // Determine substring indexes
     outIndexes[count - 1] = str.size() - 1;
     size_t index = 0;
     for (int i=0; i<count-1; i++) {
         index = str.find(',', index);
         if (index == std::string::npos) {
-            LOGE_IF(warnIfNotFound, context << ": entry '" << str << "' does not contain '" << count << "' values");
-            return false;
+            LOGW_IF(warnIfNotFound, context << ": entry '" << str << "' does not contain '" << count << "' values");
+            outIndexes[i] = str.size() - 1;
+            return (i + 1);
         } else {
             outIndexes[i] = index - 1;
             LOGV(2, i << " = " << outIndexes[i]);
@@ -279,7 +307,7 @@ bool DataFileParser::determineSubStringIndexes(const std::string& str, int count
         }
     }
     LOGV(2, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')');
-    return true;
+    return count;
 }
 
 int DataFileParser::getSubStringCount(const std::string& section, const std::string& var) const {
