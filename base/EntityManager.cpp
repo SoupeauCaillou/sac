@@ -231,6 +231,7 @@ void EntityManager::deleteAllEntities() {
 
 std::vector<Entity> EntityManager::allEntities() {
     std::vector<Entity> out;
+    out.reserve(entityComponents.size());
     for (std::map<Entity, std::list<ComponentSystem*> >::iterator it=entityComponents.begin();
         it!=entityComponents.end(); ++it) {
         out.push_back(it->first);
