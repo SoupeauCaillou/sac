@@ -64,7 +64,7 @@ class Interval {
 template<>
 inline glm::vec2 Interval<glm::vec2>::random() const {
     if (t1 == t2)
-        return t1;    
+        return t1;
     float wx = glm::linearRand(0.0f, 1.0f);
     float wy = glm::linearRand(0.0f, 1.0f);
     return glm::vec2(
@@ -82,16 +82,16 @@ inline Color Interval<Color>::random() const {
     float wb = glm::linearRand(0.0f, 1.0f);
     float wa = glm::linearRand(0.0f, 1.0f);
 
-    // if t1 is grey and t2 is grey 
+    // if t1 is grey and t2 is grey
     //  -> generate grey too
     if (t1.isGrey() && t2.isGrey()) {
         wg = wb = wr;
     }
     return Color(
-        lerpf(t1.r, t2.r, wr),
-        lerpf(t1.g, t2.g, wg),
-        lerpf(t1.b, t2.b, wb),
-        lerpf(t1.a, t2.a, wa)
+        (uint8_t)lerpf(t1.r.value, t2.r.value, wr),
+        (uint8_t)lerpf(t1.g.value, t2.g.value, wg),
+        (uint8_t)lerpf(t1.b.value, t2.b.value, wb),
+        (uint8_t)lerpf(t1.a.value, t2.a.value, wa)
         );
 }
 

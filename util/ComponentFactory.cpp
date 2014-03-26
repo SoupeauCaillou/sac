@@ -52,8 +52,6 @@ static constexpr hash_t positionHack[] = {
     Murmur::Hash("positionSE")
 };
 
-const char* colormodifiers[] =
-    { "", "%html", "%255", "%name" };
 const char* stringmodifiers[] =
     { "%loc" };
 
@@ -237,7 +235,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
             case 3: {
                 *out = Color(&p[0], 0xffffffff);
                 if (count == 3)
-                    out->a = 1;
+                    out->a = 255;
                 LOG_SUCCESS
                 return 1;
             }

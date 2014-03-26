@@ -201,7 +201,9 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, b
     GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
     GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
     // upload color uniform
-    GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
+    static float meh[4];
+    for (int i=0; i<4; i++) meh[i] = float(color.rgba[i]);
+    GL_OPERATION(glUniform4fv(shader.uniformColor, 1, meh))
     return ref;
 }
 

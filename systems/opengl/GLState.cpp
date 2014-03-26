@@ -15,7 +15,7 @@ void GLState::Viewport::update(int _w, int _h) {
 void GLState::Clear::update(const Color& _color) {
     if (_color != color) {
         color = _color;
-        GL_OPERATION(glClearColor(color.r, color.g, color.b, color.a))
+        GL_OPERATION(glClearColor(float(color.r), float(color.g), float(color.b), float(color.a)))
     }
 }
 

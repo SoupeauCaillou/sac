@@ -34,6 +34,8 @@
 #define SIZE 256
 
 static void putPixel(ImageDesc &textureDesc, int pos_x, int pos_y, Color color) {
+    LOGT("TODO");
+    #if 0
     static unsigned char colorTab[4];
     for (uint i=0; i<sizeof(colorTab); ++i) {
         colorTab[i] = color.rgba[i] * 255;
@@ -41,6 +43,7 @@ static void putPixel(ImageDesc &textureDesc, int pos_x, int pos_y, Color color) 
     if ( pos_x > -1 &&  pos_x < textureDesc.width && pos_y > -1 &&  pos_y < textureDesc.height) {
         memcpy(textureDesc.datas + (pos_x + (textureDesc.width * (textureDesc.height-1 - pos_y))) * textureDesc.channels, colorTab, sizeof(colorTab));
     }
+    #endif
 }
 
 static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth, Color color) {

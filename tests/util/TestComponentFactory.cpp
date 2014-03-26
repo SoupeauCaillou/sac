@@ -167,20 +167,20 @@ TEST_FIXTURE(TestSetup, TestColorProperty)
 {
     Entity e = doTest("[Rendering]\ncolor=1.0, 0.5, 0.25, 1");
 
-    CHECK_CLOSE(1.0, RENDERING(e)->color.r, 0.001);
-    CHECK_CLOSE(0.5, RENDERING(e)->color.g, 0.001);
-    CHECK_CLOSE(0.25, RENDERING(e)->color.b, 0.001);
-    CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
+    CHECK_CLOSE(255, RENDERING(e)->color.r.value, 1);
+    CHECK_CLOSE(127, RENDERING(e)->color.g.value, 1);
+    CHECK_CLOSE(64, RENDERING(e)->color.b.value, 1);
+    CHECK_CLOSE(255, RENDERING(e)->color.a.value, 1);
 }
 
 TEST_FIXTURE(TestSetup, TestColorHtmlProperty)
 {
     Entity e = doTest("[Rendering]\ncolor%html= 81cadc");
 
-    CHECK_CLOSE(129.0/255, RENDERING(e)->color.r, 0.001);
-    CHECK_CLOSE(202.0/255, RENDERING(e)->color.g, 0.001);
-    CHECK_CLOSE(220.0/255, RENDERING(e)->color.b, 0.001);
-    CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
+    CHECK_EQUAL(129, RENDERING(e)->color.r.value);
+    CHECK_EQUAL(202, RENDERING(e)->color.g.value);
+    CHECK_EQUAL(220, RENDERING(e)->color.b.value);
+    CHECK_EQUAL(255, RENDERING(e)->color.a.value);
 }
 
 TEST_FIXTURE(TestSetup, TestSizeBasedOnTextureRatio)
