@@ -318,7 +318,9 @@ template <class T>
 inline int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, T* out) {
     T parsed[2];
 
-    if (dfp.get(section, id, parsed, 2, false)) {
+    int count = dfp.get(section, id, parsed, 2, false);
+
+    if (count == 2) {
         // we got an interval
         Interval<T> itv(parsed[0], parsed[1]);
         switch (mode) {
@@ -328,7 +330,7 @@ inline int  load(const DataFileParser& dfp, const std::string& section, hash_t i
         }
         LOG_SUCCESS
         return 1;
-    } else if (mode == IntervalAsRandom && dfp.get(section, id, parsed, 1, false)) {
+    } else if (mode == IntervalAsRandom && count == 1) {
         // we got a single value
         *out = parsed[0];
         LOG_SUCCESS
@@ -414,14 +416,9 @@ int ComponentFactory::build(
             std::string key, value;
             dfp.get(section, i, key, &value);
 
+            hash_t h = Murmur::Hash(key.c_str());
             bool done = false;
-            for (auto s: loaded) {
-                if (key.find(s) == 0) {
-                    done = true;
-                    break;
-                }
-            }
-            if (!done) {
+            if (std::find(loaded.begin(), loaded.end(), h) == loaded.end()) {
                 LOGE("   '" << key << "' = ... not loaded");
             }
         }

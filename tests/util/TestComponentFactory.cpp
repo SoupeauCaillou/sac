@@ -245,3 +245,11 @@ TEST_FIXTURE(TestSetup, TestDegreeFloatModifier)
 
     CHECK_CLOSE(glm::quarter_pi<float>(), TRANSFORM(e)->rotation, 0.001);
 }
+
+TEST_FIXTURE(TestSetup, TestInt8)
+{
+    Entity e = doTest(  "[Rendering]\n"\
+                        "flags = 1");
+
+    CHECK_EQUAL(1, RENDERING(e)->flags);
+}
