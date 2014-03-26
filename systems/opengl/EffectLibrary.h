@@ -45,16 +45,17 @@ struct Shader {
 
 class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
     protected:
-        bool doLoad(const std::string& name, Shader& out, const EffectRef& ref);
+        bool doLoad(const char* name, Shader& out, const EffectRef& ref);
 
-        void doUnload(const std::string& name, const Shader& in);
+        void doUnload(const Shader& in);
 
-        void doReload(const std::string& name, const EffectRef& ref);
+        void doReload(const char* name, const EffectRef& ref);
 
     public:
         virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true);
 
-        std::string asset2File(const std::string& asset) const { return asset; }
+        const char* asset2FilePrefix() const { return ""; }
+        const char* asset2FileSuffix() const { return ""; }
 
         enum {
             ATTRIB_VERTEX = 0,

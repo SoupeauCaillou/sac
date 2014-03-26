@@ -196,7 +196,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, const std
         if (dfp.get(section, name + vec2singlefloatmodifiers[i], parsed, 1, false)) {
             std::string textureName;
             if (dfp.get("Rendering", "texture", &textureName, 1, false)) {
-                const glm::vec2& s = theRenderingSystem.getTextureSize(textureName);
+                const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
                 switch (i) {
                     case 0:
                         out->y = parsed[0] * PlacementHelper::ScreenSize.x;

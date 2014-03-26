@@ -90,16 +90,29 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
     return propCount;
 }
 
-bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef& r) {
+#define FILE_PREFIX "entities/"
+#define FILE_PREFIX_LEN sizeof(FILE_PREFIX)
+
+#define FILE_SUFFIX ".entity"
+#define FILE_SUFFIX_LEN sizeof(FILE_PREFIX)
+
+const char* EntityTemplateLibrary::asset2FilePrefix() const { return FILE_PREFIX; }
+const char* EntityTemplateLibrary::asset2FileSuffix() const { return FILE_SUFFIX; }
+
+bool EntityTemplateLibrary::doLoad(const char* name, EntityTemplate& out, const EntityTemplateRef& r) {
     std::map<EntityTemplateRef, FileBuffer>::iterator it = dataSource.find(r);
     DataFileParser dfp;
     FileBuffer fb;
 
+    int l = FILE_PREFIX_LEN + strlen(name) + FILE_SUFFIX_LEN + 1;
+    char* filename = (char*)alloca(l);
+    asset2File(name, filename, l);
+
     if (it == dataSource.end()) {
         LOGV(1, "loadEntityTemplate: '" << name << "' from file");
-        fb = assetAPI->loadAsset(asset2File(name));
+        fb = assetAPI->loadAsset(filename);
         if (!fb.size) {
-            LOGF("Unable to load '" << asset2File(name) << "'");
+            LOGF("Unable to load '" << filename << "'");
             return false;
         }
     } else {
@@ -107,8 +120,8 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         fb = it->second;
     }
 
-    if (!dfp.load(fb, asset2File(name))) {
-        LOGE("Unable to parse '" << asset2File(name) << "'");
+    if (!dfp.load(fb, filename)) {
+        LOGE("Unable to parse '" << filename << "'");
         delete[] fb.data;
         return false;
     }
@@ -120,10 +133,14 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
         // remove extends key
         dfp.remove("", "extends");
 
-        FileBuffer fb2 = assetAPI->loadAsset(asset2File(extends));
+        int l2 = FILE_PREFIX_LEN + extends.length() + FILE_SUFFIX_LEN + 1;
+        char* filename2 = (char*)alloca(l2);
+        asset2File(extends.c_str(), filename2, l);
+
+        FileBuffer fb2 = assetAPI->loadAsset(filename2);
         if (!fb2.size) {
             LOGE("Unable to load 'extends' file: '" << extends << "'");
-        } else if (!dfp.load(fb2, asset2File(extends))) {
+        } else if (!dfp.load(fb2, filename2)) {
             LOGE("Unable to parse 'extends' file '" << extends << "'");
         }
 
@@ -142,8 +159,8 @@ bool EntityTemplateLibrary::doLoad(const std::string& name, EntityTemplate& out,
     return true;
 }
 
-void EntityTemplateLibrary::doUnload(const std::string&, const EntityTemplate&) {
-    LOGE("TODO");
+void EntityTemplateLibrary::doUnload(const EntityTemplate&) {
+    LOGT("TODO");
 }
 
 #if SAC_LINUX && SAC_DESKTOP
@@ -164,8 +181,8 @@ void EntityTemplateLibrary::applyTemplateToAll(const EntityTemplateRef& ref) {
 }
 #endif
 
-void EntityTemplateLibrary::doReload(const std::string& name, const EntityTemplateRef& ref) {
-    LOGE("RELOAD: " << name);
+void EntityTemplateLibrary::doReload(const char* name, const EntityTemplateRef& ref) {
+    LOGV(1, "RELOAD: " << name);
     EntityTemplate newTempl;
     if (doLoad(name, newTempl, ref)) {
         assets[ref2Index(ref)] = newTempl;

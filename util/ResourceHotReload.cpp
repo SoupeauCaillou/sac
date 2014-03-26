@@ -28,6 +28,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <stdio.h>
+#include <cstring>
 
 ResourceHotReload::InotifyDatas::InotifyDatas(int fd, const std::string & file, const std::string & asset)
     : _filename(file), _assetname(asset) {
@@ -49,7 +50,7 @@ ResourceHotReload::ResourceHotReload() {
 }
 
 void ResourceHotReload::updateReload() {
-#if SAC_LINUX && SAC_DESKTOP
+#if SAC_LINUX && SAC_DESKTOP && SAC_DEBUG
 
     fd_set fds;
     FD_ZERO(&fds);
@@ -73,7 +74,7 @@ void ResourceHotReload::updateReload() {
                     idata.wd = inotify_add_watch(inotifyFd,
                         idata._filename.c_str(),
                         IN_CLOSE_WRITE);
-                    reload(idata._assetname);
+                    reload(idata._assetname.c_str());
                 }
             }
 
@@ -84,25 +85,43 @@ void ResourceHotReload::updateReload() {
 #endif
 }
 
+void ResourceHotReload::asset2File(const char* assetName, char* out, int maxSize) const {
+    const char* pref = asset2FilePrefix();
+    const char* suff = asset2FileSuffix();
+
+    const auto len = strlen(assetName);
+    const auto lenp = strlen(pref);
+    const auto lens = strlen(suff);
+
+    LOGF_IF(int(len + lenp + lens + 1) > maxSize, "Buffer too small: " << (len + lenp + lens + 1) << '>' << maxSize);
+
+    strcpy(out, pref);
+    strcpy(&out[lenp], assetName);
+    strcpy(&out[lenp + len], suff);
+}
+
 #if SAC_LINUX && SAC_DESKTOP
 void ResourceHotReload::registerNewAsset(const std::string & asset, const std::string & override) {
     std::string filename = asset;
     if (!override.empty())
         filename = override;
-    std::string full = SAC_ASSETS_DIR + asset2File(filename);
+
+    static char big[1024];
+    asset2File(filename.c_str(), big, 1024);
+    std::string full = std::string(SAC_ASSETS_DIR) + big;
 
     std::ifstream ifile(full);
     if (!ifile) {
         const std::string assetsDirectory = "assets/";
         size_t idx = full.find(assetsDirectory);
         if (idx == std::string::npos) {
-            LOGW("File " << asset2File(filename) << " does not exist! Can't monitore it");
+            LOGW("File " << big << " does not exist! Can't monitore it");
             return;
         }
         full.replace(idx, assetsDirectory.length(), "assetspc/");
         ifile.open(full, std::ifstream::in);
         if (!ifile) {
-            LOGW("File " << asset2File(filename) << " does not exist! Can't monitore it");
+            LOGW("File " << big << " does not exist! Can't monitore it");
             return;
         }
     }

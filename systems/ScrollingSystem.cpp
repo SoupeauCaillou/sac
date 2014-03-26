@@ -81,8 +81,7 @@ void ScrollingSystem::DoUpdate(float dt) {
                 se.hasBeenVisible[i] = true;
             } else if (se.hasBeenVisible[i] && !isVisible) {
                 se.imageIndex[i] = (se.imageIndex[i] + 2) % sc->images.size();
-                RENDERING(se.e[i])->texture =
-                    theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
+                RENDERING(se.e[i])->texture = sc->images[se.imageIndex[i]];
                 const auto* ptc = TRANSFORM(a);
                 tc->position =
                     ANCHOR(se.e[(i+1)%2])->position -
@@ -117,7 +116,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 
         RenderingComponent* rc = RENDERING(se.e[i]);
         se.imageIndex[i] = i % sc->images.size();
-        rc->texture = theRenderingSystem.loadTextureFile(sc->images[se.imageIndex[i]]);
+        rc->texture = sc->images[se.imageIndex[i]];
         // rc->color = debugColors[se.imageIndex[i]];
         se.hasBeenVisible[i] = false;
         rc->flags = sc->renderingFlags;

@@ -398,9 +398,9 @@ relayout:
                 float scale = 1.0f;
                 parseInlineImageString(
                     trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &scale);
-                rc->texture = theRenderingSystem.loadTextureFile(texture);
+                rc->texture = theRenderingSystem.loadTextureFile(texture.c_str());
                 rc->color = Color();
-                glm::vec2 size = theRenderingSystem.getTextureSize(texture);
+                glm::vec2 size = theRenderingSystem.getTextureSize(texture.c_str());
                 tc->size.y = charHeight * scale;
                 tc->size.x = tc->size.y * size.x / size.y;
                 // skip inline image letters
@@ -537,7 +537,7 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
         std::stringstream ss;
         ss.fill('0');
         ss << std::hex << std::setw(2) << it->first << '_' << fontName;
-        info.texture = theRenderingSystem.loadTextureFile(ss.str());
+        info.texture = theRenderingSystem.loadTextureFile(ss.str().c_str());
         if (info.texture == InvalidTextureRef) {
             LOGW("Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'");
         }
@@ -617,7 +617,7 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
             std::string texture;
             parseInlineImageString(
                 trc->text.substr(i+1, next - 1 - (i+1) + 1), &texture, &scale);
-            glm::vec2 size = theRenderingSystem.getTextureSize(texture);
+            glm::vec2 size = theRenderingSystem.getTextureSize(texture.c_str());
             width += (charHeight * scale) * size.x / size.y;
             i = next + 1;
         } else if (unicode == '\n') {

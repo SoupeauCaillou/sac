@@ -126,7 +126,7 @@ public:
     int saveInternalState(uint8_t** out);
     void restoreInternalState(const uint8_t* in, int size);
 
-    TextureRef loadTextureFile(const std::string& assetName);
+    TextureRef loadTextureFile(const char* assetName);
     FramebufferRef createFramebuffer(const std::string& fbName, int width, int height);
     FramebufferRef getFramebuffer(const std::string& fbName) const ;
     void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
@@ -142,7 +142,7 @@ public:
     EffectRef changeShaderProgram(EffectRef ref, bool firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp,
         bool colorEnabled = true);
     const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture);
-    glm::vec2 getTextureSize(const std::string& textureName);
+    glm::vec2 getTextureSize(const char* textureName);
     glm::vec2 getTextureSize(const TextureRef& textureRef);
     void removeExcessiveFrames(int& readQueue, int& writeQueue);
 

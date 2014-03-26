@@ -60,7 +60,7 @@ class NamedAssetLibrary : public ResourceHotReload {
         int ref2Index(TRef ref) const {
             auto it = std::lower_bound(ref2indexv.begin(), ref2indexv.end(), ref);
 
-            if ((*it).ref != ref) {
+            if (it == ref2indexv.end() || (*it).ref != ref) {
                 LOGV(1, "Uh, ref is missing: " << ref);
                 return -1;
             }
@@ -85,7 +85,6 @@ class NamedAssetLibrary : public ResourceHotReload {
         }
 
         virtual ~NamedAssetLibrary() {
-            nameToRef.clear();
             ref2indexv.clear();
         }
 
@@ -93,20 +92,18 @@ class NamedAssetLibrary : public ResourceHotReload {
             return Murmur::Hash(name.c_str(), name.size());
         }
 
-        TRef load(const std::string& name) {
-            TRef result = InvalidRef;
+        TRef load(const char* name) {
+            TRef result = Murmur::Hash(name);
+
             if (useDeferredLoading)
                 mutex.lock();
-            typename std::map<std::string, TRef>::iterator it = nameToRef.find(name);
-            if (it == nameToRef.end()) {
-                result = name2ref(name);
 
-                LOGT_EVERY_N(100, "Probably useless, because the load method should take a hash");
-                nameToRef.insert(std::make_pair(name, result));
+            int existingIndex = ref2Index(result);
 
+            if (existingIndex == -1) {
                 if (useDeferredLoading) {
                     delayed.loads.insert(name);
-                    LOGV(1, "Put asset '" << name << "' (" << name.size() << ") on delayed load queue. Ref value: " << result << ". NameToRef size: " << nameToRef.size());
+                    LOGV(1, "Put asset '" << name << "' on delayed load queue.");
                 } else {
                     unsigned countBefore = assets.size();
                     assets.reserve(countBefore * 2);
@@ -120,9 +117,10 @@ class NamedAssetLibrary : public ResourceHotReload {
                 // Monitor file change if not loaded from memory
                 if (dataSource.find(result) == dataSource.end())
                     registerNewAsset(name);
+#if SAC_DEBUG || SAC_INGAME_EDITORS
+                ref2name[result] = name;
 #endif
-            } else {
-                result = it->second;
+#endif
             }
             if (useDeferredLoading)
                 mutex.unlock();
@@ -130,89 +128,82 @@ class NamedAssetLibrary : public ResourceHotReload {
             return result;
         }
 
-        void unload(const std::string& name) {
+        void unload(const char* name) {
             mutex.lock();
-            delayed.unloads.insert(name);
+            delayed.unloads.insert(Murmur::Hash(name));
             mutex.unlock();
             if (!useDeferredLoading) update();
         }
-        void reload(const std::string& name) {
+        void unload(const TRef& ref) {
+            mutex.lock();
+            delayed.unloads.insert(ref);
+            mutex.unlock();
+            if (!useDeferredLoading) update();
+        }
+
+        void reload(const char* name) {
             if (useDeferredLoading) {
                 mutex.lock();
                 delayed.reloads.insert(name);
                 mutex.unlock();
             } else {
-                TRef ref = nameToRef[name];
+                TRef ref = Murmur::Hash(name);
                 doReload(name, ref);
             }
         }
-
-        void unload(const TRef& ref) {
-            mutex.lock();
-            for (typename std::map<std::string, TRef>::iterator it=nameToRef.begin(); it!=nameToRef.end(); ++it) {
-                if (it->second == ref) {
-                    delayed.unloads.insert(it->first);
-                    break;
-                }
-            }
-            mutex.unlock();
-            if (!useDeferredLoading) update();
-        }
-
         void reloadAll() {
-            LOGV(1, "Reload all - " << nameToRef.size());
-            for (typename std::map<std::string, TRef>::const_iterator it=nameToRef.begin(); it!=nameToRef.end(); ++it) {
-                reload(it->first);
+            LOGV(1, "Reload all - " << ref2indexv.size());
+            for (auto& it: ref2indexv) {
+                reload(ref2name[it.ref].c_str());
             }
         }
 
         void update() {
             LOGV_IF(1, !delayed.loads.empty(), "Process delayed loads");
 
-            unsigned countBefore = assets.size();
-            assets.reserve(countBefore + delayed.loads.size() * 2);
-            assets.resize(countBefore + delayed.loads.size());
+            if (!delayed.loads.empty()) {
+                unsigned countBefore = assets.size();
+                assets.reserve(countBefore + delayed.loads.size() * 2);
+                assets.resize(countBefore + delayed.loads.size());
 
-            for (std::set<std::string>::iterator it=delayed.loads.begin();
-                it!=delayed.loads.end();
-                ++it) {
-                mutex.lock();
-                TRef ref = nameToRef[*it];
-                LOGV(2, "\tLoad '" << *it << "' -> " << ref);
-                doLoad(*it, assets[countBefore], ref);
-                _addRef2Index(ref, countBefore++);
-                mutex.unlock();
+                for (auto& name: delayed.loads) {
+                    mutex.lock();
+                    TRef ref = Murmur::Hash(name.c_str());
+                    LOGV(2, "\tLoad '" << name << "' -> " << ref);
+                    doLoad(name.c_str(), assets[countBefore], ref);
+                    _addRef2Index(ref, countBefore++);
+                    mutex.unlock();
+                }
             }
 
             LOGV_IF(1, !delayed.unloads.empty(), "Process delayed unloads");
-            for (std::set<std::string>::iterator it=delayed.unloads.begin();
-                it!=delayed.unloads.end();
-                ++it) {
+            for (auto ref : delayed.unloads) {
                 mutex.lock();
-                const std::string& name = *it;
-                LOGV(2, "\tUnload '" << name << "'");
-                TRef ref = nameToRef[name];
-                doUnload(name, assets[ref2Index(ref)]);
-                // ref2index.erase(ref);
-                nameToRef.erase(name);
+                LOGV(2, "\tUnload '" << ref << "'");
+                int idx = ref2Index(ref);
+                LOGF_IF(idx < 0, "Trying to unload invalid resources:" << ref);
+                doUnload(assets[idx]);
+                auto it = std::lower_bound(ref2indexv.begin(), ref2indexv.end(), ref);
+                (*it).ref = 0;
                 mutex.unlock();
             }
 
+#if SAC_DEBUG
             LOGV_IF(1, !delayed.reloads.empty(), "Process delayed reloads");
-            for (std::set<std::string>::iterator it=delayed.reloads.begin();
-                it!=delayed.reloads.end();
-                ++it) {
+            for (const auto& name: delayed.reloads) {
                 mutex.lock();
-                const std::string& name = *it;
                 LOGV(2, "Reload '" << name << "'");
-                TRef ref = nameToRef[name];
-                doReload(name, ref);
+                doReload(name.c_str(), Murmur::Hash(name.c_str()));
                 mutex.unlock();
             }
+#endif
             mutex.lock();
             delayed.loads.clear();
             delayed.unloads.clear();
+#if SAC_DEBUG
             delayed.reloads.clear();
+#endif
+
 #if USE_COND_SIGNALING
             cond.notify_all();
 #endif
@@ -246,12 +237,6 @@ class NamedAssetLibrary : public ResourceHotReload {
             return &assets[index];
         }
 
-        const T& get(const std::string& name) {
-            typename std::map<std::string, TRef>::const_iterator it = nameToRef.find(name);
-            LOGF_IF(it == nameToRef.end(), "Unkown asset requested: " << name << ". Asset count: " << nameToRef.size());
-            return *get(it->second, true);
-        }
-
         void registerDataSource(TRef r, SourceDataType type) {
             if (dataSource.find(r) != dataSource.end())
                 LOGW("Asset " << r << " already have one data source registered");
@@ -272,8 +257,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         void add(const std::string& name, const T& info) {
             if (useDeferredLoading) mutex.lock();
-            TRef ref = name2ref(name);
-            nameToRef.insert(std::make_pair(name, ref));
+            TRef ref = Murmur::Hash(name.c_str());
             _addRef2Index(ref, assets.size());
             assets.push_back(info);
             if (useDeferredLoading) mutex.unlock();
@@ -281,19 +265,20 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         #if SAC_DEBUG || SAC_INGAME_EDITORS
         const std::string& ref2Name(TRef ref) const {
-            for (const auto& p: nameToRef) {
-                if (p.second == ref)
-                    return p.first;
+            auto it = ref2name.find(ref);
+            if (it == ref2name.end()) {
+                const static std::string s("");
+                return s;
             }
-            static const std::string empty("");
-            return empty;
+            else
+                return it->second;
         }
         #endif
 
     protected:
-        virtual bool doLoad(const std::string& name, T& out, const TRef& ref) = 0;
-        virtual void doUnload(const std::string& name, const T& in) = 0;
-        virtual void doReload(const std::string& name, const TRef& ref) = 0;
+        virtual bool doLoad(const char* name, T& out, const TRef& ref) = 0;
+        virtual void doUnload(const T& in) = 0;
+        virtual void doReload(const char* name, const TRef& ref) = 0;
 
     protected:
         std::mutex mutex;
@@ -303,14 +288,14 @@ class NamedAssetLibrary : public ResourceHotReload {
         AssetAPI* assetAPI;
         bool useDeferredLoading;
 
-        std::map<std::string, TRef> nameToRef;
-        // std::map<TRef, int> ref2index;
+
+        std::map<TRef, std::string> ref2name;
         std::vector<RefIndex> ref2indexv;
         std::vector<T> assets;
         std::map<TRef, SourceDataType> dataSource;
         struct {
             std::set<std::string> loads;
-            std::set<std::string> unloads;
+            std::set<TRef> unloads;
             std::set<std::string> reloads;
         } delayed;
 };

@@ -223,7 +223,7 @@ static void textureSetCB(const void* valueIn, void* clientData) {
     const std::string* s = static_cast<const std::string*> (valueIn);
     TextureRef* r = static_cast<TextureRef*>(clientData);
     LOGI("textureSetCB : '" << *s << "'");
-    *r = theRenderingSystem.loadTextureFile(*s);
+    *r = theRenderingSystem.loadTextureFile(s->c_str());
 }
 
 static void textureGetCB(void* valueOut, void* clientData) {

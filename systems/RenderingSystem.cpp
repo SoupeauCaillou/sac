@@ -406,7 +406,7 @@ void RenderingSystem::DoUpdate(float) {
                     int atlasIdx = c.atlasIndex = info->atlasIndex;
                     // If atlas texture is not loaded yet, load it
                     if (atlasIdx >= 0 && atlas[atlasIdx].ref == InvalidTextureRef) {
-                        atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name);
+                        atlas[atlasIdx].ref = textureLibrary.load(atlas[atlasIdx].name.c_str());
                         LOGV(1, "Requested effective load of atlas '" << atlas[atlasIdx].name << "' -> ref=" << atlas[atlasIdx].ref);
                     }
 

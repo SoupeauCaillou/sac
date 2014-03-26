@@ -28,28 +28,28 @@
 #include <cmath>
 
 #ifndef uint
-	#define uint unsigned long
+    #define uint unsigned long
 #endif
 
 #define SIZE 256
 
 static void putPixel(ImageDesc &textureDesc, int pos_x, int pos_y, Color color) {
-	static unsigned char colorTab[4];
-	for (uint i=0; i<sizeof(colorTab); ++i) {
-		colorTab[i] = color.rgba[i] * 255;
-	}
-	if ( pos_x > -1 &&  pos_x < textureDesc.width && pos_y > -1 &&  pos_y < textureDesc.height) {
+    static unsigned char colorTab[4];
+    for (uint i=0; i<sizeof(colorTab); ++i) {
+        colorTab[i] = color.rgba[i] * 255;
+    }
+    if ( pos_x > -1 &&  pos_x < textureDesc.width && pos_y > -1 &&  pos_y < textureDesc.height) {
         memcpy(textureDesc.datas + (pos_x + (textureDesc.width * (textureDesc.height-1 - pos_y))) * textureDesc.channels, colorTab, sizeof(colorTab));
     }
 }
 
 static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth, Color color) {
-	if (lineWidth == 0)
-		lineWidth = 2;
+    if (lineWidth == 0)
+        lineWidth = 2;
     for (int i=-lineWidth / 2; i < lineWidth / 2; ++i) {
         for (int j=-lineWidth / 2; j < lineWidth / 2; ++j) {
-			putPixel(textureDesc, pos_x + i, pos_y + j, color);
-		}
+            putPixel(textureDesc, pos_x + i, pos_y + j, color);
+        }
     }
 }
 
@@ -64,12 +64,12 @@ static void clear(ImageDesc& desc) {
 }
 
 void GraphSystem::DoUpdate(float) {
-	for (std::map<TextureRef, ImageDesc>::iterator it=textureRef2Image.begin(); it != textureRef2Image.end(); ++it) {
-		clear(it->second);
-	}
+    for (std::map<TextureRef, ImageDesc>::iterator it=textureRef2Image.begin(); it != textureRef2Image.end(); ++it) {
+        clear(it->second);
+    }
 
     FOR_EACH_COMPONENT(Graph, gc)
-        TextureRef texture = theRenderingSystem.textureLibrary.load(gc->textureName);
+        TextureRef texture = theRenderingSystem.textureLibrary.load(gc->textureName.c_str());
 
         std::map<TextureRef, ImageDesc>::iterator jt;
         if ( (jt = textureRef2Image.find(texture)) != textureRef2Image.end()) {
@@ -90,8 +90,8 @@ void GraphSystem::DoUpdate(float) {
             textureRef2Image.insert(std::make_pair(texture, desc));
         }
         if(gc->reloadTexture) {
-        	theRenderingSystem.textureLibrary.reload(gc->textureName);
-        	gc->reloadTexture = false;
+            theRenderingSystem.textureLibrary.reload(gc->textureName.c_str());
+            gc->reloadTexture = false;
         }
     END_FOR_EACH()
 }
@@ -135,20 +135,20 @@ void GraphSystem::drawTexture(ImageDesc &textureDesc, GraphComponent *gc) {
     minScaleY -= 0.1f * std::abs(minScaleY);
     maxScaleY += 0.1f * std::abs(minScaleY);
 
-	if (gc->maxX != gc->minX) {
-		int value_xmin = (gc->minX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
-		int value_xmax = (gc->maxX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
+    if (gc->maxX != gc->minX) {
+        int value_xmin = (gc->minX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
+        int value_xmax = (gc->maxX - minScaleX) * (textureDesc.height - 1) / (maxScaleX - minScaleX);
 
-		drawLine(textureDesc, std::make_pair(value_xmax, 0), std::make_pair(value_xmax, 255), gc->lineWidth*textureDesc.width, gc->lineColor);
-		drawLine(textureDesc, std::make_pair(value_xmin, 0), std::make_pair(value_xmin, 255), gc->lineWidth*textureDesc.width, gc->lineColor);
-	}
-	if (gc->maxY != gc->minY) {
-		int value_ymin = (gc->minY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
-		int value_ymax = (gc->maxY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
+        drawLine(textureDesc, std::make_pair(value_xmax, 0), std::make_pair(value_xmax, 255), gc->lineWidth*textureDesc.width, gc->lineColor);
+        drawLine(textureDesc, std::make_pair(value_xmin, 0), std::make_pair(value_xmin, 255), gc->lineWidth*textureDesc.width, gc->lineColor);
+    }
+    if (gc->maxY != gc->minY) {
+        int value_ymin = (gc->minY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
+        int value_ymax = (gc->maxY - minScaleY) * (textureDesc.height - 1) / (maxScaleY - minScaleY);
 
-		drawLine(textureDesc, std::make_pair(0, value_ymax), std::make_pair(255, value_ymax), gc->lineWidth*textureDesc.width, gc->lineColor);
-		drawLine(textureDesc, std::make_pair(0, value_ymin), std::make_pair(255, value_ymin), gc->lineWidth*textureDesc.width, gc->lineColor);
-	}
+        drawLine(textureDesc, std::make_pair(0, value_ymax), std::make_pair(255, value_ymax), gc->lineWidth*textureDesc.width, gc->lineColor);
+        drawLine(textureDesc, std::make_pair(0, value_ymin), std::make_pair(255, value_ymin), gc->lineWidth*textureDesc.width, gc->lineColor);
+    }
 
     int previousValue_x = -1, previousValue_y = -1;
     for (std::list<std::pair<float, float> >::iterator it=gc->pointsList.begin(); it != gc->pointsList.end(); ++it) {
@@ -174,7 +174,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = e * 2;
                         dy = dy * 2;
                         for (int i=firstPoint.first; i != secondPoint.first; ++i) {
-                        	putPoint(textureDesc, i, firstPoint.second, lineWidth, color);
+                            putPoint(textureDesc, i, firstPoint.second, lineWidth, color);
 
                             if ( (e -= dy) < 0) {
                                 firstPoint.second += 1;
@@ -187,7 +187,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dy = e * 2;
                         dx = dx * 2;
                         for (int i=firstPoint.second; i != secondPoint.second; ++i) {
-                        	putPoint(textureDesc, firstPoint.first, i, lineWidth, color);
+                            putPoint(textureDesc, firstPoint.first, i, lineWidth, color);
 
                             if ( (e -= dx) < 0) {
                                 firstPoint.first += 1;
@@ -202,7 +202,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dx = e * 2;
                         dy = dy * 2;
                         for (int i=firstPoint.first; i != secondPoint.first; ++i) {
-							putPoint(textureDesc, i, firstPoint.second, lineWidth, color);
+                            putPoint(textureDesc, i, firstPoint.second, lineWidth, color);
                             if ( (e+=dy) < 0) {
                                 firstPoint.second -= 1;
                                 e += dx;
@@ -214,7 +214,7 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
                         dy = e * 2;
                         dx = dx * 2;
                         for (int i=firstPoint.second; i != secondPoint.second; --i) {
-                        	putPoint(textureDesc, firstPoint.first, i, lineWidth, color);
+                            putPoint(textureDesc, firstPoint.first, i, lineWidth, color);
 
                             if ( (e += dx) > 0) {
                                 firstPoint.first += 1;

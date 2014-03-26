@@ -91,7 +91,7 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 }
 
 Entity EntityManager::CreateEntityFromTemplate(const std::string& name, EntityType::Enum type) {
-    const EntityTemplateRef tmpl = entityTemplateLibrary.load(name);
+    const EntityTemplateRef tmpl = entityTemplateLibrary.load(name.c_str());
     LOGF_IF(tmpl == InvalidEntityTemplateRef, "Invalid entity template '" << name << "'");
     return CreateEntity(name, type, tmpl);
 }

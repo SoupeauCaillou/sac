@@ -33,11 +33,17 @@ class ResourceHotReload {
 
         void updateReload();
 
-        virtual void reload(const std::string& assetName) = 0;
-
-        virtual std::string asset2File(const std::string& assetName) const = 0;
+#if SAC_DEBUG
+        virtual void reload(const char* assetName) = 0;
+#endif
 
         void registerNewAsset(const std::string & assetName, const std::string & override = "");
+
+        virtual const char* asset2FilePrefix() const = 0;
+        virtual const char* asset2FileSuffix() const = 0;
+
+    protected:
+        void asset2File(const char* assetName, char* out, int maxSize) const;
 
 #if SAC_LINUX && SAC_DESKTOP
     private:

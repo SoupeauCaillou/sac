@@ -30,13 +30,13 @@
 #include <fstream>
 
 void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading) {
-	const std::string atlasDesc = atlasName + ".atlas";
+    const std::string atlasDesc = atlasName + ".atlas";
 
-	FileBuffer file = assetAPI->loadAsset(atlasDesc);
-	if (!file.data) {
-		LOGF("Unable to load atlas description file '" << atlasDesc << "'");
-		return;
-	}
+    FileBuffer file = assetAPI->loadAsset(atlasDesc);
+    if (!file.data) {
+        LOGF("Unable to load atlas description file '" << atlasDesc << "'");
+        return;
+    }
     DataFileParser dfp;
     if (!dfp.load(file, atlasDesc)) {
         LOGE("Unable to parse '" << atlasDesc << "'");
@@ -45,15 +45,15 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
     }
 
 
-	Atlas a;
-	a.name = atlasName;
-	if (forceImmediateTextureLoading) {
-        a.ref = textureLibrary.load(atlasName);
-	} else {
-		a.ref = InvalidTextureRef;
-	}
-	atlas.push_back(a);
-	int atlasIndex = atlas.size() - 1;
+    Atlas a;
+    a.name = atlasName;
+    if (forceImmediateTextureLoading) {
+        a.ref = textureLibrary.load(atlasName.c_str());
+    } else {
+        a.ref = InvalidTextureRef;
+    }
+    atlas.push_back(a);
+    int atlasIndex = atlas.size() - 1;
     int count = 0;
 
     glm::vec2 atlasSize;
@@ -61,8 +61,8 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
         LOGE("Missing 'atlas_size' attribute in '" << atlasDesc << "'");;
         goto cleanup;
     }
-	LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex);
-	do {
+    LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex);
+    do {
         std::stringstream sectionB;
         sectionB << "image" << count;
         const std::string section(sectionB.str());
@@ -70,7 +70,7 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
         if (!dfp.hasSection(section))
             break;
 
-		std::string assetName;
+        std::string assetName;
         if (!dfp.get(section, "name", &assetName, 1)) {
             LOGE(atlasDesc << ": missing 'name' in section '" << section << "'");
             goto cleanup;
@@ -110,41 +110,41 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
         const TextureInfo info(InternalTexture::Invalid, posInAtlas, sizeInAtlas, rotate, atlasSize, reduxOffset, originalSize, start, size, atlasIndex);
         textureLibrary.add(assetName, info);
         count++;
-	} while (true);
+    } while (true);
 
-	LOGV(1, "Atlas '" << atlasName << "' loaded " << count << " images");
+    LOGV(1, "Atlas '" << atlasName << "' loaded " << count << " images");
 cleanup:
     delete[] file.data;
 }
 
 void RenderingSystem::invalidateAtlasTextures() {
-	for (unsigned atlasIdx=0; atlasIdx<atlas.size(); atlasIdx++) {
+    for (unsigned atlasIdx=0; atlasIdx<atlas.size(); atlasIdx++) {
         // Invalidate only loaded textures
         if (atlas[atlasIdx].ref != InvalidTextureRef) {
             LOGI("Invalidate atlas: #" << atlasIdx << ": ref='" << atlas[atlasIdx].ref << "', name='" << atlas[atlasIdx].name << "'");
-            textureLibrary.reload(atlas[atlasIdx].name);
+            textureLibrary.reload(atlas[atlasIdx].name.c_str());
         }
-	}
+    }
 }
 
 void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     std::stringstream realName;
     realName << OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi)
         << '/' << atlasName;
-    textureLibrary.unload(realName.str());
+    textureLibrary.unload(Murmur::Hash(realName.str().c_str()));
     for (unsigned i=0; i<atlas.size(); i++) {
         if (atlas[i].name == realName.str()) {
             atlas[i].ref = InvalidTextureRef;
         }
     }
-    
+
 }
 
 void RenderingSystem::reloadTextures() {
     // Mark atlas textures invalid
-	invalidateAtlasTextures();
+    invalidateAtlasTextures();
 
-	// reload individual textures
+    // reload individual textures
     // textureLibrary.reloadAll();
     effectLibrary.reloadAll();
 
@@ -156,16 +156,16 @@ void RenderingSystem::reloadTextures() {
 }
 
 void RenderingSystem::processDelayedTextureJobs() {
-	PROFILE("Texture", "processDelayedTextureJobs", BeginEvent);
+    PROFILE("Texture", "processDelayedTextureJobs", BeginEvent);
 
     textureLibrary.update();
     effectLibrary.update();
 
-	PROFILE("Texture", "processDelayedTextureJobs", EndEvent);
+    PROFILE("Texture", "processDelayedTextureJobs", EndEvent);
 }
 
-TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
-	PROFILE("Texture", "loadTextureFile", BeginEvent);
+TextureRef RenderingSystem::loadTextureFile(const char* assetName) {
+    PROFILE("Texture", "loadTextureFile", BeginEvent);
 #ifndef SAC_EMSCRIPTEN
     mutexes[L_QUEUE].lock();
 #endif
@@ -177,19 +177,8 @@ TextureRef RenderingSystem::loadTextureFile(const std::string& assetName) {
     return result;
 }
 
-glm::vec2 RenderingSystem::getTextureSize(const std::string& textureName) {
-    const TextureInfo& info = textureLibrary.get(textureName);
-
-    switch (OpenGLTextureCreator::dpi) {
-        case DPI::Low:
-            return info.originalSize * 4.0f;
-        case DPI::Medium:
-            return info.originalSize * 2.0f;
-        default:
-            break;
-    }
-    return info.originalSize;
-
+glm::vec2 RenderingSystem::getTextureSize(const char* textureName) {
+    return getTextureSize(Murmur::Hash(textureName));
 }
 
 glm::vec2 RenderingSystem::getTextureSize(const TextureRef& textureRef) {
@@ -207,16 +196,16 @@ glm::vec2 RenderingSystem::getTextureSize(const TextureRef& textureRef) {
 }
 
 void RenderingSystem::unloadTexture(TextureRef ref, bool allowUnloadAtlas) {
-	if (ref != InvalidTextureRef) {
-		const TextureInfo* info = textureLibrary.get(ref, true);
+    if (ref != InvalidTextureRef) {
+        const TextureInfo* info = textureLibrary.get(ref, true);
         if (info) {
-    		if (info->atlasIndex >= 0 && !allowUnloadAtlas) {
+            if (info->atlasIndex >= 0 && !allowUnloadAtlas) {
                 LOGE("Cannot delete texture '" << ref << "' (is an atlas)");
-    	    } else {
+            } else {
                 textureLibrary.unload(ref);
             }
         }
-	} else {
-		LOGE("Tried to delete an InvalidTextureRef");
-	}
+    } else {
+        LOGE("Tried to delete an InvalidTextureRef");
+    }
 }

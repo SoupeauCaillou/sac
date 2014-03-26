@@ -32,7 +32,7 @@ struct ScrollingComponent {
         displaySize(0),
         show(false),
         renderingFlags(0) {}
-    std::vector<std::string> images;
+    std::vector<hash_t> images;
     glm::vec2 direction;
     float speed;
     glm::vec2 displaySize;

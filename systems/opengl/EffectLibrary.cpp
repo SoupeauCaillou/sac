@@ -52,7 +52,7 @@ static GLuint compileShader(const std::string&, GLuint type, const FileBuffer& f
     return shader;
 }
 
-static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuffer& fragmentFb) {
+static Shader buildShaderFromFileBuffer(const char* vsName, const FileBuffer& fragmentFb) {
     Shader out;
     LOGV(1, "building shader ...");;
     out.program = glCreateProgram();
@@ -101,7 +101,7 @@ static Shader buildShaderFromFileBuffer(const std::string& vsName, const FileBuf
     return out;
 }
 
-static Shader buildShaderFromAsset(AssetAPI* assetAPI, const std::string& vsName, const std::string& fsName) {
+static Shader buildShaderFromAsset(AssetAPI* assetAPI, const char* vsName, const char* fsName) {
     LOGI("Compiling shaders: " << vsName << '/' << fsName);
     FileBuffer fragmentFb = assetAPI->loadAsset(fsName);
     Shader shader = buildShaderFromFileBuffer(vsName, fragmentFb);
@@ -126,7 +126,7 @@ void EffectLibrary::init(AssetAPI* pAssetAPI, bool pUseDeferredLoading) {
     registerDataSource(name2ref(DEFAULT_NO_TEXTURE_FRAGMENT), fb);
 }
 
-bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const EffectRef& ref) {
+bool EffectLibrary::doLoad(const char* assetName, Shader& out, const EffectRef& ref) {
     LOGF_IF(assetAPI == 0, "Unitialized assetAPI member");
 
     std::map<EffectRef, FileBuffer>::iterator it = dataSource.find(ref);
@@ -142,11 +142,11 @@ bool EffectLibrary::doLoad(const std::string& assetName, Shader& out, const Effe
     return true;
 }
 
-void EffectLibrary::doUnload(const std::string&, const Shader&) {
+void EffectLibrary::doUnload(const Shader&) {
     LOGT("Effect unloading");
 }
 
-void EffectLibrary::doReload(const std::string& name, const EffectRef& ref) {
+void EffectLibrary::doReload(const char* name, const EffectRef& ref) {
     //Shader& info = ref2asset[ref];
     doLoad(name, assets[ref2Index(ref)], ref);
 }

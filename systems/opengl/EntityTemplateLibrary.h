@@ -44,15 +44,13 @@ typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
 
 class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {
     protected:
-        bool doLoad(const std::string& name, EntityTemplate& out, const EntityTemplateRef& ref);
+        bool doLoad(const char* name, EntityTemplate& out, const EntityTemplateRef& ref);
 
-        void doUnload(const std::string& name, const EntityTemplate& in);
+        void doUnload(const EntityTemplate& in);
 
-        void doReload(const std::string& name, const EntityTemplateRef& ref);
+        void doReload(const char* name, const EntityTemplateRef& ref);
 
     public:
-        std::string asset2File(const std::string& assetName) const { return "entities/" + assetName + ".entity"; }
-
         void setLocalizeAPI(LocalizeAPI* api) { localizeAPI = api; }
 
         void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
@@ -64,6 +62,9 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
         void unregisterDataSource(EntityTemplateRef r);
 
         ~EntityTemplateLibrary();
+
+        const char* asset2FilePrefix() const;
+        const char* asset2FileSuffix() const;
 
 #if SAC_LINUX && SAC_DESKTOP
         void remove(Entity e);

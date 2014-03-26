@@ -72,12 +72,14 @@ typedef int TextureRef;
 
 class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef, ImageDesc> {
     protected:
-        bool doLoad(const std::string& name, TextureInfo& out, const TextureRef& ref);
+        bool doLoad(const char* name, TextureInfo& out, const TextureRef& ref);
 
-        void doUnload(const std::string& name, const TextureInfo& in);
+        void doUnload(const TextureInfo& in);
 
-        void doReload(const std::string& name, const TextureRef& ref);
+        void doReload(const char* name, const TextureRef& ref);
+
     public:
-        std::string asset2File(const std::string& assetName) const { return assetName + ".png"; }
+        const char* asset2FilePrefix() const { return ""; }
+        const char* asset2FileSuffix() const { return ".png"; }
 
 };
