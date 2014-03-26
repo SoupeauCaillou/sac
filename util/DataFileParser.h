@@ -150,6 +150,20 @@ inline int DataFileParser::get(const std::string& section, const std::string& va
     return strlen(out);
 }
 
+template <>
+inline int DataFileParser::get(const std::string& section, hash_t var, char* out, const int maxCount, bool warnIfNotFound)  const{
+    LOGF_IF(maxCount <= 0, "Invalid 'count' param");
+    // Retrieve value
+    std::string val;
+    if (!hashValue(section, var, warnIfNotFound, val))
+        return false;
+
+    strncpy(out, val.c_str(), maxCount);
+    out[maxCount - 1] = 0;
+
+    return strlen(out);
+}
+
 
 
 template <class T>

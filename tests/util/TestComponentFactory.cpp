@@ -217,7 +217,7 @@ TEST_FIXTURE(TestSetup, TestGimpVec2Modifier)
     PlacementHelper::WindowSize = glm::vec2(435, 700);
     PlacementHelper::GimpSize = glm::vec2(800, 1280);
 
-    Entity e = doTest("[Transformation]\nposition%gimp = 10, 20\nsize%gimp = 10, 20");
+    Entity e = doTest("[Transformation]\nposition%gimp_pos = 10, 20\nsize%gimp_size = 10, 20");
 
     CHECK_CLOSE(PlacementHelper::GimpXToScreen(10), TRANSFORM(e)->position.x, 0.001);
     CHECK_CLOSE(PlacementHelper::GimpYToScreen(20), TRANSFORM(e)->position.y, 0.001);

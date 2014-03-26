@@ -41,60 +41,54 @@
 #include <alloca.h>
 #include <string>
 
-static const hash_t vec2modifiers[] = {
-    Murmur::Hash("%screen"),
-    Murmur::Hash("%screen_rev"),
-    Murmur::Hash("%screen_w"),
-    Murmur::Hash("%screen_h"),
-    Murmur::Hash("%gimp_size"),
-    Murmur::Hash("%gimp_pos"),
-    Murmur::Hash("%gimp")
+static constexpr hash_t positionHack[] = {
+    Murmur::Hash("positionNE"),
+    Murmur::Hash("positionN"),
+    Murmur::Hash("positionNW"),
+    Murmur::Hash("positionE"),
+    Murmur::Hash("positionW"),
+    Murmur::Hash("positionSW"),
+    Murmur::Hash("positionS"),
+    Murmur::Hash("positionSE")
 };
 
-const char* vec2singlefloatmodifiers[] = {
-    "%texture_ratio,screen_w",
-    "%texture_ratio,screen_h",
-    "%screen_w,texture_ratio",
-    "%screen_h,texture_ratio",
-    "%texture_ratio,abs",
-    "%abs,texture_ratio",
-    "%texture",
-};
 const char* colormodifiers[] =
     { "", "%html", "%255", "%name" };
 const char* stringmodifiers[] =
     { "%loc" };
 
-static void applyVec2Modifiers(int idx, glm::vec2* out) {
-    switch (idx) {
-        case 0:
-            break;
-        case 1:
-            *out *= PlacementHelper::ScreenSize;
-            break;
-        case 2:
-            out->y *= PlacementHelper::ScreenSize.x;
-            out->x *= PlacementHelper::ScreenSize.y;
-            break;
-        case 3:
-            out->x *= PlacementHelper::ScreenSize.x;
-            out->y *= PlacementHelper::ScreenSize.x;
-            break;
-        case 4:
-            out->x *= PlacementHelper::ScreenSize.y;
-            out->y *= PlacementHelper::ScreenSize.y;
-            break;
-        case 5:
-        case 7:
-            out->x = PlacementHelper::GimpWidthToScreen(out->x);
-            out->y = PlacementHelper::GimpHeightToScreen(out->y);
-            break;
-        case 6:
-        case 51:
-            out->x = PlacementHelper::GimpXToScreen(out->x);
-            out->y = PlacementHelper::GimpYToScreen(out->y);
-            break;
-    }
+static void applyVec2Modifiers(hash_t mod, glm::vec2* out, int count) {
+    for (int i=0; i<count; i++) {
+        switch (mod) {
+            case 0:
+                break;
+            case Murmur::Hash("screen"):
+                out[i] *= PlacementHelper::ScreenSize;
+                break;
+            case Murmur::Hash("screen_rev"):
+                out[i].y *= PlacementHelper::ScreenSize.x;
+                out[i].x *= PlacementHelper::ScreenSize.y;
+                break;
+            case Murmur::Hash("screen_w"):
+                out[i].x *= PlacementHelper::ScreenSize.x;
+                out[i].y *= PlacementHelper::ScreenSize.x;
+                break;
+            case Murmur::Hash("screen_h"):
+                out[i].x *= PlacementHelper::ScreenSize.y;
+                out[i].y *= PlacementHelper::ScreenSize.y;
+                break;
+            case Murmur::Hash("gimp_size"):
+                out[i].x = PlacementHelper::GimpWidthToScreen(out[i].x);
+                out[i].y = PlacementHelper::GimpHeightToScreen(out[i].y);
+                break;
+            case Murmur::Hash("gimp_pos"):
+                out[i].x = PlacementHelper::GimpXToScreen(out[i].x);
+                out[i].y = PlacementHelper::GimpYToScreen(out[i].y);
+                break;
+            default:
+                LOGF("Unknown vec2 modifier:" << mod);
+        }
+        }
 }
 
 static void applyFloatModifiers(hash_t modifier, float* out, int count) {
@@ -129,6 +123,41 @@ static void applyFloatModifiers(hash_t modifier, float* out, int count) {
     }
 }
 
+
+static void applyVec2SingleFloatModifiers(hash_t modifier, const glm::vec2& textureSize, float in, glm::vec2* out) {
+    switch (modifier) {
+        case Murmur::Hash("texture_ratio,screen_w"):
+            out->y = in * PlacementHelper::ScreenSize.x;
+            out->x = out->y * textureSize.x / textureSize.y;
+            break;
+        case Murmur::Hash("texture_ratio,screen_h"):
+            out->y = in * PlacementHelper::ScreenSize.y;
+            out->x = out->y * textureSize.x / textureSize.y;
+            break;
+        case Murmur::Hash("screen_w,texture_ratio"):
+            out->x = in * PlacementHelper::ScreenSize.x;
+            out->y = out->x * textureSize.y / textureSize.x;
+            break;
+        case Murmur::Hash("screen_h,texture_ratio"):
+            out->x = in * PlacementHelper::ScreenSize.y;
+            out->y = out->x * textureSize.y / textureSize.x;
+            break;
+        case Murmur::Hash("texture_ratio,abs"):
+            out->y = in;
+            out->x = out->y * textureSize.x / textureSize.y;
+            break;
+        case Murmur::Hash("abs,texture_ratio"):
+            out->x = in;
+            out->y = out->x * textureSize.y / textureSize.x;
+            break;
+        case Murmur::Hash("texture"):
+            *out = PlacementHelper::GimpSizeToScreen(textureSize * in);
+            break;
+        default:
+            LOGF("Unkown vec2singlefloat modifier");
+    }
+}
+
 #define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << id << " property: '" << *out << "'");
 #define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << id << " property: '"
 
@@ -144,157 +173,102 @@ int  load(const DataFileParser& dfp, const std::string& section, hash_t id, Inte
 
 template <>
 inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, glm::vec2* out) {
-    LOGT("Fix vec2 variants handling");
-    #if 0
-    float parsed[4];
+    float fp[4];
 
-    // 5 different variants
-    for (int i = 0; i<7; i++) {
-        if (dfp.get(section, name + vec2modifiers[i], parsed, 4, false)) {
-            // we got an interval
-            Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
+    int count = dfp.get(section, id, fp, 4, false);
+
+    if (count >= 2) {
+        hash_t mod = dfp.getModifier(section, id);
+
+        glm::vec2 parsed[] = { glm::vec2(fp[0], fp[1]), glm::vec2(fp[2], fp[3]) };
+        count /= 2;
+
+        applyVec2Modifiers(mod, parsed, count);
+
+        if (count == 2) {
             switch (mode) {
-                case IntervalAsRandom: *out = itv.random(); break;
-                case IntervalValue1: *out = itv.t1; break;
-                case IntervalValue2: *out = itv.t2; break;
+                case IntervalAsRandom: *out = Interval<glm::vec2>(parsed[0], parsed[1]).random(); break;
+                case IntervalValue1: *out = parsed[0]; break;
+                case IntervalValue2: *out = parsed[1]; break;
             }
-            applyVec2Modifiers(i, out);
-            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
-            return 1;
-        } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[i], parsed, 2, false)) {
-            // we got a single value
-            *out = glm::vec2(parsed[0], parsed[1]);
-            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
-            applyVec2Modifiers(i, out);
-            return 1;
+        } else {
+            *out = parsed[0];
         }
+        LOG_SUCCESS
+        return 1;
     }
-    int res1 = name.compare(0, 4, "size");
-    int res2 = name.compare(0, 8, "position");
-    if (res1 == 0 || res2 == 0) {
-        if (dfp.get(section, name + vec2modifiers[7], parsed, 4, false)) {
-            // we got an interval
-            Interval<glm::vec2> itv(glm::vec2(parsed[0], parsed[1]), glm::vec2(parsed[2], parsed[3]));
-            switch (mode) {
-                case IntervalAsRandom: *out = itv.random(); break;
-                case IntervalValue1: *out = itv.t1; break;
-                case IntervalValue2: *out = itv.t2; break;
-            }
-            if (res1 == 0) // name == size
-                applyVec2Modifiers(5, out);
-            if (res2 == 0) // name == position
-                applyVec2Modifiers(51, out);
 
-            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
-            return 1;
-        } else if (mode == IntervalAsRandom && dfp.get(section, name + vec2modifiers[7], parsed, 2, false)) {
-            // we got a single value
-            *out = glm::vec2(parsed[0], parsed[1]);
-            LOG_SUCCESS_ << out->x << ", " << out->y << "'");
-            if (res1 == 0) // name == size
-                applyVec2Modifiers(5, out);
-            else if (res2 == 0) // name == position
-                applyVec2Modifiers(51, out);
+    if (count == 1) {
+        hash_t mod = dfp.getModifier(section, id);
+
+        if (mod == 0)
+            return 0;
+
+        std::string textureName;
+        if (dfp.get("Rendering", Murmur::Hash("texture"), &textureName, 1, false)) {
+            const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
+            applyVec2SingleFloatModifiers(mod, s, fp[0], out);
             return 1;
         }
     }
 
-    // Try 6 variants with 1 float
-    for (int i=0; i<7; i++) {
-        if (dfp.get(section, name + vec2singlefloatmodifiers[i], parsed, 1, false)) {
-            std::string textureName;
-            if (dfp.get("Rendering", "texture", &textureName, 1, false)) {
-                const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
-                switch (i) {
-                    case 0:
-                        out->y = parsed[0] * PlacementHelper::ScreenSize.x;
-                        out->x = out->y * s.x / s.y;
-                        break;
-                    case 1:
-                        out->y = parsed[0] * PlacementHelper::ScreenSize.y;
-                        out->x = out->y * s.x / s.y;
-                        break;
-                    case 2:
-                        out->x = parsed[0] * PlacementHelper::ScreenSize.x;
-                        out->y = out->x * s.y / s.x;
-                        break;
-                    case 3:
-                        out->x = parsed[0] * PlacementHelper::ScreenSize.y;
-                        out->y = out->x * s.y / s.x;
-                        break;
-                    case 4:
-                        out->y = parsed[0];
-                        out->x = out->y * s.x / s.y;
-                        break;
-                    case 5:
-                        out->x = parsed[0];
-                        out->y = out->x * s.y / s.x;
-                        break;
-                    case 6:
-                        *out = PlacementHelper::GimpSizeToScreen(s * parsed[0]);
-                        break;
-                }
-                return 1;
-            }
-        }
-    }
-    #endif
     return 0;
 }
 
 template <>
 inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, Color* out) {
-    LOGT("Fix color variants handling");
-    #if 0
-    float p[8];
-    // 3 different variants: first 4 float (or 8 for an interval)
-    if (dfp.get(section, name, p, 8, false)) {
-        // we got an interval
-        Interval<Color> itv(Color(&p[0], 0xffffffff), Color(&p[4], 0xffffffff));
-        switch (mode) {
-            case IntervalAsRandom: *out = itv.random(); break;
-            case IntervalValue1: *out = itv.t1; break;
-            case IntervalValue2: *out = itv.t2; break;
+    {
+        float p[8];
+
+        int count = dfp.get(section, id, p, 8, false);
+
+        switch (count) {
+            case 8: {
+                Interval<Color> itv(Color(&p[0], 0xffffffff), Color(&p[4], 0xffffffff));
+                switch (mode) {
+                    case IntervalAsRandom: *out = itv.random(); break;
+                    case IntervalValue1: *out = itv.t1; break;
+                    case IntervalValue2: *out = itv.t2; break;
+                }
+                LOG_SUCCESS
+                return 1;
+            }
+            case 4:
+            case 3: {
+                *out = Color(&p[0], 0xffffffff);
+                if (count == 3)
+                    out->a = 1;
+                LOG_SUCCESS
+                return 1;
+            }
         }
-        LOG_SUCCESS_ << *out << "'");
-        return 1;
-    } else if (mode == IntervalAsRandom && dfp.get(section, name, p, 4, false)) {
-        // we got a single value
-        *out = Color(&p[0], 0xffffffff);
-        LOG_SUCCESS_ << *out << "'");
-        return 1;
-    } else if (mode == IntervalAsRandom && dfp.get(section, name, p, 3, false)) {
-        // we got a single value
-        *out = Color(&p[0], 0xffffffff);
-        out->a = 1;
-        LOG_SUCCESS_ << *out << "'");
-        return 1;
     }
-    std::string html;
-    if (dfp.get(section, name + colormodifiers[1], &html, 1, false)) {
-        int32_t h;
-        std::istringstream iss(html);
-        iss >> std::hex >> h;
-        *out = Color(((h >> 16) & 0xff) / 255.0f
-            , ((h >> 8) & 0xff) / 255.0f
-            , ((h >> 0) & 0xff) / 255.0f
-            , 1.f);
-        LOG_SUCCESS_ << *out << "'");
-        return 1;
+
+    {
+        std::string html;
+        if (dfp.get(section, id, &html, 1, false)) {
+            hash_t modifier = dfp.getModifier(section, id);
+
+            switch (modifier) {
+                case Murmur::Hash("html"): {
+                    int32_t h;
+                    std::istringstream iss(html);
+                    iss >> std::hex >> h;
+                    *out = Color(((h >> 16) & 0xff) / 255.0f
+                        , ((h >> 8) & 0xff) / 255.0f
+                        , ((h >> 0) & 0xff) / 255.0f
+                        , 1.f);
+                    LOG_SUCCESS_ << *out << "'");
+                    return 1;
+                }
+                case Murmur::Hash("name"): {
+                    *out = Color(html);
+                    LOG_SUCCESS
+                    return 1;
+                }
+            }
+        }
     }
-    std::string tmp;
-    if (dfp.get(section, name + colormodifiers[3], &tmp, 1, false)) {
-        *out = Color(tmp);
-        LOG_SUCCESS_ << *out << "'");
-        return 1;
-    }
-    //;
-    // 0xffffffff variant
-    // ....todo
-    //uint8_t rgba[4];
-    // 128, 255, 0, 128 variant
-    // ... todo
-    #endif
     return 0;
 }
 
@@ -412,19 +386,15 @@ int ComponentFactory::build(
         // Try to load property from data
         bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, subEntities);
 
-        LOGT("position");
-        #if 0
         // special testing case
-        if (!success && name == "position") {
-            const std::string v[] = { "NE", "N", "NW", "E", "W", "SW", "S", "SE"};
+        if (!success && id == Murmur::Hash("position")) {
             for (unsigned i=0; i<8; i++) {
-                if (loadSingleProperty(context, dfp, section, name + v[i], type, prop->getAttribute(), propMap, subEntities)) {
+                if (loadSingleProperty(context, dfp, section, positionHack[i], type, prop->getAttribute(), propMap, subEntities)) {
                     success = true;
                     break;
                 }
             }
         }
-        #endif
 #if SAC_DEBUG
         if (success) {
             loaded.push_back(id);
@@ -484,20 +454,17 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         hash_t id = prop->getId();
         auto it = propValueMap.find(id);
         if (it == propValueMap.end()) {
-            LOGT("position");
-            #if 0
-            if (name == "position") {
-                // special testing case
-                const std::string v[] = { "NW", "N", "NE", "W", "E", "SW", "S", "SE"};
+            // special testing case
+            if (id == Murmur::Hash("position")) {
                 for (unsigned i=0; i<8; i++) {
-                    it = propValueMap.find(name + v[i]);
+                    it = propValueMap.find(positionHack[i]);
                     if (it != propValueMap.end()) {
                         positionHackIndex = i;
                         break;
                     }
                 }
             }
-            #endif
+
             if (it == propValueMap.end())
                 continue;
         }
@@ -576,7 +543,6 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
     }
 
     if (positionHackIndex >= 0) {
-        // const std::string v[] = { "NW", "N", "NE", "W", "E", "SW", "S", "SE"};
         const glm::vec2 coeff[] = {
             glm::vec2(-0.5, 0.5) , glm::vec2(0, 0.5) , glm::vec2(0.5, 0.5),
             glm::vec2(-0.5, 0.0)                     , glm::vec2(0.5, 0.0),
@@ -677,6 +643,7 @@ static bool loadSingleProperty(const std::string& context,
             break;
         }
         case PropertyType::Entity: {
+
             #if 0
             if (dfp.get(section, name + "%template", temp, 512, false)) {
                 std::string subEntityName(context + std::string("#") + name);
@@ -691,19 +658,17 @@ static bool loadSingleProperty(const std::string& context,
                 return true;
             } else
             #endif
-
-            LOGT("Fix entity %name");
-            #if 0
-            if (dfp.get(section, name + "%name", temp, 512, false)) {
-                const auto len = strlen(temp);
-                uint8_t* arr = new uint8_t[1 + len + 1];
-                arr[0] = 1;
-                memcpy(arr + 1, temp, len);
-                arr[len + 1] = '\0';
-                propMap.insert(std::make_pair(name, arr));
-                return true;
+            if (dfp.get(section, id, temp, 512, false)) {
+                if (dfp.getModifier(section, id) == Murmur::Hash("name")) {
+                    const auto len = strlen(temp);
+                    uint8_t* arr = new uint8_t[1 + len + 1];
+                    arr[0] = 1;
+                    memcpy(arr + 1, temp, len);
+                    arr[len + 1] = '\0';
+                    propMap.insert(std::make_pair(id, arr));
+                    return true;
+                }
             }
-            #endif
             break;
         }
         case PropertyType::Color:
