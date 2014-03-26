@@ -55,7 +55,7 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum type, EntityTemplateRef tmpl) {
+Entity EntityManager::CreateEntity(const char* name, EntityType::Enum type, EntityTemplateRef tmpl) {
     Entity e = 0;
 
     // Reuse id if possible
@@ -72,7 +72,7 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
 
     // maybe hide the TypeBit from the rest of the world...
     LOGF_IF(entity2name.find(e) != entity2name.end(), "Newly created entity '" << e << "' is already in entity2name. Value='" << entity2name.find(e)->second << "'");
-    entity2name[e] = name;
+    entity2name[e] = strdup(name);
 
     if (tmpl != InvalidEntityTemplateRef) {
         // add component
@@ -90,15 +90,15 @@ Entity EntityManager::CreateEntity(const std::string& name, EntityType::Enum typ
     return e;
 }
 
-Entity EntityManager::CreateEntityFromTemplate(const std::string& name, EntityType::Enum type) {
-    const EntityTemplateRef tmpl = entityTemplateLibrary.load(name.c_str());
+Entity EntityManager::CreateEntityFromTemplate(const char* name, EntityType::Enum type) {
+    const EntityTemplateRef tmpl = entityTemplateLibrary.load(name);
     LOGF_IF(tmpl == InvalidEntityTemplateRef, "Invalid entity template '" << name << "'");
     return CreateEntity(name, type, tmpl);
 }
 
 
-const std::string& EntityManager::entityName(Entity e) const {
-    static const std::string u("unknown");
+const char* EntityManager::entityName(Entity e) const {
+    static const char* u = "unknown";
     auto it = entity2name.find(e);
     if (it != entity2name.end())
         return it->second;
@@ -134,13 +134,14 @@ void EntityManager::ResumeEntity(Entity e) {
     suspendedEntityComponents.erase(i);
 }
 
-Entity EntityManager::getEntityByName(const std::string& name) const {
+Entity EntityManager::getEntityByName(const char* name) const {
     Entity byName = 0;
 #if SAC_DEBUG
     bool found = false;
 #endif
+
     for (const auto& p: entity2name) {
-        if (p.second == name) {
+        if (strcmp(p.second, name) == 0) {
             byName = p.first;
 #if SAC_DEBUG
             if (found) {
@@ -180,8 +181,11 @@ void EntityManager::DeleteEntity(Entity e) {
 #if SAC_LINUX && SAC_DESKTOP
     entityTemplateLibrary.remove(e);
 #endif
-    entity2name.erase(e);
-
+    {
+        auto it = entity2name.find(e);
+        free (const_cast<char*>(it->second));
+        entity2name.erase(it);
+    }
     recyclableEntities.emplace_front(e);
     auto it = std::find(permanentEntities.begin(), permanentEntities.end(), e);
     if (it != permanentEntities.end())
@@ -218,6 +222,8 @@ void EntityManager::deleteAllEntities() {
         DeleteEntity(*it);
     nextEntity = 1;
     recyclableEntities.clear();
+    for (const auto& p: entity2name)
+        free(const_cast<char*>(p.second));
     entity2name.clear();
 
     LOGF_IF (entityComponents.size() != 0, "entityComponents not empty after deleting all entities");
@@ -267,7 +273,7 @@ int EntityManager::serialize(uint8_t** result) {
             continue;
 
         totalLength += sizeof(Entity) + 2 * sizeof(int);
-        totalLength += entity2name.find(e.e)->second.size();
+        totalLength += strlen(entity2name.find(e.e)->second);
 
         for(auto* sys: j->second) {
             ComponentSave c;
@@ -324,7 +330,7 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
         nameLength = glm::min(512, nameLength);
         memcpy(tmp, &in[index], nameLength); index += nameLength;
         tmp[nameLength] = '\0';
-        entity2name[e] = tmp;
+        entity2name[e] = strdup(tmp);
 
         int cCount = 0;
         memcpy(&cCount, &in[index], sizeof(int)); index += sizeof(int);

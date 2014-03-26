@@ -129,7 +129,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index, const std::string& textureName, float maxY) {
     Color color = Color::random();
     color.a = 1;
-    Entity e = theEntityManager.CreateEntity(std::string("__debug_") + name);
+    Entity e = theEntityManager.CreateEntity(name.c_str());
     ADD_COMPONENT(e, Transformation);
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
     ADD_COMPONENT(e, Anchor);
@@ -211,12 +211,12 @@ void DebuggingSystem::DoUpdate(float dt) {
 
     if (!fps) {
         init(activeCamera, fps, fpsLabel, entityCount, entityCountLabel, systems);
-        renderStatsEntities.push_back(createSystemGraphEntity("opaque_object", fps, 1, FpsTextureName));
-        renderStatsEntities.push_back(createSystemGraphEntity("nonopaque_object", fps, 2, FpsTextureName));
-        renderStatsEntities.push_back(createSystemGraphEntity("zprepass_object", fps, 3, FpsTextureName));
-        renderStatsEntities.push_back(createSystemGraphEntity("opaque_area", fps, 4, FpsTextureName));
-        renderStatsEntities.push_back(createSystemGraphEntity("nonopaque_area", fps, 5, FpsTextureName));
-        renderStatsEntities.push_back(createSystemGraphEntity("zprepass_area", fps, 6, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("__debug_opaque_object", fps, 1, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("__debug_nonopaque_object", fps, 2, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("__debug_zprepass_object", fps, 3, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("__debug_opaque_area", fps, 4, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("__debug_nonopaque_area", fps, 5, FpsTextureName));
+        renderStatsEntities.push_back(createSystemGraphEntity("__debug_zprepass_area", fps, 6, FpsTextureName));
         LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems);
     }
     const glm::vec2 firstLabelOffset(TRANSFORM(activeCamera)->size * glm::vec2(0.3, 0.2) * (-0.5f) - glm::vec2(0, (0.6) * 0.6f));

@@ -97,12 +97,7 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
 
     TransformationComponent* ptc = TRANSFORM(e);
     for (int i=0; i<2; i++) {
-
-#if SAC_DEBUG
-        se.e[i] = theEntityManager.CreateEntity("scroll_" + theEntityManager.entityName(e));
-#else
-        se.e[i] = theEntityManager.CreateEntity("");
-#endif
+        se.e[i] = theEntityManager.CreateEntity("scroll");
 
         ADD_COMPONENT(se.e[i], Transformation);
         ADD_COMPONENT(se.e[i], Rendering);
