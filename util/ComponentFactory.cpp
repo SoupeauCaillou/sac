@@ -110,7 +110,7 @@ static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
         } else if (modifier == HASH("gimp_h", 0x42ba0dc3)) {
             out[i] = PlacementHelper::GimpHeightToScreen(out[i]);
             continue;
-        } else if (modifier == HASH("degrees", 0x0)) {
+        } else if (modifier == HASH("degrees", 0x8e6c8522)) {
             out[i] = glm::radians(out[i]);
             continue;
         } else {
@@ -121,16 +121,16 @@ static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
 
 
 static void applyVec2SingleFloatModifiers(const hash_t modifier, const glm::vec2& textureSize, float in, glm::vec2* out) {
-    if (modifier == HASH("texture_ratio,screen_w", 0x0)) {
+    if (modifier == HASH("texture_ratio,screen_w", 0x70a49fb4)) {
         out->y = in * PlacementHelper::ScreenSize.x;
         out->x = out->y * textureSize.x / textureSize.y;
-    } else if (modifier == HASH("texture_ratio,screen_h", 0x0)) {
+    } else if (modifier == HASH("texture_ratio,screen_h", 0x985b8e11)) {
         out->y = in * PlacementHelper::ScreenSize.y;
         out->x = out->y * textureSize.x / textureSize.y;
-    } else if (modifier == HASH("screen_w,texture_ratio", 0x0)) {
+    } else if (modifier == HASH("screen_w,texture_ratio", 0xa2fd11b3)) {
         out->x = in * PlacementHelper::ScreenSize.x;
         out->y = out->x * textureSize.y / textureSize.x;
-    } else if (modifier == HASH("screen_h,texture_ratio", 0x0)) {
+    } else if (modifier == HASH("screen_h,texture_ratio", 0xee7d8330)) {
         out->x = in * PlacementHelper::ScreenSize.y;
         out->y = out->x * textureSize.y / textureSize.x;
     } else if (modifier == HASH("texture_ratio,abs", 0x0)) {
@@ -139,7 +139,7 @@ static void applyVec2SingleFloatModifiers(const hash_t modifier, const glm::vec2
     } else if (modifier == HASH("abs,texture_ratio", 0x0)) {
         out->x = in;
         out->y = out->x * textureSize.y / textureSize.x;
-    } else if (modifier == HASH("texture", 0x0)) {
+    } else if (modifier == HASH("texture", 0x3d4e3ff8)) {
         *out = PlacementHelper::GimpSizeToScreen(textureSize * in);
     } else {
         LOGF("Unkown vec2singlefloat modifier");
@@ -193,7 +193,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
             return 0;
 
         std::string textureName;
-        if (dfp.get("Rendering", HASH("texture", 0x0), &textureName, 1, false)) {
+        if (dfp.get("Rendering", HASH("texture", 0x3d4e3ff8), &textureName, 1, false)) {
             const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
             applyVec2SingleFloatModifiers(mod, s, fp[0], out);
             return 1;
@@ -470,7 +470,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
             case PropertyType::String: {
                 if (prop->getAttribute() == PropertyAttribute::Vector) {
                     std::vector<std::string>* out = TYPE_2_PTR(std::vector<std::string>);
-                    VectorProperty<std::string> vp(HASH("dummy", 0x0), 0);
+                    VectorProperty<std::string> vp(HASH("dummy", 0x89776688), 0);
                     vp.deserialize((*it).second, out);
                 } else {
                     unsigned l;
@@ -593,7 +593,7 @@ static bool loadSingleProperty(const std::string& context,
                         for (int i=0; i<splits; i++)
                             a.push_back(all[i]);
 
-                        VectorProperty<std::string> vp(HASH("dummy", 0x0), 0);
+                        VectorProperty<std::string> vp(HASH("dummy", 0x89776688), 0);
                         unsigned size = vp.size(&a);
                         uint8_t* arr = new uint8_t[size];
                         vp.serialize(arr, &a);
