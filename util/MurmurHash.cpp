@@ -38,7 +38,15 @@ const char* Murmur::lookup(uint32_t t) {
 
 uint32_t Murmur::verifyHash(const char* txt, uint32_t hash, const char* file, int line) {
     uint32_t h = RuntimeHash(txt, strlen(txt));
-    LOGE_IF(h != hash, "Incorrect hash for '" << txt << "' at " << file << ':' << line << ". Expected: 0x" << std::hex << h << " and was 0x" << hash << std::dec);
+    if (h != hash) {
+        std::string escaped;
+        for (int i=0; i<strlen(txt); i++) {
+            if (txt[i] == '/') escaped.push_back('\\');
+            escaped.push_back(txt[i]);
+        }
+        LOGI_EVERY_N(10000, "./RecursiveRunner | grep sed | cut -d: -f3 > fix_hashes then 'sh fix_hashes'");
+        LOGE("sed 's/HASH(\"" << escaped << "\", 0x" << std::hex << hash << ")/HASH(\"" << escaped << "\", 0x" << h << std::dec << ")/' -i " << file);
+    }
     return h;
 }
 #endif

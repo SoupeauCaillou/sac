@@ -40,19 +40,19 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), muted
     /* nothing saved */
     MusicComponent sc;
 
-    componentSerializer.add(new Property<int>(HASH("music", 0x0), OFFSET(music, sc)));
-    componentSerializer.add(new Property<int>(HASH("loop_next", 0x0), OFFSET(loopNext, sc)));
-    componentSerializer.add(new Property<int>(HASH("previous_ending", 0x0), OFFSET(previousEnding, sc)));
+    componentSerializer.add(new Property<int>(HASH("music", 0x40f2ba71), OFFSET(music, sc)));
+    componentSerializer.add(new Property<int>(HASH("loop_next", 0xa3f5740b), OFFSET(loopNext, sc)));
+    componentSerializer.add(new Property<int>(HASH("previous_ending", 0x5b31d3c5), OFFSET(previousEnding, sc)));
 
-    componentSerializer.add(new Property<float>(HASH("loop_at", 0x0), OFFSET(loopAt, sc), 0.001f));
-    componentSerializer.add(new Property<int>(HASH("position_i", 0x0), OFFSET(positionI, sc)));
-    componentSerializer.add(new Property<float>(HASH("fade_out", 0x0), OFFSET(fadeOut, sc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("fade_in", 0x0), OFFSET(fadeIn, sc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("volume", 0x0), OFFSET(volume, sc), 0.001f));
-    componentSerializer.add(new Property<bool>(HASH("looped", 0x0), OFFSET(looped, sc)));
-    componentSerializer.add(new Property<bool>(HASH("paused", 0x0), OFFSET(paused, sc)));
-    componentSerializer.add(new StringProperty(HASH("auto_loop_name", 0x0), OFFSET(autoLoopName, sc)));
-    componentSerializer.add(new Property<int>(HASH("control", 0x0), OFFSET(control, sc)));
+    componentSerializer.add(new Property<float>(HASH("loop_at", 0x3fef9a80), OFFSET(loopAt, sc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("position_i", 0xe608417), OFFSET(positionI, sc)));
+    componentSerializer.add(new Property<float>(HASH("fade_out", 0xa0a06f18), OFFSET(fadeOut, sc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("fade_in", 0x88704bb3), OFFSET(fadeIn, sc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("volume", 0x5baaa86e), OFFSET(volume, sc), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("looped", 0xd0e9f501), OFFSET(looped, sc)));
+    componentSerializer.add(new Property<bool>(HASH("paused", 0x797b55df), OFFSET(paused, sc)));
+    componentSerializer.add(new StringProperty(HASH("auto_loop_name", 0xa355644a), OFFSET(autoLoopName, sc)));
+    componentSerializer.add(new Property<int>(HASH("control", 0x7fb8ff75), OFFSET(control, sc)));
 }
 
 MusicSystem::~MusicSystem() {

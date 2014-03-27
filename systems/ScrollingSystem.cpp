@@ -42,11 +42,11 @@ ScrollingSystem::ScrollingSystem() : ComponentSystemImpl<ScrollingComponent>("Sc
     /* nothing saved */
     ScrollingComponent sc;
 
-    componentSerializer.add(new Property<glm::vec2>(HASH("direction", 0x0), OFFSET(direction, sc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>(HASH("speed", 0x0), OFFSET(speed, sc), 0.001f));
-    componentSerializer.add(new Property<glm::vec2>(HASH("display_size", 0x0), OFFSET(displaySize, sc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<bool>(HASH("show", 0x0), OFFSET(show, sc)));
-    componentSerializer.add(new Property<uint8_t>(HASH("rendering_flags", 0x0), OFFSET(renderingFlags, sc)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("direction", 0xee6823b), OFFSET(direction, sc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<float>(HASH("speed", 0x9e8699c2), OFFSET(speed, sc), 0.001f));
+    componentSerializer.add(new Property<glm::vec2>(HASH("display_size", 0xc95bd2ec), OFFSET(displaySize, sc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<bool>(HASH("show", 0x77b5dada), OFFSET(show, sc)));
+    componentSerializer.add(new Property<uint8_t>(HASH("rendering_flags", 0x77a0455a), OFFSET(renderingFlags, sc)));
 }
 
 void ScrollingSystem::DoUpdate(float dt) {

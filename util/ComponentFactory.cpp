@@ -78,7 +78,7 @@ static void applyVec2Modifiers(const hash_t mod, glm::vec2* out, int count) {
             out[i].x = PlacementHelper::GimpWidthToScreen(out[i].x);
             out[i].y = PlacementHelper::GimpHeightToScreen(out[i].y);
             continue;
-        } else if (mod == HASH("gimp_pos", 0x0)) {
+        } else if (mod == HASH("gimp_pos", 0x6a491150)) {
             out[i].x = PlacementHelper::GimpXToScreen(out[i].x);
             out[i].y = PlacementHelper::GimpYToScreen(out[i].y);
             continue;
@@ -237,7 +237,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
         if (dfp.get(section, id, &html, 1, false)) {
             hash_t modifier = dfp.getModifier(section, id);
 
-            if (modifier == HASH("html", 0x0)) {
+            if (modifier == HASH("html", 0xa7a6d925)) {
                 int32_t h;
                 std::istringstream iss(html);
                 iss >> std::hex >> h;
@@ -247,7 +247,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
                     , 1.f);
                 LOG_SUCCESS_ << *out << "'");
                 return 1;
-            } else if (modifier == HASH("name", 0x0)) {
+            } else if (modifier == HASH("name", 0x195267c7)) {
                 *out = Color(html);
                 LOG_SUCCESS
                 return 1;
@@ -535,7 +535,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         };
         // find position
         for (IProperty* prop : properties) {
-            if (prop->getId() == HASH("position", 0x0)) {
+            if (prop->getId() == HASH("position", 0xffab91ef)) {
                 glm::vec2* position = TYPE_2_PTR(glm::vec2);
                 *position =
                     AnchorSystem::adjustPositionWithAnchor(*position, TRANSFORM(entity)->size * coeff[positionHackIndex]);
@@ -644,7 +644,7 @@ static bool loadSingleProperty(const std::string& context,
             } else
             #endif
             if (dfp.get(section, id, temp, 512, false)) {
-                if (dfp.getModifier(section, id) == HASH("name", 0x0)) {
+                if (dfp.getModifier(section, id) == HASH("name", 0x195267c7)) {
                     uint8_t* arr = new uint8_t[sizeof(hash_t)];
                     hash_t h = Murmur::RuntimeHash(temp);
                     memcpy(arr, &h, sizeof(hash_t));

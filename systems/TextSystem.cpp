@@ -85,15 +85,15 @@ INSTANCE_IMPL(TextSystem);
 
 TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     TextComponent tc;
-    componentSerializer.add(new StringProperty(HASH("text", 0x0), OFFSET(text, tc)));
-    componentSerializer.add(new StringProperty(HASH("font_name", 0x0), OFFSET(fontName, tc)));
-    componentSerializer.add(new Property<Color>(HASH("color", 0x0), OFFSET(color, tc)));
-    componentSerializer.add(new Property<float>(HASH("char_height", 0x0), OFFSET(charHeight, tc), 0.001f));
-    componentSerializer.add(new Property<int>(HASH("flags", 0x0), OFFSET(flags, tc), 0));
-    componentSerializer.add(new Property<int>(HASH("camera_bitmask", 0x0), OFFSET(cameraBitMask, tc)));
-    componentSerializer.add(new Property<float>(HASH("positioning", 0x0), OFFSET(positioning, tc), 0.001f));
-    componentSerializer.add(new Property<bool>(HASH("show", 0x0), OFFSET(show, tc)));
-    componentSerializer.add(new Property<int>(HASH("max_line_to_use", 0x0), OFFSET(maxLineToUse, tc)));
+    componentSerializer.add(new StringProperty(HASH("text", 0x4106ae4e), OFFSET(text, tc)));
+    componentSerializer.add(new StringProperty(HASH("font_name", 0x27b3eedc), OFFSET(fontName, tc)));
+    componentSerializer.add(new Property<Color>(HASH("color", 0xccc35cf8), OFFSET(color, tc)));
+    componentSerializer.add(new Property<float>(HASH("char_height", 0x39ab1256), OFFSET(charHeight, tc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("flags", 0x3de15a28), OFFSET(flags, tc), 0));
+    componentSerializer.add(new Property<int>(HASH("camera_bitmask", 0xa6236824), OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<float>(HASH("positioning", 0x8255fb5), OFFSET(positioning, tc), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("show", 0x77b5dada), OFFSET(show, tc)));
+    componentSerializer.add(new Property<int>(HASH("max_line_to_use", 0xf450021d), OFFSET(maxLineToUse, tc)));
 }
 
 struct CharSequenceToUnicode {

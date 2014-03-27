@@ -33,12 +33,12 @@ INSTANCE_IMPL(PhysicsSystem);
 
 PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>("Physics") {
     PhysicsComponent tc;
-    componentSerializer.add(new Property<glm::vec2>(HASH("linear_velocity", 0x0), OFFSET(linearVelocity, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<float>(HASH("angular_velocity", 0x0), OFFSET(angularVelocity, tc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("mass", 0x0), OFFSET(mass, tc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("frottement", 0x0), OFFSET(frottement, tc), 0.001f));
-    componentSerializer.add(new Property<glm::vec2>(HASH("gravity", 0x0), OFFSET(gravity, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<float>(HASH("max_speed", 0x0), OFFSET(maxSpeed, tc), 0.001f));
+    componentSerializer.add(new Property<glm::vec2>(HASH("linear_velocity", 0xba5da842), OFFSET(linearVelocity, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>(HASH("angular_velocity", 0x9d13e5d2), OFFSET(angularVelocity, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("mass", 0xbfe03e46), OFFSET(mass, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("frottement", 0xcbd83619), OFFSET(frottement, tc), 0.001f));
+    componentSerializer.add(new Property<glm::vec2>(HASH("gravity", 0x4db1fe87), OFFSET(gravity, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>(HASH("max_speed", 0x3fbe6552), OFFSET(maxSpeed, tc), 0.001f));
 }
 
 void PhysicsSystem::DoUpdate(float dt) {

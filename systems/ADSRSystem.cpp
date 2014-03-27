@@ -39,17 +39,17 @@ INSTANCE_IMPL(ADSRSystem);
 ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
     ADSRComponent a;
 
-    componentSerializer.add(new Property<bool>(HASH("active", 0x0), OFFSET(active, a)));
-    componentSerializer.add(new Property<float>(HASH("value", 0x0), OFFSET(value, a), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("idle_value", 0x0), OFFSET(idleValue, a), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("attack_value", 0x0), OFFSET(attackValue, a), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("attack_timing", 0x0), OFFSET(attackTiming, a), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("decay_timing", 0x0), OFFSET(decayTiming, a), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("sustain_value", 0x0), OFFSET(sustainValue, a), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("release_timing", 0x0), OFFSET(releaseTiming, a), 0.001f));
-    componentSerializer.add(new Property<int>(HASH("attack_mode", 0x0), OFFSET(attackMode, a)));
-    componentSerializer.add(new Property<int>(HASH("decay_mode", 0x0), OFFSET(decayMode, a)));
-    componentSerializer.add(new Property<int>(HASH("release_mode", 0x0), OFFSET(releaseMode, a)));
+    componentSerializer.add(new Property<bool>(HASH("active", 0x9809cb8b), OFFSET(active, a)));
+    componentSerializer.add(new Property<float>(HASH("value", 0xe408edcf), OFFSET(value, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("idle_value", 0x7a0a707b), OFFSET(idleValue, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("attack_value", 0x9700290), OFFSET(attackValue, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("attack_timing", 0x6ff1d700), OFFSET(attackTiming, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("decay_timing", 0xae168225), OFFSET(decayTiming, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("sustain_value", 0x9de8e3ec), OFFSET(sustainValue, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("release_timing", 0xf69a57f3), OFFSET(releaseTiming, a), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("attack_mode", 0xc72e47e1), OFFSET(attackMode, a)));
+    componentSerializer.add(new Property<int>(HASH("decay_mode", 0x81f0adc6), OFFSET(decayMode, a)));
+    componentSerializer.add(new Property<int>(HASH("release_mode", 0x13b67da2), OFFSET(releaseMode, a)));
 }
 
 void ADSRSystem::DoUpdate(float dt) {

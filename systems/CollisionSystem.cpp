@@ -36,10 +36,10 @@ INSTANCE_IMPL(CollisionSystem);
 
 CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Collision") {
     CollisionComponent tc;
-    componentSerializer.add(new Property<int>(HASH("group", 0x0), OFFSET(group, tc), 0));
-    componentSerializer.add(new Property<int>(HASH("collide_with", 0x0), OFFSET(collideWith, tc), 0));
-    componentSerializer.add(new Property<bool>(HASH("restore_position_on_collision", 0x0), OFFSET(restorePositionOnCollision, tc)));
-    componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x0), OFFSET(isARay, tc)));
+    componentSerializer.add(new Property<int>(HASH("group", 0xbf3bf34d), OFFSET(group, tc), 0));
+    componentSerializer.add(new Property<int>(HASH("collide_with", 0x6b658240), OFFSET(collideWith, tc), 0));
+    componentSerializer.add(new Property<bool>(HASH("restore_position_on_collision", 0x9c45df9f), OFFSET(restorePositionOnCollision, tc)));
+    componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x78a2c1f4), OFFSET(isARay, tc)));
 
 #if SAC_DEBUG
     showDebug = false;

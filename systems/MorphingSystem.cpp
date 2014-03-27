@@ -29,10 +29,10 @@ INSTANCE_IMPL(MorphingSystem);
 MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") {
     /* nothing saved */
     MorphingComponent mc;
-    componentSerializer.add(new Property<bool>(HASH("active", 0x0), OFFSET(active, mc)));
-    componentSerializer.add(new Property<float>(HASH("value", 0x0), OFFSET(value, mc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("activation_time", 0x0), OFFSET(activationTime, mc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("timing", 0x0), OFFSET(timing, mc), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("active", 0x9809cb8b), OFFSET(active, mc)));
+    componentSerializer.add(new Property<float>(HASH("value", 0xe408edcf), OFFSET(value, mc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("activation_time", 0x73dbd954), OFFSET(activationTime, mc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("timing", 0x774fa399), OFFSET(timing, mc), 0.001f));
 }
 
 void MorphingSystem::DoUpdate(float dt) {

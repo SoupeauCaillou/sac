@@ -109,8 +109,8 @@ bool GameCenterAPIHelper::updateUI() {
         BUTTON(signButton)->textureInactive = HASH("gg_signout", 0x0);
         BUTTON(signButton)->textureActive = HASH("gg_signout_active", 0x0);
     } else {
-        BUTTON(signButton)->textureInactive = HASH("gg_signin", 0x0);
-        BUTTON(signButton)->textureActive = HASH("gg_signin_active", 0x0);
+        BUTTON(signButton)->textureInactive = HASH("gg_signin", 0x10d1e430);
+        BUTTON(signButton)->textureActive = HASH("gg_signin_active", 0xcf611730);
     }
 
     if (BUTTON(signButton)->clicked) {

@@ -30,11 +30,11 @@ INSTANCE_IMPL(AnchorSystem);
 
 AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>("Anchor") {
     AnchorComponent tc;
-    componentSerializer.add(new EntityProperty(HASH("parent", 0x0), OFFSET(parent, tc)));
-    componentSerializer.add(new Property<glm::vec2>(HASH("position", 0x0), OFFSET(position, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<glm::vec2>(HASH("anchor", 0x0), OFFSET(anchor, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<float>(HASH("rotation", 0x0), OFFSET(rotation, tc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("z", 0x0), OFFSET(z, tc), 0.001f));
+    componentSerializer.add(new EntityProperty(HASH("parent", 0x7ae3b713), OFFSET(parent, tc)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("position", 0xffab91ef), OFFSET(position, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("anchor", 0xcc3b6b46), OFFSET(anchor, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>(HASH("rotation", 0x18f19e94), OFFSET(rotation, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("z", 0x74729461), OFFSET(z, tc), 0.001f));
 }
 
 struct CompareParentChain {

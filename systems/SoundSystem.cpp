@@ -29,8 +29,8 @@ SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextV
     /* nothing saved */
     SoundComponent sc;
 
-    componentSerializer.add(new Property<SoundRef>(HASH("sound", 0x0), PropertyType::Sound, OFFSET(sound, sc), 0));
-    componentSerializer.add(new Property<float>(HASH("volume", 0x0), OFFSET(volume, sc), 0.001f));
+    componentSerializer.add(new Property<SoundRef>(HASH("sound", 0x6a44a74f), PropertyType::Sound, OFFSET(sound, sc), 0));
+    componentSerializer.add(new Property<float>(HASH("volume", 0x5baaa86e), OFFSET(volume, sc), 0.001f));
 }
 
 SoundSystem::~SoundSystem() {

@@ -36,28 +36,28 @@
 
 INSTANCE_IMPL(AutonomousAgentSystem);
 
-#define EXPORT_BEHAVIOR_PARAM(type, h) \
+#define EXPORT_BEHAVIOR_PARAM(type, hash_w, hash_c) \
     do { \
-        componentSerializer.add(new Property<float>(HASH( #type "_weight", h), OFFSET(type##Params.weight, ac), 0.001f)); \
-        componentSerializer.add(new Property<float>(HASH( #type "_coeff", h), OFFSET(type##Params.coeff, ac), 0.001f)); \
+        componentSerializer.add(new Property<float>(HASH( #type "_weight", hash_w), OFFSET(type##Params.weight, ac), 0.001f)); \
+        componentSerializer.add(new Property<float>(HASH( #type "_coeff", hash_c), OFFSET(type##Params.coeff, ac), 0.001f)); \
     } while (false)
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>("AutonomousAgent") {
     AutonomousAgentComponent ac;
-    componentSerializer.add(new Property<float>(HASH("max_speed", 0x0), OFFSET(maxSpeed, ac), 0.0001f));
-    componentSerializer.add(new Property<float>(HASH("max_force", 0x0), OFFSET(maxForce, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("max_speed", 0x3fbe6552), OFFSET(maxSpeed, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("max_force", 0xe2724098), OFFSET(maxForce, ac), 0.0001f));
 
-    EXPORT_BEHAVIOR_PARAM(flee, 0x0);
-    componentSerializer.add(new Property<float>(HASH("flee_radius", 0x0), OFFSET(fleeRadius, ac), 0.0001f));
-    EXPORT_BEHAVIOR_PARAM(obstacles, 0x0);
-    EXPORT_BEHAVIOR_PARAM(walls, 0x0);
-    EXPORT_BEHAVIOR_PARAM(wander, 0x0);
-    componentSerializer.add(new Property<float>(HASH("wander_radius", 0x0), OFFSET(wander.radius, ac), 0.0001f));
-    componentSerializer.add(new Property<float>(HASH("wander_distance", 0x0), OFFSET(wander.distance, ac), 0.0001f));
-    componentSerializer.add(new Property<float>(HASH("wander_jitter", 0x0), OFFSET(wander.jitter, ac), 0.0001f));
-    EXPORT_BEHAVIOR_PARAM(alignement, 0x0);
-    EXPORT_BEHAVIOR_PARAM(separation, 0x0);
-    EXPORT_BEHAVIOR_PARAM(cohesion, 0x0);
+    EXPORT_BEHAVIOR_PARAM(flee, 0x5c11f047, 0xaee1e8a1);
+    componentSerializer.add(new Property<float>(HASH("flee_radius", 0xf386c18f), OFFSET(fleeRadius, ac), 0.0001f));
+    EXPORT_BEHAVIOR_PARAM(obstacles, 0x1a6068b3, 0x5ae2296a);
+    EXPORT_BEHAVIOR_PARAM(walls, 0xf5993180, 0xa756e67e);
+    EXPORT_BEHAVIOR_PARAM(wander, 0x1d51e9bc, 0x275e6c94);
+    componentSerializer.add(new Property<float>(HASH("wander_radius", 0xd0e7bb52), OFFSET(wander.radius, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("wander_distance", 0xd4de58b5), OFFSET(wander.distance, ac), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("wander_jitter", 0x267a8a75), OFFSET(wander.jitter, ac), 0.0001f));
+    EXPORT_BEHAVIOR_PARAM(alignement, 0xfc9cfd08, 0x1fc5142f);
+    EXPORT_BEHAVIOR_PARAM(separation, 0xe6642c0, 0xb6ca78ed);
+    EXPORT_BEHAVIOR_PARAM(cohesion, 0x60651d29, 0x624454d6);
 }
 
 bool AutonomousAgentSystem::isArrived(Entity e) {

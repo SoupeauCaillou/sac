@@ -36,12 +36,12 @@ INSTANCE_IMPL(AnimationSystem);
 
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") {
     AnimationComponent tc;
-    componentSerializer.add(new Property<hash_t>(HASH("name", 0x0), OFFSET(name, tc)));
-    componentSerializer.add(new Property<float>(HASH("playback_speed", 0x0), OFFSET(playbackSpeed, tc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("accum", 0x0), OFFSET(accum, tc), 0.001f));
-    componentSerializer.add(new Property<float>(HASH("wait_accum", 0x0), OFFSET(waitAccum, tc), 0.001f));
-    componentSerializer.add(new Property<int>(HASH("loop_count", 0x0), OFFSET(loopCount, tc)));
-    componentSerializer.add(new Property<int>(HASH("frame_index", 0x0), OFFSET(frameIndex, tc)));
+    componentSerializer.add(new Property<hash_t>(HASH("name", 0x195267c7), OFFSET(name, tc)));
+    componentSerializer.add(new Property<float>(HASH("playback_speed", 0xe564d97a), OFFSET(playbackSpeed, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("accum", 0xdfadabe5), OFFSET(accum, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("wait_accum", 0x3abca19d), OFFSET(waitAccum, tc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("loop_count", 0xb84aa73d), OFFSET(loopCount, tc)));
+    componentSerializer.add(new Property<int>(HASH("frame_index", 0x5f66ffd2), OFFSET(frameIndex, tc)));
 }
 
 AnimationSystem::~AnimationSystem() {

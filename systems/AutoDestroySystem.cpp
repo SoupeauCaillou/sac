@@ -33,12 +33,12 @@ INSTANCE_IMPL(AutoDestroySystem);
 
 AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponent>("AutoDestroy") {
     AutoDestroyComponent ac;
-    componentSerializer.add(new Property<int>(HASH("type", 0x0), OFFSET(type, ac), 0));
-    componentSerializer.add(new Property<glm::vec2>(HASH("area/position", 0x0), OFFSET(params.area.position, ac), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<glm::vec2>(HASH("area/size", 0x0), OFFSET(params.area.size, ac), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<float>(HASH("lifetime/value", 0x0), OFFSET(params.lifetime.freq.value, ac), 0.001f));
-    componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaRendering", 0x0), OFFSET(params.lifetime.map2AlphaRendering, ac), false));
-    componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaText", 0x0), OFFSET(params.lifetime.map2AlphaText, ac), false));
+    componentSerializer.add(new Property<int>(HASH("type", 0xf3ebd1bf), OFFSET(type, ac), 0));
+    componentSerializer.add(new Property<glm::vec2>(HASH("area/position", 0x35bd5392), OFFSET(params.area.position, ac), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("area/size", 0x323e5e35), OFFSET(params.area.size, ac), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<float>(HASH("lifetime/value", 0x6acb2726), OFFSET(params.lifetime.freq.value, ac), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaRendering", 0x2339899d), OFFSET(params.lifetime.map2AlphaRendering, ac), false));
+    componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaText", 0xde7e70c9), OFFSET(params.lifetime.map2AlphaText, ac), false));
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {
