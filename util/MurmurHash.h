@@ -37,19 +37,23 @@ class Murmur {
         static hash_t RuntimeHash(const void * key, int len);
         static hash_t RuntimeHash(const char* key) { return RuntimeHash(key, strlen(key)); }
 
-        static constexpr hash_t _Hash(const void * key, int len) {
+        static constexpr uint32_t length(const char * key) {
+            return key[0] ? 1 + length(key + 1) : 0;
+        }
+
+        static constexpr hash_t _Hash(const char * key, uint32_t len) {
             return
                 selfExpShift(
                     mulM(
                         selfExpShift(
-                            loop((const char*) key, len, seed ^ len)
+                            loop(key, len, seed ^ len)
                             , 13)
                     )
                 , 15);
         }
         // assume key contains \0
         static constexpr hash_t _Hash(const char * key) {
-            return _Hash(key, strlen(key));
+            return _Hash(key, length(key));
         }
 
         static constexpr uint32_t mulM(uint32_t k) { return k * M; }
