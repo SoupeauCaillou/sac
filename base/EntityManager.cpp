@@ -101,7 +101,11 @@ const char* EntityManager::entityName(Entity e) const {
     static const char* u = "unknown";
     hash_t id = entityHash[e];
     if (id)
+#if SAC_DEBUG
         return Murmur::lookup(id);
+#else
+        return u;
+#endif
     else
         return u;
 }

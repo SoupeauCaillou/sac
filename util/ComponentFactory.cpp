@@ -517,7 +517,11 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     hash_t h;
                     memcpy(&h, (*it).second, sizeof(hash_t));
                     Entity byName = theEntityManager.getEntityByName(h);
-                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << h  << '/' << Murmur::lookup(h) << "' for property: '" << id << "'");
+                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << h  << '/'
+                    #if SAC_DEBUG
+                    << Murmur::lookup(h)
+                    #endif
+                    << "' for property: '" << id << "'");
                     memcpy(TYPE_2_PTR(Entity), &byName, sizeof(Entity));
                 }
                 break;
