@@ -93,7 +93,7 @@ struct StubAssetAPI : public AssetAPI {
 static Entity doTest(std::string s) {
     StubAssetAPI a(s);
     theEntityManager.entityTemplateLibrary.init(&a, false);
-    return theEntityManager.CreateEntity("test", EntityType::Volatile,
+    return theEntityManager.CreateEntity(Murmur::RuntimeHash("test"), EntityType::Volatile,
         theEntityManager.entityTemplateLibrary.load("test"));
 }
 
@@ -140,14 +140,14 @@ TEST_FIXTURE(TestSetup, TestStringProperty)
 {
     Entity e = doTest("[Animation]\nname=super_animation");
 
-    CHECK_EQUAL(Murmur::Hash("super_animation"), ANIMATION(e)->name);
+    CHECK_EQUAL(Murmur::RuntimeHash("super_animation"), ANIMATION(e)->name);
 }
 
 TEST_FIXTURE(TestSetup, TestTextureProperty)
 {
     Entity e = doTest("[Rendering]\ntexture=my_texture");
 
-    CHECK_EQUAL(Murmur::Hash("my_texture"), RENDERING(e)->texture);
+    CHECK_EQUAL(Murmur::RuntimeHash("my_texture"), RENDERING(e)->texture);
 }
 
 TEST_FIXTURE(TestSetup, TestTransformPercentProperty)

@@ -34,8 +34,8 @@ INSTANCE_IMPL(ContainerSystem);
 ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("Container") {
     /* nothing saved */
     ContainerComponent cc;
-    componentSerializer.add(new Property<bool>(Murmur::Hash("enable"), OFFSET(enable, cc)));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("include_children"), OFFSET(includeChildren, cc)));
+    componentSerializer.add(new Property<bool>(HASH("enable", 0x0), OFFSET(enable, cc)));
+    componentSerializer.add(new Property<bool>(HASH("include_children", 0x0), OFFSET(includeChildren, cc)));
 }
 
 static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, TransformationComponent* tc) {

@@ -40,20 +40,20 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     minUsedIdx = maxUsedIdx = 0;
 
     ParticuleComponent tc;
-    componentSerializer.add(new Property<float>(Murmur::Hash("emission_rate"), OFFSET(emissionRate, tc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("duration"), OFFSET(duration, tc)));
-    componentSerializer.add(new Property<TextureRef>(Murmur::Hash("texture"), PropertyType::Texture, OFFSET(texture, tc), 0));
-    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("lifetime"), OFFSET(lifetime, tc)));
-    componentSerializer.add(new IntervalProperty<Color>(Murmur::Hash("initial_color"), OFFSET(initialColor, tc)));
-    componentSerializer.add(new IntervalProperty<Color>(Murmur::Hash("final_color"), OFFSET(finalColor, tc)));
-    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("initial_size"), OFFSET(initialSize, tc)));
-    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("final_size"), OFFSET(finalSize, tc)));
-    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("force_direction"), OFFSET(forceDirection, tc)));
-    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("force_amplitude"), OFFSET(forceAmplitude, tc)));
-    componentSerializer.add(new IntervalProperty<float>(Murmur::Hash("moment"), OFFSET(moment, tc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("mass"), OFFSET(mass, tc)));
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("gravity"), OFFSET(gravity, tc), glm::vec2(0.001, 0)));
-    componentSerializer.add(new Property<int8_t>(Murmur::Hash("rendering_flags"), OFFSET(renderingFlags, tc)));
+    componentSerializer.add(new Property<float>(HASH("emission_rate", 0x0), OFFSET(emissionRate, tc)));
+    componentSerializer.add(new Property<float>(HASH("duration", 0x0), OFFSET(duration, tc)));
+    componentSerializer.add(new Property<TextureRef>(HASH("texture", 0x0), PropertyType::Texture, OFFSET(texture, tc), 0));
+    componentSerializer.add(new IntervalProperty<float>(HASH("lifetime", 0x0), OFFSET(lifetime, tc)));
+    componentSerializer.add(new IntervalProperty<Color>(HASH("initial_color", 0x0), OFFSET(initialColor, tc)));
+    componentSerializer.add(new IntervalProperty<Color>(HASH("final_color", 0x0), OFFSET(finalColor, tc)));
+    componentSerializer.add(new IntervalProperty<float>(HASH("initial_size", 0x0), OFFSET(initialSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>(HASH("final_size", 0x0), OFFSET(finalSize, tc)));
+    componentSerializer.add(new IntervalProperty<float>(HASH("force_direction", 0x0), OFFSET(forceDirection, tc)));
+    componentSerializer.add(new IntervalProperty<float>(HASH("force_amplitude", 0x0), OFFSET(forceAmplitude, tc)));
+    componentSerializer.add(new IntervalProperty<float>(HASH("moment", 0x0), OFFSET(moment, tc)));
+    componentSerializer.add(new Property<float>(HASH("mass", 0x0), OFFSET(mass, tc)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("gravity", 0x0), OFFSET(gravity, tc), glm::vec2(0.001, 0)));
+    componentSerializer.add(new Property<int8_t>(HASH("rendering_flags", 0x0), OFFSET(renderingFlags, tc)));
 
     poolLastValidElement = -1;
 }
@@ -86,7 +86,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 int missing = added - (poolLastValidElement + 1);
                 pool.resize(glm::max(pool.size(), pool.size() + missing));
                 for (int i=0; i<missing; i++) {
-                    Entity e = pool[++poolLastValidElement] = theEntityManager.CreateEntity("_particule");
+                    Entity e = pool[++poolLastValidElement] = theEntityManager.CreateEntity(HASH("_particule", 0x0));
                     ADD_COMPONENT(e, Transformation);
                     ADD_COMPONENT(e, Rendering);
                     ADD_COMPONENT(e, Physics);

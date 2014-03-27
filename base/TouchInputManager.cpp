@@ -55,7 +55,7 @@ void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
 #if SAC_DEBUG
 void TouchInputManager::activateDebug(Entity camera) {
     for (int i=0; i<MAX_TOUCH_POINT; i++) {
-        debugState[i] = theEntityManager.CreateEntity("debug_input");
+        debugState[i] = theEntityManager.CreateEntity(HASH("debug_input", 0x0));
         ADD_COMPONENT(debugState[i], Transformation);
         ADD_COMPONENT(debugState[i], Anchor);
         ANCHOR(debugState[i])->parent = camera;

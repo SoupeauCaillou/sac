@@ -6,7 +6,7 @@ add_definitions(-DSAC_USE_VBO=1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pthread -g -Wall -W ")
 set(CXX_FLAGS_DEBUG "-O0")
-set(CXX_FLAGS_RELEASE "-O2")
+set(CXX_FLAGS_RELEASE "-O3 -fconstexpr-depth=10000")
 
 if (${BUILD_TARGET} STREQUAL "DEBUG")
     add_definitions(-DSAC_ENABLE_LOG=1)

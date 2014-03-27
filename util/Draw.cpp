@@ -36,7 +36,7 @@
 
 Draw Draw::instance;
 
-static constexpr uint32_t TempGroupId = Murmur::Hash(__FILE__);
+static constexpr uint32_t TempGroupId = Murmur::_Hash(__FILE__);
 
 Entity Draw::renderingEntity(uint32_t groupID) {
     Entity t = 0;
@@ -47,7 +47,7 @@ Entity Draw::renderingEntity(uint32_t groupID) {
         }
     }
     if (firstUnused == rendering.end()) {
-        t = theEntityManager.CreateEntity("__draw");
+        t = theEntityManager.CreateEntity(HASH("__draw", 0x0));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Rendering);
         TRANSFORM(t)->z = 1;
@@ -70,7 +70,7 @@ Entity Draw::textEntity(uint32_t groupID) {
         }
     }
     if (firstUnused == text.end()) {
-        t = theEntityManager.CreateEntity("__draw");
+        t = theEntityManager.CreateEntity(HASH("__draw", 0x0));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Text);
 

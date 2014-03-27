@@ -85,15 +85,15 @@ INSTANCE_IMPL(TextSystem);
 
 TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     TextComponent tc;
-    componentSerializer.add(new StringProperty(Murmur::Hash("text"), OFFSET(text, tc)));
-    componentSerializer.add(new StringProperty(Murmur::Hash("font_name"), OFFSET(fontName, tc)));
-    componentSerializer.add(new Property<Color>(Murmur::Hash("color"), OFFSET(color, tc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("char_height"), OFFSET(charHeight, tc), 0.001f));
-    componentSerializer.add(new Property<int>(Murmur::Hash("flags"), OFFSET(flags, tc), 0));
-    componentSerializer.add(new Property<int>(Murmur::Hash("camera_bitmask"), OFFSET(cameraBitMask, tc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("positioning"), OFFSET(positioning, tc), 0.001f));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("show"), OFFSET(show, tc)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("max_line_to_use"), OFFSET(maxLineToUse, tc)));
+    componentSerializer.add(new StringProperty(HASH("text", 0x0), OFFSET(text, tc)));
+    componentSerializer.add(new StringProperty(HASH("font_name", 0x0), OFFSET(fontName, tc)));
+    componentSerializer.add(new Property<Color>(HASH("color", 0x0), OFFSET(color, tc)));
+    componentSerializer.add(new Property<float>(HASH("char_height", 0x0), OFFSET(charHeight, tc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("flags", 0x0), OFFSET(flags, tc), 0));
+    componentSerializer.add(new Property<int>(HASH("camera_bitmask", 0x0), OFFSET(cameraBitMask, tc)));
+    componentSerializer.add(new Property<float>(HASH("positioning", 0x0), OFFSET(positioning, tc), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("show", 0x0), OFFSET(show, tc)));
+    componentSerializer.add(new Property<int>(HASH("max_line_to_use", 0x0), OFFSET(maxLineToUse, tc)));
 }
 
 struct CharSequenceToUnicode {
@@ -219,7 +219,7 @@ void TextSystem::DoUpdate(float dt) {
         // compute cache entry
         if (0 && trc->blink.onDuration == 0) {
             unsigned keySize = key.populate(trc);
-            unsigned hash = Murmur::Hash(&key, keySize);
+            unsigned hash = Murmur::RuntimeHash(&key, keySize);
             std::map<Entity, unsigned int>::iterator c = cache.find(entity);
             if (c != cache.end()) {
                 if (hash == (*c).second)
@@ -574,7 +574,7 @@ void TextSystem::Delete(Entity e) {
 }
 
 static Entity createRenderingEntity() {
-    Entity e = theEntityManager.CreateEntity("__text_letter");
+    Entity e = theEntityManager.CreateEntity(HASH("__text_letter", 0x7b084faa));
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
     // ADD_COMPONENT(e, Anchor);

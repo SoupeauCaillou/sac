@@ -89,11 +89,11 @@ class NamedAssetLibrary : public ResourceHotReload {
         }
 
         TRef name2ref(const std::string& name) const {
-            return Murmur::Hash(name.c_str(), name.size());
+            return Murmur::RuntimeHash(name.c_str(), name.size());
         }
 
         TRef load(const char* name) {
-            TRef result = Murmur::Hash(name);
+            TRef result = Murmur::RuntimeHash(name);
 
             if (useDeferredLoading)
                 mutex.lock();
@@ -130,7 +130,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         void unload(const char* name) {
             mutex.lock();
-            delayed.unloads.insert(Murmur::Hash(name));
+            delayed.unloads.insert(Murmur::RuntimeHash(name));
             mutex.unlock();
             if (!useDeferredLoading) update();
         }
@@ -147,7 +147,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                 delayed.reloads.insert(name);
                 mutex.unlock();
             } else {
-                TRef ref = Murmur::Hash(name);
+                TRef ref = Murmur::RuntimeHash(name);
                 doReload(name, ref);
             }
         }
@@ -168,7 +168,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
                 for (auto& name: delayed.loads) {
                     mutex.lock();
-                    TRef ref = Murmur::Hash(name.c_str());
+                    TRef ref = Murmur::RuntimeHash(name.c_str());
                     LOGV(2, "\tLoad '" << name << "' -> " << ref);
                     doLoad(name.c_str(), assets[countBefore], ref);
                     _addRef2Index(ref, countBefore++);
@@ -193,7 +193,7 @@ class NamedAssetLibrary : public ResourceHotReload {
             for (const auto& name: delayed.reloads) {
                 mutex.lock();
                 LOGV(2, "Reload '" << name << "'");
-                doReload(name.c_str(), Murmur::Hash(name.c_str()));
+                doReload(name.c_str(), Murmur::RuntimeHash(name.c_str()));
                 mutex.unlock();
             }
 #endif
@@ -257,7 +257,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         void add(const std::string& name, const T& info) {
             if (useDeferredLoading) mutex.lock();
-            TRef ref = Murmur::Hash(name.c_str());
+            TRef ref = Murmur::RuntimeHash(name.c_str());
             _addRef2Index(ref, assets.size());
             assets.push_back(info);
             if (useDeferredLoading) mutex.unlock();

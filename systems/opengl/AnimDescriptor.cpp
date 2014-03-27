@@ -61,7 +61,7 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
     std::string next;
     if (dfp.get(meta, "next_anim", &next, 1, false)) {
         LOGV(1, "  -> nextAnim = " << next);
-        nextAnim = Murmur::Hash(next.c_str());
+        nextAnim = Murmur::RuntimeHash(next.c_str());
         LOGF_IF(nextAnim == 0, "Hash value 0 is reserved, please change anim '" << ctx << "' name");
     } else {
         nextAnim = 0;
@@ -91,7 +91,7 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
                 if (texture.empty())
                     frame.texture = InvalidTextureRef;
                 else
-                    frame.texture = Murmur::Hash(texture.c_str());
+                    frame.texture = Murmur::RuntimeHash(texture.c_str());
                 frames.push_back(frame);
             } else {
                 LOGF("Missing texture attribute in section '" << section << "'");

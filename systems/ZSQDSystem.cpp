@@ -31,12 +31,12 @@ INSTANCE_IMPL(ZSQDSystem);
 
 ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
     ZSQDComponent zc;
-    componentSerializer.add(new Property<float>(Murmur::Hash("friction_coeff"), OFFSET(frictionCoeff, zc), 0.0001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("max_speed"), OFFSET(maxSpeed, zc), 0.0001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("new_direction_coeff"), OFFSET(newDirectionCoeff, zc), 0.0001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("rotation_speed"), OFFSET(rotationSpeed, zc), 0.0001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("rotation_speed_stopped"), OFFSET(rotationSpeedStopped, zc), 0.0001f));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("rotate_to_face_direction"), OFFSET(rotateToFaceDirection, zc)));
+    componentSerializer.add(new Property<float>(HASH("friction_coeff", 0x0), OFFSET(frictionCoeff, zc), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("max_speed", 0x0), OFFSET(maxSpeed, zc), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("new_direction_coeff", 0x0), OFFSET(newDirectionCoeff, zc), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("rotation_speed", 0x0), OFFSET(rotationSpeed, zc), 0.0001f));
+    componentSerializer.add(new Property<float>(HASH("rotation_speed_stopped", 0x0), OFFSET(rotationSpeedStopped, zc), 0.0001f));
+    componentSerializer.add(new Property<bool>(HASH("rotate_to_face_direction", 0x0), OFFSET(rotateToFaceDirection, zc)));
 }
 
 void ZSQDSystem::DoUpdate(float dt) {

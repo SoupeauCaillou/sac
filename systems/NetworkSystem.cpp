@@ -93,7 +93,7 @@ NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"
     nextGuid = 1;
 
     NetworkComponentPriv nc;
-    componentSerializer.add(new VectorProperty<std::string>(Murmur::Hash("sync"), OFFSET(sync, nc)));
+    componentSerializer.add(new VectorProperty<std::string>(HASH("sync", 0x0), OFFSET(sync, nc)));
 
 #if SAC_DEBUG
     bytesSentLastSec = bytesReceivedLastSec = 0;
@@ -132,7 +132,8 @@ void NetworkSystem::DoUpdate(float dt) {
             switch (header->type) {
                 case NetworkMessageHeader::CreateEntity: {
                     const char* name = (char*) (pkt.data + sizeof(NetworkMessageHeader));
-                    Entity e = theEntityManager.CreateEntity(name);
+                    LOGT("Fixme");
+                    Entity e = theEntityManager.CreateEntity(Murmur::RuntimeHash(name));
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
                     LOGV(1, "Received CREATE_ENTITY msg (guid: " << header->entityGuid << ")");
@@ -271,6 +272,8 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
     if (!nc->entityExistsGlobally && onlyCreate) {
         // later nc->entityExistsGlobally = true;
         nc->guid = (nextGuid++) | GUID_TAG;
+        LOGT("Fime");
+        #if 0
         const std::string& name = theEntityManager.entityName(e);
         NetworkPacket pkt;
         NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
@@ -281,6 +284,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
         pkt.data = temp;
         SEND(pkt);
         LOGV(1, "NOTIFY create : " << e << "/" << nc->guid << '/' << theEntityManager.entityName(e));
+        #endif
     }
     if (onlyCreate)
         return;

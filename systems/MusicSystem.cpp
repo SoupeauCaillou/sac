@@ -40,19 +40,19 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), muted
     /* nothing saved */
     MusicComponent sc;
 
-    componentSerializer.add(new Property<int>(Murmur::Hash("music"), OFFSET(music, sc)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("loop_next"), OFFSET(loopNext, sc)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("previous_ending"), OFFSET(previousEnding, sc)));
+    componentSerializer.add(new Property<int>(HASH("music", 0x0), OFFSET(music, sc)));
+    componentSerializer.add(new Property<int>(HASH("loop_next", 0x0), OFFSET(loopNext, sc)));
+    componentSerializer.add(new Property<int>(HASH("previous_ending", 0x0), OFFSET(previousEnding, sc)));
 
-    componentSerializer.add(new Property<float>(Murmur::Hash("loop_at"), OFFSET(loopAt, sc), 0.001f));
-    componentSerializer.add(new Property<int>(Murmur::Hash("position_i"), OFFSET(positionI, sc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("fade_out"), OFFSET(fadeOut, sc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("fade_in"), OFFSET(fadeIn, sc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("volume"), OFFSET(volume, sc), 0.001f));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("looped"), OFFSET(looped, sc)));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("paused"), OFFSET(paused, sc)));
-    componentSerializer.add(new StringProperty(Murmur::Hash("auto_loop_name"), OFFSET(autoLoopName, sc)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("control"), OFFSET(control, sc)));
+    componentSerializer.add(new Property<float>(HASH("loop_at", 0x0), OFFSET(loopAt, sc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("position_i", 0x0), OFFSET(positionI, sc)));
+    componentSerializer.add(new Property<float>(HASH("fade_out", 0x0), OFFSET(fadeOut, sc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("fade_in", 0x0), OFFSET(fadeIn, sc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("volume", 0x0), OFFSET(volume, sc), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("looped", 0x0), OFFSET(looped, sc)));
+    componentSerializer.add(new Property<bool>(HASH("paused", 0x0), OFFSET(paused, sc)));
+    componentSerializer.add(new StringProperty(HASH("auto_loop_name", 0x0), OFFSET(autoLoopName, sc)));
+    componentSerializer.add(new Property<int>(HASH("control", 0x0), OFFSET(control, sc)));
 }
 
 MusicSystem::~MusicSystem() {
@@ -342,7 +342,7 @@ void MusicSystem::toggleMute(bool enable) {
 
 MusicRef MusicSystem::loadMusicFile(const char* assetName) {
     LOGV(1, "loadMusicFile " << assetName);
-    hash_t h = Murmur::Hash(assetName);
+    hash_t h = Murmur::RuntimeHash(assetName);
 
     LOGF_IF(!assetAPI, "Asked to load a music file but invalid assetAPI given. Did you init MusicSystem?");
 

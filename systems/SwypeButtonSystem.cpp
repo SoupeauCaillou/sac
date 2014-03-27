@@ -43,11 +43,11 @@ SwypeButtonSystem::SwypeButtonSystem() : ComponentSystemImpl<SwypeButtonComponen
     vibrateAPI = 0;
 
     SwypeButtonComponent sc;
-    componentSerializer.add(new Property<bool>(Murmur::Hash("enabled"), OFFSET(enabled, sc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("vibration"), OFFSET(vibration, sc), 0.001f));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("animated"), OFFSET(animated, sc)));
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("final_pos"), OFFSET(finalPos, sc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("idle_pos"), OFFSET(idlePos, sc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<bool>(HASH("enabled", 0x0), OFFSET(enabled, sc)));
+    componentSerializer.add(new Property<float>(HASH("vibration", 0x0), OFFSET(vibration, sc), 0.001f));
+    componentSerializer.add(new Property<bool>(HASH("animated", 0x0), OFFSET(animated, sc)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("final_pos", 0x0), OFFSET(finalPos, sc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("idle_pos", 0x0), OFFSET(idlePos, sc), glm::vec2(0.001f, 0)));
     
 }
 

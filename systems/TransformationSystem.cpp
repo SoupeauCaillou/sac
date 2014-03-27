@@ -26,11 +26,11 @@ INSTANCE_IMPL(TransformationSystem);
 
 TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") {
     TransformationComponent tc;
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("position"), OFFSET(position, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("size"), OFFSET(size, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("rotation"), OFFSET(rotation, tc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("z"), OFFSET(z, tc), 0.001f));
-    componentSerializer.add(new Property<int>(Murmur::Hash("shape"), OFFSET(shape, tc)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("position", 0x0), OFFSET(position, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("size", 0x0), OFFSET(size, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>(HASH("rotation", 0x0), OFFSET(rotation, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("z", 0x0), OFFSET(z, tc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("shape", 0x0), OFFSET(shape, tc)));
 
     for (unsigned i=0; i<Shape::Count; i++) {
         shapes.push_back(Polygon::create((Shape::Enum)i));

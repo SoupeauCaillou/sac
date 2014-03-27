@@ -39,17 +39,17 @@ INSTANCE_IMPL(ADSRSystem);
 ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
     ADSRComponent a;
 
-    componentSerializer.add(new Property<bool>(Murmur::Hash("active"), OFFSET(active, a)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("value"), OFFSET(value, a), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("idle_value"), OFFSET(idleValue, a), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("attack_value"), OFFSET(attackValue, a), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("attack_timing"), OFFSET(attackTiming, a), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("decay_timing"), OFFSET(decayTiming, a), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("sustain_value"), OFFSET(sustainValue, a), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("release_timing"), OFFSET(releaseTiming, a), 0.001f));
-    componentSerializer.add(new Property<int>(Murmur::Hash("attack_mode"), OFFSET(attackMode, a)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("decay_mode"), OFFSET(decayMode, a)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("release_mode"), OFFSET(releaseMode, a)));
+    componentSerializer.add(new Property<bool>(HASH("active", 0x0), OFFSET(active, a)));
+    componentSerializer.add(new Property<float>(HASH("value", 0x0), OFFSET(value, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("idle_value", 0x0), OFFSET(idleValue, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("attack_value", 0x0), OFFSET(attackValue, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("attack_timing", 0x0), OFFSET(attackTiming, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("decay_timing", 0x0), OFFSET(decayTiming, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("sustain_value", 0x0), OFFSET(sustainValue, a), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("release_timing", 0x0), OFFSET(releaseTiming, a), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("attack_mode", 0x0), OFFSET(attackMode, a)));
+    componentSerializer.add(new Property<int>(HASH("decay_mode", 0x0), OFFSET(decayMode, a)));
+    componentSerializer.add(new Property<int>(HASH("release_mode", 0x0), OFFSET(releaseMode, a)));
 }
 
 void ADSRSystem::DoUpdate(float dt) {

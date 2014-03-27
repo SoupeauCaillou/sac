@@ -106,11 +106,11 @@ bool GameCenterAPIHelper::updateUI() {
     displayFeatures((bUIdisplayed & isConnected)||displayIfNotConnected);
 
     if (isConnected) {
-        BUTTON(signButton)->textureInactive = Murmur::Hash("gg_signout");
-        BUTTON(signButton)->textureActive = Murmur::Hash("gg_signout_active");
+        BUTTON(signButton)->textureInactive = HASH("gg_signout", 0x0);
+        BUTTON(signButton)->textureActive = HASH("gg_signout_active", 0x0);
     } else {
-        BUTTON(signButton)->textureInactive = Murmur::Hash("gg_signin");
-        BUTTON(signButton)->textureActive = Murmur::Hash("gg_signin_active");
+        BUTTON(signButton)->textureInactive = HASH("gg_signin", 0x0);
+        BUTTON(signButton)->textureActive = HASH("gg_signin_active", 0x0);
     }
 
     if (BUTTON(signButton)->clicked) {

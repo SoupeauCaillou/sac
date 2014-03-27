@@ -131,7 +131,7 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     std::stringstream realName;
     realName << OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi)
         << '/' << atlasName;
-    textureLibrary.unload(Murmur::Hash(realName.str().c_str()));
+    textureLibrary.unload(Murmur::RuntimeHash(realName.str().c_str()));
     for (unsigned i=0; i<atlas.size(); i++) {
         if (atlas[i].name == realName.str()) {
             atlas[i].ref = InvalidTextureRef;
@@ -178,7 +178,7 @@ TextureRef RenderingSystem::loadTextureFile(const char* assetName) {
 }
 
 glm::vec2 RenderingSystem::getTextureSize(const char* textureName) {
-    return getTextureSize(Murmur::Hash(textureName));
+    return getTextureSize(Murmur::RuntimeHash(textureName));
 }
 
 glm::vec2 RenderingSystem::getTextureSize(const TextureRef& textureRef) {

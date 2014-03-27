@@ -60,7 +60,7 @@ void DebuggingSystem::toggle() {}
 static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCount, Entity& entityCountLabel, Entity& systems) {
     const glm::vec2& cameraSize = TRANSFORM(camera)->size;
 
-    fps = theEntityManager.CreateEntity("__debug_fps");
+    fps = theEntityManager.CreateEntity(HASH("__debug_fps", 0x0));
     ADD_COMPONENT(fps, Transformation);
     TRANSFORM(fps)->size = cameraSize * glm::vec2(0.3f, 0.2f);
     ADD_COMPONENT(fps, Anchor);
@@ -75,7 +75,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     GRAPH(fps)->minY = 0;
     GRAPH(fps)->maxY = 65;
 
-    fpsLabel = theEntityManager.CreateEntity("__debug_label_fps");
+    fpsLabel = theEntityManager.CreateEntity(HASH("__debug_label_fps", 0x0));
     ADD_COMPONENT(fpsLabel, Transformation);
     TRANSFORM(fpsLabel)->size = TRANSFORM(fps)->size;
     ADD_COMPONENT(fpsLabel, Anchor);
@@ -88,7 +88,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TEXT(fpsLabel)->maxCharHeight = 0.4f;
     TEXT(fpsLabel)->show = true;
 
-    entityCount = theEntityManager.CreateEntity("__debug_entityCount");
+    entityCount = theEntityManager.CreateEntity(HASH("__debug_entityCount", 0x0));
     ADD_COMPONENT(entityCount, Transformation);
     TRANSFORM(entityCount)->size = cameraSize * glm::vec2(0.3f, 0.2f);
     ADD_COMPONENT(entityCount, Anchor);
@@ -101,7 +101,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     ADD_COMPONENT(entityCount, Graph);
     GRAPH(entityCount)->textureName = EntitiesTextureName;
 
-    entityCountLabel = theEntityManager.CreateEntity("__debug_label_entityCount");
+    entityCountLabel = theEntityManager.CreateEntity(HASH("__debug_label_entityCount", 0x0));
     ADD_COMPONENT(entityCountLabel, Transformation);
     TRANSFORM(entityCountLabel)->size = TRANSFORM(entityCount)->size;
     ADD_COMPONENT(entityCountLabel, Anchor);
@@ -114,7 +114,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
     TEXT(entityCountLabel)->maxCharHeight = 0.4f;
     TEXT(entityCountLabel)->show = true;
 
-    systems = theEntityManager.CreateEntity("__debug_systems");
+    systems = theEntityManager.CreateEntity(HASH("__debug_systems", 0x0));
     ADD_COMPONENT(systems, Transformation);
     TRANSFORM(systems)->size = cameraSize * glm::vec2(0.3f, 0.2f);
     ADD_COMPONENT(systems, Anchor);
@@ -129,7 +129,7 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 static Entity createSystemGraphEntity(const std::string& name, Entity parent, int index, const std::string& textureName, float maxY) {
     Color color = Color::random();
     color.a = 1;
-    Entity e = theEntityManager.CreateEntity(name.c_str());
+    Entity e = theEntityManager.CreateEntity(Murmur::RuntimeHash(name.c_str()));
     ADD_COMPONENT(e, Transformation);
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
     ADD_COMPONENT(e, Anchor);
@@ -308,7 +308,7 @@ void DebuggingSystem::DoUpdate(float dt) {
 
 
     for (uint i = captionGraph.size(); i < debugEntities.size(); ++i) {
-        Entity c = theEntityManager.CreateEntity("caption");
+        Entity c = theEntityManager.CreateEntity(HASH("caption", 0x0));
         ADD_COMPONENT(c, Transformation);
         if (i==0) {
             TRANSFORM(c)->parent = activeCamera;

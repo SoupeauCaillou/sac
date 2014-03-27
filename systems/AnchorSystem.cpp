@@ -30,11 +30,11 @@ INSTANCE_IMPL(AnchorSystem);
 
 AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>("Anchor") {
     AnchorComponent tc;
-    componentSerializer.add(new EntityProperty(Murmur::Hash("parent"), OFFSET(parent, tc)));
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("position"), OFFSET(position, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<glm::vec2>(Murmur::Hash("anchor"), OFFSET(anchor, tc), glm::vec2(0.001f, 0)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("rotation"), OFFSET(rotation, tc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("z"), OFFSET(z, tc), 0.001f));
+    componentSerializer.add(new EntityProperty(HASH("parent", 0x0), OFFSET(parent, tc)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("position", 0x0), OFFSET(position, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("anchor", 0x0), OFFSET(anchor, tc), glm::vec2(0.001f, 0)));
+    componentSerializer.add(new Property<float>(HASH("rotation", 0x0), OFFSET(rotation, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("z", 0x0), OFFSET(z, tc), 0.001f));
 }
 
 struct CompareParentChain {
@@ -118,7 +118,7 @@ void AnchorSystem::DoUpdate(float) {
 #if SAC_DEBUG
 void AnchorSystem::Delete(Entity e) {
     FOR_EACH_ENTITY_COMPONENT(Anchor, child, bc)
-        if (bc->parent == e && theEntityManager.entityName(child) != "__text_letter") {
+        if (bc->parent == e && strcmp(theEntityManager.entityName(child), "__text_letter")) {
             LOGE("deleting an entity which is parent ! (Entity " << e << "/" << theEntityManager.entityName(e) << " is parent of " << child << '/' << theEntityManager.entityName(child) << ')');
         }
     END_FOR_EACH()

@@ -36,7 +36,7 @@ class AdAPIDebugImpl : public AdAPI {
         AdAPIDebugImpl() : e(0) {}
         bool showAd(bool LOG_USAGE_ONLY(force)) {
             if (e == 0) {
-                e = theEntityManager.CreateEntity("ad");
+                e = theEntityManager.CreateEntity(HASH("ad", 0x0));
                 ADD_COMPONENT(e, Transformation);
                 ADD_COMPONENT(e, Button);
                 ADD_COMPONENT(e, Rendering);
@@ -48,17 +48,17 @@ class AdAPIDebugImpl : public AdAPI {
             RENDERING(e)->show = true;
             RENDERING(e)->color = Color::random();
 
-            LOGI("!!!!!!!!!!!!!!!!!!!!!!!!!!!!Interstitial ad display " << (force ? "(forced)" : "") 
+            LOGI("!!!!!!!!!!!!!!!!!!!!!!!!!!!!Interstitial ad display " << (force ? "(forced)" : "")
                 << "!!!!!!!!!!!!!!!!!!!!!!!");
             return true;
         }
-        
+
         bool done() {
             if (RENDERING(e)->show) {
                 if (BUTTON(e)->clicked) {
                     RENDERING(e)->show = false;
                     BUTTON(e)->enabled = false;
-                    return true; 
+                    return true;
                 }
                 return false;
             }

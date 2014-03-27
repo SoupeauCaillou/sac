@@ -54,7 +54,7 @@ TEST(LoadMetaInfo)
     CHECK_CLOSE(2.1, desc.playbackSpeed, 0.001);
     CHECK_EQUAL(2, desc.loopCount.t1);
     CHECK_EQUAL(4, desc.loopCount.t2);
-    CHECK_EQUAL(Murmur::Hash("animation2"), desc.nextAnim);
+    CHECK_EQUAL(Murmur::RuntimeHash("animation2"), desc.nextAnim);
     CHECK_CLOSE(0, desc.nextAnimWait.t1, 0.001);
     CHECK_CLOSE(4.5, desc.nextAnimWait.t2, 0.001);
 }

@@ -142,11 +142,11 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
             // Try something different
             const auto pct = key.find('%');
             if (pct == std::string::npos) {
-                currentSection->hashValues.insert(std::make_pair(Murmur::Hash(key.c_str()), value));
+                currentSection->hashValues.insert(std::make_pair(Murmur::RuntimeHash(key.c_str()), value));
             } else {
-                hash_t h = Murmur::Hash(key.substr(0, pct).c_str());
+                hash_t h = Murmur::RuntimeHash(key.substr(0, pct).c_str());
                 currentSection->hashValues.insert(std::make_pair(h, value));
-                hash_t hm = Murmur::Hash(key.substr(pct + 1, std::string::npos).c_str());
+                hash_t hm = Murmur::RuntimeHash(key.substr(pct + 1, std::string::npos).c_str());
                 currentSection->hashModifiers.insert(std::make_pair(h, hm));
             }
         }
@@ -162,7 +162,7 @@ void DataFileParser::put(const std::string& section, const std::string& var, con
         data->sections.insert(std::make_pair(section, sectPtr));
     }
     sectPtr->keyValues[var] = value;
-    sectPtr->hashValues[Murmur::Hash(var.c_str())] = value;
+    sectPtr->hashValues[Murmur::RuntimeHash(var.c_str())] = value;
 }
 
 void DataFileParser::unload() {
@@ -233,7 +233,7 @@ bool DataFileParser::remove(const std::string& section, const std::string& var) 
         return false;
     }
     auto it = sectPtr->keyValues.find(var);
-    auto jt = sectPtr->hashValues.find(Murmur::Hash(var.c_str()));
+    auto jt = sectPtr->hashValues.find(Murmur::RuntimeHash(var.c_str()));
 
     if (it == sectPtr->keyValues.end() || jt == sectPtr->hashValues.end()) {
         LOGE(context << ": cannot find var to remove '" << var << "' in section '" << section << "'");

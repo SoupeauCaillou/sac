@@ -36,10 +36,10 @@ INSTANCE_IMPL(CollisionSystem);
 
 CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Collision") {
     CollisionComponent tc;
-    componentSerializer.add(new Property<int>(Murmur::Hash("group"), OFFSET(group, tc), 0));
-    componentSerializer.add(new Property<int>(Murmur::Hash("collide_with"), OFFSET(collideWith, tc), 0));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("restore_position_on_collision"), OFFSET(restorePositionOnCollision, tc)));
-    componentSerializer.add(new Property<bool>(Murmur::Hash("is_a_ray"), OFFSET(isARay, tc)));
+    componentSerializer.add(new Property<int>(HASH("group", 0x0), OFFSET(group, tc), 0));
+    componentSerializer.add(new Property<int>(HASH("collide_with", 0x0), OFFSET(collideWith, tc), 0));
+    componentSerializer.add(new Property<bool>(HASH("restore_position_on_collision", 0x0), OFFSET(restorePositionOnCollision, tc)));
+    componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x0), OFFSET(isARay, tc)));
 
 #if SAC_DEBUG
     showDebug = false;
@@ -71,7 +71,7 @@ void CollisionSystem::DoUpdate(float dt) {
         if (debug.empty()) {
             for (int j=0; j<h; j++) {
                 for (int i=0; i<w; i++) {
-                    Entity d = theEntityManager.CreateEntity("debug_collision_grid");
+                    Entity d = theEntityManager.CreateEntity(HASH("debug_collision_grid", 0x0));
                     ADD_COMPONENT(d, Transformation);
                     TRANSFORM(d)->position =
                         -worldSize * 0.5f + glm::vec2(CELL_SIZE * (i+.5f), CELL_SIZE *(j+.5f));

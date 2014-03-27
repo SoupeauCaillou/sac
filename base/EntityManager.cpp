@@ -55,7 +55,7 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
-Entity EntityManager::CreateEntity(const char* name, EntityType::Enum type, EntityTemplateRef tmpl) {
+Entity EntityManager::CreateEntity(const hash_t id, EntityType::Enum type, EntityTemplateRef tmpl) {
     Entity e = 0;
 
     // Reuse id if possible
@@ -69,10 +69,9 @@ Entity EntityManager::CreateEntity(const char* name, EntityType::Enum type, Enti
 #endif
     }
 
-
-    // maybe hide the TypeBit from the rest of the world...
-    LOGF_IF(entity2name.find(e) != entity2name.end(), "Newly created entity '" << e << "' is already in entity2name. Value='" << entity2name.find(e)->second << "'");
-    entity2name[e] = strdup(name);
+    if (e >= entityHash.size())
+        entityHash.resize(2 * (entityHash.size() + 1));
+    entityHash[e] = id;
 
     if (tmpl != InvalidEntityTemplateRef) {
         // add component
@@ -93,18 +92,20 @@ Entity EntityManager::CreateEntity(const char* name, EntityType::Enum type, Enti
 Entity EntityManager::CreateEntityFromTemplate(const char* name, EntityType::Enum type) {
     const EntityTemplateRef tmpl = entityTemplateLibrary.load(name);
     LOGF_IF(tmpl == InvalidEntityTemplateRef, "Invalid entity template '" << name << "'");
-    return CreateEntity(name, type, tmpl);
+    return CreateEntity(tmpl /*Murmur::Hash(name)*/, type, tmpl);
 }
 
 
+#if SAC_ENABLE_LOG || SAC_INGAME_EDITORS
 const char* EntityManager::entityName(Entity e) const {
     static const char* u = "unknown";
-    auto it = entity2name.find(e);
-    if (it != entity2name.end())
-        return it->second;
+    hash_t id = entityHash[e];
+    if (id)
+        return Murmur::lookup(id);
     else
         return u;
 }
+#endif
 
 void EntityManager::SuspendEntity(Entity e) {
     auto i = entityComponents.find(e);
@@ -134,18 +135,19 @@ void EntityManager::ResumeEntity(Entity e) {
     suspendedEntityComponents.erase(i);
 }
 
-Entity EntityManager::getEntityByName(const char* name) const {
+Entity EntityManager::getEntityByName(hash_t id) const {
     Entity byName = 0;
 #if SAC_DEBUG
     bool found = false;
 #endif
 
-    for (const auto& p: entity2name) {
-        if (strcmp(p.second, name) == 0) {
-            byName = p.first;
+    const auto count = entityHash.size();
+    for (unsigned i=0; i<count; i++) {
+        if (entityHash[i] == id) {
+            byName = i;
 #if SAC_DEBUG
             if (found) {
-                LOGW("Requesting entity by name, but multiple entities share the same name: '" << name << "'");
+                LOGW("Requesting entity by name, but multiple entities share the same id: '" << id << "' / name: " << Murmur::lookup(id));
             }
             found = true;
 #else
@@ -182,9 +184,7 @@ void EntityManager::DeleteEntity(Entity e) {
     entityTemplateLibrary.remove(e);
 #endif
     {
-        auto it = entity2name.find(e);
-        free (const_cast<char*>(it->second));
-        entity2name.erase(it);
+        entityHash[e] = 0;
     }
     recyclableEntities.emplace_front(e);
     auto it = std::find(permanentEntities.begin(), permanentEntities.end(), e);
@@ -222,9 +222,7 @@ void EntityManager::deleteAllEntities() {
         DeleteEntity(*it);
     nextEntity = 1;
     recyclableEntities.clear();
-    for (const auto& p: entity2name)
-        free(const_cast<char*>(p.second));
-    entity2name.clear();
+    entityHash.clear();
 
     LOGF_IF (entityComponents.size() != 0, "entityComponents not empty after deleting all entities");
 }
@@ -273,12 +271,10 @@ int EntityManager::serialize(uint8_t** result) {
         if (j == entityComponents.end())
             continue;
 
-        totalLength += sizeof(Entity) + 2 * sizeof(int);
-        totalLength += strlen(entity2name.find(e.e)->second);
+        totalLength += sizeof(Entity) + sizeof(hash_t) + sizeof(int);
 
         for(auto* sys: j->second) {
             ComponentSave c;
-            // TODO: use a simple id/hash
             c.name = sys->getName();
             c.contentSize = sys->serialize(e.e, &c.content);
             e.components.push_back(c);
@@ -294,13 +290,8 @@ int EntityManager::serialize(uint8_t** result) {
     for(unsigned int i=0; i<saves.size(); i++) {
         // entity (id)
         out = (uint8_t*)mempcpy(out, &saves[i].e, sizeof(Entity));
-
-        const std::string& name = entity2name.find(saves[i].e)->second;
-        const int nameLength = name.size();
-        // name length
-        out = (uint8_t*) mempcpy(out, &nameLength, sizeof(int));
-        // name
-        out = (uint8_t*) mempcpy(out, name.c_str(), nameLength);
+        // hash
+        out = (uint8_t*) mempcpy(out, &entityHash[saves[i].e], sizeof(hash_t));
 
         // nb component
         const int cCount = saves[i].components.size();
@@ -317,7 +308,6 @@ int EntityManager::serialize(uint8_t** result) {
 
 
 void EntityManager::deserialize(const uint8_t* in, int length) {
-    char tmp[512];
     int index = 0;
     while (index < length) {
         Entity e;
@@ -325,13 +315,11 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 
         permanentEntities.push_back(e);
 
-        int nameLength = 0;
-        memcpy(&nameLength, &in[index], sizeof(int)); index += sizeof(int);
-        LOGW_IF(nameLength == 0 || (nameLength > 512), "Invalid entity name:" << nameLength);
-        nameLength = glm::min(512, nameLength);
-        memcpy(tmp, &in[index], nameLength); index += nameLength;
-        tmp[nameLength] = '\0';
-        entity2name[e] = strdup(tmp);
+        hash_t id = 0;
+        memcpy(&id, &in[index], sizeof(hash_t)); index += sizeof(hash_t);
+        if (e >= entityHash.size())
+            entityHash.resize(2 * (entityHash.size() + 1));
+        entityHash[e] = id;
 
         int cCount = 0;
         memcpy(&cCount, &in[index], sizeof(int)); index += sizeof(int);

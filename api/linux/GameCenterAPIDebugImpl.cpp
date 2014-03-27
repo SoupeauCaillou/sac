@@ -32,14 +32,14 @@
 Entity GameCenterAPIDebugImpl::createAutodestroySuccess(float duration) {
     static float lastCreatedDestroySchedule = 0;
 
-    Entity e = theEntityManager.CreateEntity("Success");
-    
+    Entity e = theEntityManager.CreateEntity(HASH("Success", 0x0));
+
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
     ADD_COMPONENT(e, Text);
     ADD_COMPONENT(e, AutoDestroy);
 
-    TRANSFORM(e)->size = glm::vec2(4,1);    
+    TRANSFORM(e)->size = glm::vec2(4,1);
     TRANSFORM(e)->position = glm::vec2(0, PlacementHelper::ScreenSize.y / 2.f - .5);
     TRANSFORM(e)->z = .95f;
 
@@ -53,7 +53,7 @@ Entity GameCenterAPIDebugImpl::createAutodestroySuccess(float duration) {
 
 
     // if there is already an achievement scheduled, delay this one
-    float dieTime = duration + 
+    float dieTime = duration +
         std::max(0.f, lastCreatedDestroySchedule - TimeUtil::GetTime());
 
     AUTO_DESTROY(e)->params.lifetime.freq = Frequency<float> (dieTime);
@@ -72,21 +72,21 @@ void GameCenterAPIDebugImpl::displayAction(float duration) {
 }
 
 void GameCenterAPIDebugImpl::connectOrRegister() {
-    _isConnected = true; 
+    _isConnected = true;
     message << "Connected";
     displayAction();
 }
 void GameCenterAPIDebugImpl::disconnect() {
-    _isConnected = false; 
+    _isConnected = false;
     message << "Disconnected";
     displayAction();
 }
 
 bool GameCenterAPIDebugImpl::isConnected() {
-    return _isConnected; 
+    return _isConnected;
 }
 bool GameCenterAPIDebugImpl::isRegistered() {
-    return true; 
+    return true;
 }
 
 void GameCenterAPIDebugImpl::unlockAchievement(int id) {
@@ -104,19 +104,19 @@ void GameCenterAPIDebugImpl::submitScore(int leaderboardID, const std::string & 
 }
 
 void GameCenterAPIDebugImpl::openAchievement() {
-    message << "openAchievement."; 
+    message << "openAchievement.";
     displayAction();
 }
 void GameCenterAPIDebugImpl::openLeaderboards() {
-    message << "openLeaderboards."; 
+    message << "openLeaderboards.";
     displayAction();
 }
 
 void GameCenterAPIDebugImpl::openSpecificLeaderboard(int id) {
-    message << "openSpecificLeaderboard." << id; 
+    message << "openSpecificLeaderboard." << id;
     displayAction();
 }
 void GameCenterAPIDebugImpl::openDashboard() {
-    message << "openDashboard."; 
+    message << "openDashboard.";
     displayAction();
 }

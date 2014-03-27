@@ -30,11 +30,14 @@ typedef uint32_t hash_t;
 class Murmur {
     private:
         static constexpr uint32_t seed = 0x12345678;
+        static constexpr uint32_t M = 0x5bd1e995;
+        static constexpr int R = 24;
     public:
 
         static hash_t RuntimeHash(const void * key, int len);
+        static hash_t RuntimeHash(const char* key) { return RuntimeHash(key, strlen(key)); }
 
-        static constexpr hash_t Hash(const void * key, int len) {
+        static constexpr hash_t _Hash(const void * key, int len) {
             return
                 selfExpShift(
                     mulM(
@@ -44,14 +47,10 @@ class Murmur {
                     )
                 , 15);
         }
-
         // assume key contains \0
-        static constexpr hash_t Hash(const char * key) {
-            return Hash(key, strlen(key));
+        static constexpr hash_t _Hash(const char * key) {
+            return _Hash(key, strlen(key));
         }
-    private:
-        static constexpr uint32_t M = 0x5bd1e995;
-        static constexpr int R = 24;
 
         static constexpr uint32_t mulM(uint32_t k) { return k * M; }
 
@@ -77,9 +76,16 @@ class Murmur {
 
     private:
         #if SAC_DEBUG || SAC_INGAME_EDITORS
-        static std::map<uint32_t, const char*> _lookup;
+        static std::map<uint32_t, const char*>* _lookup;
     public:
+        static uint32_t verifyHash(const char* txt, uint32_t hash, const char* file, int line);
         static const char* lookup(uint32_t t);
         #endif
 
 };
+
+#if SAC_DEBUG || SAC_INGAME_EDITORS
+#define HASH(txt, hash) Murmur::verifyHash(txt, hash, __FILE__, __LINE__)
+#else
+#define HASH(txt, hash) hash
+#endif

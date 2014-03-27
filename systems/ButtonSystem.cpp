@@ -40,14 +40,14 @@ ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
     vibrateAPI = 0;
 
     ButtonComponent bc;
-    componentSerializer.add(new Property<bool>(Murmur::Hash("enabled"), OFFSET(enabled, bc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("over_size"), OFFSET(overSize, bc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("vibration"), OFFSET(vibration, bc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("trigger"), OFFSET(trigger, bc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("first_touch"), OFFSET(firstTouch, bc), 0.001f));
-    componentSerializer.add(new Property<int>(Murmur::Hash("type"), OFFSET(type, bc)));
-    componentSerializer.add(new Property<TextureRef>(Murmur::Hash("texture_active"), PropertyType::Texture, OFFSET(textureActive, bc), 0));
-    componentSerializer.add(new Property<TextureRef>(Murmur::Hash("texture_inactive"), PropertyType::Texture, OFFSET(textureInactive, bc), 0));
+    componentSerializer.add(new Property<bool>(HASH("enabled", 0x0), OFFSET(enabled, bc)));
+    componentSerializer.add(new Property<float>(HASH("over_size", 0x0), OFFSET(overSize, bc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("vibration", 0x0), OFFSET(vibration, bc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("trigger", 0x0), OFFSET(trigger, bc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("first_touch", 0x0), OFFSET(firstTouch, bc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("type", 0x0), OFFSET(type, bc)));
+    componentSerializer.add(new Property<TextureRef>(HASH("texture_active", 0x0), PropertyType::Texture, OFFSET(textureActive, bc), 0));
+    componentSerializer.add(new Property<TextureRef>(HASH("texture_inactive", 0x0), PropertyType::Texture, OFFSET(textureInactive, bc), 0));
 }
 
 void ButtonSystem::DoUpdate(float) {

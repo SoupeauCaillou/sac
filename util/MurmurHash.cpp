@@ -24,16 +24,22 @@
 
 
 #if SAC_DEBUG || SAC_INGAME_EDITORS
-std::map<uint32_t, const char*> Murmur::_lookup;
+std::map<uint32_t, const char*>* Murmur::_lookup = 0;
 
 const char* Murmur::lookup(uint32_t t) {
-    auto it = _lookup.find(t);
-    if (it == _lookup.end()) {
+    auto it = _lookup->find(t);
+    if (it == _lookup->end()) {
         LOGE("Invalid lookup key: " << t);
         return "";
     } else {
         return it->second;
     }
+}
+
+uint32_t Murmur::verifyHash(const char* txt, uint32_t hash, const char* file, int line) {
+    uint32_t h = RuntimeHash(txt, strlen(txt));
+    LOGE_IF(h != hash, "Incorrect hash for '" << txt << "' at " << file << ':' << line << ". Expected: 0x" << std::hex << h << " and was 0x" << hash << std::dec);
+    return h;
 }
 #endif
 
@@ -81,6 +87,11 @@ uint32_t Murmur::RuntimeHash(const void * key, int len) {
     h ^= h >> 13;
     h *= m;
     h ^= h >> 15;
+
+#if SAC_DEBUG || SAC_INGAME_EDITORS
+    if (!_lookup) _lookup = new std::map<uint32_t, const char*>();
+    (*_lookup)[h] = strdup((const char*)key);
+#endif
 
     return h;
 }

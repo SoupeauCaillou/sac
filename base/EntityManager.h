@@ -55,7 +55,7 @@ class EntityManager {
 
     public:
 
-        Entity CreateEntity(const char* name = "noname"
+        Entity CreateEntity(const hash_t id
             , EntityType::Enum type = EntityType::Volatile,
             EntityTemplateRef tmpl = InvalidEntityTemplateRef);
 
@@ -74,9 +74,11 @@ class EntityManager {
         int serialize(uint8_t** result);
         void deserialize(const uint8_t* in, int size);
 
-        Entity getEntityByName(const char* name) const;
+        Entity getEntityByName(hash_t id) const;
 
+#if SAC_ENABLE_LOG || SAC_INGAME_EDITORS
         const char* entityName(Entity e) const;
+#endif
 
         int getNumberofEntity() {return entityComponents.size();}
 
@@ -88,7 +90,7 @@ class EntityManager {
         std::forward_list<Entity> recyclableEntities;
 
         std::list<Entity> permanentEntities;
-        std::map<Entity, const char*> entity2name;
+        std::vector<hash_t> entityHash;
         std::map<Entity, std::list<ComponentSystem*> > entityComponents;
         std::map<Entity, std::list<ComponentSystem*> > suspendedEntityComponents;
 

@@ -79,7 +79,7 @@ int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::s
                 LOGV(1, "Entity '" << context << "' has " << subEntities.size() << " sub entities");
             for (auto subName : subEntities) {
                 std::string fullName (context + std::string("#") + subName);
-                EntityTemplateRef subRef = Murmur::Hash(fullName.c_str(), fullName.length());
+                EntityTemplateRef subRef = Murmur::RuntimeHash(fullName.c_str(), fullName.length());
 
                 EntityTemplate sub;
                 loadTemplate(context, subName + std::string("#"), dfp, subRef, sub);

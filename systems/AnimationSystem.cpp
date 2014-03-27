@@ -36,12 +36,12 @@ INSTANCE_IMPL(AnimationSystem);
 
 AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") {
     AnimationComponent tc;
-    componentSerializer.add(new Property<hash_t>(Murmur::Hash("name"), OFFSET(name, tc)));
-    componentSerializer.add(new Property<float>(Murmur::Hash("playback_speed"), OFFSET(playbackSpeed, tc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("accum"), OFFSET(accum, tc), 0.001f));
-    componentSerializer.add(new Property<float>(Murmur::Hash("wait_accum"), OFFSET(waitAccum, tc), 0.001f));
-    componentSerializer.add(new Property<int>(Murmur::Hash("loop_count"), OFFSET(loopCount, tc)));
-    componentSerializer.add(new Property<int>(Murmur::Hash("frame_index"), OFFSET(frameIndex, tc)));
+    componentSerializer.add(new Property<hash_t>(HASH("name", 0x0), OFFSET(name, tc)));
+    componentSerializer.add(new Property<float>(HASH("playback_speed", 0x0), OFFSET(playbackSpeed, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("accum", 0x0), OFFSET(accum, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("wait_accum", 0x0), OFFSET(waitAccum, tc), 0.001f));
+    componentSerializer.add(new Property<int>(HASH("loop_count", 0x0), OFFSET(loopCount, tc)));
+    componentSerializer.add(new Property<int>(HASH("frame_index", 0x0), OFFSET(frameIndex, tc)));
 }
 
 AnimationSystem::~AnimationSystem() {
@@ -120,7 +120,7 @@ void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, cons
     FileBuffer file = assetAPI->loadAsset(fileN);
     if (file.size) {
         if (desc->load(fileN, file, variables, varcount)) {
-            animations.insert(std::make_pair(Murmur::Hash(name.c_str()), desc));
+            animations.insert(std::make_pair(Murmur::RuntimeHash(name.c_str()), desc));
         } else {
             LOGE("Invalid animation file: " << filename << ".anim");
             delete desc;

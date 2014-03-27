@@ -42,119 +42,107 @@
 #include <string>
 
 static constexpr hash_t positionHack[] = {
-    Murmur::Hash("positionNE"),
-    Murmur::Hash("positionN"),
-    Murmur::Hash("positionNW"),
-    Murmur::Hash("positionE"),
-    Murmur::Hash("positionW"),
-    Murmur::Hash("positionSW"),
-    Murmur::Hash("positionS"),
-    Murmur::Hash("positionSE")
+    Murmur::_Hash("positionNE"),
+    Murmur::_Hash("positionN"),
+    Murmur::_Hash("positionNW"),
+    Murmur::_Hash("positionE"),
+    Murmur::_Hash("positionW"),
+    Murmur::_Hash("positionSW"),
+    Murmur::_Hash("positionS"),
+    Murmur::_Hash("positionSE")
 };
 
-const char* colormodifiers[] =
-    { "", "%html", "%255", "%name" };
 const char* stringmodifiers[] =
     { "%loc" };
 
-static void applyVec2Modifiers(hash_t mod, glm::vec2* out, int count) {
+static void applyVec2Modifiers(const hash_t mod, glm::vec2* out, int count) {
     for (int i=0; i<count; i++) {
-        switch (mod) {
-            case 0:
-                break;
-            case Murmur::Hash("screen"):
-                out[i] *= PlacementHelper::ScreenSize;
-                break;
-            case Murmur::Hash("screen_rev"):
-                out[i].y *= PlacementHelper::ScreenSize.x;
-                out[i].x *= PlacementHelper::ScreenSize.y;
-                break;
-            case Murmur::Hash("screen_w"):
-                out[i].x *= PlacementHelper::ScreenSize.x;
-                out[i].y *= PlacementHelper::ScreenSize.x;
-                break;
-            case Murmur::Hash("screen_h"):
-                out[i].x *= PlacementHelper::ScreenSize.y;
-                out[i].y *= PlacementHelper::ScreenSize.y;
-                break;
-            case Murmur::Hash("gimp_size"):
-                out[i].x = PlacementHelper::GimpWidthToScreen(out[i].x);
-                out[i].y = PlacementHelper::GimpHeightToScreen(out[i].y);
-                break;
-            case Murmur::Hash("gimp_pos"):
-                out[i].x = PlacementHelper::GimpXToScreen(out[i].x);
-                out[i].y = PlacementHelper::GimpYToScreen(out[i].y);
-                break;
-            default:
-                LOGF("Unknown vec2 modifier:" << mod);
+        if (mod == 0) {
+            continue;
+        } else if (mod == HASH("screen", 0xb548a1f1)) {
+            out[i] *= PlacementHelper::ScreenSize;
+            continue;
+        } else if (mod == HASH("screen_rev", 0x35ba1812)) {
+            out[i].y *= PlacementHelper::ScreenSize.x;
+            out[i].x *= PlacementHelper::ScreenSize.y;
+            continue;
+        } else if (mod == HASH("screen_w", 0xd120837a)) {
+            out[i].x *= PlacementHelper::ScreenSize.x;
+            out[i].y *= PlacementHelper::ScreenSize.x;
+            continue;
+        } else if (mod == HASH("screen_h", 0x14bde53f)) {
+            out[i].x *= PlacementHelper::ScreenSize.y;
+            out[i].y *= PlacementHelper::ScreenSize.y;
+            continue;
+        } else if (mod == HASH("gimp_size", 0x9ff0e717)) {
+            out[i].x = PlacementHelper::GimpWidthToScreen(out[i].x);
+            out[i].y = PlacementHelper::GimpHeightToScreen(out[i].y);
+            continue;
+        } else if (mod == HASH("gimp_pos", 0x0)) {
+            out[i].x = PlacementHelper::GimpXToScreen(out[i].x);
+            out[i].y = PlacementHelper::GimpYToScreen(out[i].y);
+            continue;
+        } else {
+            LOGF("Unknown vec2 modifier:" << mod);
         }
-        }
+    }
 }
 
-static void applyFloatModifiers(hash_t modifier, float* out, int count) {
+static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
     for (int i=0; i<count; i++) {
-        switch (modifier) {
-            case 0:
-                break;
-            case Murmur::Hash("screen_w"):
-                out[i] *= PlacementHelper::ScreenSize.x;
-                break;
-            case Murmur::Hash("screen_h"):
-                out[i] *= PlacementHelper::ScreenSize.y;
-                break;
-            case Murmur::Hash("gimp_x"):
-                out[i] = PlacementHelper::GimpXToScreen(out[i]);
-                break;
-            case Murmur::Hash("gimp_y"):
-                out[i] = PlacementHelper::GimpYToScreen(out[i]);
-                break;
-            case Murmur::Hash("gimp_w"):
-                out[i] = PlacementHelper::GimpWidthToScreen(out[i]);
-                break;
-            case Murmur::Hash("gimp_h"):
-                out[i] = PlacementHelper::GimpHeightToScreen(out[i]);
-                break;
-            case Murmur::Hash("degrees"):
-                out[i] = glm::radians(out[i]);
-                break;
-            default:
-                LOGE("Unknown float modifier");
+        if (modifier == 0) {
+            continue;
+        } else if (modifier == HASH("screen_w", 0xd120837a)) {
+            out[i] *= PlacementHelper::ScreenSize.x;
+            continue;
+        } else if (modifier == HASH("screen_h", 0x14bde53f)) {
+            out[i] *= PlacementHelper::ScreenSize.y;
+            continue;
+        } else if (modifier == HASH("gimp_x", 0x56c07e3e)) {
+            out[i] = PlacementHelper::GimpXToScreen(out[i]);
+            continue;
+        } else if (modifier == HASH("gimp_y", 0x54c5ec09)) {
+            out[i] = PlacementHelper::GimpYToScreen(out[i]);
+            continue;
+        } else if (modifier == HASH("gimp_w", 0x2b66a994)) {
+            out[i] = PlacementHelper::GimpWidthToScreen(out[i]);
+            continue;
+        } else if (modifier == HASH("gimp_h", 0x42ba0dc3)) {
+            out[i] = PlacementHelper::GimpHeightToScreen(out[i]);
+            continue;
+        } else if (modifier == HASH("degrees", 0x0)) {
+            out[i] = glm::radians(out[i]);
+            continue;
+        } else {
+            LOGE("Unknown float modifier");
         }
     }
 }
 
 
-static void applyVec2SingleFloatModifiers(hash_t modifier, const glm::vec2& textureSize, float in, glm::vec2* out) {
-    switch (modifier) {
-        case Murmur::Hash("texture_ratio,screen_w"):
-            out->y = in * PlacementHelper::ScreenSize.x;
-            out->x = out->y * textureSize.x / textureSize.y;
-            break;
-        case Murmur::Hash("texture_ratio,screen_h"):
-            out->y = in * PlacementHelper::ScreenSize.y;
-            out->x = out->y * textureSize.x / textureSize.y;
-            break;
-        case Murmur::Hash("screen_w,texture_ratio"):
-            out->x = in * PlacementHelper::ScreenSize.x;
-            out->y = out->x * textureSize.y / textureSize.x;
-            break;
-        case Murmur::Hash("screen_h,texture_ratio"):
-            out->x = in * PlacementHelper::ScreenSize.y;
-            out->y = out->x * textureSize.y / textureSize.x;
-            break;
-        case Murmur::Hash("texture_ratio,abs"):
-            out->y = in;
-            out->x = out->y * textureSize.x / textureSize.y;
-            break;
-        case Murmur::Hash("abs,texture_ratio"):
-            out->x = in;
-            out->y = out->x * textureSize.y / textureSize.x;
-            break;
-        case Murmur::Hash("texture"):
-            *out = PlacementHelper::GimpSizeToScreen(textureSize * in);
-            break;
-        default:
-            LOGF("Unkown vec2singlefloat modifier");
+static void applyVec2SingleFloatModifiers(const hash_t modifier, const glm::vec2& textureSize, float in, glm::vec2* out) {
+    if (modifier == HASH("texture_ratio,screen_w", 0x0)) {
+        out->y = in * PlacementHelper::ScreenSize.x;
+        out->x = out->y * textureSize.x / textureSize.y;
+    } else if (modifier == HASH("texture_ratio,screen_h", 0x0)) {
+        out->y = in * PlacementHelper::ScreenSize.y;
+        out->x = out->y * textureSize.x / textureSize.y;
+    } else if (modifier == HASH("screen_w,texture_ratio", 0x0)) {
+        out->x = in * PlacementHelper::ScreenSize.x;
+        out->y = out->x * textureSize.y / textureSize.x;
+    } else if (modifier == HASH("screen_h,texture_ratio", 0x0)) {
+        out->x = in * PlacementHelper::ScreenSize.y;
+        out->y = out->x * textureSize.y / textureSize.x;
+    } else if (modifier == HASH("texture_ratio,abs", 0x0)) {
+        out->y = in;
+        out->x = out->y * textureSize.x / textureSize.y;
+    } else if (modifier == HASH("abs,texture_ratio", 0x0)) {
+        out->x = in;
+        out->y = out->x * textureSize.y / textureSize.x;
+    } else if (modifier == HASH("texture", 0x0)) {
+        *out = PlacementHelper::GimpSizeToScreen(textureSize * in);
+    } else {
+        LOGF("Unkown vec2singlefloat modifier");
     }
 }
 
@@ -205,7 +193,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
             return 0;
 
         std::string textureName;
-        if (dfp.get("Rendering", Murmur::Hash("texture"), &textureName, 1, false)) {
+        if (dfp.get("Rendering", HASH("texture", 0x0), &textureName, 1, false)) {
             const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
             applyVec2SingleFloatModifiers(mod, s, fp[0], out);
             return 1;
@@ -249,23 +237,20 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
         if (dfp.get(section, id, &html, 1, false)) {
             hash_t modifier = dfp.getModifier(section, id);
 
-            switch (modifier) {
-                case Murmur::Hash("html"): {
-                    int32_t h;
-                    std::istringstream iss(html);
-                    iss >> std::hex >> h;
-                    *out = Color(((h >> 16) & 0xff) / 255.0f
-                        , ((h >> 8) & 0xff) / 255.0f
-                        , ((h >> 0) & 0xff) / 255.0f
-                        , 1.f);
-                    LOG_SUCCESS_ << *out << "'");
-                    return 1;
-                }
-                case Murmur::Hash("name"): {
-                    *out = Color(html);
-                    LOG_SUCCESS
-                    return 1;
-                }
+            if (modifier == HASH("html", 0x0)) {
+                int32_t h;
+                std::istringstream iss(html);
+                iss >> std::hex >> h;
+                *out = Color(((h >> 16) & 0xff) / 255.0f
+                    , ((h >> 8) & 0xff) / 255.0f
+                    , ((h >> 0) & 0xff) / 255.0f
+                    , 1.f);
+                LOG_SUCCESS_ << *out << "'");
+                return 1;
+            } else if (modifier == HASH("name", 0x0)) {
+                *out = Color(html);
+                LOG_SUCCESS
+                return 1;
             }
         }
     }
@@ -389,7 +374,7 @@ int ComponentFactory::build(
         bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, subEntities);
 
         // special testing case
-        if (!success && id == Murmur::Hash("position")) {
+        if (!success && id == HASH("position", 0xffab91ef)) {
             for (unsigned i=0; i<8; i++) {
                 if (loadSingleProperty(context, dfp, section, positionHack[i], type, prop->getAttribute(), propMap, subEntities)) {
                     success = true;
@@ -416,7 +401,7 @@ int ComponentFactory::build(
             std::string key, value;
             dfp.get(section, i, key, &value);
 
-            hash_t h = Murmur::Hash(key.c_str());
+            hash_t h = Murmur::RuntimeHash(key.c_str());
             bool done = false;
             if (std::find(loaded.begin(), loaded.end(), h) == loaded.end()) {
                 LOGE("   '" << key << "' = ... not loaded");
@@ -452,7 +437,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         auto it = propValueMap.find(id);
         if (it == propValueMap.end()) {
             // special testing case
-            if (id == Murmur::Hash("position")) {
+            if (id == HASH("position", 0xffab91ef)) {
                 for (unsigned i=0; i<8; i++) {
                     it = propValueMap.find(positionHack[i]);
                     if (it != propValueMap.end()) {
@@ -485,7 +470,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
             case PropertyType::String: {
                 if (prop->getAttribute() == PropertyAttribute::Vector) {
                     std::vector<std::string>* out = TYPE_2_PTR(std::vector<std::string>);
-                    VectorProperty<std::string> vp(Murmur::Hash("dummy"), 0);
+                    VectorProperty<std::string> vp(HASH("dummy", 0x0), 0);
                     vp.deserialize((*it).second, out);
                 } else {
                     unsigned l;
@@ -512,10 +497,11 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                 memcpy((uint8_t*)component + prop->offset, (*it).second, sizeof(TextureRef));
                 break;
             case PropertyType::Entity: {
+                #if 0
                 uint8_t* a = (*it).second;
                 if (a[0] == 0) {
                     LOGT("sub entities");
-                    #if 0
+
                     a++;
                     EntityTemplateRef r;
                     memcpy(&r, a, sizeof(r));
@@ -525,11 +511,13 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     }
                     *e = theEntityManager.CreateEntity("sub_" + prop->getName(), EntityType::Volatile, r);
                     ANCHOR(*e)->parent = entity;
-                    #endif
-                } else if (a[0] == 1) {
-                    char* s = (char*)&a[1];
-                    Entity byName = theEntityManager.getEntityByName(s);
-                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << s << "' for property: '" << id << "'");
+                } else if (a[0] == 1)
+                #endif
+                {
+                    hash_t h;
+                    memcpy(&h, (*it).second, sizeof(hash_t));
+                    Entity byName = theEntityManager.getEntityByName(h);
+                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << h  << '/' << Murmur::lookup(h) << "' for property: '" << id << "'");
                     memcpy(TYPE_2_PTR(Entity), &byName, sizeof(Entity));
                 }
                 break;
@@ -547,7 +535,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
         };
         // find position
         for (IProperty* prop : properties) {
-            if (prop->getId() == Murmur::Hash("position")) {
+            if (prop->getId() == HASH("position", 0x0)) {
                 glm::vec2* position = TYPE_2_PTR(glm::vec2);
                 *position =
                     AnchorSystem::adjustPositionWithAnchor(*position, TRANSFORM(entity)->size * coeff[positionHackIndex]);
@@ -605,7 +593,7 @@ static bool loadSingleProperty(const std::string& context,
                         for (int i=0; i<splits; i++)
                             a.push_back(all[i]);
 
-                        VectorProperty<std::string> vp(Murmur::Hash("dummy"), 0);
+                        VectorProperty<std::string> vp(HASH("dummy", 0x0), 0);
                         unsigned size = vp.size(&a);
                         uint8_t* arr = new uint8_t[size];
                         vp.serialize(arr, &a);
@@ -656,12 +644,10 @@ static bool loadSingleProperty(const std::string& context,
             } else
             #endif
             if (dfp.get(section, id, temp, 512, false)) {
-                if (dfp.getModifier(section, id) == Murmur::Hash("name")) {
-                    const auto len = strlen(temp);
-                    uint8_t* arr = new uint8_t[1 + len + 1];
-                    arr[0] = 1;
-                    memcpy(arr + 1, temp, len);
-                    arr[len + 1] = '\0';
+                if (dfp.getModifier(section, id) == HASH("name", 0x0)) {
+                    uint8_t* arr = new uint8_t[sizeof(hash_t)];
+                    hash_t h = Murmur::RuntimeHash(temp);
+                    memcpy(arr, &h, sizeof(hash_t));
                     propMap.insert(std::make_pair(id, arr));
                     return true;
                 }
@@ -684,7 +670,7 @@ static bool loadSingleProperty(const std::string& context,
         case PropertyType::Texture: {
             if (dfp.get(section, id, temp, 512, false)) {
                 uint8_t* arr = new uint8_t[sizeof(hash_t)];
-                hash_t h = Murmur::Hash(temp);
+                hash_t h = Murmur::RuntimeHash(temp);
                 *((hash_t*)arr) = h;
                 propMap.insert(std::make_pair(id, arr));
                 return true;
