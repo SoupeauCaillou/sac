@@ -302,11 +302,11 @@ int DataFileParser::determineSubStringIndexes(const std::string& str, int count,
             return (i + 1);
         } else {
             outIndexes[i] = index - 1;
-            LOGV(2, i << " = " << outIndexes[i]);
+            LOGV(3, i << " = " << outIndexes[i]);
             index += 2;
         }
     }
-    LOGV(2, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')');
+    LOGV(3, (count-1) << " = " << outIndexes[count-1] << "* (" << str << ')');
     return count;
 }
 

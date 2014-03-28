@@ -63,10 +63,10 @@ uint32_t Murmur::RuntimeHash(const void * key, int len) {
 
     // Mix 4 bytes at a time into the hash
 
-    const unsigned char * data = (const unsigned char *)key;
+    const char * data = (const char *)key;
 
     while(len >= 4) {
-        unsigned int k = *(unsigned int *)data;
+        unsigned int k = readAsInt(data);
 
 
         k *= m;

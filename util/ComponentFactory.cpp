@@ -363,6 +363,8 @@ int ComponentFactory::build(
     std::list<hash_t> loaded;
 #endif
 
+    LOGV(2, "Build system: " << section);
+
     // Browse properties for the given system
     for (auto it = properties.begin(); it!=properties.end(); ++it) {
         // Retrieve property name
@@ -387,6 +389,7 @@ int ComponentFactory::build(
             loaded.push_back(id);
         }
 #endif
+        LOGV(2, "  * 0x" << std::hex << id << std::dec << ": " << (success ? "found":"missing"));
     }
 
 #if SAC_DEBUG
@@ -394,7 +397,7 @@ int ComponentFactory::build(
         LOGE(propertiesInFile << " declared in " << context << ".entity [" << section << "] and only " << loaded.size() << " actually loaded");
         LOGV(1, "Loaded:");
         for (auto& s: loaded) {
-            LOGV(1, "   '" << s << "'");
+            LOGV(1, "   '0x" << std::hex << s << "'" << std::dec);
         }
         LOGV(1, "Missing:");
         for (unsigned i=0; i<propertiesInFile; ++i) {
@@ -404,7 +407,7 @@ int ComponentFactory::build(
             hash_t h = Murmur::RuntimeHash(key.c_str());
             bool done = false;
             if (std::find(loaded.begin(), loaded.end(), h) == loaded.end()) {
-                LOGE("   '" << key << "' = ... not loaded");
+                LOGE("   '" << key << "' 0x" << std::hex << h << std::dec << " = ... not loaded");
             }
         }
     }
