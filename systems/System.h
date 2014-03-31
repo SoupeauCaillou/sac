@@ -92,8 +92,9 @@ class ComponentSystem {
 template <typename T>
 class ComponentSystemImpl: public ComponentSystem {
     public:
-        ComponentSystemImpl(const std::string& t) : ComponentSystem(t) {
-            components.resize(128);
+        ComponentSystemImpl(const std::string& t, unsigned defaultStorageSize = 8) : ComponentSystem(t) {
+            LOGF_IF(defaultStorageSize == 0, "Storage size must be > 0");
+            components.resize(defaultStorageSize);
         }
 
         void Add(Entity entity) {
