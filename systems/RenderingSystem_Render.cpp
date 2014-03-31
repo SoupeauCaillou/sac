@@ -487,12 +487,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     batchSizes.clear();
     #endif
 
-    LOGT_EVERY_N(600, "Discard Depth attachment");
-    /*
-        const GLenum discards[]  = {GL_DEPTH_ATTACHMENT};
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glDiscardFramebufferEXT(GL_FRAMEBUFFER,1,discards);
-    */
+#if SAC_ANDROID || SAC_EMSCRIPTEN
+    if (hasDiscardExtension) {
+        const GLenum discards[] = {GL_DEPTH_ATTACHMENT};
+        // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discards);
+    }
+#endif
+
     glState.flags.current = currentFlags;
 }
 

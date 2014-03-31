@@ -166,6 +166,17 @@ void RenderingSystem::init() {
     GL_OPERATION(glDepthMask(true))
     GL_OPERATION(glDisable(GL_BLEND))
     GL_OPERATION(glColorMask(true, true, true, true))
+
+    hasDiscardExtension = false;
+    int extCount = 0;
+    GL_OPERATION(glGetIntegerv(GL_NUM_EXTENSIONS, &extCount))
+    for(int i=0; i<extCount; i++) {
+        const GLubyte *ccc = glGetStringi(GL_EXTENSIONS, i);
+        if ( strcmp((const char*)ccc, "EXT_discard_framebuffer") == 0 ){
+            hasDiscardExtension = true;
+            break;
+        }
+    }
 }
 
 // [z][flags][effect][texture][color]

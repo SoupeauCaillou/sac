@@ -210,4 +210,5 @@ public:
 private:
     // GL state
     GLState glState;
+    bool hasDiscardExtension;
 };
