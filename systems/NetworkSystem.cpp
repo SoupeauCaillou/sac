@@ -354,9 +354,8 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
 
 
 void NetworkSystem::Delete(Entity e) {
-#if SAC_USE_VECTOR_STORAGE
     LOGT("TODO " << e);
-#else
+#if 0
     // mark the entity as deleted
     auto it = components.find(e);
 

@@ -66,10 +66,6 @@ struct InternalParticule {
     float time, lifetime;
     Interval<Color> color;
     Interval<float> size;
-#if !SAC_USE_VECTOR_STORAGE
-    RenderingComponent* rc;
-    TransformationComponent* tc;
-#endif
 };
 
 #define theParticuleSystem ParticuleSystem::GetInstance()

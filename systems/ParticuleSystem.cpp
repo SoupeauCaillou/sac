@@ -58,12 +58,6 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Pa
     poolLastValidElement = -1;
 }
 
-#if SAC_USE_VECTOR_STORAGE
-static bool InternalParticuleCompare(const InternalParticule& i1, const InternalParticule& i2) {
-    return i1.e < i2.e;
-}
-#endif
-
 void ParticuleSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         if (pc->duration >= 0) {
@@ -104,18 +98,12 @@ void ParticuleSystem::DoUpdate(float dt) {
                 theEntityManager.ResumeEntity(e);
 
                 TransformationComponent* tc = TRANSFORM(e);
-                #if !SAC_USE_VECTOR_STORAGE
-                internal.tc = tc;
-                #endif
                 tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
                 tc->rotation = ptc->rotation;
                 tc->size.x = tc->size.y = pc->initialSize.random();
                 tc->z = ptc->z;
 
                 RenderingComponent* rc = RENDERING(e);
-                #if !SAC_USE_VECTOR_STORAGE
-                internal.rc = rc;
-                #endif
                 rc->flags = pc->renderingFlags | RenderingFlags::FastCulling;
                 rc->color = pc->initialColor.random();
                 rc->texture = pc->texture;
@@ -143,9 +131,6 @@ void ParticuleSystem::DoUpdate(float dt) {
         }
     }
 
-#if SAC_USE_VECTOR_STORAGE
-    // particules.sort(InternalParticuleCompare);
-#endif
     // update emitted particules
     unsigned eraseFromIndex = 0, eraseCount = 0;
     unsigned count = particules.size();
@@ -182,18 +167,8 @@ void ParticuleSystem::DoUpdate(float dt) {
             }
             // i--;
         } else {
-            #if SAC_USE_VECTOR_STORAGE
-                RENDERING(internal.e)
-            #else
-                internal.rc
-            #endif
-                ->color = internal.color.lerp(internal.time / internal.lifetime);
-            #if SAC_USE_VECTOR_STORAGE
-                TRANSFORM(internal.e)
-            #else
-                internal.tc
-            #endif
-                ->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
+                RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
+                TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
         }
     }
 

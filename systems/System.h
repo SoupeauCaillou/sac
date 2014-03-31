@@ -93,23 +93,14 @@ template <typename T>
 class ComponentSystemImpl: public ComponentSystem {
     public:
         ComponentSystemImpl(const std::string& t) : ComponentSystem(t) {
-#if SAC_USE_VECTOR_STORAGE
             components.resize(128);
-#else
-            previous = 0;
-#endif
         }
 
         void Add(Entity entity) {
             LOGF_IF(
-#if SAC_USE_VECTOR_STORAGE
                 std::find(entityWithComponent.begin(), entityWithComponent.end(), entity) != entityWithComponent.end()
-#else
-                components.find(entity) != components.end()
-#endif
                 , "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
 
-#if SAC_USE_VECTOR_STORAGE
             // make sure array is big enough
             while (components.size() <= entity) {
                 LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
@@ -126,53 +117,22 @@ class ComponentSystemImpl: public ComponentSystem {
                     break;
             }
             entityWithComponent.insert(it, entity);
-#else
-            T* comp = new T(); //CreateComponent();
-
-            components.insert(std::make_pair(entity, comp));
-#endif
         }
 
         virtual void Delete(Entity entity) {
-#if SAC_USE_VECTOR_STORAGE
             auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
             LOGF_IF(it == entityWithComponent.end(), "Unable to find entity '" << theEntityManager.entityName(entity) << "' in components '" << getName() << "'");
             entityWithComponent.erase(it);
-#else
-            ComponentIt it = components.find(entity);
-            if (it != components.end()) {
-                delete it->second;
-                components.erase(it);
-            }
-            if (previous == entity) {
-                previous = 0;
-                previousComp = 0;
-            }
-#endif
         }
 
         void suspendEntity(Entity entity) {
-#if SAC_USE_VECTOR_STORAGE
             auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
             LOGF_IF(it == entityWithComponent.end(), "Suspending an invalid entity " << entity);
             entityWithComponent.erase(it);
             suspended.push_back(entity);
-#else
-            ComponentIt it = components.find(entity);
-
-            if (it != components.end()) {
-                suspended[entity] = it->second;
-                components.erase(it);
-            }
-            if (previous == entity) {
-                previous = 0;
-                previousComp = 0;
-            }
-#endif
         }
 
         void resumeEntity(Entity entity) {
-#if SAC_USE_VECTOR_STORAGE
             auto st = std::find(suspended.begin(), suspended.end(), entity);
             LOGF_IF(st == suspended.end(), "Resuming a not suspended entity " << entity);
             suspended.erase(st);
@@ -184,24 +144,10 @@ class ComponentSystemImpl: public ComponentSystem {
                     break;
             }
             entityWithComponent.insert(it, entity);
-#else
-            LOGF_IF(components.find(entity) != components.end(), "Resuming an entity '" << entity << "' which is already active");
-            LOGF_IF(suspended.find(entity) == components.end(), "Resuming a not suspended entity " << entity);
-            components[entity] = suspended.find(entity)->second;
-#endif
         }
 
-#if 0
-        const std::map<Entity, T*>& getAllComponents() const {
-            return components;
-        }
-#endif
         unsigned entityCount() const {
-            #if SAC_USE_VECTOR_STORAGE
             return entityWithComponent.size();
-            #else
-            return components.size();
-            #endif
         }
 
         void* componentAsVoidPtr(Entity e) {
@@ -218,7 +164,6 @@ class ComponentSystemImpl: public ComponentSystem {
             const char* LOG_USAGE_ONLY(file) = 0, int LOG_USAGE_ONLY(line) = 0) {
 #endif
 
-#if SAC_USE_VECTOR_STORAGE
             bool check =
 #if SAC_DEBUG
             // always check in debug
@@ -238,66 +183,24 @@ class ComponentSystemImpl: public ComponentSystem {
                 }
             }
             return &components[entity];
-#else
-            if (entity != previous) {
-                ComponentIt it = components.find(entity);
-                if (it == components.end()) {
-                    // crash here
-                    if (failIfNotfound) {
-                        LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << entity << ") has no component of type '" <<
-                            getName() << "' [@ " << file << ':' << line << ']');
-                    }
-                    return 0;
-                }
-                previousComp = (*it).second;
-                previous = entity;
-            }
-            return previousComp;
-#endif
         }
 
 
-#if SAC_USE_VECTOR_STORAGE
         const std::vector<Entity>&
-#else
-        std::list<Entity>
-#endif
          RetrieveAllEntityWithComponent() {
-#if SAC_USE_VECTOR_STORAGE
             return entityWithComponent;
-#else
-            std::list<Entity> result;
-            // result.reserve(components.size());
-            for(ComponentIt it=components.begin(); it!=components.end(); ++it) {
-                result.push_back((*it).first);
-            }
-            return result;
-#endif
         }
 
         void forEachEntityDo(std::function<void(Entity)> func) {
-            #if SAC_USE_VECTOR_STORAGE
             for (Entity e: entityWithComponent) {
                 func(e);
             }
-            #else
-            for (auto p : components) {
-                func(p.first);
-            }
-            #endif
         }
 
         void forEachECDo(std::function<void(Entity, T*)> func) {
-            #if SAC_USE_VECTOR_STORAGE
             for (Entity e: entityWithComponent) {
                 func(e, &components[e]);
             }
-            #else
-            for (auto p : components) {
-                func(p.first, p.second);
-            }
-            #endif
         }
 
         uint8_t* saveComponent(Entity entity, uint8_t* out) {
@@ -330,29 +233,9 @@ class ComponentSystemImpl: public ComponentSystem {
         }
 
     protected:
-#if SAC_USE_VECTOR_STORAGE
         std::vector<Entity> entityWithComponent;
         std::list<Entity> suspended;
         std::vector<T> components;
-#else
-    public:
-#if SAC_DEBUG
-    protected:
-        virtual T* CreateComponent() {
-            return new T();
-        }
-
-#endif
-        std::map<Entity, T*> components;
-        std::map<Entity, T*> suspended;
-    protected:
-        typedef typename std::map<Entity, T*> ComponentMap;
-        typedef typename std::map<Entity, T*>::iterator ComponentIt;
-        typedef typename std::map<Entity, T*>::const_iterator ComponentConstIt;
-
-        Entity previous;
-        T* previousComp;
-#endif
 };
 
 
@@ -384,8 +267,6 @@ class ComponentSystemImpl: public ComponentSystem {
         private:    \
             static type##System* _instance;
 
-#if SAC_USE_VECTOR_STORAGE
-
 #define FOR_EACH_COMPONENT(type, comp) \
     for (auto ________ent: entityWithComponent) { \
         auto* comp = &components[________ent];
@@ -393,19 +274,6 @@ class ComponentSystemImpl: public ComponentSystem {
 #define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
     for (auto ent: entityWithComponent) { \
         auto* comp = &components[ent];
-
-#else
-
-#define FOR_EACH_COMPONENT(type, comp) \
-    for(auto _____p: components) {\
-        auto* comp = _____p.second;
-
-#define FOR_EACH_ENTITY_COMPONENT(type, ent, comp) \
-    for(auto _____p: components) {\
-        Entity ent = _____p.first; \
-        auto* comp = _____p.second;
-
-#endif
 
 //this macro is used to avoid IDE highlighting problems with brace missing...
 #define END_FOR_EACH() }
