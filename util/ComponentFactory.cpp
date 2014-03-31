@@ -612,22 +612,14 @@ static bool loadSingleProperty(const std::string& context,
                 }
             } else {
                 bool toLocalize = false;
-                int success = load(dfp, section, id, IntervalAsRandom, &s);
-                if (!success) {
-                    LOGT("Fix loc string");
-                    #if 0
-                    if ((success = load(dfp, section, name + stringmodifiers[0], IntervalAsRandom, &s))) {
-                        toLocalize = true;
-                    }
-                    #endif
-                }
+                int len = 0;
+                if ((len = dfp.get(section, id, temp, 512, false))) {
+                    bool toLocalize = (dfp.getModifier(section, id) == HASH("loc", 0x3fbcd7cb));
 
-                if (success) {
-                    unsigned l = s.length();
-                    uint8_t* arr = new uint8_t[sizeof(int) + sizeof(bool) + l];
-                    memcpy(arr, &l, sizeof(int));
+                    uint8_t* arr = new uint8_t[sizeof(int) + sizeof(bool) + len];
+                    memcpy(arr, &len, sizeof(int));
                     memcpy(&arr[sizeof(int)], &toLocalize, sizeof(bool));
-                    memcpy(&arr[sizeof(int) + sizeof(bool)], s.c_str(), l);
+                    memcpy(&arr[sizeof(int) + sizeof(bool)], s.c_str(), len);
                     propMap.insert(std::make_pair(id, arr));
                     return true;
                 }
