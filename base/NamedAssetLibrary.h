@@ -117,10 +117,8 @@ class NamedAssetLibrary : public ResourceHotReload {
                 // Monitor file change if not loaded from memory
                 if (dataSource.find(result) == dataSource.end())
                     registerNewAsset(name);
-#if SAC_DEBUG || SAC_INGAME_EDITORS
+#endif
                 ref2name[result] = name;
-#endif
-#endif
             }
             if (useDeferredLoading)
                 mutex.unlock();
@@ -188,7 +186,6 @@ class NamedAssetLibrary : public ResourceHotReload {
                 mutex.unlock();
             }
 
-#if SAC_DEBUG
             LOGV_IF(1, !delayed.reloads.empty(), "Process delayed reloads");
             for (const auto& name: delayed.reloads) {
                 mutex.lock();
@@ -196,13 +193,10 @@ class NamedAssetLibrary : public ResourceHotReload {
                 doReload(name.c_str(), Murmur::RuntimeHash(name.c_str()));
                 mutex.unlock();
             }
-#endif
             mutex.lock();
             delayed.loads.clear();
             delayed.unloads.clear();
-#if SAC_DEBUG
             delayed.reloads.clear();
-#endif
 
 #if USE_COND_SIGNALING
             cond.notify_all();
@@ -239,7 +233,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
         void registerDataSource(TRef r, SourceDataType type) {
             if (dataSource.find(r) != dataSource.end())
-                LOGW("Asset " << r << " already have one data source registered");
+                LOGW("Asset 0x" << std::hex << (int)r << std::dec << " already have one data source registered");
             dataSource.insert(std::make_pair(r, type));
         }
         bool isRegisteredDataSource(TRef r) {
