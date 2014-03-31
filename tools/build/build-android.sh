@@ -160,8 +160,6 @@ compilation_before() {
 }
 
 compilation_after() {
-    info "Cleaning tremor directory..."
-    cd $rootPath/sac/libs/tremor; git checkout *; cd - 1>/dev/null
 
     if [ $USE_GRADLE = 1 ]; then
         if [ ! -f $rootPath/libs/armeabi-v7a.jar ]; then
