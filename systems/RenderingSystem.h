@@ -210,5 +210,8 @@ public:
 private:
     // GL state
     GLState glState;
+#if SAC_ANDROID || SAC_EMSCRIPTEN
     bool hasDiscardExtension;
+    PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT;
+#endif
 };

@@ -48,7 +48,7 @@
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering"), assetAPI(0), initDone(false) {
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering", 128), assetAPI(0), initDone(false) {
     nextValidFBRef = 1;
     currentWriteQueue = 0;
     frameQueueWritable = false;
@@ -167,16 +167,13 @@ void RenderingSystem::init() {
     GL_OPERATION(glDisable(GL_BLEND))
     GL_OPERATION(glColorMask(true, true, true, true))
 
-    hasDiscardExtension = false;
-    int extCount = 0;
-    GL_OPERATION(glGetIntegerv(GL_NUM_EXTENSIONS, &extCount))
-    for(int i=0; i<extCount; i++) {
-        const GLubyte *ccc = glGetStringi(GL_EXTENSIONS, i);
-        if ( strcmp((const char*)ccc, "EXT_discard_framebuffer") == 0 ){
-            hasDiscardExtension = true;
-            break;
-        }
+#if SAC_ANDROID || SAC_EMSCRIPTEN
+    const GLubyte *ccc = glGetString(GL_EXTENSIONS);
+    hasDiscardExtension = strstr((const char*)ccc, "EXT_discard_framebuffer");
+    if (hasDiscardExtension) {
+        glDiscardFramebufferEXT = (PFNGLDISCARDFRAMEBUFFEREXTPROC)eglGetProcAddress("glDiscardFramebufferEXT");
     }
+#endif
 }
 
 // [z][flags][effect][texture][color]
@@ -232,7 +229,7 @@ static uint64_t makeKeyBlended(const RenderingSystem::RenderCommand& rc) {
 // Note: the sort algorithm sort from min to max, so in this case, r1 < r2
 // means r1.z > r2.z
 static bool sortFrontToBack(const RenderingSystem::RenderCommand& r1, const RenderingSystem::RenderCommand& r2) {
-    return r1.key < r2.key;
+    return r1.key > r2.key;
 }
 
 // This function is used to sort alpha-blended sprites from back to front.
@@ -325,11 +322,7 @@ void RenderingSystem::DoUpdate(float) {
     // remove non active ones
     std::remove_if(cameras.begin(), cameras.end(), CameraSystem::isDisabled);
     // sort along order
-#if SAC_USE_VECTOR_STORAGE
     std::sort(cameras.begin(), cameras.end(), CameraSystem::sort);
-#else
-    cameras.sort(CameraSystem::sort);
-#endif
 
     // alloca here is dangerous
     RenderCommand* opaqueCommands = (RenderCommand*) malloc(entityCount() * sizeof(RenderCommand));

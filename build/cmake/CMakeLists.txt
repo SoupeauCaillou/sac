@@ -260,7 +260,7 @@ if (MOBILE_BUILD OR WEB_BUILD)
         include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
         add_library("sqlite3" STATIC ${sqlite3_sources})
 
-        target_link_libraries("sac" GLESv2 z log sqlite3)
+        target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
     else ()
         target_link_libraries("sac" GLESv2 z)
     endif()

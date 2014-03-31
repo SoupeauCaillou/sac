@@ -21,6 +21,7 @@
 
 
 #include "RenderingSystem.h"
+#include "opengl/OpenglHelper.h"
 #include "RenderingSystem_Private.h"
 #include "CameraSystem.h"
 #include "TransformationSystem.h"
@@ -309,7 +310,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             currentFlags = OpaqueFlagSet;*/
             if (camera.cameraAttr.clear) {
                 glState.clear.update(camera.cameraAttr.clearColor);
-                GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT))
+                GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
+
             }
             continue;
         } else if (rc.texture == EndFrameMarker) {
@@ -489,7 +491,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
     if (hasDiscardExtension) {
-        const GLenum discards[] = {GL_DEPTH_ATTACHMENT};
+        const GLenum discards[] = { GL_DEPTH_ATTACHMENT };
         // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discards);
     }
