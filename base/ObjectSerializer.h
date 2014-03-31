@@ -21,6 +21,7 @@
 
 
 #include <sstream>
+#include <string>
 
 template <class T>
 class ObjectSerializer {
@@ -35,12 +36,12 @@ class ObjectSerializer {
         }
 
         static std::string object2string(T value) {
-            return std::to_string(value);
-            /*
+            #if ANDROID
             std::stringstream ss;
-
             ss << value;
-
-            return ss.str();*/
+            return ss.str();
+            #else
+            return std::to_string(value);
+            #endif
         }
 };
