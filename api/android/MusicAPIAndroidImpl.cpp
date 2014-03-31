@@ -80,7 +80,7 @@ void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, short* data, int 
     env->SetShortArrayRegion(b, 0, size, (jshort*)data);
     delete[] data;
 
-    env->CallObjectMethod(instance, methods[jni_music_api::QueueMusicData], ptr->audioTrack, b, size, sampleRate);
+    env->CallVoidMethod(instance, methods[jni_music_api::QueueMusicData], ptr->audioTrack, b, size, sampleRate);
 }
 
 void MusicAPIAndroidImpl::startPlaying(OpaqueMusicPtr* _ptr, OpaqueMusicPtr* master, int offset) {
