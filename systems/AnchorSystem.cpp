@@ -95,23 +95,29 @@ void AnchorSystem::adjustTransformWithAnchor(TransformationComponent* tc, const 
     tc->z = parentTc->z + anchor->z;
 }
 
-void AnchorSystem::DoUpdate(float) {
-    std::forward_list<std::pair<Entity, AnchorComponent*>> cp;
+static int computeChainLength(AnchorSystem* system, int l, const AnchorComponent* ac) {
+    if (!ac->parent)
+        return l;
+    const auto* p = system->Get(ac->parent, false);
+    if (!p)
+        return l;
+    else
+        return computeChainLength(system, l + 1, p);
+}
 
-    // sort all, root node first
+void AnchorSystem::DoUpdate(float) {
+    int longestChainLength = 1;
     FOR_EACH_ENTITY_COMPONENT(Anchor, e, comp)
-        if (comp->parent) {
-            cp.push_front(std::make_pair(e, comp));
-        }
+        longestChainLength = std::max(longestChainLength, computeChainLength(this, 0, comp));
     }
 
-    cp.sort(CompareParentChain());
-
-    for (auto p: cp) {
-        const auto anchor = p.second;
-        const auto pTc = TRANSFORM(anchor->parent);
-        auto tc = TRANSFORM(p.first);
-        adjustTransformWithAnchor(tc, pTc, anchor);
+    for (int i=0; i<longestChainLength; i++) {
+        FOR_EACH_ENTITY_COMPONENT(Anchor, e, anchor)
+            if (!anchor->parent) continue;
+            const auto pTc = TRANSFORM(anchor->parent);
+            auto tc = TRANSFORM(e);
+            adjustTransformWithAnchor(tc, pTc, anchor);
+        }
     }
 }
 
