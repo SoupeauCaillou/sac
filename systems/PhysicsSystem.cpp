@@ -59,10 +59,6 @@ void PhysicsSystem::DoUpdate(float dt) {
         }
 #endif
 
-        TransformationComponent* tc = TRANSFORM(a);
-
-        pc->momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6;
-
         // linear accel
         glm::vec2 linearAccel(pc->gravity * pc->mass);
 
@@ -95,7 +91,6 @@ void PhysicsSystem::DoUpdate(float dt) {
         }
 
         linearAccel /= pc->mass;
-        angAccel /= pc->momentOfInertia;
 
         // acceleration is constant over dt: use basic Euler integration for velocity
         glm::vec2 nextVelocity(pc->linearVelocity + linearAccel * dt);
@@ -106,6 +101,10 @@ void PhysicsSystem::DoUpdate(float dt) {
                 nextVelocity *= pc->maxSpeed / glm::sqrt(l2);
             }
         }
+
+        TransformationComponent* tc = TRANSFORM(a);
+        const float momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6.0f;
+        angAccel /= momentOfInertia;
 
         tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5f;
         // velocity varies over dt: use Verlet integration for position

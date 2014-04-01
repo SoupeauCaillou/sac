@@ -167,8 +167,9 @@ void ParticuleSystem::DoUpdate(float dt) {
             }
             // i--;
         } else {
-                RENDERING(internal.e)->color = internal.color.lerp(internal.time / internal.lifetime);
-                TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(internal.time / internal.lifetime));
+            const float prog = internal.time / internal.lifetime;
+            RENDERING(internal.e)->color = internal.color.lerp(prog);
+            TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(prog));
         }
     }
 

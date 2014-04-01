@@ -55,15 +55,12 @@ struct PhysicsComponent {
 
     //a force must be applied for a fixed duration: good value for "singular" force would be ~= 1/60.f
     void addForce(const Force & f, float duration) { forces.push_back(std::pair<Force, float>(f, duration)); }
-    inline void addForce(const glm::vec2 & vector, const glm::vec2 & point, float duration) { 
-        forces.push_back(std::pair<Force, float>(Force(vector, point), duration)); 
+    inline void addForce(const glm::vec2 & vector, const glm::vec2 & point, float duration) {
+        forces.push_back(std::pair<Force, float>(Force(vector, point), duration));
     }
 
     //don't modify this directly, use 'addForce' instead
     std::vector<std::pair<Force, float> > forces;
-
-    //physics stuff related to rotation :-). It depends on the shape of the object
-    float momentOfInertia;
 
     float maxSpeed;
 };
@@ -77,6 +74,6 @@ struct PhysicsComponent {
 UPDATABLE_SYSTEM(Physics)
 
 public:
-	static void addMoment(PhysicsComponent* pc, float m);
+    static void addMoment(PhysicsComponent* pc, float m);
 
 };
