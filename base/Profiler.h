@@ -25,24 +25,41 @@
 #include <string>
 
 enum ProfilePhase {
-	BeginEvent,
-	EndEvent,
-	InstantEvent,
-	AsyncStart,
-	AsyncFinish
+    BeginEvent,
+    EndEvent,
+    CompleteEvent,
+    InstantEvent,
+    CounterEvent,
+    AsyncStartEvent,
+    AsyncStepEvent,
+    AsyncFinishEvent,
+    FlowStartEvent,
+    FlowStepEvent,
+    FlowFinishEvent,
+    MetaDataEvent,
+    SampleEvent,
+    ObjectCreatedEvent,
+    ObjectSnapshotEvent,
+    ObjectDestroyedEvent,
+};
+
+enum InstantScope {
+    ThreadScope,
+    ProcessScope,
+    GlobalScope,
 };
 
 void initProfiler();
 
 void startProfiler();
 
-void stopProfiler(const std::string& filename);
+void stopProfiler(const char* filename);
 
-void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph);
+void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph, enum InstantScope scope=ThreadScope, int id=1);
 
 
 #if SAC_ENABLE_PROFILING
-#define PROFILE(cat, name, phase) do { addProfilePoint(cat, name, phase); } while(false)
+#define PROFILE(cat, name, phase) do { addProfilePoint(cat, name, phase, ThreadScope, 1); } while(false)
 #else
 #define PROFILE(cat, name, phase)
 #endif
