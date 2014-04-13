@@ -39,7 +39,7 @@ void FaderHelper::init(Entity camera) {
 
     duration = accum = 0;
 
-    fadingEntity = theEntityManager.CreateEntity(HASH("fading", 0x0));
+    fadingEntity = theEntityManager.CreateEntity(HASH("fading", 0x724f51c0));
     ADD_COMPONENT(fadingEntity, Rendering);
     RENDERING(fadingEntity)->color = Color(0,0,0);
     RENDERING(fadingEntity)->show = false;
