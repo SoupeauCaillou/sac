@@ -133,10 +133,10 @@ static void applyVec2SingleFloatModifiers(const hash_t modifier, const glm::vec2
     } else if (modifier == HASH("screen_h,texture_ratio", 0xee7d8330)) {
         out->x = in * PlacementHelper::ScreenSize.y;
         out->y = out->x * textureSize.y / textureSize.x;
-    } else if (modifier == HASH("texture_ratio,abs", 0x0)) {
+    } else if (modifier == HASH("texture_ratio,abs", 0x433820f5)) {
         out->y = in;
         out->x = out->y * textureSize.x / textureSize.y;
-    } else if (modifier == HASH("abs,texture_ratio", 0x0)) {
+    } else if (modifier == HASH("abs,texture_ratio", 0xf72162fb)) {
         out->x = in;
         out->y = out->x * textureSize.y / textureSize.x;
     } else if (modifier == HASH("texture", 0x3d4e3ff8)) {
