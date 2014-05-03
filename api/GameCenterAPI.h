@@ -23,6 +23,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 class GameCenterAPI {
 	public:
@@ -36,7 +37,8 @@ class GameCenterAPI {
         virtual void unlockAchievement(int id) = 0;
         virtual void updateAchievementProgression(int id, int stepReached) = 0;
 
-        virtual void submitScore(int leaderboardID, const std::string & score) = 0;        
+        virtual void submitScore(int leaderboardID, const std::string & score) = 0;
+        virtual void getWeeklyRank(int leaderboardID, std::function<void (int rank)> func) = 0;
 
         virtual void openAchievement() = 0;
         virtual void openLeaderboards() = 0;

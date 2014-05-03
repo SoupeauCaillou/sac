@@ -29,10 +29,13 @@
 #include "systems/TextSystem.h"
 #include "systems/AutoDestroySystem.h"
 
+#include "util/Random.h"
+#include <thread>
+
 Entity GameCenterAPIDebugImpl::createAutodestroySuccess(float duration) {
     static float lastCreatedDestroySchedule = 0;
 
-    Entity e = theEntityManager.CreateEntity(HASH("Success", 0x0));
+    Entity e = theEntityManager.CreateEntity(HASH("Success", 0x53635bfe));
 
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
@@ -101,6 +104,15 @@ void GameCenterAPIDebugImpl::updateAchievementProgression(int id, int stepReache
 void GameCenterAPIDebugImpl::submitScore(int leaderboardID, const std::string & score) {
     message << "Submit score " << score << " to leaderboard " << leaderboardID;
     displayAction();
+}
+
+void GameCenterAPIDebugImpl::getWeeklyRank(int leaderboardID, std::function<void (int rank)> func) {
+    // emulate async op
+    std::thread t([func] () -> void {
+        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 * Random::Float(2, 5))));
+        func(Random::Int(1, 50));
+    });
+    t.detach();
 }
 
 void GameCenterAPIDebugImpl::openAchievement() {

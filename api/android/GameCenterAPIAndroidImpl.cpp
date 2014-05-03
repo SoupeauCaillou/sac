@@ -21,6 +21,21 @@
 
 
 #include "GameCenterAPIAndroidImpl.h"
+#include <vector>
+
+std::vector<std::function<void (int)> > weeklyRankFunctions;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_api_GameCenterAPI_weeklyRank
+  (JNIEnv *, jclass, jlong rank) {
+    weeklyRankFunctions.back()(rank);
+    weeklyRankFunctions.clear();
+}
+#ifdef __cplusplus
+}
+#endif
 
 GameCenterAPIAndroidImpl::GameCenterAPIAndroidImpl()  : JNIWrapper<jni_gamecenter_api::Enum>("net/damsy/soupeaucaillou/api/GameCenterAPI", true) {
     declareMethod(jni_gamecenter_api::isRegistered, "isRegistered", "()Z");
@@ -32,6 +47,7 @@ GameCenterAPIAndroidImpl::GameCenterAPIAndroidImpl()  : JNIWrapper<jni_gamecente
     declareMethod(jni_gamecenter_api::updateAchievementProgression, "updateAchievementProgression", "(II)V");
 
     declareMethod(jni_gamecenter_api::submitScore, "submitScore", "(ILjava/lang/String;)V");
+    declareMethod(jni_gamecenter_api::getWeeklyRank, "getWeeklyRank", "(I)V");
 
     declareMethod(jni_gamecenter_api::openAchievement, "openAchievement", "()V");
     declareMethod(jni_gamecenter_api::openLeaderboards, "openLeaderboards", "()V");
@@ -65,6 +81,10 @@ void GameCenterAPIAndroidImpl::submitScore(int leaderboardID, const std::string 
 	env->CallVoidMethod(instance, methods[jni_gamecenter_api::submitScore], leaderboardID, jscore);
 }
 
+void GameCenterAPIAndroidImpl::getWeeklyRank(int leaderboardID, std::function<void (int rank)> func) {
+    weeklyRankFunctions.push_back(func);
+    env->CallVoidMethod(instance, methods[jni_gamecenter_api::getWeeklyRank], leaderboardID);
+}
 
 void GameCenterAPIAndroidImpl::openAchievement() {
 	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openAchievement]);

@@ -26,6 +26,11 @@ import net.damsy.soupeaucaillou.SacActivity;
 import android.app.Activity;
 
 public class GameCenterAPI {
+	public static native void weeklyRank(long rank);
+	
+	public interface WeeklyRankListener {
+		public void onWeeklyRank(long rank);
+	}
 	public interface IGameCenterProvider {
 	    public boolean isRegistered();
 		public boolean isConnected();
@@ -36,6 +41,7 @@ public class GameCenterAPI {
         public void updateAchievementProgression(int id, int stepReached);
 
         public void submitScore(int leaderboardID, String score);
+        public void getWeeklyRank(int leaderboardID, WeeklyRankListener l);
 
         public void openAchievement();
 	    public void openLeaderboards();
@@ -107,7 +113,21 @@ public class GameCenterAPI {
             driver.submitScore(leaderboardID, score);
         } else {
             SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
-        }  
+        }
+    }
+    
+    public void getWeeklyRank(int leaderboardID) {
+    	if (driver != null) {
+    		driver.getWeeklyRank(leaderboardID, new WeeklyRankListener() {
+    			@Override
+    			public void onWeeklyRank(long rank) {
+    				// Notify C++
+    				weeklyRank(rank);
+    			}
+    		});
+    	} else {
+    	    SacActivity.LogE("[GameCenterAPI] Driver is null! (did you forget to call the 'init' method?");
+        }
     }
 
     public void openAchievement() {

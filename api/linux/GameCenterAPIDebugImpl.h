@@ -40,12 +40,13 @@ class GameCenterAPIDebugImpl : public GameCenterAPI {
         void updateAchievementProgression(int id, int stepReached);
 
         void submitScore(int leaderboardID, const std::string & score);
+        void getWeeklyRank(int leaderboardID, std::function<void (int rank)> func);
 
         void openAchievement();
         void openLeaderboards();
         void openSpecificLeaderboard(int id);
         void openDashboard();
-    
+
     private:
         bool _isConnected = false;
 

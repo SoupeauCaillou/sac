@@ -22,21 +22,16 @@
 
 package net.damsy.soupeaucaillou.googleplaygameservices;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import com.google.android.gms.games.GamesClient;
-import com.google.android.gms.games.leaderboard.SubmitScoreResult;
-import com.google.android.gms.games.achievement.Achievement;
-import com.google.android.gms.games.achievement.AchievementBuffer;
-import com.google.android.gms.games.achievement.OnAchievementUpdatedListener;
-import com.google.android.gms.games.achievement.OnAchievementsLoadedListener;
-import com.google.android.gms.games.leaderboard.OnScoreSubmittedListener;
 
 import net.damsy.soupeaucaillou.SacActivity;
 import net.damsy.soupeaucaillou.SacPluginManager.SacPlugin;
 import net.damsy.soupeaucaillou.api.GameCenterAPI;
 import net.damsy.soupeaucaillou.api.GameCenterAPI.IGameCenterProvider;
-
+import net.damsy.soupeaucaillou.api.GameCenterAPI.WeeklyRankListener;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -44,6 +39,18 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.os.Bundle;
+
+import com.google.android.gms.games.GamesClient;
+import com.google.android.gms.games.achievement.Achievement;
+import com.google.android.gms.games.achievement.AchievementBuffer;
+import com.google.android.gms.games.achievement.OnAchievementUpdatedListener;
+import com.google.android.gms.games.achievement.OnAchievementsLoadedListener;
+import com.google.android.gms.games.leaderboard.Leaderboard;
+import com.google.android.gms.games.leaderboard.LeaderboardBuffer;
+import com.google.android.gms.games.leaderboard.LeaderboardVariant;
+import com.google.android.gms.games.leaderboard.OnLeaderboardMetadataLoadedListener;
+import com.google.android.gms.games.leaderboard.OnScoreSubmittedListener;
+import com.google.android.gms.games.leaderboard.SubmitScoreResult;
 
 public class SacGooglePlayGameServicesPlugin extends SacPlugin implements IGameCenterProvider,
 GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedListener, OnAchievementsLoadedListener {
@@ -241,6 +248,46 @@ GameHelper.GameHelperListener, OnScoreSubmittedListener, OnAchievementUpdatedLis
         } else {
             SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not signed in! Can't submitScore");
         }       
+    }
+    
+    @Override
+    public void getWeeklyRank(int leaderboardID, final WeeklyRankListener listener) {
+    	if (mHelper.isSignedIn()) {
+            if (! mHelper.getGamesClient().isConnected()) {
+                SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Not connected, can't getWeeklyRank");
+                return;
+            }
+            if (leaderboardID < 0 || leaderboardID > leaderboardsID.size()) {
+                SacActivity.LogW( "[SacGooglePlayGameServicesPlugin] Invalid leaderboard ID " + leaderboardID);
+                return;
+            }
+            
+    		mHelper.getGamesClient().loadLeaderboardMetadata(new OnLeaderboardMetadataLoadedListener() {
+				
+				@Override
+				public void onLeaderboardMetadataLoaded(int statusCode, LeaderboardBuffer leaderboards) {
+					if (statusCode == GamesClient.STATUS_OK && leaderboards != null) {
+						Iterator<Leaderboard> it = leaderboards.iterator();
+				        while (it.hasNext()) {
+
+				            Leaderboard leaderboard = it.next();
+				            ArrayList<LeaderboardVariant> variants = leaderboard.getVariants();
+				            for (LeaderboardVariant variant: variants) {
+
+				                if (variant.getTimeSpan() == LeaderboardVariant.TIME_SPAN_WEEKLY) {
+				                	listener.onWeeklyRank(variant.getPlayerRank());
+				                	break;
+				                }
+				            }
+				        }
+				        leaderboards.close();
+					} else {
+						listener.onWeeklyRank(-1);
+					}
+				}
+			}, leaderboardsID.get(leaderboardID));
+    		
+    	}
     }
 
 	@Override

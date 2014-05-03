@@ -36,7 +36,8 @@ namespace jni_gamecenter_api {
         updateAchievementProgression,
 
         submitScore,
-        
+        getWeeklyRank,
+
         openAchievement,
         openLeaderboards,
         openSpecificLeaderboard,
@@ -57,6 +58,7 @@ class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gam
         void updateAchievementProgression(int id, int stepReached);
 
         void submitScore(int leaderboardID, const std::string & score);
+        void getWeeklyRank(int leaderboardID, std::function<void (int rank)> func);
 
         void openAchievement();
         void openLeaderboards();
