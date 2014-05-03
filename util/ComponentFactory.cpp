@@ -589,7 +589,6 @@ static bool loadSingleProperty(const std::string& context,
             LOAD_INTERVAL_TEMPL(glm::vec2);
             break;
         case PropertyType::String: {
-            std::string s;
             // let's try something simple here
             if (attr == PropertyAttribute::Vector) {
                 int splits = dfp.getSubStringCount(section, id);
@@ -619,7 +618,7 @@ static bool loadSingleProperty(const std::string& context,
                     uint8_t* arr = new uint8_t[sizeof(int) + sizeof(bool) + len];
                     memcpy(arr, &len, sizeof(int));
                     memcpy(&arr[sizeof(int)], &toLocalize, sizeof(bool));
-                    memcpy(&arr[sizeof(int) + sizeof(bool)], s.c_str(), len);
+                    memcpy(&arr[sizeof(int) + sizeof(bool)], temp, len);
                     propMap.insert(std::make_pair(id, arr));
                     return true;
                 }
