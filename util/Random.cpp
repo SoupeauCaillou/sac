@@ -1,22 +1,42 @@
 #include "Random.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/random.hpp>
+#include <random>
 
-#define SAC_BENCHMARK_MODE 1
-void Random::Init () {
+static std::mt19937 mt;
+
+void Random::Init (unsigned int seed) {
     //not a proper init but we don't mind (game!)
-#if SAC_BENCHMARK_MODE
-    srand(0);
-#else
-    srand(time(0));
-#endif
+    if (seed == 0) {
+    #if SAC_BENCHMARK_MODE
+        mt.seed(0);
+    #else
+        mt.seed(time(0));
+    #endif
+    } else {
+        mt.seed(seed);
+    }
 }
 
 float Random::Float (float min, float max) {
-    return glm::linearRand(min, max);
+    std::uniform_real_distribution<float> dist(min, max);
+    return dist(mt);
+}
+
+void Random::N_Floats (int n, float* out, float min, float max) {
+    std::uniform_real_distribution<float> dist(min, max);
+    for (int i=0; i<n; i++) {
+        out[i] = dist(mt);
+    }
 }
 
 int Random::Int (int min, int max) {
-    return ((((int)glm::linearRand((float) 0, (float) (max-min+1))) % (max-min+1))) + min;
+    std::uniform_int_distribution<int> dist(min, max);
+    return dist(mt);
+}
+
+void Random::N_Ints (int n, int* out, int min, int max) {
+    std::uniform_int_distribution<int> dist(min, max);
+    for (int i=0; i<n; i++) {
+        out[i] = dist(mt);
+    }
 }

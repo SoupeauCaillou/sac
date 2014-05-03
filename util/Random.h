@@ -21,12 +21,16 @@
 
 class Random {
 	public:
-    static void Init ();
+    static void Init (unsigned int seed = 0);
 
 
     // return value is between [min; max]
     static float Float (float min=0.0f, float max=1.0f);
 
+    static void N_Floats(int n, float* out, float min=0.0f, float max=1.0f);
+
     // return value is between [min; max]
 	static int Int (int min=0, int max=1);
+
+    static void N_Ints(int n, int* out, int min=0.0f, int max=1.0f);
 };
