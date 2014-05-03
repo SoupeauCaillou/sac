@@ -83,7 +83,7 @@ static void applyVec2Modifiers(const hash_t mod, glm::vec2* out, int count) {
             out[i].y = PlacementHelper::GimpYToScreen(out[i].y);
             continue;
         } else {
-            LOGF("Unknown vec2 modifier:" << mod);
+            LOGF("Unknown vec2 modifier: '" << INV_HASH(mod) << "' (" << mod << ')');
         }
     }
 }
@@ -114,7 +114,7 @@ static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
             out[i] = glm::radians(out[i]);
             continue;
         } else {
-            LOGE("Unknown float modifier");
+            LOGE("Unknown float modifier '" << INV_HASH(modifier) << "' (" << modifier << ')');
         }
     }
 }
@@ -142,7 +142,7 @@ static void applyVec2SingleFloatModifiers(const hash_t modifier, const glm::vec2
     } else if (modifier == HASH("texture", 0x3d4e3ff8)) {
         *out = PlacementHelper::GimpSizeToScreen(textureSize * in);
     } else {
-        LOGF("Unkown vec2singlefloat modifier");
+        LOGF("Unkown vec2singlefloat modifier '" << INV_HASH(modifier) << "' (" << modifier << ')');
     }
 }
 

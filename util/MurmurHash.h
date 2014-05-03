@@ -90,6 +90,8 @@ class Murmur {
 
 #if SAC_DEBUG || SAC_INGAME_EDITORS
 #define HASH(txt, hash) Murmur::verifyHash(txt, hash, __FILE__, __LINE__)
+#define INV_HASH(hash) Murmur::lookup(hash)
 #else
 #define HASH(txt, hash) hash
+#define INV_HASH(hash) ""
 #endif
