@@ -184,6 +184,10 @@ glm::vec2 RenderingSystem::getTextureSize(const char* textureName) {
 glm::vec2 RenderingSystem::getTextureSize(const TextureRef& textureRef) {
     const TextureInfo* info = textureLibrary.get(textureRef, false);
 
+    if (!info){
+        LOGF("Texture size requested for a non-existent texture '" << INV_HASH(textureRef) << "' / " << (hash_t)textureRef);
+    }
+
     switch (OpenGLTextureCreator::dpi) {
         case DPI::Low:
             return info->originalSize * 4.0f;
