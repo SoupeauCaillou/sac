@@ -491,9 +491,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
     if (hasDiscardExtension) {
-        const GLenum discards[] = { GL_DEPTH_ATTACHMENT };
+        const GLenum discards[] = { GL_DEPTH_EXT };
         // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discards);
+        GL_OPERATION(glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discards))
     }
 #endif
 

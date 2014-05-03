@@ -378,7 +378,7 @@ void RenderingSystem::DoUpdate(float) {
 #endif
 
             if (c.rflags & RenderingFlags::ZPrePass) {
-                LOGT_EVERY_N(1000, "Hu, why are Z-pre-pass disabled?");
+                LOGT_EVERY_N(10000, "Hu, why are Z-pre-pass disabled?");
                 continue;
 //#if SAC_INGAME_EDITORS
 //                if (highLight.zPrePass) {
