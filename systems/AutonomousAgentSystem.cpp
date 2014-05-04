@@ -30,6 +30,7 @@
 
 #include <glm/gtx/norm.hpp>
 
+#undef SAC_DEBUG
 #if SAC_DEBUG
 #include "util/Draw.h"
 #endif
@@ -79,6 +80,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         std::vector<std::tuple<float, glm::vec2>> velocities;
 
         auto* pc = PHYSICS(e);
+
+        if (glm::abs(glm::length(pc->linearVelocity)) > 0) {
+            TRANSFORM(e)->rotation = glm::atan(pc->linearVelocity.y, pc->linearVelocity.x);
+        }
 
         if (agent->seekTarget && agent->seekParams.weight > 0) {
             if (agent->arriveDeceleration > 0) {
@@ -240,7 +245,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         if (norm > agent->maxForce) {
             averageDelta *= agent->maxForce / norm;
         }
-        LOGI_EVERY_N(60, __(glm::length(averageDelta)) << " vs " << __(agent->maxForce));
+        LOGI_EVERY_N(600, __(glm::length(averageDelta)) << " vs " << __(agent->maxForce));
 
         PHYSICS(e)->addForce(averageDelta, glm::vec2(0.f), dt);
     END_FOR_EACH()

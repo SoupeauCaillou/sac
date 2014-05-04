@@ -26,6 +26,7 @@
 #include "systems/RenderingSystem.h"
 
 #include <util/IntersectionUtil.h>
+#include "util/Random.h"
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/norm.hpp>
@@ -74,10 +75,11 @@ glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& linear
 
 glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpeed) {
     params.target += glm::vec2(
-        glm::linearRand(-1.0f, 1.0f) * params.jitter,
-        glm::linearRand(-1.0f, 1.0f) * params.jitter);
+        Random::Float(-1.0f, 1.0f) * params.jitter,
+        Random::Float(-1.0f, 1.0f) * params.jitter);
     params.target = glm::normalize(params.target);
     params.target *= params.radius;
+
     params.debugTarget = TRANSFORM(e)->position + glm::rotate(glm::vec2(params.distance, 0.0f) + params.target, TRANSFORM(e)->rotation);
 
     return seek(e, params.debugTarget, maxSpeed);
