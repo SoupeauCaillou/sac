@@ -42,11 +42,11 @@
 #include <string>
 
 static constexpr hash_t positionHack[] = {
-    Murmur::_Hash("positionNE"),
-    Murmur::_Hash("positionN"),
     Murmur::_Hash("positionNW"),
-    Murmur::_Hash("positionE"),
+    Murmur::_Hash("positionN"),
+    Murmur::_Hash("positionNE"),
     Murmur::_Hash("positionW"),
+    Murmur::_Hash("positionE"),
     Murmur::_Hash("positionSW"),
     Murmur::_Hash("positionS"),
     Murmur::_Hash("positionSE")
