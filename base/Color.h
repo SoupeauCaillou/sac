@@ -23,7 +23,7 @@
 #pragma once
 #if SAC_WINDOWS
 //disable warning about nameless unions
-//#pragma warning(disable:4201) 
+//#pragma warning(disable:4201)
 #endif
 
 #include <string>
@@ -63,7 +63,7 @@ struct Color {
 
     bool isGrey(float epsilon = 0.001f) const;
 
-    void reducePrecision(float maxPrecision);
+    const Color & reducePrecision(float maxPrecision);
 };
 
 inline std::ostream& operator<<(std::ostream& s, const Color& c) {

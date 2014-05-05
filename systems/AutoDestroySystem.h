@@ -57,7 +57,7 @@ struct AutoDestroyComponent {
         } lifetime;
     };
     _params params;
-    // ARG TODO
+
     bool hasText;
 };
 

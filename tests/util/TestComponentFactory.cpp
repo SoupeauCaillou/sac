@@ -147,7 +147,7 @@ TEST_FIXTURE(TestSetup, TestTextureProperty)
 {
     Entity e = doTest("[Rendering]\ntexture=my_texture");
 
-    CHECK_EQUAL(Murmur::RuntimeHash("my_texture"), RENDERING(e)->texture);
+    CHECK_EQUAL((const int)Murmur::RuntimeHash("my_texture"), RENDERING(e)->texture);
 }
 
 TEST_FIXTURE(TestSetup, TestTransformPercentProperty)
