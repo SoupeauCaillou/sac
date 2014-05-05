@@ -4,6 +4,13 @@
 #include "../RenderingSystem.h"
 #endif
 
+GLState::GLState() {
+    viewport.w = 0;
+    viewport.h = 0;
+    clear.color = Color(0, 0, 0);
+    flags.current = 0;
+}
+
 void GLState::Viewport::update(int _w, int _h) {
     if (_w != w || _h != h) {
         w = _w;

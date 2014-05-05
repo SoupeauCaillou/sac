@@ -15,6 +15,8 @@
 
 
 struct GLState {
+    GLState();
+
     struct Viewport {
         int w, h;
 
