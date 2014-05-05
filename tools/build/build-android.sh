@@ -182,7 +182,7 @@ compilation_after() {
         fi
 
         # if ant failed, redo it in verbose mode
-        if ! ant -q release; then
+        if ! ant -q release &>/dev/null; then
             ant release
             error_and_quit "Ant failed - see above for the reason"
         fi
