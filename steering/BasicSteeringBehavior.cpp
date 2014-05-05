@@ -317,7 +317,6 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
         #endif
 
         for (auto & wall : walls) {
-            LOGT_EVERY_N(6000, "Assuming min dimension of wall = 0");
             const auto* tc2 = TRANSFORM(wall);
             glm::vec2 dir, wallA, wallB;
             if (tc2->size.x < tc2->size.y) {

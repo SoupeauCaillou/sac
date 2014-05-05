@@ -245,7 +245,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         if (norm > agent->maxForce) {
             averageDelta *= agent->maxForce / norm;
         }
-        LOGI_EVERY_N(600, __(glm::length(averageDelta)) << " vs " << __(agent->maxForce));
+        LOGI_EVERY_N(6000, __(glm::length(averageDelta)) << " vs " << __(agent->maxForce));
 
         PHYSICS(e)->addForce(averageDelta, glm::vec2(0.f), dt);
     END_FOR_EACH()
