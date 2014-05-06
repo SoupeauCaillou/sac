@@ -57,13 +57,19 @@ class NamedAssetLibrary : public ResourceHotReload {
             }
         };
 
-        int ref2Index(TRef ref) const {
+        int ref2Index(TRef ref, bool logIfMissing = true) const {
             auto it = std::lower_bound(ref2indexv.begin(), ref2indexv.end(), ref);
 
             if (it == ref2indexv.end() || (*it).ref != ref) {
-                LOGV(1, "Uh, ref is missing: " << (unsigned int)ref);
-                if (sizeof(ref) == sizeof(hash_t))
-                    LOGV(1, "inv_hash(" << (unsigned int)ref << ") = '" << INV_HASH(ref) << "'");
+                if (logIfMissing) {
+                    LOGV(1, "Uh, ref is missing: " << (unsigned int)ref);
+                    if (sizeof(ref) == sizeof(hash_t))
+                        LOGV(1, "\tinv_hash(" << (unsigned int)ref << ") = '" << INV_HASH(ref) << "'");
+                    LOGV(1, "ref2indexv content (" << ref2indexv.size() << ":");
+                    for (int i=0; i<ref2indexv.size() ;i++) {
+                        LOGV(1, "  " << i << " -> ref=" << ref2indexv[i].ref << ", index=" << ref2indexv[i].index);
+                    }
+                }
                 return -1;
             }
             return (*it).index;
@@ -100,7 +106,7 @@ class NamedAssetLibrary : public ResourceHotReload {
             if (useDeferredLoading)
                 mutex.lock();
 
-            int existingIndex = ref2Index(result);
+            int existingIndex = ref2Index(result, false);
 
             if (existingIndex == -1) {
                 if (useDeferredLoading) {
