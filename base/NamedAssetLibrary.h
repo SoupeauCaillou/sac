@@ -61,7 +61,9 @@ class NamedAssetLibrary : public ResourceHotReload {
             auto it = std::lower_bound(ref2indexv.begin(), ref2indexv.end(), ref);
 
             if (it == ref2indexv.end() || (*it).ref != ref) {
-                LOGV(1, "Uh, ref is missing: " << ref);
+                LOGV(1, "Uh, ref is missing: " << (unsigned int)ref);
+                if (sizeof(ref) == sizeof(hash_t))
+                    LOGV(1, "inv_hash(" << (unsigned int)ref << ") = '" << INV_HASH(ref) << "'");
                 return -1;
             }
             return (*it).index;
