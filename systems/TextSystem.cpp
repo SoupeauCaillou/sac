@@ -276,13 +276,22 @@ void TextSystem::DoUpdate(float dt) {
 
         // Cache various attributes
         const FontDesc& fontDesc = fontIt->second;
-        const TransformationComponent* trans = TRANSFORM(entity);
         unsigned int length = trc->text.length();
         // caret is always inserted for string length calculation,
         // but is not supposed to be always displayed
         if (caretInserted && !trc->caret.show) {
             length--;
         }
+
+        // Add rendering entity if needed
+        int missingCount = length - (renderingEntitiesPool.size() - letterCount);
+        for (int i=0; i <= missingCount; i++) {
+            renderingEntitiesPool.push_back(createRenderingEntity());
+        }
+
+        // Read TRANSFORM after potential calls to createRenderingEntity
+        // Otherwise trans ptr might become invalid
+        const TransformationComponent* trans = TRANSFORM(entity);
 
         // Determine font size (character height)
         float stringWidth = 0;
@@ -315,12 +324,6 @@ relayout:
 #endif
         CharSequenceToUnicode seqToUni;
         std::vector<Entity> charInLine;
-
-        // Add rendering entity if needed
-        int missingCount = length - (renderingEntitiesPool.size() - letterCount);
-        for (int i=0; i <= missingCount; i++) {
-            renderingEntitiesPool.push_back(createRenderingEntity());
-        }
 
         // Setup rendering for each individual letter
         for(unsigned int i=0; i<length; i++) {
