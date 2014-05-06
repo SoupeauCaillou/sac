@@ -52,6 +52,9 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
     componentSerializer.add(new Property<float>(HASH("flee_radius", 0xf386c18f), OFFSET(fleeRadius, ac), 0.0001f));
     EXPORT_BEHAVIOR_PARAM(obstacles, 0x1a6068b3, 0x5ae2296a);
     EXPORT_BEHAVIOR_PARAM(walls, 0xf5993180, 0xa756e67e);
+    EXPORT_BEHAVIOR_PARAM(box, 0x80280d35, 0x884321db);
+    componentSerializer.add(new Property<glm::vec2>(HASH("box_position", 0x13c1e7a8), OFFSET(boxPosition, ac), glm::vec2(0.0001f)));
+    componentSerializer.add(new Property<glm::vec2>(HASH("box_size", 0x7f33bd9), OFFSET(boxSize, ac), glm::vec2(0.0001f)));
     EXPORT_BEHAVIOR_PARAM(wander, 0x1d51e9bc, 0x275e6c94);
     componentSerializer.add(new Property<float>(HASH("wander_radius", 0xd0e7bb52), OFFSET(wander.radius, ac), 0.0001f));
     componentSerializer.add(new Property<float>(HASH("wander_distance", 0xd4de58b5), OFFSET(wander.distance, ac), 0.0001f));
@@ -170,6 +173,21 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             }
 #endif
         }
+
+        if (agent->boxParams.weight > 0) {
+            velocities.push_back(
+                std::make_tuple(
+                    agent->boxParams.weight,
+                    SteeringBehavior::boxContainer(e, pc->linearVelocity, agent->boxPosition, agent->boxSize, agent->boxParams.coeff * agent->maxSpeed)
+                ));
+#if SAC_DEBUG
+            const auto& v = std::get<1>(velocities.back());
+            if (glm::length2(v - pc->linearVelocity) > 0.001) {
+                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "box");
+            }
+#endif
+        }
+
 
         //group behaviors
         if (! agent->cohesionNeighbors.empty() && agent->cohesionParams.weight > 0) {

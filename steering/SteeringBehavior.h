@@ -45,7 +45,7 @@ class SteeringBehavior {
         static glm::vec2 arrive(const glm::vec2& pos, const glm::vec2& linearVel,const glm::vec2& targetPos, float maxSpeed, float deceleration);
 
         static glm::vec2 wander(Entity e, WanderParams& params, float maxSpeed);
-        
+
         static glm::vec2 obstacleAvoidance(Entity e, const glm::vec2& velocity, std::list<Entity>& obstacles, float maxSpeed);
 
         static glm::vec2 groupCohesion(Entity e, std::list<Entity>& group, float maxSpeed);
@@ -55,4 +55,6 @@ class SteeringBehavior {
         static glm::vec2 groupSeparate(Entity e, std::list<Entity>& group, float maxSpeed);
 
         static glm::vec2 wallAvoidance(Entity e, const glm::vec2& velocity, const std::list<Entity>& walls, float maxSpeed);
+
+        static glm::vec2 boxContainer(Entity e, const glm::vec2& velocity, const glm::vec2& position, const glm::vec2& size, float maxSpeed);
 };

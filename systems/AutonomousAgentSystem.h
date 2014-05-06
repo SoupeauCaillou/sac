@@ -40,6 +40,7 @@ struct AutonomousAgentComponent {
         fleeTarget(0), fleeParams(), fleeRadius(1.f),
         obstaclesParams(),
         wallsParams(),
+        boxParams(),
         wanderParams(),
         cohesionParams(),
         alignementParams() {}
@@ -64,6 +65,9 @@ struct AutonomousAgentComponent {
 
     std::list<Entity> walls;
     BehaviorParams wallsParams;
+
+    glm::vec2 boxPosition, boxSize;
+    BehaviorParams boxParams;
 
     SteeringBehavior::WanderParams wander;
     BehaviorParams wanderParams;

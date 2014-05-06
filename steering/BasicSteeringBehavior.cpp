@@ -40,7 +40,7 @@ glm::vec2 SteeringBehavior::seek(Entity e, const glm::vec2& targetPos, float max
     return seek(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed);
 }
 
-glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& linearVel, const glm::vec2& targetPos, float maxSpeed) {
+glm::vec2 SteeringBehavior::seek(const glm::vec2& pos, const glm::vec2& , const glm::vec2& targetPos, float maxSpeed) {
     glm::vec2 toTarget (targetPos - pos);
     float d = glm::length(toTarget);
 
@@ -60,7 +60,7 @@ glm::vec2 SteeringBehavior::arrive(Entity e, const glm::vec2& targetPos, float m
     return arrive(TRANSFORM(e)->position, PHYSICS(e)->linearVelocity, targetPos, maxSpeed, deceleration);
 }
 
-glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& linearVel,const glm::vec2& targetPos, float maxSpeed, float deceleration) {
+glm::vec2 SteeringBehavior::arrive(const glm::vec2& pos, const glm::vec2& ,const glm::vec2& targetPos, float maxSpeed, float deceleration) {
     glm::vec2 toTarget (targetPos - pos);
     float d = glm::length(toTarget);
 
@@ -285,17 +285,38 @@ glm::vec2 SteeringBehavior::groupSeparate(Entity e, std::list<Entity>& group, fl
     return force;
 }
 
+glm::vec2 SteeringBehavior::boxContainer(Entity e, const glm::vec2& velocity, const glm::vec2& position, const glm::vec2& size, float maxSpeed) {
+    const auto * tc = TRANSFORM(e);
+    // move in 0.5 sec
+    //const auto newPosInHalfSec(tc->position + velocity * 0.5f - position);
+    const auto newPosInHalfSec(tc->position + glm::rotate(glm::vec2(tc->size.x, 0.0f), tc->rotation) - position);
+    const auto halfSize (size * 0.5f);
+
+    glm::vec2 overShoot(0.0f);
+    overShoot.x = glm::max(newPosInHalfSec.x - halfSize.x, -halfSize.x - newPosInHalfSec.x);
+    overShoot.y = glm::max(newPosInHalfSec.y - halfSize.y, -halfSize.y - newPosInHalfSec.y);
+
+    if (overShoot.x > 0 || overShoot.y > 0) {
+        glm::vec2 direction(0.0f);
+        direction.x = (newPosInHalfSec.x > halfSize.x) ? -1 : 1;
+        direction.y = (newPosInHalfSec.y > halfSize.y) ? -1 : 1;
+
+        float reactionLength = (0.1 + glm::length(overShoot) * 1.2) * maxSpeed;
+        return glm::normalize(velocity) * (maxSpeed - reactionLength) + glm::normalize(direction) * reactionLength;
+    } else {
+        return velocity;
+    }
+}
+
 glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
     const std::list<Entity>& walls, float maxSpeed) {
 
-    const auto& myPos = TRANSFORM(e)->position;
-
     // Use 3 probes (0°, 45°, -45°) and in case of hits add a force along
     // the normal of the wall proportionnal to the hit
-    float feelers[3*2] = {
-        glm::radians(0.f), 1,
-        glm::radians(40.f), 0.85,
-        glm::radians(-40.f), 0.85
+    constexpr float feelers[3*2] = {
+        0.0f, 1.0f,
+        0.69f, 0.85,
+        -0.69f, 0.85
     };
 
     float closestIP = 0;
@@ -303,44 +324,62 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
     float overShoot = 0;
     glm::vec2 wallNormal;
 
-    const glm::vec2 feelerStart = myPos + glm::rotate(glm::vec2(TRANSFORM(e)->size.x * 0.25f, 0.0f), TRANSFORM(e)->rotation);
+    const auto* tc = TRANSFORM(e);
+    const auto& myPos = tc->position;
+
+    const glm::vec2 feelerStart = myPos + glm::rotate(glm::vec2(tc->size.x * 0.25f, 0.0f), tc->rotation);
+
+    glm::vec2 feelerEnd[3];
 
     for (int i=0; i<3; i++) {
-        const glm::vec2 feelerEnd = feelerStart + feelers[2*i + 1] * glm::rotate(glm::vec2(TRANSFORM(e)->size.x * feelers[2*i+1], 0.0f), TRANSFORM(e)->rotation + feelers[2*i]);
-        // glm::rotate(PHYSICS(e)->linearVelocity, feelers[2*i]);
+        feelerEnd[i] = feelerStart + feelers[2*i + 1] * glm::rotate(glm::vec2(tc->size.x * feelers[2*i+1], 0.0f), tc->rotation + feelers[2*i]);
 
         #if SAC_DEBUG
             Draw::Vec2(
                 feelerStart,
-                feelerEnd - feelerStart,
+                feelerEnd[i] - feelerStart,
                 Color(0, 1, 0, 0.75));
         #endif
+    }
 
-        for (auto & wall : walls) {
-            const auto* tc2 = TRANSFORM(wall);
-            glm::vec2 dir, wallA, wallB;
-            if (tc2->size.x < tc2->size.y) {
-                dir = glm::rotate(glm::vec2(0.0f, tc2->size.y * 0.5f), tc2->rotation);
-                wallA = tc2->position - dir;
-                wallB = tc2->position + dir;
-            } else {
-                dir = glm::rotate(glm::vec2(tc2->size.x * 0.5f, 0.0f), tc2->rotation);
-                wallA = tc2->position + dir;
-                wallB = tc2->position - dir;
-            }
+    for (auto & wall : walls) {
+        const auto* tc2 = TRANSFORM(wall);
+        LOGT_IF(tc2->rotation != 0, "Wall must be aligned");
+        #if 0
+        glm::vec2 dir, wallA, wallB;
+        if (tc2->size.x < tc2->size.y) {
+            dir = glm::rotate(glm::vec2(0.0f, tc2->size.y * 0.5f), tc2->rotation);
+            wallA = tc2->position - dir;
+            wallB = tc2->position + dir;
+        } else {
+            dir = glm::rotate(glm::vec2(tc2->size.x * 0.5f, 0.0f), tc2->rotation);
+            wallA = tc2->position + dir;
+            wallB = tc2->position - dir;
+        }
+        #else
+        glm::vec2 wallA(tc2->position), wallB(tc2->position);
+        if (tc2->size.x < tc2->size.y) {
+            wallA.y -= tc2->size.y;
+            wallB.y += tc2->size.y;
+        } else {
+            wallA.x += tc2->size.x;
+            wallB.x -= tc2->size.x;
+        }
+        #endif
 
+        for (int i=0; i<3; i++) {
             glm::vec2 intersectionPoint;
 
             if (IntersectionUtil::lineLine(
                     feelerStart,
-                    feelerEnd,
+                    feelerEnd[i],
                     wallA,
                     wallB,
                     &intersectionPoint)) {
                 #if SAC_DEBUG
                 Draw::Vec2(
                     feelerStart,
-                    feelerEnd - feelerStart,
+                    feelerEnd[i] - feelerStart,
                     Color(1, 0, 0, 1));
                 Draw::Vec2(
                     wallA,
@@ -353,7 +392,7 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
                 if (closestWall == 0 || dist < closestIP) {
                     closestIP = dist;
                     closestWall = wall;
-                    overShoot = glm::distance(feelerEnd, intersectionPoint) / glm::distance(feelerEnd, feelerStart);
+                    overShoot = glm::distance(feelerEnd[i], intersectionPoint) / (tc->size.x * feelers[2*i+1]); /* glm::distance(feelerEnd[i], feelerStart); */
                     auto w = wallA - wallB;
                     wallNormal = glm::normalize(glm::vec2(-w.y, w.x));
                     // orient wall normal toward vehicle
@@ -364,7 +403,6 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
     }
 
     if (closestWall) {
-        float currentSpeed = glm::length(velocity);
         float reactionLength = (0.1 + overShoot * 1.2) * maxSpeed;
         return glm::normalize(velocity) * (maxSpeed - reactionLength) + wallNormal * reactionLength;
     } else {
