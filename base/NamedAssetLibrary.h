@@ -190,7 +190,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                 LOGF_IF(idx < 0, "Trying to unload invalid resources:" << ref);
                 doUnload(assets[idx]);
                 auto it = std::lower_bound(ref2indexv.begin(), ref2indexv.end(), ref);
-                (*it).ref = 0;
+                ref2indexv.erase(it);
                 mutex.unlock();
             }
 

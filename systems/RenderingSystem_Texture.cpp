@@ -131,7 +131,8 @@ void RenderingSystem::unloadAtlas(const std::string& atlasName) {
     std::stringstream realName;
     realName << OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi)
         << '/' << atlasName;
-    textureLibrary.unload(Murmur::RuntimeHash(realName.str().c_str()));
+    // textureLibrary.unload(Murmur::RuntimeHash(realName.str().c_str()));
+    // textureLibrary.unload ( all texture belonging to this atlas)
     for (unsigned i=0; i<atlas.size(); i++) {
         if (atlas[i].name == realName.str()) {
             atlas[i].ref = InvalidTextureRef;
