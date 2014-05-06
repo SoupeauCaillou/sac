@@ -84,6 +84,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
         auto* pc = PHYSICS(e);
 
+        if (pc->mass <= 0)
+            continue;
+
         if (glm::abs(glm::length(pc->linearVelocity)) > 0) {
             TRANSFORM(e)->rotation = glm::atan(pc->linearVelocity.y, pc->linearVelocity.x);
         }
