@@ -367,6 +367,10 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
         }
         #endif
 
+        if (!IntersectionUtil::lineCircle(wallA, wallB, tc->position, tc->size.x * 2)) {
+            continue;
+        }
+
         for (int i=0; i<3; i++) {
             glm::vec2 intersectionPoint;
 

@@ -51,7 +51,9 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const Transformati
     return pointRectangle(point, tc2->position, tc2->size, tc2->rotation);
 }
 
-bool IntersectionUtil::lineCircle(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& center, float radius) {
+bool IntersectionUtil::lineCircle(const glm::vec2& _pA, const glm::vec2& _pB, const glm::vec2& center, float radius) {
+    const auto pA(_pA - center);
+    const auto pB(_pB - center);
     // from http://mathworld.wolfram.com/Circle-LineIntersection.html
     float d2 = glm::distance2(pA, pB);
     float D = pA.x * pB.y - pB.x * pA.y;
