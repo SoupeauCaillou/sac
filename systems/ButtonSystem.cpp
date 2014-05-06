@@ -138,9 +138,9 @@ void ButtonSystem::UpdateButton(Entity entity, ButtonComponent* comp, bool touch
             } else {
                 if (!comp->touchStartOutside) {
                     float t =TimeUtil::GetTime();
-                    // at least 200 ms between 2 clicks
+                    // at least 50 ms between 2 clicks
 
-                    if (t - comp->lastClick > .2) {
+                    if (t - comp->lastClick > .05) {
                         if (comp->type == ButtonComponent::NORMAL) {
                             comp->lastClick = t;
                             comp->clicked = true;
