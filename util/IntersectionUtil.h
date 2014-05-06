@@ -42,6 +42,7 @@ class IntersectionUtil {
         //rectPos is the center of the rectangle
         static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation);
 
+        static bool lineCircle(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& center, float radius);
 
         // Get the intersection point between SEGMENTS p and q. If IsStraigth is set to true, consider the segment as a STRAIGTH LINE: even if the intersection
         // point is not on the segment, accept it.

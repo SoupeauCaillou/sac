@@ -51,6 +51,14 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const Transformati
     return pointRectangle(point, tc2->position, tc2->size, tc2->rotation);
 }
 
+bool IntersectionUtil::lineCircle(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& center, float radius) {
+    // from http://mathworld.wolfram.com/Circle-LineIntersection.html
+    float d2 = glm::distance2(pA, pB);
+    float D = pA.x * pB.y - pB.x * pA.y;
+    float discriminant = radius * radius * d2 - D * D;
+    return discriminant >= 0;
+}
+
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
     glm::vec2 p(glm::rotate(point - rectPos, -rectRotation));
 
@@ -61,13 +69,13 @@ bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& r
 // from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
 bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
             const glm::vec2& qA, const glm::vec2& qB, glm::vec2* intersectionPoint, bool pIsStraigth, bool qIsStraigth) {
-    float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
+    const float denom = ((qB.y - qA.y)*(pB.x - pA.x)) -
                       ((qB.x - qA.x)*(pB.y - pA.y));
 
-    float nume_a = ((qB.x - qA.x)*(pA.y - qA.y)) -
+    const float nume_a = ((qB.x - qA.x)*(pA.y - qA.y)) -
                    ((qB.y - qA.y)*(pA.x - qA.x));
 
-    float nume_b = ((pB.x - pA.x)*(pA.y - qA.y)) -
+    const float nume_b = ((pB.x - pA.x)*(pA.y - qA.y)) -
                    ((pB.y - pA.y)*(pA.x - qA.x));
 
     //line are parallels - need to check if they are coincidents or not
@@ -128,8 +136,9 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
         return false;
     }
 
-    float ua = nume_a / denom;
-    float ub = nume_b / denom;
+    const float inv_denom = 1.0f / denom;
+    const float ua = nume_a * inv_denom;
+    const float ub = nume_b * inv_denom;
 
     // LOGI(std::fixed << std::setprecision(5) << "3. " << ua << " " << ub);
     // LOGI(std::fixed << std::setprecision(5) << denom << " " << nume_a << " " << nume_b);
