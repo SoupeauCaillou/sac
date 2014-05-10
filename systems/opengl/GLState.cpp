@@ -11,23 +11,26 @@ GLState::GLState() {
     flags.current = 0;
 }
 
-void GLState::Viewport::update(int _w, int _h) {
-    if (_w != w || _h != h) {
+void GLState::Viewport::update(int _w, int _h, GLUpdateOption::Enum option) {
+    if (_w != w || _h != h || option == GLUpdateOption::Forced) {
         w = _w;
         h = _h;
         GL_OPERATION(glViewport(0, 0, w, h))
     }
 }
 
-void GLState::Clear::update(const Color& _color) {
-    if (_color != color) {
+void GLState::Clear::update(const Color& _color, GLUpdateOption::Enum option) {
+    if (_color != color || option == GLUpdateOption::Forced) {
         color = _color;
         GL_OPERATION(glClearColor(color.r, color.g, color.b, color.a))
     }
 }
 
-uint32_t GLState::Flags::update(uint32_t bits) {
-    const int bitsChanged = current ^ bits;
+uint32_t GLState::Flags::update(uint32_t bits, GLUpdateOption::Enum option) {
+    int bitsChanged = current ^ bits;
+    if (option == GLUpdateOption::Forced) {
+        bitsChanged = ~0;
+    }
 
     if (bitsChanged & EnableZWriteBit ) {
         GL_OPERATION(glDepthMask(bits & EnableZWriteBit))

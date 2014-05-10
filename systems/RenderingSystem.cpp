@@ -160,12 +160,9 @@ void RenderingSystem::init() {
 
     GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 
-    glState.viewport.update(windowW, windowH);
-    glState.clear.update(Color());
-    glState.flags.current = OpaqueFlagSet;
-    GL_OPERATION(glDepthMask(true))
-    GL_OPERATION(glDisable(GL_BLEND))
-    GL_OPERATION(glColorMask(true, true, true, true))
+    glState.viewport.update(windowW, windowH, GLUpdateOption::Forced);
+    glState.clear.update(Color(), GLUpdateOption::Forced);
+    glState.flags.update(OpaqueFlagSet, GLUpdateOption::Forced);
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
     const GLubyte *ccc = glGetString(GL_EXTENSIONS);

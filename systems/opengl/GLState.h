@@ -13,6 +13,12 @@
 #define EnableBlendingBit     0x2
 #define EnableColorWriteBit   0x4
 
+namespace GLUpdateOption {
+    enum Enum {
+        IfDirty,
+        Forced
+    };
+}
 
 struct GLState {
     GLState();
@@ -20,18 +26,18 @@ struct GLState {
     struct Viewport {
         int w, h;
 
-        void update(int _w, int _h);
+        void update(int _w, int _h, GLUpdateOption::Enum option = GLUpdateOption::IfDirty);
     } viewport;
 
     struct Clear {
         Color color;
 
-        void update(const Color& _color);
+        void update(const Color& _color, GLUpdateOption::Enum option = GLUpdateOption::IfDirty);
     } clear;
 
     struct Flags {
         uint32_t current;
 
-        uint32_t update(uint32_t bits);
+        uint32_t update(uint32_t bits, GLUpdateOption::Enum option = GLUpdateOption::IfDirty);
     } flags;
 };
