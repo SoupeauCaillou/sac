@@ -10,7 +10,9 @@ ReplayManager* ReplayManager::Instance() {
 }
 
 ReplayManager::ReplayManager() : replayMode(false) {
+    #if SAC_DESKTOP
     outDfp.init();
+    #endif
     touching = 0;
     frameCount = 0;
 }
@@ -39,10 +41,13 @@ unsigned int ReplayManager::getRandomSeed() const {
 }
 
 void ReplayManager::saveRandomSeed(unsigned int seed) {
+    #if SAC_DESKTOP
     outDfp.set("Misc", "random_seed", &seed);
+    #endif
 }
 
 void ReplayManager::saveMaxTouchingCount(int count) {
+    #if SAC_DESKTOP
     outDfp.set("Misc", "max_touching_count", &count);
     touching = new std::pair<bool, glm::vec2>[count];
     pointerCount = count;
@@ -50,6 +55,7 @@ void ReplayManager::saveMaxTouchingCount(int count) {
         touching[i].first = false;
         touching[i].second = glm::vec2(0.0f);
     }
+    #endif
 }
 
 int ReplayManager::maxTouchingCount() {
@@ -87,6 +93,7 @@ bool ReplayManager::isTouching(int index, glm::vec2* windowCoords) {
 }
 
 void ReplayManager::saveIsTouching(bool touching, int index, const glm::vec2& windowCoords) {
+    #if SAC_DESKTOP
     if (touching) {
         char* tmp1 = (char*) alloca(50);
         sprintf(tmp1, "Pointer_%d", index);
@@ -95,6 +102,7 @@ void ReplayManager::saveIsTouching(bool touching, int index, const glm::vec2& wi
         sprintf(tmp2, "frame_%lu", frameCount);
         outDfp.set(tmp1, tmp2,  &windowCoords.x, 2);
     }
+    #endif
 }
 
 bool ReplayManager::isMoving (int ) {
