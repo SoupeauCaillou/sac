@@ -26,7 +26,9 @@
 #include "../systems/RenderingSystem.h"
 #include "../systems/TransformationSystem.h"
 #include "../systems/CameraSystem.h"
+#include "base/Log.h"
 #include "PlacementHelper.h"
+#include "util/ReplayManager.h"
 
 #if SAC_DEBUG
 #include "../systems/AnchorSystem.h"
@@ -50,6 +52,9 @@ void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
         debugState[i] = 0;
     }
 #endif
+
+    if (!theReplayManager.isReplayModeEnabled())
+        theReplayManager.saveMaxTouchingCount(ptr->maxTouchingCount());
 }
 
 #if SAC_DEBUG
@@ -67,6 +72,7 @@ void TouchInputManager::activateDebug(Entity camera) {
 #endif
 
 void TouchInputManager::Update() {
+    LOGT_EVERY_N(1000, "Add a setCamera method instead of doing this non-sense every frame");
     Entity camera = 0;
     theCameraSystem.forEachECDo([&camera] (Entity c, CameraComponent* cc) -> void {
         if (cc->fb == DefaultFrameBufferRef) {
@@ -120,7 +126,12 @@ void TouchInputManager::Update() {
         } else {
             clicked[i] = doubleclicked[i] = false;
         }
+
+        if (theReplayManager.isReplayModeEnabled()) {
+            theReplayManager.saveIsTouching(i, touching[i], coords);
+        }
     }
+
 
 #if SAC_DEBUG
     if (!debugState[0])
