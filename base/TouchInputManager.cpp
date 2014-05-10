@@ -25,7 +25,6 @@
 #include "Log.h"
 #include "../systems/RenderingSystem.h"
 #include "../systems/TransformationSystem.h"
-#include "../systems/CameraSystem.h"
 #include "base/Log.h"
 #include "PlacementHelper.h"
 #include "util/ReplayManager.h"
@@ -45,6 +44,7 @@ TouchInputManager* TouchInputManager::Instance() {
 }
 
 void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
+    camera = 0;
     worldSize = pWorldSize;
     windowSize = pWindowSize;
 #if SAC_DEBUG
@@ -55,6 +55,10 @@ void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
 
     if (!theReplayManager.isReplayModeEnabled())
         theReplayManager.saveMaxTouchingCount(ptr->maxTouchingCount());
+}
+
+void TouchInputManager::setCamera(Entity c) {
+    camera = c;
 }
 
 #if SAC_DEBUG
@@ -72,13 +76,6 @@ void TouchInputManager::activateDebug(Entity camera) {
 #endif
 
 void TouchInputManager::Update() {
-    LOGT_EVERY_N(1000, "Add a setCamera method instead of doing this non-sense every frame");
-    Entity camera = 0;
-    theCameraSystem.forEachECDo([&camera] (Entity c, CameraComponent* cc) -> void {
-        if (cc->fb == DefaultFrameBufferRef) {
-            camera = c;
-        }
-    });
     if (!camera) {
         LOGW("No camera defined -> no input handling");
         return;

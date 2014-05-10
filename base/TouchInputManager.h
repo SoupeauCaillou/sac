@@ -76,6 +76,8 @@ class TouchInputManager {
 
 		glm::vec2 windowToScreen(const glm::vec2& windowCoords) const;
 
+        void setCamera(Entity camera);
+
 #if !ANDROID
 		int getWheel() const;
 #endif
@@ -87,6 +89,7 @@ class TouchInputManager {
 		float lastClickTime[MAX_TOUCH_POINT];
 
 		glm::vec2 worldSize, windowSize;
+        Entity camera;
 
 #if SAC_DEBUG
 		Entity debugState[MAX_TOUCH_POINT];
