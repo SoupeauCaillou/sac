@@ -39,6 +39,7 @@
 #include "systems/AnimationSystem.h"
 #include "systems/AutoDestroySystem.h"
 #include "systems/AutonomousAgentSystem.h"
+#include "systems/BlinkSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
@@ -100,6 +101,7 @@ Game::Game() {
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
     AutonomousAgentSystem::CreateInstance();
+    BlinkSystem::CreateInstance();
     ButtonSystem::CreateInstance();
     CameraSystem::CreateInstance();
     CollisionSystem::CreateInstance();
@@ -154,6 +156,7 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(AnimationSystem::GetInstancePointer());
     ADD_IF_EXISTING(AutoDestroySystem::GetInstancePointer());
     ADD_IF_EXISTING(AutonomousAgentSystem::GetInstancePointer());
+    ADD_IF_EXISTING(BlinkSystem::GetInstancePointer());
     ADD_IF_EXISTING(ButtonSystem::GetInstancePointer());
     ADD_IF_EXISTING(ContainerSystem::GetInstancePointer());
     ADD_IF_EXISTING(DebuggingSystem::GetInstancePointer());
@@ -196,6 +199,7 @@ Game::~Game() {
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
     AutonomousAgentSystem::DestroyInstance();
+    BlinkSystem::DestroyInstance();
     ButtonSystem::DestroyInstance();
     CameraSystem::DestroyInstance();
     CollisionSystem::DestroyInstance();
