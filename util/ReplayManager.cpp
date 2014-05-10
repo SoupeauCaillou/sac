@@ -59,6 +59,7 @@ void ReplayManager::saveMaxTouchingCount(int count) {
 }
 
 int ReplayManager::maxTouchingCount() {
+    #if SAC_DESKTOP
     LOGF_IF(!replayMode, __FUNCTION__ << " used but replay is disabled");
     int result = sourceDfp.get("Misc", "max_touching_count", &pointerCount);
     LOGF_IF(!result, "Unable to read max_touching_count from replay file");
@@ -80,6 +81,9 @@ int ReplayManager::maxTouchingCount() {
 
     frameCount++;
     return pointerCount;
+    #else
+    return 0;
+    #endif
 }
 
 bool ReplayManager::isTouching(int index, glm::vec2* windowCoords) {
