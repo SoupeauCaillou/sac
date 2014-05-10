@@ -94,6 +94,8 @@ TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     componentSerializer.add(new Property<float>(HASH("positioning", 0x8255fb5), OFFSET(positioning, tc), 0.001f));
     componentSerializer.add(new Property<bool>(HASH("show", 0x77b5dada), OFFSET(show, tc)));
     componentSerializer.add(new Property<int>(HASH("max_line_to_use", 0xf450021d), OFFSET(maxLineToUse, tc)));
+    componentSerializer.add(new Property<float>(HASH("blink_off_duration", 0x4384d64b), OFFSET(blink.offDuration, tc), 0.001f));
+    componentSerializer.add(new Property<float>(HASH("blink_on_duration", 0xc515a2a3), OFFSET(blink.onDuration, tc), 0.001f));
 }
 
 struct CharSequenceToUnicode {
