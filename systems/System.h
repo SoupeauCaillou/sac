@@ -49,18 +49,21 @@ class ComponentSystem {
 
         virtual ~ComponentSystem();
 
-        virtual const std::string& getName() const { return name; }
+        const std::string& getName() const { return name; }
+
         virtual void Add(Entity entity) = 0;
-        virtual void Delete(Entity entity) = 0;
-        virtual void suspendEntity(Entity entity) = 0;
-        virtual void resumeEntity(Entity entity) = 0;
+        virtual void Delete(Entity entity);
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
-        virtual int serialize(Entity entity, uint8_t** out, void* ref = 0) = 0;
-        virtual int deserialize(Entity entity, uint8_t* out, int size) = 0;
-        virtual void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap, LocalizeAPI* localizeAPI) = 0;
         virtual void* componentAsVoidPtr(Entity e) = 0;
-        virtual unsigned entityCount() const = 0;
-        virtual void forEachEntityDo(std::function<void(Entity)> func) = 0;
+
+        void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap, LocalizeAPI* localizeAPI);
+        int serialize(Entity entity, uint8_t** out, void* ref = 0);
+        int deserialize(Entity entity, uint8_t* out, int size);
+        void suspendEntity(Entity entity);
+        void resumeEntity(Entity entity);
+        unsigned entityCount() const;
+        void forEachEntityDo(std::function<void(Entity)> func);
+        const std::vector<Entity>& RetrieveAllEntityWithComponent() const;
 
         void Update(float dt);
 
@@ -78,7 +81,10 @@ class ComponentSystem {
         static std::map<std::string, ComponentSystem*> registry;
     protected:
         std::string name;
-    Serializer componentSerializer;
+        std::vector<Entity> entityWithComponent;
+        std::list<Entity> suspended;
+
+        Serializer componentSerializer;
     public:
         const Serializer& getSerializer() const {
             return componentSerializer;
@@ -120,41 +126,6 @@ class ComponentSystemImpl: public ComponentSystem {
             entityWithComponent.insert(it, entity);
         }
 
-        virtual void Delete(Entity entity) {
-            auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
-            LOGF_IF(it == entityWithComponent.end(), "Unable to find entity '" << theEntityManager.entityName(entity) << "' in components '" << getName() << "'");
-            entityWithComponent.erase(it);
-        }
-
-        void suspendEntity(Entity entity) {
-            auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
-            LOGF_IF(it == entityWithComponent.end(), "Suspending an invalid entity " << entity);
-            entityWithComponent.erase(it);
-            suspended.push_back(entity);
-        }
-
-        void resumeEntity(Entity entity) {
-            auto st = std::find(suspended.begin(), suspended.end(), entity);
-            LOGF_IF(st == suspended.end(), "Resuming a not suspended entity " << entity);
-            suspended.erase(st);
-
-            // sorted insert
-            auto it=entityWithComponent.begin();
-            for (; it!=entityWithComponent.end(); ++it) {
-                if (*it > entity)
-                    break;
-            }
-            entityWithComponent.insert(it, entity);
-        }
-
-        unsigned entityCount() const {
-            return entityWithComponent.size();
-        }
-
-        void* componentAsVoidPtr(Entity e) {
-            return Get(e, false);
-        }
-
 #if SAC_DEBUG
         T* Get(Entity entity, bool failIfNotfound = true,
             const char* file = "\0", int line = 0) {
@@ -186,22 +157,14 @@ class ComponentSystemImpl: public ComponentSystem {
             return &components[entity];
         }
 
-
-        const std::vector<Entity>&
-         RetrieveAllEntityWithComponent() {
-            return entityWithComponent;
-        }
-
-        void forEachEntityDo(std::function<void(Entity)> func) {
-            for (Entity e: entityWithComponent) {
-                func(e);
-            }
-        }
-
         void forEachECDo(std::function<void(Entity, T*)> func) {
             for (Entity e: entityWithComponent) {
                 func(e, &components[e]);
             }
+        }
+
+        void* componentAsVoidPtr(Entity e) {
+            return Get(e, false);
         }
 
         uint8_t* saveComponent(Entity entity, uint8_t* out) {
@@ -213,29 +176,7 @@ class ComponentSystemImpl: public ComponentSystem {
             return out;
         }
 
-        int serialize(Entity entity, uint8_t** out, void* ref) {
-            T* component = Get(entity);
-            return componentSerializer.serializeObject(out, component, ref);
-        }
-
-        void applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap, LocalizeAPI* localizeAPI) {
-            T* comp = Get(entity);
-            ComponentFactory::applyTemplate(entity, comp, propMap, componentSerializer.getProperties(), localizeAPI);
-        }
-
-        int deserialize(Entity entity, uint8_t* in, int size) {
-            T* component = Get(entity, false);
-            if (!component) {
-                theEntityManager.AddComponent(entity, this, true);
-                component = Get(entity);
-            }
-            int s = componentSerializer.deserializeObject(in, size, component);
-            return s;
-        }
-
     protected:
-        std::vector<Entity> entityWithComponent;
-        std::list<Entity> suspended;
         std::vector<T> components;
 };
 

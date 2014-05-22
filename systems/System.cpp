@@ -43,6 +43,69 @@ ComponentSystem::~ComponentSystem() {
     registry.erase(name);
 }
 
+void ComponentSystem::Delete(Entity entity) {
+    auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
+    LOGF_IF(it == entityWithComponent.end(), "Unable to find entity '" << theEntityManager.entityName(entity) << "' in components '" << getName() << "'");
+    entityWithComponent.erase(it);
+}
+
+void ComponentSystem::suspendEntity(Entity entity) {
+    auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
+    LOGF_IF(it == entityWithComponent.end(), "Suspending an invalid entity " << entity);
+    entityWithComponent.erase(it);
+    suspended.push_back(entity);
+}
+
+void ComponentSystem::resumeEntity(Entity entity) {
+    auto st = std::find(suspended.begin(), suspended.end(), entity);
+    LOGF_IF(st == suspended.end(), "Resuming a not suspended entity " << entity);
+    suspended.erase(st);
+
+    // sorted insert
+    auto it=entityWithComponent.begin();
+    for (; it!=entityWithComponent.end(); ++it) {
+        if (*it > entity)
+            break;
+    }
+    entityWithComponent.insert(it, entity);
+}
+
+unsigned ComponentSystem::entityCount() const {
+    return entityWithComponent.size();
+}
+
+
+
+const std::vector<Entity>& ComponentSystem::RetrieveAllEntityWithComponent() const {
+    return entityWithComponent;
+}
+
+void ComponentSystem::forEachEntityDo(std::function<void(Entity)> func) {
+    for (Entity e: entityWithComponent) {
+        func(e);
+    }
+}
+
+int ComponentSystem::serialize(Entity entity, uint8_t** out, void* ref) {
+    void* component = componentAsVoidPtr(entity);
+    return componentSerializer.serializeObject(out, component, ref);
+}
+
+int ComponentSystem::deserialize(Entity entity, uint8_t* in, int size) {
+    void* component = componentAsVoidPtr(entity);
+    if (!component) {
+        theEntityManager.AddComponent(entity, this, true);
+        component = componentAsVoidPtr(entity);
+    }
+    int s = componentSerializer.deserializeObject(in, size, component);
+    return s;
+}
+
+void ComponentSystem::applyEntityTemplate(Entity entity, const PropertyNameValueMap& propMap, LocalizeAPI* localizeAPI) {
+    void* component = componentAsVoidPtr(entity);
+    ComponentFactory::applyTemplate(entity, component, propMap, componentSerializer.getProperties(), localizeAPI);
+}
+
 void ComponentSystem::Update(float dt) {
     PROFILE("SystemUpdate", name, BeginEvent);
 #if SAC_DEBUG
