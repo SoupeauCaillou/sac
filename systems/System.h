@@ -203,8 +203,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 _instance = NULL;\
             } \
             void DoUpdate(float dt); \
-            void updateEntityComponent(float dt, Entity e, type##Component* t); \
-        \
+
             type##System(); \
         private:    \
             static type##System* _instance;
