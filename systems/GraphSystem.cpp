@@ -18,8 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
+#if !DISABLE_GRAPH_SYSTEM
 #include "GraphSystem.h"
 #include "systems/RenderingSystem.h"
 
@@ -309,3 +308,4 @@ void GraphSystem::drawLine(ImageDesc &textureDesc, std::pair<int, int> firstPoin
         }
     }
 }
+#endif

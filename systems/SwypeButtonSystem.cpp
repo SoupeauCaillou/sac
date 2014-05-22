@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
+#if !DISABLE_SWYPE_SYSTEM
 #include "SwypeButtonSystem.h"
 
 #include "TransformationSystem.h"
@@ -48,7 +49,7 @@ SwypeButtonSystem::SwypeButtonSystem() : ComponentSystemImpl<SwypeButtonComponen
     componentSerializer.add(new Property<bool>(HASH("animated", 0x519ae06), OFFSET(animated, sc)));
     componentSerializer.add(new Property<glm::vec2>(HASH("final_pos", 0x7290205e), OFFSET(finalPos, sc), glm::vec2(0.001f, 0)));
     componentSerializer.add(new Property<glm::vec2>(HASH("idle_pos", 0x2e3cc480), OFFSET(idlePos, sc), glm::vec2(0.001f, 0)));
-    
+
 }
 
 void SwypeButtonSystem::DoUpdate(float dt) {
@@ -119,8 +120,8 @@ static bool pastTravelPerc(const glm::vec2& position, const glm::vec2& direction
 
 void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonComponent* comp, bool touching, const glm::vec2& touchPos) {
     if (!comp->enabled) {
-        comp->mouseOver = 
-            comp->touchStartOutside = 
+        comp->mouseOver =
+            comp->touchStartOutside =
             comp->clicked = false;
         return;
     }
@@ -130,7 +131,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     comp->clicked = false;
 
     const glm::vec2& pos = TRANSFORM(entity)->position;
-    const glm::vec2& size = TRANSFORM(entity)->size;    
+    const glm::vec2& size = TRANSFORM(entity)->size;
 
     bool over = touching && IntersectionUtil::pointRectangle(touchPos, pos, size, TRANSFORM(entity)->rotation);
     if (touching && (!over || (over && comp->touchStartOutside))) {
@@ -170,7 +171,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
                 comp->activeIdleTime = 0;
             }
             break;
-    }   
+    }
 
     // User touches this button
     if (over) {
@@ -218,4 +219,4 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
     }
 }
 
-            
+#endif

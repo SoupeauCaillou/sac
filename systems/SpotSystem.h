@@ -22,6 +22,8 @@
 
 #pragma once
 
+#if !DISABLE_SPOT_SYSTEM
+
 #include "System.h"
 #include "opengl/Polygon.h"
 
@@ -58,3 +60,4 @@ struct SpotBlockComponent {
 
 UPDATABLE_SYSTEM(SpotBlock)
 };
+#endif

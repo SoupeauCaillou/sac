@@ -22,6 +22,7 @@
 
 #pragma once
 
+#if !DISABLE_AUTONOMOUS_SYSTEM
 #include "../steering/SteeringBehavior.h"
 
 #include "System.h"
@@ -97,3 +98,4 @@ public:
     static bool isArrived(Entity e);
 
 };
+#endif

@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#if !DISABLE_SPOT_SYSTEM
 #include "SpotSystem.h"
 #include "TransformationSystem.h"
 #include "util/IntersectionUtil.h"
@@ -110,3 +110,4 @@ SpotBlockSystem::SpotBlockSystem() : ComponentSystemImpl<SpotBlockComponent>("Sp
 void SpotBlockSystem::DoUpdate(float) {
 
 }
+#endif

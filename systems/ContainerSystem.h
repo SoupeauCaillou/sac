@@ -21,7 +21,7 @@
 
 
 #pragma once
-
+#if !DISABLE_CONTAINER_SYSTEM
 #include "System.h"
 
 
@@ -40,3 +40,4 @@ struct ContainerComponent {
 
 UPDATABLE_SYSTEM(Container)
 };
+#endif

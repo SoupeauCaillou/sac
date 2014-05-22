@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_GRID_SYSTEM
 
 #include "SpatialGrid.h"
 
@@ -540,7 +540,7 @@ static GridPos cubeCoordinateRounding(float x, float y, float z) {
     float x_err = glm::abs(rx - x);
     float y_err = glm::abs(ry - y);
     float z_err = glm::abs(rz - z);
-    
+
     if (x_err > y_err && x_err > z_err) {
         rx = -ry - rz;
     } else if (y_err > z_err) {
@@ -559,3 +559,5 @@ static GridPos positionSizeToGridPos(const glm::vec2& pos, float size) {
 
     return cubeCoordinateRounding(q, 0 - (q + r), r);
 }
+
+#endif

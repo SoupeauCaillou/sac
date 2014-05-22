@@ -22,6 +22,7 @@
 
 #pragma once
 
+#if !DISABLE_ZSQD_SYSTEM
 #include "System.h"
 #include "TransformationSystem.h"
 
@@ -67,3 +68,4 @@ struct ZSQDComponent {
 #endif
 UPDATABLE_SYSTEM(ZSQD)
 };
+#endif

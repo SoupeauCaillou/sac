@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_GRID_SYSTEM
 
 #include <UnitTest++.h>
 #include "util/SpatialGrid.h"
@@ -67,7 +67,7 @@ TEST(RingAt2OfCenter)
 }
 
 TEST(LineDrawerWhenStraight)
-{	
+{
 	auto grid = SpatialGrid(3, 3);
 
 	auto path = grid.lineDrawer(GridPos(0,0), GridPos(0,1));
@@ -79,7 +79,7 @@ TEST(LineDrawerWhenStraight)
 }
 
 TEST(LineDrawerWhenDiagonale)
-{	
+{
 	auto grid = SpatialGrid(3, 3);
 
 	auto path = grid.lineDrawer(GridPos(0,0), GridPos(3,3));
@@ -95,7 +95,7 @@ TEST(LineDrawerWhenDiagonale)
 }
 
 TEST(LineDrawerWithNegativeEps)
-{	
+{
 	auto grid = SpatialGrid(21, 21);
 
 	auto path = grid.lineDrawer(GridPos(-7,1), GridPos(-5,3), false);
@@ -107,3 +107,5 @@ TEST(LineDrawerWithNegativeEps)
 	CHECK_EQUAL(GridPos(-6,3), path[3]);
 	CHECK_EQUAL(GridPos(-5,3), path[4]);
 }
+
+#endif

@@ -19,6 +19,7 @@
 */
 #pragma once
 
+#if !DISABLE_SWYPE_SYSTEM
 #include "System.h"
 
 class VibrateAPI;
@@ -33,7 +34,7 @@ namespace SwypeIdleState {
 }
 struct SwypeButtonComponent {
 	SwypeButtonComponent() : mouseOver(false), clicked(false),
-	lastPos(0.0f), idlePos(0.0f), animationPlaying(SwypeIdleState::Halted), 
+	lastPos(0.0f), idlePos(0.0f), animationPlaying(SwypeIdleState::Halted),
     enabled(false), vibration(0.035f) { }
 
     ////// READ ONLY variables
@@ -81,3 +82,4 @@ private:
 	void UpdateSwypeButton(float dt, Entity entity, SwypeButtonComponent* comp, bool touching, const glm::vec2& touchPos);
 
 };
+#endif

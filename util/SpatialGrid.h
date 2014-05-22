@@ -22,6 +22,8 @@
 
 #pragma once
 
+#if !DISABLE_GRID_SYSTEM
+
 #include <stdint.h>
 #include <functional>
 #include <glm/glm.hpp>
@@ -98,3 +100,4 @@ class SpatialGrid {
 		SpatialGridData* datas;
 
 };
+#endif

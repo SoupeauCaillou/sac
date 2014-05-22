@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_MORPHING_SYSTEM
 
 #include <UnitTest++.h>
 #include "systems/MorphingSystem.h"
@@ -80,4 +80,4 @@ TEST(DoubleMorphing)
 
     MorphingSystem::DestroyInstance();
 }
-
+#endif

@@ -19,7 +19,7 @@
 */
 
 
-
+#if !DISABLE_CONTAINER_SYSTEM
 #include "ContainerSystem.h"
 
 #include "AnchorSystem.h"
@@ -85,3 +85,4 @@ void ContainerSystem::DoUpdate(float) {
         tc->size = glm::vec2(maxX - minX, maxY - minY);
     END_FOR_EACH()
 }
+#endif

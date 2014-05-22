@@ -21,6 +21,7 @@
 
 
 #pragma once
+#if !DISABLE_GRID_SYSTEM
 
 #include "System.h"
 
@@ -54,3 +55,5 @@ public:
     static int GetDefenceBonus(GridComponent::EType type);
     static int GetAttackBonus(GridComponent::EType type);
 };
+
+#endif

@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_GRID_SYSTEM
 
 #include "GridSystem.h"
 
@@ -72,4 +72,4 @@ int GridSystem::GetDefenceBonus(GridComponent::EType type) {
 
 void GridSystem::DoUpdate(float) {
 }
-
+#endif

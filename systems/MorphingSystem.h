@@ -22,6 +22,7 @@
 
 #pragma once
 
+#if !DISABLE_MORPHING_SYSTEM
 #include "System.h"
 
 struct MorphElement {
@@ -74,3 +75,5 @@ public:
     void reverse(MorphingComponent* mc);
     void clear(MorphingComponent* mc);
 };
+
+#endif

@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_AUTONOMOUS_SYSTEM
 
 #include "AutonomousAgentSystem.h"
 
@@ -271,3 +271,4 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         PHYSICS(e)->addForce(averageDelta, glm::vec2(0.f), dt);
     END_FOR_EACH()
 }
+#endif

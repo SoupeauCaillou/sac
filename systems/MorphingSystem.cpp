@@ -19,7 +19,7 @@
 */
 
 
-
+#if !DISABLE_MORPHING_SYSTEM
 #include "MorphingSystem.h"
 
 #include <glm/glm.hpp>
@@ -71,3 +71,4 @@ void MorphingSystem::clear(MorphingComponent* mc) {
     }
     mc->elements.clear();
 }
+#endif

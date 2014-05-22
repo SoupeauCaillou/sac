@@ -19,7 +19,7 @@
 */
 
 
-
+#if !DISABLE_COLLISION_SYSTEM
 #include "CollisionSystem.h"
 #include "TransformationSystem.h"
 #if SAC_DEBUG
@@ -447,3 +447,4 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
         }
     }
 }
+#endif

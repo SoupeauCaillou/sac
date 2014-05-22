@@ -100,28 +100,50 @@ Game::Game() {
     AnchorSystem::CreateInstance();
     AnimationSystem::CreateInstance();
     AutoDestroySystem::CreateInstance();
+#if !DISABLE_AUTONOMOUS_SYSTEM
     AutonomousAgentSystem::CreateInstance();
+#endif
+#if !DISABLE_BLINK_SYSTEM
     BlinkSystem::CreateInstance();
+#endif
     ButtonSystem::CreateInstance();
     CameraSystem::CreateInstance();
+#if !DISABLE_COLLISION_SYSTEM
     CollisionSystem::CreateInstance();
+#endif
+#if !DISABLE_CONTAINER_SYSTEM
     ContainerSystem::CreateInstance();
+#endif
     DebuggingSystem::CreateInstance();
+#if !DISABLE_GRAPH_SYSTEM
     GraphSystem::CreateInstance();
+#endif
+#if !DISABLE_GRID_SYSTEM
     GridSystem::CreateInstance();
+#endif
+#if !DISABLE_MORPHING_SYSTEM
     MorphingSystem::CreateInstance();
+#endif
     MusicSystem::CreateInstance();
     ParticuleSystem::CreateInstance();
     PhysicsSystem::CreateInstance();
     RenderingSystem::CreateInstance();
+#if !DISABLE_SCROLLING_SYSTEM
     ScrollingSystem::CreateInstance();
+#endif
     SoundSystem::CreateInstance();
+#if !DISABLE_SPOT_SYSTEM
     SpotSystem::CreateInstance();
     SpotBlockSystem::CreateInstance();
+#endif
     TextSystem::CreateInstance();
     TransformationSystem::CreateInstance();
+#if !DISABLE_ZSQD_SYSTEM
     ZSQDSystem::CreateInstance();
+#endif
+#if !DISABLE_SWYPE_SYSTEM
     SwypeButtonSystem::CreateInstance();
+#endif
 
 #if SAC_NETWORK
     NetworkSystem::CreateInstance();
@@ -155,27 +177,49 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(ADSRSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnimationSystem::GetInstancePointer());
     ADD_IF_EXISTING(AutoDestroySystem::GetInstancePointer());
+#if !DISABLE_AUTONOMOUS_SYSTEM
     ADD_IF_EXISTING(AutonomousAgentSystem::GetInstancePointer());
+#endif
+#if !DISABLE_BLINK_SYSTEM
     ADD_IF_EXISTING(BlinkSystem::GetInstancePointer());
+#endif
     ADD_IF_EXISTING(ButtonSystem::GetInstancePointer());
+#if !DISABLE_CONTAINER_SYSTEM
     ADD_IF_EXISTING(ContainerSystem::GetInstancePointer());
+#endif
     ADD_IF_EXISTING(DebuggingSystem::GetInstancePointer());
+#if !DISABLE_GRAPH_SYSTEM
     ADD_IF_EXISTING(GraphSystem::GetInstancePointer());
+#endif
+#if !DISABLE_GRID_SYSTEM
     ADD_IF_EXISTING(GridSystem::GetInstancePointer());
+#endif
+#if !DISABLE_MORPHING_SYSTEM
     ADD_IF_EXISTING(MorphingSystem::GetInstancePointer());
+#endif
     ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
     ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
+#if !DISABLE_COLLISION_SYSTEM
     ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
+#endif
+#if !DISABLE_SCROLLING_SYSTEM
     ADD_IF_EXISTING(ScrollingSystem::GetInstancePointer());
+#endif
     ADD_IF_EXISTING(SoundSystem::GetInstancePointer());
+#if !DISABLE_SPOT_SYSTEM
     ADD_IF_EXISTING(SpotSystem::GetInstancePointer());
     ADD_IF_EXISTING(SpotBlockSystem::GetInstancePointer());
+#endif
     ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
+#if !DISABLE_ZSQD_SYSTEM
     ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
+#endif
+#if !DISABLE_SWYPE_SYSTEM
     ADD_IF_EXISTING(SwypeButtonSystem::GetInstancePointer());
+#endif
 
 #if SAC_ENABLE_LOG
     unusedSystems.clear();
@@ -198,27 +242,49 @@ Game::~Game() {
     AnchorSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
     AutoDestroySystem::DestroyInstance();
+#if !DISABLE_AUTONOMOUS_SYSTEM
     AutonomousAgentSystem::DestroyInstance();
+#endif
+#if !DISABLE_BLINK_SYSTEM
     BlinkSystem::DestroyInstance();
+#endif
     ButtonSystem::DestroyInstance();
     CameraSystem::DestroyInstance();
+#if !DISABLE_COLLISION_SYSTEM
     CollisionSystem::DestroyInstance();
+#endif
+#if !DISABLE_CONTAINER_SYSTEM
     ContainerSystem::DestroyInstance();
+#endif
     DebuggingSystem::DestroyInstance();
+#if !DISABLE_GRAPH_SYSTEM
     GraphSystem::DestroyInstance();
+#endif
+#if !DISABLE_GRID_SYSTEM
     GridSystem::DestroyInstance();
+#endif
+#if !DISABLE_MORPHING_SYSTEM
     MorphingSystem::DestroyInstance();
+#endif
     MusicSystem::DestroyInstance();
     ParticuleSystem::DestroyInstance();
     PhysicsSystem::DestroyInstance();
     RenderingSystem::DestroyInstance();
+#if !DISABLE_SCROLLING_SYSTEM
     ScrollingSystem::DestroyInstance();
+#endif
     SoundSystem::DestroyInstance();
+#if !DISABLE_SPOT_SYSTEM
     SpotSystem::DestroyInstance();
+#endif
     TextSystem::DestroyInstance();
     TransformationSystem::DestroyInstance();
+#if !DISABLE_ZSQD_SYSTEM
     ZSQDSystem::DestroyInstance();
+#endif
+#if !DISABLE_SWYPE_SYSTEM
     SwypeButtonSystem::DestroyInstance();
+#endif
 
 #if SAC_NETWORK
     NetworkSystem::DestroyInstance();

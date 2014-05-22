@@ -19,7 +19,7 @@
 */
 
 
-
+#if !DISABLE_SCROLLING_SYSTEM
 #include "ScrollingSystem.h"
 
 #include "AnchorSystem.h"
@@ -118,3 +118,4 @@ void ScrollingSystem::initScrolling(Entity e, ScrollingComponent* sc) {
     }
     elements[e] = se;
 }
+#endif

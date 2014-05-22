@@ -22,6 +22,7 @@
 
 #pragma once
 
+#if !DISABLE_SCROLLING_SYSTEM
 #include "System.h"
 #include "RenderingSystem.h"
 
@@ -60,3 +61,5 @@ std::map<Entity, ScrollingElement> elements;
 typedef std::map<Entity, ScrollingElement>::iterator EltIt;
 
 };
+
+#endif

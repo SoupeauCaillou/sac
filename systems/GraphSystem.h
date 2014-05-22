@@ -18,9 +18,8 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
+#if !DISABLE_GRAPH_SYSTEM
 
 #include "System.h"
 #include <list>
@@ -33,23 +32,23 @@
 
 struct GraphComponent {
 
-    GraphComponent():lineWidth(0), maxY(0), maxX(0), minY(0), minX(0), 
+    GraphComponent():lineWidth(0), maxY(0), maxX(0), minY(0), minX(0),
     setFixedScaleMinMaxX(false), setFixedScaleMinMaxY(false), reloadTexture(true),
     lineColor(Color(1, 1, 1)) {}
 
     std::list<std::pair<float, float> > pointsList;
-	
+
 	std::string textureName;
-	
+
 	float lineWidth; // between ]0:1] (percent) if 0 -> 1 pixel
-	
+
     float maxY, maxX, minY, minX;
 
     bool setFixedScaleMinMaxX;
     bool setFixedScaleMinMaxY;
-    
+
     bool reloadTexture;
-    
+
     Color lineColor;
 };
 
@@ -67,3 +66,4 @@ UPDATABLE_SYSTEM(Graph)
 
     std::map<TextureRef, ImageDesc> textureRef2Image;
 };
+#endif

@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_ZSQD_SYSTEM
 
 #include "ZSQDSystem.h"
 
@@ -132,3 +132,4 @@ void ZSQDSystem::DoUpdate(float dt) {
         zc->directions.clear();
     END_FOR_EACH()
 }
+#endif

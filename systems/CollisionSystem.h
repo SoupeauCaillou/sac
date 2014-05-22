@@ -22,6 +22,7 @@
 
 #pragma once
 
+#if !DISABLE_COLLISION_SYSTEM
 #include "System.h"
 #include <functional>
 #if SAC_DEBUG
@@ -63,3 +64,4 @@ UPDATABLE_SYSTEM(Collision)
     private:
         std::vector<Entity> debug;
 };
+#endif
