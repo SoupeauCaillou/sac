@@ -43,6 +43,28 @@ ComponentSystem::~ComponentSystem() {
     registry.erase(name);
 }
 
+void* ComponentSystem::enlargeComponentsArray(
+    void* array, size_t compSize, uint32_t* size, uint32_t requested) {
+// make sure array is big enough
+    while (*size <= requested || (!array)) {
+        LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
+        auto* ptr = realloc(array, (*size) * compSize * 2);
+        array = ptr;
+        (*size) = 2 * (*size);
+    }
+    return array;
+}
+
+void ComponentSystem::addEntity(Entity entity) {
+    // sorted insert
+    auto it=entityWithComponent.begin();
+    for (; it!=entityWithComponent.end(); ++it) {
+        if (*it > entity)
+            break;
+    }
+    entityWithComponent.insert(it, entity);
+}
+
 void ComponentSystem::Delete(Entity entity) {
     auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
     LOGF_IF(it == entityWithComponent.end(), "Unable to find entity '" << theEntityManager.entityName(entity) << "' in components '" << getName() << "'");

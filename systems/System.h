@@ -79,6 +79,9 @@ class ComponentSystem {
     protected:
         virtual void DoUpdate(float dt) = 0;
         static std::map<std::string, ComponentSystem*> registry;
+
+        void* enlargeComponentsArray(void* array, size_t compSize, uint32_t* size, uint32_t requested);
+        void addEntity(Entity e);
     protected:
         std::string name;
         std::vector<Entity> entityWithComponent;
@@ -100,7 +103,11 @@ class ComponentSystemImpl: public ComponentSystem {
     public:
         ComponentSystemImpl(const std::string& t, unsigned defaultStorageSize = 8) : ComponentSystem(t) {
             LOGF_IF(defaultStorageSize == 0, "Storage size must be > 0");
-            components.resize(defaultStorageSize);
+            // enlargeComponentsArray expects a > 0 size. And as components
+            // is null anyway we can do this
+            componentsSize = defaultStorageSize;
+            components = reinterpret_cast<T*>
+                (enlargeComponentsArray(0, sizeof(T), &componentsSize, defaultStorageSize));
         }
 
         void Add(Entity entity) {
@@ -108,22 +115,15 @@ class ComponentSystemImpl: public ComponentSystem {
                 std::find(entityWithComponent.begin(), entityWithComponent.end(), entity) != entityWithComponent.end()
                 , "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
 
-            // make sure array is big enough
-            while (components.size() <= entity) {
-                LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
-                components.resize(2 * components.size());
-            }
+            components = reinterpret_cast<T*>
+                (enlargeComponentsArray(components, sizeof(T), &componentsSize, entity));
+
             LOGT_EVERY_N(1000, "Add a reset method to components");
             // until a reset method method, do it the naive way
-            components[entity] = T();
+            new (&components[entity]) T();
+            // components[entity] = T();
 
-            // sorted insert
-            auto it=entityWithComponent.begin();
-            for (; it!=entityWithComponent.end(); ++it) {
-                if (*it > entity)
-                    break;
-            }
-            entityWithComponent.insert(it, entity);
+            addEntity(entity);
         }
 
 #if SAC_DEBUG
@@ -177,7 +177,8 @@ class ComponentSystemImpl: public ComponentSystem {
         }
 
     protected:
-        std::vector<T> components;
+        uint32_t componentsSize;
+        T* components;
 };
 
 
