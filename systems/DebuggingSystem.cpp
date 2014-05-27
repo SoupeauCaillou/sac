@@ -52,7 +52,7 @@ DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("De
     enable = false;
 }
 
-#if ! SAC_DEBUG
+#if ! SAC_DEBUG || DISABLE_GRAPH_SYSTEM
 void DebuggingSystem::DoUpdate(float) {}
 void DebuggingSystem::toggle() {}
 
