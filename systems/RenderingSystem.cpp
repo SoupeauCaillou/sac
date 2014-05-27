@@ -74,6 +74,9 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
     memset(&highLight, 0, sizeof(highLight));
     wireframe = false;
 #endif
+
+    vertices = new VertexData[MAX_VERTEX_COUNT];
+    indices = new unsigned short[MAX_INDICE_COUNT];
 }
 
 RenderingSystem::~RenderingSystem() {
@@ -84,6 +87,8 @@ RenderingSystem::~RenderingSystem() {
 
     initDone = false;
     delete[] renderQueue;
+    delete[] vertices;
+    delete[] indices;
 }
 
 void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {

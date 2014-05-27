@@ -70,6 +70,14 @@ struct RenderingSystem::RenderCommand {
 
 struct CameraComponent;
 
+struct VertexData {
+    glm::vec3 position;
+    glm::vec2 uv;
+};
+
+#define MAX_VERTEX_COUNT 512
+#define MAX_INDICE_COUNT 1024
+
 void packCameraAttributes(
     const TransformationComponent* cameraTrans,
     const CameraComponent* cameraComp,

@@ -38,17 +38,11 @@
 #include "RenderingSystem_Debug.h"
 #endif
 
-#define MAX_VERTEX_COUNT 512
-#define MAX_INDICE_COUNT 1024
-
-struct VertexData {
-    glm::vec3 position;
-    glm::vec2 uv;
-};
-
 static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, VertexData* out);
 
 bool firstCall;
+
+GLuint activeProgramColorU;
 
 RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo) {
     if (useFbo) {
@@ -90,11 +84,6 @@ static int drawBatchES2(
         // update buffer
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
             batchVertexCount * sizeof(VertexData), vertices))
-        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
-
-        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), 0))
-        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
-        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)sizeof(glm::vec3)))
 
         GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
 #else
@@ -200,17 +189,24 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, b
     GL_OPERATION( glUniformMatrix4fv(shader.uniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)))
     // upload texture uniforms
     GL_OPERATION(glUniform1i(shader.uniformColorSampler, 0))
-    GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
+    if (shader.uniformAlphaSampler != (unsigned int)(~0)) {
+        GL_OPERATION(glUniform1i(shader.uniformAlphaSampler, 1))
+    }
     // upload color uniform
-    GL_OPERATION(glUniform4fv(shader.uniformColor, 1, color.rgba))
+    activeProgramColorU = shader.uniformColor;
+    GL_OPERATION(glUniform4fv(activeProgramColorU, 1, color.rgba))
+
+    GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+
+    GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), 0))
+    GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+    GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)sizeof(glm::vec3)))
+
     return ref;
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // Worst case scenario: 3 vertices per triangle (no shared vertices)
-    static VertexData vertices[MAX_VERTEX_COUNT];
-    static unsigned short indices[MAX_INDICE_COUNT];
-
     unsigned indiceCount = 0;
     // Rendering state
     struct {
@@ -427,10 +423,13 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #endif
             }
             useFbo = rcUseFbo;
-            if (currentColor != rc.color || condTexture) {
+            if (condTexture) {
                 currentColor = rc.color;
                 currentEffect =
                     changeShaderProgram(currentEffect, firstCall, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
+            } else if (currentColor != rc.color) {
+                currentColor = rc.color;
+                GL_OPERATION(glUniform4fv(activeProgramColorU, 1, currentColor.rgba))
             }
         }
 

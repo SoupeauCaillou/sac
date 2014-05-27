@@ -44,6 +44,7 @@ typedef int VerticesRef;
 
 struct TransformationComponent;
 struct GLState;
+struct VertexData;
 
 namespace RenderingFlags
 {
@@ -214,4 +215,6 @@ private:
     bool hasDiscardExtension;
     PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT;
 #endif
+    VertexData* vertices;
+    unsigned short* indices;
 };
