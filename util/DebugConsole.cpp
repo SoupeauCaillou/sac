@@ -81,10 +81,11 @@ void DebugConsole::initTW() {
     TwAddVarRW(bar, "Show z prepass", TW_TYPE_BOOLCPP, &theRenderingSystem.highLight.zPrePass, "group=Rendering");
     TwAddVarRW(bar, "Wireframe", TW_TYPE_BOOLCPP, &theRenderingSystem.wireframe, "group=Rendering");
 
+#if !DISABLE_COLLISION_SYSTEM
     // Collision debug
     TwAddVarRW(bar, "Show debug", TW_TYPE_BOOLCPP, &theCollisionSystem.showDebug, "group=Collision");
     TwAddVarRW(bar, "Max raycast per sec", TW_TYPE_FLOAT, &theCollisionSystem.maximumRayCastPerSec, "group=Collision");
-
+#endif
 }
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
