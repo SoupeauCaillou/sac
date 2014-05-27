@@ -30,7 +30,9 @@
 #include "systems/AutoDestroySystem.h"
 
 #include "util/Random.h"
+#if !SAC_EMSCRIPTEN
 #include <thread>
+#endif
 
 Entity GameCenterAPIDebugImpl::createAutodestroySuccess(float duration) {
     static float lastCreatedDestroySchedule = 0;
@@ -108,11 +110,15 @@ void GameCenterAPIDebugImpl::submitScore(int leaderboardID, const std::string & 
 
 void GameCenterAPIDebugImpl::getWeeklyRank(int leaderboardID, std::function<void (int rank)> func) {
     // emulate async op
+    #if !SAC_EMSCRIPTEN
     std::thread t([func] () -> void {
         std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 * Random::Float(2, 5))));
         func(Random::Int(1, 50));
     });
     t.detach();
+    #else
+    func(Random::Int(1, 50));
+    #endif
 }
 
 void GameCenterAPIDebugImpl::openAchievement() {
