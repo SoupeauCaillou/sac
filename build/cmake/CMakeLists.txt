@@ -24,6 +24,9 @@ endif()
 message ("Build platform: ${varplatform}")
 add_definitions(-DSAC_${VARPLATFORM})
 
+SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
+SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+
 #######################################################################
 ############Check build target (release/debug)#########################
 #######################################################################
