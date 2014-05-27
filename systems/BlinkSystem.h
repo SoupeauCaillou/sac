@@ -22,6 +22,7 @@
 
 #pragma once
 
+#if !DISABLE_BLINK_SYSTEM
 #include "System.h"
 
 
@@ -44,3 +45,4 @@ struct BlinkComponent {
 
 UPDATABLE_SYSTEM(Blink)
 };
+#endif

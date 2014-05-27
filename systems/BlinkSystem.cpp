@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_BLINK_SYSTEM
 
 #include "BlinkSystem.h"
 #include "RenderingSystem.h"
@@ -47,4 +47,4 @@ void BlinkSystem::DoUpdate(float dt) {
         }
     END_FOR_EACH()
 }
-
+#endif
