@@ -485,8 +485,16 @@ int Game::saveState(uint8_t**) {
     return 0;
 }
 
+static float accumulator = 0.0f;
+static float currentTime = 0.0f;
 void Game::step() {
     PROFILE("Game", "step", BeginEvent);
+
+    theRenderingSystem.waitDrawingComplete();
+
+    float newTime = TimeUtil::GetTime();
+    float frameTime = newTime - currentTime;
+    currentTime = newTime;
 
     theEntityManager.entityTemplateLibrary.update();
 
@@ -500,19 +508,6 @@ void Game::step() {
     theJoystickManager.Update();
 #endif
 
-    theRenderingSystem.waitDrawingComplete();
-
-    float timeBeforeThisStep, delta = 0;
-#if 0
-    do {
-        if (delta > 0.0f)
-            TimeUtil::Wait(0.015 - delta);
-#endif
-        timeBeforeThisStep = TimeUtil::GetTime();
-        delta = timeBeforeThisStep - lastUpdateTime;
-#if 0
-    } while (delta < 0.015);
-#endif
 
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
@@ -520,106 +515,102 @@ void Game::step() {
     PROFILE("Game", framename.str(), InstantEvent);
 #endif
 
-    // update game state
-#if SAC_INGAME_EDITORS
-    static float speedFactor = 1.0f;
-    static bool oneStepEnabled = false;
+    accumulator += frameTime;
 
-    Uint8 *keystate = SDL_GetKeyState(NULL);
-    // Always tick levelEditor (manages AntTweakBar stuff)
-    PROFILE("Game", "AntTweakBar", BeginEvent);
-    levelEditor->tick(delta);
-    PROFILE("Game", "AntTweakBar", EndEvent);
+    while (accumulator >= targetDT)
+    {
+        // update game state
+    #if SAC_INGAME_EDITORS
+        static float speedFactor = 1.0f;
+        static bool oneStepEnabled = false;
 
-    if (keystate[SDLK_F1])
-        gameType = GameType::Default;
-    else if (keystate[SDLK_F2])
-        gameType = GameType::LevelEditor;
-    else if (keystate[SDLK_F3])
-        gameType = GameType::SingleStep;
+        Uint8 *keystate = SDL_GetKeyState(NULL);
+        // Always tick levelEditor (manages AntTweakBar stuff)
+        PROFILE("Game", "AntTweakBar", BeginEvent);
+        levelEditor->tick(targetDT);
+        PROFILE("Game", "AntTweakBar", EndEvent);
 
-    switch (gameType) {
-        case GameType::LevelEditor:
-            delta = 0;
-            break;
-        case GameType::SingleStep:
-            delta = 1.0f/60;
-            LOGI("Single stepping the game (delta: " << delta << " ms)");
-            Draw::Update();
-            tick(delta);
+        if (keystate[SDLK_F1])
+            gameType = GameType::Default;
+        else if (keystate[SDLK_F2])
             gameType = GameType::LevelEditor;
-            break;
-        default:
-            Draw::Update();
-            if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
-                speedFactor = glm::max(speedFactor - 1 * delta, 0.0f);
-            } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
-                speedFactor += 1 * delta;
-            } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F7]) {
-                oneStepEnabled = true;
-                levelEditor->tick(delta);
-                speedFactor = 1;
-            } else if (keystate[SDLK_KP_ENTER]) {
-                speedFactor = 1;
-            }
-            delta *= speedFactor;
-            tick(delta);
-    }
-#else
-    LOGV(1, "Update game");
-    Draw::Update();
-    tick(delta);
-#endif
+        else if (keystate[SDLK_F3])
+            gameType = GameType::SingleStep;
 
-#if SAC_INGAME_EDITORS
-    if (delta > 0) {
-#endif
+        switch (gameType) {
+            case GameType::LevelEditor:
+                break;
+            case GameType::SingleStep:
+                LOGI("Single stepping the game (delta: " << targetDT << " ms)");
+                Draw::Update();
+                tick(targetDT);
+                gameType = GameType::LevelEditor;
+                break;
+            default:
+                Draw::Update();
+                if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
+                    speedFactor = glm::max(speedFactor - 1 * targetDT, 0.0f);
+                } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
+                    speedFactor += 1 * targetDT;
+                } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F7]) {
+                    oneStepEnabled = true;
+                    levelEditor->tick(targetDT);
+                    speedFactor = 1;
+                } else if (keystate[SDLK_KP_ENTER]) {
+                    speedFactor = 1;
+                }
 
-    #if SAC_ENABLE_LOG
-        static int timer = 0;
-        //every 60 secs, log it
-        if (++timer == 60*60) {
-            timer = 0;
-            for (auto* sys : unusedSystems) {
-                LOGW("System " << sys->getName() << " has (yet) not been used");
-            }
+                tick(targetDT * speedFactor);
         }
+    #else
+        LOGV(1, "Update game");
+        Draw::Update();
+        tick(targetDT);
     #endif
 
-    LOGV(2, "Update systems");
+        accumulator -= targetDT;
 
-    for (auto* sys : orderedSystemsToUpdate) {
-        #if SAC_ENABLE_LOG
-            //if system contains entities, remove it from "unused" systems set
-            if (sys->entityCount()) {
-                std::set<ComponentSystem*>::iterator systemIt;
-                if ((systemIt = unusedSystems.find(sys)) != unusedSystems.end()) {
-                    unusedSystems.erase(systemIt);
+#if SAC_INGAME_EDITORS
+        if (gameType != GameType::LevelEditor) {
+#endif
+
+#if SAC_ENABLE_LOG
+            static int timer = 0;
+            //every 60 secs, log it
+            if (++timer == 60*60) {
+                timer = 0;
+                for (auto* sys : unusedSystems) {
+                    LOGW("System " << sys->getName() << " has (yet) not been used");
                 }
             }
-        #endif
-        sys->Update(delta);
-    }
-#if SAC_INGAME_EDITORS
-    } else {
-        theAnchorSystem.Update(delta);
-    }
-    if (oneStepEnabled) {
-        LOGI("one more step");
-        oneStepEnabled = false;
-        speedFactor = 0.;
-    }
-
 #endif
+
+            LOGV(2, "Update systems");
+
+            for (auto* sys : orderedSystemsToUpdate) {
+                #if SAC_ENABLE_LOG
+                    //if system contains entities, remove it from "unused" systems set
+                    if (sys->entityCount()) {
+                        std::set<ComponentSystem*>::iterator systemIt;
+                        if ((systemIt = unusedSystems.find(sys)) != unusedSystems.end()) {
+                            unusedSystems.erase(systemIt);
+                        }
+                    }
+                #endif
+                sys->Update(targetDT);
+            }
+#if SAC_INGAME_EDITORS
+        }
+        if (oneStepEnabled) {
+            LOGI("one more step");
+            oneStepEnabled = false;
+            speedFactor = 0.;
+        }
+#endif
+    }
     LOGV(2, "Produce rendering frame");
     // produce 1 new frame
     theRenderingSystem.Update(0);
-
-    float updateDuration = TimeUtil::GetTime() - timeBeforeThisStep;
-    if (updateDuration < 0.016) {
-        //TimeUtil::Wait(0.016 - updateDuration);
-    }
-    lastUpdateTime = timeBeforeThisStep;
 
     PROFILE("Game", "step", EndEvent);
 }
