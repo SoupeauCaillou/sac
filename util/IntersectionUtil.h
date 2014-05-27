@@ -66,8 +66,7 @@ class IntersectionUtil {
         static bool rectangleRectangleAABB(const TransformationComponent* tc1,
             const TransformationComponent* tc2);
 
-        static inline bool rectangleRectangleAABB(const AABB& a1,
-            const AABB& a2) { return !(a1.right < a2.left || a2.right < a1.left || a1.top < a2.bottom || a2.top < a1.bottom); }
+        static bool rectangleRectangleAABB(const AABB& a1, const AABB& a2);
 
         static bool rectangleRectangle(const TransformationComponent* tc1,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot);

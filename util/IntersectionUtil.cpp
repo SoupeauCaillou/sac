@@ -248,6 +248,14 @@ bool IntersectionUtil::rectangleRectangleAABB(const TransformationComponent* tc1
     return rectangleRectangleAABB(a1, a2);
 }
 
+bool IntersectionUtil::rectangleRectangleAABB(const AABB& a1, const AABB& a2) {
+    return !(
+        a1.right < a2.left ||
+        a2.right < a1.left ||
+        a1.top < a2.bottom ||
+        a2.top < a1.bottom);
+}
+
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot) {
     // quick out
