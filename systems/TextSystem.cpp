@@ -206,7 +206,7 @@ static void adjustLineHorizontalCentering(std::vector<Entity>& charInLine, const
 }
 
 void TextSystem::DoUpdate(float dt) {
-    if (!components.empty() && fontRegistry.empty()) {
+    if (!entityWithComponent.empty() && fontRegistry.empty()) {
         LOGW("Trying to use Text, with no font defined");
         return;
     }
