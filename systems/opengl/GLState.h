@@ -24,6 +24,7 @@ struct GLState {
     GLState();
 
     struct Viewport {
+        Viewport():w(0),h(0){}
         int w, h;
 
         void update(int _w, int _h, GLUpdateOption::Enum option = GLUpdateOption::IfDirty);
@@ -36,6 +37,7 @@ struct GLState {
     } clear;
 
     struct Flags {
+        Flags():current(0){}
         uint32_t current;
 
         uint32_t update(uint32_t bits, GLUpdateOption::Enum option = GLUpdateOption::IfDirty);
