@@ -145,10 +145,10 @@ static void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, int nFrameHei
     }
 }
 
-#define TARGET_FPS 30.0
+#define TARGET_FPS 60.0
 #define TIME_BETWEEN_FRAME (1.0f/TARGET_FPS)
 
-Recorder & Recorder::Instance() {         
+Recorder & Recorder::Instance() {
     static Recorder instance;
     return instance;
 }
@@ -173,16 +173,16 @@ Recorder::~Recorder(){
     vpx_codec_destroy(&codec);
     vpx_img_free (&raw);
 
-    glDeleteBuffers(PBO_COUNT, pboIds);
+    GL_OPERATION(glDeleteBuffers(PBO_COUNT, pboIds))
 }
 
 bool Recorder::initOpenGl_PBO (){
     // init PBOs
-    glGenBuffers(PBO_COUNT, pboIds);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ);
+    GL_OPERATION(glGenBuffers(PBO_COUNT, pboIds))
+    GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]))
+    GL_OPERATION(glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ))
+    GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]))
+    GL_OPERATION(glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ))
 
     return true;
 }
@@ -297,16 +297,16 @@ void Recorder::record(float dt){
             int nextIndex = (index + 1) % PBO_COUNT;
 
             // set the target framebuffer to read
-            glReadBuffer(GL_FRONT);
+            GL_OPERATION(glReadBuffer(GL_FRONT))
 
             // read pixels from framebuffer to PBO
             // glReadPixels() should return immediately.
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
-            glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+            GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]))
+            GL_OPERATION(glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0))
             PROFILE("Recorder", "read-request", EndEvent);
             PROFILE("Recorder", "read-back", BeginEvent);
             // map the PBO to process its data by CPU
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
+            GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]))
             GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER,
                                                     GL_READ_ONLY);
             if(ptr)
@@ -319,11 +319,11 @@ void Recorder::record(float dt){
                 cond.notify_all();
                 mutex_buf.unlock();
 
-                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                GL_OPERATION(glUnmapBuffer(GL_PIXEL_PACK_BUFFER))
             }
 
             // back to conventional pixel operation
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+            GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, 0))
             PROFILE("Recorder", "read-back", EndEvent);
 
             frameGrabAccum -= TIME_BETWEEN_FRAME;

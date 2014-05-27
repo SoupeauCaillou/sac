@@ -43,7 +43,7 @@ class Recorder {
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>
 
-#include <GL/glew.h>
+#include "systems/opengl/OpenglHelper.h"
 
 class Recorder {
     public:
