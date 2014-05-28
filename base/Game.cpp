@@ -502,11 +502,6 @@ void Game::step() {
     theEntityManager.entityTemplateLibrary.updateReload();
 #endif
 
-    theTouchInputManager.Update();
-
-#if !SAC_MOBILE
-    theJoystickManager.Update();
-#endif
 
 
 #if SAC_ENABLE_PROFILING
@@ -519,6 +514,12 @@ void Game::step() {
 
     while (accumulator >= targetDT)
     {
+        theTouchInputManager.Update();
+
+    #if !SAC_MOBILE
+        // theJoystickManager.Update();
+    #endif
+
         // update game state
     #if SAC_INGAME_EDITORS
         static float speedFactor = 1.0f;
