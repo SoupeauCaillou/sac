@@ -32,8 +32,7 @@ typedef uint8_t EffectRef;
 
 struct Shader {
     GLuint program;
-    GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor, uniformCamera;
-    GLuint uniformUVScaleOffset, uniformRotation, uniformScaleZ;
+    GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
 };
 
 #define DEFAULT_FRAGMENT "default.fs"
