@@ -212,7 +212,6 @@ public:
     bool wireframe;
 #endif
     uint16_t nextConstantOffset;
-    uint16_t computedConstantOffset;
 
 private:
     // GL state
