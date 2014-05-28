@@ -40,8 +40,6 @@
 
 static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, VertexData* out);
 
-bool firstCall;
-
 GLuint activeProgramColorU;
 
 RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo) {
@@ -67,9 +65,10 @@ static int drawBatchES2(
     ) {
 
     if (batchTriangleCount > 0) {
+        /* at this point, GL_TEXTURE0 is always the active texture */
         GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
 
-        if (firstCall) {
+        if (false /* firstCall */) {
             // GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
         } else {
             GL_OPERATION(glActiveTexture(GL_TEXTURE1))
@@ -217,8 +216,8 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     *triangleCount += polygon.indices.size() / 3;
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool _firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
-    const Shader& shader = effectRefToShader(ref, _firstCall, colorEnabled, useTexturing);
+EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool alphaBlendingOn, bool useTexturing, const Color& color, const glm::mat4& mvp, bool colorEnabled) {
+    const Shader& shader = effectRefToShader(ref, alphaBlendingOn, colorEnabled, useTexturing);
     // change active shader
     GL_OPERATION(glUseProgram(shader.program))
     // upload transform matrix (perspective + view)
@@ -303,7 +302,6 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             PROFILE("Render", "begin-render-frame", InstantEvent);
 
-            firstCall = true;
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
             LOGV(2, "   camera: pos=" << camera.worldPos.position.x << ',' << camera.worldPos.position.y
                 << "size=" << camera.worldPos.size.x << ',' << camera.worldPos.size.y
@@ -330,7 +328,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     glm::vec3(-camera.worldPos.position, 0.0f));
 
             // setup initial GL state
-            currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, true, currentColor, camViewPerspMatrix);
+            currentEffect = changeShaderProgram(DefaultEffectRef, false /* blending-off */, true, currentColor, camViewPerspMatrix);
 
             glState.flags.update(OpaqueFlagSet);
             activeVertexBuffer = 1;
@@ -363,9 +361,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             // iff EnableBlendingBit changed
             if (flagBitsChanged & EnableBlendingBit ) {
                 if (rc.flags & EnableBlendingBit) {
-                    firstCall = false;
                     if (currentEffect == DefaultEffectRef) {
-                        currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix);
+                        currentEffect = changeShaderProgram(DefaultEffectRef, true /* blending on */, useTexturing, currentColor, camViewPerspMatrix);
                     }
                 }
             }
@@ -373,7 +370,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             // iff EnableColorWriteBit changed
             if (flagBitsChanged & EnableColorWriteBit ) {
                 if (currentEffect == DefaultEffectRef) {
-                    currentEffect = changeShaderProgram(DefaultEffectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, rc.flags & EnableColorWriteBit);
+                    currentEffect = changeShaderProgram(DefaultEffectRef, (rc.flags & EnableBlendingBit), useTexturing, currentColor, camViewPerspMatrix, rc.flags & EnableColorWriteBit);
                 }
             }
 
@@ -393,7 +390,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             // flush before changing effect
             indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
-            currentEffect = changeShaderProgram(rc.effectRef, firstCall, useTexturing, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
+            currentEffect = changeShaderProgram(rc.effectRef, currentFlags & EnableBlendingBit, useTexturing, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
         }
 
         // SETUP TEXTURING
@@ -424,8 +421,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 rc.glref.color = whiteTexture;
         } else {
             rc.glref = InternalTexture::Invalid;
-            // hum
-            if (firstCall) {
+
+            if (!(currentFlags & EnableBlendingBit)) {
                 rc.glref.color = whiteTexture;
                 rc.glref.alpha = whiteTexture;
             }
@@ -468,7 +465,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             if (condTexture) {
                 currentColor = rc.color;
                 currentEffect =
-                    changeShaderProgram(currentEffect, firstCall, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
+                    changeShaderProgram(currentEffect, currentFlags & EnableBlendingBit, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
             } else if (currentColor != rc.color) {
                 currentColor = rc.color;
                 GL_OPERATION(glUniform4fv(activeProgramColorU, 1, currentColor.rgba))
@@ -620,10 +617,10 @@ static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const
     }
 }
 
-const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture) {
+const Shader& RenderingSystem::effectRefToShader(EffectRef ref, bool alphaBlendingOn, bool colorEnabled, bool hasTexture) {
     if (ref == DefaultEffectRef) {
         if (colorEnabled) {
-            if (firstCall) {
+            if (!alphaBlendingOn) {
                 ref = defaultShaderNoAlpha;
             } else if (hasTexture) {
                 ref = defaultShader;
