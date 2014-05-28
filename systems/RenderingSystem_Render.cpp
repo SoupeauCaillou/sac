@@ -55,10 +55,7 @@ static int drawBatchES2(
     const RenderingSystem::ColorAlphaTextures glref
     , const VertexData* vertices
     , const unsigned short* indices
-    , int
-#if SAC_USE_VBO
-    batchVertexCount
-#endif
+    , int batchVertexCount
     , int batchTriangleCount
     , unsigned indiceCount
     , int activeVertexBuffer
@@ -76,7 +73,6 @@ static int drawBatchES2(
             GL_OPERATION(glActiveTexture(GL_TEXTURE0))
         }
 
-#if SAC_USE_VBO
         // update vertex buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[activeVertexBuffer]))
         if (activeVertexBuffer == 1) {
@@ -94,12 +90,6 @@ static int drawBatchES2(
         GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)sizeof(glm::vec3)))
 
         GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
-#else
-        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), &vertices[0].position))
-        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
-        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), &vertices[0].uv))
-        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
-#endif
 
         // orphan
         GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,

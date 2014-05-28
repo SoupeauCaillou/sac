@@ -150,16 +150,11 @@ void RenderingSystem::init() {
     // GL_OPERATION(glDepthRangef(0, 1))
     GL_OPERATION(glDepthMask(false))
 
-#if SAC_USE_VBO
     GL_OPERATION(glGenBuffers(3, glBuffers))
-#else
-    GL_OPERATION(glGenBuffers(1, glBuffers))
-#endif
 
     // create a VBO for indices
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
 
-#if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[1]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
@@ -167,7 +162,6 @@ void RenderingSystem::init() {
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[2]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
             MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
-#endif
 
     GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 

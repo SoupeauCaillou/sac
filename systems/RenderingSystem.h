@@ -195,11 +195,7 @@ private:
     void updateReload();
 #endif
 public:
-#if SAC_USE_VBO
     GLuint glBuffers[3];
-#else
-    GLuint glBuffers[1];
-#endif
 
 #if SAC_INGAME_EDITORS
     struct {

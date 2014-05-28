@@ -89,11 +89,9 @@ static Shader buildShaderFromFileBuffer(const char* vsName, const FileBuffer& fr
     out.uniformAlphaSampler = glGetUniformLocation(out.program, "tex1");
     out.uniformColor= glGetUniformLocation(out.program, "vColor");
     out.uniformCamera = glGetUniformLocation(out.program, "uCamera");
-    #if SAC_USE_VBO
-        out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
-        out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
-        out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
-    #endif
+    out.uniformUVScaleOffset = glGetUniformLocation(out.program, "uvScaleOffset");
+    out.uniformRotation = glGetUniformLocation(out.program, "uRotation");
+    out.uniformScaleZ = glGetUniformLocation(out.program, "uScaleZ");
 
     glDeleteShader(vs);
     glDeleteShader(fs);

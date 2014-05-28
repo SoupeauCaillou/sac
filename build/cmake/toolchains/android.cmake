@@ -1,7 +1,6 @@
 set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/build/cmake/toolchains/android.toolchain.cmake)
 
 ADD_DEFINITIONS(-DSAC_MOBILE=1)
-ADD_DEFINITIONS(-DSAC_USE_VBO=1)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -W")
@@ -41,7 +40,7 @@ endif()
 #########Generate plugins list needed for the application##############
 #######################################################################
     #clean file
-    file (WRITE "${PROJECT_SOURCE_DIR}/res/values/plugins.xml" 
+    file (WRITE "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
         "<?xml version='1.0' encoding='UTF-8'?>\n<resources>\n\t<string-array name='plugins_list'>\n")
 
     # get the list of plugins bundled with the APK, in project.properties file
@@ -58,11 +57,11 @@ endif()
 
     # and find package/class names for each of these plugins
     foreach (PLUGIN_PATH ${PLUGINS_LIST})
-        # Assume that package name convention is 
+        # Assume that package name convention is
         # net.damsy.soupeaucaillou.[plugin folder in lowercase and without 'sac' prefix ]
         string (TOLOWER "${PLUGIN_PATH}" plugin_path)
         string(REGEX REPLACE ".+/sac(.*)$" "net.damsy.soupeaucaillou.\\1" PACKAGE_NAME ${plugin_path})
-        
+
         # Assume that plugin name convention is
         # [plugin folder with 'Plugin' suffix]
         string(REGEX REPLACE ".*/(.*)$" "\\1Plugin" CLASS_NAME ${PLUGIN_PATH})
@@ -110,14 +109,14 @@ function (postbuild_specific_actions)
 
     # 4. copy lib to obj
     add_custom_command(
-        TARGET "sac" POST_BUILD 
+        TARGET "sac" POST_BUILD
         COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/obj/local/${ANDROID_NDK_ABI_NAME}/
         COMMAND cp ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/libsac.so ${PROJECT_SOURCE_DIR}/obj/local/${ANDROID_NDK_ABI_NAME}/
     )
 
     # 5. strip symbols
     add_custom_command(
-        TARGET "sac" POST_BUILD 
+        TARGET "sac" POST_BUILD
         COMMAND ${CMAKE_STRIP} ${PROJECT_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/libsac.so
     )
 endfunction()
