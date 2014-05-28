@@ -12,6 +12,7 @@
 #define EnableZWriteBit       0x1
 #define EnableBlendingBit     0x2
 #define EnableColorWriteBit   0x4
+#define EnableConstantBit     0x8
 
 namespace GLUpdateOption {
     enum Enum {

@@ -51,8 +51,10 @@ namespace RenderingFlags
     const uint8_t NonOpaque        = 0x01;
     const uint8_t MirrorHorizontal = 0x02;
     const uint8_t ZPrePass         = 0x04;
-    const uint8_t FastCulling      = 0x08;
-    const uint8_t TextureIsFBO     = 0x10;
+    const uint8_t Constant         = 0x08;
+    const uint8_t FastCulling      = 0x10;
+    const uint8_t TextureIsFBO     = 0x20;
+    const uint8_t ConstantNeedsUpdate = 0x40;
 }
 
 struct RenderingComponent {
@@ -60,6 +62,7 @@ struct RenderingComponent {
         texture(InvalidTextureRef),
         show(false),
         flags(0),
+        indiceOffset(0),
         effectRef(DefaultEffectRef),
         cameraBitMask(1),
         color(Color())
@@ -71,6 +74,7 @@ struct RenderingComponent {
     };
     uint8_t show;           // 8 bits
     uint8_t flags;          // 8 bits
+    uint16_t indiceOffset; // 16
     EffectRef effectRef;    // 8 bits
     uint8_t cameraBitMask;  // 8 bits
     Color color;            // 128 bits
@@ -207,6 +211,8 @@ public:
 
     bool wireframe;
 #endif
+    uint16_t nextConstantOffset;
+    uint16_t computedConstantOffset;
 
 private:
     // GL state

@@ -61,6 +61,7 @@ struct RenderingSystem::RenderCommand {
     glm::vec2 position;
     float rotation;
     int flags, shapeType;
+    uint16_t indiceOffset;
     uint8_t rflags;
     bool rotateUV;
 #if SAC_DEBUG
@@ -75,7 +76,7 @@ struct VertexData {
     glm::vec2 uv;
 };
 
-#define MAX_VERTEX_COUNT 512
+#define MAX_VERTEX_COUNT 2048
 #define MAX_INDICE_COUNT 1024
 
 void packCameraAttributes(

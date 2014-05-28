@@ -73,6 +73,10 @@ inline std::ostream& operator<<(std::ostream& stream, const BatchFlushInfo & v) 
                 stream << "EnableColorWriteBit ";
             else
                 stream << "DisableColorWriteBit ";
+            if (v.newFlags & EnableConstantBit)
+                stream << "EnableConstantBit ";
+            else
+                stream << "DisableConstantBit ";
             stream << "]";
             break;
         case BatchFlushReason::NewColor:
