@@ -52,8 +52,7 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
 }
 
 static int drawBatchES2(
-    const RenderingSystem::ColorAlphaTextures glref
-    , const VertexData* vertices
+    const VertexData* vertices
     , const unsigned short* indices
     , int batchVertexCount
     , int batchTriangleCount
@@ -62,17 +61,6 @@ static int drawBatchES2(
     ) {
 
     if (batchTriangleCount > 0) {
-        /* at this point, GL_TEXTURE0 is always the active texture */
-        GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
-
-        if (false /* firstCall */) {
-            // GL_OPERATION(glBindTexture(GL_TEXTURE_2D, 0))
-        } else {
-            GL_OPERATION(glActiveTexture(GL_TEXTURE1))
-            GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
-            GL_OPERATION(glActiveTexture(GL_TEXTURE0))
-        }
-
         // update vertex buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[activeVertexBuffer]))
         if (activeVertexBuffer == 1) {
@@ -221,8 +209,6 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, bool alphaBlending
     activeProgramColorU = shader.uniformColor;
     GL_OPERATION(glUniform4fv(activeProgramColorU, 1, color.rgba))
 
-
-
     return ref;
 }
 
@@ -272,8 +258,6 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
     int activeVertexBuffer = 1;
 
-    #define TEX chooseTextures(boundTexture, fboRef, useFbo)
-
     // The idea here is to browse through the list of _ordered_ list of
     // render command to execute. We try to group (batch) them in single
     // GL commands. When a GL state change is required (new color, new
@@ -288,7 +272,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::NewCamera, batchTriangleCount));
             #endif
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
 
             PROFILE("Render", "begin-render-frame", InstantEvent);
 
@@ -343,7 +327,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             batchSizes.push_back(std::make_pair(BatchFlushInfo(BatchFlushReason::NewFlags, rc.flags), batchTriangleCount));
             #endif
             // flush batch before changing state
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
 
             const int flagBitsChanged = glState.flags.update(rc.flags);
@@ -378,7 +362,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             batchSizes.push_back(std::make_pair(BatchFlushReason::NewEffect, batchTriangleCount));
             #endif
             // flush before changing effect
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
             currentEffect = changeShaderProgram(rc.effectRef, currentFlags & EnableBlendingBit, useTexturing, currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
         }
@@ -439,7 +423,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             }
             #endif
             // flush before changing texture/color
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
             if (rcUseFbo) {
                 fboRef = rc.framebuffer;
                 boundTexture = InternalTexture::Invalid;
@@ -456,6 +440,17 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 currentColor = rc.color;
                 currentEffect =
                     changeShaderProgram(currentEffect, currentFlags & EnableBlendingBit, (boundTexture != InternalTexture::Invalid), currentColor, camViewPerspMatrix, currentFlags & EnableColorWriteBit);
+
+                /* Map boundTexture (reference) to the glref (real GL texture handles) */
+                auto glref = chooseTextures(boundTexture, fboRef, useFbo);
+
+                /* Change texture */
+                /*   1. Color texture goes to GL_TEXTURE_0 */
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, glref.first);
+                /*   2. Alpha texture goes to GL_TEXTURE_1 */
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, glref.second);
             } else if (currentColor != rc.color) {
                 currentColor = rc.color;
                 GL_OPERATION(glUniform4fv(activeProgramColorU, 1, currentColor.rgba))
@@ -474,7 +469,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::Full, batchTriangleCount));
             #endif
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
         }
 
         // ADD TO BATCH
@@ -489,9 +484,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     #if SAC_DEBUG
     batchSizes.push_back(std::make_pair(BatchFlushReason::End, batchTriangleCount));
     #endif
-    drawBatchES2(TEX, vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
-
-    #undef TEX
+    drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
 
     #if SAC_DEBUG
     static unsigned ______debug = 0;
