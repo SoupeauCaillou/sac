@@ -44,8 +44,8 @@ message("Build target: " ${BUILD_TARGET})
 include(${PROJECT_SOURCE_DIR}/sac/build/cmake/toolchains/${varplatform}.cmake)
 
 #import gcc/g++ flags relative to toolchain
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_${BUILD_TARGET}}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_${BUILD_TARGET}}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing ${CXX_FLAGS_${BUILD_TARGET}}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing ${C_FLAGS_${BUILD_TARGET}}")
 
 #add flag SAC_DEBUG or SAC_RELEASE
 add_definitions(-DSAC_${BUILD_TARGET})

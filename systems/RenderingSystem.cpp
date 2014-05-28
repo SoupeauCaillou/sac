@@ -77,6 +77,8 @@ RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Re
 
     vertices = new VertexData[MAX_VERTEX_COUNT];
     indices = new unsigned short[MAX_INDICE_COUNT];
+
+    nextConstantOffset = 0;
 }
 
 RenderingSystem::~RenderingSystem() {
@@ -160,7 +162,11 @@ void RenderingSystem::init() {
 #if SAC_USE_VBO
     // 4 vertices per element (2 triangles with 2 shared vertices)
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[1]))
+    GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
+            MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
     GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[2]))
+    GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
+            MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
 #endif
 
     GL_OPERATION(glActiveTexture(GL_TEXTURE0))
@@ -189,13 +195,16 @@ static uint64_t makeKeyOpaque(const RenderingSystem::RenderCommand& rc) {
 
     // end goal is to sort object by key
     // flags:   63...61
-    key |= ((uint64_t)(rc.flags & 0x7)) << 61;
+
+    key |= ((uint64_t)(rc.flags & 0xF)) << 60;
     // z:       60...53
-    key |= (((uint64_t)rc.effectRef) & 0xFF) << 53;
+    key |= (((uint64_t)rc.effectRef) & 0xFF) << 52;
     // texture: 52...45
-    key |= ((uint64_t)rc.atlasIndex & 0xFF) << 45;
+    key |= ((uint64_t)rc.atlasIndex & 0xFF) << 44;
     // color:   44...12
-    key |= ((uint64_t)rc.color.asInt()) << 12;
+    uint64_t color = rc.color.asInt();
+    key |= (0xEFFFFFFF & (color >> 1) << 12);
+
     uint64_t s = (((uint64_t)(rc.zi)) >> 20);
     // z:       11...00
     s = (~s) & 0x3;
@@ -222,8 +231,11 @@ static uint64_t makeKeyBlended(const RenderingSystem::RenderCommand& rc) {
     key |= (((uint64_t)rc.effectRef) & 0xFF) << 40;
     // texture: 39...32
     key |= ((uint64_t)(rc.atlasIndex & 0xFF)) << 32;
-    // color:   31...00
-    key |= rc.color.asInt();
+    key |= ((uint64_t)((rc.rflags & RenderingFlags::Constant) >> 3) << 31);
+     // /* color:   30...00 */
+    uint64_t color = rc.color.asInt();
+    key |= 0xEFFFFFFF & (color >> 1);
+
     return key;
 }
 
@@ -372,9 +384,15 @@ void RenderingSystem::DoUpdate(float) {
             c.shapeType = (int)tc->shape;
             c.position = tc->position;
             c.rotation = tc->rotation;
+            c.rflags = rc->flags;
+            if ((rc->flags & RenderingFlags::Constant) && rc->indiceOffset == 0) {
+                rc->indiceOffset = nextConstantOffset;
+                nextConstantOffset += theTransformationSystem.shapes[tc->shape].vertices.size() * 2;
+                c.rflags |= RenderingFlags::ConstantNeedsUpdate;
+            }
+            c.indiceOffset = rc->indiceOffset;
             c.uv[0] = glm::vec2(0.0f);
             c.uv[1] = glm::vec2(1.0f);
-            c.rflags = rc->flags;
 #if SAC_DEBUG
             c.e = a;
 #endif
@@ -405,6 +423,9 @@ void RenderingSystem::DoUpdate(float) {
                 }
 #endif
             }
+
+            if (c.rflags & RenderingFlags::Constant)
+                c.flags |= EnableConstantBit;
 
             if (c.texture != InvalidTextureRef && !(c.rflags & RenderingFlags::TextureIsFBO)) {
                 const TextureInfo* info = textureLibrary.get(c.texture, false);
@@ -444,7 +465,12 @@ void RenderingSystem::DoUpdate(float) {
                         // (opaqueStart/Size attributes do not depend on this)
                         modifyR(cCenter, info->opaqueStart, info->opaqueSize);
 
-                        if (cull(camTrans, cCenter)) {
+                        if (c.rflags & RenderingFlags::Constant) {
+                            cCenter.indiceOffset = c.indiceOffset + theTransformationSystem.shapes[tc->shape].vertices.size();
+                            cCenter.flags |= EnableConstantBit;
+                        }
+
+                        if (1 /*cull(camTrans, cCenter)*/) {
                             cCenter.key = makeKeyOpaque(cCenter);
                             opaqueCommands[opaqueIndex++] = cCenter;
                         }
@@ -463,9 +489,11 @@ void RenderingSystem::DoUpdate(float) {
             }
 
              if (!(c.rflags & RenderingFlags::FastCulling) && tc->shape == Shape::Square) {
+                #if 0
                 if (!cull(camTrans, c)) {
                     continue;
                 }
+                #endif
              }
 
             if (c.rflags & RenderingFlags::NonOpaque) {
