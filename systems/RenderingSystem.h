@@ -144,9 +144,7 @@ public:
     void render();
     void waitDrawingComplete();
 
-    EffectRef changeShaderProgram(EffectRef ref, bool firstCall, bool useTexturing, const Color& color, const glm::mat4& mvp,
-        bool colorEnabled = true);
-    const Shader& effectRefToShader(EffectRef ref, bool firstCall, bool colorEnabled, bool hasTexture);
+    EffectRef changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp);
     glm::vec2 getTextureSize(const char* textureName);
     glm::vec2 getTextureSize(const TextureRef& textureRef);
     void removeExcessiveFrames(int& readQueue, int& writeQueue);
@@ -177,6 +175,7 @@ public:
 private:
 
 void setFrameQueueWritable(bool b);
+EffectRef chooseDefaultShader(bool alphaBlendingOn, bool colorEnabled, bool hasTexture) const;
 
 #if ! SAC_EMSCRIPTEN
     std::mutex *mutexes;
