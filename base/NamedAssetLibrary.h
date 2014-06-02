@@ -66,7 +66,7 @@ class NamedAssetLibrary : public ResourceHotReload {
                     if (sizeof(ref) == sizeof(hash_t))
                         LOGV(1, "\tinv_hash(" << (unsigned int)ref << ") = '" << INV_HASH(ref) << "'");
                     LOGV(1, "ref2indexv content (" << ref2indexv.size() << ":");
-                    for (int i=0; i<ref2indexv.size() ;i++) {
+                    for (int i=0; i<(int)ref2indexv.size() ;i++) {
                         LOGV(1, "  " << i << " -> ref=" << ref2indexv[i].ref << ", index=" << ref2indexv[i].index);
                     }
                 }
