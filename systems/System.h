@@ -43,9 +43,18 @@ class LocalizeAPI;
 #include "AntTweakBar.h"
 #endif
 
+namespace ComponentType {
+    enum Enum {
+        POD,
+        Complex
+    };
+
+}
+
 class ComponentSystem {
     public:
         ComponentSystem(const std::string& n) ;
+        ComponentSystem(const std::string& n, ComponentType::Enum type);
 
         virtual ~ComponentSystem();
 
@@ -80,9 +89,10 @@ class ComponentSystem {
         virtual void DoUpdate(float dt) = 0;
         static std::map<std::string, ComponentSystem*> registry;
 
-        void* enlargeComponentsArray(void* array, size_t compSize, uint32_t* size, uint32_t requested);
+        void* enlargeComponentsArray(void* array, size_t compSize, uint32_t* size, uint32_t requested, bool f);
         void addEntity(Entity e);
     protected:
+        ComponentType::Enum type;
         std::string name;
         std::vector<Entity> entityWithComponent;
         std::list<Entity> suspended;
@@ -101,13 +111,11 @@ class ComponentSystem {
 template <typename T>
 class ComponentSystemImpl: public ComponentSystem {
     public:
-        ComponentSystemImpl(const std::string& t, unsigned defaultStorageSize = 8) : ComponentSystem(t) {
+        ComponentSystemImpl(const std::string& t, ComponentType::Enum type = ComponentType::POD, unsigned defaultStorageSize = 8) : ComponentSystem(t, type) {
             LOGF_IF(defaultStorageSize == 0, "Storage size must be > 0");
-            // enlargeComponentsArray expects a > 0 size. And as components
-            // is null anyway we can do this
-            componentsSize = defaultStorageSize;
+            componentsSize = 0;
             components = reinterpret_cast<T*>
-                (enlargeComponentsArray(0, sizeof(T), &componentsSize, defaultStorageSize));
+                (enlargeComponentsArray(0, sizeof(T), &componentsSize, defaultStorageSize, false));
         }
 
         void Add(Entity entity) {
@@ -115,8 +123,28 @@ class ComponentSystemImpl: public ComponentSystem {
                 std::find(entityWithComponent.begin(), entityWithComponent.end(), entity) != entityWithComponent.end()
                 , "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
 
-            components = reinterpret_cast<T*>
-                (enlargeComponentsArray(components, sizeof(T), &componentsSize, entity));
+            if (entity >= componentsSize) {
+                if (type == ComponentType::POD) {
+                    components = reinterpret_cast<T*>
+                        (enlargeComponentsArray(components, sizeof(T), &componentsSize, entity + 1, true));
+                } else {
+                    auto* original = components;
+                    components = reinterpret_cast<T*>
+                        (enlargeComponentsArray(components, sizeof(T), &componentsSize, entity + 1, false));
+
+
+                    for (auto e: entityWithComponent) {
+                        new (&components[e]) T(original[e]);
+                        // components[e] = original[e];
+                    }
+                    for (auto e: suspended) {
+                        new (&components[e]) T(original[e]);
+                        // components[e] = original[e];
+                    }
+
+                    free (original);
+                }
+            }
 
             LOGT_EVERY_N(1000, "Add a reset method to components");
             // until a reset method method, do it the naive way

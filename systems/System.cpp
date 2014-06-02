@@ -22,7 +22,7 @@
 
 #include "System.h"
 #include "systems/RenderingSystem.h"
-
+#include <stdlib.h>
 #if SAC_INGAME_EDITORS
 #include "systems/opengl/TextureLibrary.h"
 #endif
@@ -39,19 +39,35 @@ ComponentSystem::ComponentSystem(const std::string& n) : name(n)
     LOGF_IF(!inserted, "System with name '" << name << "' already exists");
 }
 
+ComponentSystem::ComponentSystem(const std::string& n, ComponentType::Enum t) : name(n), type(t)
+#if SAC_DEBUG
+    , updateDuration(0)
+#endif
+{
+    bool inserted = registry.insert(std::make_pair(name, this)).second;
+    LOGF_IF(!inserted, "System with name '" << name << "' already exists");
+}
+
 ComponentSystem::~ComponentSystem() {
     registry.erase(name);
 }
 
 void* ComponentSystem::enlargeComponentsArray(
-    void* array, size_t compSize, uint32_t* size, uint32_t requested) {
-// make sure array is big enough
-    while (*size <= requested || (!array)) {
-        LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
-        auto* ptr = realloc(array, (*size) * compSize * 2);
-        array = ptr;
-        (*size) = 2 * (*size);
+    void* array, size_t compSize, uint32_t* size, uint32_t requested, bool freeOldStorage) {
+    // make sure array is big enough
+    void* original = array;
+
+    LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
+    int newSize = glm::max(2 * (*size), requested);
+    void* ptr = NULL;
+    if (freeOldStorage) {
+        ptr = realloc(array, newSize * compSize);
+    } else {
+        ptr = malloc(newSize * compSize);
     }
+    array = ptr;
+    (*size) = newSize;
+
     return array;
 }
 
