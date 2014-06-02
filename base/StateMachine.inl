@@ -56,7 +56,7 @@ void StateMachine<T>::start(T initState) {
     state2Name[currentState] = "Dummy";
 #endif
     transitionning = transition.readyExit = transition.dumbFrom = true;
-    transition.toState = initState;
+    transition.fromState = transition.toState = initState;
     transition.readyEnter = false;
 
     state2handler[initState]->onPreEnter(initState);
