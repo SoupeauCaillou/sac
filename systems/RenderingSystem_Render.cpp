@@ -302,11 +302,6 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                 glm::translate( glm::mat4(1.0f),
                     glm::vec3(-camera.worldPos.position, 0.0f));
 
-            // setup initial GL state
-            currentEffect = InvalidTextureRef;
-            activeDefaultEffect = chooseDefaultShader(false /* blending-off */, true /* color-on */, true /* texture-on */);
-            changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
-
             glState.flags.update(OpaqueFlagSet);
             activeVertexBuffer = 1;
             currentFlags = glState.flags.current;
