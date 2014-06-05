@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !DISABLE_GRAPH_SYSTEM
+#if !DISABLE_GRAPH_SYSTEM || SAC_DEBUG
 #include "GraphSystem.h"
 #include "systems/RenderingSystem.h"
 
@@ -54,7 +54,7 @@ static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth
 
 INSTANCE_IMPL(GraphSystem);
 
-GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>("Graph") {
+GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>("Graph", ComponentType::Complex) {
 
 }
 

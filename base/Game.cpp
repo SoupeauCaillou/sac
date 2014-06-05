@@ -114,8 +114,10 @@ Game::Game() {
 #if !DISABLE_CONTAINER_SYSTEM
     ContainerSystem::CreateInstance();
 #endif
+#if !DISABLE_DEBUGGING_SYSTEM || SAC_DEBUG
     DebuggingSystem::CreateInstance();
-#if !DISABLE_GRAPH_SYSTEM
+#endif
+#if !DISABLE_GRAPH_SYSTEM || SAC_DEBUG
     GraphSystem::CreateInstance();
 #endif
 #if !DISABLE_GRID_SYSTEM
@@ -187,8 +189,10 @@ void Game::buildOrderedSystemsToUpdateList() {
 #if !DISABLE_CONTAINER_SYSTEM
     ADD_IF_EXISTING(ContainerSystem::GetInstancePointer());
 #endif
+#if !DISABLE_DEBUGGING_SYSTEM || SAC_DEBUG
     ADD_IF_EXISTING(DebuggingSystem::GetInstancePointer());
-#if !DISABLE_GRAPH_SYSTEM
+#endif
+#if !DISABLE_GRAPH_SYSTEM || SAC_DEBUG
     ADD_IF_EXISTING(GraphSystem::GetInstancePointer());
 #endif
 #if !DISABLE_GRID_SYSTEM
@@ -256,8 +260,10 @@ Game::~Game() {
 #if !DISABLE_CONTAINER_SYSTEM
     ContainerSystem::DestroyInstance();
 #endif
+#if !DISABLE_DEBUGGING_SYSTEM || SAC_DEBUG
     DebuggingSystem::DestroyInstance();
-#if !DISABLE_GRAPH_SYSTEM
+#endif
+#if !DISABLE_GRAPH_SYSTEM || SAC_DEBUG
     GraphSystem::DestroyInstance();
 #endif
 #if !DISABLE_GRID_SYSTEM

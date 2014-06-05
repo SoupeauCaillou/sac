@@ -19,7 +19,7 @@
 */
 
 #pragma once
-#if !DISABLE_GRAPH_SYSTEM
+#if !DISABLE_GRAPH_SYSTEM || SAC_DEBUG
 
 #include "System.h"
 #include <list>

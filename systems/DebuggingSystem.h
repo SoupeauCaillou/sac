@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_DEBUGGING_SYSTEM || SAC_DEBUG
 
 #pragma once
 
@@ -47,3 +47,5 @@ UPDATABLE_SYSTEM(Debugging)
         Entity fps, entityCount, systems;
         Entity fpsLabel, entityCountLabel;
 };
+
+#endif

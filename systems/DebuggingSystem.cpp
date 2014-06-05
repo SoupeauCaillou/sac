@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if !DISABLE_DEBUGGING_SYSTEM || SAC_DEBUG
 
 #include "DebuggingSystem.h"
 #include "CameraSystem.h"
@@ -46,13 +46,13 @@ static unsigned long frameCount = 0;
 
 INSTANCE_IMPL(DebuggingSystem);
 
-DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging") {
+DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging", ComponentType::Complex) {
     fps = entityCount = systems = fpsLabel = entityCountLabel = 0;
     frameCount = 0;
     enable = false;
 }
 
-#if ! SAC_DEBUG || DISABLE_GRAPH_SYSTEM
+#if ! SAC_DEBUG
 void DebuggingSystem::DoUpdate(float) {}
 void DebuggingSystem::toggle() {}
 
@@ -77,10 +77,10 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     fpsLabel = theEntityManager.CreateEntity(HASH("__debug_label_fps", 0x0));
     ADD_COMPONENT(fpsLabel, Transformation);
-    TRANSFORM(fpsLabel)->size = TRANSFORM(fps)->size;
     ADD_COMPONENT(fpsLabel, Anchor);
     ANCHOR(fpsLabel)->parent = fps;
     ANCHOR(fpsLabel)->z = -0.002f;
+    ANCHOR(fpsLabel)->position = glm::vec2(-.5, -0.6) * TRANSFORM(fps)->size;
 
     ADD_COMPONENT(fpsLabel, Text);
     TEXT(fpsLabel)->positioning = TextComponent::LEFT;
@@ -103,10 +103,10 @@ static void init(Entity camera, Entity& fps, Entity& fpsLabel, Entity& entityCou
 
     entityCountLabel = theEntityManager.CreateEntity(HASH("__debug_label_entityCount", 0x0));
     ADD_COMPONENT(entityCountLabel, Transformation);
-    TRANSFORM(entityCountLabel)->size = TRANSFORM(entityCount)->size;
     ADD_COMPONENT(entityCountLabel, Anchor);
     ANCHOR(entityCountLabel)->parent = entityCount;
     ANCHOR(entityCountLabel)->z = -0.002f;
+    ANCHOR(entityCountLabel)->position = glm::vec2(-.5, -0.6) * TRANSFORM(entityCount)->size;
 
     ADD_COMPONENT(entityCountLabel, Text);
     TEXT(entityCountLabel)->positioning = TextComponent::LEFT;
@@ -132,10 +132,11 @@ static Entity createSystemGraphEntity(const std::string& name, Entity parent, in
     Entity e = theEntityManager.CreateEntity(Murmur::RuntimeHash(name.c_str()));
     ADD_COMPONENT(e, Transformation);
     TRANSFORM(e)->size = TRANSFORM(parent)->size;
+
     ADD_COMPONENT(e, Anchor);
     ANCHOR(e)->parent = parent;
-    ANCHOR(e)->z = -0.002f;
-    ANCHOR(e)->position = TRANSFORM(parent)->size * (-0.5f) - glm::vec2(0.0f, (index + 1) * 0.6f);
+    ANCHOR(e)->z = -0.01;
+    ANCHOR(e)->position = glm::vec2(-.5, -0.6 - 0.15 * (index + 1)) * TRANSFORM(parent)->size;
 
     ADD_COMPONENT(e, Text);
     TEXT(e)->color = color;
@@ -219,8 +220,6 @@ void DebuggingSystem::DoUpdate(float dt) {
         renderStatsEntities.push_back(createSystemGraphEntity("__debug_zprepass_area", fps, 6, FpsTextureName));
         LOGI("Initialize DebugSystem: " << fps << ", " << entityCount << ", " << systems);
     }
-    const glm::vec2 firstLabelOffset(TRANSFORM(activeCamera)->size * glm::vec2(0.3, 0.2) * (-0.5f) - glm::vec2(0, (0.6) * 0.6f));
-    const glm::vec2 labelsSpacing(0, -0.6);
 
     bool reloadTextures = (timeUntilGraphUpdate < 0);
 
@@ -252,21 +251,19 @@ void DebuggingSystem::DoUpdate(float dt) {
         TEXT(renderStatsEntities[3])->text = createLabel("OpSurf", GRAPH(renderStatsEntities[3])->pointsList, 1, " pct");
         TEXT(renderStatsEntities[4])->text = createLabel("NonOpSurf", GRAPH(renderStatsEntities[4])->pointsList, 1, " pct");
         TEXT(renderStatsEntities[5])->text = createLabel("ZppSurf", GRAPH(renderStatsEntities[5])->pointsList, 1, " pct");
-        TRANSFORM(fpsLabel)->position = firstLabelOffset;
         TEXT(entityCountLabel)->text = createLabel("Total", GRAPH(entityCount)->pointsList, 1, "entities");
-        TRANSFORM(entityCountLabel)->position = firstLabelOffset;
     }
-
 
     std::vector<std::string> systemNames = ComponentSystem::registeredSystemNames();
     // sort from highest time consumer to lowest
-    std::sort(systemNames.begin(), systemNames.end(),
+    /*std::sort(systemNames.begin(), systemNames.end(),
         [this](const std::string& s1, const std::string& s2) -> bool {
             const ComponentSystem* system1 = ComponentSystem::Named(s1);
             const ComponentSystem* system2 = ComponentSystem::Named(s2);
             return system1->updateDuration > system2->updateDuration;
         }
-    );
+    );*/
+    int idx = 0;
     for (unsigned i=0; i<systemNames.size(); i++) {
         const ComponentSystem* system = ComponentSystem::Named(systemNames[i]);
 
@@ -289,7 +286,8 @@ void DebuggingSystem::DoUpdate(float dt) {
             } else {
                 TEXT(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms", system->entityCount());
                 TEXT(e)->show = true;
-                TRANSFORM(e)->position = firstLabelOffset + labelsSpacing * (float)i;
+                ANCHOR(e)->position = glm::vec2(-.5, -0.6 - 0.15 * (idx)) * TRANSFORM(systems)->size;
+                idx++;
             }
         }
     }
@@ -376,4 +374,6 @@ void DebuggingSystem::DoUpdate(float dt) {
     }
 #endif
 }
+#endif
+
 #endif
