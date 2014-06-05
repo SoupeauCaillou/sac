@@ -104,7 +104,6 @@ public :
         CharInfo* entries;
     };
 private:
-    std::map<Entity, unsigned int> cache;
 	std::vector<Entity> renderingEntitiesPool;
 	std::map<std::string, FontDesc> fontRegistry;
 };

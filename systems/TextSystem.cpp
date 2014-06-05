@@ -35,38 +35,6 @@
 
 #include "util/MurmurHash.h"
 
-
-struct CacheKey {
-    Color color;
-    float charHeight;
-    float positioning;
-    bool show;
-    int flags;
-    struct {
-        bool show;
-        float speed;
-        float dt;
-    } caret;
-    unsigned cameraBitMask;
-    char textFont[2048];
-
-    unsigned populate(TextComponent* tc) {
-        color = tc->color;
-        charHeight = tc->charHeight;
-        positioning = tc->positioning;
-        // TODO
-        show = tc->show;
-        flags = tc->flags;
-        memcpy(&caret, &tc->caret, sizeof(caret));
-        cameraBitMask = tc->cameraBitMask;
-        int length = tc->text.length();
-        memcpy(textFont, tc->text.c_str(), length);
-        memcpy(&textFont[length], tc->fontName.c_str(), tc->fontName.length());
-        length += tc->fontName.length();
-        return sizeof(CacheKey) - 2048 + length;
-    }
-};
-
 const float TextComponent::LEFT = 0.0f;
 const float TextComponent::CENTER = 0.5f;
 const float TextComponent::RIGHT = 1.0f;
@@ -211,24 +179,11 @@ void TextSystem::DoUpdate(float dt) {
         return;
     }
 
-    CacheKey key;
     unsigned letterCount = 0;
-
-    LOGT_EVERY_N(6000, "TODO: textrendering cache");
 
     FOR_EACH_ENTITY_COMPONENT(Text, entity, trc)
         const unsigned firstEntity = letterCount;
         // compute cache entry
-        if (0 && trc->blink.onDuration == 0) {
-            unsigned keySize = key.populate(trc);
-            unsigned hash = Murmur::RuntimeHash(&key, keySize);
-            std::map<Entity, unsigned int>::iterator c = cache.find(entity);
-            if (c != cache.end()) {
-                if (hash == (*c).second)
-                    continue;
-            }
-            cache[entity] = hash;
-        }
         LOGV(3, "Text: '" << trc->text << "'");
 
         // early quit if hidden
