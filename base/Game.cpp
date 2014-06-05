@@ -517,6 +517,9 @@ void Game::step() {
 #endif
 
     accumulator += frameTime;
+#if SAC_EMSCRIPTEN
+    targetDT = accumulator;
+#endif
 
     while (accumulator >= targetDT)
     {
