@@ -54,7 +54,7 @@ INSTANCE_IMPL(TextSystem);
 TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
     TextComponent tc;
     componentSerializer.add(new StringProperty(HASH("text", 0x4106ae4e), OFFSET(text, tc)));
-    componentSerializer.add(new StringProperty(HASH("font_name", 0x27b3eedc), OFFSET(fontName, tc)));
+    componentSerializer.add(new Property<hash_t>(HASH("font_name", 0x27b3eedc), OFFSET(fontName, tc)));
     componentSerializer.add(new Property<Color>(HASH("color", 0xccc35cf8), OFFSET(color, tc)));
     componentSerializer.add(new Property<float>(HASH("char_height", 0x39ab1256), OFFSET(charHeight, tc), 0.001f));
     componentSerializer.add(new Property<int>(HASH("flags", 0x3de15a28), OFFSET(flags, tc), 0));

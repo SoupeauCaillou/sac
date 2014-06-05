@@ -26,6 +26,7 @@
 #if SAC_INGAME_EDITORS
 #include "systems/opengl/TextureLibrary.h"
 #endif
+#include "util/MurmurHash.h"
 
 std::map<std::string, ComponentSystem*> ComponentSystem::registry;
 
@@ -223,6 +224,7 @@ static std::string varParams(const std::string& group, const std::string& name, 
 static TwType PropertyTypeToType(PropertyType::Enum e) {
     switch (e) {
         case PropertyType::String:
+        case PropertyType::Hash:
             return TW_TYPE_STDSTRING;
         case PropertyType::Float:
         case PropertyType::Vec2:
@@ -243,6 +245,7 @@ static TwType PropertyTypeToType(PropertyType::Enum e) {
 static void textureSetCB(const void* valueIn, void* clientData);
 static void textureGetCB(void* valueOut, void* clientData);
 static void entityGetCB(void* valueOut, void* clientData);
+static void hashGetCB(void* valueOut, void* clientData);
 
 bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
@@ -313,6 +316,11 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                     TW_TYPE_STDSTRING, 0, (TwGetVarCallback)entityGetCB,
                     comp + prop->offset, varParams(group, vname).c_str());
                 break;
+            case PropertyType::Hash:
+                TwAddVarCB(bar, varName(name, vname).c_str(),
+                    TW_TYPE_STDSTRING, 0, (TwGetVarCallback)hashGetCB,
+                    comp + prop->offset, varParams(group, vname).c_str());
+                break;
             default:
                 break;
         }
@@ -349,6 +357,14 @@ static void entityGetCB(void* valueOut, void* clientData) {
         a << theEntityManager.entityName(*r) << '_' << *r;
         TwCopyStdStringToLibrary(*s, a.str());
     }
+}
+
+static void hashGetCB(void* valueOut, void* clientData) {
+    const hash_t* r = static_cast<const hash_t*> (clientData);
+    const char* lk = Murmur::lookup(*r);
+    std::string* s = static_cast<std::string*>(valueOut);
+    // see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twcopystdstringtolibrary
+    TwCopyStdStringToLibrary(*s, std::string(lk));
 }
 
 #endif
