@@ -35,7 +35,7 @@ void ReplayManager::enableReplayMode(const char* sourceFile, AssetAPI* assetAPI)
 unsigned int ReplayManager::getRandomSeed() const {
     LOGF_IF(!replayMode, __FUNCTION__ << " used but replay is disabled");
     unsigned int seed = 0;
-    int result = sourceDfp.get("Misc", "random_seed", &seed);
+    int result = sourceDfp.get(HASH("Misc", 0), "random_seed", &seed);
     LOGF_IF(!result, "Unable to read seed from replay file");
     return seed;
 }
@@ -61,7 +61,7 @@ void ReplayManager::saveMaxTouchingCount(int count) {
 int ReplayManager::maxTouchingCount() {
     #if SAC_DESKTOP
     LOGF_IF(!replayMode, __FUNCTION__ << " used but replay is disabled");
-    int result = sourceDfp.get("Misc", "max_touching_count", &pointerCount);
+    int result = sourceDfp.get(HASH("Misc", 0), "max_touching_count", &pointerCount);
     LOGF_IF(!result, "Unable to read max_touching_count from replay file");
 
     // update touching state
@@ -71,7 +71,7 @@ int ReplayManager::maxTouchingCount() {
     for (int i=0; i<pointerCount; i++) {
         glm::vec2 c;
         sprintf(tmp1, "Pointer_%d", i);
-        if (sourceDfp.get(tmp1, tmp2, &c.x, 2)) {
+        if (sourceDfp.get(Murmur::RuntimeHash(tmp1), tmp2, &c.x, 2)) {
             touching[i].first = true;
             touching[i].second = c;
         } else {

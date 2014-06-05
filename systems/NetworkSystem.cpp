@@ -18,12 +18,13 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if !DISABLE_NETWORK_SYSTEM
+
+// TODO: fix build
 #include "NetworkSystem.h"
 #include "../api/NetworkAPI.h"
 #include "../base/EntityManager.h"
 #include <queue>
-
-#define USE_SYSTEM_IDX 1
 
 struct StatusCache {
     std::map<std::string, uint8_t*> components;
@@ -89,7 +90,7 @@ struct NetworkMessageHeader {
 INSTANCE_IMPL(NetworkSystem);
 
 
-NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>("Network"), networkAPI(0) {
+NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>(HASH("Network", 0x0)), networkAPI(0) {
     nextGuid = 1;
 
     NetworkComponentPriv nc;
@@ -298,18 +299,19 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
     pkt.size = sizeof(NetworkMessageHeader);
 
 #if USE_SYSTEM_IDX
-    const auto& name2ptr = ComponentSystem::registeredSystems();
+    const auto& name2ptr = ComponentSystem::registeredSystemIds();
 #endif
     // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
     for (auto& name : nc->sync) {
         // time to update
 
 #if USE_SYSTEM_IDX
-        auto it = name2ptr.find(name);
+        const auto id = Murmur::RuntimeHash(name.c_str());
+        auto it = std::find(name2ptr.begin(), name2ptr.end(), id);
         ComponentSystem* system = it->second;
         uint8_t idx = std::distance(name2ptr.begin(), it);
 #else
-        ComponentSystem* system = ComponentSystem::Named(name);
+        ComponentSystem* system = ComponentSystem::GetById(name);
 #endif
         // find cache entry, if any
         uint8_t* cacheEntry = 0;
@@ -424,3 +426,6 @@ unsigned int NetworkSystem::entityToGuid(Entity e) {
     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
     return nc->guid;
 }
+
+#endif
+

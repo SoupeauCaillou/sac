@@ -112,13 +112,13 @@ struct LevelEditor::LevelEditorDatas {
 
 static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
     TwBar* bar = TwNewBar(barName.c_str());
-    std::vector<std::string> systems = ComponentSystem::registeredSystemNames();
+    std::vector<hash_t> systems = ComponentSystem::registeredSystemIds();
     for (unsigned i=0; i<systems.size(); i++) {
-        ComponentSystem* system = ComponentSystem::Named(systems[i]);
+        ComponentSystem* system = ComponentSystem::GetById(systems[i]);
 
         if (system->addEntityPropertiesToBar(e, bar)) {
             std::stringstream fold;
-            fold << TwGetBarName(bar) << '/' << systems[i] << " opened=false";
+            fold << TwGetBarName(bar) << '/' << INV_HASH(systems[i]) << " opened=false";
             TwDefine(fold.str().c_str());
         }
     }
@@ -240,11 +240,9 @@ static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
 #endif
 
 static void TW_CALL DumpSystemEntities(void *clientData) {
-    std::string name((char*) clientData);
+    ComponentSystem* s = ComponentSystem::GetById(*((hash_t*) clientData));
 
-    ComponentSystem* s = ComponentSystem::Named(name);
-
-    LOGW(name << " system dump");
+    LOGW((char*) clientData << " system dump");
     LOGW("##########################################################");
     s->forEachEntityDo([] (Entity e) -> void {
         LOGW("   " << theEntityManager.entityName(e));
@@ -255,7 +253,7 @@ static void TW_CALL DumpSystemEntities(void *clientData) {
 void LevelEditor::init() {
     // init system button
     for (auto it : ComponentSystem::registeredSystems()) {
-        TwAddButton(dumpEntities, it.first.c_str(), DumpSystemEntities, strdup(it.first.c_str()), "");
+        TwAddButton(dumpEntities, INV_HASH(it.first), DumpSystemEntities, (void*)&it.first, "");
     }
 
 #if SAC_DEBUG && SAC_NETWORK

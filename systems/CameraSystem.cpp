@@ -26,7 +26,7 @@
 
 INSTANCE_IMPL(CameraSystem);
 
-CameraSystem::CameraSystem() : ComponentSystemImpl<CameraComponent>("Camera") {
+CameraSystem::CameraSystem() : ComponentSystemImpl<CameraComponent>(HASH("Camera", 0x83d48114)) {
     CameraComponent tc;
     componentSerializer.add(new Property<bool>(HASH("enable", 0x5d70851c), OFFSET(enable, tc)));
     componentSerializer.add(new Property<bool>(HASH("clear", 0xd676a285), OFFSET(clear, tc)));

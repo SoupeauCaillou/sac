@@ -28,7 +28,7 @@
 
 INSTANCE_IMPL(AnchorSystem);
 
-AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>("Anchor") {
+AnchorSystem::AnchorSystem() : ComponentSystemImpl<AnchorComponent>(HASH("Anchor", 0xf220ebf3)) {
     AnchorComponent tc;
     componentSerializer.add(new EntityProperty(HASH("parent", 0x7ae3b713), OFFSET(parent, tc)));
     componentSerializer.add(new Property<glm::vec2>(HASH("position", 0xffab91ef), OFFSET(position, tc), glm::vec2(0.001f, 0)));

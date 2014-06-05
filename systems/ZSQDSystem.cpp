@@ -29,7 +29,7 @@
 
 INSTANCE_IMPL(ZSQDSystem);
 
-ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>("ZSQD") {
+ZSQDSystem::ZSQDSystem() : ComponentSystemImpl<ZSQDComponent>(HASH("ZSQD", 0x0)) {
     ZSQDComponent zc;
     componentSerializer.add(new Property<float>(HASH("friction_coeff", 0x3efd422a), OFFSET(frictionCoeff, zc), 0.0001f));
     componentSerializer.add(new Property<float>(HASH("max_speed", 0x3fbe6552), OFFSET(maxSpeed, zc), 0.0001f));

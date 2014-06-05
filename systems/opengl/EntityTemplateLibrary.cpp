@@ -62,29 +62,16 @@ void EntityTemplateLibrary::unregisterDataSource(EntityTemplateRef ) {
 }
 
 
-int EntityTemplateLibrary::loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
+int EntityTemplateLibrary::loadTemplate(const std::string& context, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
     // browse system
-    const std::map<std::string, ComponentSystem*>& systems = ComponentSystem::registeredSystems();
+    const auto& systems = ComponentSystem::registeredSystems();
     for (auto it = systems.begin(); it!=systems.end(); ++it) {
-        const std::string section(prefix + it->first);
+        hash_t id = it->first;
 
-        if (dfp.hasSection(section)) {
-            std::vector<std::string> subEntities;
+        if (dfp.hasSection(id)) {
             propCount += ComponentFactory::build(
-                context, dfp, section, it->second->getSerializer().getProperties(), out, subEntities);
-
-            // if section define a subentity -> load it as template too
-            if (!subEntities.empty())
-                LOGV(1, "Entity '" << context << "' has " << subEntities.size() << " sub entities");
-            for (auto subName : subEntities) {
-                std::string fullName (context + std::string("#") + subName);
-                EntityTemplateRef subRef = Murmur::RuntimeHash(fullName.c_str(), fullName.length());
-
-                EntityTemplate sub;
-                loadTemplate(context, subName + std::string("#"), dfp, subRef, sub);
-                add(fullName, sub);
-            }
+                context, dfp, id, it->second->getSerializer().getProperties(), out);
         }
     }
     return propCount;
@@ -128,10 +115,10 @@ bool EntityTemplateLibrary::doLoad(const char* name, EntityTemplate& out, const 
 
     // Handle recursive 'extends' attributes
     std::string extends;
-    while (dfp.get("", "extends", &extends, 1, false)) {
+    while (dfp.get(DataFileParser::GlobalSection, "extends", &extends, 1, false)) {
         LOGV(1, name << " extends: " << extends);
         // remove extends key
-        dfp.remove("", "extends");
+        dfp.remove(DataFileParser::GlobalSection, "extends");
 
         int l2 = FILE_PREFIX_LEN + extends.length() + FILE_SUFFIX_LEN + 1;
         char* filename2 = (char*)alloca(l2);
@@ -151,7 +138,7 @@ bool EntityTemplateLibrary::doLoad(const char* name, EntityTemplate& out, const 
         delete[] fb2.data;
     }
 
-    LOG_USAGE_ONLY(int propCount =) loadTemplate(name, "", dfp, r, out);
+    LOG_USAGE_ONLY(int propCount =) loadTemplate(name, dfp, r, out);
     LOGV(1, "Loaded entity template: '" << name << "' (" << propCount << " properties)");
 
     delete[] fb.data;

@@ -41,7 +41,7 @@ UPDATABLE_SYSTEM(Debugging)
         void toggle();
     private:
         bool enable;
-        std::map<std::string, Entity> debugEntities;
+        std::map<hash_t, Entity> debugEntities;
         std::vector<Entity> renderStatsEntities;
 
         Entity fps, entityCount, systems;

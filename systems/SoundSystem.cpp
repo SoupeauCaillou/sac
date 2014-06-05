@@ -25,7 +25,7 @@
 
 INSTANCE_IMPL(SoundSystem);
 
-SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>("Sound"), nextValidRef(1), mute(false) {
+SoundSystem::SoundSystem() : ComponentSystemImpl<SoundComponent>(HASH("Sound", 0x2e56fb12)), nextValidRef(1), mute(false) {
     /* nothing saved */
     SoundComponent sc;
 

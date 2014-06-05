@@ -53,12 +53,12 @@ namespace ComponentType {
 
 class ComponentSystem {
     public:
-        ComponentSystem(const std::string& n) ;
-        ComponentSystem(const std::string& n, ComponentType::Enum type);
+        ComponentSystem(hash_t id) ;
+        ComponentSystem(hash_t id, ComponentType::Enum type);
 
         virtual ~ComponentSystem();
 
-        const std::string& getName() const { return name; }
+        hash_t getId() const { return id; }
 
         virtual void Add(Entity entity) = 0;
         virtual void Delete(Entity entity);
@@ -76,10 +76,10 @@ class ComponentSystem {
 
         void Update(float dt);
 
-        static ComponentSystem* Named(const std::string& n);
+        static ComponentSystem* GetById(hash_t t);
 
-        static std::vector<std::string> registeredSystemNames();
-        static const std::map<std::string, ComponentSystem*>& registeredSystems();
+        static std::vector<hash_t> registeredSystemIds();
+        static const std::map<hash_t, ComponentSystem*>& registeredSystems();
 
 #if SAC_INGAME_EDITORS
         bool addEntityPropertiesToBar(Entity e, TwBar* bar);
@@ -87,13 +87,13 @@ class ComponentSystem {
 
     protected:
         virtual void DoUpdate(float dt) = 0;
-        static std::map<std::string, ComponentSystem*> registry;
+        static std::map<hash_t, ComponentSystem*> registry;
 
         void* enlargeComponentsArray(void* array, size_t compSize, uint32_t* size, uint32_t requested, bool f);
         void addEntity(Entity e);
     protected:
         ComponentType::Enum type;
-        std::string name;
+        hash_t id;
         std::vector<Entity> entityWithComponent;
         std::list<Entity> suspended;
 
@@ -111,7 +111,7 @@ class ComponentSystem {
 template <typename T>
 class ComponentSystemImpl: public ComponentSystem {
     public:
-        ComponentSystemImpl(const std::string& t, ComponentType::Enum type = ComponentType::POD, unsigned defaultStorageSize = 8) : ComponentSystem(t, type) {
+        ComponentSystemImpl(hash_t t, ComponentType::Enum type = ComponentType::POD, unsigned defaultStorageSize = 8) : ComponentSystem(t, type) {
             LOGF_IF(defaultStorageSize == 0, "Storage size must be > 0");
             componentsSize = 0;
             components = reinterpret_cast<T*>
@@ -121,7 +121,7 @@ class ComponentSystemImpl: public ComponentSystem {
         void Add(Entity entity) {
             LOGF_IF(
                 std::find(entityWithComponent.begin(), entityWithComponent.end(), entity) != entityWithComponent.end()
-                , "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << getName() << "') twice!");
+                , "Entity '" << theEntityManager.entityName(entity) << "' has the same component('" << INV_HASH(getId()) << "') twice!");
 
             if (entity >= componentsSize) {
                 if (type == ComponentType::POD) {
@@ -176,7 +176,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 if (!std::binary_search(entityWithComponent.begin(), entityWithComponent.end(), entity)) {
                     if (failIfNotfound) {
                         LOGF("Entity '" << theEntityManager.entityName(entity)
-                            << "' (" << entity << ") has no component of type '" << getName() << "' [@ " << file << ':' << line << ']');
+                            << "' (" << entity << ") has no component of type '" << INV_HASH(getId()) << "' [@ " << file << ':' << line << ']');
                     }
 
                     return 0;

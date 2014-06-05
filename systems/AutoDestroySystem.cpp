@@ -31,7 +31,7 @@
 
 INSTANCE_IMPL(AutoDestroySystem);
 
-AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponent>("AutoDestroy") {
+AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponent>(HASH("AutoDestroy", 0x737f3919)) {
     AutoDestroyComponent ac;
     componentSerializer.add(new Property<int>(HASH("type", 0xf3ebd1bf), OFFSET(type, ac), 0));
     componentSerializer.add(new Property<glm::vec2>(HASH("area/position", 0x35bd5392), OFFSET(params.area.position, ac), glm::vec2(0.001, 0)));

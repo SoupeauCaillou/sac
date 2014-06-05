@@ -83,7 +83,7 @@ TEST (TestParseString)
         "var=stringvalue";
     CHECK(dfp.load(FB(simple), __FUNCTION__));
     std::string out;
-    CHECK(dfp.get("section", "var", &out));
+    CHECK(dfp.get(HASH("section", 0x68c08d22), "var", &out));
     CHECK_EQUAL("stringvalue", out);
 }
 
@@ -94,7 +94,7 @@ TEST (TestParse2String)
         "var=string1,string2";
     CHECK(dfp.load(FB(simple), __FUNCTION__));
     std::string out[2];
-    CHECK(dfp.get("section", "var", out, 2));
+    CHECK(dfp.get(HASH("section", 0x68c08d22), "var", out, 2));
     CHECK_EQUAL("string1", out[0]);
     CHECK_EQUAL("string2", out[1]);
 }
@@ -106,7 +106,7 @@ TEST (TestParse2Float)
         "var=1.23,  -5.6";
     CHECK(dfp.load(FB(simple), __FUNCTION__));
     float out[2];
-    CHECK(dfp.get("section", "var", out, 2));
+    CHECK(dfp.get(HASH("section", 0x68c08d22), "var", out, 2));
     CHECK_CLOSE(1.23, out[0], 0.001);
     CHECK_CLOSE(-5.6, out[1], 0.001);
 }
@@ -134,7 +134,7 @@ TEST (TestSetReplace)
     CHECK(dfp.load(FB(simple), __FUNCTION__));
     dfp.set("section", "var", &"plop");
     std::string out;
-    CHECK(dfp.get("section", "var", &out));
+    CHECK(dfp.get(HASH("section", 0x68c08d22), "var", &out));
     CHECK_EQUAL("plop", out);
 }
 
@@ -146,7 +146,7 @@ TEST (TestSetNew)
     CHECK(dfp.load(FB(simple), __FUNCTION__));
     dfp.set("section", "var2", &"plop");
     std::string out;
-    CHECK(dfp.get("section", "var2", &out));
+    CHECK(dfp.get(HASH("section", 0x68c08d22), "var2", &out));
     CHECK_EQUAL("plop", out);
 }
 
@@ -159,6 +159,6 @@ TEST (TestSetNewGlobal)
     int i = 1;
     dfp.set("", "global", &i);
     i = 10;
-    CHECK(dfp.get("", "global", &i));
+    CHECK(dfp.get(DataFileParser::GlobalSection, "global", &i));
     CHECK_EQUAL(1, i);
 }

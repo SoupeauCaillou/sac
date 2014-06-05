@@ -587,7 +587,7 @@ void Game::step() {
             if (++timer == 60*60) {
                 timer = 0;
                 for (auto* sys : unusedSystems) {
-                    LOGW("System " << sys->getName() << " has (yet) not been used");
+                    LOGW("System " << INV_HASH(sys->getId()) << " has (yet) not been used");
                 }
             }
 #endif

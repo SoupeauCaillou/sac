@@ -35,7 +35,7 @@
 
 INSTANCE_IMPL(ParticuleSystem);
 
-ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>("Particule") {
+ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>(HASH("Particule", 0x52ec2829)) {
     /* nothing saved */
     minUsedIdx = maxUsedIdx = 0;
 

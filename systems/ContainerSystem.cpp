@@ -31,7 +31,7 @@
 
 INSTANCE_IMPL(ContainerSystem);
 
-ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>("Container") {
+ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>(HASH("Container", 0x0)) {
     /* nothing saved */
     ContainerComponent cc;
     componentSerializer.add(new Property<bool>(HASH("enable", 0x5d70851c), OFFSET(enable, cc)));

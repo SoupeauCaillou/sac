@@ -54,7 +54,7 @@ static void putPoint(ImageDesc &textureDesc, int pos_x, int pos_y, int lineWidth
 
 INSTANCE_IMPL(GraphSystem);
 
-GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>("Graph", ComponentType::Complex) {
+GraphSystem::GraphSystem() : ComponentSystemImpl<GraphComponent>(HASH("Graph", 0x491685c0), ComponentType::Complex) {
 
 }
 

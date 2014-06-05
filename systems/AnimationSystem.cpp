@@ -34,7 +34,7 @@ static void applyFrameToEntity(Entity e, const AnimationComponent* animComp, con
 
 INSTANCE_IMPL(AnimationSystem);
 
-AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>("Animation") {
+AnimationSystem::AnimationSystem() : ComponentSystemImpl<AnimationComponent>(HASH("Animation", 0x3050a3d5)) {
     AnimationComponent tc;
     componentSerializer.add(new Property<hash_t>(HASH("name", 0x195267c7), OFFSET(name, tc)));
     componentSerializer.add(new Property<float>(HASH("playback_speed", 0xe564d97a), OFFSET(playbackSpeed, tc), 0.001f));

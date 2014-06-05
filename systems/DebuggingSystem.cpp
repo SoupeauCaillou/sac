@@ -46,7 +46,7 @@ static unsigned long frameCount = 0;
 
 INSTANCE_IMPL(DebuggingSystem);
 
-DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>("Debugging", ComponentType::Complex) {
+DebuggingSystem::DebuggingSystem() : ComponentSystemImpl<DebuggingComponent>(HASH("Debugging", 0x8881a63a), ComponentType::Complex) {
     fps = entityCount = systems = fpsLabel = entityCountLabel = 0;
     frameCount = 0;
     enable = false;
@@ -254,7 +254,7 @@ void DebuggingSystem::DoUpdate(float dt) {
         TEXT(entityCountLabel)->text = createLabel("Total", GRAPH(entityCount)->pointsList, 1, "entities");
     }
 
-    std::vector<std::string> systemNames = ComponentSystem::registeredSystemNames();
+    const auto& systemNames = ComponentSystem::registeredSystemIds();
     // sort from highest time consumer to lowest
     /*std::sort(systemNames.begin(), systemNames.end(),
         [this](const std::string& s1, const std::string& s2) -> bool {
@@ -265,11 +265,11 @@ void DebuggingSystem::DoUpdate(float dt) {
     );*/
     int idx = 0;
     for (unsigned i=0; i<systemNames.size(); i++) {
-        const ComponentSystem* system = ComponentSystem::Named(systemNames[i]);
+        const ComponentSystem* system = ComponentSystem::GetById(systemNames[i]);
 
         auto it = debugEntities.find(systemNames[i]);
         if (it == debugEntities.end()) {
-            Entity graph = createSystemGraphEntity(systemNames[i], systems, debugEntities.size(),
+            Entity graph = createSystemGraphEntity(INV_HASH(systemNames[i]), systems, debugEntities.size(),
                 SystemsTextureName, 0.02f);
             it = debugEntities.insert(std::make_pair(systemNames[i], graph)).first;
         }
@@ -284,7 +284,7 @@ void DebuggingSystem::DoUpdate(float dt) {
             if (system->updateDuration < 0.0001) {
                 TEXT(e)->show = false;
             } else {
-                TEXT(e)->text = createLabel(systemNames[i], graphC->pointsList, 1000, "ms", system->entityCount());
+                TEXT(e)->text = createLabel(INV_HASH(systemNames[i]), graphC->pointsList, 1000, "ms", system->entityCount());
                 TEXT(e)->show = true;
                 ANCHOR(e)->position = glm::vec2(-.5, -0.6 - 0.15 * (idx)) * TRANSFORM(systems)->size;
                 idx++;

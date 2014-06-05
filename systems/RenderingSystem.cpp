@@ -48,7 +48,7 @@
 
 INSTANCE_IMPL(RenderingSystem);
 
-RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>("Rendering", ComponentType::POD, 128), assetAPI(0), initDone(false) {
+RenderingSystem::RenderingSystem() : ComponentSystemImpl<RenderingComponent>(HASH("Rendering", 0xe6cc1e11), ComponentType::POD, 128), assetAPI(0), initDone(false) {
     nextValidFBRef = 1;
     currentWriteQueue = 0;
     frameQueueWritable = false;

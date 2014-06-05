@@ -19,7 +19,7 @@
 */
 
 
-
+#if !DISABLE_NETWORK_SYSTEM
 #pragma once
 
 #include "System.h"
@@ -72,3 +72,4 @@ public:
     float ulRate, dlRate;
 #endif
 };
+#endif

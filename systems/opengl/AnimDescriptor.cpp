@@ -36,7 +36,7 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
         dfp.defineVariable(variables[2*i], variables[2*i+1]);
     }
     // Parse meta info
-    const std::string meta = "meta";
+    const hash_t meta = HASH("meta", 0x9e8e687a);
         // speed
     if (dfp.get(meta, "speed", &playbackSpeed, 1, false)) {
         LOGV(1, "  -> playbackSpeed = " << playbackSpeed);
@@ -83,7 +83,7 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
         for (int i=0; i<frameCount; i++) {
             std::stringstream sect;
             sect << "frame" << i;
-            std::string section = sect.str();
+            hash_t section = Murmur::RuntimeHash(sect.str().c_str());
             std::string texture;
             if (dfp.get(section, "texture", &texture, 1)) {
                 LOGV(1, "    - " << section << ':' << texture);

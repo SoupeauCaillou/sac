@@ -24,7 +24,7 @@
 
 INSTANCE_IMPL(TaskAISystem);
 
-TaskAISystem::TaskAISystem() : ComponentSystemImpl<TaskAIComponent>("TaskAI") {
+TaskAISystem::TaskAISystem() : ComponentSystemImpl<TaskAIComponent>(HASH("TaskAI", 0x880e9d92)) {
     /* nothing saved */
 }
 

@@ -24,8 +24,6 @@
 #include <map>
 #include <algorithm>
 
-const std::string DataFileParser::GlobalSection = "";
-
 struct Section {
     std::map<std::string, std::string> keyValues;
     std::map<hash_t, std::string> hashValues;
@@ -34,23 +32,23 @@ struct Section {
 
 struct DataFileParser::DataFileParserData {
     Section global;
-    std::map<std::string, Section*> sections;
+    std::map<hash_t, Section*> sections;
     std::map<std::string, std::string> variables;
 
     ~DataFileParserData() {
-        for(std::map<std::string, Section*>::iterator it=sections.begin();
+        for(auto it=sections.begin();
             it!=sections.end(); ++it) {
             delete it->second;
         }
         sections.clear();
     }
-    bool selectSectionByName(const std::string& name, const Section** sectPtr) const {
+    bool selectSectionByName(hash_t name, const Section** sectPtr) const {
         if (name == GlobalSection) {
             *sectPtr = &global;
         } else {
-            std::map<std::string, Section*>::const_iterator it = sections.find(name);
+            auto it = sections.find(name);
             if (it == sections.end()) {
-                LOGE("Cannot find section '" << name << "'");
+                LOGE("Cannot find section '" << INV_HASH(name) << "'");
                 return false;
             }
             *sectPtr = it->second;
@@ -58,13 +56,13 @@ struct DataFileParser::DataFileParserData {
         return true;
     }
 
-    bool selectSectionByName(const std::string& name, Section** sectPtr) {
+    bool selectSectionByName(hash_t name, Section** sectPtr) {
         if (name == GlobalSection) {
             *sectPtr = &global;
         } else {
-            std::map<std::string, Section*>::iterator it = sections.find(name);
+            auto it = sections.find(name);
             if (it == sections.end()) {
-                LOGE("Cannot find section '" << name << "'");
+                LOGE("Cannot find section '" << INV_HASH(name) << "'");
                 return false;
             }
             *sectPtr = it->second;
@@ -111,7 +109,8 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
         if (s[0] == '[') {
             // start new section
-            std::string section = s.substr(1, s.find(']') - 1);
+            std::string _section = s.substr(1, s.find(']') - 1);
+            hash_t section = Murmur::RuntimeHash(_section.c_str());
 
             auto it = data->sections.find(section);
             if (it == data->sections.end()) {
@@ -157,12 +156,14 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
 void DataFileParser::put(const std::string& section, const std::string& var, const std::string& value) {
     Section* sectPtr = 0;
-    if (!data->selectSectionByName(section, &sectPtr)) {
+    hash_t id = Murmur::RuntimeHash(section.c_str());
+    if (!data->selectSectionByName(id, &sectPtr)) {
         sectPtr = new Section;
-        data->sections.insert(std::make_pair(section, sectPtr));
+        data->sections.insert(std::make_pair(id, sectPtr));
     }
     sectPtr->keyValues[var] = value;
     sectPtr->hashValues[Murmur::RuntimeHash(var.c_str())] = value;
+    LOGT("SAVE SECTION NAME");
 }
 
 void DataFileParser::unload() {
@@ -171,7 +172,7 @@ void DataFileParser::unload() {
     data = 0;
 }
 
-bool DataFileParser::keyValue(const std::string& section, const std::string& var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
+bool DataFileParser::keyValue(hash_t section, const std::string& var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
     if (!data) {
         LOGE("No data loaded before requesting key value : " << section << '/' << var);
         return false;
@@ -189,7 +190,7 @@ bool DataFileParser::keyValue(const std::string& section, const std::string& var
     return true;
 }
 
-bool DataFileParser::hashValue(const std::string& section, hash_t var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
+bool DataFileParser::hashValue(hash_t section, hash_t var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
     if (!data) {
         LOGE("No data loaded before requesting key value : " << section << '/' << var);
         return false;
@@ -207,7 +208,7 @@ bool DataFileParser::hashValue(const std::string& section, hash_t var, bool LOG_
     return true;
 }
 
-hash_t DataFileParser::getModifier(const std::string& section, hash_t var) const {
+hash_t DataFileParser::getModifier(hash_t section, hash_t var) const {
     if (!data) {
         LOGE("No data loaded before requesting key value : " << section << '/' << var);
         return 0;
@@ -223,7 +224,7 @@ hash_t DataFileParser::getModifier(const std::string& section, hash_t var) const
     return jt->second;
 }
 
-bool DataFileParser::remove(const std::string& section, const std::string& var) {
+bool DataFileParser::remove(hash_t section, const std::string& var) {
     if (!data) {
         LOGE("No data loaded before requesting removal of key value : " << section << '/' << var);
         return false;
@@ -245,7 +246,7 @@ bool DataFileParser::remove(const std::string& section, const std::string& var) 
     return true;
 }
 
-bool DataFileParser::indexValue(const std::string& section, unsigned index, std::string& varName, std::string& value) const {
+bool DataFileParser::indexValue(hash_t section, unsigned index, std::string& varName, std::string& value) const {
     if (!data) {
         LOGE("No data loaded before requesting section " << section << " index " << index);
         return false;
@@ -265,7 +266,7 @@ bool DataFileParser::indexValue(const std::string& section, unsigned index, std:
     return true;
 }
 
-bool DataFileParser::hasSection(const std::string& section) const {
+bool DataFileParser::hasSection(hash_t section) const {
     if (!data) {
         LOGE("No data loaded before requesting section size : " << section);
         return false;
@@ -275,7 +276,7 @@ bool DataFileParser::hasSection(const std::string& section) const {
     return data->sections.find(section) != data->sections.end();
 }
 
-unsigned DataFileParser::sectionSize(const std::string& section) const {
+unsigned DataFileParser::sectionSize(hash_t section) const {
     if (!data) {
         LOGE("No data loaded before requesting section size : " << section);
         return 0;
@@ -310,7 +311,7 @@ int DataFileParser::determineSubStringIndexes(const std::string& str, int count,
     return count;
 }
 
-int DataFileParser::getSubStringCount(const std::string& section, const std::string& var) const {
+int DataFileParser::getSubStringCount(hash_t section, const std::string& var) const {
     std::string s;
     if (keyValue(section, var, false, s)) {
         // let's count ','
@@ -322,7 +323,7 @@ int DataFileParser::getSubStringCount(const std::string& section, const std::str
     }
 }
 
-int DataFileParser::getSubStringCount(const std::string& section, hash_t id) const {
+int DataFileParser::getSubStringCount(hash_t section, hash_t id) const {
     std::string s;
     if (hashValue(section, id, false, s)) {
         // let's count ','

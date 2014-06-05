@@ -35,7 +35,7 @@
 
 INSTANCE_IMPL(ButtonSystem);
 
-ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>("Button") {
+ButtonSystem::ButtonSystem() : ComponentSystemImpl<ButtonComponent>(HASH("Button", 0x47dde38d)) {
     /* nothing saved */
     vibrateAPI = 0;
 

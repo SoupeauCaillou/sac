@@ -34,7 +34,7 @@
 #include "util/Draw.h"
 INSTANCE_IMPL(CollisionSystem);
 
-CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>("Collision") {
+CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HASH("Collision", 0x0)) {
     CollisionComponent tc;
     componentSerializer.add(new Property<int>(HASH("group", 0xbf3bf34d), OFFSET(group, tc), 0));
     componentSerializer.add(new Property<int>(HASH("collide_with", 0x6b658240), OFFSET(collideWith, tc), 0));

@@ -51,7 +51,7 @@ static float computeStartX(float stringWidth, const TextComponent* trc);
 // System implementation
 INSTANCE_IMPL(TextSystem);
 
-TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>("Text") {
+TextSystem::TextSystem() : ComponentSystemImpl<TextComponent>(HASH("Text", 0x5763c1af)) {
     TextComponent tc;
     componentSerializer.add(new StringProperty(HASH("text", 0x4106ae4e), OFFSET(text, tc)));
     componentSerializer.add(new Property<hash_t>(HASH("font_name", 0x27b3eedc), OFFSET(fontName, tc)));

@@ -36,7 +36,7 @@
 */
 INSTANCE_IMPL(ADSRSystem);
 
-ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>("ADSR") {
+ADSRSystem::ADSRSystem() : ComponentSystemImpl<ADSRComponent>(HASH("ADSR", 0x971e8b1e)) {
     ADSRComponent a;
 
     componentSerializer.add(new Property<bool>(HASH("active", 0x9809cb8b), OFFSET(active, a)));

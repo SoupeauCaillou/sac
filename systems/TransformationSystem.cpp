@@ -24,7 +24,7 @@
 
 INSTANCE_IMPL(TransformationSystem);
 
-TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>("Transformation") {
+TransformationSystem::TransformationSystem() : ComponentSystemImpl<TransformationComponent>(HASH("Transformation", 0x4d33e992)) {
     TransformationComponent tc;
     componentSerializer.add(new Property<glm::vec2>(HASH("position", 0xffab91ef), OFFSET(position, tc), glm::vec2(0.001f, 0)));
     componentSerializer.add(new Property<glm::vec2>(HASH("size", 0x26d68039), OFFSET(size, tc), glm::vec2(0.001f, 0)));

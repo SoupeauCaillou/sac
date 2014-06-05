@@ -57,15 +57,16 @@ void RenderingSystem::loadAtlas(const std::string& atlasName, bool forceImmediat
     int count = 0;
 
     glm::vec2 atlasSize;
-    if (!dfp.get("", "atlas_size", &atlasSize.x, 2)) {
+    if (!dfp.get(DataFileParser::GlobalSection, "atlas_size", &atlasSize.x, 2)) {
         LOGE("Missing 'atlas_size' attribute in '" << atlasDesc << "'");;
         goto cleanup;
     }
     LOGV(1, "atlas '" << atlasName << "' -> index: " << atlasIndex);
+
     do {
         std::stringstream sectionB;
         sectionB << "image" << count;
-        const std::string section(sectionB.str());
+        const hash_t section = Murmur::RuntimeHash(sectionB.str().c_str());
 
         if (!dfp.hasSection(section))
             break;

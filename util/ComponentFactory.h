@@ -36,9 +36,8 @@ class ComponentFactory {
     		const std::vector<IProperty*>& properties, void* component);*/
 
         static int build(const std::string& context, const DataFileParser& dfp,
-            const std::string& section,
-            const std::vector<IProperty*>& properties, EntityTemplate& templ,
-            std::vector<std::string>& subEntities);
+            hash_t section,
+            const std::vector<IProperty*>& properties, EntityTemplate& templ);
 
         static void applyTemplate(Entity e, void* comp, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties, LocalizeAPI* locAPI);
 };

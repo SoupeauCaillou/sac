@@ -79,5 +79,5 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
 
         void applyTemplateToAll(const EntityTemplateRef& ref);
 
-        int loadTemplate(const std::string& context, const std::string& prefix, const DataFileParser& dfp, EntityTemplateRef r, EntityTemplate& out);
+        int loadTemplate(const std::string& context, const DataFileParser& dfp, EntityTemplateRef r, EntityTemplate& out);
 };

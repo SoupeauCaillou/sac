@@ -28,37 +28,36 @@
 #endif
 #include "util/MurmurHash.h"
 
-std::map<std::string, ComponentSystem*> ComponentSystem::registry;
+std::map<hash_t, ComponentSystem*> ComponentSystem::registry;
 
 
-ComponentSystem::ComponentSystem(const std::string& n) : name(n)
+ComponentSystem::ComponentSystem(hash_t n) : type(ComponentType::POD), id(n)
 #if SAC_DEBUG
     , updateDuration(0)
 #endif
 {
-    bool inserted = registry.insert(std::make_pair(name, this)).second;
-    LOGF_IF(!inserted, "System with name '" << name << "' already exists");
+    bool inserted = registry.insert(std::make_pair(id, this)).second;
+    LOGF_IF(!inserted, "System with name '" << INV_HASH(id) << "' already exists");
 }
 
-ComponentSystem::ComponentSystem(const std::string& n, ComponentType::Enum t) : name(n), type(t)
+ComponentSystem::ComponentSystem(hash_t n, ComponentType::Enum t) : type(t), id(n)
 #if SAC_DEBUG
     , updateDuration(0)
 #endif
 {
-    bool inserted = registry.insert(std::make_pair(name, this)).second;
-    LOGF_IF(!inserted, "System with name '" << name << "' already exists");
+    bool inserted = registry.insert(std::make_pair(id, this)).second;
+    LOGF_IF(!inserted, "System with name '" << INV_HASH(id) << "' already exists");
 }
 
 ComponentSystem::~ComponentSystem() {
-    registry.erase(name);
+    registry.erase(id);
 }
 
 void* ComponentSystem::enlargeComponentsArray(
     void* array, size_t compSize, uint32_t* size, uint32_t requested, bool freeOldStorage) {
     // make sure array is big enough
-    void* original = array;
 
-    LOGV(1, "Resizing storage of " << name << "System. Previously acquired " << name << "Component* may be invalid");
+    LOGV(1, "Resizing storage of " << INV_HASH(id) << "System. Previously acquired components may be invalid");
     int newSize = glm::max(2 * (*size), requested);
     void* ptr = NULL;
     if (freeOldStorage) {
@@ -84,7 +83,7 @@ void ComponentSystem::addEntity(Entity entity) {
 
 void ComponentSystem::Delete(Entity entity) {
     auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
-    LOGF_IF(it == entityWithComponent.end(), "Unable to find entity '" << theEntityManager.entityName(entity) << "' in components '" << getName() << "'");
+    LOGF_IF(it == entityWithComponent.end(), "Unable to find entity '" << theEntityManager.entityName(entity) << "' in components '" << INV_HASH(getId()) << "'");
     entityWithComponent.erase(it);
 }
 
@@ -157,19 +156,19 @@ void ComponentSystem::Update(float dt) {
     PROFILE("SystemUpdate", name, EndEvent);
 }
 
-ComponentSystem* ComponentSystem::Named(const std::string& n) {
-    std::map<std::string, ComponentSystem*>::iterator it = registry.find(n);
+ComponentSystem* ComponentSystem::GetById(hash_t id) {
+    auto it = registry.find(id);
     if (it == registry.end()) {
-        LOGE("System with name: '" << n << "' does not exist");
+        LOGE("System with id: '" << INV_HASH(id) << "' / " << id << " does not exist");
         return 0;
     }
     return (*it).second;
 }
 
-std::vector<std::string> ComponentSystem::registeredSystemNames() {
-    std::vector<std::string> result;
+std::vector<hash_t> ComponentSystem::registeredSystemIds() {
+    std::vector<hash_t> result;
     result.reserve(registry.size());
-    for (std::map<std::string, ComponentSystem*>::iterator it=registry.begin();
+    for (auto it=registry.begin();
         it!=registry.end();
         ++it) {
         result.push_back(it->first);
@@ -177,7 +176,7 @@ std::vector<std::string> ComponentSystem::registeredSystemNames() {
     return result;
 }
 
-const std::map<std::string, ComponentSystem*>& ComponentSystem::registeredSystems() {
+const std::map<hash_t, ComponentSystem*>& ComponentSystem::registeredSystems() {
     return registry;
 }
 
@@ -254,7 +253,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
     if (componentSerializer.getProperties().empty())
         return false;
 
-    const std::string& group = name;
+    const std::string& group = INV_HASH(id);
     // Browse properties, and add them to the TwBar
     for(IProperty* prop: componentSerializer.getProperties()) {
 
@@ -272,7 +271,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
             case PropertyType::Int8:
             case PropertyType::Bool:
             case PropertyType::Color:
-                TwAddVarRW(bar, varName(name, vname, vt).c_str(),
+                TwAddVarRW(bar, varName(group, vname, vt).c_str(),
                     PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt).c_str());
 
                 if (itv) {
@@ -285,39 +284,39 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
                         default: size = 0;
                     }
                     if (size > 0) {
-                        TwAddVarRW(bar, varName(name, vname, VarType::INTERVAL_2).c_str(),
+                        TwAddVarRW(bar, varName(group, vname, VarType::INTERVAL_2).c_str(),
                             PropertyTypeToType(prop->getType()), comp + prop->offset + size, varParams(group, vname, VarType::INTERVAL_2).c_str());
                     }
                 }
                 break;
             case PropertyType::Float:
-                TwAddVarRW(bar, varName(name, vname, vt).c_str(),
+                TwAddVarRW(bar, varName(group, vname, vt).c_str(),
                     PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt, FLOAT_PROPERTIES).c_str());
                 if (itv) {
-                    TwAddVarRW(bar, varName(name, vname, VarType::INTERVAL_2).c_str(),
+                    TwAddVarRW(bar, varName(group, vname, VarType::INTERVAL_2).c_str(),
                         PropertyTypeToType(prop->getType()), comp + prop->offset + sizeof(float), varParams(group, vname, VarType::INTERVAL_2, FLOAT_PROPERTIES).c_str());
                 }
                 break;
             case PropertyType::Vec2:
                 // x component
-                TwAddVarRW(bar, varName(name, vname, VarType::VEC2_X).c_str(),
+                TwAddVarRW(bar, varName(group, vname, VarType::VEC2_X).c_str(),
                     PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, VarType::VEC2_X, FLOAT_PROPERTIES).c_str());
                 // y component
-                TwAddVarRW(bar, varName(name, vname, VarType::VEC2_Y).c_str(),
+                TwAddVarRW(bar, varName(group, vname, VarType::VEC2_Y).c_str(),
                     PropertyTypeToType(prop->getType()), comp + prop->offset + sizeof(float), varParams(group, vname, VarType::VEC2_Y, FLOAT_PROPERTIES).c_str());
                 break;
             case PropertyType::Texture:
-                TwAddVarCB(bar, varName(name, vname).c_str(),
+                TwAddVarCB(bar, varName(group, vname).c_str(),
                     TW_TYPE_STDSTRING, (TwSetVarCallback)textureSetCB, (TwGetVarCallback)textureGetCB,
                     comp + prop->offset, varParams(group, vname).c_str());
                 break;
             case PropertyType::Entity:
-                TwAddVarCB(bar, varName(name, vname).c_str(),
+                TwAddVarCB(bar, varName(group, vname).c_str(),
                     TW_TYPE_STDSTRING, 0, (TwGetVarCallback)entityGetCB,
                     comp + prop->offset, varParams(group, vname).c_str());
                 break;
             case PropertyType::Hash:
-                TwAddVarCB(bar, varName(name, vname).c_str(),
+                TwAddVarCB(bar, varName(group, vname).c_str(),
                     TW_TYPE_STDSTRING, 0, (TwGetVarCallback)hashGetCB,
                     comp + prop->offset, varParams(group, vname).c_str());
                 break;

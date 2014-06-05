@@ -25,7 +25,7 @@
 
 INSTANCE_IMPL(BlinkSystem);
 
-BlinkSystem::BlinkSystem() : ComponentSystemImpl<BlinkComponent>("Blink") {
+BlinkSystem::BlinkSystem() : ComponentSystemImpl<BlinkComponent>(HASH("Blink", 0x0)) {
     BlinkComponent tc;
     componentSerializer.add(new Property<bool>(HASH("enabled", 0x1d6995b7), OFFSET(enabled, tc)));
     componentSerializer.add(new Property<float>(HASH("visible_duration", 0x40000832), OFFSET(visibleDuration, tc), 0.001f));

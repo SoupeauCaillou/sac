@@ -156,11 +156,11 @@ enum IntervalMode {
 };
 
 template <class T>
-int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, T* out);
+int  load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMode mode, T* out);
 
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, glm::vec2* out) {
+inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMode mode, glm::vec2* out) {
     float fp[4];
 
     int count = dfp.get(section, id, fp, 4, false);
@@ -193,7 +193,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
             return 0;
 
         std::string textureName;
-        if (dfp.get("Rendering", HASH("texture", 0x3d4e3ff8), &textureName, 1, false)) {
+        if (dfp.get(HASH("Rendering", 0xe6cc1e11), HASH("texture", 0x3d4e3ff8), &textureName, 1, false)) {
             const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
             applyVec2SingleFloatModifiers(mod, s, fp[0], out);
             return 1;
@@ -204,7 +204,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, Color* out) {
+inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMode mode, Color* out) {
     {
         float p[8];
 
@@ -258,7 +258,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode, std::string* out) {
+inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMode, std::string* out) {
     std::string parsed;
 
     // %loc handled by caller
@@ -274,7 +274,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
 }
 
 template <>
-inline int load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, float* out) {
+inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMode mode, float* out) {
     float parsed[2];
 
     const int count = dfp.get(section, id, parsed, 2, false);
@@ -300,7 +300,7 @@ inline int load(const DataFileParser& dfp, const std::string& section, hash_t id
 }
 
 template <class T>
-inline int  load(const DataFileParser& dfp, const std::string& section, hash_t id, IntervalMode mode, T* out) {
+inline int  load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMode mode, T* out) {
     T parsed[2];
 
     int count = dfp.get(section, id, parsed, 2, false);
@@ -328,27 +328,21 @@ inline int  load(const DataFileParser& dfp, const std::string& section, hash_t i
 
 static bool loadSingleProperty(const std::string& context,
         const DataFileParser& dfp,
-        const std::string& section,
+        hash_t section,
         hash_t id,
         PropertyType::Enum type,
         PropertyAttribute::Enum attr,
-        PropertyNameValueMap& propMap,
-        std::vector<std::string>& subEntities);
+        PropertyNameValueMap& propMap);
 
 int ComponentFactory::build(
         const std::string& context,
         const DataFileParser& dfp,
-        const std::string& section,
-        const std::vector<IProperty*>& properties, EntityTemplate& templ,
-        std::vector<std::string>& subEntities) {
+        hash_t section,
+        const std::vector<IProperty*>& properties, EntityTemplate& templ) {
 
     // lookup ComponentSystem by its name
-    std::string realSystemName(section);
-    if (realSystemName.rfind('#') != std::string::npos) {
-        realSystemName = realSystemName.substr(realSystemName.rfind('#') + 1);
-    }
-    ComponentSystem* systm = ComponentSystem::Named(realSystemName);
-    LOGE_IF(!systm, "Missing system: '" << section << "'");
+    ComponentSystem* systm = ComponentSystem::GetById(section);
+    LOGE_IF(!systm, "Missing system: '" << INV_HASH(section) << "'");
     if (!systm)
         return 0;
 
@@ -373,12 +367,12 @@ int ComponentFactory::build(
         const auto type = prop->getType();
 
         // Try to load property from data
-        bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, subEntities);
+        bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap);
 
         // special testing case
         if (!success && id == HASH("position", 0xffab91ef)) {
             for (unsigned i=0; i<8; i++) {
-                if (loadSingleProperty(context, dfp, section, positionHack[i], type, prop->getAttribute(), propMap, subEntities)) {
+                if (loadSingleProperty(context, dfp, section, positionHack[i], type, prop->getAttribute(), propMap)) {
                     success = true;
                     break;
                 }
@@ -394,7 +388,7 @@ int ComponentFactory::build(
 
 #if SAC_DEBUG
     if (loaded.size() != propertiesInFile) {
-        LOGE(propertiesInFile << " declared in " << context << ".entity [" << section << "] and only " << loaded.size() << " actually loaded");
+        LOGE(propertiesInFile << " declared in " << context << ".entity [" << INV_HASH(section) << "] and only " << loaded.size() << " actually loaded");
         LOGV(1, "Loaded:");
         for (auto& s: loaded) {
             LOGV(1, "   '0x" << std::hex << s << "'" << std::dec);
@@ -554,12 +548,11 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
 
 static bool loadSingleProperty(const std::string& context,
         const DataFileParser& dfp,
-        const std::string& section,
+        hash_t section,
         hash_t id,
         PropertyType::Enum type,
         PropertyAttribute::Enum attr,
-        PropertyNameValueMap& propMap,
-        std::vector<std::string>& subEntities) {
+        PropertyNameValueMap& propMap) {
 
     #define LOAD_INTERVAL_TEMPL(_type_) { \
         Interval<_type_> itv; \
@@ -626,21 +619,6 @@ static bool loadSingleProperty(const std::string& context,
             break;
         }
         case PropertyType::Entity: {
-
-            #if 0
-            if (dfp.get(section, name + "%template", temp, 512, false)) {
-                std::string subEntityName(context + std::string("#") + name);
-                EntityTemplateRef r = Murmur::Hash(subEntityName.c_str(), subEntityName.length());
-                uint8_t* arr = new uint8_t[sizeof(r) + 1];
-                arr[0] = 0;
-                memcpy(arr + 1, &r, sizeof(r));
-                propMap.insert(std::make_pair(name, arr));
-                subEntities.push_back(name);
-                theEntityManager.entityTemplateLibrary.defineParent(r,
-                    theEntityManager.entityTemplateLibrary.load(temp));
-                return true;
-            } else
-            #endif
             if (dfp.get(section, id, temp, 512, false)) {
                 if (dfp.getModifier(section, id) == HASH("name", 0x195267c7)) {
                     uint8_t* arr = new uint8_t[sizeof(hash_t)];
@@ -676,7 +654,7 @@ static bool loadSingleProperty(const std::string& context,
             break;
         }
         default:
-            LOGW("Property '" << section << '/' << id << "' uses unhandled type " << type);
+            LOGW("Property '" << INV_HASH(section) << '/' << INV_HASH(id) << "' uses unhandled type " << type);
             break;
     }
     #undef LOAD_INTERVAL_TEMPL

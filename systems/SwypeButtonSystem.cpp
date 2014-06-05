@@ -39,7 +39,7 @@
 
 INSTANCE_IMPL(SwypeButtonSystem);
 
-SwypeButtonSystem::SwypeButtonSystem() : ComponentSystemImpl<SwypeButtonComponent>("SwypeButton") {
+SwypeButtonSystem::SwypeButtonSystem() : ComponentSystemImpl<SwypeButtonComponent>(HASH("SwypeButton", 0x0)) {
     /* nothing saved */
     vibrateAPI = 0;
 

@@ -26,7 +26,7 @@
 
 INSTANCE_IMPL(MorphingSystem);
 
-MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>("Morphing") {
+MorphingSystem::MorphingSystem() : ComponentSystemImpl<MorphingComponent>(HASH("Morphing", 0x0)) {
     /* nothing saved */
     MorphingComponent mc;
     componentSerializer.add(new Property<bool>(HASH("active", 0x9809cb8b), OFFSET(active, mc)));

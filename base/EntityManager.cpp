@@ -242,7 +242,7 @@ std::vector<Entity> EntityManager::allEntities() {
 }
 
 struct ComponentSave {
-    std::string name;
+    hash_t id;
     int contentSize;
     uint8_t* content;
 };
@@ -279,11 +279,11 @@ int EntityManager::serialize(uint8_t** result) {
 
         for(auto* sys: j->second) {
             ComponentSave c;
-            c.name = sys->getName();
+            c.id = sys->getId();
             c.contentSize = sys->serialize(e.e, &c.content);
             e.components.push_back(c);
 
-            totalLength += c.name.length() + 1;
+            totalLength += sizeof(hash_t);
             totalLength += c.contentSize + sizeof(int);
         }
         saves.push_back(e);
@@ -302,7 +302,7 @@ int EntityManager::serialize(uint8_t** result) {
         out = (uint8_t*)mempcpy(out, &cCount, sizeof(int));
         // components
         for (int j=0; j<cCount; j++) {
-            out = (uint8_t*)mempcpy(out, saves[i].components[j].name.c_str(), saves[i].components[j].name.length()+1);
+            out = (uint8_t*)mempcpy(out, &saves[i].components[j].id, sizeof(hash_t));
             out = (uint8_t*)mempcpy(out, &saves[i].components[j].contentSize, sizeof(int));
             out = (uint8_t*)mempcpy(out, saves[i].components[j].content, saves[i].components[j].contentSize);
         }
@@ -330,13 +330,10 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 
         std::list<ComponentSystem*> l;
         for (int i=0; i<cCount; i++) {
-            char tmp[128];
-            for(int j=0; j<128; j++) {
-                tmp[j] = in[index++];
-                if (tmp[j] == '\0')
-                    break;
-            }
-            ComponentSystem* system = ComponentSystem::Named(tmp);
+            hash_t systemId;
+            memcpy(&systemId, &in[index], sizeof(hash_t));
+            index += sizeof(hash_t);
+            ComponentSystem* system = ComponentSystem::GetById(systemId);
             if (system == 0) {
                 LOGE("Failed to properly restore state: index=" << index << '/' << length << " i=" << i << "/" << cCount << ", entity=" << e);
             }

@@ -36,7 +36,7 @@
 
 INSTANCE_IMPL(MusicSystem);
 
-MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>("Music"), muted(true), assetAPI(0) {
+MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>(HASH("Music", 0x7b1068d4)), muted(true), assetAPI(0) {
     /* nothing saved */
     MusicComponent sc;
 
