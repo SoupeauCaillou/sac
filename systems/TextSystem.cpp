@@ -225,9 +225,9 @@ void TextSystem::DoUpdate(float dt) {
         }
 
         // Lookup font description
-        std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
+        auto fontIt = fontRegistry.find(trc->fontName);
         if (fontIt == fontRegistry.end()) {
-            LOGE("Text component uses undefined font: '" << trc->fontName << "'");
+            LOGE("Text component uses undefined font: '" << INV_HASH(trc->fontName) << "'");
             continue;
         }
 
@@ -477,7 +477,8 @@ relayout:
     }
 }
 
-void TextSystem::registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio) {
+void TextSystem::registerFont(const char* name, const std::map<uint32_t, float>& charH2Wratio) {
+    hash_t fontId = Murmur::RuntimeHash(name);
     uint32_t highestUnicode = charH2Wratio.rbegin()->first;
 
     TextureRef invalidCharTexture = InvalidTextureRef;
@@ -496,21 +497,21 @@ void TextSystem::registerFont(const std::string& fontName, const std::map<uint32
         info.h2wRatio = it->second;
         std::stringstream ss;
         ss.fill('0');
-        ss << std::hex << std::setw(2) << it->first << '_' << fontName;
+        ss << std::hex << std::setw(2) << it->first << '_' << name;
         info.texture = theRenderingSystem.loadTextureFile(ss.str().c_str());
         if (info.texture == InvalidTextureRef) {
-            LOGW("Font '" << fontName << "' uses unknown texture: '" << ss.str() << "'");
+            LOGW("Font '" << name << "' uses unknown texture: '" << ss.str() << "'");
         }
     }
     unsigned space = 0x20;
     unsigned r = glm::min((unsigned)0x72, highestUnicode);
     font.entries[space].h2wRatio = font.entries[r].h2wRatio;
-    fontRegistry[fontName] = font;
+    fontRegistry[fontId] = font;
 }
 
 float TextSystem::computeTextComponentWidth(TextComponent* trc) const {
     // Lookup font description
-    std::map<std::string, FontDesc>::const_iterator fontIt = fontRegistry.find(trc->fontName);
+    auto fontIt = fontRegistry.find(trc->fontName);
     if (fontIt == fontRegistry.end()) {
         LOGE("Text component uses undefined font: '" << trc->fontName << "'");
         return 0;

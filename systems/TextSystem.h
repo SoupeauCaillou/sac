@@ -38,8 +38,8 @@ struct TextComponent {
 	const static int AdjustHeightToFillWidthBit = 1 << 1;
 	const static int MultiLineBit = 1 << 2;
 
-	TextComponent() : text(""), color(Color(1.f)), localizableID(""),
-    charHeight(1.), fontName("typo"), positioning(CENTER), show(false),
+	TextComponent() : text(""), color(Color(1.f)),
+    charHeight(1.), fontName(HASH("typo", 0x5a18f4a9)), positioning(CENTER), show(false),
     flags(0), cameraBitMask(1), maxLineToUse(-1) {
 		caret.show = false;
 		caret.speed = caret.dt = 0;
@@ -51,15 +51,12 @@ struct TextComponent {
 	std::string text;
 	Color color;
 
-	//if its localizable
-	std::string localizableID;
-
 	union {
 		float charHeight;
 		float maxCharHeight;
 	};
 
-	std::string fontName;
+	hash_t fontName;
 	float positioning;
 	bool show;
 	int flags;
@@ -91,7 +88,7 @@ UPDATABLE_SYSTEM(Text)
 
 public :
     void Delete(Entity e) override;
-	void registerFont(const std::string& fontName, const std::map<uint32_t, float>& charH2Wratio);
+	void registerFont(const char* name, const std::map<uint32_t, float>& charH2Wratio);
 
 	float computeTextComponentWidth(TextComponent* trc) const;
 
@@ -105,5 +102,5 @@ public :
     };
 private:
 	std::vector<Entity> renderingEntitiesPool;
-	std::map<std::string, FontDesc> fontRegistry;
+	std::map<hash_t, FontDesc> fontRegistry;
 };

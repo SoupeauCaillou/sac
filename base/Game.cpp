@@ -437,7 +437,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
     // h2wratio[0x97] = 1;
 
     LOGV(1, "Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
-    theTextSystem.registerFont(name, h2wratio);
+    theTextSystem.registerFont(name.c_str(), h2wratio);
 }
 
 void Game::sacInit(int windowW, int windowH) {

@@ -93,5 +93,5 @@ class Murmur {
 #define INV_HASH(hash) Murmur::lookup(hash)
 #else
 #define HASH(txt, hash) hash
-#define INV_HASH(hash) ""
+#define INV_HASH(hash) #hash
 #endif
