@@ -40,6 +40,7 @@ DPI::Enum OpenGLTextureCreator::dpi = DPI::High;
 
 static bool pvrFormatSupported = false;
 static bool pkmFormatSupported = false;
+static bool s3tcFormatSupported = false;
 
 std::string OpenGLTextureCreator::DPI2Folder(DPI::Enum dpi) {
     switch (dpi) {
@@ -56,18 +57,25 @@ std::string OpenGLTextureCreator::DPI2Folder(DPI::Enum dpi) {
 }
 
 void OpenGLTextureCreator::detectSupportedTextureFormat() {
-#if 0
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
+
+    LOGV(1, "extensions: " << extensions );
     pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+#if SAC_EMSCRIPTEN
+    s3tcFormatSupported = (strstr((const char*)extensions, "WEBGL_compressed_texture_s3tc") != 0);
 #else
-    pvrFormatSupported = false;
+    s3tcFormatSupported = (strstr((const char*)extensions, "GL_EXT_texture_compression_s3tc") != 0);
 #endif
+
 #if SAC_ANDROID
     pkmFormatSupported = true;
+#else
+    pkmFormatSupported = (strstr((const char*)extensions, "GL_OES_compressed_ETC1_RGB8_texture") != 0);
 #endif
     LOGV(1, "Supported texture format:");
-    LOGV(1, " - PVR: " << pvrFormatSupported);
-    LOGV(1, " - PKM: " << pkmFormatSupported);
+    LOGV(1, " - PVR: " << pvrFormatSupported );
+    LOGV(1, " - PKM: " << pkmFormatSupported );
+    LOGV(1, " - S3TC: " << s3tcFormatSupported );
 }
 
 static GLenum channelCountToGLFormat(int channelCount) {
