@@ -9,6 +9,11 @@ set(EMSCRIPTEN_OPTIONS "-g -O2 --llvm-lto 1 --llvm-lto 1 -s ASM_JS=1 --closure 0
 
 STRING(REPLACE " " ";" EMSCRIPTEN_OPTIONS_LIST ${EMSCRIPTEN_OPTIONS})
 
+if (${BUILD_TARGET} STREQUAL "DEBUG")
+    add_definitions(-DSAC_ENABLE_LOG=1)
+    add_definitions(-DSAC_DEBUG=1)
+endif()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -Wno-warn-absolute-paths ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -std=c++0x -Wno-warn-absolute-paths")
 set(CXX_FLAGS_DEBUG ${EMSCRIPTEN_OPTIONS})
