@@ -167,15 +167,18 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     if (pvrFormatSupported) {
         LOGV(2, "Using PVR version");
         file = assetAPI->loadAsset(name + ".pvr");
+    } else if (s3tcFormatSupported) {
+        LOGV(2, "Using S3TC version");
+        file = assetAPI->loadAsset(name + ".dds");
     } else if (pkmFormatSupported) {
         LOGV(2, "Using PKM version");
         file = assetAPI->loadAsset(name + ".pkm");
     } else {
-        LOGV(1, "PVM nor ETC1 supported, falling back on PNG format");
+        LOGV(1, "PVM/ETC1/S3TC not supported, falling back on PNG format");
     }
 
     if (!file.data) {
-        LOGV(2, "Using PNG version");
+        LOGV(1, "Using PNG version");
         file = assetAPI->loadAsset(name + ".png");
         if (!file.data) {
             LOGE("Image not found '" << name << ".png'");
@@ -192,6 +195,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
         return 0;
     }
     #if SAC_EMSCRIPTEN
+    LOGT("Remove this non-sense");
     if (type == ALPHA_MASK && image.channels==4) {
         for (int i=0; i<image.height; i++) {
             for (int j=0; j<image.width; j++) {
@@ -226,6 +230,34 @@ static GLenum typeToFormat(OpenGLTextureCreator::Type type) {
 }
 #endif
 
+static GLenum imageDescToGLenum(ImageDesc desc) {
+    switch (desc.type) {
+        case ImageDesc::RAW: {
+#if SAC_EMSCRIPTEN
+            return GL_RGBA;
+#else
+            return channelCountToGLFormat(desc.channels);
+#endif
+        }
+#if SAC_ANDROID
+        case ImageDesc::ETC1: {
+            LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using ETC1 compression");
+            return GL_ETC1_RGB8_OES;
+        }
+        case ImageDesc::PVR: {
+            LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using PVR compression");
+            return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+        }
+#endif
+        case ImageDesc::S3TC:
+            LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using S3TC compression");
+            return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+        default:
+            LOGF("Invalid desc.type: " << desc.type);
+            return 0;
+    }
+}
+
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type) {
 #if 0
 #if SAC_ANDROID
@@ -239,30 +271,15 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture))
 
     // Determine GL format based on channel count
-    GLenum format = channelCountToGLFormat(image.channels);
+    GLenum format = imageDescToGLenum(image);
 
     if (image.type == ImageDesc::RAW) {
-//        if (type == ALPHA_MASK && image.channels == 4) {
-//                    LOGT(":'(");
-//            for (int i=0; i<image.height; i++) {
-//                const int base = i * image.width * 4;
-//                for (int j=0; j<image.width; j++) {
-//                    image.datas[base + 4 * j + 3] = image.datas[base + 4 * j + 0];
-//
-//                }
-//            }
-//        }
-        LOGV(2, "Using PNG texture version " << image.width << 'x' << image.height);
-#if SAC_EMSCRIPTEN
-        GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
-#else
+        LOGV(1, "Using PNG texture version " << image.width << 'x' << image.height);
         GL_OPERATION(glTexImage2D(GL_TEXTURE_2D, 0, format, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, NULL))
-#endif
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
-#if SAC_ANDROID
         char* ptr = image.datas;
-        LOGV(2, "Using " << (pvrFormatSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
+        LOGV(1, "Using " << (pvrFormatSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
         for (int level=0; level<=image.mipmap; level++) {
             int width = std::max(1, image.width >> level);
             int height = std::max(1, image.height >> level);
@@ -272,13 +289,9 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
             else
                 imgSize = 8 * ((width + 3) >> 2) * ((height + 3) >> 2);
             LOGV(3, "\t- mipmap " << level << " : " << width << 'x' << height);
-            GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, pvrFormatSupported ? GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : GL_ETC1_RGB8_OES, width, height, 0, imgSize, ptr))
+            GL_OPERATION(glCompressedTexImage2D(GL_TEXTURE_2D, level, format, width, height, 0, imgSize, ptr))
             ptr += imgSize;
         }
-#else
-        LOGF("ETC compression not supported");
-        return;
-#endif
     }
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
@@ -316,29 +329,10 @@ GLuint OpenGLTextureCreator::loadFromImageDesc(const ImageDesc& image, const std
 }
 
 ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, const FileBuffer& file, bool isPng) {
-#if SAC_EMSCRIPTEN
-    ImageDesc image;
-    image.datas = 0;
-    std::stringstream a;
-    a << "assets/" << basename << ".png";
-    std::string aa = a.str();
-    SDL_Surface* s = IMG_Load(aa.c_str());
-    if (s == 0) {
-        LOGW("Failed to load '" << a.str() << "'");
-        return image;
-    }
-    LOGI("Image : " << basename << " format: " << s->w << 'x' << s->h << ' ' << (int)s->format->BitsPerPixel << " bpp");
-    image.channels = s->format->BitsPerPixel / 8;
-
-    image.type = ImageDesc::RAW;
-    image.width = s->w;
-    image.height = s->h;
-    image.datas = new char[image.width * image.height * image.channels];
-    memcpy(image.datas, s->pixels, image.width * image.height * image.channels);
-    SDL_FreeSurface(s);
-    return image;
-#else
-    // load image
-    return isPng ? ImageLoader::loadPng(basename, file) : pvrFormatSupported ? ImageLoader::loadPvr(basename, file) : ImageLoader::loadEct1(basename, file);
-#endif
+    // load image (ugh)
+    return isPng ?
+        ImageLoader::loadPng(basename, file) :
+            pvrFormatSupported ? ImageLoader::loadPvr(basename, file):
+            s3tcFormatSupported ? ImageLoader::loadDDS(basename, file):
+                ImageLoader::loadEct1(basename, file);
 }

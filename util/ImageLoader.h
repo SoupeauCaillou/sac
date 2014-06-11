@@ -34,8 +34,9 @@ struct ImageDesc {
     int channels, mipmap;
 	enum {
 		RAW,
-		ECT1,
-		PVR
+		ETC1,
+		PVR,
+        S3TC
 	} type;
 };
 
@@ -46,4 +47,6 @@ class ImageLoader {
 		static ImageDesc loadEct1(const std::string& context, const FileBuffer& file);
 
 		static ImageDesc loadPvr(const std::string& context, const FileBuffer& file);
+
+        static ImageDesc loadDDS(const std::string& context, const FileBuffer& file);
 };

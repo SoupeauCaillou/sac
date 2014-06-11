@@ -573,7 +573,7 @@ void Game::step() {
                 tick(targetDT * speedFactor);
         }
     #else
-        LOGV(1, "Update game");
+        LOGV(3, "Update game");
         Draw::Update();
         tick(targetDT);
     #endif

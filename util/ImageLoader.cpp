@@ -24,7 +24,7 @@
 #include "../api/AssetAPI.h"
 #include "base/Log.h"
 
-#ifdef __SAC_EMSCRIPTEN
+#ifdef SAC_EMSCRIPTEN
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_rwops.h>
@@ -37,7 +37,7 @@
 #include <endian.h>
 #endif
 
-#ifndef __SAC_EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
 #endif
 
@@ -45,12 +45,12 @@ struct FileBufferOffset {
 	FileBuffer file;
 	int offset;
 };
-ImageDesc ImageLoader::loadPng(const std::string& LOG_USAGE_ONLY(context), const FileBuffer& file) {
+ImageDesc ImageLoader::loadPng(const std::string& context, const FileBuffer& file) {
 	ImageDesc result;
 	result.datas = 0;
 	result.type = ImageDesc::RAW;
 
-#ifndef __SAC_EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 	uint8_t PNG_header[8];
 	memcpy(PNG_header, file.data, 8);
 	if (png_sig_cmp(PNG_header, 0, 8) != 0) {
@@ -165,12 +165,24 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 
 	result.datas = (char*)PNG_image_buffer;
 #else
-	SDL_RWops *rw = SDL_RWFromMem(file.data, file.size);
-	SDL_Surface* s = IMG_LoadTyped_RW(rw, 0, "PNG");
-	result.channels = s->format->BitsPerPixel / 8;
-	result.width = s->w;
-	result.height = s->h;
-	result.datas = new char[result.width * result.height * result.channels];
+    result.datas = 0;
+    std::stringstream a;
+    a << "assets/" << context << ".png";
+    std::string aa = a.str();
+    SDL_Surface* s = IMG_Load(aa.c_str());
+    if (s == 0) {
+        LOGW("Failed to load '" << a.str() << "'");
+        return result;
+    }
+    LOGI("Image : " << context << " format: " << s->w << 'x' << s->h << ' ' << (int)s->format->BitsPerPixel << " bpp");
+    result.channels = s->format->BitsPerPixel / 8;
+
+    result.type = ImageDesc::RAW;
+    result.width = s->w;
+    result.height = s->h;
+    result.datas = new char[result.width * result.height * result.channels];
+    memcpy(result.datas, s->pixels, result.width * result.height * result.channels);
+    SDL_FreeSurface(s);
 #endif
     result.mipmap = 0;
 	return result;
@@ -178,11 +190,11 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 
 ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
     ImageDesc im = loadPvr(context, file);
-    im.type = ImageDesc::ECT1;
+    im.type = ImageDesc::ETC1;
     return im;
 }
 
-#ifndef __SAC_EMSCRIPTEN
+#ifndef SAC_EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead) {
    if(png_get_io_ptr(png_ptr) == NULL)
       return;   // add custom error handling here
@@ -221,4 +233,58 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
 	result.datas = (char*) malloc(size);
 	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
 	return result;
+}
+
+ImageDesc ImageLoader::loadDDS(const std::string& context, const FileBuffer& file) {
+    ImageDesc result;
+    result.datas = 0;
+
+    // from http://www.mindcontrol.org/~hplus/graphics/dds-info/
+    union DDS_header {
+      struct {
+        unsigned int    dwMagic;
+        unsigned int    dwSize;
+        unsigned int    dwFlags;
+        unsigned int    dwHeight;
+        unsigned int    dwWidth;
+        unsigned int    dwPitchOrLinearSize;
+        unsigned int    dwDepth;
+        unsigned int    dwMipMapCount;
+        unsigned int    dwReserved1[ 11 ];
+
+    //  DDPIXELFORMAT
+        struct {
+          unsigned int    dwSize;
+          unsigned int    dwFlags;
+          unsigned int    dwFourCC;
+          unsigned int    dwRGBBitCount;
+          unsigned int    dwRBitMask;
+          unsigned int    dwGBitMask;
+          unsigned int    dwBBitMask;
+          unsigned int    dwAlphaBitMask;
+      }               sPixelFormat;
+
+    //  DDCAPS2
+      struct {
+          unsigned int    dwCaps1;
+          unsigned int    dwCaps2;
+          unsigned int    dwDDSX;
+          unsigned int    dwReserved;
+      }               sCaps;
+      unsigned int    dwReserved2;
+      };
+      char data[ 128 ];
+    };
+
+    const DDS_header* header = (const DDS_header*) &file.data[0];
+    result.width = header->dwWidth;
+    result.height = header->dwHeight;
+    result.type = ImageDesc::S3TC;
+    result.channels = 3;
+    LOGF_IF(header->sPixelFormat.dwFourCC != 0x31545844 /*D3DFMT_DXT1*/, "We only support DXT1 mode for S3TC compression");
+    result.mipmap = header->dwMipMapCount;
+    int size = file.size - sizeof(DDS_header);
+    result.datas = (char*) malloc(size);
+    memcpy(result.datas, &file.data[sizeof(DDS_header)], size);
+    return result;
 }
