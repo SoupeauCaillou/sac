@@ -34,13 +34,23 @@ if ! $(python -c "import PIL" &> /dev/null); then
 fi
 
 hasPVRTool=false
-if hash PVRTexToolCL 2>/dev/null; then
+PVRTexToolCL 2>/dev/null
+if [ $? = 1 ]; then
     info "PVRTexToolCL found."
     hasPVRTool=true
     dpis="hdpi mdpi ldpi"
 else
     info "Warning: PVRTexToolCL not found -> compressed format won't be created" $orange
     dpis="hdpi"
+fi
+
+hasNVTool=false
+nvcompress > /dev/null 2>&1
+if [ $? = 1 ]; then
+    info "nvcompress found."
+    hasNVTool=true
+else
+    info "Warning: nvcompress missing" $orange
 fi
 
 current=0
@@ -127,15 +137,27 @@ for directory_path in $@; do
 
 
         if  $hasPVRTool ; then
-            info "Step #6: create ETC version of color texture"
+            info "Step #6a: create ETC version of color texture"
             PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pvr ${TMP_FILEDIR}/$quality/$dir.pkm.
 
-            info "Step #7: create ETC version of alpha texture"
+            info "Step #6b: create ETC version of alpha texture"
             PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/${dir}_alpha.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pvr ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
+        fi
+
+        if $hasNVTool ; then
+            info "Step #7a: create DDS version of color texture"
+            nvcompress -bc1 -color -nomips -silent $outPath/assetspc/$quality/$dir.png ${TMP_FILEDIR}/tmp/$dir-$quality.dds
+            # PVRTexToolCL ignore name extension
+            split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.dds ${TMP_FILEDIR}/$quality/$dir.dds.
+
+            info "Step #7b: create DDS version of alpha texture"
+            nvcompress -bc1 -color -nomips -silent $outPath/assetspc/$quality/${dir}_alpha.png ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds
+            # PVRTexToolCL ignore name extension
+            split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds ${TMP_FILEDIR}/$quality/${dir}_alpha.dds.
         fi
 
         cp -rv ${TMP_FILEDIR}/$quality $outPath/assets

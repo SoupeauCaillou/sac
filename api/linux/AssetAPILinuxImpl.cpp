@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <algorithm>
-    
+
 #if SAC_EMSCRIPTEN
 	#include <emscripten.h>
 #endif
@@ -72,6 +72,31 @@ FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
     FILE* file = fopen(full.c_str(), "rb");
 
     if (! file) {
+        /* special case for images */
+        if (full.size() > 4) {
+            const char* ext = full.c_str() + full.size() - 4;
+            if (
+                strncmp(ext, ".dds", 4) == 0 ||
+                strncmp(ext, ".pvr", 4) == 0 ||
+                strncmp(ext, ".pkm", 4) == 0) {
+
+                int count = 0;
+                FileBuffer partial;
+                char* name = (char*)alloca(full.size() + 10);
+                do {
+                    sprintf(name, "%s.%02d", full.c_str(), count);
+                    partial = loadFile(name);
+
+                    if (partial.size > 0) {
+                        fb.data = (uint8_t*)realloc(fb.data, fb.size + partial.size);
+                        memcpy(&fb.data[fb.size], partial.data, partial.size);
+                        fb.size += partial.size;
+                    }
+                    count++;
+                } while (partial.size);
+            }
+
+        }
         return fb;
     }
 
@@ -185,9 +210,9 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 
         //update path
         path = ss.str().c_str();
-        
+
         // remove non alphanum characters. Problem yet: it erase '/' too...
-        // path.erase(std::remove_if(path.begin(), path.end(), 
+        // path.erase(std::remove_if(path.begin(), path.end(),
             // std::not1(std::ptr_fun((int(*)(int))std::isalnum))), path.end());
 
         // create folder if needed

@@ -41,20 +41,20 @@ public class AssetAPI {
 		}
 		return instance;
 	}
-	
+
 	private AssetManager assetManager;
 	private String appWritablePath;
-	
+
 	public void init(Activity act, AssetManager mgr) {
 		this.assetManager = mgr;
 		appWritablePath = "/data/data/" + act.getPackageName() + "/";
-	} 
-	
+	}
+
 	// -------------------------------------------------------------------------
 	// AssetAPI
 	// -------------------------------------------------------------------------
 	public byte[] assetToByteArray(String assetName) {
-		if (assetName.endsWith(".pkm") || assetName.endsWith(".pvr"))
+		if (assetName.endsWith(".pkm") || assetName.endsWith(".pvr") || assetName.endsWith(".dds"))
 			return chunkedAssetToByteArray(assetManager, assetName);
 		try {
 			InputStream stream = assetManager.open(assetName);
@@ -66,7 +66,7 @@ public class AssetAPI {
 			return null;
 		}
 	}
-	
+
 	static byte[] chunkedAssetToByteArray(AssetManager mgr, String assetName) {
 		int totalLength = 0;
 		int idx = 0;
@@ -78,7 +78,7 @@ public class AssetAPI {
 			} catch (IOException exc) {
 				break;
 			}
-		
+
 		} while (true);
 		if (totalLength == 0)
 			return null;
@@ -112,28 +112,28 @@ public class AssetAPI {
 					//Log.e("sac", "load asset error: " + exc.toString(), exc);
 					return null;
 				}
-			}	
+			}
 		}
 		return data;
 	}
-	
+
 	public String getWritableAppDatasPath() {
 		return appWritablePath;
 	}
-	
+
 	public String[] listAssetContent(final String extension, final String subfolder) {
 		try {
 			String[] rawResult = assetManager.list(subfolder);
 			// filter rawResult, using extension
 			List<String> filtered = new ArrayList<String>(rawResult.length);
-			
+
 			for (String s: rawResult) {
 				if (s.endsWith(extension)) {
 					// call expect the filename to _not_ have the extension
 					filtered.add(s.substring(0, s.length() - extension.length()));
 				}
 			}
-			
+
 			// return filtered result
 			String[] result = new String[filtered.size()];
 			return filtered.toArray(result);
