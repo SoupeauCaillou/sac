@@ -62,7 +62,7 @@ for directory_path in $@; do
     TMP_FILEDIR=$(mktemp)
     for quality in ${dpis}; do
         info "Generate $quality atlas"
-        
+
         ############# STEP 1: preparation
         info "Step #1: prepare temp folder ($TEMP_FOLDER)"
         rm -rf $TEMP_FOLDER 2>/dev/null
@@ -77,7 +77,7 @@ for directory_path in $@; do
 
         find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
         find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
-        
+
         ############# STEP 2: create an optimized copy of each image
         info "Step #2: create optimized image"
         for file in $(cd $directory_path && ls *.png); do
@@ -118,9 +118,14 @@ for directory_path in $@; do
 
         ############# STEP 5: create png version of the atlas
         info "Step #5: create png version"
+        # Pre-multiplied alpha version
+        convert /tmp/$dir.png \( +clone -alpha Extract \) -channel RGB -compose Multiply -composite /tmp/$dir.png
+        # Alpha only image
         convert /tmp/$dir.png -alpha extract PNG24:$outPath/assetspc/$quality/${dir}_alpha.png
+        # Color only image
         convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$outPath/assetspc/$quality/$dir.png
-        
+
+
         if  $hasPVRTool ; then
             info "Step #6: create ETC version of color texture"
             PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
@@ -132,7 +137,7 @@ for directory_path in $@; do
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pvr ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
-        
+
         cp -rv ${TMP_FILEDIR}/$quality $outPath/assets
         cp /tmp/$dir.atlas $outPath/assets/$quality/
 

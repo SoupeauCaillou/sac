@@ -138,8 +138,8 @@ void RenderingSystem::init() {
                 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                 data))
 
-    // GL_OPERATION(glEnable(GL_BLEND))
-    GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
+    // Setup pre-multiplied alpha blending
+    GL_OPERATION(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA))
     GL_OPERATION(glEnable(GL_DEPTH_TEST))
     GL_OPERATION(glDepthFunc(GL_GREATER))
 #if SAC_DESKTOP

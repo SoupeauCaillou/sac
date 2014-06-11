@@ -73,8 +73,8 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
     pkmFormatSupported = (strstr((const char*)extensions, "GL_OES_compressed_ETC1_RGB8_texture") != 0);
 #endif
     LOGV(1, "Supported texture format:");
-    LOGV(1, " - PVR: " << pvrFormatSupported );
-    LOGV(1, " - PKM: " << pkmFormatSupported );
+    LOGV(1, " - PVR : " << pvrFormatSupported );
+    LOGV(1, " - PKM : " << pkmFormatSupported );
     LOGV(1, " - S3TC: " << s3tcFormatSupported );
 }
 
