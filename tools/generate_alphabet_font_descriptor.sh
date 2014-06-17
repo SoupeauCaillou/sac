@@ -19,7 +19,7 @@ source cool_stuff.sh
 #how to use the script
 export SAC_USAGE="$0 alphabet-directory font-name: generate the font descriptor file in assets/ directory for the given font"
 export SAC_OPTIONS=""
-export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
+export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet typo"
 
 ######### 0 : Check requirements. #########
     if [ $# != 2 ]; then
@@ -34,7 +34,7 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/unprepared_assets/alphabet"
         error_and_usage_and_quit "Could not find any *_typo.png image in $1!"
     fi
 
- 
+
 ######### 1 : Process. #########
 output=$rootPath/assets/typo.font
 rm -f $output
@@ -43,7 +43,7 @@ function write {
     echo $@ >> $output
 }
 
-write "#FONT: typo" 
+write "#FONT: typo"
 write "#char,width,height"
 
 cd $fromWhereAmIBeingCalled/$1

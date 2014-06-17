@@ -57,8 +57,7 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
             "-i" | "-inputs")
                 shift
                 i=0
-                for arg in $@ 
-                do
+                for arg in "$@"; do
                     if [ $arg = "-c" -o $arg = "--check" ]; then
                         break
                     fi
@@ -97,7 +96,7 @@ function generate_sprite {
                     override=0
                 fi
                 break
-            done 
+            done
         fi
     else
         result="Yes"
@@ -106,14 +105,19 @@ function generate_sprite {
     if [ $override = 1 ] || [ "$result" = Yes ]; then
         for font in $fonts; do
             if ($whereAmI/does_TTFfont_contain_this_character.sh $font $1); then
-                convert -background transparent -fill white -font $font -pointsize ${size} label:${1} PNG32:$output/$2$suffix &>/dev/null
+                label="$1"
+                # @ is a special char in convert...
+                if [ "$1" = "@" ]; then
+                    label="\\$1"
+                fi
+                convert -background transparent -fill white -font $font -pointsize ${size} label:$label PNG32:$output/$2$suffix
                 return $?
             fi
         done
 
         #if no font had the character, force quit
         echo
-        error_and_quit "Character '$1' (hex=$2) could not be found in any .ttf file. 
+        error_and_quit "Character '$1' (hex=$2) could not be found in any .ttf file.
         Please add a .ttf file containing it (use does_TTFfont_contain_this_character to find a matching font)"
     else
         info "Skipped $1" $orange
@@ -139,9 +143,8 @@ missing_symbols_count=0
 # args are the list of symbols to generate
 function iterate_through_list {
     printf "Treating... "
-    for i in $@; do
-        printf $i
-
+    for i in "$@"; do
+        printf "$i"
         dec=$(printf "%x" "'$i")
 
         if [ "$preview_mode" = 1 ]; then
@@ -151,7 +154,7 @@ function iterate_through_list {
                 info "$i(hex=$dec) sprite is not present in output folder" $red
             fi
         else
-            if ! generate_sprite $i $dec; then
+            if ! generate_sprite "$i" "$dec"; then
                 info "Error while generating character $i" $red
                 printf "Treating... "
             fi
@@ -161,29 +164,29 @@ function iterate_through_list {
 }
 
 info "Symbols A->Z..."
-iterate_through_list {A..Z} 
+iterate_through_list {A..Z}
 
 info "Symbols a->z..."
-iterate_through_list {a..z} 
+iterate_through_list {a..z}
 
 info "Symbols 0->9..."
-iterate_through_list {0..9} 
+iterate_through_list {0..9}
 
 info "Symbols punctuation..."
-ponct=", - . / : ; < = > ? _ ! \" # ' ( ) @"
-iterate_through_list $ponct
-
+ponct=(, - . / : \; \< = \> \? _ ! \" \# \' \( \) \@)
+iterate_through_list "${ponct[@]}"
 info "Symbols missing..."
+
 if [ ${#src_dir[@]} -gt 0 ]; then
     specials=''
     for dir in "${src_dir[@]}" ; do
         info "Check in $dir ..."
-        specials=$specials$(cat ${dir%/}/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
+        specials=$specials$(cat ${dir%/}/values*/strings.xml | tr -d '\\[:alnum:]'"$(echo ${ponct[@]})" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
     done
-    iterate_through_list $specials 
+    iterate_through_list $specials
 else
-    specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$ponct" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
-    iterate_through_list $specials 
+    specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$(echo ${ponct[@]})" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
+    iterate_through_list $specials
 fi
 
 
