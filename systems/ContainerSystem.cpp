@@ -48,7 +48,7 @@ static void updateMinMax(float& minX, float& minY, float& maxX, float& maxY, Tra
 }
 
 void ContainerSystem::DoUpdate(float) {
-    if (components.empty())
+    if (entityWithComponent.empty())
         return;
 
     bool atLeastOneEnabled = false;
