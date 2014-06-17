@@ -399,7 +399,6 @@ int ComponentFactory::build(
             dfp.get(section, i, key, &value);
 
             hash_t h = Murmur::RuntimeHash(key.c_str());
-            bool done = false;
             if (std::find(loaded.begin(), loaded.end(), h) == loaded.end()) {
                 LOGE("   '" << key << "' 0x" << std::hex << h << std::dec << " = ... not loaded");
             }
@@ -546,7 +545,7 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
     }
 }
 
-static bool loadSingleProperty(const std::string& context,
+static bool loadSingleProperty(const std::string&,
         const DataFileParser& dfp,
         hash_t section,
         hash_t id,
@@ -603,7 +602,6 @@ static bool loadSingleProperty(const std::string& context,
                     delete[] all;
                 }
             } else {
-                bool toLocalize = false;
                 int len = 0;
                 if ((len = dfp.get(section, id, temp, 512, false))) {
                     bool toLocalize = (dfp.getModifier(section, id) == HASH("loc", 0x3fbcd7cb));

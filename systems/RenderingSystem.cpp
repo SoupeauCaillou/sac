@@ -261,6 +261,7 @@ static void modifyR(RenderingSystem::RenderCommand& r, const glm::vec2& offsetPo
     r.uv[1] = size;
 }
 
+#if 0
 static bool cull(const TransformationComponent* camera, RenderingSystem::RenderCommand& c) {
     if (c.rotation == 0 && c.halfSize.x > 0) {
         const float camLeft = camera->position.x - camera->size.x * .5f;
@@ -302,6 +303,7 @@ static bool cull(const TransformationComponent* camera, RenderingSystem::RenderC
     }
     return true;
 }
+#endif
 
 #if SAC_LINUX && SAC_DESKTOP
 void RenderingSystem::updateReload() {

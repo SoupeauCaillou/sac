@@ -108,7 +108,7 @@ void GameCenterAPIDebugImpl::submitScore(int leaderboardID, const std::string & 
     displayAction();
 }
 
-void GameCenterAPIDebugImpl::getWeeklyRank(int leaderboardID, std::function<void (int rank)> func) {
+void GameCenterAPIDebugImpl::getWeeklyRank(int, std::function<void (int rank)> func) {
     // emulate async op
     #if !SAC_EMSCRIPTEN
     std::thread t([func] () -> void {

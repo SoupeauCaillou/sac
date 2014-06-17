@@ -86,6 +86,7 @@ glm::vec2 SteeringBehavior::wander(Entity e, WanderParams& params, float maxSpee
 }
 
 #define BASIC_STEERING_GRAPHICAL_DEBUG (1 & SAC_DEBUG)
+#if 0
 static std::tuple<glm::vec2, glm::vec2> computeOverlappingObstaclesPosSize(Entity refObstacle, const std::list<Entity>& obs) {
     const auto* tc = TRANSFORM(refObstacle);
     glm::vec2 position = tc->position, size = tc->size;
@@ -104,6 +105,7 @@ static std::tuple<glm::vec2, glm::vec2> computeOverlappingObstaclesPosSize(Entit
     }
     return std::make_tuple(position / (float)count, size / (float)count);
 }
+#endif
 
 // TODO: pour calculer la vitesse désirée on peut faire aussi:
 // - tourner la vitesse actuelle (pour qu'elle soit tangente à l'obstacle considéré)
@@ -181,7 +183,7 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
         #endif
 
         // deduce collision normal
-        glm::vec2 p (nearest - tc->position);
+        // glm::vec2 p (nearest - tc->position);
 
         #if 0
         auto groupPosSize = computeOverlappingObstaclesPosSize(obs, obstacles);
