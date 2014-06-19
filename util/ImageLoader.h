@@ -44,7 +44,7 @@ class ImageLoader {
 	public:
 		static ImageDesc loadPng(const std::string& context, const FileBuffer& file);
 
-		static ImageDesc loadEtc1(const std::string& context, const FileBuffer& file);
+		static ImageDesc loadEtc1(const std::string& context, const FileBuffer& file, bool etc1supported);
 
 		static ImageDesc loadPvr(const std::string& context, const FileBuffer& file);
 

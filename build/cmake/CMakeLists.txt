@@ -207,6 +207,7 @@ else()
     file (
         GLOB_RECURSE opt_source_files
         ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
+        ${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/*.cpp
     )
 endif()
 
@@ -248,6 +249,7 @@ if (NETWORK_BUILD)
 endif()
 
 if (DESKTOP_BUILD)
+    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/)
     check_and_link_libs("sac" AntTweakBar GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
 endif()
 

@@ -37,6 +37,10 @@
 #include <endian.h>
 #endif
 
+#if SAC_DESKTOP
+#include "rg_etc1.h"
+#endif
+
 #ifndef SAC_EMSCRIPTEN
 static void read_from_buffer(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
 #endif
@@ -188,7 +192,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	return result;
 }
 
-ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& file) {
+ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& file, bool etc1supported) {
 #if SAC_ANDROID
     #define BE_16_TO_H betoh16
 #else
@@ -216,12 +220,43 @@ ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& fi
     offset += 2;
     result.height = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
     offset += 2;
-    // memcpy
-    result.datas = (char*) malloc(file.size - offset);
-    memcpy(result.datas, &file.data[offset], file.size - offset);
 
-    result.channels = 3;
-    result.type = ImageDesc::ETC1;
+
+    if (etc1supported) {
+        result.datas = (char*) malloc(file.size - offset);
+        memcpy(result.datas, &file.data[offset], file.size - offset);
+        result.channels = 3;
+        result.type = ImageDesc::ETC1;
+    } else {
+        #if SAC_DESKTOP
+        unsigned int* pixels = (unsigned int*) malloc(result.width * result.height * 4);
+        result.datas = (char*) pixels;
+        memset(pixels, 255, result.width * result.height * 4);
+        // 64bits -> 4x4 pixels
+        int blockCount = (result.width * result.height) / (4 * 4);
+        int blockIndex = 0;
+
+        unsigned int decodedBlock[4 * 4];
+
+        for (int i=0; i<result.height/4; i++) {
+            for (int j=0; j<result.width/4; j++) {
+                LOG_USAGE_ONLY(bool r =) rg_etc1::unpack_etc1_block(&file.data[offset + 8 * blockIndex], decodedBlock);
+
+                for (int k=0; k<4; k++) {
+                    memcpy(&pixels[(4 * i + k) * result.width + 4 * j], &decodedBlock[4 * k], 4 * sizeof(int));
+                }
+                LOGF_IF(!r, "unpack_etc1_block failed. Block: " << blockIndex << '/' << blockCount);
+                blockIndex++;
+            }
+        }
+
+        result.channels = 4;
+        result.type = ImageDesc::RAW;
+        #else
+        LOGF("etc1 emulation only supported on Desktop");
+        #endif
+    }
+
 
     return result;
 

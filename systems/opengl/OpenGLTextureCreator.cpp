@@ -147,15 +147,8 @@ InternalTexture OpenGLTextureCreator::loadFromFile(AssetAPI* assetAPI, const std
     result.color = result.alpha = 0;
     int imgChannelCount = 0;
     result.color = loadSplittedFromFile(assetAPI, name, COLOR, outSize, imgChannelCount);
-#if ! SAC_EMSCRIPTEN
-    if (result.color && imgChannelCount == 4) {
-        LOGV(1, name << " texture has 4 channels. Use it for alpha as well");
-        result.alpha = loadSplittedFromFile(assetAPI, name, ALPHA_MASK, outSize, imgChannelCount);
-    } else
-#endif
-    {
-        result.alpha = loadSplittedFromFile(assetAPI, name + "_alpha", ALPHA_MASK, outSize, imgChannelCount);
-    }
+    result.alpha = loadSplittedFromFile(assetAPI, name + "_alpha", ALPHA_MASK, outSize, imgChannelCount);
+
     return result;
 }
 GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, glm::vec2& outSize, int& imgChannelCount) {
@@ -165,20 +158,18 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
 
     // First, try PVR compression, then PKM (ETC1)
     if (pvrFormatSupported) {
-        LOGV(2, "Using PVR version");
+        LOGV(1, "Using PVR version - " << name);
         file = assetAPI->loadAsset(name + ".pvr");
     } else if (s3tcFormatSupported) {
-        LOGV(2, "Using S3TC version");
+        LOGV(1, "Using S3TC version - " << name);
         file = assetAPI->loadAsset(name + ".dds");
-    } else if (pkmFormatSupported) {
-        LOGV(2, "Using PKM version");
-        file = assetAPI->loadAsset(name + ".pkm");
     } else {
-        LOGV(1, "PVM/ETC1/S3TC not supported, falling back on PNG format");
+        LOGV(1, "Using PKM version - " << name);
+        file = assetAPI->loadAsset(name + ".pkm");
     }
 
     if (!file.data) {
-        LOGV(1, "Using PNG version");
+        LOGV(1, "Using PNG version - " << name);
         file = assetAPI->loadAsset(name + ".png");
         if (!file.data) {
             LOGE("Image not found '" << name << ".png'");
@@ -279,7 +270,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         GL_OPERATION(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, format, GL_UNSIGNED_BYTE, image.datas))
     } else {
         char* ptr = image.datas;
-        LOGV(1, "Using " << (pvrFormatSupported ? "PVR" : "ETC1") << " texture version (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
+        LOGV(1, "Using texture type '" << image.type << "' (" << image.width << 'x' << image.height << " - " << image.mipmap << " mipmap)");
         for (int level=0; level<=image.mipmap; level++) {
             int width = std::max(1, image.width >> level);
             int height = std::max(1, image.height >> level);
@@ -334,5 +325,5 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
         ImageLoader::loadPng(basename, file) :
             pvrFormatSupported ? ImageLoader::loadPvr(basename, file):
             s3tcFormatSupported ? ImageLoader::loadDDS(basename, file):
-                ImageLoader::loadEtc1(basename, file);
+                ImageLoader::loadEtc1(basename, file, pkmFormatSupported);
 }
