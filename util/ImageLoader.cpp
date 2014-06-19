@@ -188,10 +188,44 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	return result;
 }
 
-ImageDesc ImageLoader::loadEct1(const std::string& context, const FileBuffer& file) {
-    ImageDesc im = loadPvr(context, file);
-    im.type = ImageDesc::ETC1;
-    return im;
+ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& file) {
+#if SAC_ANDROID
+    #define BE_16_TO_H betoh16
+#else
+    #define BE_16_TO_H be16toh
+#endif
+
+    ImageDesc result;
+    result.datas = 0;
+    result.mipmap = 0;
+
+    unsigned offset = 0;
+    if (strncmp("PKM ", (const char*)file.data, 4)) {
+        LOGW("ETC " << context << " wrong magic header");
+        return result;
+    }
+    offset += 4;
+
+    // skip version/type
+    offset += 4;
+    // skip extended width/height
+    offset += 2 * 2;
+    // read width/height
+
+    result.width = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
+    offset += 2;
+    result.height = BE_16_TO_H(*(uint16_t*)(&file.data[offset]));
+    offset += 2;
+    // memcpy
+    result.datas = (char*) malloc(file.size - offset);
+    memcpy(result.datas, &file.data[offset], file.size - offset);
+
+    result.channels = 3;
+    result.type = ImageDesc::ETC1;
+
+    return result;
+
+    #undef BE_16_TO_H
 }
 
 #ifndef SAC_EMSCRIPTEN

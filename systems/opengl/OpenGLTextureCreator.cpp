@@ -334,5 +334,5 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
         ImageLoader::loadPng(basename, file) :
             pvrFormatSupported ? ImageLoader::loadPvr(basename, file):
             s3tcFormatSupported ? ImageLoader::loadDDS(basename, file):
-                ImageLoader::loadEct1(basename, file);
+                ImageLoader::loadEtc1(basename, file);
 }
