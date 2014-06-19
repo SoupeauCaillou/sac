@@ -2,8 +2,8 @@
 
 # path need :
 # location of texture_packer (your_build_dir/sac/build/cmake)
-# location of PVRTexToolCL (need to install it from http://www.imgtec.com/powervr/insider/powervr-pvrtextool.asp)
 # location of etc1tool (android-sdk-linux/tools)
+# nvcompress (from https://code.google.com/p/nvidia-texture-tools/ then add $BUILD/src/nvtt/tools/ to $PATH)
 
 #where the script is
 #assume default layout: unprepared_assets and assets in the same folder
@@ -33,15 +33,23 @@ if ! $(python -c "import PIL" &> /dev/null); then
     check_package "python-pil"
 fi
 
-hasPVRTool=false
-PVRTexToolCL 2>/dev/null
+etc1tool=""
+etc1tool 2>/dev/null
 if [ $? = 1 ]; then
-    info "PVRTexToolCL found."
-    hasPVRTool=true
+    etc1tool="etc1tool"
+    info "etc1tool in PATH."
     dpis="hdpi mdpi ldpi"
 else
-    info "Warning: PVRTexToolCL not found -> compressed format won't be created" $orange
-    dpis="hdpi"
+    $ANDROID_HOME/tools/etc1tool 2>/dev/null
+
+    if [ $? = 1 ]; then
+        etc1tool="$ANDROID_HOME/tools/etc1tool"
+        info "etc1tool found ($etc1tool)"
+        dpis="hdpi mdpi ldpi"
+    else
+        info "Warning: etc1tool not found -> compressed format won't be created" $orange
+        dpis="hdpi"
+    fi
 fi
 
 hasNVTool=false
@@ -136,16 +144,16 @@ for directory_path in $@; do
         convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$outPath/assetspc/$quality/$dir.png
 
 
-        if  $hasPVRTool ; then
+        if  [ -n "$etc1tool" ] ; then
             info "Step #6a: create ETC version of color texture"
-            PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/$dir.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
+            $etc1tool --encode $outPath/assetspc/$quality/$dir.png -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
             # PVRTexToolCL ignore name extension
-            split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pvr ${TMP_FILEDIR}/$quality/$dir.pkm.
+            split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pkm ${TMP_FILEDIR}/$quality/$dir.pkm.
 
             info "Step #6b: create ETC version of alpha texture"
-            PVRTexToolCL -f ETC -yflip0 -i $outPath/assetspc/$quality/${dir}_alpha.png -q 3 -pvrlegacy -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
+            $etc1tool --encode $outPath/assetspc/$quality/${dir}_alpha.png -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
             # PVRTexToolCL ignore name extension
-            split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pvr ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
+            split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
 
         if $hasNVTool ; then
