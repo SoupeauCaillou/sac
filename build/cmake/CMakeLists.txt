@@ -229,7 +229,7 @@ if (NETWORK_BUILD)
     -DHAS_POLL=1 -DHAS_FCNTL=1 -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_MSGHDR_FLAGS=1
     -DHAS_SOCKLEN_T=1 -DSAC_NETWORK=1)
 
-    # Windows is already different... sight
+    # Windows is ALWAYS different... sight
     if (VARPLATFORM STREQUAL "WINDOWS")
         add_definitions(-DHAVE_STRING_H=1)
     else ()
@@ -241,16 +241,22 @@ if (NETWORK_BUILD)
         GLOB_RECURSE enet_sources
         ${enet_base}/*.c
     )
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/enet/include)
+    include_directories(${enet_base}/include)
 
     add_library("enet" STATIC ${enet_sources})
 
     target_link_libraries("sac" enet)
 endif()
 
+
+
 if (DESKTOP_BUILD)
     include_directories(${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/)
-    check_and_link_libs("sac" AntTweakBar GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
+    check_and_link_libs("sac" GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
+
+    add_subdirectory(${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar)
+    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/include)
+    target_link_libraries("sac" AntTweakBar)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)

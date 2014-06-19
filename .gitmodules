@@ -7,3 +7,6 @@
 [submodule "libs/glm"]
 	path = libs/glm
 	url = git://github.com/g-truc/glm.git
+[submodule "libs/AntTweakBar"]
+	path = libs/AntTweakBar
+	url = https://github.com/bagage/AntTweakBar.git

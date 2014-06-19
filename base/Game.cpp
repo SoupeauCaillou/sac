@@ -331,7 +331,7 @@ void Game::eventsHandler() {
 #if SAC_INGAME_EDITORS
         levelEditor->lock();
         // Send event to AntTweakBar
-        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        handled = TwEventSDL(&event/*, SDL_MAJOR_VERSION, SDL_MINOR_VERSION*/);
         levelEditor->unlock();
 #endif
 
