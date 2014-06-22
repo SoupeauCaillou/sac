@@ -240,7 +240,7 @@ ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& fi
 
         for (int i=0; i<result.height/4; i++) {
             for (int j=0; j<result.width/4; j++) {
-                LOG_USAGE_ONLY(bool r =) rg_etc1::unpack_etc1_block(&file.data[offset + 8 * blockIndex], decodedBlock);
+                bool r = rg_etc1::unpack_etc1_block(&file.data[offset + 8 * blockIndex], decodedBlock);
 
                 for (int k=0; k<4; k++) {
                     memcpy(&pixels[(4 * i + k) * result.width + 4 * j], &decodedBlock[4 * k], 4 * sizeof(int));
