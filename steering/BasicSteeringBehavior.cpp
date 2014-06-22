@@ -125,7 +125,9 @@ glm::vec2 SteeringBehavior::obstacleAvoidance(Entity e, const glm::vec2& velocit
 
     glm::vec2 force;
     glm::vec2 intersectionPoints[4], normals[4];
-    const float halfWidth = tc->size.y * 0.5;
+    #if BASIC_STEERING_GRAPHICAL_DEBUG
+        const float halfWidth = tc->size.y * 0.5;
+    #endif
     float minDist = 1000;
     Entity obs = 0;
     glm::vec2 nearest, normal;

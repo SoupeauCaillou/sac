@@ -107,7 +107,6 @@ function (check_and_link_libs target)
     endforeach()
 endfunction()
 
-include(cotire)
 #######################################################################
 ##########Build headers files for .vs and .fs files####################
 #######################################################################
@@ -293,7 +292,6 @@ if (NOT MOBILE_BUILD)
     )
     add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
     target_link_libraries(${EXECUTABLE_NAME} sac m)
-    cotire(${EXECUTABLE_NAME})
 endif()
 
 

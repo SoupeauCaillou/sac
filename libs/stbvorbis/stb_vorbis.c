@@ -1524,14 +1524,14 @@ static uint32 get_bits(vorb *f, int n)
    return z;
 }
 
-static int32 get_bits_signed(vorb *f, int n)
+/*static int32 get_bits_signed(vorb *f, int n)
 {
    uint32 z = get_bits(f, n);
    if (z & (1 << (n-1)))
       z += ~((1 << n) - 1);
    return (int32) z;
 }
-
+*/
 // @OPTIMIZE: primary accumulator for huffman
 // expand the buffer to as many bits as possible without reading off end of packet
 // it might be nice to allow f->valid_bits and f->acc to be stored in registers,
@@ -1615,7 +1615,7 @@ static int codebook_decode_scalar_raw(vorb *f, Codebook *c)
    return -1;
 }
 
-static int codebook_decode_scalar(vorb *f, Codebook *c)
+/*static int codebook_decode_scalar(vorb *f, Codebook *c)
 {
    int i;
    if (f->valid_bits < STB_VORBIS_FAST_HUFFMAN_LENGTH)
@@ -1631,7 +1631,7 @@ static int codebook_decode_scalar(vorb *f, Codebook *c)
    }
    return codebook_decode_scalar_raw(f,c);
 }
-
+*/
 #ifndef STB_VORBIS_NO_INLINE_DECODE
 
 #define DECODE_RAW(var, f,c)                                  \
@@ -2363,7 +2363,7 @@ void dct_iv_slow(float *buffer, int n)
          //acc += x[j] * cos(M_PI / n * (i + 0.5) * (j + 0.5));
       buffer[i] = acc;
    }
-   free(x);
+   // free(x);
 }
 
 void inverse_mdct_slow(float *buffer, int n, vorb *f, int blocktype)
@@ -3184,12 +3184,12 @@ static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start,
    int i,j,k,n,n2;
    int zero_channel[256];
    int really_zero_channel[256];
-   int window_center;
+   /*int window_center;*/
 
 // WINDOWING
 
    n = f->blocksize[m->blockflag];
-   window_center = n >> 1;
+   /*window_center = n >> 1;*/
 
    map = &f->mapping[m->mapping];
 
@@ -3304,7 +3304,7 @@ static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start,
 // RESIDUE DECODE
    for (i=0; i < map->submaps; ++i) {
       float *residue_buffers[STB_VORBIS_MAX_CHANNELS];
-      int r,t;
+      int r/*,t*/;
       uint8 do_not_decode[256];
       int ch = 0;
       for (j=0; j < f->channels; ++j) {
@@ -3320,7 +3320,7 @@ static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start,
          }
       }
       r = map->submap_residue[i];
-      t = f->residue_types[r];
+      /*t = f->residue_types[r];*/
       decode_residue(f, residue_buffers, ch, n2, r, do_not_decode);
    }
 
@@ -3914,7 +3914,7 @@ static int start_decoder(vorb *f)
             g->sorted_order[j] = (uint8) p[j].y;
          // precompute the neighbors
          for (j=2; j < g->values; ++j) {
-            int low,hi;
+            int low=-1,hi=-1;
             neighbors(g->Xlist, j, &low,&hi);
             g->neighbors[j][0] = low;
             g->neighbors[j][1] = hi;
@@ -4514,7 +4514,7 @@ static int vorbis_analyze_page(stb_vorbis *f, ProbedPage *z)
 {
    uint8 header[27], lacing[255];
    uint8 packet_type[255];
-   int num_packet, packet_start, previous =0;
+   int num_packet, packet_start/*, previous =0*/;
    int i,len;
    uint32 samples;
 
@@ -4555,18 +4555,18 @@ static int vorbis_analyze_page(stb_vorbis *f, ProbedPage *z)
 
    for (i=0; i < header[26]; ++i) {
       if (packet_start) {
-         uint8 n,b,m;
+         uint8 n,b/*,m*/;
          if (lacing[i] == 0) goto bail; // trying to read from zero-length packet
          n = get8(f);
          // if bottom bit is non-zero, we've got corruption
          if (n & 1) goto bail;
          n >>= 1;
          b = ilog(f->mode_count-1);
-         m = n >> b;
+         /*m = n >> b;*/
          n &= (1 << b)-1;
          if (n >= f->mode_count) goto bail;
-         if (num_packet == 0 && f->mode_config[n].blockflag)
-            previous = (m & 1);
+         // if (num_packet == 0 && f->mode_config[n].blockflag)
+         //    previous = (m & 1);
          packet_type[num_packet++] = f->mode_config[n].blockflag;
          skip(f, lacing[i]-1);
       } else
@@ -5097,7 +5097,7 @@ static void compute_samples(int mask, short *output, int num_c, float **data, in
    }
 }
 
-static int channel_selector[3][2] = { {0}, {PLAYBACK_MONO}, {PLAYBACK_LEFT, PLAYBACK_RIGHT} };
+// static int channel_selector[3][2] = { {0}, {PLAYBACK_MONO}, {PLAYBACK_LEFT, PLAYBACK_RIGHT} };
 static void compute_stereo_samples(short *output, int num_c, float **data, int d_offset, int len)
 {
    #define BUFFER_SIZE  32
@@ -5155,7 +5155,7 @@ static void convert_samples_short(int buf_c, short **buffer, int b_offset, int d
 
 int stb_vorbis_get_frame_short(stb_vorbis *f, int num_c, short **buffer, int num_samples)
 {
-   float **output;
+   float **output=0;
    int len = stb_vorbis_get_frame_float(f, NULL, &output);
    if (len > num_samples) len = num_samples;
    if (len)

@@ -102,7 +102,7 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
         const auto& p2 = keyReleased2callback.find(byName);
         return (p1 != keyReleased2callback.end() || p2 != keyReleased2callback.end());
     } else if (event->type == SDL_KEYDOWN) {
-        auto unicode = event->key.keysym.unicode;
+        LOG_USAGE_ONLY(auto unicode = event->key.keysym.unicode);
         LOGV(1, "key pressed (" << __(scancode) << ", " << __(sym) << ", " << __(unicode) << ")");
         keyState[byPosition] = KeyState::Pressed;
         keyState[byName] = KeyState::Pressed;

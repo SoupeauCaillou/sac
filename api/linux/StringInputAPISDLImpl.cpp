@@ -94,8 +94,10 @@ int StringInputAPISDLImpl::eventSDL(const void* inEvent) {
     return 0;
 }
 
-void StringInputAPISDLImpl::setNamesList(const std::vector<std::string> & names) {
+void StringInputAPISDLImpl::setNamesList(const std::vector<std::string> & LOG_USAGE_ONLY(names)) {
+#if SAC_ENABLE_LOG
     for (auto & n : names) {
         LOGT("setNamesList, adding name '" << n << "'");
     }
+#endif
 }

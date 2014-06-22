@@ -32,7 +32,9 @@
 
 #include "util/OggDecoder.h"
 
+#if SAC_ENABLE_LOG
 static const char* errToString(ALenum err);
+#endif
 static void check_AL_errors(const char* context);
 #define AL_OPERATION(x)  \
      (x); \
@@ -104,7 +106,7 @@ bool SoundAPILinuxOpenALImpl::play(OpaqueSoundPtr* p, float volume) {
     return false;
 }
 
-static void check_AL_errors(const char* context) {
+static void check_AL_errors(const char* LOG_USAGE_ONLY(context)) {
     int maxIterations=10;
     ALenum error;
     bool err = false;
@@ -116,6 +118,7 @@ static void check_AL_errors(const char* context) {
     LOGF_IF(err, "OpenAL error");
 }
 
+#if SAC_ENABLE_LOG
 static const char* errToString(ALenum err) {
     switch (err) {
     case AL_NO_ERROR: return "AL(No error)";
@@ -127,3 +130,4 @@ static const char* errToString(ALenum err) {
     default: return "AL(Unknown)";
     }
 }
+#endif

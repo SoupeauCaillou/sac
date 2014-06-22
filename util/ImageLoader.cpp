@@ -49,7 +49,7 @@ struct FileBufferOffset {
 	FileBuffer file;
 	int offset;
 };
-ImageDesc ImageLoader::loadPng(const std::string& context, const FileBuffer& file) {
+ImageDesc ImageLoader::loadPng(const std::string& LOG_USAGE_ONLY(context), const FileBuffer& file) {
 	ImageDesc result;
 	result.datas = 0;
 	result.type = ImageDesc::RAW;
@@ -192,7 +192,7 @@ png_infop PNG_end_info = png_create_info_struct(PNG_reader);
 	return result;
 }
 
-ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& file, bool etc1supported) {
+ImageDesc ImageLoader::loadEtc1(const std::string& LOG_USAGE_ONLY(context), const FileBuffer& file, bool etc1supported) {
 #if SAC_ANDROID
     #define BE_16_TO_H betoh16
 #else
@@ -233,7 +233,7 @@ ImageDesc ImageLoader::loadEtc1(const std::string& context, const FileBuffer& fi
         result.datas = (char*) pixels;
         memset(pixels, 255, result.width * result.height * 4);
         // 64bits -> 4x4 pixels
-        int blockCount = (result.width * result.height) / (4 * 4);
+        LOG_USAGE_ONLY(int blockCount = (result.width * result.height) / (4 * 4);)
         int blockIndex = 0;
 
         unsigned int decodedBlock[4 * 4];
@@ -304,7 +304,7 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
 	return result;
 }
 
-ImageDesc ImageLoader::loadDDS(const std::string& context, const FileBuffer& file) {
+ImageDesc ImageLoader::loadDDS(const std::string& /*context*/, const FileBuffer& file) {
     ImageDesc result;
     result.datas = 0;
 

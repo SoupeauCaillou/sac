@@ -23,7 +23,7 @@
 #include "VibrateAPILinuxImpl.h"
 #include "base/Log.h"
 
-void VibrateAPILinuxImpl::vibrate(float d) {
+void VibrateAPILinuxImpl::vibrate(float LOG_USAGE_ONLY(d)) {
     LOGI("Vibrate : " << d);
 }
 

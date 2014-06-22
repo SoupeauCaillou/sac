@@ -266,7 +266,9 @@ void Recorder::start(){
 
 void Recorder::stop(){
     if (outfile != NULL && recording == true){
+        #if SAC_ENABLE_LOG
         float duration = TimeUtil::GetTime() - recordingStartTime;
+        #endif
         LOGI("Recording stop (" << duration << " sec, " << frameCounter << " images -> " << frameCounter / duration << " fps)");
         mutex_buf.lock();
         cond.notify_all();
