@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# path need :
-# location of texture_packer (your_build_dir/sac/build/cmake)
-# location of etc1tool (android-sdk-linux/tools)
-# nvcompress (from https://code.google.com/p/nvidia-texture-tools/ then add $BUILD/src/nvtt/tools/ to $PATH)
-
 #where the script is
 #assume default layout: unprepared_assets and assets in the same folder
 current=$(pwd)
@@ -35,15 +30,17 @@ if ! $(python -c "import PIL" &> /dev/null); then
     check_package "python-pil"
 fi
 
+hasetc1tool=false
 if check_package_in_PATH etc1tool '$ANDROID_HOME/tools/' DONT_EXIT; then
     dpis="hdpi mdpi ldpi"
+    hasetc1tool=true
 else
     info "Warning: etc1tool not found -> compressed format won't be created" $orange
     dpis="hdpi"
 fi
 
 hasNVTool=false
-if check_package nvcompress 'Please consider README' DONT_EXIT; then
+if check_package nvcompress 'https://code.google.com/p/nvidia-texture-tools/ then $BUILD/src/nvtt/tools/' DONT_EXIT; then
     info "nvcompress found."
     hasNVTool=true
 else
@@ -148,14 +145,14 @@ for directory_path in "${directories[@]}"; do
         convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:/tmp/$dir.png
 
 
-        if  [ -n "$etc1tool" ] ; then
+        if $hasetc1tool ; then
             info "Substep #6a: create ETC version of color texture"
-            $etc1tool --encode /tmp/$dir.png -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
+            etc1tool --encode /tmp/$dir.png -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pkm ${TMP_FILEDIR}/$quality/$dir.pkm.
 
             info "Substep #6b: create ETC version of alpha texture"
-            $etc1tool --encode /tmp/${dir}_alpha.png -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
+            etc1tool --encode /tmp/${dir}_alpha.png -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
