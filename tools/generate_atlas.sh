@@ -91,7 +91,6 @@ for directory_path in $@; do
         mkdir $TMP_FILEDIR/tmp -p
 
         mkdir $outPath/assets/$quality -p
-        mkdir $outPath/assetspc/$quality -p
 
         find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
         find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
@@ -139,31 +138,31 @@ for directory_path in $@; do
         # Pre-multiplied alpha version
         convert /tmp/$dir.png \( +clone -alpha Extract \) -channel RGB -compose Multiply -composite /tmp/$dir.png
         # Alpha only image
-        convert /tmp/$dir.png -alpha extract PNG24:$outPath/assetspc/$quality/${dir}_alpha.png
+        convert /tmp/$dir.png -alpha extract PNG24:/tmp/${dir}_alpha.png
         # Color only image
-        convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:$outPath/assetspc/$quality/$dir.png
+        convert /tmp/$dir.png -background white -alpha off -type TrueColor PNG24:/tmp/$dir.png
 
 
         if  [ -n "$etc1tool" ] ; then
             info "Step #6a: create ETC version of color texture"
-            $etc1tool --encode $outPath/assetspc/$quality/$dir.png -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
+            $etc1tool --encode /tmp/$dir.png -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pkm ${TMP_FILEDIR}/$quality/$dir.pkm.
 
             info "Step #6b: create ETC version of alpha texture"
-            $etc1tool --encode $outPath/assetspc/$quality/${dir}_alpha.png -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
+            $etc1tool --encode /tmp/${dir}_alpha.png -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
 
         if $hasNVTool ; then
             info "Step #7a: create DDS version of color texture"
-            nvcompress -bc1 -color -nomips -silent $outPath/assetspc/$quality/$dir.png ${TMP_FILEDIR}/tmp/$dir-$quality.dds
+            nvcompress -bc1 -color -nomips -silent /tmp/${dir}.png ${TMP_FILEDIR}/tmp/$dir-$quality.dds
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.dds ${TMP_FILEDIR}/$quality/$dir.dds.
 
             info "Step #7b: create DDS version of alpha texture"
-            nvcompress -bc1 -color -nomips -silent $outPath/assetspc/$quality/${dir}_alpha.png ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds
+            nvcompress -bc1 -color -nomips -silent /tmp/${dir}_alpha.png ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds ${TMP_FILEDIR}/$quality/${dir}_alpha.dds.
         fi
