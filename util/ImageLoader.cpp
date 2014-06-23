@@ -33,7 +33,7 @@
 #endif
 #include <stdlib.h>
 
-#if SAC_LINUX
+#if SAC_LINUX || SAC_ANDROID
 #include <endian.h>
 #endif
 
