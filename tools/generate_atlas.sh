@@ -19,53 +19,58 @@ outPath="$whereAmI/../.."
 source $whereAmI/cool_stuff.sh
 
 export SAC_USAGE="$0 image_folder1 image_folder2 image..."
-export SAC_OPTIONS="Note: you can use * for listing directories"
-export SAC_EXAMPLE="${green}$0 unprepared_assets/logo"
+export SAC_OPTIONS="\
+--q|--quality (hdpi / mdpi / ldpi): atlas to build.
+\tNote: you can use * for listing directories."
+export SAC_EXAMPLE="${green}$0 unprepared_assets/logo --a \"hdpi mdpi\""
 
 if [ $# = 0 ]; then
     usage_and_quit
 fi
 
-############# STEP 0: verify env
+############# STEP 0: verify env and args
 check_package_in_PATH "texture_packer" "sac binary! (build/ directory)"
 
 if ! $(python -c "import PIL" &> /dev/null); then
     check_package "python-pil"
 fi
 
-etc1tool=""
-etc1tool 2>/dev/null
-if [ $? = 1 ]; then
-    etc1tool="etc1tool"
-    info "etc1tool in PATH."
+if check_package_in_PATH etc1tool '$ANDROID_HOME/tools/' DONT_EXIT; then
     dpis="hdpi mdpi ldpi"
 else
-    $ANDROID_HOME/tools/etc1tool 2>/dev/null
-
-    if [ $? = 1 ]; then
-        etc1tool="$ANDROID_HOME/tools/etc1tool"
-        info "etc1tool found ($etc1tool)"
-        dpis="hdpi mdpi ldpi"
-    else
-        info "Warning: etc1tool not found -> compressed format won't be created" $orange
-        dpis="hdpi"
-    fi
+    info "Warning: etc1tool not found -> compressed format won't be created" $orange
+    dpis="hdpi"
 fi
 
 hasNVTool=false
-nvcompress > /dev/null 2>&1
-if [ $? = 1 ]; then
+if check_package nvcompress 'Please consider README' DONT_EXIT; then
     info "nvcompress found."
     hasNVTool=true
 else
     info "Warning: nvcompress missing" $orange
 fi
 
+while [ "$1" != "" ]; do
+    case $1 in
+        "--q" | "--quality")
+            shift
+            dpis="$1"
+            ;;
+        *)
+            directories+="$1"
+    esac
+    shift
+done
+
+info "Setup #0 done: will build '${dpis}' atlas."
+
+############# STEP 1: process
 current=0
-for directory_path in $@; do
+tcount=${#directories[@]}
+for directory_path in "${directories[@]}"; do
     dir=$(basename $directory_path)
     current=$(expr $current + 1)
-    info "Treating atlas $dir at path $directory_path... ($current / $# - $(expr $current \* 100 / $# )%)"
+    info "Treating atlas $dir at path $directory_path... ($current / $tcount - $(expr $current \* 100 / $tcount )%)"
     TEMP_FOLDER=$(mktemp)
 
     if [ ! -d "$directory_path" ]; then
@@ -81,8 +86,8 @@ for directory_path in $@; do
     for quality in ${dpis}; do
         info "Generate $quality atlas"
 
-        ############# STEP 1: preparation
-        info "Step #1: prepare temp folder ($TEMP_FOLDER)"
+        ############# SUBSTEP 1: preparation
+        info "Substep #1: prepare temp folder ($TEMP_FOLDER)"
         rm -rf $TEMP_FOLDER 2>/dev/null
         mkdir $TEMP_FOLDER
 
@@ -95,8 +100,8 @@ for directory_path in $@; do
         find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
         find $outPath/assets/${quality}/ -name "${dir}*" -exec rm {} \;
 
-        ############# STEP 2: create an optimized copy of each image
-        info "Step #2: create optimized image"
+        ############# SUBSTEP 2: create an optimized copy of each image
+        info "Substep #2: create optimized image"
         for file in $(cd $directory_path && ls *.png); do
             width=$(identify -format "%w" $directory_path/$file)
             scale=$(($width/$divide_by))
@@ -121,20 +126,20 @@ for directory_path in $@; do
 
         done
 
-        ############# STEP 3: fit all image in one texture
+        ############# SUBSTEP 3: fit all image in one texture
         # Remark: we feed texture_packer with optimized (cropped) images
-        info "Step #3: compute atlas placement"
+        info "Substep #3: compute atlas placement"
         optimized_image_list=$(echo $TEMP_FOLDER/*png)
 
-        ############# STEP 4: place image in atlas
+        ############# SUBSTEP 4: place image in atlas
         # Remark: we first cd into original image folder
-        info "Step #4: compose atlas using individual images coords"
+        info "Substep #4: compose atlas using individual images coords"
         cd $TMP_FILEDIR
         texture_packer $optimized_image_list | $whereAmI/texture_packer/texture_packer.sh $dir
         cd - 1>/dev/null
 
-        ############# STEP 5: create png version of the atlas
-        info "Step #5: create png version"
+        ############# SUBSTEP 5: create png version of the atlas
+        info "Substep #5: create png version"
         # Pre-multiplied alpha version
         convert /tmp/$dir.png \( +clone -alpha Extract \) -channel RGB -compose Multiply -composite /tmp/$dir.png
         # Alpha only image
@@ -144,24 +149,24 @@ for directory_path in $@; do
 
 
         if  [ -n "$etc1tool" ] ; then
-            info "Step #6a: create ETC version of color texture"
+            info "Substep #6a: create ETC version of color texture"
             $etc1tool --encode /tmp/$dir.png -o ${TMP_FILEDIR}/tmp/$dir-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.pkm ${TMP_FILEDIR}/$quality/$dir.pkm.
 
-            info "Step #6b: create ETC version of alpha texture"
+            info "Substep #6b: create ETC version of alpha texture"
             $etc1tool --encode /tmp/${dir}_alpha.png -o ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.pkm ${TMP_FILEDIR}/$quality/${dir}_alpha.pkm.
         fi
 
         if $hasNVTool ; then
-            info "Step #7a: create DDS version of color texture"
+            info "Substep #7a: create DDS version of color texture"
             nvcompress -bc1 -color -nomips -silent /tmp/${dir}.png ${TMP_FILEDIR}/tmp/$dir-$quality.dds
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/$dir-$quality.dds ${TMP_FILEDIR}/$quality/$dir.dds.
 
-            info "Step #7b: create DDS version of alpha texture"
+            info "Substep #7b: create DDS version of alpha texture"
             nvcompress -bc1 -color -nomips -silent /tmp/${dir}_alpha.png ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds
             # PVRTexToolCL ignore name extension
             split -d -b 1024K ${TMP_FILEDIR}/tmp/${dir}_alpha-$quality.dds ${TMP_FILEDIR}/$quality/${dir}_alpha.dds.
