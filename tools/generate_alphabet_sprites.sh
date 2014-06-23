@@ -20,7 +20,7 @@ source cool_stuff.sh
 export SAC_USAGE="$0 fonts-directory output-directory [option]"
 export SAC_OPTIONS="\
 -c|-check: test if every symbols are already in atlas
-\t-i|-inputs: inputs dir to search symbols"
+\t--i|-inputs folder1 folder2 folder3...: inputs dir to search symbols"
 export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
@@ -54,7 +54,7 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
                 info "Preview mode"
                 preview_mode=1
                 ;;
-            "-i" | "-inputs")
+            "--i" | "--inputs")
                 shift
                 i=0
                 for arg in "$@"; do
@@ -130,7 +130,7 @@ function generate_sprite {
 # arg 1 is the hexa value of the symbol
 # verify that the symbol's sprite already exist. Return an error if it does not exist
 function check_exist {
-    if [ -f $output/$1$suffix ]; then
+   if [ -f $output/$1$suffix ]; then
         return 0
     else
         return 1
@@ -178,16 +178,12 @@ iterate_through_list "${ponct[@]}"
 info "Symbols missing..."
 
 if [ ${#src_dir[@]} -gt 0 ]; then
-    specials=''
-    for dir in "${src_dir[@]}" ; do
-        info "Check in $dir ..."
-        specials=$specials$(cat ${dir%/}/values*/strings.xml | tr -d '\\[:alnum:]'"$(echo ${ponct[@]})" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
-    done
-    iterate_through_list $specials
+    files="${src_dir[@]/%//strings.xml}"
 else
-    specials=$(cat $rootPath/res/values*/strings.xml | tr -d '\\[:alnum:]'"$(echo ${ponct[@]})" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' ')
-    iterate_through_list $specials
+    files=$(echo $rootPath/res/values*/strings.xml)
 fi
+specials=($(cat $files | tr -d '[:alnum:]\\\-'"$(echo "${ponct[@]}")" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' '))
+iterate_through_list "${specials[@]}"
 
 
 if [ "$preview_mode" = 1 ]; then
