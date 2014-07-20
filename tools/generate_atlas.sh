@@ -54,7 +54,7 @@ while [ "$1" != "" ]; do
             dpis="$1"
             ;;
         *)
-            directories+="$1"
+            directories+=($1)
     esac
     shift
 done
