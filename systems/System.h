@@ -216,7 +216,7 @@ class ComponentSystemImpl: public ComponentSystem {
     class type##System : public ComponentSystemImpl<type##Component> {  \
         public: \
             static type##System* GetInstancePointer() { return _instance; } \
-            static type##System& GetInstance() { return (*_instance); } \
+            static type##System& GetInstance() { LOGE_IF(!_instance, "Using NULL instance of " << #type << "System. Expect crash soon"); return (*_instance); } \
             static void CreateInstance() {\
                 if (_instance != NULL) {\
                     LOGW("Creating another instance of type##System");\
