@@ -49,18 +49,21 @@ void GameCenterAPIHelper::displayFeatures(bool display) {
     if (achievementsButton) {
         RENDERING(achievementsButton)->show =
             BUTTON(achievementsButton)->enabled = display;
+        RENDERING(achievementsButton)->color.a = RENDERING(signButton)->color.a;
     }
     if (leaderboardsButton) {
         RENDERING(leaderboardsButton)->show =
             BUTTON(leaderboardsButton)->enabled = display;
+        RENDERING(leaderboardsButton)->color.a = RENDERING(signButton)->color.a;
     }
 }
 
-void GameCenterAPIHelper::displayUI() {
+void GameCenterAPIHelper::displayUI(float alpha) {
     LOGF_IF (! gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
 
     bUIdisplayed = true;
     RENDERING(signButton)->show = BUTTON(signButton)->enabled = true;
+    RENDERING(signButton)->color.a = alpha;
 
     //only display other buttons if we are connected
     displayFeatures(displayIfNotConnected || gameCenterAPI->isConnected());
@@ -89,13 +92,15 @@ void GameCenterAPIHelper::registerForFading(FaderHelper* fader, Fading::Enum typ
     }
 }
 
-void GameCenterAPIHelper::hideUI() {
+void GameCenterAPIHelper::hideUI(float alpha) {
     LOGF_IF (! gameCenterAPI, "Asked to display GameCenter UI but it was not correctly initialized" );
 
     bUIdisplayed = false;
-    RENDERING(signButton)->show = BUTTON(signButton)->enabled = false;
+    BUTTON(signButton)->enabled = false;
+    RENDERING(signButton)->color.a = alpha;
+    RENDERING(signButton)->show = RENDERING(signButton)->color.a != 0;
 
-    displayFeatures(false);
+    displayFeatures(RENDERING(signButton)->show);
 }
 
 bool GameCenterAPIHelper::updateUI() {
