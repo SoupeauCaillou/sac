@@ -78,10 +78,12 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
     LOGV(1, " - S3TC: " << s3tcFormatSupported );
 }
 
+#if SAC_DESKTOP
 void OpenGLTextureCreator::forceEtc1Usage() {
     LOGW("ETC1 texture usage forced");
     pvrFormatSupported = s3tcFormatSupported = false;
 }
+#endif
 
 static GLenum channelCountToGLFormat(int channelCount) {
     GLenum format = 0;
