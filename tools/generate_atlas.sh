@@ -38,6 +38,15 @@ else
     info "Warning: etc1tool not found -> compressed format won't be created" $orange
     dpis="hdpi"
 fi
+# check if etc1tool works (32bit available)
+if ((hasetc1tool == true )); then
+    etc1tool --help 2>/dev/null
+    if (($? == 127 )); then
+        info "Warning: etc1tool does'nt work. Check if multiarch is installed (and libc6:i386, libz1:i386 and libstdc++6:i386 too)" $orange
+        dpis="hdpi"
+        hasetc1tool=false
+    fi
+fi
 
 hasNVTool=false
 if check_package nvcompress 'https://code.google.com/p/nvidia-texture-tools/ then $BUILD/src/nvtt/tools/' DONT_EXIT; then
