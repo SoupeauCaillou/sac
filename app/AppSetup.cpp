@@ -25,6 +25,10 @@
 
 #include <SDL.h>
 
+#if SAC_DESKTOP
+#include "systems/opengl/OpenGLTextureCreator.h"
+
+#endif
 #if SAC_EMSCRIPTEN
 #include <emscripten/emscripten.h>
 #endif
@@ -258,7 +262,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     emscripten_run_script(script);
 
 #else
-    bool restore = false, verbose = false;
+    bool restore = false, verbose = false, forceEtc1 = false;
 #if SAC_ENABLE_PROFILING
     profilerEnabled = false;
 #endif
@@ -266,6 +270,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         restore |= !strcmp(argv[i], "-restore");
         verbose |= !strcmp(argv[i], "-v");
         verbose |= !strcmp(argv[i], "--verbose");
+        forceEtc1 |= !strcmp(argv[i], "--force-etc1");
 #if SAC_ENABLE_PROFILING
         profilerEnabled |= !strcmp("-profile", argv[i]);
 #endif
@@ -365,6 +370,12 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     LOGV(1, "Initialize sac & game");
     game->setGameContexts(ctx, ctx);
     game->sacInit(resolution.x, resolution.y);
+
+#if SAC_DESKTOP
+    if (forceEtc1) {
+        OpenGLTextureCreator::forceEtc1Usage();
+    }
+#endif
     game->init(state, size);
 
 #if !SAC_BENCHMARK_MODE

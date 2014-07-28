@@ -49,6 +49,10 @@ class OpenGLTextureCreator {
 
         static void detectSupportedTextureFormat();
 
+#if SAC_DESKTOP
+        static void forceEtc1Usage();
+#endif
+
         static InternalTexture loadFromFile(AssetAPI* assetAPI, const std::string& name, glm::vec2& outSize);
 
         static GLuint loadFromImageDesc(const ImageDesc& imageDesc, const std::string& name, Type type, glm::vec2& outSize);
