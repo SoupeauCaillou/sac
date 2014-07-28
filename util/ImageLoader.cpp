@@ -352,6 +352,10 @@ ImageDesc ImageLoader::loadDDS(const std::string& /*context*/, const FileBuffer&
     result.channels = 3;
     LOGF_IF(header->sPixelFormat.dwFourCC != 0x31545844 /*D3DFMT_DXT1*/, "We only support DXT1 mode for S3TC compression");
     result.mipmap = header->dwMipMapCount - 1;
+    if (result.mipmap < 0) {
+        LOGW("Weird mipmap count. Let's force it to 1");
+        result.mipmap = 0;
+    }
     int size = file.size - sizeof(DDS_header);
     result.datas = (char*) malloc(size);
     memcpy(result.datas, &file.data[sizeof(DDS_header)], size);
