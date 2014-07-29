@@ -75,6 +75,10 @@ extern "C" {
  */
 JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
   (JNIEnv *, jclass) {
+#if SAC_DEBUG && SAC_ENABLE_LOG
+    logLevel = LogVerbosity::VERBOSE1;
+#endif
+
     LOGW("-->" <<  __FUNCTION__ << ':' << myGameHolder);
 
     if (!myGameHolder) {
