@@ -39,8 +39,10 @@ class DataFileParser;
 class ComponentSystem;
 class LocalizeAPI;
 typedef std::map<hash_t, uint8_t*> PropertyNameValueMap;
-typedef std::map<ComponentSystem*, PropertyNameValueMap> EntityTemplate;
-// TODO: EntityTemplace = std::vector<ComponentSystem*> + std::vector<int8_t>
+struct EntityTemplate {
+    std::map<ComponentSystem*, PropertyNameValueMap> properties;
+    std::vector<hash_t> dependencies;
+};
 
 class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {
     protected:

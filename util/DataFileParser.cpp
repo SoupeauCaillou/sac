@@ -88,6 +88,7 @@ void DataFileParser::init() {
 
 
 bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
+    LOGT_EVERY_N(10, "Add support for single-file->multi-file splitting using: ---8< pseudo-file-name ---");
     if (fb.size == 0)
         return false;
     context = pContext;

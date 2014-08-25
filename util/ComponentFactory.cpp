@@ -332,13 +332,15 @@ static bool loadSingleProperty(const std::string& context,
         hash_t id,
         PropertyType::Enum type,
         PropertyAttribute::Enum attr,
-        PropertyNameValueMap& propMap);
+        PropertyNameValueMap& propMap,
+        EntityTemplate& templ);
 
 int ComponentFactory::build(
         const std::string& context,
         const DataFileParser& dfp,
         hash_t section,
         const std::vector<IProperty*>& properties, EntityTemplate& templ) {
+    LOGT_EVERY_N(30, "Add \%copy modifier, to copy the value of another entity property");
 
     // lookup ComponentSystem by its name
     ComponentSystem* systm = ComponentSystem::GetById(section);
@@ -346,7 +348,7 @@ int ComponentFactory::build(
     if (!systm)
         return 0;
 
-    PropertyNameValueMap& propMap = templ[systm];
+    PropertyNameValueMap& propMap = templ.properties[systm];
     // Cleanup current values
     for (auto it : propMap) {
         delete it.second;
@@ -367,12 +369,12 @@ int ComponentFactory::build(
         const auto type = prop->getType();
 
         // Try to load property from data
-        bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap);
+        bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, templ);
 
         // special testing case
         if (!success && id == HASH("position", 0xffab91ef)) {
             for (unsigned i=0; i<8; i++) {
-                if (loadSingleProperty(context, dfp, section, positionHack[i], type, prop->getAttribute(), propMap)) {
+                if (loadSingleProperty(context, dfp, section, positionHack[i], type, prop->getAttribute(), propMap, templ)) {
                     success = true;
                     break;
                 }
@@ -513,11 +515,15 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     hash_t h;
                     memcpy(&h, (*it).second, sizeof(hash_t));
                     Entity byName = theEntityManager.getEntityByName(h);
-                    LOGF_IF(byName <= 0, "Invalid entity requested by name: '" << h  << '/'
+                    LOGF_IF(byName <= 0, "Invalid entity requested by name: " << h
                     #if SAC_DEBUG
-                    << Murmur::lookup(h)
+                    << " (" << Murmur::lookup(h) << ')'
                     #endif
-                    << "' for property: '" << id << "'");
+                    << " for property: '" << id << "'"
+                    #if SAC_DEBUG
+                    << " (" << Murmur::lookup(id) << ')'
+                    #endif
+                    );
                     memcpy(TYPE_2_PTR(Entity), &byName, sizeof(Entity));
                 }
                 break;
@@ -551,7 +557,8 @@ static bool loadSingleProperty(const std::string&,
         hash_t id,
         PropertyType::Enum type,
         PropertyAttribute::Enum attr,
-        PropertyNameValueMap& propMap) {
+        PropertyNameValueMap& propMap,
+        EntityTemplate& templ) {
 
     #define LOAD_INTERVAL_TEMPL(_type_) { \
         Interval<_type_> itv; \
@@ -623,6 +630,7 @@ static bool loadSingleProperty(const std::string&,
                     hash_t h = Murmur::RuntimeHash(temp);
                     memcpy(arr, &h, sizeof(hash_t));
                     propMap.insert(std::make_pair(id, arr));
+                    templ.dependencies.push_back(h);
                     return true;
                 }
             }

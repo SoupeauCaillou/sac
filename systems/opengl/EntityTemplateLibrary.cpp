@@ -30,7 +30,7 @@
 
 EntityTemplateLibrary::~EntityTemplateLibrary() {
     for (auto& tmp: assets) {
-        for (auto it: tmp) {
+        for (auto it: tmp.properties) {
             for (auto jt: it.second) {
                 delete[] jt.second;
             }
@@ -195,12 +195,12 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
     const EntityTemplate& templ = assets[tIt];
     // Small hack, always load Transformation first
     auto transfS = TransformationSystem::GetInstancePointer();
-    auto hack = templ.find(transfS);
-    if (hack != templ.end()) {
+    auto hack = templ.properties.find(transfS);
+    if (hack != templ.properties.end()) {
         theEntityManager.AddComponent(e, transfS, false);
         transfS->applyEntityTemplate(e, (*hack).second, localizeAPI);
     }
-    for (auto it: templ) {
+    for (auto it: templ.properties) {
         ComponentSystem* s = it.first;
         if (s == transfS) continue;
 

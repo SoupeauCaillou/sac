@@ -43,18 +43,17 @@ StateMachine<T>::~StateMachine() {
 }
 
 template<typename T>
-void StateMachine<T>::setup() {
+void StateMachine<T>::setup(AssetAPI* asset) {
     for(auto it=state2handler.begin(); it!=state2handler.end(); ++it) {
-        it->second->setup();
+        auto* handler = it->second;
+        initStateEntities(asset, handler->name, handler->entities);
+        handler->setup();
     }
 }
 
 template<typename T>
 void StateMachine<T>::start(T initState) {
     currentState = previousState = (T) -1;
-#if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
-    state2Name[currentState] = "Dummy";
-#endif
     transitionning = transition.readyExit = transition.dumbFrom = true;
     transition.fromState = transition.toState = initState;
     transition.readyEnter = false;
@@ -63,25 +62,17 @@ void StateMachine<T>::start(T initState) {
 }
 
 template<typename T>
-void StateMachine<T>::registerState(T id, StateHandler<T>* hdl, const std::string&
-    #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
-    stateDebugName
-    #else
-    #endif
-    ) {
+void StateMachine<T>::registerState(T id, StateHandler<T>* hdl) {
     LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered");
 	state2handler.insert(std::make_pair(id, hdl));
-    #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
-    state2Name.insert(std::make_pair(id, stateDebugName));
-    #endif
 }
 
 template<typename T>
 void StateMachine<T>::transitionTo(T oldState, T newState) {
-    LOGE_IF(state2Name.find(newState) == state2Name.end(), "No state handler defined for state: " << newState);
-    LOGV(2, "Transition begins: " << state2Name[oldState] << " -> " << state2Name[newState]);
+    LOGE_IF(state2handler.find(newState) == state2handler.end(), "No state handler defined for state: " << newState);
+    LOGV(2, "Transition begins: " << state2handler[oldState]->name << " -> " << state2handler[newState]->name);
     // init transition
-    PROFILE("MachineStateTransitionStart", state2Name[oldState] + "->" + state2Name[newState], InstantEvent);
+    PROFILE("MachineStateTransitionStart", state2handler[oldState] + "->" + state2handler[newState], InstantEvent);
     transition.fromState = oldState;
     transition.toState = newState;
     transition.readyExit = transition.readyEnter = false;
@@ -107,9 +98,9 @@ void StateMachine<T>::update(float dt) {
     	LOGF_IF(state2handler.find(currentState) == state2handler.end(), "Current state #" << currentState << " has no handler");
 
         // Update state
-        PROFILE("MachineStateUpdate", state2Name[currentState], BeginEvent);
+        PROFILE("MachineStateUpdate", state2handler[currentState]->name, BeginEvent);
         T newState = state2handler[currentState]->update(dt);
-        PROFILE("MachineStateUpdate", state2Name[currentState], EndEvent);
+        PROFILE("MachineStateUpdate", state2handler[currentState]->name, EndEvent);
 
         // New state requested ?
         if (newState != currentState) {
@@ -123,8 +114,8 @@ void StateMachine<T>::update(float dt) {
 
     	// If both states are ready, change state
     	if (transition.readyExit && transition.readyEnter) {
-            LOGV(2, "Transition complete. New state: " << state2Name[transition.toState]);
-            PROFILE("MachineStateTransitionEnd", state2Name[transition.fromState] + "->" + state2Name[transition.toState], InstantEvent);
+            LOGV(2, "Transition complete. New state: " << state2handler[transition.toState]->name);
+            PROFILE("MachineStateTransitionEnd", state2handler[transition.fromState]->name + "->" + state2handler[transition.toState]->name, InstantEvent);
             changeState(transition.fromState, transition.toState, transition.dumbFrom);
             transitionning = transition.dumbFrom = false;
     	}
@@ -164,9 +155,6 @@ const std::map<T, StateHandler<T>*>& StateMachine<T>::getHandlers() const {
 template<typename T>
 void StateMachine<T>::unregisterAllStates() {
     state2handler.clear();
-    #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING
-        state2Name.clear();
-    #endif
 }
 
 template<typename T>

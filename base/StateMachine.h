@@ -25,61 +25,71 @@
 #include "Log.h"
 #include <string>
 #include <map>
+#include "Entity.h"
 #include <base/SacDefs.h>
+#include "util/MurmurHash.h"
 
 template<typename T>
 class StateHandler {
-	public:
+    public:
+        StateHandler(const char* pName) : name(pName) {}
+
         // Virtual destructor
         virtual ~StateHandler() {}
 
-		// Setup internal var, states, ...
-		virtual void setup() = 0;
+        // Setup internal var, states, ...
+        virtual void setup() = 0;
 
         // Called once, before calling updatePreEnter
         virtual void onPreEnter(T ) {}
 
-		// Called repeteadly, before proper entering.
-		// Must return true when handler is ready to enter
-		virtual bool updatePreEnter(T , float ) {return true;}
+        // Called repeteadly, before proper entering.
+        // Must return true when handler is ready to enter
+        virtual bool updatePreEnter(T , float ) {return true;}
 
-		// Called when entering the state (and old state has exited)
-		virtual void onEnter(T ) {}
+        // Called when entering the state (and old state has exited)
+        virtual void onEnter(T ) {}
 
-		// Update method. Return value is next state
-		virtual T update(float dt) = 0;
+        // Update method. Return value is next state
+        virtual T update(float dt) = 0;
 
         virtual void onPreExit(T ) {}
 
-		// Called repeteadly, before proper exiting.
-		// Must return true when handler is ready to exit
-		virtual bool updatePreExit(T , float ) {return true;}
+        // Called repeteadly, before proper exiting.
+        // Must return true when handler is ready to exit
+        virtual bool updatePreExit(T , float ) {return true;}
 
-		// Called when exiting the state (and old state has exited)
-		virtual void onExit(T ) {};
+        // Called when exiting the state (and old state has exited)
+        virtual void onExit(T ) {};
+
+        std::map<hash_t, Entity> entities;
+        const char* name;
 };
+
+class AssetAPI;
+void initStateEntities(AssetAPI* asset, const char* stateName, std::map<hash_t, Entity>& entities);
 
 template<typename T>
 class StateMachine {
 #ifdef SAC_INGAME_EDITORS
     friend class RecursiveRunnerDebugConsole;
 #endif
-	public:
+    public:
         StateMachine();
 
-		StateMachine(T initState);
+        StateMachine(T initState);
 
         ~StateMachine();
 
-        void setup();
+        void setup(AssetAPI* asset);
 
         void start(T initState);
 
-		void registerState(T id, StateHandler<T>* hdl, const std::string& stateDebugName);
+        void registerState(T id, StateHandler<T>* hdl);
 
         void unregisterAllStates();
 
-		void update(float dt);
+        void update(float dt);
 
         void forceNewState(T state);
 
@@ -91,25 +101,21 @@ class StateMachine {
 
         StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
 
-#if SAC_DEBUG
-        const std::string& getCurrentStateName() const { return state2Name.find(currentState)->second; }
-#endif
+        const char* getCurrentStateName() const { return getCurrentHandler->name; }
 
         int serialize(uint8_t** out) const;
         int deserialize(const uint8_t* in, int size);
 
-	private:
-		T currentState, overrideNextState, previousState;
-		std::map<T, StateHandler<T>*> state2handler;
-        #if SAC_ENABLE_LOG || SAC_ENABLE_PROFILING || SAC_DEBUG
-        std::map<T, std::string> state2Name;
-        #endif
-		struct {
-			T fromState, toState;
-			bool readyExit, readyEnter;
+    private:
+        T currentState, overrideNextState, previousState;
+        std::map<T, StateHandler<T>*> state2handler;
+
+        struct {
+            T fromState, toState;
+            bool readyExit, readyEnter;
             bool dumbFrom;
-		} transition;
-		bool override, transitionning;
+        } transition;
+        bool override, transitionning;
 
     private:
         void transitionTo(T oldState, T newState);
