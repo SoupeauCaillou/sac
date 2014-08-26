@@ -30,6 +30,7 @@ int main(int LOG_USAGE_ONLY(argc), char **) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	EntityManager::CreateInstance();
     AssertOnFatal = false;
+    lastLogsCount = 0;
 
 #if SAC_ENABLE_LOG
     if (argc == 1)

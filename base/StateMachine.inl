@@ -58,6 +58,8 @@ void StateMachine<T>::start(T initState) {
     transition.fromState = transition.toState = initState;
     transition.readyEnter = false;
 
+    LOGV(2, "State machine starting at state '" << state2handler[initState]->name << "' (" << state2handler.size() << " states declared)");
+
     state2handler[initState]->onPreEnter(initState);
 }
 

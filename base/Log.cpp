@@ -38,6 +38,22 @@ LogVerbosity::Enum logLevel =
 #endif
 std::map<std::string, bool> verboseFilenameFilters;
 
+#if SAC_DESKTOP
+std::stringstream lastLogsSS;
+std::queue<std::string> lastLogs;
+unsigned lastLogsCount = 100;
+void writeLastLogs() {
+    std::cout.flush();
+    std::cerr << "**********************" << std::endl;
+    std::cerr << "************ LAST LOGS" << std::endl;
+    while (!lastLogs.empty()) {
+        std::cerr << lastLogs.front();
+        lastLogs.pop();
+    }
+    std::cerr << "**********************" << std::endl;
+}
+#endif
+
 class NullStream : public std::ostream {
 public:
 	NullStream(std::basic_streambuf<char, std::char_traits<char>> *t = 0) : std::ostream(t) {}
@@ -56,7 +72,9 @@ static const char* enumNames[] ={
     "TODO ",
     "WARN ",
 	"INFO ",
-	"VERB "
+    "VERB1",
+    "VERB2",
+    "VERB3",
 };
 
 static const char* keepOnlyFilename(const char* fullPath) {

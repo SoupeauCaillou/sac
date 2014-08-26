@@ -57,6 +57,13 @@ namespace LogVerbosity {
 
 extern LogVerbosity::Enum logLevel;
 extern std::map<std::string, bool> verboseFilenameFilters;
+#if SAC_DESKTOP
+#include <queue>
+extern std::stringstream lastLogsSS;
+extern std::queue<std::string> lastLogs;
+extern unsigned lastLogsCount;
+extern void writeLastLogs();
+#endif
 int logHeaderLength(const char* file, int line);
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line);
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line);
@@ -92,28 +99,51 @@ static const android_LogPriority level2prio[] {
 #define __PRETTY_FUNCTION__ __FUNCTION__
 #endif
 
+#if SAC_DESKTOP
 #define __LOG(level, x) \
-    if ((int)logLevel >= (int)level) {\
-        SAC_LOG_PRE \
-        logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__) << x << std::endl; \
-        SAC_LOG_POST \
+    do {\
+        lastLogsSS.str(""); lastLogsSS.clear(); \
+        logToStream(lastLogsSS, level, __FILE__, __LINE__) << x << std::endl; \
+        lastLogs.push(lastLogsSS.str()); \
+        while (lastLogs.size() > lastLogsCount) lastLogs.pop(); \
         \
-        if (level == LogVerbosity::FATAL && AssertOnFatal) { \
-            raise(SIGABRT); \
+        if ((int)logLevel >= (int)level) {\
+            SAC_LOG_PRE \
+            logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__) << x << std::endl; \
+            SAC_LOG_POST \
+            \
+            if (level == LogVerbosity::FATAL && AssertOnFatal) { \
+                writeLastLogs(); \
+                raise(SIGABRT); \
+            } \
         } \
-    }
+    } while (false)
+#else
+#define __LOG(level, x) \
+    do {\
+        if ((int)logLevel >= (int)level) {\
+            SAC_LOG_PRE \
+            logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__) << x << std::endl; \
+            SAC_LOG_POST \
+            \
+            if (level == LogVerbosity::FATAL && AssertOnFatal) { \
+                raise(SIGABRT); \
+            } \
+        } \
+    } while (false)
+#endif
 
 #define __LOG_WHILE(level, x) \
     PRAGMA_WARNING(warning(disable: 4127)) \
     do { \
-        __LOG(level, x) \
+        __LOG(level, x); \
     } while (false)
 
 #define __LOG_IF_WHILE(cond, level, x) \
     PRAGMA_WARNING(warning(disable: 4127)) \
     do { \
         if ((cond)) \
-            __LOG(level, x) \
+            __LOG(level, x); \
     } while (false)
 
 #define __LOG_EVERY_N_WHILE(cond, n, x) \
@@ -121,7 +151,7 @@ static const android_LogPriority level2prio[] {
     do { \
         static unsigned __log_count = 0; \
         if ((++__log_count % n) == 0) { \
-            __LOG(cond, x) \
+            __LOG(cond, x); \
         } \
     } while (false)
 
