@@ -46,8 +46,8 @@ template<typename T>
 void StateMachine<T>::setup(AssetAPI* asset) {
     for(auto it=state2handler.begin(); it!=state2handler.end(); ++it) {
         auto* handler = it->second;
-        initStateEntities(asset, handler->name, handler->entities);
-        handler->setup();
+
+        handler->setup(asset);
     }
 }
 

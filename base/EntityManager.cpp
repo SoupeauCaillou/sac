@@ -99,6 +99,8 @@ Entity EntityManager::CreateEntityFromTemplate(const char* name, EntityType::Enu
 #if SAC_ENABLE_LOG || SAC_INGAME_EDITORS
 const char* EntityManager::entityName(Entity e) const {
     static const char* u = "unknown";
+
+    LOGF_IF(e >= entityHash.size(), "Undefined (not initialiazed ?) entity '" << e << "' used");
     hash_t id = entityHash[e];
     if (id)
 #if SAC_DEBUG

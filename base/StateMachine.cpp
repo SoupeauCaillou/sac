@@ -4,9 +4,10 @@
 #include "api/AssetAPI.h"
 #include "base/Log.h"
 #include "util/MurmurHash.h"
+#include "util/EntityBatch.h"
 #include <algorithm>
 
-void initStateEntities(AssetAPI* assetAPI, const char* stateName, std::map<hash_t, Entity>& entities) {
+void initStateEntities(AssetAPI* assetAPI, const char* stateName, std::map<hash_t, Entity>& entities, EntityBatch& batch) {
     LOGF_IF(!assetAPI, "Missing assetAPI");
 
     // Retrieve .entity in scene subfolder
@@ -60,5 +61,9 @@ void initStateEntities(AssetAPI* assetAPI, const char* stateName, std::map<hash_
             LOGF("Entities defined for state " << stateName << " have circular dependencies (" << entitiesBuilt.size() << " built and " << files.size() << " not built)");
         }
         buildCount = newCount;
+    }
+
+    for (auto e: entitiesBuilt) {
+        batch.addEntity(e);
     }
 }

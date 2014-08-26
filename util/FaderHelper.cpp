@@ -27,6 +27,7 @@
 #include "systems/RenderingSystem.h"
 #include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
+#include "util/EntityBatch.h"
 
 FaderHelper::FaderHelper() : fadingEntity(0) {
 
@@ -123,37 +124,13 @@ bool FaderHelper::update(float dt) {
 
     if (type == Fading::OutIn && oldProgress < 0.5 && progress >= 0.5) {
         // hide every fading-out entities
-        for (auto e: fadingOut) {
-            auto* rc = theRenderingSystem.Get(e, false);
-            if (rc)
-                rc->show = false;
-
-            auto* tc = theTextSystem.Get(e, false);
-            if (tc)
-                tc->show = false;
-
-            auto* bc = theButtonSystem.Get(e, false);
-            if (bc)
-                bc->enabled = false;
-        }
+        EntityBatch::disableEntities(fadingOut);
         for (auto& f: fadingOutCallbacks) {
             f();
         }
 
         // show every fading-in entities
-        for (auto e: fadingIn) {
-            auto* rc = theRenderingSystem.Get(e, false);
-            if (rc)
-                rc->show = true;
-
-            auto* tc = theTextSystem.Get(e, false);
-            if (tc)
-                tc->show = true;
-
-            auto* bc = theButtonSystem.Get(e, false);
-            if (bc)
-                bc->enabled = true;
-        }
+        EntityBatch::disableEntities(fadingIn);
         for (auto& f: fadingInCallbacks) {
             f();
         }

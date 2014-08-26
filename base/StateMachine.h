@@ -28,6 +28,9 @@
 #include "Entity.h"
 #include <base/SacDefs.h>
 #include "util/MurmurHash.h"
+#include "util/EntityBatch.h"
+
+class AssetAPI;
 
 template<typename T>
 class StateHandler {
@@ -38,7 +41,7 @@ class StateHandler {
         virtual ~StateHandler() {}
 
         // Setup internal var, states, ...
-        virtual void setup() = 0;
+        virtual void setup(AssetAPI*) {}
 
         // Called once, before calling updatePreEnter
         virtual void onPreEnter(T ) {}
@@ -62,12 +65,10 @@ class StateHandler {
         // Called when exiting the state (and old state has exited)
         virtual void onExit(T ) {};
 
-        std::map<hash_t, Entity> entities;
         const char* name;
 };
 
-class AssetAPI;
-void initStateEntities(AssetAPI* asset, const char* stateName, std::map<hash_t, Entity>& entities);
+void initStateEntities(AssetAPI* asset, const char* stateName, std::map<hash_t, Entity>& entities, EntityBatch& batch);
 
 template<typename T>
 class StateMachine {
