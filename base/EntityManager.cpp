@@ -100,7 +100,10 @@ Entity EntityManager::CreateEntityFromTemplate(const char* name, EntityType::Enu
 const char* EntityManager::entityName(Entity e) const {
     static const char* u = "unknown";
 
-    LOGF_IF(e >= entityHash.size(), "Undefined (not initialiazed ?) entity '" << e << "' used");
+    if (e >= entityHash.size()) {
+        LOGE("Undefined (not initialiazed ?) entity '" << e << "' used");
+        return u;
+    }
     hash_t id = entityHash[e];
     if (id)
 #if SAC_DEBUG

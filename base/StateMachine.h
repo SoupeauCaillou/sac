@@ -28,7 +28,6 @@
 #include "Entity.h"
 #include <base/SacDefs.h>
 #include "util/MurmurHash.h"
-#include "util/EntityBatch.h"
 
 class AssetAPI;
 
@@ -68,7 +67,7 @@ class StateHandler {
         const char* name;
 };
 
-void initStateEntities(AssetAPI* asset, const char* stateName, std::map<hash_t, Entity>& entities, EntityBatch& batch);
+void initStateEntities(AssetAPI* asset, const char* stateName, std::map<hash_t, Entity>& entities);
 
 template<typename T>
 class StateMachine {

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "StateMachine.h"
+#include "util/EntityBatch.h"
 
 namespace SceneEntityMode {
     enum Enum {
+        DoNothing,
         InstantaneousOnPreEnter,
         Fading,
         InstantaneousOnEnter,
@@ -19,7 +21,10 @@ class SceneState : public StateHandler<T> {
             StateHandler<T>(pName), enterMode(_enterMode), exitMode(_exitMode) {}
 
         virtual void setup(AssetAPI* asset) {
-            initStateEntities(asset, this->name, entities, batch);
+            initStateEntities(asset, this->name, entities);
+            for (auto e: entities) {
+                this->batch.addEntity(e.second);
+            }
         }
 
         virtual void onPreEnter(T ) {
@@ -75,6 +80,8 @@ class SceneState : public StateHandler<T> {
                     break;
             }
         }
+
+        Entity e(hash_t h) { return entities[h]; }
 
         std::map<hash_t, Entity> entities;
         EntityBatch batch;
