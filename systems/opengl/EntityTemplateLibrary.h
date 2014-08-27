@@ -40,8 +40,10 @@ class ComponentSystem;
 class LocalizeAPI;
 typedef std::map<hash_t, uint8_t*> PropertyNameValueMap;
 struct EntityTemplate {
+    EntityTemplate() : autoCreate(true) {}
     std::map<ComponentSystem*, PropertyNameValueMap> properties;
     std::vector<hash_t> dependencies;
+    bool autoCreate;
 };
 
 class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {

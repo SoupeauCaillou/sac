@@ -146,9 +146,6 @@ static void applyVec2SingleFloatModifiers(const hash_t modifier, const glm::vec2
     }
 }
 
-#define LOG_SUCCESS LOGV(2, "Loaded " << section << "/" << id << " property: '" << *out << "'");
-#define LOG_SUCCESS_ LOGV(2, "Loaded " << section << "/" << id << " property: '"
-
 enum IntervalMode {
     IntervalAsRandom,
     IntervalValue1,
@@ -182,7 +179,6 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
         } else {
             *out = parsed[0];
         }
-        LOG_SUCCESS
         return 1;
     }
 
@@ -218,7 +214,6 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
                     case IntervalValue1: *out = itv.t1; break;
                     case IntervalValue2: *out = itv.t2; break;
                 }
-                LOG_SUCCESS
                 return 1;
             }
             case 4:
@@ -226,7 +221,6 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
                 *out = Color(&p[0], 0xffffffff);
                 if (count == 3)
                     out->a = 1;
-                LOG_SUCCESS
                 return 1;
             }
         }
@@ -245,11 +239,10 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
                     , ((h >> 8) & 0xff) / 255.0f
                     , ((h >> 0) & 0xff) / 255.0f
                     , 1.f);
-                LOG_SUCCESS_ << *out << "'");
                 return 1;
             } else if (modifier == HASH("name", 0x195267c7)) {
                 *out = Color(html);
-                LOG_SUCCESS
+
                 return 1;
             }
         }
@@ -265,7 +258,7 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
     if (dfp.get(section, id, &parsed, 1, false)) {
         // we got a single value
         *out = parsed;
-        LOG_SUCCESS
+
         return 1;
     } else {
         // fail
@@ -293,7 +286,7 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
         } else {
             *out = parsed[0];
         }
-        LOG_SUCCESS
+
         return 1;
     }
     return 0;
@@ -313,12 +306,12 @@ inline int  load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalM
             case IntervalValue1: *out = itv.t1; break;
             case IntervalValue2: *out = itv.t2; break;
         }
-        LOG_SUCCESS
+
         return 1;
     } else if (mode == IntervalAsRandom && count == 1) {
         // we got a single value
         *out = parsed[0];
-        LOG_SUCCESS
+
         return 1;
     } else {
         // fail
@@ -359,7 +352,7 @@ int ComponentFactory::build(
     std::list<hash_t> loaded;
 #endif
 
-    LOGV(2, "Build system: " << section);
+    LOGV(2, "Build system: " << INV_HASH(section));
 
     // Browse properties for the given system
     for (auto it = properties.begin(); it!=properties.end(); ++it) {
@@ -385,7 +378,7 @@ int ComponentFactory::build(
             loaded.push_back(id);
         }
 #endif
-        LOGV(2, "  * 0x" << std::hex << id << std::dec << ": " << (success ? "found":"missing"));
+        LOGV(3, "  * " << INV_HASH(id) << std::dec << ": " << (success ? "loaded":"missing"));
     }
 
 #if SAC_DEBUG
@@ -566,6 +559,7 @@ static bool loadSingleProperty(const std::string&,
         if(success) load(dfp, section, id, IntervalValue2, &itv.t2);\
         else { success = load(dfp, section, id, IntervalAsRandom, &itv.t1); itv.t2 = itv.t1; } \
         if (success) {\
+        LOGV(1, "Loaded " << INV_HASH(section) << "/" << INV_HASH(id) << " property. Value=[" << itv.t1 << ", " << itv.t2 << ']'); \
         uint8_t* arr = new uint8_t[sizeof(itv)];\
         memcpy(arr, &itv, sizeof(itv));\
         propMap.insert(std::make_pair(id, arr)); return true; }}
@@ -618,6 +612,8 @@ static bool loadSingleProperty(const std::string&,
                     memcpy(&arr[sizeof(int)], &toLocalize, sizeof(bool));
                     memcpy(&arr[sizeof(int) + sizeof(bool)], temp, len);
                     propMap.insert(std::make_pair(id, arr));
+
+                    LOGV(1, "Loaded " << INV_HASH(section) << "/" << INV_HASH(id) << " property. Value='" << temp << "' (localisable: " << toLocalize << ')');
                     return true;
                 }
             }

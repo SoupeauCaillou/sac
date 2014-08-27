@@ -64,6 +64,7 @@ void EntityTemplateLibrary::unregisterDataSource(EntityTemplateRef ) {
 
 int EntityTemplateLibrary::loadTemplate(const std::string& context, const DataFileParser& dfp, EntityTemplateRef, EntityTemplate& out) {
     int propCount = 0;
+
     // browse system
     const auto& systems = ComponentSystem::registeredSystems();
     for (auto it = systems.begin(); it!=systems.end(); ++it) {
@@ -112,6 +113,9 @@ bool EntityTemplateLibrary::doLoad(const char* name, EntityTemplate& out, const 
         delete[] fb.data;
         return false;
     }
+
+    if (0 == dfp.get(DataFileParser::GlobalSection, "auto", &out.autoCreate, 1, false))
+        out.autoCreate = true;
 
     // Handle recursive 'extends' attributes
     std::string extends;

@@ -51,6 +51,7 @@ bool EntityBatch::update(float dt) {
                 } else {
                     t = accum / fadeoutDuration;
                 }
+                accum += dt;
 
                 if (t >= 1) {
                     if (action == Action::Enabling) {
@@ -66,7 +67,6 @@ bool EntityBatch::update(float dt) {
                     EntityBatch::updateEntities(entities, t);
                     return false;
                 }
-                accum += dt;
             } else {
                 action = Action::Idle;
                 return true;
