@@ -297,7 +297,7 @@ static std::string displayGroup(Entity e) {
 
 void LevelEditor::tick(float dt) {
     bool show_another_window = true;
-    ImGui::Begin("Another Window", &show_another_window, ImVec2(200,100));
+    ImGui::Begin("Another Window", &show_another_window, ImVec2(200,400));
     ImGui::Button("Test Window");
     ImGui::Button("Test Window");
     ImGui::Button("Test Window");

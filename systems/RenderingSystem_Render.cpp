@@ -674,7 +674,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
     GL_OPERATION(glDisable(GL_CULL_FACE))
     GL_OPERATION(glDisable(GL_DEPTH_TEST))
-    //GL_OPERATION(glEnable(GL_SCISSOR_TEST))
+    GL_OPERATION(glEnable(GL_SCISSOR_TEST))
 
 
     GL_OPERATION(glUseProgram(leProgram))

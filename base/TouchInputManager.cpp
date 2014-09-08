@@ -98,6 +98,12 @@ void TouchInputManager::Update() {
                 onTouchPosition[i] = lastTouchedPositionScreen[i];
             }
         }
+        #if SAC_DESKTOP
+        {
+            lastOverPositionScreen[i] = windowToScreen(coords);
+            lastOverPosition[i] = windowToWorld(coords, tc);
+        }
+        #endif
 
         // first click condition: was touched + is released
         if (!touching[i] && wasTouching[i]) {

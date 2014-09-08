@@ -590,15 +590,21 @@ void Game::step() {
         ImGuiIO& io = ImGui::GetIO();
         io.MouseWheel = 0;
         io.DeltaTime = targetDT;
+
+        glm::vec2 p;
         #if !SAC_DESKTOP
         if (!theTouchInputManager.isTouched())
             io.MousePos =ImVec2(-1.0f, -1.0f);
         else
+            p = theTouchInputManager.getTouchLastPositionScreen();
+        #else
+        p = theTouchInputManager.getOverLastPositionScreen();
         #endif
-        {
-            auto p = theTouchInputManager.getTouchLastPosition();
-            io.MousePos =ImVec2(p.x, p.y);
-        }
+
+        p = PlacementHelper::WindowSize * 0.5f + p * PlacementHelper::WindowSize;
+        p.y = PlacementHelper::WindowSize.y - p.y;
+
+        io.MousePos =ImVec2(p.x, p.y);
         io.MouseDown[0] = theTouchInputManager.isTouched(0);
         io.MouseDown[1] = theTouchInputManager.isTouched(1);
         ImGui::NewFrame();

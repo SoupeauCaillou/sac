@@ -92,4 +92,12 @@ class TouchInputManager {
 #if SAC_DEBUG
 		Entity debugState[MAX_TOUCH_POINT];
 #endif
+#if SAC_DESKTOP
+        glm::vec2 lastOverPosition[MAX_TOUCH_POINT], lastOverPositionScreen[MAX_TOUCH_POINT];
+
+    public:
+        const glm::vec2& getOverLastPosition(int idx = 0) const { return lastOverPosition[idx]; }
+
+        const glm::vec2& getOverLastPositionScreen(int idx = 0) const { return lastOverPositionScreen[idx]; }
+#endif
 };
