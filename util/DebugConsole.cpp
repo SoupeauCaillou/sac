@@ -70,6 +70,7 @@ static void getShowGridCallback(void* value, void* ) {
 }
 
 void DebugConsole::initTW() {
+    #if 0
     bar = TwNewBar("Debug_Console");
     TwDefine(" Debug_Console size='400 200' iconified=true ");
 
@@ -86,7 +87,9 @@ void DebugConsole::initTW() {
     TwAddVarRW(bar, "Show debug", TW_TYPE_BOOLCPP, &theCollisionSystem.showDebug, "group=Collision");
     TwAddVarRW(bar, "Max raycast per sec", TW_TYPE_FLOAT, &theCollisionSystem.maximumRayCastPerSec, "group=Collision");
 #endif
+#endif
 }
+    #if 0
 
 void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(void*),
     void* storingPlace) {
@@ -112,6 +115,7 @@ void DebugConsole::RegisterMethod(const std::string & name, void (*callback)(voi
     TwType type = TwDefineEnum(argumentName.c_str(), availableArgs, availableArgsSize);
     RegisterMethod(name, callback, argumentName, type, storingPlace);
 }
+    #endif
 
 #endif
 

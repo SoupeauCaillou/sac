@@ -43,7 +43,8 @@
 #endif
 
 #if SAC_INGAME_EDITORS
-#include <AntTweakBar.h>
+#include "systems/opengl/shaders/level_editor_vs.h"
+#include "systems/opengl/shaders/level_editor_fs.h"
 #endif
 
 INSTANCE_IMPL(RenderingSystem);
@@ -99,9 +100,6 @@ void RenderingSystem::setWindowSize(int width, int height, float sW, float sH) {
     screenW = sW;
     screenH = sH;
     GL_OPERATION(glViewport(0, 0, windowW, windowH))
-#if SAC_INGAME_EDITORS
-    TwWindowSize(width, height);
-#endif
 }
 
 void RenderingSystem::setWindowSize(const glm::vec2& windowSize, const glm::vec2& screenSize) {
@@ -110,9 +108,6 @@ void RenderingSystem::setWindowSize(const glm::vec2& windowSize, const glm::vec2
     screenW = screenSize.x;
     screenH = screenSize.y;
     GL_OPERATION(glViewport(0, 0, windowW, windowH))
-#if SAC_INGAME_EDITORS
-    TwWindowSize(windowW, windowH);
-#endif
 }
 
 void RenderingSystem::init() {
@@ -175,6 +170,31 @@ void RenderingSystem::init() {
     if (hasDiscardExtension) {
         glDiscardFramebufferEXT = (PFNGLDISCARDFRAMEBUFFEREXTPROC)eglGetProcAddress("glDiscardFramebufferEXT");
     }
+#endif
+
+#if SAC_INGAME_EDITORS
+    leProgram = glCreateProgram();
+
+    FileBuffer fb;
+    fb.data = level_editor_vs;
+    fb.size = level_editor_vs_len;
+    GLuint vs = EffectLibrary::compileShader("level_editor.vs", GL_VERTEX_SHADER, fb);
+    fb.data = level_editor_fs;
+    fb.size = level_editor_fs_len;
+    GLuint fs = EffectLibrary::compileShader("level_editor.fs", GL_FRAGMENT_SHADER, fb);
+    GL_OPERATION(glAttachShader(leProgram, vs))
+    GL_OPERATION(glAttachShader(leProgram, fs))
+    glBindAttribLocation(leProgram, 0, "aWindowPosition");
+    glBindAttribLocation(leProgram, 1, "aTexCoord");
+    glBindAttribLocation(leProgram, 2, "aColor");
+    GL_OPERATION(glLinkProgram(leProgram))
+    leProgramuniformColorSampler = glGetUniformLocation(leProgram, "tex0");
+    leProgramuniformWindowSize = glGetUniformLocation(leProgram, "windowSize");
+    leProgramuniformMatrix = glGetUniformLocation(leProgram, "uMvp");
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
 #endif
 }
 

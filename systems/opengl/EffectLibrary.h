@@ -54,6 +54,8 @@ class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
         const char* asset2FilePrefix() const { return ""; }
         const char* asset2FileSuffix() const { return ""; }
 
+        static GLuint compileShader(const std::string& context, GLuint type, const FileBuffer& fb);
+
         enum {
             ATTRIB_VERTEX = 0,
             ATTRIB_UV,

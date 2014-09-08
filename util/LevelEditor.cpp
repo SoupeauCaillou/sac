@@ -29,7 +29,7 @@
 #include <systems/RenderingSystem.h>
 #include <systems/CameraSystem.h>
 #include <systems/TextSystem.h>
-#include <AntTweakBar.h>
+
 #include <mutex>
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>
@@ -55,6 +55,7 @@ static void _unlock() {
     twMutex.unlock();
 }
 
+#if 0
 static std::string entityToTwName(Entity e) {
     std::stringstream s;
     s << theEntityManager.entityName(e) << '_' << (e & 0xf7ffffff);
@@ -67,6 +68,7 @@ static void TW_CALL CopyStdStringToClient(std::string& destinationClientString, 
   // Copy the content of souceString handled by the AntTweakBar library to destinationClientString handled by your application
   destinationClientString = sourceLibraryString;
 }
+#endif
 
 void LevelEditor::lock() {
     _lock();
@@ -110,6 +112,7 @@ struct LevelEditor::LevelEditorDatas {
     void deselect(Entity e);
 };
 
+#if 0
 static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
     TwBar* bar = TwNewBar(barName.c_str());
     std::vector<hash_t> systems = ComponentSystem::registeredSystemIds();
@@ -146,18 +149,22 @@ static void buttonCallback(void* e) {
     uint64_t ptr = reinterpret_cast<uint64_t>(e);
     showTweakBarForEntity((Entity)ptr);
 }
+TwBar* entityListBar, *debugConsoleBar, *logBar, *dumpEntities;
+#endif
 
 void LevelEditor::LevelEditorDatas::select(Entity e) {
+#if 0
     _lock();
     showTweakBarForEntity(e);
     _unlock();
+#endif
 }
 
 void LevelEditor::LevelEditorDatas::deselect(Entity) {
 
 }
 
-TwBar* entityListBar, *debugConsoleBar, *logBar, *dumpEntities;
+
 
 namespace EntityListMode {
     enum Enum {
@@ -174,6 +181,7 @@ LevelEditor::LevelEditor() {
     datas->mode = EditorMode::Selection;
     datas->selectionColorChangeSpeed = -0.5;
 
+#if 0
     TwInit(TW_OPENGL, NULL);
     TwDefine(" GLOBAL fontsize=3 "); // use large font
 
@@ -217,6 +225,7 @@ LevelEditor::LevelEditor() {
     TwAddVarRW(logBar, "Verbosity", type, &logLevel, "");
     TwAddSeparator(logBar, "File control", "");
 #endif
+#endif
 
 }
 
@@ -225,6 +234,7 @@ LevelEditor::~LevelEditor() {
 }
 
 #if SAC_ENABLE_LOG
+#if 0
 static void TW_CALL LogControlSetCallback(const void *value, void *clientData) {
     const bool* l = static_cast<const bool*>(value);
     const char* s = static_cast<const char*>(clientData);
@@ -238,8 +248,9 @@ static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
     *l = verboseFilenameFilters[s];
 }
 #endif
+#endif
 
-static void TW_CALL DumpSystemEntities(void *clientData) {
+static void DumpSystemEntities(void *clientData) {
     ComponentSystem* s = ComponentSystem::GetById(*((hash_t*) clientData));
 
     LOGW((char*) clientData << " system dump");
@@ -251,6 +262,7 @@ static void TW_CALL DumpSystemEntities(void *clientData) {
 }
 
 void LevelEditor::init() {
+    #if 0
     // init system button
     for (auto it : ComponentSystem::registeredSystems()) {
         TwAddButton(dumpEntities, INV_HASH(it.first), DumpSystemEntities, (void*)&it.first, "");
@@ -265,6 +277,7 @@ void LevelEditor::init() {
     TwAddVarRO(netbar, "nb packet rcvd", TW_TYPE_INT32, &theNetworkSystem.packetRcvd, NULL);
     TwAddVarRO(netbar, "nb packet sent", TW_TYPE_INT32, &theNetworkSystem.packetSent, NULL);
 
+#endif
 #endif
 }
 
@@ -283,6 +296,21 @@ static std::string displayGroup(Entity e) {
 }
 
 void LevelEditor::tick(float dt) {
+    bool show_another_window = true;
+    ImGui::Begin("Another Window", &show_another_window, ImVec2(200,100));
+    ImGui::Button("Test Window");
+    ImGui::Button("Test Window");
+    ImGui::Button("Test Window");
+    ImGui::Button("Test Window");
+    ImGui::Button("Test Window");
+
+    static float f;
+    ImGui::Text("Hello, world!");
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+
+    ImGui::End();
+
+    #if 0
     // update entity list every sec
     static float accum = 1;
 
@@ -404,6 +432,7 @@ void LevelEditor::tick(float dt) {
 #endif
         unlock();
     }
+    #endif
 }
 
 void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {

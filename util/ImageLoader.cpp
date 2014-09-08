@@ -18,6 +18,8 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 #include "ImageLoader.h"

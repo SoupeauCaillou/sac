@@ -151,6 +151,13 @@ public:
 
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
+#if SAC_INGAME_EDITORS
+    static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformWindowSize, leProgramuniformMatrix;
+    static GLuint fontTex;
+    static std::vector<ImDrawList> imguiCommands;
+    static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count);
+    static void ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count);
+#endif
 public:
     void enableRendering();
     void disableRendering();

@@ -30,8 +30,8 @@
 #define VERTEX_SHADER_ARRAY default_vs
 #define VERTEX_SHADER_SIZE default_vs_len
 
-static GLuint compileShader(const std::string&, GLuint type, const FileBuffer& fb) {
-    LOGV(1, "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader...");;
+GLuint EffectLibrary::compileShader(const std::string& LOG_USAGE_ONLY(ctx), GLuint type, const FileBuffer& fb) {
+    LOGV(1, "Compiling " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader '" << ctx << "'");;
 
     GLuint shader = glCreateShader(type);
     GL_OPERATION(glShaderSource(shader, 1, (const char**)&fb.data, &fb.size))
@@ -49,6 +49,7 @@ static GLuint compileShader(const std::string&, GLuint type, const FileBuffer& f
    if (!glIsShader(shader)) {
         LOGE("Weird; " << shader << "d is not a shader");
    }
+   LOGV(1, "Shader compilation successful");
     return shader;
 }
 
@@ -61,9 +62,9 @@ static Shader buildShaderFromFileBuffer(const char* vsName, const FileBuffer& fr
     FileBuffer vertexFb;
     vertexFb.data = VERTEX_SHADER_ARRAY;
     vertexFb.size = VERTEX_SHADER_SIZE;
-    GLuint vs = compileShader(vsName, GL_VERTEX_SHADER, vertexFb);
+    GLuint vs = EffectLibrary::compileShader(vsName, GL_VERTEX_SHADER, vertexFb);
 
-    GLuint fs = compileShader("unknown.fs", GL_FRAGMENT_SHADER, fragmentFb);
+    GLuint fs = EffectLibrary::compileShader("unknown.fs", GL_FRAGMENT_SHADER, fragmentFb);
 
     GL_OPERATION(glAttachShader(out.program, vs))
     GL_OPERATION(glAttachShader(out.program, fs))

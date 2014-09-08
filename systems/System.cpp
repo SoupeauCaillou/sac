@@ -220,6 +220,7 @@ static std::string varParams(const std::string& group, const std::string& name, 
     return params.str();
 }
 
+#if 0
 static TwType PropertyTypeToType(PropertyType::Enum e) {
     switch (e) {
         case PropertyType::String:
@@ -245,8 +246,11 @@ static void textureSetCB(const void* valueIn, void* clientData);
 static void textureGetCB(void* valueOut, void* clientData);
 static void entityGetCB(void* valueOut, void* clientData);
 static void hashGetCB(void* valueOut, void* clientData);
+#endif
 
-bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
+bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
+    return true;
+    #if 0
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
         return false;
@@ -325,8 +329,10 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, TwBar* bar) {
         }
     }
     return true;
+    #endif
 }
 
+#if 0
 static void textureSetCB(const void* valueIn, void* clientData) {
     const std::string* s = static_cast<const std::string*> (valueIn);
     TextureRef* r = static_cast<TextureRef*>(clientData);
@@ -365,5 +371,6 @@ static void hashGetCB(void* valueOut, void* clientData) {
     // see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twcopystdstringtolibrary
     TwCopyStdStringToLibrary(*s, std::string(lk));
 }
+#endif
 
 #endif

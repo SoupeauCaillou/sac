@@ -40,7 +40,7 @@
 
 class LocalizeAPI;
 #if SAC_INGAME_EDITORS
-#include "AntTweakBar.h"
+#include "imgui.h"
 #endif
 
 namespace ComponentType {
@@ -82,7 +82,8 @@ class ComponentSystem {
         static const std::map<hash_t, ComponentSystem*>& registeredSystems();
 
 #if SAC_INGAME_EDITORS
-        bool addEntityPropertiesToBar(Entity e, TwBar* bar);
+        #warning FIXME
+        bool addEntityPropertiesToBar(Entity e, void* bar);
 #endif
 
     protected:

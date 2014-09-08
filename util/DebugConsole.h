@@ -25,8 +25,6 @@
 #include <string>
 #include <map>
 
-#include <AntTweakBar.h>
-
 
 class DebugConsole {
     public:
@@ -34,7 +32,7 @@ class DebugConsole {
         void initTW();
 
         static DebugConsole & Instance();
-
+#if 0
         //Function without args (storingPlace is unused - should be 0)
         static void RegisterMethod(const std::string & functionName, void (*callback)(void*),
             void* storingPlace = 0);
@@ -59,15 +57,16 @@ class DebugConsole {
         //storingPlace: where to store the argument value (should be a static or allocated variable)
         static void RegisterMethod(const std::string & functionName, void (*callback)(void*),
             const std::string & argumentName, TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace);
-
+#endif
     private:
         DebugConsole() {}
         ~DebugConsole() {}
 
     private:
         std::map<std::string, void (*)(void*)> name2callback;
-
+#if 0
         TwBar* bar;
+    #endif
 };
 
 #endif

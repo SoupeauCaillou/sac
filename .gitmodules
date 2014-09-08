@@ -10,3 +10,9 @@
 [submodule "libs/AntTweakBar"]
 	path = libs/AntTweakBar
 	url = https://github.com/bagage/AntTweakBar.git
+[submodule "libs/imgui"]
+	path = libs/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "libs/stb"]
+	path = libs/stb
+	url = https://github.com/nothings/stb.git

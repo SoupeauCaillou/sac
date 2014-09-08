@@ -4,6 +4,8 @@
 #list of the supported OS
 SET(SUPPORTED_TARGETS linux android emscripten windows darwin)
 
+option(INGAME_EDITOR "Build with ingame-editor support" OFF)
+
 #if target = NULL then target = current OS
 if (NOT TARGET)
     string (TOLOWER "${CMAKE_SYSTEM_NAME}" varplatform)
@@ -185,6 +187,7 @@ include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
+include_directories(${PROJECT_SOURCE_DIR}/sac/libs/stb)
 
 add_definitions(-DGLM_FORCE_RADIANS)
 
@@ -213,7 +216,23 @@ endif()
 #include platform dependent APIs
 get_platform_dependent_sources()
 
-add_library(sac ${SAC_LIB_TYPE} ${source_files} ${opt_source_files} ${platform_source_files} ${extra_source_files})
+if (INGAME_EDITOR STREQUAL "ON")
+    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/imgui)
+
+    file(
+        GLOB imgui_files
+        ${PROJECT_SOURCE_DIR}/sac/libs/imgui/*.cpp
+    )
+endif()
+
+add_library(sac
+    ${SAC_LIB_TYPE}
+    ${source_files}
+    ${opt_source_files}
+    ${platform_source_files}
+    ${extra_source_files}
+    ${imgui_files}
+)
 add_dependencies( sac generate_shaders ${extra_custom_target})
 
 #######################################################################
@@ -247,15 +266,9 @@ if (NETWORK_BUILD)
     target_link_libraries("sac" enet)
 endif()
 
-
-
 if (DESKTOP_BUILD)
     include_directories(${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/)
     check_and_link_libs("sac" GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
-
-    add_subdirectory(${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar)
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/AntTweakBar/include)
-    target_link_libraries("sac" AntTweakBar)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)

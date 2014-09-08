@@ -445,7 +445,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     SDL_Quit();
 
 #if SAC_INGAME_EDITORS
-    TwTerminate();
+
 #endif
 
 #endif

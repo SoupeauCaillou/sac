@@ -27,7 +27,6 @@
 #include "TransformationSystem.h"
 #include <sstream>
 #if SAC_INGAME_EDITORS
-#include <AntTweakBar.h>
 #include "util/LevelEditor.h"
 #endif
 #include <glm/gtc/type_ptr.hpp>
@@ -37,6 +36,8 @@
 #if SAC_DEBUG
 #include "RenderingSystem_Debug.h"
 #endif
+
+GLuint RenderingSystem::leProgram, RenderingSystem::leProgramuniformColorSampler, RenderingSystem::leProgramuniformWindowSize, RenderingSystem::leProgramuniformMatrix;
 
 static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, VertexData* out);
 
@@ -55,12 +56,11 @@ static int drawBatchES2(
     const VertexData* vertices
     , const unsigned short* indices
     , int batchVertexCount
-    , int batchTriangleCount
     , unsigned indiceCount
     , int activeVertexBuffer
     ) {
-
-    if (batchTriangleCount > 0) {
+return 0;
+    if (indiceCount > 0) {
         // update vertex buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[activeVertexBuffer]))
         if (activeVertexBuffer == 1) {
@@ -229,7 +229,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     bool useFbo = false;
 
     // Batch variable
-    unsigned int batchVertexCount = 0, batchTriangleCount = 0;
+    unsigned int batchVertexCount = 0;
 
     // matrices
     glm::mat4 camViewPerspMatrix;
@@ -253,6 +253,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     GL_OPERATION(glActiveTexture(GL_TEXTURE0))
 
     #if SAC_DEBUG
+    unsigned int batchTriangleCount = 0;
     batchSizes.clear();
     batchContent.clear();
     #endif
@@ -265,7 +266,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // texture, etc), we flush (execute) the active batch, and start
     // building a new one.
     const unsigned count = commands.count;
-    for (unsigned i=0; i<count; i++) {
+    for (unsigned i=0; i< count; i++) {
         RenderCommand& rc = commands.commands[i];
 
         // HANDLE BEGIN/END FRAME MARKERS (new frame OR new camera)
@@ -273,7 +274,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::NewCamera, batchTriangleCount));
             #endif
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
 
             PROFILE("Render", "begin-render-frame", InstantEvent);
 
@@ -323,9 +324,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.flags != currentFlags) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushInfo(BatchFlushReason::NewFlags, rc.flags), batchTriangleCount));
+            batchTriangleCount = 0;
             #endif
             // flush batch before changing state
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
 
             const int flagBitsChanged = glState.flags.update(rc.flags);
@@ -366,9 +368,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.effectRef != currentEffect) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::NewEffect, batchTriangleCount));
+            batchTriangleCount = 0;
             #endif
             // flush before changing effect
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
             const bool useTexturing = (rc.texture != InvalidTextureRef);
 
             currentEffect = rc.effectRef;
@@ -435,9 +438,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             } else if (condColor) {
                 batchSizes.push_back(std::make_pair(BatchFlushReason::NewFBO, batchTriangleCount));
             }
+            batchTriangleCount = 0;
             #endif
             // flush before changing texture/color
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
             if (rcUseFbo) {
                 fboRef = rc.framebuffer;
                 boundTexture = InternalTexture::Invalid;
@@ -488,8 +492,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (((batchVertexCount + polygon.vertices.size()) >= MAX_VERTEX_COUNT) | ((indiceCount + polygon.indices.size()) >= MAX_INDICE_COUNT)) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::Full, batchTriangleCount));
+            batchTriangleCount = 0;
             #endif
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
         }
 
         // ADD TO BATCH
@@ -499,12 +504,18 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             polygon,
             vertices + batchVertexCount,
             indices + indiceCount,
-            &batchVertexCount, &batchTriangleCount, &indiceCount);
+            &batchVertexCount,
+        #if SAC_DEBUG
+         &batchTriangleCount
+        #else
+         0
+         #endif
+         , &indiceCount);
     }
     #if SAC_DEBUG
     batchSizes.push_back(std::make_pair(BatchFlushReason::End, batchTriangleCount));
     #endif
-    drawBatchES2(vertices, indices, batchVertexCount, batchTriangleCount, indiceCount, activeVertexBuffer);
+    drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
 
     #if SAC_DEBUG
     static unsigned ______debug = 0;
@@ -609,7 +620,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();
-    TwDraw();
+    RenderingSystem::ImImpl_RenderDrawLists2(&imguiCommands[0], (int) imguiCommands.size());
     LevelEditor::unlock();
 #endif
 }
@@ -633,3 +644,111 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
         return defaultShaderEmpty;
     }
 }
+
+#if SAC_INGAME_EDITORS
+GLuint RenderingSystem::fontTex;
+std::vector<ImDrawList> RenderingSystem::imguiCommands;
+// from imgui example
+void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
+    if (cmd_lists_count == 0)
+        return;
+
+    imguiCommands.resize(cmd_lists_count);
+
+    for (int n = 0; n < cmd_lists_count; n++)
+    {
+        const ImDrawList* cmd_list = cmd_lists[n];
+        // copy list
+        ImDrawList* l = &imguiCommands[n];
+        *l = *cmd_list;
+        long int offset = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
+        l->vtx_write = &l->vtx_buffer[0] + offset;
+    }
+}
+
+void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count) {
+    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
+    // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
+    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
+    GL_OPERATION(glEnable(GL_BLEND))
+    GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
+    GL_OPERATION(glDisable(GL_CULL_FACE))
+    GL_OPERATION(glDisable(GL_DEPTH_TEST))
+    //GL_OPERATION(glEnable(GL_SCISSOR_TEST))
+
+
+    GL_OPERATION(glUseProgram(leProgram))
+    const float width = ImGui::GetIO().DisplaySize.x;
+    const float height = ImGui::GetIO().DisplaySize.y;
+
+    glm::mat4 mvp;
+    mvp = glm::ortho(0.0f, width, height, 0.0f, 0.0f, 1.0f);
+    GL_OPERATION( glUniformMatrix4fv(leProgramuniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)))
+    GL_OPERATION(glUniform1i(leProgramuniformColorSampler, 0))
+    GL_OPERATION(glActiveTexture(GL_TEXTURE0))
+    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, fontTex))
+
+    // Setup orthographic projection matrix
+    GL_OPERATION(glUniform2f(leProgramuniformWindowSize, width, height))
+
+    // Enable hard-coded attributes
+    GL_OPERATION(glEnableVertexAttribArray(0))
+    GL_OPERATION(glEnableVertexAttribArray(1))
+    GL_OPERATION(glEnableVertexAttribArray(2))
+
+    /*
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();*/
+
+    // Render command lists
+    for (int n = 0; n < cmd_lists_count; n++)
+    {
+        const ImDrawList* cmd_list = &cmd_lists[n];
+        const unsigned char* vtx_buffer = (const unsigned char*)cmd_list->vtx_buffer.begin();
+
+        unsigned verticesCount = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
+        unsigned size = verticesCount * sizeof(ImDrawVert);
+
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
+        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
+        GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
+                size, &cmd_list->vtx_buffer[0]))
+
+        // Fill index buffer with a simple sequence
+        unsigned short* indices = new unsigned short[verticesCount];
+        for (int i=0; i<verticesCount; i++) indices[i] = i;
+        // Upload indices to indice buffer
+        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
+        GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+            sizeof(unsigned short) * MAX_INDICE_COUNT, 0, GL_STREAM_DRAW))
+        GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
+            verticesCount * sizeof(unsigned short), indices))
+
+
+        int vtx_offset = 0;
+        const ImDrawCmd* pcmd_end = cmd_list->commands.end();
+        for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
+        {
+            GL_OPERATION(glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y)))
+
+            GL_OPERATION(
+                glVertexAttribPointer(0 /*aWindowPosition*/, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert))))
+            GL_OPERATION(
+                glVertexAttribPointer(1 /*aTexCoord*/, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert) + 8)))
+            GL_OPERATION(
+                glVertexAttribPointer(2 /*aColor*/, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert) + 16)))
+
+            GL_OPERATION(glDrawElements(GL_TRIANGLES, pcmd->vtx_count, GL_UNSIGNED_SHORT, 0))
+
+            vtx_offset += pcmd->vtx_count;
+        }
+    }
+    GL_OPERATION(glDisable(GL_SCISSOR_TEST))
+
+    // Restore pre-multiplied alpha blending
+    GL_OPERATION(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA))
+}
+#endif

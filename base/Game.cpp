@@ -73,6 +73,12 @@
 #include <SDL.h>
 #endif
 
+#if SAC_INGAME_EDITORS
+#include "imgui.h"
+#include "systems/opengl/OpenglHelper.h"
+#include "stb_image.h"
+#endif
+
 
 #include <sstream>
 
@@ -330,8 +336,9 @@ void Game::eventsHandler() {
     {
 #if SAC_INGAME_EDITORS
         levelEditor->lock();
+        #warning Fixme
         // Send event to AntTweakBar
-        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        handled = false;//TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
         levelEditor->unlock();
 #endif
 
@@ -454,7 +461,6 @@ void Game::sacInit(int windowW, int windowH) {
     PlacementHelper::WindowSize = glm::vec2(windowW, windowH);
     PlacementHelper::GimpSize = glm::vec2(800.0f, 1280.0f);
 
-
     theRenderingSystem.setWindowSize(PlacementHelper::WindowSize, PlacementHelper::ScreenSize);
     theTouchInputManager.init(PlacementHelper::ScreenSize, PlacementHelper::WindowSize);
 
@@ -481,6 +487,54 @@ void Game::sacInit(int windowW, int windowH) {
         });
 
     }
+
+#if SAC_INGAME_EDITORS
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)windowW, (float)windowH);
+    io.PixelCenterOffset = 0.0f;
+
+#if SAC_DESKTOP
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
+    io.KeyMap[ImGuiKey_Tab] = SDLK_ESCAPE;
+    io.KeyMap[ImGuiKey_LeftArrow] = SDLK_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = SDLK_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow] = SDLK_UP;
+    io.KeyMap[ImGuiKey_DownArrow] = SDLK_DOWN;
+    io.KeyMap[ImGuiKey_Home] = SDLK_HOME;
+    io.KeyMap[ImGuiKey_End] = SDLK_END;
+    io.KeyMap[ImGuiKey_Delete] = SDLK_DELETE;
+    io.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
+    io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
+    io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
+    /*
+    io.KeyMap[ImGuiKey_A] = SDLK_A;
+    io.KeyMap[ImGuiKey_C] = SDLK_C;
+    io.KeyMap[ImGuiKey_V] = SDLK_V;
+    io.KeyMap[ImGuiKey_X] = SDLK_X;
+    io.KeyMap[ImGuiKey_Y] = SDLK_Y;
+    io.KeyMap[ImGuiKey_Z] = SDLK_Z;
+    */
+
+    // only in SDL2
+    // io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;
+    // io.GetClipboardTextFn = SDL_GetClipboardText;
+#endif
+
+    io.RenderDrawListsFn = RenderingSystem::ImImpl_RenderDrawLists;
+
+    // Load font texture
+    glGenTextures(1, &RenderingSystem::fontTex);
+    glBindTexture(GL_TEXTURE_2D, RenderingSystem::fontTex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    const void* png_data;
+    unsigned int png_size;
+    ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
+    int tex_x, tex_y, tex_comp;
+    void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_x, tex_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data);
+    stbi_image_free(tex_data);
+#endif
 
 #if SAC_INGAME_EDITORS
     levelEditor->init();
@@ -531,6 +585,25 @@ void Game::step() {
 
         // update game state
     #if SAC_INGAME_EDITORS
+        LevelEditor::lock();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.MouseWheel = 0;
+        io.DeltaTime = targetDT;
+        #if !SAC_DESKTOP
+        if (!theTouchInputManager.isTouched())
+            io.MousePos =ImVec2(-1.0f, -1.0f);
+        else
+        #endif
+        {
+            auto p = theTouchInputManager.getTouchLastPosition();
+            io.MousePos =ImVec2(p.x, p.y);
+        }
+        io.MouseDown[0] = theTouchInputManager.isTouched(0);
+        io.MouseDown[1] = theTouchInputManager.isTouched(1);
+        ImGui::NewFrame();
+
+
         static float speedFactor = 1.0f;
         static bool oneStepEnabled = false;
 
@@ -572,6 +645,8 @@ void Game::step() {
 
                 tick(targetDT * speedFactor);
         }
+        ImGui::Render();
+        LevelEditor::unlock();
     #else
         LOGV(3, "Update game");
         Draw::Update();
