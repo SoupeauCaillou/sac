@@ -59,7 +59,7 @@ static int drawBatchES2(
     , unsigned indiceCount
     , int activeVertexBuffer
     ) {
-return 0;
+
     if (indiceCount > 0) {
         // update vertex buffer
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[activeVertexBuffer]))
