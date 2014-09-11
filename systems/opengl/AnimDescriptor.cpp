@@ -26,6 +26,12 @@
 #include "systems/RenderingSystem.h"
 #include "util/MurmurHash.h"
 
+
+AnimDescriptor::AnimDescriptor() : playbackSpeed(1.0f), nextAnim(0) {
+    loopCount.t1 = loopCount.t2 = 0;
+    nextAnimWait.t1 = nextAnimWait.t2 = 0.0f;
+}
+
 bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::string* variables, int varcount) {
     DataFileParser dfp;
     if (!dfp.load(fb, ctx)) {

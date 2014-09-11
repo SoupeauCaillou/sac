@@ -37,7 +37,14 @@
 #include "RenderingSystem_Debug.h"
 #endif
 
+#if SAC_INGAME_EDITORS
+GLuint RenderingSystem::fontTex;
+static ImDrawList* imguiCommands = 0;
+static int drawListCount = 0, drawListCapacity = 0;
+
 GLuint RenderingSystem::leProgram, RenderingSystem::leProgramuniformColorSampler, RenderingSystem::leProgramuniformWindowSize, RenderingSystem::leProgramuniformMatrix;
+#endif
+
 
 static void computeVerticesScreenPos(const std::vector<glm::vec2>& points, const glm::vec2& position, const glm::vec2& hSize, float rotation, float z, VertexData* out);
 
@@ -613,15 +620,15 @@ void RenderingSystem::render() {
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
-#if ! SAC_EMSCRIPTEN
-    cond[C_RENDER_DONE].notify_all();
-    mutexes[L_RENDER].unlock();
-#endif
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();
-    RenderingSystem::ImImpl_RenderDrawLists2(&imguiCommands[0], (int) imguiCommands.size());
+    RenderingSystem::ImImpl_RenderDrawLists2(imguiCommands, drawListCount);
     LevelEditor::unlock();
+#endif
+#if ! SAC_EMSCRIPTEN
+    cond[C_RENDER_DONE].notify_all();
+    mutexes[L_RENDER].unlock();
 #endif
 }
 
@@ -646,27 +653,44 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
 }
 
 #if SAC_INGAME_EDITORS
-GLuint RenderingSystem::fontTex;
-std::vector<ImDrawList> RenderingSystem::imguiCommands;
+
 // from imgui example
 void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
+    int idx = theRenderingSystem.currentWriteQueue;
+
+    if (drawListCapacity <= cmd_lists_count) {
+        imguiCommands = (ImDrawList*) realloc(imguiCommands, cmd_lists_count * sizeof(ImDrawList));
+        drawListCapacity = cmd_lists_count;
+        for (int i=0; i<drawListCapacity; i++)
+            new (&imguiCommands[i]) ImDrawList();
+    }
+
+    drawListCount = cmd_lists_count;
+
     if (cmd_lists_count == 0)
         return;
-
-    imguiCommands.resize(cmd_lists_count);
 
     for (int n = 0; n < cmd_lists_count; n++)
     {
         const ImDrawList* cmd_list = cmd_lists[n];
         // copy list
         ImDrawList* l = &imguiCommands[n];
-        *l = *cmd_list;
+        l->Clear();
+
+        for (size_t i=0; i<cmd_list->commands.size(); i++)
+            l->commands.push_back(cmd_list->commands[i]);
+        for (size_t i=0; i<cmd_list->vtx_buffer.size(); i++)
+            l->vtx_buffer.push_back(cmd_list->vtx_buffer[i]);
+        for (size_t i=0; i<cmd_list->clip_rect_stack.size(); i++)
+            l->clip_rect_stack.push_back(cmd_list->clip_rect_stack[i]);
+
         long int offset = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
         l->vtx_write = &l->vtx_buffer[0] + offset;
     }
 }
 
 void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count) {
+
     // We are using the OpenGL fixed pipeline to make the example code simpler to read!
     // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
@@ -696,6 +720,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     GL_OPERATION(glEnableVertexAttribArray(1))
     GL_OPERATION(glEnableVertexAttribArray(2))
 
+    //LOGI(cmd_lists_count << "/" << cmd_lists);
     /*
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -707,23 +732,22 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     for (int n = 0; n < cmd_lists_count; n++)
     {
         const ImDrawList* cmd_list = &cmd_lists[n];
-        const unsigned char* vtx_buffer = (const unsigned char*)cmd_list->vtx_buffer.begin();
 
         unsigned verticesCount = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
         unsigned size = verticesCount * sizeof(ImDrawVert);
 
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[1]))
-        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[3]))
+        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, size, 0, GL_STREAM_DRAW))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
                 size, &cmd_list->vtx_buffer[0]))
 
         // Fill index buffer with a simple sequence
         unsigned short* indices = new unsigned short[verticesCount];
-        for (int i=0; i<verticesCount; i++) indices[i] = i;
+        for (unsigned i=0; i<verticesCount; i++) indices[i] = i;
         // Upload indices to indice buffer
         GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
         GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            sizeof(unsigned short) * MAX_INDICE_COUNT, 0, GL_STREAM_DRAW))
+            verticesCount * sizeof(unsigned short), 0, GL_STREAM_DRAW))
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
             verticesCount * sizeof(unsigned short), indices))
 

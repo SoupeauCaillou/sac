@@ -609,7 +609,6 @@ void Game::step() {
         io.MouseDown[1] = theTouchInputManager.isTouched(1);
         ImGui::NewFrame();
 
-
         static float speedFactor = 1.0f;
         static bool oneStepEnabled = false;
 
@@ -651,7 +650,6 @@ void Game::step() {
 
                 tick(targetDT * speedFactor);
         }
-        ImGui::Render();
         LevelEditor::unlock();
     #else
         LOGV(3, "Update game");

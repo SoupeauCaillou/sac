@@ -347,7 +347,9 @@ relayout:
             rc->show = trc->show;
             rc->cameraBitMask = trc->cameraBitMask;
             rc->flags = RenderingFlags::NonOpaque | RenderingFlags::FastCulling;
-
+#if SAC_INGAME_EDITORS
+            rc->highLight = trc->highLight;
+#endif
             // At this point, we have the proper unicodeId to display,
             // except if it's an image delimiter
             if (unicode == 0x00D7) {

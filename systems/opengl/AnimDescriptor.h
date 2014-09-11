@@ -31,6 +31,8 @@ struct FileBuffer;
 
 class AnimDescriptor {
     public:
+        AnimDescriptor();
+
         bool load(const std::string& ctx, const FileBuffer& fb, std::string* variables = 0, int varcount = 0);
 
     public:

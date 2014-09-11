@@ -58,6 +58,8 @@ class TouchInputManager {
 
         bool hasClicked(int idx = 0) const { return clicked[idx]; }
 
+        void resetState();
+
         bool hasDoubleClicked(int idx = 0) const { return doubleclicked[idx]; }
 
         void resetDoubleClick(int idx = 0);

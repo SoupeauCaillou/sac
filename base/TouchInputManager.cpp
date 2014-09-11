@@ -157,6 +157,13 @@ void TouchInputManager::Update() {
 #endif
 }
 
+void TouchInputManager::resetState() {
+    for (int i=0; i<MAX_TOUCH_POINT; i++) {
+        touching[i] = wasTouching[i] = clicked[i] = doubleclicked[i] = false;
+        lastClickTime[i] = 0;
+    }
+}
+
 void TouchInputManager::resetDoubleClick(int idx) {
     lastClickTime[idx] = 0;
 }

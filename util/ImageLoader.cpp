@@ -225,13 +225,13 @@ ImageDesc ImageLoader::loadEtc1(const std::string& LOG_USAGE_ONLY(context), cons
 
 
     if (etc1supported) {
-        result.datas = (char*) malloc(file.size - offset);
+        result.datas = new char[file.size - offset];
         memcpy(result.datas, &file.data[offset], file.size - offset);
         result.channels = 3;
         result.type = ImageDesc::ETC1;
     } else {
         #if SAC_DESKTOP
-        unsigned int* pixels = (unsigned int*) malloc(result.width * result.height * 4);
+        unsigned int* pixels = new unsigned int[result.width * result.height];
         result.datas = (char*) pixels;
         memset(pixels, 255, result.width * result.height * 4);
         // 64bits -> 4x4 pixels
@@ -301,7 +301,7 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
     result.channels = 3;
     result.type = ImageDesc::PVR;
 	int size = file.size - sizeof(PVRTexHeader);
-	result.datas = (char*) malloc(size);
+	result.datas = new char[size];
 	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
 	return result;
 }
@@ -359,7 +359,7 @@ ImageDesc ImageLoader::loadDDS(const std::string& /*context*/, const FileBuffer&
         result.mipmap = 0;
     }
     int size = file.size - sizeof(DDS_header);
-    result.datas = (char*) malloc(size);
+    result.datas = new char[size];
     memcpy(result.datas, &file.data[sizeof(DDS_header)], size);
     return result;
 }

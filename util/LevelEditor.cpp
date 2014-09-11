@@ -24,6 +24,7 @@
 
 #include "LevelEditor.h"
 #include "IntersectionUtil.h"
+#include "base/TouchInputManager.h"
 #include <base/EntityManager.h>
 #include <systems/TransformationSystem.h>
 #include <systems/RenderingSystem.h>
@@ -55,12 +56,12 @@ static void _unlock() {
     twMutex.unlock();
 }
 
-#if 0
-static std::string entityToTwName(Entity e) {
+static std::string entityToName(Entity e) {
     std::stringstream s;
-    s << theEntityManager.entityName(e) << '_' << (e & 0xf7ffffff);
+    s << theEntityManager.entityName(e) << ' ' << (e & 0xf7ffffff);
     return s.str();
 }
+#if 0
 
 //see http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:twcopystdstringtoclientfunc
 static void TW_CALL CopyStdStringToClient(std::string& destinationClientString, const std::string& sourceLibraryString)
@@ -295,20 +296,74 @@ static std::string displayGroup(Entity e) {
     return name;
 }
 
-void LevelEditor::tick(float dt) {
-    bool show_another_window = true;
-    ImGui::Begin("Another Window", &show_another_window, ImVec2(200,400));
-    ImGui::Button("Test Window");
-    ImGui::Button("Test Window");
-    ImGui::Button("Test Window");
-    ImGui::Button("Test Window");
-    ImGui::Button("Test Window");
+std::map<Entity, bool> showEntityWindow;
 
-    static float f;
-    ImGui::Text("Hello, world!");
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+void LevelEditor::tick(float dt) {
+    // build entity-list Window
+    std::vector<Entity> entities = theEntityManager.allEntities();
+    ImGui::Begin("Entity List");
+    // CollapsingHeader
+    for (unsigned i=0; i<entities.size(); i++) {
+        Entity e = entities[i];
+
+        std::stringstream n;
+        n << entityToName(e);
+
+        if (ImGui::Button(n.str().c_str())) {
+            bool keepOpen = true;
+            // showEntityWindow[e] = true;
+            LOGI("Youpi");
+                        ImGui::Begin();//entityToName(e).c_str(), &keepOpen);
+
+            ImGui::Text("Allo");
+
+            ImGui::End();
+        }
+
+        if (ImGui::IsHovered()) {
+            auto* rc = theRenderingSystem.Get(e, false);
+            if (rc) rc->highLight = true;
+            auto* tc = theTextSystem.Get(e, false);
+            if (tc) tc->highLight = true;
+        }
+
+    }
 
     ImGui::End();
+
+    for (auto& p: showEntityWindow) {
+        if (p.second) {
+            bool keepOpen = true;
+            Entity e = p.first;
+            ImGui::Begin(entityToName(e).c_str(), &keepOpen);
+
+            ImGui::Text("Allo");
+
+            ImGui::End();
+
+            if (!p.second) {
+                p.second = false;
+            }
+        }
+    }
+    showEntityWindow.clear();
+
+
+/*
+
+    ImVec2 pos, end;
+    pos = end = ImGui::GetWindowPos();
+    ImVec2 size = ImGui::GetWindowSize();
+    end.x += size.x;
+    end.y += size.y;
+    if (ImGui::IsMouseHoveringBox(
+        ImGui::GetWindowPos(),
+        end)) {
+        LOGI("Reset state");
+        // force no click state
+        theTouchInputManager.resetState();
+    }
+*/
 
     #if 0
     // update entity list every sec

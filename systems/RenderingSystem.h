@@ -66,6 +66,9 @@ struct RenderingComponent {
         effectRef(DefaultEffectRef),
         cameraBitMask(1),
         color(Color())
+#if SAC_INGAME_EDITORS
+        , highLight(false)
+#endif
         {}
 
     union {
@@ -78,6 +81,10 @@ struct RenderingComponent {
     EffectRef effectRef;    // 8 bits
     uint8_t cameraBitMask;  // 8 bits
     Color color;            // 128 bits
+
+#if SAC_INGAME_EDITORS
+    bool highLight;
+#endif
 };
 
 #define theRenderingSystem RenderingSystem::GetInstance()
@@ -154,7 +161,6 @@ public:
 #if SAC_INGAME_EDITORS
     static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformWindowSize, leProgramuniformMatrix;
     static GLuint fontTex;
-    static std::vector<ImDrawList> imguiCommands;
     static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count);
     static void ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count);
 #endif
@@ -201,7 +207,12 @@ private:
     void updateReload();
 #endif
 public:
-    GLuint glBuffers[3];
+#if SAC_INGAME_EDITORS
+#define GL_VBO_COUNT 4
+#else
+#define GL_VBO_COUNT 3
+#endif
+    GLuint glBuffers[GL_VBO_COUNT];
 
 #if SAC_INGAME_EDITORS
     struct {

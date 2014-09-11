@@ -145,7 +145,7 @@ void RenderingSystem::init() {
     // GL_OPERATION(glDepthRangef(0, 1))
     GL_OPERATION(glDepthMask(false))
 
-    GL_OPERATION(glGenBuffers(3, glBuffers))
+    GL_OPERATION(glGenBuffers(GL_VBO_COUNT, glBuffers))
 
     // create a VBO for indices
     GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
@@ -397,6 +397,15 @@ void RenderingSystem::DoUpdate(float) {
             c.effectRef = rc->effectRef;
             c.halfSize = tc->size * 0.5f;
             c.color = rc->color;
+#if SAC_INGAME_EDITORS
+            if (rc->highLight) {
+                float t = TimeUtil::GetTime();
+                c.color.r = glm::cos(3 * t);
+                c.color.g = c.color.b = 1 - c.color.r;
+                rc->highLight = false;
+            }
+#endif
+
             c.shapeType = (int)tc->shape;
             c.position = tc->position;
             c.rotation = tc->rotation;
@@ -593,6 +602,10 @@ void RenderingSystem::DoUpdate(float) {
     framename << "create-frame-" << cccc;
     PROFILE("Render", framename.str(), InstantEvent);
     cccc++;
+#endif
+
+#if SAC_INGAME_EDITORS
+    ImGui::Render();
 #endif
 
 #if ! SAC_EMSCRIPTEN
