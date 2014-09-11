@@ -298,6 +298,20 @@ static std::string displayGroup(Entity e) {
 
 std::map<Entity, bool> showEntityWindow;
 
+static void imguiInputFilter() {
+    ImVec2 pos, end;
+    pos = end = ImGui::GetWindowPos();
+    ImVec2 size = ImGui::GetWindowSize();
+    end.x += size.x;
+    end.y += size.y;
+    if (ImGui::IsMouseHoveringBox(
+        ImGui::GetWindowPos(),
+        end)) {
+        // force no click state
+        theTouchInputManager.resetState();
+    }
+}
+
 void LevelEditor::tick(float dt) {
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
@@ -323,6 +337,7 @@ void LevelEditor::tick(float dt) {
 
     }
 
+    imguiInputFilter();
     ImGui::End();
 
     for (auto& p: showEntityWindow) {
@@ -332,26 +347,10 @@ void LevelEditor::tick(float dt) {
 
             ImGui::Text("Allo");
 
+            imguiInputFilter();
             ImGui::End();
         }
     }
-
-
-/*
-
-    ImVec2 pos, end;
-    pos = end = ImGui::GetWindowPos();
-    ImVec2 size = ImGui::GetWindowSize();
-    end.x += size.x;
-    end.y += size.y;
-    if (ImGui::IsMouseHoveringBox(
-        ImGui::GetWindowPos(),
-        end)) {
-        LOGI("Reset state");
-        // force no click state
-        theTouchInputManager.resetState();
-    }
-*/
 
     #if 0
     // update entity list every sec
