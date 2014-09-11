@@ -311,13 +311,7 @@ void LevelEditor::tick(float dt) {
 
         if (ImGui::Button(n.str().c_str())) {
             bool keepOpen = true;
-            // showEntityWindow[e] = true;
-            LOGI("Youpi");
-                        ImGui::Begin();//entityToName(e).c_str(), &keepOpen);
-
-            ImGui::Text("Allo");
-
-            ImGui::End();
+            showEntityWindow[e] = true;
         }
 
         if (ImGui::IsHovered()) {
@@ -333,20 +327,14 @@ void LevelEditor::tick(float dt) {
 
     for (auto& p: showEntityWindow) {
         if (p.second) {
-            bool keepOpen = true;
             Entity e = p.first;
-            ImGui::Begin(entityToName(e).c_str(), &keepOpen);
+            ImGui::Begin(entityToName(e).c_str(), &p.second);
 
             ImGui::Text("Allo");
 
             ImGui::End();
-
-            if (!p.second) {
-                p.second = false;
-            }
         }
     }
-    showEntityWindow.clear();
 
 
 /*
