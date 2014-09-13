@@ -44,6 +44,9 @@ INSTANCE_IMPL(AutonomousAgentSystem);
     } while (false)
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>(HASH("AutonomousAgent", 0x0)) {
+    LOGT("Rendre ca moins casse pied. 1) le composant a 2 vector: hash_t (les Behavior qu'il veut), float (leur poids respectif)");
+    LOGT("2) pouvoir parametrer les behavior de manière plus générique - mais je sais pas encore comment");
+
     AutonomousAgentComponent ac;
     componentSerializer.add(new Property<float>(HASH("max_speed", 0x3fbe6552), OFFSET(maxSpeed, ac), 0.0001f));
     componentSerializer.add(new Property<float>(HASH("max_force", 0xe2724098), OFFSET(maxForce, ac), 0.0001f));

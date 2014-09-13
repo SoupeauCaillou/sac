@@ -249,8 +249,6 @@ static void hashGetCB(void* valueOut, void* clientData);
 #endif
 
 bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
-    return true;
-    #if 0
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
         return false;
@@ -258,6 +256,10 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
         return false;
 
     const std::string& group = INV_HASH(id);
+
+    if (!ImGui::CollapsingHeader(group.c_str()))
+        return false;
+
     // Browse properties, and add them to the TwBar
     for(IProperty* prop: componentSerializer.getProperties()) {
 
@@ -270,66 +272,48 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
         const bool itv = (prop->getAttribute() == PropertyAttribute::Interval);
         VarType::Enum vt = itv ? VarType::INTERVAL_1 : VarType::NORMAL;
         switch (prop->getType()) {
-            case PropertyType::String:
-            case PropertyType::Int:
-            case PropertyType::Int8:
-            case PropertyType::Bool:
-            case PropertyType::Color:
-                TwAddVarRW(bar, varName(group, vname, vt).c_str(),
-                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt).c_str());
-
-                if (itv) {
-                    int size = 0;
-                    switch (prop->getType()) {
-                        case PropertyType::Int: size = sizeof(int); break;
-                        case PropertyType::Int8: size = sizeof(int8_t); break;
-                        case PropertyType::Bool: size = sizeof(bool); break;
-                        case PropertyType::Color: size = 4 * sizeof(float); break;
-                        default: size = 0;
-                    }
-                    if (size > 0) {
-                        TwAddVarRW(bar, varName(group, vname, VarType::INTERVAL_2).c_str(),
-                            PropertyTypeToType(prop->getType()), comp + prop->offset + size, varParams(group, vname, VarType::INTERVAL_2).c_str());
-                    }
-                }
+            case PropertyType::String: {
+                std::string *s = (std::string*)(comp + prop->offset);
+                ImGui::LabelText(vname.c_str(), s->c_str());
                 break;
+            }
+            case PropertyType::Int: {
+                ImGui::InputInt(vname.c_str(), (int*)(comp + prop->offset));
+                break;
+            }
+
+            case PropertyType::Int8: {
+                LOGT("TODO");
+                break;
+            }
+            case PropertyType::Bool: {
+                ImGui::Checkbox(vname.c_str(), (bool*)(comp + prop->offset));
+                break;
+            }
+            case PropertyType::Color: {
+                Color* c = (Color*)(comp + prop->offset);
+                ImGui::ColorEdit4(vname.c_str(), c->rgba);
+                break;
+            }
             case PropertyType::Float:
-                TwAddVarRW(bar, varName(group, vname, vt).c_str(),
-                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, vt, FLOAT_PROPERTIES).c_str());
-                if (itv) {
-                    TwAddVarRW(bar, varName(group, vname, VarType::INTERVAL_2).c_str(),
-                        PropertyTypeToType(prop->getType()), comp + prop->offset + sizeof(float), varParams(group, vname, VarType::INTERVAL_2, FLOAT_PROPERTIES).c_str());
-                }
+                ImGui::InputFloat(vname.c_str(), (float*)(comp + prop->offset));
                 break;
             case PropertyType::Vec2:
                 // x component
-                TwAddVarRW(bar, varName(group, vname, VarType::VEC2_X).c_str(),
-                    PropertyTypeToType(prop->getType()), comp + prop->offset, varParams(group, vname, VarType::VEC2_X, FLOAT_PROPERTIES).c_str());
-                // y component
-                TwAddVarRW(bar, varName(group, vname, VarType::VEC2_Y).c_str(),
-                    PropertyTypeToType(prop->getType()), comp + prop->offset + sizeof(float), varParams(group, vname, VarType::VEC2_Y, FLOAT_PROPERTIES).c_str());
-                break;
-            case PropertyType::Texture:
-                TwAddVarCB(bar, varName(group, vname).c_str(),
-                    TW_TYPE_STDSTRING, (TwSetVarCallback)textureSetCB, (TwGetVarCallback)textureGetCB,
-                    comp + prop->offset, varParams(group, vname).c_str());
+                ImGui::InputFloat2(vname.c_str(), (float*)(comp + prop->offset));
                 break;
             case PropertyType::Entity:
-                TwAddVarCB(bar, varName(group, vname).c_str(),
-                    TW_TYPE_STDSTRING, 0, (TwGetVarCallback)entityGetCB,
-                    comp + prop->offset, varParams(group, vname).c_str());
+                ImGui::LabelText(vname.c_str(), theEntityManager.entityName(*(Entity*)(comp + prop->offset)));
                 break;
+            case PropertyType::Texture:
             case PropertyType::Hash:
-                TwAddVarCB(bar, varName(group, vname).c_str(),
-                    TW_TYPE_STDSTRING, 0, (TwGetVarCallback)hashGetCB,
-                    comp + prop->offset, varParams(group, vname).c_str());
+                ImGui::LabelText(vname.c_str(), INV_HASH(*(hash_t*)(comp + prop->offset)));
                 break;
             default:
                 break;
         }
     }
     return true;
-    #endif
 }
 
 #if 0

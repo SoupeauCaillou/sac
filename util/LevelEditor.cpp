@@ -113,22 +113,15 @@ struct LevelEditor::LevelEditorDatas {
     void deselect(Entity e);
 };
 
-#if 0
-static TwBar* createTweakBarForEntity(Entity e, const std::string& barName) {
-    TwBar* bar = TwNewBar(barName.c_str());
+static void createTweakBarForEntity(Entity e, const std::string& barName) {
     std::vector<hash_t> systems = ComponentSystem::registeredSystemIds();
     for (unsigned i=0; i<systems.size(); i++) {
         ComponentSystem* system = ComponentSystem::GetById(systems[i]);
-
-        if (system->addEntityPropertiesToBar(e, bar)) {
-            std::stringstream fold;
-            fold << TwGetBarName(bar) << '/' << INV_HASH(systems[i]) << " opened=false";
-            TwDefine(fold.str().c_str());
-        }
+        system->addEntityPropertiesToBar(e, 0);
     }
-    return bar;
 }
 
+#if 0
 static void showTweakBarForEntity(Entity e) {
     std::stringstream barName;
 
@@ -345,7 +338,7 @@ void LevelEditor::tick(float dt) {
             Entity e = p.first;
             ImGui::Begin(entityToName(e).c_str(), &p.second);
 
-            ImGui::Text("Allo");
+            createTweakBarForEntity(e, "");
 
             imguiInputFilter();
             ImGui::End();
