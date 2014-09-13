@@ -490,7 +490,7 @@ void Game::sacInit(int windowW, int windowH) {
 
 #if SAC_INGAME_EDITORS
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)windowW, (float)windowH);
+    io.DisplaySize = ImVec2((float)windowW + LevelEditor::DebugAreaWidth, (float)windowH);
     io.PixelCenterOffset = 0.0f;
 
 #if SAC_DESKTOP

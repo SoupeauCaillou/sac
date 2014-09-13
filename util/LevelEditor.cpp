@@ -40,6 +40,15 @@
 #include "../systems/NetworkSystem.h"
 #endif
 
+#if SAC_INGAME_EDITORS
+int LevelEditor::DebugAreaWidth =
+#if SAC_DESKTOP
+    400;
+#else
+    0;
+#endif
+#endif
+
 namespace EditorMode {
     enum Enum {
         Selection,

@@ -690,7 +690,6 @@ void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int c
 }
 
 void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count) {
-
     // We are using the OpenGL fixed pipeline to make the example code simpler to read!
     // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
@@ -704,6 +703,11 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     GL_OPERATION(glUseProgram(leProgram))
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
+
+    theRenderingSystem.glState.viewport.update(width, height);
+    theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
+    GL_OPERATION(glScissor(width, 0, LevelEditor::DebugAreaWidth, height))
+    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
 
     glm::mat4 mvp;
     mvp = glm::ortho(0.0f, width, height, 0.0f, 0.0f, 1.0f);

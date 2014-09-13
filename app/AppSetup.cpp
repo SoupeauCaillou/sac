@@ -85,6 +85,8 @@
 
 #include "MouseNativeTouchState.h"
 
+#include "util/LevelEditor.h"
+
 Game* game = 0;
 
 #if SAC_BENCHMARK_MODE
@@ -227,16 +229,6 @@ int initGame(const std::string& gameN, const glm::ivec2& res, const std::string&
 
     SDL_EnableUNICODE(1);
 
-    // Double Buffering
-    // Warning! This method DOES call srand (random generator)
-    if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
-        return 1;
-
-#if ! SAC_EMSCRIPTEN
-    if (glewInit() != GLEW_OK)
-        return 1;
-#endif
-
     return 0;
 }
 
@@ -271,10 +263,33 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         verbose |= !strcmp(argv[i], "-v");
         verbose |= !strcmp(argv[i], "--verbose");
         forceEtc1 |= !strcmp(argv[i], "--force-etc1");
+#if SAC_INGAME_EDITORS
+        if (!strcmp(argv[i], "--debug-area-width") ||
+            !strcmp(argv[i], "-d-a-w")) {
+            LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
+            LevelEditor::DebugAreaWidth = std::atoi(argv[i+1]);
+            i++;
+        }
+#endif
 #if SAC_ENABLE_PROFILING
         profilerEnabled |= !strcmp("-profile", argv[i]);
 #endif
     }
+
+
+    // Double Buffering
+    // Warning! This method DOES call srand (random generator)
+#if SAC_INGAME_EDITORS
+    if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y, 32, SDL_OPENGL ) == 0)
+#else
+    if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
+#endif
+        return 1;
+
+#if ! SAC_EMSCRIPTEN
+    if (glewInit() != GLEW_OK)
+        return 1;
+#endif
 
     if (restore) {
         // TODO: portability

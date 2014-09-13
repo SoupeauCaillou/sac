@@ -34,4 +34,9 @@ class LevelEditor {
     private:
         struct LevelEditorDatas;
         LevelEditorDatas* datas;
+
+#if SAC_INGAME_EDITORS
+    public:
+        static int DebugAreaWidth;
+#endif
 };
