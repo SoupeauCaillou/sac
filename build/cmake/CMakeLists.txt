@@ -76,8 +76,8 @@ execute_process(
 set (NEW_BUILD_VALUES "\"${SAC_REVISION_TAG}\" - \"${SAC_REVISION}\"")
 
 # get current values and don't rewrite them is their are the same
-if (EXISTS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h)
-    file (STRINGS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h BUILD_FILE)
+if (EXISTS ${CMAKE_SOURCE_DIR}/sources/GitVersion.h)
+    file (STRINGS ${CMAKE_SOURCE_DIR}/sources/GitVersion.h BUILD_FILE)
     STRING(REGEX REPLACE ".*TAG_NAME (.*)#.*VERSION_NAME (.*)" "\\1 - \\2" CURRENT_BUILD_VALUES ${BUILD_FILE} )
 else()
     set (CURRENT_BUILD_VALUES "")
@@ -85,7 +85,7 @@ endif()
 
 if (NOT CURRENT_BUILD_VALUES STREQUAL NEW_BUILD_VALUES)
     message("Updating current git tag / commit version")
-    file(WRITE ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h
+    file(WRITE ${CMAKE_SOURCE_DIR}/sources/GitVersion.h
         "#pragma once\n#define TAG_NAME \"${SAC_REVISION_TAG}\"\n#define VERSION_NAME \"${SAC_REVISION}\"")
 endif()
 #######################################################################
@@ -299,11 +299,7 @@ import_specific_libs()
 #######################################################################
 if (NOT MOBILE_BUILD)
 
-    file(
-        GLOB source_platforms_files
-        ${PROJECT_SOURCE_DIR}/platforms/default/*.cpp
-    )
-    add_executable(${EXECUTABLE_NAME} ${source_platforms_files})
+    add_executable(${EXECUTABLE_NAME} ${PROJECT_SOURCE_DIR}/sac/util/EntryPoint.cpp)
     target_link_libraries(${EXECUTABLE_NAME} sac m)
 endif()
 

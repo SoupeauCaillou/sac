@@ -82,7 +82,6 @@ class ComponentSystem {
         static const std::map<hash_t, ComponentSystem*>& registeredSystems();
 
 #if SAC_INGAME_EDITORS
-        #warning FIXME
         bool addEntityPropertiesToBar(Entity e, void* bar);
 #endif
 
