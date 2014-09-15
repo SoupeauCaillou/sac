@@ -27,9 +27,7 @@
 
 struct Game;
 
-class GameHolder {
-	public:
-	static GameHolder* build();
+struct GameHolder {
 
 	Game* game;
 	int width, height;
@@ -48,7 +46,4 @@ class GameHolder {
     float renderingDt;
 
 	bool initDone;
-
-	private:
-	GameHolder() {}
 };

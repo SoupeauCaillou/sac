@@ -1,7 +1,4 @@
-#if SAC_DESKTOP
 
-#include "../../sources/GitVersion.h"
-#include "app/AppSetup.h"
 
 #define _GAME_CLASS(n) n##Game
 #define GAME_CLASS(n) _GAME_CLASS(n)
@@ -15,6 +12,16 @@
 #define INCLUDE_NAME() XSTR(GAME_HEADER(PROJECT_NAME))
 #include INCLUDE_NAME()
 
+#if SAC_DESKTOP || SAC_MOBILE
+Game* buildGameInstance() {
+    return new GAME_CLASS(PROJECT_NAME) ();
+}
+
+#endif
+
+#if SAC_DESKTOP
+#include "../../sources/GitVersion.h"
+#include "app/AppSetup.h"
 
 /* Entry Point */
 int main(int argc, char** argv) {
@@ -34,3 +41,4 @@ int main(int argc, char** argv) {
         argv);
 }
 #endif
+
