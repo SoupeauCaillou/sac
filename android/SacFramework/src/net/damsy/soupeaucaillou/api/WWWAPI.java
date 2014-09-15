@@ -36,6 +36,7 @@ import android.content.pm.PackageManager;
 
 public class WWWAPI {
 	private static WWWAPI instance = null;
+	public static int id = -1325525035; /* MurmurHash of 'WWWAPI' */
 
 	private Activity activity = null;
 	

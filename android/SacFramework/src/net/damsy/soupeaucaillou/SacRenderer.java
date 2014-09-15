@@ -30,14 +30,16 @@ import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 
 public class SacRenderer implements GLSurfaceView.Renderer {
+	SacActivity activity;
 	final Thread gameThread;
 	final SacGameThread sacGame;
 	long time;
 	final int width, height;
 	int densityDpi;
 
-	public SacRenderer(int width, int height, SacGameThread sacG, int densityDpi, int requestedOrientation) {
+	public SacRenderer(SacActivity act, int width, int height, SacGameThread sacG, int densityDpi, int requestedOrientation) {
 		super();
+		this.activity = act;
 		this.sacGame = sacG;
 		this.gameThread = new Thread(this.sacGame, "GameUpdate");
 		this.time = System.currentTimeMillis();
@@ -60,6 +62,9 @@ public class SacRenderer implements GLSurfaceView.Renderer {
     	SacActivity.Log(SacActivity.W, "onSurfaceCreated");
     	// Create (or reset) native game
     	if (SacJNILib.createGame()) {
+    		activity.initRequiredAPIs();
+    		activity = null;
+
     		SacJNILib.initFromRenderThread(densityDpi, width, height);
     	} else {
     		// Clear saved state if native game is not recreated

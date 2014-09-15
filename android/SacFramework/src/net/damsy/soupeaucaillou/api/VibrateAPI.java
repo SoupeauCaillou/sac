@@ -26,6 +26,7 @@ import android.os.Vibrator;
 
 public class VibrateAPI {
 	private static VibrateAPI instance = null;
+	public static int id = 2113329533; /* MurmurHash of 'VibrateAPI' */
 
 	public synchronized static VibrateAPI Instance() {
 		if (instance == null) {

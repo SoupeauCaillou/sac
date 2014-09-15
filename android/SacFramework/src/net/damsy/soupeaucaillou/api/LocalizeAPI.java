@@ -27,7 +27,8 @@ import android.content.res.Resources;
 
 public class LocalizeAPI {
 	private static LocalizeAPI instance = null;
-
+	public static int id = 1581172321; /* MurmurHash of 'LocalizeAPI' */
+	
 	public synchronized static LocalizeAPI Instance() {
 		if (instance == null) {
 			instance = new LocalizeAPI();

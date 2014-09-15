@@ -412,6 +412,35 @@ JNIEXPORT jbyteArray JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_serialiazeS
     return jb;
 }
 
+JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_isAPIRequired
+    (JNIEnv*, jclass, jint apiHash) {
+    if (myGameHolder == 0)
+        return false;
+
+    switch (apiHash) {
+        case 1106735596 /* AssetAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::Asset);
+        case 597937595 /* CommunicationAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::Communication);
+        case 1581172321 /* LocalizeAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::Localize);
+        case 2119627088 /* OpenURLAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::OpenURL);
+        case 1105547106 /* SoundAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::Sound);
+        case 419223939 /* StorageAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::Storage);
+        case 2113329533 /* VibrateAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::Vibrate);
+        case -1325525035 /* WWWAPI */:
+            return myGameHolder->game->wantsAPI(ContextAPI::WWW);
+        default:
+            LOGW("Unknown API '" << apiHash << "'. Defaulting to: game do not want to enable it");
+            return false;
+    }
+
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -26,6 +26,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.damsy.soupeaucaillou.SacGameThread.Event;
+import net.damsy.soupeaucaillou.api.AssetAPI;
+import net.damsy.soupeaucaillou.api.CommunicationAPI;
+import net.damsy.soupeaucaillou.api.LocalizeAPI;
+import net.damsy.soupeaucaillou.api.OpenURLAPI;
+import net.damsy.soupeaucaillou.api.SoundAPI;
+import net.damsy.soupeaucaillou.api.StorageAPI;
+import net.damsy.soupeaucaillou.api.VibrateAPI;
+import net.damsy.soupeaucaillou.api.WWWAPI;
+import net.damsy.soupeaucaillou.sacframework.R;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +53,11 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-public abstract class SacActivity extends Activity {
+public class SacActivity extends Activity {
+	static {
+		System.loadLibrary("sac");
+	}
+	
 	protected SacRenderer renderer;
 	protected SacGameThread gameThread;
 	PowerManager.WakeLock wl;
@@ -54,11 +67,6 @@ public abstract class SacActivity extends Activity {
 	public Vibrator vibrator;
 		
 	// public abstract boolean canShowAppRater();
-
-	public abstract void initRequiredAPI();
-	
-	public abstract int getLayoutId();
-	public abstract int getParentViewId();
 
 	float factor = 1.f;
     static boolean isDebuggable = false;
@@ -112,10 +120,11 @@ public abstract class SacActivity extends Activity {
         getWindow().setFlags(LayoutParams.FLAG_FULLSCREEN,
     			LayoutParams.FLAG_FULLSCREEN);
 
-        setContentView(getLayoutId());
-        RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
+        setContentView(R.layout.main);
+        RelativeLayout layout = (RelativeLayout) findViewById(R.id.parent_frame);
 
         GLSurfaceView mGLView = new GLSurfaceView(this);
+        mGLView.setEGLConfigChooser(8 , 8, 8, 8, 16, 0);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
 
         /*SharedPreferences preferences = getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
@@ -149,7 +158,7 @@ public abstract class SacActivity extends Activity {
         
         synchronized (mGLView) {
         	mGLView.setEGLContextClientVersion(2);
-        	renderer = new SacRenderer(viewWidth, viewHeight, gameThread, densityDPI, getRequestedOrientation());
+        	renderer = new SacRenderer(this, viewWidth, viewHeight, gameThread, densityDPI, getRequestedOrientation());
             mGLView.setRenderer(renderer);
 		}
         holder.addCallback(new SurfaceHolder.Callback() {
@@ -176,9 +185,6 @@ public abstract class SacActivity extends Activity {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
         
-        // Must be done _after_ setContentView
-        initRequiredAPI();
-        
         Log(W, "ActivityLifeCycle <-- onCreate");
     }
 
@@ -197,7 +203,7 @@ public abstract class SacActivity extends Activity {
         gameThread.postEvent(Event.Pause);
 
     	// TODO: simplify this (or understand why it's so complicated)
-    	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
+    	RelativeLayout layout = (RelativeLayout) findViewById(R.id.parent_frame);
     	int count = layout.getChildCount();
     	for (int i=0; i<count; i++) {
     		View v = layout.getChildAt(i);
@@ -239,7 +245,7 @@ public abstract class SacActivity extends Activity {
         gameThread.postEvent(Event.Resume);
         
     	// TODO: simplify this (or understand why it's so complicated)
-    	RelativeLayout layout = (RelativeLayout) findViewById(getParentViewId());
+    	RelativeLayout layout = (RelativeLayout) findViewById(R.id.parent_frame);
     	int count = layout.getChildCount();
     	for (int i=0; i<count; i++) {
     		View v = layout.getChildAt(i);
@@ -361,6 +367,26 @@ public abstract class SacActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	SacPluginManager.instance().onActivityResult(requestCode, resultCode, data);
+    }
+    
+    public void initRequiredAPIs() {
+    	/* hardcoded list for now... */
+    	if (SacJNILib.isAPIRequired(AssetAPI.id))
+    		AssetAPI.Instance().init(this, getAssets());
+    	if (SacJNILib.isAPIRequired(CommunicationAPI.id))
+    		CommunicationAPI.Instance().init(this, getSharedPreferences("app_rater", 0));
+    	if (SacJNILib.isAPIRequired(LocalizeAPI.id))
+    		LocalizeAPI.Instance().init(getResources(), getPackageName());
+    	if (SacJNILib.isAPIRequired(OpenURLAPI.id))
+    		OpenURLAPI.Instance().init(this);
+    	if (SacJNILib.isAPIRequired(SoundAPI.id))
+    		SoundAPI.Instance().init(getAssets());
+    	if (SacJNILib.isAPIRequired(StorageAPI.id))
+    		StorageAPI.Instance().init(getApplicationContext());
+    	if (SacJNILib.isAPIRequired(VibrateAPI.id))
+    		VibrateAPI.Instance().init((Vibrator) getSystemService(Context.VIBRATOR_SERVICE));
+    	if (SacJNILib.isAPIRequired(WWWAPI.id))
+    		WWWAPI.Instance().init(this);
     }
 
     

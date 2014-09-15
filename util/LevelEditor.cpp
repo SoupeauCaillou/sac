@@ -30,6 +30,7 @@
 #include <systems/RenderingSystem.h>
 #include <systems/CameraSystem.h>
 #include <systems/TextSystem.h>
+#include "base/PlacementHelper.h"
 
 #include <mutex>
 #include <set>
@@ -314,10 +315,12 @@ static void imguiInputFilter() {
     }
 }
 
+bool entityWindowOpen = true;
 void LevelEditor::tick(float dt) {
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
-    ImGui::Begin("Entity List");
+    ImGui::Begin("Entity List", &entityWindowOpen, ImVec2(PlacementHelper::WindowSize.x, 0));
+
     // CollapsingHeader
     for (unsigned i=0; i<entities.size(); i++) {
         Entity e = entities[i];

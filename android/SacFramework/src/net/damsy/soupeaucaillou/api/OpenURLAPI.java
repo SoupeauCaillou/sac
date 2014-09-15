@@ -31,6 +31,8 @@ import android.net.Uri;
 
 public class OpenURLAPI {
 	private static OpenURLAPI instance = null;
+	public static int id = 2119627088; /* MurmurHash of 'OpenURLAPI' */
+	
 	private Activity a;
 	public synchronized static OpenURLAPI Instance() {
 		if (instance == null) {

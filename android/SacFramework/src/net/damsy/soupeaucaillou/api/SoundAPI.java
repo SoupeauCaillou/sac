@@ -29,6 +29,7 @@ import android.media.SoundPool;
 
 public class SoundAPI {
 	private static SoundAPI instance = null;
+	public static int id = 1105547106; /* MurmurHash of 'SoundAPI' */
 
 	public synchronized static SoundAPI Instance() {
 		if (instance == null) {

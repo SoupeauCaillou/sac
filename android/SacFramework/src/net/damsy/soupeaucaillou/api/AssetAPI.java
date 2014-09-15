@@ -34,6 +34,7 @@ import android.content.res.AssetManager;
 
 public class AssetAPI {
 	private static AssetAPI instance = null;
+	public static int id = 1106735596; /* MurmurHash of 'AssetAPI' */
 
 	public synchronized static AssetAPI Instance() {
 		if (instance == null) {

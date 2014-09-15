@@ -9,7 +9,7 @@
 #define _GAME_HEADER(n) n##Game.h
 #define GAME_HEADER(n) _GAME_HEADER(n)
 
- #define XSTR(s) STR(s)
+#define XSTR(s) STR(s)
 #define STR(s) #s
 
 #define INCLUDE_NAME() XSTR(GAME_HEADER(PROJECT_NAME))

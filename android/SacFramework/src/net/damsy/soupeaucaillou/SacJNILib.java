@@ -97,4 +97,6 @@ public class SacJNILib {
 	 * @return array holding native game state
 	 */
 	public static native byte[] serialiazeState();
+	
+	public static native boolean isAPIRequired(int apiId);
 }

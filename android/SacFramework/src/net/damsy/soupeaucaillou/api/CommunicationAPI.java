@@ -30,7 +30,8 @@ import android.net.Uri;
 
 public class CommunicationAPI {
 	private static CommunicationAPI instance = null;
-
+	public static int id = 597937595; /* MurmurHash of 'CommunicationAPI' */
+	
 	public synchronized static CommunicationAPI Instance() {
 		if (instance == null) {
 			instance = new CommunicationAPI();

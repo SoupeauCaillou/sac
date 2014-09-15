@@ -26,6 +26,7 @@ import android.content.Context;
 
 public class StorageAPI {	
 	private static StorageAPI instance = null;
+	public static int id = 419223939; /* MurmurHash of 'StorageAPI' */
 
 	public synchronized static StorageAPI Instance() {
 		if (instance == null) {
