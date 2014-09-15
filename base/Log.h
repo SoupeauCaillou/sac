@@ -142,7 +142,7 @@ static const android_LogPriority level2prio[] {
 #define __LOG_IF_WHILE(cond, level, x) \
     PRAGMA_WARNING(warning(disable: 4127)) \
     do { \
-        if ((cond)) \
+        if (cond) \
             __LOG(level, x); \
     } while (false)
 

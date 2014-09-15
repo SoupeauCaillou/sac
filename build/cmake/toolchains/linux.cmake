@@ -14,15 +14,22 @@ if (${BUILD_TARGET} STREQUAL "DEBUG")
 
     set(INGAME_EDITOR "ON")
 endif()
-# if (${CMAKE_C_COMPILER} MATCHES "(.*)clang")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    add_definitions(-Qunused-arguments -Wno-tautological-compare)
+
+
+
     # workaround bug http://llvm.org/bugs/show_bug.cgi?id=12730
     # message ("clang compiler detected -> workaround bug #12730")
     # add_definitions(-D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 -D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 -D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 -D__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8)
-# endif()
+endif()
 
 set(DESKTOP_BUILD 1)
 
 SET (SAC_LIB_TYPE STATIC)
+
+
+
 
 function (get_platform_dependent_sources)
     file(

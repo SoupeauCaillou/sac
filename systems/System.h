@@ -173,7 +173,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 !failIfNotfound;
 #endif
             if (check) {
-                LOGF_IF((entity == 0), "Requesting component of type '" << INV_HASH(getId()) << "' [@ " << file << ':' << line << "] for null entity (" << entity << ')');
+                LOGF_IF(entity == 0, "Requesting component of type '" << INV_HASH(getId()) << "' [@ " << file << ':' << line << "] for null entity (" << entity << ')');
                 if (!std::binary_search(entityWithComponent.begin(), entityWithComponent.end(), entity)) {
                     if (failIfNotfound) {
                         LOGF("Entity '" << theEntityManager.entityName(entity)

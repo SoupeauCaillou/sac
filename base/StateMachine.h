@@ -101,7 +101,7 @@ class StateMachine {
 
         StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
 
-        const char* getCurrentStateName() const { return getCurrentHandler->name; }
+        // const char* getCurrentStateName() const { return getCurrentHandler->name; }
 
         int serialize(uint8_t** out) const;
         int deserialize(const uint8_t* in, int size);

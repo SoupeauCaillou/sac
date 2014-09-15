@@ -656,8 +656,6 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
 
 // from imgui example
 void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
-    int idx = theRenderingSystem.currentWriteQueue;
-
     if (drawListCapacity <= cmd_lists_count) {
         imguiCommands = (ImDrawList*) realloc(imguiCommands, cmd_lists_count * sizeof(ImDrawList));
         drawListCapacity = cmd_lists_count;
