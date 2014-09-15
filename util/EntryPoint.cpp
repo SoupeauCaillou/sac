@@ -1,10 +1,12 @@
 
-
 #define _GAME_CLASS(n) n##Game
 #define GAME_CLASS(n) _GAME_CLASS(n)
 
 #define _GAME_HEADER(n) n##Game.h
 #define GAME_HEADER(n) _GAME_HEADER(n)
+
+#define _GIT_VERSION_HEADER(n) n##GitVersion.h
+#define GIT_VERSION_HEADER(n) _GIT_VERSION_HEADER(n)
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
@@ -20,7 +22,8 @@ Game* buildGameInstance() {
 #endif
 
 #if SAC_DESKTOP
-#include "../../sources/GitVersion.h"
+#define INCLUDE_VERSION() XSTR(GIT_VERSION_HEADER(PROJECT_NAME))
+#include INCLUDE_VERSION()
 #include "app/AppSetup.h"
 
 /* Entry Point */
