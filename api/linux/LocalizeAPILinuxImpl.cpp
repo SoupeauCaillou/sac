@@ -146,8 +146,13 @@ void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & 
 
 #else
     std::stringstream n;
-    n << "../res/" << filename;
-    FileBuffer fb = assetAPI->loadAsset(n.str());
+    n << SAC_ASSETS_DIR << "/../android/res/" << filename;
+    FileBuffer fb = assetAPI->loadFile(n.str());
+
+    if (fb.size == 0) {
+        LOGW("Cannot read '" << n.str() << "' localization file");
+        return;
+    }
 
     tinyxml2::XMLDocument doc;
     doc.Parse((const char*)fb.data);

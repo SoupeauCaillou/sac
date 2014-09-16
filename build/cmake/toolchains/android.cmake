@@ -1,7 +1,6 @@
-set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/build/cmake/toolchains/android.toolchain.cmake)
+set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/build/cmake/toolchains/android.toolchain.cmake CACHE STRING "Use Android toolchain" FORCE)
 
 ADD_DEFINITIONS(-DSAC_MOBILE=1)
-
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -W")
 set(CXX_FLAGS_DEBUG "-g -DSAC_ENABLE_LOG -O0")
