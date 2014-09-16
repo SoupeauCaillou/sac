@@ -44,6 +44,8 @@ class OpenGLTextureCreator {
     public:
         static DPI::Enum dpi;
         static std::string DPI2Folder(DPI::Enum dpi);
+        static const char* DefaultFileExtension();
+
     public:
         enum Type { COLOR, ALPHA_MASK, COLOR_ALPHA };
 

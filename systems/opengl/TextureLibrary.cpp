@@ -124,3 +124,10 @@ void TextureLibrary::doReload(const char* name, const TextureRef& ref) {
         doLoad(name, info, ref);
     }
 }
+
+const char* TextureLibrary::asset2FileSuffix() const {
+    static char t[128];
+    strcpy(t, OpenGLTextureCreator::DefaultFileExtension());
+    strcat(t, ".00");
+    return t;
+}

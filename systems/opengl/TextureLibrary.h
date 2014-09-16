@@ -80,6 +80,6 @@ class TextureLibrary : public NamedAssetLibrary<TextureInfo, TextureRef, ImageDe
 
     public:
         const char* asset2FilePrefix() const { return ""; }
-        const char* asset2FileSuffix() const { return ".png"; }
+        const char* asset2FileSuffix() const;
 
 };

@@ -164,16 +164,9 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
     bool png = false;
 
     // First, try PVR compression, then PKM (ETC1)
-    if (pvrFormatSupported) {
-        LOGV(1, "Using PVR version - " << name);
-        file = assetAPI->loadAsset(name + ".pvr");
-    } else if (s3tcFormatSupported) {
-        LOGV(1, "Using S3TC version - " << name);
-        file = assetAPI->loadAsset(name + ".dds");
-    } else {
-        LOGV(1, "Using PKM version - " << name);
-        file = assetAPI->loadAsset(name + ".pkm");
-    }
+    const char* extension = DefaultFileExtension();
+    LOGV(1, "Loading " << name << extension);
+    file = assetAPI->loadAsset(name + extension);
 
     if (!file.data) {
         LOGV(1, "Using PNG version - " << name);
@@ -334,3 +327,14 @@ ImageDesc OpenGLTextureCreator::parseImageContent(const std::string& basename, c
             s3tcFormatSupported ? ImageLoader::loadDDS(basename, file):
                 ImageLoader::loadEtc1(basename, file, pkmFormatSupported);
 }
+
+const char* OpenGLTextureCreator::DefaultFileExtension() {
+    if (pvrFormatSupported) {
+        return ".pvr";
+    } else if (s3tcFormatSupported) {
+        return ".dds";
+    } else {
+        return ".pkm";
+    }
+}
+
