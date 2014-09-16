@@ -234,7 +234,6 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/sources)
 include_directories(${PROJECT_SOURCE_DIR}/sac)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
 include_directories(${PROJECT_SOURCE_DIR}/sac/libs/stb)
 
@@ -252,12 +251,13 @@ file(
 
 if (WEB_BUILD)
     set(EXECUTABLE_NAME ${PROJECT_NAME}.bc)
-else()
+endif()
+
+if (DESKTOP_BUILD)
     set(EXECUTABLE_NAME ${PROJECT_NAME})
 
     file (
         GLOB_RECURSE opt_source_files
-        ${PROJECT_SOURCE_DIR}/sac/libs/libpng/jni/*.c #libpng
         ${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/*.cpp
     )
 endif()

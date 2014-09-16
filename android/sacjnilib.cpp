@@ -54,7 +54,6 @@
 
 #include "systems/opengl/OpenGLTextureCreator.h"
 
-#include <png.h>
 #include <algorithm>
 
 #include <sys/time.h>
