@@ -204,7 +204,7 @@ int initGame(const std::string& gameN, const glm::ivec2& res, const std::string&
     // hard coded icon path
     {
         std::stringstream iconPath;
-        iconPath << SAC_ASSETS_DIR << "../res/drawable-hdpi/ic_launcher.png";
+        iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/ic_launcher.png";
         AssetAPILinuxImpl api;
         FileBuffer fb = api.loadFile(iconPath.str());
         if (fb.size) {
