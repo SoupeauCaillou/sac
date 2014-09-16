@@ -42,13 +42,13 @@ struct DataFileParser::DataFileParserData {
         }
         sections.clear();
     }
-    bool selectSectionByName(hash_t name, const Section** sectPtr) const {
+    bool selectSectionByName(hash_t name, const Section** sectPtr, bool warnIfNotFound = true) const {
         if (name == GlobalSection) {
             *sectPtr = &global;
         } else {
             auto it = sections.find(name);
             if (it == sections.end()) {
-                LOGE("Cannot find section '" << INV_HASH(name) << "'");
+                LOGW_IF(warnIfNotFound, "Cannot find section '" << INV_HASH(name) << "'");
                 return false;
             }
             *sectPtr = it->second;
@@ -56,13 +56,13 @@ struct DataFileParser::DataFileParserData {
         return true;
     }
 
-    bool selectSectionByName(hash_t name, Section** sectPtr) {
+    bool selectSectionByName(hash_t name, Section** sectPtr, bool warnIfNotFound = true) {
         if (name == GlobalSection) {
             *sectPtr = &global;
         } else {
             auto it = sections.find(name);
             if (it == sections.end()) {
-                LOGE("Cannot find section '" << INV_HASH(name) << "'");
+                LOGW_IF(warnIfNotFound, "Cannot find section '" << INV_HASH(name) << "'");
                 return false;
             }
             *sectPtr = it->second;
@@ -158,13 +158,12 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 void DataFileParser::put(const std::string& section, const std::string& var, const std::string& value) {
     Section* sectPtr = 0;
     hash_t id = Murmur::RuntimeHash(section.c_str());
-    if (!data->selectSectionByName(id, &sectPtr)) {
+    if (!data->selectSectionByName(id, &sectPtr, false)) {
         sectPtr = new Section;
         data->sections.insert(std::make_pair(id, sectPtr));
     }
     sectPtr->keyValues[var] = value;
     sectPtr->hashValues[Murmur::RuntimeHash(var.c_str())] = value;
-    LOGT("SAVE SECTION NAME");
 }
 
 void DataFileParser::unload() {
