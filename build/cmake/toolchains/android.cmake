@@ -39,7 +39,7 @@ endif()
 #########Generate plugins list needed for the application##############
 #######################################################################
     #clean file
-    file (WRITE "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
+    file (WRITE "${PROJECT_SOURCE_DIR}/android/res/values/plugins.xml"
         "<?xml version='1.0' encoding='UTF-8'?>\n<resources>\n\t<string-array name='plugins_list'>\n")
 
     # get the list of plugins bundled with the APK, in project.properties file
@@ -65,11 +65,11 @@ endif()
         # [plugin folder with 'Plugin' suffix]
         string(REGEX REPLACE ".*/(.*)$" "\\1Plugin" CLASS_NAME ${PLUGIN_PATH})
 
-        file (APPEND "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
+        file (APPEND "${PROJECT_SOURCE_DIR}/android/res/values/plugins.xml"
             "\t\t<item>${PACKAGE_NAME}.${CLASS_NAME}</item>\n")
     endforeach()
 
-    file (APPEND "${PROJECT_SOURCE_DIR}/res/values/plugins.xml"
+    file (APPEND "${PROJECT_SOURCE_DIR}/android/res/values/plugins.xml"
         "\t</string-array>\n</resources>\n")
 
 
