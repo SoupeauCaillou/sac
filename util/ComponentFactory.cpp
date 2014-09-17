@@ -363,9 +363,67 @@ int ComponentFactory::build(
         auto* prop = *it;
         const hash_t id = prop->getId();
         const auto type = prop->getType();
+        bool success = false;
+
+        // Handle the %copy modifier
+        hash_t mod = dfp.getModifier(section, id);
+        if (mod == HASH("copy", 0x6680559a)) {
+            std::string name;
+            if (dfp.get(section, id, &name, 1)) {
+                Entity byName = theEntityManager.getEntityByName(Murmur::RuntimeHash(name.c_str()));
+                LOGF_IF(byName == 0, "Invalid %copy entity '" << name << "'");
+
+                uint8_t* c = static_cast<uint8_t*>(systm->componentAsVoidPtr(byName));
+
+                // Copy property
+                #define COPY_PROPERTY(_type_) do { \
+                    Interval<_type_> itv; \
+                    memcpy(&itv.t1, (_type_*)(c + prop->offset), sizeof(_type_)); \
+                    itv.t2 = itv.t1; \
+                    uint8_t* arr = new uint8_t[sizeof(itv)];\
+                    LOGV(1, "Copied " << INV_HASH(section) << "/" << INV_HASH(id) << " property. Value=[" << itv.t1 << ", " << itv.t2 << "] from entity '" << byName << "'"); \
+                    memcpy(arr, &itv, sizeof(itv));\
+                    propMap.insert(std::make_pair(id, arr)); } while (false)
+
+                switch (prop->getType()) {
+                   case PropertyType::Float:
+                        COPY_PROPERTY(float);
+                        break;
+                    case PropertyType::Int:
+                        COPY_PROPERTY(int);
+                        break;
+                    case PropertyType::Bool:
+                        COPY_PROPERTY(bool);
+                        break;
+                    case PropertyType::Vec2:
+                        COPY_PROPERTY(glm::vec2);
+                        break;
+                    case PropertyType::String: {
+                        LOGT("TODO");
+                        break;
+                    }
+                    case PropertyType::Color:
+                        COPY_PROPERTY(Color);
+                        break;
+                    case PropertyType::Sound:
+                    case PropertyType::Texture:
+                    case PropertyType::Hash:
+                        COPY_PROPERTY(hash_t);
+                        break;
+                    case PropertyType::Entity: {
+                        COPY_PROPERTY(Entity);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+                success = true;
+            }
+        }
 
         // Try to load property from data
-        bool success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, templ);
+        if (!success)
+            success = loadSingleProperty(context, dfp, section, id, type, prop->getAttribute(), propMap, templ);
 
         // special testing case
         if (!success && id == HASH("position", 0xffab91ef)) {
