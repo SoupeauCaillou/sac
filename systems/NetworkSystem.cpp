@@ -20,12 +20,12 @@
 
 #if !DISABLE_NETWORK_SYSTEM
 
-// TODO: fix build
 #include "NetworkSystem.h"
 #include "../api/NetworkAPI.h"
 #include "../base/EntityManager.h"
 #include <queue>
 
+#define USE_SYSTEM_IDX 1
 struct StatusCache {
     std::map<std::string, uint8_t*> components;
 };
@@ -299,7 +299,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
     pkt.size = sizeof(NetworkMessageHeader);
 
 #if USE_SYSTEM_IDX
-    const auto& name2ptr = ComponentSystem::registeredSystemIds();
+    const auto& name2ptr = ComponentSystem::registeredSystems();
 #endif
     // browse systems to share on network for this entity (of course, batching this would make a lot of sense)
     for (auto& name : nc->sync) {
@@ -307,8 +307,8 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
 
 #if USE_SYSTEM_IDX
         const auto id = Murmur::RuntimeHash(name.c_str());
-        auto it = std::find(name2ptr.begin(), name2ptr.end(), id);
-        ComponentSystem* system = it->second;
+        const auto it = name2ptr.find(id);
+        ComponentSystem* system = (*it).second;
         uint8_t idx = std::distance(name2ptr.begin(), it);
 #else
         ComponentSystem* system = ComponentSystem::GetById(name);
