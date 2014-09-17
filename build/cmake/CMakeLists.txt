@@ -28,8 +28,6 @@ set(LICENSE_HEADER
 #list of the supported OS
 SET(SUPPORTED_TARGETS linux android emscripten windows darwin)
 
-option(INGAME_EDITOR "Build with ingame-editor support" OFF)
-
 #if target = NULL then target = current OS
 if (NOT TARGET)
     string (TOLOWER "${CMAKE_SYSTEM_NAME}" varplatform)
@@ -65,6 +63,11 @@ endif()
 
 message("Build target: " ${BUILD_TARGET})
 
+if (BUILD_TARGET STREQUAL "DEBUG")
+    option(INGAME_EDITOR "Build with ingame-editor support" ON)
+else()
+    option(INGAME_EDITOR "Build with ingame-editor support" OFF)
+endif()
 
 #import platform dependent toolchain
 include(${PROJECT_SOURCE_DIR}/sac/build/cmake/toolchains/${varplatform}.cmake)
