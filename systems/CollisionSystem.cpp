@@ -34,7 +34,7 @@
 #include "util/Draw.h"
 INSTANCE_IMPL(CollisionSystem);
 
-CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HASH("Collision", 0x0)) {
+CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HASH("Collision", 0x638cf8ed)) {
     CollisionComponent tc;
     componentSerializer.add(new Property<int>(HASH("group", 0xbf3bf34d), OFFSET(group, tc), 0));
     componentSerializer.add(new Property<int>(HASH("collide_with", 0x6b658240), OFFSET(collideWith, tc), 0));
@@ -82,7 +82,7 @@ void CollisionSystem::DoUpdate(float dt) {
                     RENDERING(d)->show = 1;
                     RENDERING(d)->flags = RenderingFlags::NonOpaque;
                     ADD_COMPONENT(d, Text);
-                    TEXT(d)->fontName = "typo";
+                    TEXT(d)->fontName = HASH("typo", 0X0);
                     TEXT(d)->charHeight = CELL_SIZE * 0.2;
                     TEXT(d)->show = 1;
                     TEXT(d)->color.a = 0.3f;

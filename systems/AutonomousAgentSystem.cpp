@@ -43,7 +43,7 @@ INSTANCE_IMPL(AutonomousAgentSystem);
         componentSerializer.add(new Property<float>(HASH( #type "_coeff", hash_c), OFFSET(type##Params.coeff, ac), 0.001f)); \
     } while (false)
 
-AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>(HASH("AutonomousAgent", 0x0)) {
+AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>(HASH("AutonomousAgent", 0x63018d2f)) {
     LOGT("Rendre ca moins casse pied. 1) le composant a 2 vector: hash_t (les Behavior qu'il veut), float (leur poids respectif)");
     LOGT("2) pouvoir parametrer les behavior de manière plus générique - mais je sais pas encore comment");
 

@@ -1,3 +1,4 @@
+#include "base/Log.h"
 
 #define _GAME_CLASS(n) n##Game
 #define GAME_CLASS(n) _GAME_CLASS(n)

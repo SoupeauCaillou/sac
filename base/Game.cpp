@@ -168,6 +168,10 @@ Game::Game() {
 }
 
 bool Game::wantsAPI(ContextAPI::Enum api) const {
+#if !SAC_NETWORK
+    if (api == ContextAPI::Network) return false;
+#endif
+
     return true;
 }
 

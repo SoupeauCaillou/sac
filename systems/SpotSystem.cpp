@@ -27,7 +27,7 @@
 
 INSTANCE_IMPL(SpotSystem);
 
-SpotSystem::SpotSystem() : ComponentSystemImpl<SpotComponent>(HASH("Spot", 0x0)) {
+SpotSystem::SpotSystem() : ComponentSystemImpl<SpotComponent>(HASH("Spot", 0x5eea6198)) {
     SpotComponent tc;
     componentSerializer.add(new Property<float>(HASH("angle", 0xf644d337), OFFSET(angle, tc), 0.001f));
     componentSerializer.add(new Property<float>(HASH("distance", 0x271ce505), OFFSET(distance, tc), 0.001f));
@@ -105,7 +105,7 @@ void SpotSystem::DoUpdate(float) {
 
 INSTANCE_IMPL(SpotBlockSystem);
 
-SpotBlockSystem::SpotBlockSystem() : ComponentSystemImpl<SpotBlockComponent>(HASH("SpotBlock", 0x0)) { }
+SpotBlockSystem::SpotBlockSystem() : ComponentSystemImpl<SpotBlockComponent>(HASH("SpotBlock", 0x5f0d912f)) { }
 
 void SpotBlockSystem::DoUpdate(float) {
 

@@ -77,7 +77,7 @@ void TouchInputManager::activateDebug(Entity camera) {
 
 void TouchInputManager::Update() {
     if (!camera) {
-        LOGW("No camera defined -> no input handling");
+        LOGW_EVERY_N(60, "No camera defined -> no input handling");
         return;
     }
     TransformationComponent* tc = TRANSFORM(camera);
