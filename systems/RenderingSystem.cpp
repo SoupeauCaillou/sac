@@ -184,16 +184,15 @@ void RenderingSystem::init() {
     GLuint fs = EffectLibrary::compileShader("level_editor.fs", GL_FRAGMENT_SHADER, fb);
     GL_OPERATION(glAttachShader(leProgram, vs))
     GL_OPERATION(glAttachShader(leProgram, fs))
-    glBindAttribLocation(leProgram, 0, "aWindowPosition");
-    glBindAttribLocation(leProgram, 1, "aTexCoord");
-    glBindAttribLocation(leProgram, 2, "aColor");
+    GL_OPERATION(glBindAttribLocation(leProgram, 0, "aWindowPosition"))
+    GL_OPERATION(glBindAttribLocation(leProgram, 1, "aTexCoord"))
+    GL_OPERATION(glBindAttribLocation(leProgram, 2, "aColor"))
     GL_OPERATION(glLinkProgram(leProgram))
     leProgramuniformColorSampler = glGetUniformLocation(leProgram, "tex0");
-    leProgramuniformWindowSize = glGetUniformLocation(leProgram, "windowSize");
     leProgramuniformMatrix = glGetUniformLocation(leProgram, "uMvp");
 
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GL_OPERATION(glDeleteShader(vs))
+    GL_OPERATION(glDeleteShader(fs))
 
 #endif
 }

@@ -159,7 +159,7 @@ public:
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
 #if SAC_INGAME_EDITORS
-    static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformWindowSize, leProgramuniformMatrix;
+    static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformMatrix;
     static GLuint fontTex;
     static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count);
     static void ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count);

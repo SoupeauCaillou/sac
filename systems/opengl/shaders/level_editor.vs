@@ -3,7 +3,6 @@ attribute vec2 aTexCoord;
 attribute vec4 aColor;
 
 uniform mat4 uMvp;
-uniform vec2 windowSize;
 varying vec2 uvVarying;
 varying vec4 colorVarying;
 

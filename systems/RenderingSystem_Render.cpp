@@ -42,7 +42,7 @@ GLuint RenderingSystem::fontTex;
 static ImDrawList* imguiCommands = 0;
 static int drawListCount = 0, drawListCapacity = 0;
 
-GLuint RenderingSystem::leProgram, RenderingSystem::leProgramuniformColorSampler, RenderingSystem::leProgramuniformWindowSize, RenderingSystem::leProgramuniformMatrix;
+GLuint RenderingSystem::leProgram, RenderingSystem::leProgramuniformColorSampler, RenderingSystem::leProgramuniformMatrix;
 #endif
 
 
@@ -691,6 +691,8 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     // We are using the OpenGL fixed pipeline to make the example code simpler to read!
     // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
+    theRenderingSystem.glState.flags.update(OpaqueFlagSet);
+
     GL_OPERATION(glEnable(GL_BLEND))
     GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
     GL_OPERATION(glDisable(GL_CULL_FACE))
@@ -704,7 +706,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
 
     theRenderingSystem.glState.viewport.update(width, height);
     theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
-    GL_OPERATION(glScissor(width, 0, LevelEditor::DebugAreaWidth, height))
+    GL_OPERATION(glScissor(width - LevelEditor::DebugAreaWidth, 0, LevelEditor::DebugAreaWidth, height))
     GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
 
     glm::mat4 mvp;
@@ -713,9 +715,6 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     GL_OPERATION(glUniform1i(leProgramuniformColorSampler, 0))
     GL_OPERATION(glActiveTexture(GL_TEXTURE0))
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, fontTex))
-
-    // Setup orthographic projection matrix
-    GL_OPERATION(glUniform2f(leProgramuniformWindowSize, width, height))
 
     // Enable hard-coded attributes
     GL_OPERATION(glEnableVertexAttribArray(0))
