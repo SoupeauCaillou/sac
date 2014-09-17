@@ -283,7 +283,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
             }
 
             case PropertyType::Int8: {
-                LOGT("TODO");
+                ImGui::Value(vname.c_str(), *(int8_t*)(comp + prop->offset));
                 break;
             }
             case PropertyType::Bool: {
@@ -306,9 +306,11 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
                 ImGui::LabelText(vname.c_str(), theEntityManager.entityName(*(Entity*)(comp + prop->offset)));
                 break;
             case PropertyType::Texture:
-            case PropertyType::Hash:
-                ImGui::LabelText(vname.c_str(), INV_HASH(*(hash_t*)(comp + prop->offset)));
+            case PropertyType::Hash: {
+                hash_t h = *(hash_t*)(comp + prop->offset);
+                ImGui::LabelText(vname.c_str(), (h != -1) ? (INV_HASH(h)) : "-");
                 break;
+            }
             default:
                 break;
         }
