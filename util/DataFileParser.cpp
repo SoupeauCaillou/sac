@@ -196,7 +196,7 @@ bool DataFileParser::hashValue(hash_t section, hash_t var, bool LOG_USAGE_ONLY(w
         return false;
     }
     const Section* sectPtr = 0;
-    if (!data->selectSectionByName(section, &sectPtr)) {
+    if (!data->selectSectionByName(section, &sectPtr, warnIfNotFound)) {
         return false;
     }
     auto jt = sectPtr->hashValues.find(var);

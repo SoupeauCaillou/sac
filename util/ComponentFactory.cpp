@@ -185,15 +185,18 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
     if (count == 1) {
         hash_t mod = dfp.getModifier(section, id);
 
-        if (mod == 0)
-            return 0;
+        if (mod == 0) {
+            *out = glm::vec2(fp[0]);
+            return 1;
+        }
 
+        /* All single float depends on texture */
         std::string textureName;
         if (dfp.get(HASH("Rendering", 0xe6cc1e11), HASH("texture", 0x3d4e3ff8), &textureName, 1, false)) {
             const glm::vec2& s = theRenderingSystem.getTextureSize(textureName.c_str());
             applyVec2SingleFloatModifiers(mod, s, fp[0], out);
         } else {
-            LOGV(1, ".entity file uses \%texture modifier but doesn't have a Rendering/texture declared");
+            LOGV(1, ".entity file uses modifier based on texture '" << INV_HASH(mod) << "' but doesn't have a Rendering/texture declared");
             *out = glm::vec2(1.0f);
         }
         return 1;
