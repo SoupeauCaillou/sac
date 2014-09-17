@@ -266,23 +266,7 @@ static void DumpSystemEntities(void *clientData) {
 }
 
 void LevelEditor::init() {
-    #if 0
-    // init system button
-    for (auto it : ComponentSystem::registeredSystems()) {
-        TwAddButton(dumpEntities, INV_HASH(it.first), DumpSystemEntities, (void*)&it.first, "");
-    }
-
-#if SAC_DEBUG && SAC_NETWORK
-    // init network debug
-    auto* netbar = TwNewBar("Network");
-    TwDefine(" Network iconified=true ");
-    TwAddVarRO(netbar, "download b/s", TW_TYPE_FLOAT, &theNetworkSystem.dlRate, "precision=1");
-    TwAddVarRO(netbar, "upload b/s", TW_TYPE_FLOAT, &theNetworkSystem.ulRate, "precision=1");
-    TwAddVarRO(netbar, "nb packet rcvd", TW_TYPE_INT32, &theNetworkSystem.packetRcvd, NULL);
-    TwAddVarRO(netbar, "nb packet sent", TW_TYPE_INT32, &theNetworkSystem.packetSent, NULL);
-
-#endif
-#endif
+    ImGui::SetNewWindowDefaultPos(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, 0));
 }
 
 static std::string displayGroup(Entity e) {
