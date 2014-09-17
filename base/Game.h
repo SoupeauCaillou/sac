@@ -47,9 +47,15 @@ namespace GameType {
 
 
 class Game {
-	public:
-		Game();
-		virtual ~Game();
+    public:
+        virtual void init(const uint8_t* in = 0, int size = 0) = 0;
+
+    private:
+        virtual void tick(float dt) = 0;
+
+    public:
+        Game();
+        virtual ~Game();
 
         void setGameContexts(GameContext* gameThreadContext, GameContext* renderThreadContext);
         void step();
@@ -57,19 +63,16 @@ class Game {
         void resetTime();
         void eventsHandler();
 
+        virtual bool wantsAPI(ContextAPI::Enum api) const;
         virtual void backPressed() {};
         virtual bool willConsumeBackEvent() { return false; }
-
-        virtual bool wantsAPI(ContextAPI::Enum api) const = 0;
-		virtual void sacInit(int windowW, int windowH);
-		virtual void init(const uint8_t* in = 0, int size = 0) = 0;
-        virtual void quickInit() = 0;
-		virtual int saveState(uint8_t** out);
+        virtual void quickInit() {};
+        virtual int saveState(uint8_t** out);
+        virtual void sacInit(int windowW, int windowH);
         virtual void togglePause(bool) { }
-	protected:
-		void loadFont(AssetAPI* asset, const std::string& name);
-    private:
-        virtual void tick(float dt) = 0;
+
+    protected:
+        void loadFont(AssetAPI* asset, const std::string& name);
 
     public:
         GameContext* gameThreadContext, *renderThreadContext;

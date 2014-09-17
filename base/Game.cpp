@@ -167,6 +167,10 @@ Game::Game() {
 #endif
 }
 
+bool Game::wantsAPI(ContextAPI::Enum api) const {
+    return true;
+}
+
 void Game::buildOrderedSystemsToUpdateList() {
     orderedSystemsToUpdate.clear();
 
