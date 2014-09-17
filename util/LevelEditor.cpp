@@ -319,7 +319,7 @@ bool entityWindowOpen = true;
 void LevelEditor::tick(float dt) {
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
-    ImGui::Begin("Entity List", &entityWindowOpen, ImVec2(PlacementHelper::WindowSize.x, 0));
+    ImGui::Begin("Entity List", &entityWindowOpen);
 
     // CollapsingHeader
     for (unsigned i=0; i<entities.size(); i++) {
