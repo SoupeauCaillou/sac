@@ -315,11 +315,13 @@ static void imguiInputFilter() {
     }
 }
 
-bool entityWindowOpen = true;
 void LevelEditor::tick(float dt) {
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
-    ImGui::Begin("Entity List", &entityWindowOpen);
+    if (!ImGui::Begin("Entity List")) {
+        ImGui::End();
+        return;
+    }
 
     // CollapsingHeader
     for (unsigned i=0; i<entities.size(); i++) {

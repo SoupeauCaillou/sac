@@ -721,20 +721,12 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     GL_OPERATION(glEnableVertexAttribArray(1))
     GL_OPERATION(glEnableVertexAttribArray(2))
 
-    //LOGI(cmd_lists_count << "/" << cmd_lists);
-    /*
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();*/
-
     // Render command lists
     for (int n = 0; n < cmd_lists_count; n++)
     {
         const ImDrawList* cmd_list = &cmd_lists[n];
 
-        unsigned verticesCount = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
+        unsigned verticesCount = cmd_list->vtx_buffer.size();
         unsigned size = verticesCount * sizeof(ImDrawVert);
 
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[3]))
@@ -755,6 +747,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
 
         int vtx_offset = 0;
         const ImDrawCmd* pcmd_end = cmd_list->commands.end();
+
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
         {
             GL_OPERATION(glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y)))
@@ -767,8 +760,8 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
                 glVertexAttribPointer(2 /*aColor*/, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert) + 16)))
 
             GL_OPERATION(glDrawElements(GL_TRIANGLES, pcmd->vtx_count, GL_UNSIGNED_SHORT, 0))
-
             vtx_offset += pcmd->vtx_count;
+
         }
     }
     GL_OPERATION(glDisable(GL_SCISSOR_TEST))
