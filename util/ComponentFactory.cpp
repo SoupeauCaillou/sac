@@ -450,7 +450,7 @@ int ComponentFactory::build(
         LOGE(propertiesInFile << " declared in " << context << ".entity [" << INV_HASH(section) << "] and only " << loaded.size() << " actually loaded");
         LOGV(1, "Loaded:");
         for (auto& s: loaded) {
-            LOGV(1, "   '0x" << std::hex << s << "'" << std::dec);
+            LOGV(1, "   '0x" << std::hex << INV_HASH(s) << "'" << std::dec);
         }
         LOGV(1, "Missing:");
         for (unsigned i=0; i<propertiesInFile; ++i) {

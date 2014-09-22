@@ -191,6 +191,10 @@ extern bool profilerEnabled;
 glm::vec2 resolution;
 std::string gameName;
 int initGame(const std::string& gameN, const glm::ivec2& res, const std::string& gameVersion) {
+#if SAC_DESKTOP && SAC_LINUX
+    initLogColors();
+#endif
+
     resolution = res;
     gameName = gameN;
 

@@ -137,8 +137,27 @@ static const char* validColors[] = {
 const char* pickColorTag(const char* tag) {
     return validColors[Murmur::RuntimeHash(tag) % 7];
 }
+static bool enableColorize = true;
+
+// from http://stackoverflow.com/questions/3596781/detect-if-gdb-is-running
+// gdb apparently opens FD(s) 3,4,5 (whereas a typical prog uses only stdin=0, stdout=1,stderr=2)
+static int detect_gdb(void)
+{
+    int rc = 0;
+    FILE *fd = fopen("/tmp", "r");
+
+    if (fileno(fd) > 5)
+    {
+        rc = 1;
+    }
+
+    fclose(fd);
+    return rc;
+}
 
 void initLogColors() {
+    enableColorize = detect_gdb() == 0;
+
     // read from env var
 
 }
@@ -157,6 +176,7 @@ int logHeaderLength(const char* file, int line) {
 
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line) {
 #if SAC_DESKTOP && SAC_LINUX
+    if (enableColorize) {
     pid_t tid;
 
     tid = syscall(SYS_gettid);
@@ -170,9 +190,14 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
         << ' '
         << ColorPrefix << pickColorTag(file) << ColorSuffix << keepOnlyFilename(file) << ':' << std::setw(3) << line << ColorReset
         << ' ';
-#else
-	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << ' ' << enum2Name(type) << ' ' << keepOnlyFilename(file) << ':' << line << " : ";
+    } else
 #endif
+
+    stream
+        << enum2Name(type) << ' '
+        << std::fixed << std::setprecision(4)
+        << TimeUtil::GetTime() << ' '
+        << keepOnlyFilename(file) << ':' << line << ' ';
 	return stream;
 }
 
