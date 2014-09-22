@@ -641,12 +641,12 @@ void Game::step() {
 
         switch (gameType) {
             case GameType::LevelEditor:
-                if (ImGui::Button("Play"))
+                if (ImGui::Button("Play (F1)"))
                     gameType = GameType::Default;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-                ImGui::Button("Pause");
+                ImGui::Button("Pause (F2)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Single-Step"))
+                if (ImGui::Button("Single-Step (F3)"))
                     gameType = GameType::SingleStep;
                 break;
             case GameType::SingleStep:
@@ -657,11 +657,11 @@ void Game::step() {
                 break;
             default:
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-                ImGui::Button("Play");
+                ImGui::Button("Play (F1)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Pause"))
+                if (ImGui::Button("Pause (F2)"))
                     gameType = GameType::LevelEditor;
-                if (ImGui::Button("Single-Step"))
+                if (ImGui::Button("Single-Step (F3)"))
                     gameType = GameType::SingleStep;
 
                 Draw::Update();
