@@ -498,7 +498,9 @@ void Game::sacInit(int windowW, int windowH) {
 
 #if SAC_INGAME_EDITORS
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)windowW + LevelEditor::DebugAreaWidth, (float)windowH);
+    io.DisplaySize = ImVec2(windowW, windowH);
+    io.DisplaySize.x += LevelEditor::DebugAreaWidth;
+    io.DisplaySize.y += LevelEditor::DebugAreaHeight;
     io.PixelCenterOffset = 0.0f;
 
 #if SAC_DESKTOP
@@ -609,9 +611,8 @@ void Game::step() {
         p = theTouchInputManager.getOverLastPositionScreen();
         #endif
 
-        p = PlacementHelper::WindowSize * 0.5f + p * PlacementHelper::WindowSize;
-        p.y = PlacementHelper::WindowSize.y - p.y;
-
+        p = glm::vec2(io.DisplaySize.x, io.DisplaySize.y) * (0.5f + p);
+        p.y = io.DisplaySize.y - p.y;
         io.MousePos =ImVec2(p.x, p.y);
         io.MouseDown[0] = theTouchInputManager.isTouched(0);
         io.MouseDown[1] = theTouchInputManager.isTouched(1);

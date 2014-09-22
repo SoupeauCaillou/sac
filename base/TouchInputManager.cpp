@@ -32,6 +32,9 @@
 #if SAC_DEBUG
 #include "../systems/AnchorSystem.h"
 #endif
+#if SAC_INGAME_EDITORS
+#include "util/LevelEditor.h"
+#endif
 
 #include <glm/gtx/norm.hpp>
 
@@ -94,6 +97,7 @@ void TouchInputManager::Update() {
             // convert window coordinates -> world coords
             lastTouchedPositionScreen[i] = windowToScreen(coords);
             lastTouchedPosition[i] = windowToWorld(coords, tc);
+
             if (!wasTouching[i]) {
                 onTouchPosition[i] = lastTouchedPositionScreen[i];
             }
@@ -169,16 +173,28 @@ void TouchInputManager::resetDoubleClick(int idx) {
 }
 
 glm::vec2 TouchInputManager::windowToScreen(const glm::vec2& windowCoords) const {
+#if SAC_INGAME_EDITORS
+    return glm::vec2(windowCoords.x / (LevelEditor::DebugAreaWidth + theRenderingSystem.windowW) - 0.5,
+        (theRenderingSystem.windowH + LevelEditor::DebugAreaHeight - windowCoords.y) / (theRenderingSystem.windowH + LevelEditor::DebugAreaHeight) - 0.5);
+#else
     return glm::vec2(windowCoords.x / theRenderingSystem.windowW - 0.5,
         (theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH - 0.5);
+#endif
 }
 
 glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
     glm::vec2 camLocal;
+#if SAC_INGAME_EDITORS
+    camLocal.x = ((windowCoords.x - LevelEditor::DebugAreaWidth /2) / theRenderingSystem.windowW) * cameraTrans->size.x
+        - cameraTrans->size.x * 0.5f;
+    camLocal.y = ((theRenderingSystem.windowH - (windowCoords.y - LevelEditor::DebugAreaHeight / 2)) / theRenderingSystem.windowH) * cameraTrans->size.y
+        - cameraTrans->size.y * 0.5f;
+#else
     camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
         - cameraTrans->size.x * 0.5f;
     camLocal.y = ((theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH) * cameraTrans->size.y
         - cameraTrans->size.y * 0.5f;
+#endif
     return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
 }
 

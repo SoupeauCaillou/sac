@@ -273,7 +273,14 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
             LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
             LevelEditor::DebugAreaWidth = std::atoi(argv[i+1]);
             i++;
+        } else
+        if (!strcmp(argv[i], "--debug-area-height") ||
+            !strcmp(argv[i], "-d-a-h")) {
+            LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
+            LevelEditor::DebugAreaHeight = std::atoi(argv[i+1]);
+            i++;
         }
+
 #endif
 #if SAC_ENABLE_PROFILING
         profilerEnabled |= !strcmp("-profile", argv[i]);
@@ -284,7 +291,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     // Double Buffering
     // Warning! This method DOES call srand (random generator)
 #if SAC_INGAME_EDITORS
-    if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y, 32, SDL_OPENGL ) == 0)
+    if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y + LevelEditor::DebugAreaHeight, 32, SDL_OPENGL ) == 0)
 #else
     if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
 #endif

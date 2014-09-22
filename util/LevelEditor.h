@@ -38,5 +38,6 @@ class LevelEditor {
 #if SAC_INGAME_EDITORS
     public:
         static int DebugAreaWidth;
+        static int DebugAreaHeight;
 #endif
 };

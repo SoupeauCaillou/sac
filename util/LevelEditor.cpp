@@ -44,7 +44,13 @@
 #if SAC_INGAME_EDITORS
 int LevelEditor::DebugAreaWidth =
 #if SAC_DESKTOP
-    400;
+    600;
+#else
+    0;
+#endif
+int LevelEditor::DebugAreaHeight =
+#if SAC_DESKTOP
+    200;
 #else
     0;
 #endif

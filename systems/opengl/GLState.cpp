@@ -2,6 +2,7 @@
 
 #if SAC_INGAME_EDITORS
 #include "../RenderingSystem.h"
+#include "util/LevelEditor.h"
 #endif
 
 GLState::GLState() {
@@ -15,7 +16,11 @@ void GLState::Viewport::update(int _w, int _h, GLUpdateOption::Enum option) {
     if (_w != w || _h != h || option == GLUpdateOption::Forced) {
         w = _w;
         h = _h;
+#if SAC_INGAME_EDITORS
+        GL_OPERATION(glViewport(LevelEditor::DebugAreaWidth / 2, LevelEditor::DebugAreaHeight / 2, w, h))
+#else
         GL_OPERATION(glViewport(0, 0, w, h))
+#endif
     }
 }
 

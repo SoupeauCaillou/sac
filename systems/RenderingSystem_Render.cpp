@@ -705,9 +705,21 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     const float height = ImGui::GetIO().DisplaySize.y;
 
     theRenderingSystem.glState.viewport.update(width, height);
+    GL_OPERATION(glViewport(0, 0, width, height))
     theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
-    GL_OPERATION(glScissor(width - LevelEditor::DebugAreaWidth, 0, LevelEditor::DebugAreaWidth, height))
-    GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
+
+    {
+        glScissor(0, 0, width, LevelEditor::DebugAreaHeight / 2);
+        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
+        glScissor(0, ImGui::GetIO().DisplaySize.y - LevelEditor::DebugAreaHeight / 2, width, LevelEditor::DebugAreaHeight / 2);
+        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
+        glScissor(0, 0, LevelEditor::DebugAreaWidth / 2, height);
+        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
+        glScissor(width - LevelEditor::DebugAreaWidth / 2, 0, LevelEditor::DebugAreaWidth / 2, height);
+        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
+    }
+
+    glScissor(0, 0, width, height);
 
     glm::mat4 mvp;
     mvp = glm::ortho(0.0f, width, height, 0.0f, 0.0f, 1.0f);
@@ -750,7 +762,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
 
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
         {
-            GL_OPERATION(glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y)))
+           // GL_OPERATION(glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y)))
 
             GL_OPERATION(
                 glVertexAttribPointer(0 /*aWindowPosition*/, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert))))
