@@ -67,7 +67,7 @@ extern std::map<std::string, bool> verboseFilenameFilters;
 #include <queue>
 #include <mutex>
 extern std::stringstream lastLogsSS;
-extern std::mutex lastLogsMutex;
+extern std::recursive_mutex lastLogsMutex;
 extern std::queue<std::string> lastLogs;
 extern unsigned lastLogsCount;
 extern void writeLastLogs();
@@ -111,11 +111,12 @@ static const android_LogPriority level2prio[] {
 #define __LOG(level, x) \
     do {\
         { \
-        std::unique_lock<std::mutex> lock(lastLogsMutex); \
+        lastLogsMutex.lock(); \
         lastLogsSS.str(""); lastLogsSS.clear(); \
         logToStream(lastLogsSS, level, __FILE__, __LINE__) << x << std::endl; \
         lastLogs.push(lastLogsSS.str()); \
         while (lastLogs.size() > lastLogsCount) lastLogs.pop(); \
+        lastLogsMutex.unlock();\
         } \
         if ((int)logLevel >= (int)level) {\
             SAC_LOG_PRE \
@@ -123,7 +124,7 @@ static const android_LogPriority level2prio[] {
             SAC_LOG_POST \
             \
             if (level == LogVerbosity::FATAL && AssertOnFatal) { \
-                std::unique_lock<std::mutex> lock(lastLogsMutex); \
+                lastLogsMutex.lock(); \
                 writeLastLogs(); \
                 raise(SIGABRT); \
             } \

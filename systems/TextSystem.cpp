@@ -464,6 +464,10 @@ relayout:
         if (caretInserted) {
             trc->text.resize(trc->text.length() - 1);
         }
+
+#if SAC_INGAME_EDITORS
+        trc->highLight = false;
+#endif
     END_FOR_EACH()
 
     if (renderingEntitiesPool.size() > letterCount*2) {
