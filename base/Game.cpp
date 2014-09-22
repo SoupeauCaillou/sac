@@ -627,15 +627,27 @@ void Game::step() {
         levelEditor->tick(targetDT);
         PROFILE("Game", "AntTweakBar", EndEvent);
 
+        ImGui::Begin("Time control");
+
         if (keystate[SDLK_F1])
             gameType = GameType::Default;
-        else if (keystate[SDLK_F2])
+
+        if (keystate[SDLK_F2])
             gameType = GameType::LevelEditor;
-        else if (keystate[SDLK_F3])
+
+        if (keystate[SDLK_F3])
             gameType = GameType::SingleStep;
+
 
         switch (gameType) {
             case GameType::LevelEditor:
+                if (ImGui::Button("Play"))
+                    gameType = GameType::Default;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::Button("Pause");
+                ImGui::PopStyleColor();
+                if (ImGui::Button("Single-Step"))
+                    gameType = GameType::SingleStep;
                 break;
             case GameType::SingleStep:
                 LOGI("Single stepping the game (delta: " << targetDT << " ms)");
@@ -644,6 +656,14 @@ void Game::step() {
                 gameType = GameType::LevelEditor;
                 break;
             default:
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::Button("Play");
+                ImGui::PopStyleColor();
+                if (ImGui::Button("Pause"))
+                    gameType = GameType::LevelEditor;
+                if (ImGui::Button("Single-Step"))
+                    gameType = GameType::SingleStep;
+
                 Draw::Update();
                 if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
                     speedFactor = glm::max(speedFactor - 1 * targetDT, 0.0f);
@@ -659,6 +679,8 @@ void Game::step() {
 
                 tick(targetDT * speedFactor);
         }
+        ImGui::End();
+
         LevelEditor::unlock();
     #else
         LOGV(3, "Update game");
