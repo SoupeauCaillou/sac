@@ -201,7 +201,7 @@ bool DataFileParser::hashValue(hash_t section, hash_t var, bool LOG_USAGE_ONLY(w
     }
     auto jt = sectPtr->hashValues.find(var);
     if (jt == sectPtr->hashValues.end()) {
-        LOGE_IF(warnIfNotFound, context << ": cannot find var '" << var << "' in section '" << section << "'");
+        LOGE_IF(warnIfNotFound, context << ": cannot find var '" << INV_HASH(var) << "' in section '" << INV_HASH(section) << "'");
         return false;
     }
     out = jt->second;
