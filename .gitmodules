@@ -1,15 +1,9 @@
 [submodule "libs/enet"]
 	path = libs/enet
 	url = git://github.com/lsalzman/enet.git
-[submodule "libs/tinyxml2"]
-	path = libs/tinyxml2
-	url = git://github.com/leethomason/tinyxml2.git
 [submodule "libs/glm"]
 	path = libs/glm
 	url = git://github.com/g-truc/glm.git
-[submodule "libs/AntTweakBar"]
-	path = libs/AntTweakBar
-	url = https://github.com/bagage/AntTweakBar.git
 [submodule "libs/imgui"]
 	path = libs/imgui
 	url = https://github.com/ocornut/imgui.git
