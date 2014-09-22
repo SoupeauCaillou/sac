@@ -41,6 +41,7 @@ std::map<std::string, bool> verboseFilenameFilters;
 
 #if SAC_DESKTOP
 std::stringstream lastLogsSS;
+std::mutex lastLogsMutex;
 std::queue<std::string> lastLogs;
 unsigned lastLogsCount = 100;
 void writeLastLogs() {

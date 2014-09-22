@@ -65,7 +65,9 @@ extern LogVerbosity::Enum logLevel;
 extern std::map<std::string, bool> verboseFilenameFilters;
 #if SAC_DESKTOP
 #include <queue>
+#include <mutex>
 extern std::stringstream lastLogsSS;
+extern std::mutex lastLogsMutex;
 extern std::queue<std::string> lastLogs;
 extern unsigned lastLogsCount;
 extern void writeLastLogs();
@@ -108,17 +110,20 @@ static const android_LogPriority level2prio[] {
 #if SAC_DESKTOP
 #define __LOG(level, x) \
     do {\
+        { \
+        std::unique_lock<std::mutex> lock(lastLogsMutex); \
         lastLogsSS.str(""); lastLogsSS.clear(); \
         logToStream(lastLogsSS, level, __FILE__, __LINE__) << x << std::endl; \
         lastLogs.push(lastLogsSS.str()); \
         while (lastLogs.size() > lastLogsCount) lastLogs.pop(); \
-        \
+        } \
         if ((int)logLevel >= (int)level) {\
             SAC_LOG_PRE \
             logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__) << x << std::endl; \
             SAC_LOG_POST \
             \
             if (level == LogVerbosity::FATAL && AssertOnFatal) { \
+                std::unique_lock<std::mutex> lock(lastLogsMutex); \
                 writeLastLogs(); \
                 raise(SIGABRT); \
             } \
