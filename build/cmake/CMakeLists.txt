@@ -1,4 +1,11 @@
 #######################################################################
+###############Sac and Game folders####################################
+#######################################################################
+# when we use "include(...)", CMAKE_CURRENT_SOURCE_DIR is the directory of includer CMakeLists.txt
+set(SAC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sac)
+set(GAME_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+
+#######################################################################
 #########################Sac License###################################
 #######################################################################
 set(LICENSE_HEADER
@@ -70,7 +77,7 @@ else()
 endif()
 
 #import platform dependent toolchain
-include(${PROJECT_SOURCE_DIR}/sac/build/cmake/toolchains/${varplatform}.cmake)
+include(${SAC_SOURCE_DIR}/build/cmake/toolchains/${varplatform}.cmake)
 
 #import gcc/g++ flags relative to toolchain
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing ${CXX_FLAGS_${BUILD_TARGET}}")
@@ -92,13 +99,13 @@ endif()
 execute_process(
         COMMAND git describe --abbrev=0 COMMAND tr -d '\n'
         OUTPUT_VARIABLE SAC_REVISION_TAG
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        WORKING_DIRECTORY ${GAME_SOURCE_DIR}
     )
 #and git latest commit id
 execute_process(
         COMMAND git rev-parse HEAD COMMAND head -c 8
         OUTPUT_VARIABLE SAC_REVISION
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        WORKING_DIRECTORY ${GAME_SOURCE_DIR}
     )
 set (NEW_BUILD_VALUES "\"${SAC_REVISION_TAG}\" - \"${SAC_REVISION}\"")
 
@@ -118,7 +125,7 @@ endif()
 #######################################################################
 ########Library path finding related tools#############################
 #######################################################################
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/sac/build/cmake/Modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SAC_SOURCE_DIR}/build/cmake/Modules")
 
 #ensure that a lib is installed and link it to "target" executable
 function (check_and_link_libs target)
@@ -144,13 +151,13 @@ endfunction()
 file (
     GLOB_RECURSE
     SHADER_SOURCE_FILES
-    ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders/*.[vf]s
+    ${SAC_SOURCE_DIR}/systems/opengl/shaders/*.[vf]s
 )
 
 foreach (FILE ${SHADER_SOURCE_FILES})
     file(RELATIVE_PATH
         REL_FILE
-        ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
+        ${SAC_SOURCE_DIR}/systems/opengl/shaders
         ${FILE})
 
     #output format: foo.vs -> foo_vs.h
@@ -162,9 +169,9 @@ foreach (FILE ${SHADER_SOURCE_FILES})
 
     add_custom_command(
         OUTPUT ${Output}.h
-        COMMAND python ${PROJECT_SOURCE_DIR}/sac/tools/xxd_python.py ${REL_FILE}
+        COMMAND python ${SAC_SOURCE_DIR}/tools/xxd_python.py ${REL_FILE}
         DEPENDS ${FILE}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/sac/systems/opengl/shaders
+        WORKING_DIRECTORY ${SAC_SOURCE_DIR}/systems/opengl/shaders
         COMMENT "Building shader ${REL_FILE}"
     )
 endforeach()
@@ -181,7 +188,7 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 
 #file(
 #    GLOB sub-dir
-#    ${PROJECT_SOURCE_DIR}/unprepared_assets/*)
+#    ${GAME_SOURCE_DIR}/unprepared_assets/*)
 
 #message ("${sub-dir}")
 
@@ -191,7 +198,7 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #        message("Dir found : -> ${dir}")
 
 #        add_custom_command(
-#            COMMAND ${PROJECT_SOURCE_DIR}/sac/tools/generate_altas.sh
+#            COMMAND ${SAC_SOURCE_DIR}/tools/generate_altas.sh
 #            DEPENDS ${dir}
 #            WORKING_DIRECTORY ${dir})
 #    endif()
@@ -200,8 +207,8 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #######################################################################
 #######################Auto register scenes############################
 #######################################################################
-set(SCENE_REGISTRATION_FILE ${PROJECT_SOURCE_DIR}/sources/scenes/Scenes.h)
-file(GLOB FILES ${PROJECT_SOURCE_DIR}/sources/scenes/*.cpp)
+set(SCENE_REGISTRATION_FILE ${GAME_SOURCE_DIR}/sources/scenes/Scenes.h)
+file(GLOB FILES ${GAME_SOURCE_DIR}/sources/scenes/*.cpp)
 foreach (FILE ${FILES})
     string(REGEX REPLACE ".*/(.*)Scene\\..*" "\\1" SCENE_NAME ${FILE})
     list(APPEND SCENES ${SCENE_NAME})
@@ -260,21 +267,21 @@ if (DEFINED extra_source_directories)
     )
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/sources)
-include_directories(${PROJECT_SOURCE_DIR}/sac)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/glm)
-include_directories(${PROJECT_SOURCE_DIR}/sac/libs/stb)
+include_directories(${GAME_SOURCE_DIR}/sources)
+include_directories(${SAC_SOURCE_DIR})
+include_directories(${SAC_SOURCE_DIR}/libs/glm)
+include_directories(${SAC_SOURCE_DIR}/libs/stb)
 
 add_definitions(-DGLM_FORCE_RADIANS)
 
 file(
     GLOB_RECURSE source_files
-    ${PROJECT_SOURCE_DIR}/sac/base/*
-    ${PROJECT_SOURCE_DIR}/sac/systems/*
-    ${PROJECT_SOURCE_DIR}/sac/util/*
-    ${PROJECT_SOURCE_DIR}/sac/steering/*
-    ${PROJECT_SOURCE_DIR}/sources/*
-    ${PROJECT_SOURCE_DIR}/sac/api/default/*
+    ${SAC_SOURCE_DIR}/base/*
+    ${SAC_SOURCE_DIR}/systems/*
+    ${SAC_SOURCE_DIR}/util/*
+    ${SAC_SOURCE_DIR}/steering/*
+    ${GAME_SOURCE_DIR}/sources/*
+    ${SAC_SOURCE_DIR}/api/default/*
 )
 
 if (WEB_BUILD)
@@ -286,7 +293,7 @@ if (DESKTOP_BUILD)
 
     file (
         GLOB_RECURSE opt_source_files
-        ${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/*.cpp
+        ${SAC_SOURCE_DIR}/libs/rg_etc1_v104/*.cpp
     )
 endif()
 
@@ -294,11 +301,11 @@ endif()
 get_platform_dependent_sources()
 
 if (INGAME_EDITOR STREQUAL "ON")
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/imgui)
+    include_directories(${SAC_SOURCE_DIR}/libs/imgui)
 
     file(
         GLOB imgui_files
-        ${PROJECT_SOURCE_DIR}/sac/libs/imgui/*.cpp
+        ${SAC_SOURCE_DIR}/libs/imgui/*.cpp
     )
 endif()
 
@@ -331,7 +338,7 @@ if (NETWORK_BUILD)
         add_definitions(-DHAVE_STRINGS_H=1)
     endif()
 
-    set (enet_base ${PROJECT_SOURCE_DIR}/sac/libs/enet)
+    set (enet_base ${SAC_SOURCE_DIR}/libs/enet)
     file(
         GLOB_RECURSE enet_sources
         ${enet_base}/*.c
@@ -344,20 +351,20 @@ if (NETWORK_BUILD)
 endif()
 
 if (DESKTOP_BUILD)
-    include_directories(${PROJECT_SOURCE_DIR}/sac/libs/rg_etc1_v104/)
+    include_directories(${SAC_SOURCE_DIR}/libs/rg_etc1_v104/)
     check_and_link_libs("sac" GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)
     if (MOBILE_BUILD)
         ########## build sqlite3 lib ###########
-        set (sqlite3_base ${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
+        set (sqlite3_base ${SAC_SOURCE_DIR}/libs/sqlite3)
         file(
             GLOB_RECURSE sqlite3_sources
             ${sqlite3_base}/sqlite3.c
         )
 
-        include_directories(${PROJECT_SOURCE_DIR}/sac/libs/sqlite3)
+        include_directories(${SAC_SOURCE_DIR}/libs/sqlite3)
         add_library("sqlite3" STATIC ${sqlite3_sources})
 
         target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
@@ -376,7 +383,7 @@ import_specific_libs()
 #######################################################################
 if (NOT MOBILE_BUILD)
 
-    add_executable(${EXECUTABLE_NAME} ${PROJECT_SOURCE_DIR}/sac/util/EntryPoint.cpp)
+    add_executable(${EXECUTABLE_NAME} ${SAC_SOURCE_DIR}/util/EntryPoint.cpp)
     target_link_libraries(${EXECUTABLE_NAME} sac m)
 endif()
 
@@ -399,8 +406,8 @@ if (DESKTOP_BUILD)
     if (UNITTEST_FOUND)
         file(
                 GLOB_RECURSE test_source_files
-                ${PROJECT_SOURCE_DIR}/sac/tests/*.cpp
-                ${PROJECT_SOURCE_DIR}/tests/*.cpp
+                ${SAC_SOURCE_DIR}/tests/*.cpp
+                ${GAME_SOURCE_DIR}/tests/*.cpp
         )
         add_executable(sac_tests ${test_source_files})
 
@@ -419,8 +426,8 @@ if (NETWORK_BUILD)
     ########## lobby server ###########
     file(
         GLOB_RECURSE lobby_server_source_files
-        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.cpp
-        ${PROJECT_SOURCE_DIR}/sac/tools/lobby/*.h
+        ${SAC_SOURCE_DIR}/tools/lobby/*.cpp
+        ${SAC_SOURCE_DIR}/tools/lobby/*.h
     )
     add_executable(lobby_server ${lobby_server_source_files})
     target_link_libraries(lobby_server sac)

@@ -34,9 +34,9 @@ SET (SAC_LIB_TYPE STATIC)
 function (get_platform_dependent_sources)
     file(
         GLOB_RECURSE platform_source_files
-        ${PROJECT_SOURCE_DIR}/sac/app/*
-        ${PROJECT_SOURCE_DIR}/sac/api/linux/*
-        ${PROJECT_SOURCE_DIR}/platforms/default/api/*
+        ${SAC_SOURCE_DIR}/app/*
+        ${SAC_SOURCE_DIR}/api/linux/*
+        ${GAME_SOURCE_DIR}/platforms/default/api/*
     )
     set (platform_source_files ${platform_source_files} PARENT_SCOPE)
 endfunction()
@@ -45,8 +45,8 @@ function (others_specific_executables)
     #texture packer
     file(
         GLOB_RECURSE texture_packer_source_files
-        ${PROJECT_SOURCE_DIR}/sac/tools/texture_packer/*.cpp
-        ${PROJECT_SOURCE_DIR}/sac/tools/texture_packer/*.h
+        ${SAC_SOURCE_DIR}/tools/texture_packer/*.cpp
+        ${SAC_SOURCE_DIR}/tools/texture_packer/*.h
     )
     add_executable(texture_packer ${texture_packer_source_files})
     target_link_libraries(texture_packer sac rt png)
