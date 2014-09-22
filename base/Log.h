@@ -26,6 +26,10 @@ extern bool AssertOnFatal;
 
 #include <base/SacDefs.h>
 
+#if SAC_DESKTOP && SAC_LINUX
+void initLogColors();
+#endif
+
 //to handle vec2 operator<<
 #include <ostream>
 #include <sstream>
@@ -51,7 +55,9 @@ namespace LogVerbosity {
         WARNING,
         INFO,
         VERBOSE1,
-        VERBOSE2
+        VERBOSE2,
+        VERBOSE3,
+        COUNT
     };
 }
 
@@ -88,7 +94,7 @@ static const android_LogPriority level2prio[] {
 #define SAC_LOG_PRE std::stringstream __log_ss;
 #define SAC_LOG_STREAM __log_ss
 #define SAC_LOG_POST __android_log_print(level2prio[logLevel], "sac", "%s", __log_ss.str().c_str());
-#else
+#else /* if SAC_ANDROID */
 #include <iostream>
 #define SAC_LOG_PRE
 #define SAC_LOG_STREAM std::cout

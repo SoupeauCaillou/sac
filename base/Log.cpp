@@ -29,6 +29,7 @@ bool AssertOnFatal = true;
 #include "TimeUtil.h"
 #include <iomanip>
 #include <sstream>
+#include "util/MurmurHash.h"
 
 LogVerbosity::Enum logLevel =
 #ifdef SAC_ANDROID
@@ -67,28 +68,85 @@ NullStream slashDevslashNull;
 
 static const char* enumNames[] ={
     //5 chars length for all
-	"FATAL",
-	"ERROR",
-    "TODO ",
-    "WARN ",
-	"INFO ",
-    "VERB1",
-    "VERB2",
-    "VERB3",
+	" F ",
+	" E ",
+    " T ",
+    " W ",
+	" I ",
+    " V1",
+    " V2",
+    " V3",
 };
 
+#include <cstring>
+
 static const char* keepOnlyFilename(const char* fullPath) {
+    #define SIZE 28
+    static char filename[SIZE];
+
 	const char* result = fullPath;
 	const char* ptr = fullPath;
 	while (*ptr++ != '\0') {
 		if (*ptr == '\\' || *ptr == '/') result = ptr + 1;
 	}
-	return result;
+
+    int length = strlen(result);
+    memset(filename, ' ', SIZE - 1);
+    strncpy(&filename[SIZE - 1 - length], result, length);
+
+    filename[SIZE - 1] = '\0';
+    return filename;
+
 }
 
 static const char* enum2Name(LogVerbosity::Enum t) {
 	return enumNames[(int)t];
 }
+
+#if SAC_DESKTOP && SAC_LINUX
+
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+
+static const char* color[LogVerbosity::COUNT] = {
+    "30;41", /* FATAL, default: fg=black, bg=red */
+    "30;41", /* ERROR, default: fg=black, bg=red */
+    "30;44", /* TODO, default:  fg=black, bg=blue */
+    "30;43", /* WARN, default:  fg=black, bg=yellow */
+    "30;42", /* INFO, default:  fg=black, bg=green */
+    "37;40", /* VERB1, default:  fg=white, bg=black */
+    "37;40", /* VERB2, default:  fg=white, bg=black */
+    "37;40", /* VERB3, default:  fg=white, bg=black */
+};
+
+static const char* colorTs = {
+    "30;100", /* fg=black, bg=bright black */
+};
+
+static const char* validColors[] = {
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37"
+};
+
+const char* pickColorTag(const char* tag) {
+    return validColors[Murmur::RuntimeHash(tag) % 7];
+}
+
+void initLogColors() {
+    // read from env var
+
+}
+
+static const char* ColorPrefix = "\033[";
+static const char* ColorSuffix = "m";
+static const char* ColorReset = "\033[0m";
+#endif
 
 int logHeaderLength(const char* file, int line) {
     static std::stringstream ss;
@@ -98,7 +156,23 @@ int logHeaderLength(const char* file, int line) {
 }
 
 std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line) {
+#if SAC_DESKTOP && SAC_LINUX
+    pid_t tid;
+
+    tid = syscall(SYS_gettid);
+
+    stream
+        << tid << ' '
+        << ColorPrefix << color[type] << ColorSuffix << enum2Name(type) << ColorReset
+        << ' '
+        << std::fixed << std::setprecision(4)
+        << ColorPrefix << colorTs << ColorSuffix << ' ' << TimeUtil::GetTime() << ' ' << ColorReset
+        << ' '
+        << ColorPrefix << pickColorTag(file) << ColorSuffix << keepOnlyFilename(file) << ':' << std::setw(3) << line << ColorReset
+        << ' ';
+#else
 	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << ' ' << enum2Name(type) << ' ' << keepOnlyFilename(file) << ':' << line << " : ";
+#endif
 	return stream;
 }
 
