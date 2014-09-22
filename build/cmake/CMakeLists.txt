@@ -233,7 +233,7 @@ file(APPEND ${SCENE_REGISTRATION_FILE}
 ")
 
 file(APPEND ${SCENE_REGISTRATION_FILE}
-"inline void registerScenes(RecursiveRunnerGame * game, StateMachine<Scene::Enum> machine) {")
+"inline void registerScenes(${PROJECT_NAME}Game * game, StateMachine<Scene::Enum> & machine) {")
 
 foreach (SCENE ${SCENES})
     file(APPEND
