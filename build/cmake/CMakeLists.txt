@@ -46,7 +46,7 @@ if (target_in_list EQUAL -1)
 endif()
 
 message ("Build platform: ${varplatform}")
-add_definitions(-DSAC_${VARPLATFORM})
+add_definitions(-DSAC_${VARPLATFORM} -DPROJECT_NAME=${PROJECT_NAME})
 
 SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
