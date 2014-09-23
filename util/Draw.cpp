@@ -47,7 +47,7 @@ Entity Draw::renderingEntity(uint32_t groupID) {
         }
     }
     if (firstUnused == rendering.end()) {
-        t = theEntityManager.CreateEntity(HASH("__draw", 0x9aa5efa0));
+        t = theEntityManager.CreateEntity(HASH("__draw/r", 0x9aa5efa0));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Rendering);
         TRANSFORM(t)->z = 1;
@@ -70,7 +70,7 @@ Entity Draw::textEntity(uint32_t groupID) {
         }
     }
     if (firstUnused == text.end()) {
-        t = theEntityManager.CreateEntity(HASH("__draw", 0x9aa5efa0));
+        t = theEntityManager.CreateEntity(HASH("__draw/t", 0x9aa5efa0));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Text);
 
