@@ -541,7 +541,7 @@ void TextSystem::Delete(Entity e) {
 }
 
 static Entity createRenderingEntity() {
-    Entity e = theEntityManager.CreateEntity(HASH("__text_letter", 0x7b084faa));
+    Entity e = theEntityManager.CreateEntity(HASH("__text/letter", 0x562214d3));
     ADD_COMPONENT(e, Transformation);
     ADD_COMPONENT(e, Rendering);
     // ADD_COMPONENT(e, Anchor);
