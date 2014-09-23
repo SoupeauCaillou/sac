@@ -74,7 +74,10 @@ static void _unlock() {
 
 static std::string entityToName(Entity e) {
     std::stringstream s;
-    s << theEntityManager.entityName(e) << ' ' << (e & 0xf7ffffff);
+    const char* n = theEntityManager.entityName(e);
+    auto* group = strchr(n, '/');
+    if (group) n += group - n + 1;
+    s << n << ' ' << (e & 0xf7ffffff);
     return s.str();
 }
 #if 0
@@ -313,23 +316,50 @@ void LevelEditor::tick(float dt) {
         return;
     }
 
+    std::map<hash_t, char*> groupsName;
+    std::map<hash_t, std::vector<Entity>> groups;
+
     // CollapsingHeader
     for (unsigned i=0; i<entities.size(); i++) {
         Entity e = entities[i];
 
-        std::stringstream n;
-        n << entityToName(e);
+        const char* n = theEntityManager.entityName(e);
+        const char* group = strchr(n, '/');
+        if (group) {
+            hash_t h = Murmur::RuntimeHash(n, group - n);
+            groups[h].push_back(e);
+            if (groupsName.find(h) == groupsName.end()) {
+                char* g = strdup(n);
+                g[group - n] = '\0';
+                groupsName.insert(std::make_pair(h, g));
+            }
+        } else {
+            groups[0].push_back(e);
+        }
+    }
 
-        if (ImGui::Button(n.str().c_str())) {
-            bool keepOpen = true;
-            showEntityWindow[e] = true;
+    for (const auto& p: groups) {
+        if (p.first == 0 || ImGui::CollapsingHeader(groupsName[p.first])) {
+            const auto& v = p.second;
+            for (auto e: v) {
+                std::stringstream n;
+                n << entityToName(e);
+                if (ImGui::Button(n.str().c_str())) {
+                    bool keepOpen = true;
+                    showEntityWindow[e] = true;
+                }
+
+                if (ImGui::IsHovered()) {
+                    auto* rc = theRenderingSystem.Get(e, false);
+                    if (rc) rc->highLight = true;
+                    auto* tc = theTextSystem.Get(e, false);
+                    if (tc) tc->highLight = true;
+                }
+            }
         }
 
-        if (ImGui::IsHovered()) {
-            auto* rc = theRenderingSystem.Get(e, false);
-            if (rc) rc->highLight = true;
-            auto* tc = theTextSystem.Get(e, false);
-            if (tc) tc->highLight = true;
+        if (p.first != 0) {
+            free (groupsName[p.first]);
         }
 
     }
