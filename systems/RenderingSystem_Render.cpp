@@ -688,9 +688,7 @@ void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int c
 }
 
 void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count) {
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
+    GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL))
     theRenderingSystem.glState.flags.update(OpaqueFlagSet);
 
     GL_OPERATION(glEnable(GL_BLEND))

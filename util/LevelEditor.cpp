@@ -32,7 +32,10 @@
 #include <systems/TextSystem.h>
 #include "base/PlacementHelper.h"
 #include "base/Game.h"
+#include "util/Draw.h"
+#include "api/KeyboardInputHandlerAPI.h"
 
+#include <SDL/SDL_keysym.h>
 #include <mutex>
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>
@@ -56,6 +59,10 @@ int LevelEditor::DebugAreaHeight =
     0;
 #endif
 #endif
+
+static bool gridVisible = false;
+static void showGrid();
+static void hideGrid();
 
 glm::vec2 LevelEditor::GameViewPosition() {
     return glm::vec2(
@@ -190,8 +197,9 @@ static void DumpSystemEntities(void *clientData) {
     LOGW("##########################################################");
 }
 
-void LevelEditor::init() {
-    ImGui::SetNewWindowDefaultPos(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, 0));
+void LevelEditor::init(KeyboardInputHandlerAPI *k) {
+    kb = k;
+
 }
 
 static std::string displayGroup(Entity e) {
@@ -321,30 +329,30 @@ void LevelEditor::tick(float dt) {
     if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
         Tool::Enum newTool = Tool::None;
         if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Select (B)")) {
+        if (ImGui::Button("Select (B)") || kb->isKeyReleased(Key::ByName(SDLK_b))) {
             newTool = Tool::Select;
         }
         if (tool == Tool::Select) ImGui::PopStyleColor();
 
         if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Move (G)")) {
+        if (ImGui::Button("Move (G)") || kb->isKeyReleased(Key::ByName(SDLK_g))) {
             newTool = Tool::Move;
         }
         if (tool == Tool::Move) ImGui::PopStyleColor();
 
         if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Rotate (R)")) {
+        if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(Key::ByName(SDLK_r))) {
             newTool = Tool::Rotate;
         }
         if (tool == Tool::Rotate) ImGui::PopStyleColor();
 
         if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Scale (S)")) {
+        if (ImGui::Button("Scale (S)") || kb->isKeyReleased(Key::ByName(SDLK_s))) {
             newTool = Tool::Scale;
         }
         if (tool == Tool::Scale) ImGui::PopStyleColor();
 
-        if (newTool == tool) {
+        if ((newTool == tool && newTool != Tool::None) || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
             tool = Tool::None;
         } else if (newTool != Tool::None) {
             tool = newTool;
@@ -372,6 +380,29 @@ void LevelEditor::tick(float dt) {
                 if (ImGui::Button("Pause (F2)")) game->gameType = GameType::LevelEditor;
                 if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
         }
+    }
+
+    /* Rendering debug tools */
+    if (ImGui::CollapsingHeader("Rendering", NULL, true, true)) {
+        if (gridVisible) {
+            if (ImGui::Button("Hide Grid")) {
+                hideGrid();
+                gridVisible = false;
+            }
+        } else {
+            if (ImGui::Button("Show Grid")) {
+                showGrid();
+                gridVisible = true;
+            }
+        }
+
+        ImGui::Checkbox("Wireframe", &theRenderingSystem.wireframe);
+        ImGui::Checkbox("Mark opaque", &theRenderingSystem.highLight.opaque);
+        ImGui::Checkbox("Mark alpha-blended", &theRenderingSystem.highLight.nonOpaque);
+        ImGui::Checkbox("Mark runtime opaque", &theRenderingSystem.highLight.runtimeOpaque);
+        ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
+
+        //TwAddVarCB(bar, "Show grid", TW_TYPE_BOOLCPP, setShowGridCallback, getShowGridCallback, 0, 0 );
     }
 
     imguiInputFilter();
@@ -569,6 +600,30 @@ void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm:
     }
 #endif
 #endif
+}
+
+static void showGrid() {
+    glm::vec2 topLeft = glm::vec2(-3 * theRenderingSystem.screenW, 3 * theRenderingSystem.screenH);
+    topLeft.x = floor(topLeft.x); topLeft.y = ceil(topLeft.y);
+    for (int i=0; i<=ceil(theRenderingSystem.screenW * 6); i++) {
+        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.2));
+
+        /*for (int j=1; j<=4; j++) {
+            Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
+        }*/
+    }
+
+    for (int i=0; i<=ceil(theRenderingSystem.screenH * 6); i++) {
+        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.2));
+
+        /*for (int j=1; j<=4; j++) {
+            Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
+        }*/
+    }
+}
+
+static void hideGrid() {
+    Draw::Clear(HASH("__grid", 0xc37ceaec));
 }
 
 #if 1

@@ -417,9 +417,6 @@ void Game::eventsHandler() {
             }
         }
     }
-    if (wantsAPI(ContextAPI::KeyboardInputHandler)) {
-        gameThreadContext->keyboardInputHandlerAPI->update();
-    }
 #endif
 }
 
@@ -547,7 +544,7 @@ void Game::sacInit(int windowW, int windowH) {
 #endif
 
 #if SAC_INGAME_EDITORS
-    levelEditor->init();
+    levelEditor->init(gameThreadContext->keyboardInputHandlerAPI);
 #endif
 }
 
@@ -588,6 +585,10 @@ void Game::step() {
     while (accumulator >= targetDT)
     {
         theTouchInputManager.Update();
+
+        if (gameThreadContext->keyboardInputHandlerAPI) {
+            gameThreadContext->keyboardInputHandlerAPI->update();
+        }
 
     #if !SAC_MOBILE
         // theJoystickManager.Update();

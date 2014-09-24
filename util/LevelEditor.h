@@ -25,12 +25,13 @@
 #include <glm/glm.hpp>
 
 class Game;
+class KeyboardInputHandlerAPI;
 
 class LevelEditor {
     public:
         LevelEditor(Game* game);
         ~LevelEditor();
-        void init();
+        void init(KeyboardInputHandlerAPI* kb);
         void tick(float dt);
 
         static void lock();
@@ -39,6 +40,7 @@ class LevelEditor {
         struct LevelEditorDatas;
         LevelEditorDatas* datas;
         Game* game;
+        KeyboardInputHandlerAPI* kb;
 
 #if SAC_INGAME_EDITORS
     public:
