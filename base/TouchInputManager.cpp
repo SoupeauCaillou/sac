@@ -96,6 +96,8 @@ void TouchInputManager::Update() {
         if (touching[i]) {
             // convert window coordinates -> world coords
             lastTouchedPositionScreen[i] = windowToScreen(coords);
+            if (i == 0)
+                LOGI_EVERY_N(30, __(lastTouchedPositionScreen[i]));
             lastTouchedPosition[i] = windowToWorld(coords, tc);
 
             if (!wasTouching[i]) {
@@ -185,9 +187,10 @@ glm::vec2 TouchInputManager::windowToScreen(const glm::vec2& windowCoords) const
 glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
     glm::vec2 camLocal;
 #if SAC_INGAME_EDITORS
-    camLocal.x = ((windowCoords.x - LevelEditor::DebugAreaWidth /2) / theRenderingSystem.windowW) * cameraTrans->size.x
+    glm::vec2 c (windowCoords - LevelEditor::GameViewPosition());
+    camLocal.x = (c.x / theRenderingSystem.windowW) * cameraTrans->size.x
         - cameraTrans->size.x * 0.5f;
-    camLocal.y = ((theRenderingSystem.windowH - (windowCoords.y - LevelEditor::DebugAreaHeight / 2)) / theRenderingSystem.windowH) * cameraTrans->size.y
+    camLocal.y = ((theRenderingSystem.windowH - c.y) / theRenderingSystem.windowH) * cameraTrans->size.y
         - cameraTrans->size.y * 0.5f;
 #else
     camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
