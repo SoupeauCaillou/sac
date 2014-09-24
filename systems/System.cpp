@@ -248,6 +248,33 @@ static void entityGetCB(void* valueOut, void* clientData);
 static void hashGetCB(void* valueOut, void* clientData);
 #endif
 
+static char** textures_list = NULL;
+
+static int updateTextureList(hash_t h, int* count) {
+    int current = 0;
+    const auto& ref = theRenderingSystem.textureLibrary.getAllIndexes();
+    // compute size
+    *count = ref.size();
+    textures_list = (char**) realloc(textures_list, (*count) * sizeof(char*));
+
+    int i = 0;
+    for (auto p: ref) {
+        const char* n = INV_HASH(p.ref);
+        // exclude typo texture
+        if (strstr(n, "_typo") != NULL) {
+            (*count) --;
+            continue;
+        }
+
+        char* ptr = textures_list[i] = (char*) realloc(textures_list[i], strlen(n) + 1);
+        strcpy(ptr, n);
+        if (h == p.ref)
+            current = i;
+        i++;
+    }
+    return current;
+}
+
 bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
@@ -305,7 +332,18 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
             case PropertyType::Entity:
                 ImGui::LabelText(vname.c_str(), theEntityManager.entityName(*(Entity*)(comp + prop->offset)));
                 break;
-            case PropertyType::Texture:
+            case PropertyType::Texture: {
+                hash_t* h = (hash_t*)(comp + prop->offset);
+                /* list existing texture in a combobox */
+                int count = 0;
+                int current = updateTextureList(*h, &count);
+                if (ImGui::Combo(vname.c_str(), &current, const_cast<const char**> (textures_list), count)) {
+                    *h = Murmur::RuntimeHash(textures_list[current]);
+                }
+
+                // ImGui::LabelText(vname.c_str(), (h != -1) ? (INV_HASH(h)) : "-");
+                break;
+            }
             case PropertyType::Hash: {
                 hash_t h = *(hash_t*)(comp + prop->offset);
                 ImGui::LabelText(vname.c_str(), (h != -1) ? (INV_HASH(h)) : "-");

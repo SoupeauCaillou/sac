@@ -275,6 +275,9 @@ class NamedAssetLibrary : public ResourceHotReload {
             else
                 return it->second;
         }
+
+        const std::map<TRef, std::string>& getAllNames() const { return ref2name; }
+        const std::vector<RefIndex>& getAllIndexes() const { return ref2indexv; }
         #endif
 
     protected:
