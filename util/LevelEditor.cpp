@@ -135,12 +135,7 @@ struct LevelEditor::LevelEditorDatas {
     std::set<std::string> logControlFiles;
 #endif
 
-    void changeMode(EditorMode::Enum newMode);
-    void buildGallery();
-    void destroyGallery();
-
     void updateModeSelection(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
-    void updateModeGallery(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
 };
 
 std::list<Entity> selected;
@@ -401,80 +396,28 @@ void LevelEditor::tick(float dt) {
         ImGui::Checkbox("Mark alpha-blended", &theRenderingSystem.highLight.nonOpaque);
         ImGui::Checkbox("Mark runtime opaque", &theRenderingSystem.highLight.runtimeOpaque);
         ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
+    }
 
-        //TwAddVarCB(bar, "Show grid", TW_TYPE_BOOLCPP, setShowGridCallback, getShowGridCallback, 0, 0 );
+    /* Camera control */
+    if (ImGui::CollapsingHeader("Cameras", NULL, true, true)) {
+        static int currentCamera = 0;
+
+        const auto& cameras = theCameraSystem.RetrieveAllEntityWithComponent();
+        /* assume 1 camera. TODO: add Combo to select active camera */
+        static float zoom = -1.0f;
+        static glm::vec2 originalSize = glm::vec2(0.0f);
+        if (zoom < 0) {
+            zoom = 1.0f;
+            originalSize = TRANSFORM(cameras[0])->size;
+        }
+        if (ImGui::SliderFloat("Zoom", &zoom, 0.1, 10, "%.1f")) {
+            TRANSFORM(cameras[0])->size = originalSize / zoom;
+        }
+        ImGui::SliderFloat2("Position", &TRANSFORM(cameras[0])->position.x, -30, 30, "%.1f");
     }
 
     imguiInputFilter();
     ImGui::End();
-}
-
-void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {
-    if (newMode == mode)
-        return;
-
-    switch (newMode) {
-        case EditorMode::Gallery:
-            LOGI("GalleryMode");
-            buildGallery();
-            break;
-        default:
-            LOGI("SelectionMode");
-            destroyGallery();
-    }
-    mode = newMode;
-}
-
-void LevelEditor::LevelEditorDatas::buildGallery() {
-#if 0
-    int textureCount = theRenderingSystem.assetTextures.size();
-    float width = theRenderingSystem.cameras[activeCameraIndex].worldSize.X;
-    const int elementPerRow = 7;
-    float spacing = 0;
-    float texSize = width / (elementPerRow + (elementPerRow -1) * spacing);
-    glm::vec2 gallerySize = Vector2(width, (textureCount / elementPerRow) * (1.0f * texSize));;
-
-    gallery = theEntityManager.CreateEntity();
-    ADD_COMPONENT(gallery, Transformation);
-    TRANSFORM(gallery)->position = theRenderingSystem.cameras[activeCameraIndex].worldPosition;
-    TRANSFORM(gallery)->z = 0.99;
-    TRANSFORM(gallery)->size = gallerySize;
-    ADD_COMPONENT(gallery, Rendering);
-    RENDERING(gallery)->show = true;
-    RENDERING(gallery)->color = Color(0, 0, 0, 0.8);
-
-    int count = 0;
-    for (std::map<std::string, TextureRef>::iterator it=theRenderingSystem.assetTextures.begin();
-        it!=theRenderingSystem.assetTextures.end();
-        ++it, count++) {
-        int column = count % elementPerRow, row = count / elementPerRow;
-        Entity e = theEntityManager.CreateEntity();
-        ADD_COMPONENT(e, Transformation);
-        TRANSFORM(e)->z = 0.001;
-        TRANSFORM(e)->parent = gallery;
-        const glm::vec2& te = theRenderingSystem.getTextureSize(it->first);
-        if (te.X >= te.Y)
-            TRANSFORM(e)->size = glm::vec2(texSize, texSize * te.Y / te.X);
-        else
-            TRANSFORM(e)->size = glm::vec2(texSize * te.X / te.Y, texSize);
-        TRANSFORM(e)->position = glm::vec2(column * texSize * 1.0f, row * texSize * 1.0f) - gallerySize * 0.5f + Vector2(texSize * 0.5f);
-        ADD_COMPONENT(e, Rendering);
-        RENDERING(e)->show = true;
-        RENDERING(e)->texture = it->second;
-        RENDERING(e)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
-        // RENDERING(e)->opaqueType = RenderingComponent::FULL_OPAQUE;
-        galleryItems.push_back(e);
-    }
-    gallerySelected = galleryItems.front();
-#endif
-}
-
-void LevelEditor::LevelEditorDatas::destroyGallery() {
-    for(unsigned i=0; i<galleryItems.size(); i++) {
-        theEntityManager.DeleteEntity(galleryItems[i]);
-    }
-    galleryItems.clear();
-    theEntityManager.DeleteEntity(gallery);
 }
 
 void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm::vec2& /*mouseWorldPos*/, int /*wheelDiff*/) {
@@ -606,7 +549,11 @@ static void showGrid() {
     glm::vec2 topLeft = glm::vec2(-3 * theRenderingSystem.screenW, 3 * theRenderingSystem.screenH);
     topLeft.x = floor(topLeft.x); topLeft.y = ceil(topLeft.y);
     for (int i=0; i<=ceil(theRenderingSystem.screenW * 6); i++) {
-        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.2));
+        Color c(0.2, 0.2, 0.2, 0.2);
+        if (i == ceil(theRenderingSystem.screenW * 6) / 2) {
+            c.g = c.b = 0.1; c.a = 0.5;
+        }
+        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), c);
 
         /*for (int j=1; j<=4; j++) {
             Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
@@ -614,7 +561,11 @@ static void showGrid() {
     }
 
     for (int i=0; i<=ceil(theRenderingSystem.screenH * 6); i++) {
-        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.2));
+        Color c(0.2, 0.2, 0.2, 0.2);
+        if (i == ceil(theRenderingSystem.screenH * 6) / 2) {
+            c.g = c.b = 0.1; c.a = 0.5;
+        }
+        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), c);
 
         /*for (int j=1; j<=4; j++) {
             Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
@@ -626,41 +577,4 @@ static void hideGrid() {
     Draw::Clear(HASH("__grid", 0xc37ceaec));
 }
 
-#if 1
-void LevelEditor::LevelEditorDatas::updateModeGallery(float, const glm::vec2&, int) {
-#else
-void LevelEditor::LevelEditorDatas::updateModeGallery(float dt, const glm::vec2& mouseWorldPos, int wheelDiff) {
-#endif
-#if 0
-    if (glfwGetKey(GLFW_KEY_SPACE)) {
-        spaceWasPressed = true;
-    } else if (spaceWasPressed) {
-        spaceWasPressed = false;
-        changeMode(EditorMode::Selection);
-    }
-
-    if (wheelDiff) {
-        float speed = wheelDiff * theRenderingSystem.cameras[activeCameraIndex].worldSize.y * ( glfwGetKey( GLFW_KEY_LSHIFT ) ? 2 : 0.8);
-        TRANSFORM(gallery)->position.y -= speed * dt;
-    }
-
-    for (unsigned i=0; i<galleryItems.size(); i++) {
-        if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(galleryItems[i])->worldPosition, TRANSFORM(galleryItems[i])->size)) {
-            if (galleryItems[i] == gallerySelected)
-                break;
-            RENDERING(gallerySelected)->effectRef = theRenderingSystem.loadEffectFile("over.fs");
-            gallerySelected = galleryItems[i];
-            RENDERING(gallerySelected)->effectRef = theRenderingSystem.loadEffectFile("selected.fs");
-            break;
-        }
-    }
-
-    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-        if (selected) {
-            RENDERING(selected)->texture = RENDERING(gallerySelected)->texture;
-        }
-        changeMode(EditorMode::Selection);
-    }
-#endif
-}
 #endif
