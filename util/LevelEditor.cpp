@@ -155,13 +155,15 @@ static void resetTransformations() {
 }
 
 static void createTweakBarForEntity(Entity e) {
-    auto it = std::find(selected.begin(), selected.end(), e);
-    bool s = (it != selected.end());
-    ImGui::Checkbox("Select", &s);
-    if (s && it == selected.end()) {
-        selected.push_back(e);
-    } else if (!s && it != selected.end()) {
-        selected.erase(it);
+    if (theTransformationSystem.Get(e, false)) {
+        auto it = std::find(selected.begin(), selected.end(), e);
+        bool s = (it != selected.end());
+        ImGui::Checkbox("Select", &s);
+        if (s && it == selected.end()) {
+            selected.push_back(e);
+        } else if (!s && it != selected.end()) {
+            selected.erase(it);
+        }
     }
 
     std::vector<hash_t> systems = ComponentSystem::registeredSystemIds();
@@ -360,6 +362,8 @@ void LevelEditor::tick(float dt) {
             // confirm action
             tool = Tool::None;
             selectedInitialTransformation.clear();
+
+            theTouchInputManager.resetState();
         } else if (newTool != Tool::None) {
             tool = newTool;
             initialCursorPosition = theTouchInputManager.getOverLastPosition();
@@ -396,6 +400,40 @@ void LevelEditor::tick(float dt) {
 
                 TRANSFORM(selected[i])->size =
                     selectedInitialTransformation[i].size * scale;
+            }
+        }
+    }
+
+    {
+        float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.0f;
+
+        const float thickness = 0.05;
+        const  glm::vec2 corners[] = {
+            glm::vec2(-0.5,  0.5), // top-left
+            glm::vec2( 0.5,  0.5), // top-right
+            glm::vec2(-0.5, -0.5), // bottom-left
+            glm::vec2( 0.5, -0.5)  // bottom-right
+        };
+
+        Draw::Clear(HASH("__selection", 0xc2c4050f));
+        for (auto e: selected) {
+            // draw 4 corners
+            Color color(c,c,c,1.0f);
+            const auto* tc = TRANSFORM(e);
+
+            float length = glm::max(0.1, glm::min(tc->size.x, tc->size.y) * 0.2);
+
+            const glm::vec2 directions[] = {
+                glm::vec2(length, thickness), glm::vec2(-thickness, -length),
+                glm::vec2(-length, thickness), glm::vec2(thickness, -length),
+                glm::vec2(length, -thickness), glm::vec2(-thickness, length),
+                glm::vec2(-length, -thickness), glm::vec2(thickness, length),
+            };
+            for (int i=0; i<4; i++) {
+                const glm::vec2 corner(tc->position + glm::rotate(tc->size * corners[i], tc->rotation));
+                for (int j=0; j<2; j++) {
+                    Draw::Vec2(HASH("__selection", 0xc2c4050f), corner, glm::rotate(directions[2 * i + j], tc->rotation), color);
+                }
             }
         }
     }
