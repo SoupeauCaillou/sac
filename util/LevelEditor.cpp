@@ -383,10 +383,20 @@ void LevelEditor::tick(float dt) {
                     initialCursorPosition - TRANSFORM(selected[i])->position,
                     mouseWorldPos - TRANSFORM(selected[i])->position
                 };
-                TRANSFORM(selected[i])->rotation = //glm::atan(diff[1].y, diff[1].x);
+                TRANSFORM(selected[i])->rotation =
                     selectedInitialTransformation[i].rotation + glm::atan(diff[1].y, diff[1].x) - glm::atan(diff[0].y, diff[0].x);
             }
             break;
+        }
+        case Tool::Scale : {
+            for (unsigned i=0; i<selected.size(); i++) {
+                float scale =
+                    glm::distance(mouseWorldPos, TRANSFORM(selected[i])->position) /
+                    glm::max(0.01f, glm::distance(initialCursorPosition, TRANSFORM(selected[i])->position));
+
+                TRANSFORM(selected[i])->size =
+                    selectedInitialTransformation[i].size * scale;
+            }
         }
     }
 
