@@ -355,7 +355,7 @@ void Game::eventsHandler() {
             handled = gameThreadContext->stringInputAPI->eventSDL(&event);
         }
         //or try keyboardAPI
-        if (!handled && wantsAPI(ContextAPI::KeyboardInputHandler)) {
+        if (!handled && gameThreadContext->keyboardInputHandlerAPI) {
             handled = gameThreadContext->keyboardInputHandlerAPI->eventSDL(&event);
         }
 

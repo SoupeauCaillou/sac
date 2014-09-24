@@ -341,7 +341,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
     if (game->wantsAPI(ContextAPI::InAppPurchase))
         ctx->inAppPurchaseAPI = new InAppPurchaseAPIDebugImpl();
+#if !SAC_INGAME_EDITORS
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
+#endif
         ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPIGLFWImpl();
     if (game->wantsAPI(ContextAPI::Localize))
         ctx->localizeAPI = new LocalizeAPILinuxImpl();
