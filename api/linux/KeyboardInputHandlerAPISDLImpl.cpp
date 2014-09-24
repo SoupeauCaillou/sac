@@ -33,6 +33,7 @@
 #include <SDL.h>
 
 void KeyboardInputHandlerAPIGLFWImpl::update() {
+    std::unique_lock<std::mutex> lock(mutex);
     //each dt, if the key is pressed, call the function
     for (auto it = keyState.begin(); it != keyState.end(); ) {
         std::map<Key, std::function<void()> >* source = 0;
@@ -55,7 +56,9 @@ void KeyboardInputHandlerAPIGLFWImpl::update() {
                 break;
             case KeyState::Idle:
                 // remove it and advance
-                keyState.erase(it++);
+                auto jt = it;
+                ++it;
+                keyState.erase(jt);
                 break;
         }
 
@@ -70,20 +73,25 @@ void KeyboardInputHandlerAPIGLFWImpl::update() {
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(Key value, std::function<void()> f) {
+    std::unique_lock<std::mutex> lock(mutex);
     keyPressed2callback[value] = f;
 }
 
 void KeyboardInputHandlerAPIGLFWImpl::registerToKeyRelease(Key value, std::function<void()> f) {
+    std::unique_lock<std::mutex> lock(mutex);
     keyReleased2callback[value] = f;
 }
 
 
 bool KeyboardInputHandlerAPIGLFWImpl::queryKeyState(Key key, KeyState::Enum state) {
+    std::unique_lock<std::mutex> lock(mutex);
     auto it = keyState.find(key);
-    return (it != keyState.end() && it->second == state);
+    bool result = (it != keyState.end() && it->second == state);
+    return result;
 }
 
 int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
+    std::unique_lock<std::mutex> lock(mutex);
     auto event = (SDL_Event*)inEvent;
     if (!event || (event->type != SDL_KEYUP && event->type != SDL_KEYDOWN))
         return 0;

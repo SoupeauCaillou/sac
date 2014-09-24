@@ -26,6 +26,7 @@
 
 #include <string>
 #include <map>
+#include <mutex>
 
 namespace KeyState {
 	enum Enum {
@@ -53,6 +54,7 @@ class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
         bool queryKeyState(Key key, KeyState::Enum state);
 
     private:
+        std::mutex mutex;
         std::map<Key, KeyState::Enum> keyState;
         std::map<Key, std::function<void()> > keyPressed2callback;
         std::map<Key, std::function<void()> > keyReleased2callback;

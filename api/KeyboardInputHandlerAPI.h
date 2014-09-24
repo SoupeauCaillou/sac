@@ -101,19 +101,24 @@ struct Key {
     };
 
     inline static Key ByName(int sym) {
-        Key k; 
+        Key k;
         k.type = byName;
         k.keysym = sym;
         return k;
     }
     inline static Key ByPosition(int pos) {
-        Key k; 
+        Key k;
         k.type = byPosition;
         k.position = pos;
         return k;
     }
 
-    bool operator< (const Key & rhs) const { return this->position < rhs.position; }
+    bool operator< (const Key & rhs) const {
+        if (type < rhs.type)
+            return true;
+        else
+            return this->position < rhs.position;
+    }
 };
 
 class KeyboardInputHandlerAPI {
