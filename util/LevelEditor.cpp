@@ -138,9 +138,23 @@ struct LevelEditor::LevelEditorDatas {
     void updateModeSelection(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
 };
 
-std::list<Entity> selected;
+std::vector<Entity> selected;
+std::vector<TransformationComponent> selectedInitialTransformation;
 
-static void createTweakBarForEntity(Entity e, const std::string& barName) {
+static void rememberInitialTransformation() {
+    selectedInitialTransformation.clear();
+    for (unsigned i=0; i<selected.size(); i++) {
+        selectedInitialTransformation.push_back(*TRANSFORM(selected[i]));
+    }
+}
+
+static void resetTransformations() {
+    for (unsigned i=0; i<selectedInitialTransformation.size(); i++) {
+        *TRANSFORM(selected[i]) = selectedInitialTransformation[i];
+    }
+}
+
+static void createTweakBarForEntity(Entity e) {
     auto it = std::find(selected.begin(), selected.end(), e);
     bool s = (it != selected.end());
     ImGui::Checkbox("Select", &s);
@@ -211,8 +225,6 @@ static std::string displayGroup(Entity e) {
     return name;
 }
 
-std::map<Entity, bool> showEntityWindow;
-
 static void imguiInputFilter() {
     ImVec2 pos, end;
     pos = end = ImGui::GetWindowPos();
@@ -237,6 +249,9 @@ namespace Tool {
     };
 }
 Tool::Enum tool = Tool::None;
+
+static glm::vec2 initialCursorPosition;
+
 
 void LevelEditor::tick(float dt) {
     // build entity-list Window
@@ -277,9 +292,7 @@ void LevelEditor::tick(float dt) {
                 bool highLight = false;
                 if (ImGui::TreeNode(n.str().c_str())) {
                     highLight = ImGui::IsHovered();
-                    bool keepOpen = true;
-                    showEntityWindow[e] = true;
-                    createTweakBarForEntity(e,"");
+                    createTweakBarForEntity(e);
                     ImGui::TreePop();
                 } else {
                     highLight = ImGui::IsHovered();
@@ -301,18 +314,6 @@ void LevelEditor::tick(float dt) {
 
     }
 
-/*
-    for (auto& p: showEntityWindow) {
-        if (p.second) {
-            Entity e = p.first;
-            ImGui::BeginChild(entityToName(e).c_str());//, &p.second);
-
-            createTweakBarForEntity(e, "");
-
-            ImGui::EndChild();
-        }
-    }
-*/
     imguiInputFilter();
     ImGui::End();
 
@@ -331,26 +332,61 @@ void LevelEditor::tick(float dt) {
 
         if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
         if (ImGui::Button("Move (G)") || kb->isKeyReleased(Key::ByName(SDLK_g))) {
-            newTool = Tool::Move;
+            if (!selected.empty())
+                newTool = Tool::Move;
         }
         if (tool == Tool::Move) ImGui::PopStyleColor();
 
         if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
         if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(Key::ByName(SDLK_r))) {
-            newTool = Tool::Rotate;
+            if (!selected.empty())
+                newTool = Tool::Rotate;
         }
         if (tool == Tool::Rotate) ImGui::PopStyleColor();
 
         if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
         if (ImGui::Button("Scale (S)") || kb->isKeyReleased(Key::ByName(SDLK_s))) {
-            newTool = Tool::Scale;
+            if (!selected.empty())
+                newTool = Tool::Scale;
         }
         if (tool == Tool::Scale) ImGui::PopStyleColor();
 
-        if ((newTool == tool && newTool != Tool::None) || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
+        if ((newTool == tool && newTool != Tool::None)
+            || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
+            // cancel action
             tool = Tool::None;
+            resetTransformations();
+        } else if (theTouchInputManager.hasClicked(0)) {
+            // confirm action
+            tool = Tool::None;
+            selectedInitialTransformation.clear();
         } else if (newTool != Tool::None) {
             tool = newTool;
+            initialCursorPosition = theTouchInputManager.getOverLastPosition();
+            resetTransformations();
+            rememberInitialTransformation();
+        }
+    }
+
+    const glm::vec2& mouseWorldPos = theTouchInputManager.getOverLastPosition();
+    switch (tool) {
+        case Tool::Move : {
+            for (unsigned i=0; i<selected.size(); i++) {
+                TRANSFORM(selected[i])->position =
+                    selectedInitialTransformation[i].position + mouseWorldPos - initialCursorPosition;
+            }
+            break;
+        }
+        case Tool::Rotate : {
+            for (unsigned i=0; i<selected.size(); i++) {
+                glm::vec2 diff[2] = {
+                    initialCursorPosition - TRANSFORM(selected[i])->position,
+                    mouseWorldPos - TRANSFORM(selected[i])->position
+                };
+                TRANSFORM(selected[i])->rotation = //glm::atan(diff[1].y, diff[1].x);
+                    selectedInitialTransformation[i].rotation + glm::atan(diff[1].y, diff[1].x) - glm::atan(diff[0].y, diff[0].x);
+            }
+            break;
         }
     }
 
