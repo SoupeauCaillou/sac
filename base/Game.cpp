@@ -599,7 +599,9 @@ void Game::step() {
         LevelEditor::lock();
 
         ImGuiIO& io = ImGui::GetIO();
-        io.MouseWheel = 0;
+        #if SAC_DESKTOP
+        io.MouseWheel = theTouchInputManager.getWheel();
+        #endif
         io.DeltaTime = targetDT;
 
         glm::vec2 p;

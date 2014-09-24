@@ -96,8 +96,6 @@ void TouchInputManager::Update() {
         if (touching[i]) {
             // convert window coordinates -> world coords
             lastTouchedPositionScreen[i] = windowToScreen(coords);
-            if (i == 0)
-                LOGI_EVERY_N(30, __(lastTouchedPositionScreen[i]));
             lastTouchedPosition[i] = windowToWorld(coords, tc);
 
             if (!wasTouching[i]) {
