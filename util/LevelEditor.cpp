@@ -136,7 +136,18 @@ struct LevelEditor::LevelEditorDatas {
     void updateModeGallery(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
 };
 
+std::list<Entity> selected;
+
 static void createTweakBarForEntity(Entity e, const std::string& barName) {
+    auto it = std::find(selected.begin(), selected.end(), e);
+    bool s = (it != selected.end());
+    ImGui::Checkbox("Select", &s);
+    if (s && it == selected.end()) {
+        selected.push_back(e);
+    } else if (!s && it != selected.end()) {
+        selected.erase(it);
+    }
+
     std::vector<hash_t> systems = ComponentSystem::registeredSystemIds();
     for (unsigned i=0; i<systems.size(); i++) {
         ComponentSystem* system = ComponentSystem::GetById(systems[i]);
@@ -215,13 +226,14 @@ static void imguiInputFilter() {
 
 namespace Tool {
     enum Enum {
+        None,
         Select,
         Move,
         Rotate,
         Scale
     };
 }
-Tool::Enum tool = Tool::Select;
+Tool::Enum tool = Tool::None;
 
 void LevelEditor::tick(float dt) {
     // build entity-list Window
@@ -306,9 +318,8 @@ void LevelEditor::tick(float dt) {
     ImGui::SetWindowPos(ImVec2(0, 0));
 
     /* Entity manipulation tools */
-    if (ImGui::CollapsingHeader("Entity tools", NULL, true, true)) {
-        Tool::Enum newTool = tool;
-
+    if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
+        Tool::Enum newTool = Tool::None;
         if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
         if (ImGui::Button("Select (B)")) {
             newTool = Tool::Select;
@@ -333,7 +344,11 @@ void LevelEditor::tick(float dt) {
         }
         if (tool == Tool::Scale) ImGui::PopStyleColor();
 
-        tool = newTool;
+        if (newTool == tool) {
+            tool = Tool::None;
+        } else if (newTool != Tool::None) {
+            tool = newTool;
+        }
     }
 
     /* Time manipulation tools */
