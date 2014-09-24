@@ -24,6 +24,7 @@
 
 #include "base/TouchInputManager.h"
 #include <glm/glm.hpp>
+#include <mutex>
 
 // Emulate touch screen with Mouse
 class MouseNativeTouchState: public NativeTouchState {
@@ -45,6 +46,7 @@ class MouseNativeTouchState: public NativeTouchState {
 
         bool _isMoving;
     private:
+        std::mutex mutex;
         //in order : left / right / middle
         bool isButtonDown[3];
         glm::vec2 lastPosition;

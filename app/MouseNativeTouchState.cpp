@@ -33,11 +33,13 @@ MouseNativeTouchState::MouseNativeTouchState() {
 }
 
 bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) {
+    std::unique_lock<std::mutex> lock(mutex);
     *windowCoords = lastPosition;
     return isButtonDown[index];
 }
 
 bool MouseNativeTouchState::isMoving (int index) {
+    std::unique_lock<std::mutex> lock(mutex);
     return _isMoving && isButtonDown[index];
 }
 
@@ -48,12 +50,11 @@ int MouseNativeTouchState::eventSDL(SDL_Event* event) {
 #else
 #include <SDL.h>
 int MouseNativeTouchState::eventSDL(void* inEvent) {
+    std::unique_lock<std::mutex> lock(mutex);
     auto event = (SDL_Event*)inEvent;
 
     bool isDownEvent;
 
-    lastPosition.x = event->motion.x;
-    lastPosition.y = event->motion.y;
 
     switch(event->type) {
         case SDL_ACTIVEEVENT:
@@ -61,6 +62,8 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
             isDownEvent = false;
             break;
         case SDL_MOUSEMOTION: {
+            lastPosition.x = event->motion.x;
+            lastPosition.y = event->motion.y;
             _isMoving = true;
             return 1;
         }
