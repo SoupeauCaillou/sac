@@ -163,7 +163,7 @@ Game::Game() {
     fpsStats.reset(0);
     lastUpdateTime = TimeUtil::GetTime();
 #if SAC_INGAME_EDITORS
-    levelEditor = new LevelEditor();
+    levelEditor = new LevelEditor(this);
 #endif
 }
 
@@ -627,8 +627,6 @@ void Game::step() {
         levelEditor->tick(targetDT);
         PROFILE("Game", "AntTweakBar", EndEvent);
 
-        ImGui::Begin("Time control");
-
         if (keystate[SDLK_F1])
             gameType = GameType::Default;
 
@@ -638,33 +636,16 @@ void Game::step() {
         if (keystate[SDLK_F3])
             gameType = GameType::SingleStep;
 
-
+        Draw::Update();
         switch (gameType) {
             case GameType::LevelEditor:
-                if (ImGui::Button("Play (F1)"))
-                    gameType = GameType::Default;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-                ImGui::Button("Pause (F2)");
-                ImGui::PopStyleColor();
-                if (ImGui::Button("Single-Step (F3)"))
-                    gameType = GameType::SingleStep;
                 break;
             case GameType::SingleStep:
                 LOGI("Single stepping the game (delta: " << targetDT << " ms)");
-                Draw::Update();
                 tick(targetDT);
                 gameType = GameType::LevelEditor;
                 break;
             default:
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-                ImGui::Button("Play (F1)");
-                ImGui::PopStyleColor();
-                if (ImGui::Button("Pause (F2)"))
-                    gameType = GameType::LevelEditor;
-                if (ImGui::Button("Single-Step (F3)"))
-                    gameType = GameType::SingleStep;
-
-                Draw::Update();
                 if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
                     speedFactor = glm::max(speedFactor - 1 * targetDT, 0.0f);
                 } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
@@ -679,7 +660,6 @@ void Game::step() {
 
                 tick(targetDT * speedFactor);
         }
-        ImGui::End();
 
         LevelEditor::unlock();
     #else

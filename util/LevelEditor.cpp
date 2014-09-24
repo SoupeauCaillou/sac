@@ -31,6 +31,7 @@
 #include <systems/CameraSystem.h>
 #include <systems/TextSystem.h>
 #include "base/PlacementHelper.h"
+#include "base/Game.h"
 
 #include <mutex>
 #include <set>
@@ -55,6 +56,12 @@ int LevelEditor::DebugAreaHeight =
     0;
 #endif
 #endif
+
+glm::vec2 LevelEditor::GameViewPosition() {
+    return glm::vec2(
+        DebugAreaWidth * 0.25,
+        DebugAreaHeight * 0.5);
+}
 
 namespace EditorMode {
     enum Enum {
@@ -127,9 +134,6 @@ struct LevelEditor::LevelEditorDatas {
 
     void updateModeSelection(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
     void updateModeGallery(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
-
-    void select(Entity e);
-    void deselect(Entity e);
 };
 
 static void createTweakBarForEntity(Entity e, const std::string& barName) {
@@ -138,43 +142,6 @@ static void createTweakBarForEntity(Entity e, const std::string& barName) {
         ComponentSystem* system = ComponentSystem::GetById(systems[i]);
         system->addEntityPropertiesToBar(e, 0);
     }
-}
-
-#if 0
-static void showTweakBarForEntity(Entity e) {
-    std::stringstream barName;
-
-    barName << entityToTwName(e);
-
-    TwBar* bar = TwGetBarByName(barName.str().c_str());
-    if (bar == 0) {
-        bar = createTweakBarForEntity(e, barName.str());
-        barName << " alpha=190 refresh=0,016";
-        TwDefine (barName.str().c_str());
-    } else {
-        barName << " visible=true iconified=false";
-        TwDefine(barName.str().c_str());
-    }
-    TwDefine(" GLOBAL iconpos=bottomright");
-}
-
-static void buttonCallback(void* e) {
-    uint64_t ptr = reinterpret_cast<uint64_t>(e);
-    showTweakBarForEntity((Entity)ptr);
-}
-TwBar* entityListBar, *debugConsoleBar, *logBar, *dumpEntities;
-#endif
-
-void LevelEditor::LevelEditorDatas::select(Entity e) {
-#if 0
-    _lock();
-    showTweakBarForEntity(e);
-    _unlock();
-#endif
-}
-
-void LevelEditor::LevelEditorDatas::deselect(Entity) {
-
 }
 
 
@@ -188,80 +155,18 @@ namespace EntityListMode {
 }
 EntityListMode::Enum listMode = EntityListMode::All;
 
-LevelEditor::LevelEditor() {
+LevelEditor::LevelEditor(Game* _game) {
     datas = new LevelEditorDatas();
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
     datas->selectionColorChangeSpeed = -0.5;
-
-#if 0
-    TwInit(TW_OPENGL, NULL);
-    TwDefine(" GLOBAL fontsize=3 "); // use large font
-
-    //to copy std string
-    TwCopyStdStringToClientFunc(CopyStdStringToClient);
-
-    DebugConsole::Instance().initTW();
-
-    entityListBar = TwNewBar("EntityList");
-    {
-        // add modes to entity list
-        TwEnumVal modes[] = {
-            {EntityListMode::All, "All"},
-            {EntityListMode::VisibleOnly, "Only Visible"},
-            {EntityListMode::UnderMouse, "Under Mouse"}
-        };
-        TwType type = TwDefineEnum("Mode", modes, sizeof(modes)/sizeof(TwEnumVal));
-        TwAddVarRW(entityListBar, "Mode", type, &listMode, "");
-        TwAddSeparator(entityListBar, "--- Entities ---", "");
-    }
-
-    dumpEntities = TwNewBar("DumpEntities");
-
-    TwDefine(" EntityList iconified=true ");
-    TwDefine(" DumpEntities iconified=true ");
-
-#if SAC_ENABLE_LOG
-    logBar = TwNewBar("Log_Control");
-    TwDefine(" Log_Control iconified=true ");
-    // add default choice for log control
-    TwEnumVal modes[] = {
-        {LogVerbosity::FATAL, "Fatal"},
-        {LogVerbosity::ERROR, "Error"},
-        {LogVerbosity::WARNING, "Warning"},
-        {LogVerbosity::INFO, "Info"},
-        {(int)LogVerbosity::INFO + 1, "Verbose1"},
-        {(int)LogVerbosity::INFO + 2, "Verbose2"},
-        {(int)LogVerbosity::INFO + 3, "Verbose3"}
-    };
-    TwType type = TwDefineEnum("Verbosity", modes, sizeof(modes)/sizeof(TwEnumVal));
-    TwAddVarRW(logBar, "Verbosity", type, &logLevel, "");
-    TwAddSeparator(logBar, "File control", "");
-#endif
-#endif
+    game = _game;
 
 }
 
 LevelEditor::~LevelEditor() {
     delete datas;
 }
-
-#if SAC_ENABLE_LOG
-#if 0
-static void TW_CALL LogControlSetCallback(const void *value, void *clientData) {
-    const bool* l = static_cast<const bool*>(value);
-    const char* s = static_cast<const char*>(clientData);
-    LOGI("Change verbosity for '" << s << "' -> '" << *l << "'");
-    verboseFilenameFilters[s] = *l;
-}
-
-static void TW_CALL LogControlGetCallback(void *value, void *clientData) {
-    bool* l = static_cast<bool*>(value);
-    const char* s = static_cast<const char*>(clientData);
-    *l = verboseFilenameFilters[s];
-}
-#endif
-#endif
 
 static void DumpSystemEntities(void *clientData) {
     ComponentSystem* s = ComponentSystem::GetById(*((hash_t*) clientData));
@@ -308,13 +213,22 @@ static void imguiInputFilter() {
     }
 }
 
+namespace Tool {
+    enum Enum {
+        Select,
+        Move,
+        Rotate,
+        Scale
+    };
+}
+Tool::Enum tool = Tool::Select;
+
 void LevelEditor::tick(float dt) {
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
-    if (!ImGui::Begin("Entity List")) {
-        ImGui::End();
-        return;
-    }
+    ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * 0.75, ImGui::GetIO().DisplaySize.y), -1.0f,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth * 0.75, 0));
 
     std::map<hash_t, char*> groupsName;
     std::map<hash_t, std::vector<Entity>> groups;
@@ -339,23 +253,31 @@ void LevelEditor::tick(float dt) {
     }
 
     for (const auto& p: groups) {
-        if (p.first == 0 || ImGui::CollapsingHeader(groupsName[p.first])) {
+        if (p.first == 0 || ImGui::TreeNode(groupsName[p.first])) {
             const auto& v = p.second;
             for (auto e: v) {
                 std::stringstream n;
                 n << entityToName(e);
-                if (ImGui::Button(n.str().c_str())) {
+
+                bool highLight = false;
+                if (ImGui::TreeNode(n.str().c_str())) {
+                    highLight = ImGui::IsHovered();
                     bool keepOpen = true;
                     showEntityWindow[e] = true;
+                    createTweakBarForEntity(e,"");
+                    ImGui::TreePop();
+                } else {
+                    highLight = ImGui::IsHovered();
                 }
 
-                if (ImGui::IsHovered()) {
+                if (highLight) {
                     auto* rc = theRenderingSystem.Get(e, false);
                     if (rc) rc->highLight = true;
                     auto* tc = theTextSystem.Get(e, false);
                     if (tc) tc->highLight = true;
                 }
             }
+            if (p.first) ImGui::TreePop();
         }
 
         if (p.first != 0) {
@@ -364,144 +286,81 @@ void LevelEditor::tick(float dt) {
 
     }
 
-    imguiInputFilter();
-    ImGui::End();
-
+/*
     for (auto& p: showEntityWindow) {
         if (p.second) {
             Entity e = p.first;
-            ImGui::Begin(entityToName(e).c_str(), &p.second);
+            ImGui::BeginChild(entityToName(e).c_str());//, &p.second);
 
             createTweakBarForEntity(e, "");
 
-            imguiInputFilter();
-            ImGui::End();
+            ImGui::EndChild();
+        }
+    }
+*/
+    imguiInputFilter();
+    ImGui::End();
+
+    ImGui::Begin("Editor tools", NULL, ImVec2(DebugAreaWidth * 0.25, ImGui::GetIO().DisplaySize.y), -1.0f,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(0, 0));
+
+    /* Entity manipulation tools */
+    if (ImGui::CollapsingHeader("Entity tools", NULL, true, true)) {
+        Tool::Enum newTool = tool;
+
+        if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+        if (ImGui::Button("Select (B)")) {
+            newTool = Tool::Select;
+        }
+        if (tool == Tool::Select) ImGui::PopStyleColor();
+
+        if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+        if (ImGui::Button("Move (G)")) {
+            newTool = Tool::Move;
+        }
+        if (tool == Tool::Move) ImGui::PopStyleColor();
+
+        if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+        if (ImGui::Button("Rotate (R)")) {
+            newTool = Tool::Rotate;
+        }
+        if (tool == Tool::Rotate) ImGui::PopStyleColor();
+
+        if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+        if (ImGui::Button("Scale (S)")) {
+            newTool = Tool::Scale;
+        }
+        if (tool == Tool::Scale) ImGui::PopStyleColor();
+
+        tool = newTool;
+    }
+
+    /* Time manipulation tools */
+    if (ImGui::CollapsingHeader("Time control", NULL, true, true)) {
+
+        switch (game->gameType) {
+            case GameType::LevelEditor:
+                if (ImGui::Button("Play (F1)")) game->gameType = GameType::Default;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::Button("Pause (F2)");
+                ImGui::PopStyleColor();
+                if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
+                break;
+            case GameType::SingleStep:
+                game->gameType = GameType::SingleStep;
+                break;
+            default:
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::Button("Play (F1)");
+                ImGui::PopStyleColor();
+                if (ImGui::Button("Pause (F2)")) game->gameType = GameType::LevelEditor;
+                if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
         }
     }
 
-    #if 0
-    // update entity list every sec
-    static float accum = 1;
-
-    int barVisible = 0;
-    TwGetParam(entityListBar, NULL, "visible", TW_PARAM_INT32, 1, &barVisible);
-    if (!barVisible)
-        return;
-
-    accum += dt;
-    if (accum > 1) {
-        lock();
-
-        std::vector<Entity> entities = theEntityManager.allEntities();
-        auto newEnd = entities.end();
-
-        // Filter based on type
-        switch (listMode) {
-            case EntityListMode::All:
-                break;
-            case EntityListMode::VisibleOnly: {
-                std::vector<TransformationComponent*> cameras;
-                cameras.resize(theCameraSystem.entityCount());
-                // get cameras
-                theCameraSystem.forEachECDo([&cameras] (Entity e, CameraComponent* cc) -> void {
-                    cameras[cc->id] = TRANSFORM(e);
-                });
-                // filter invisible entities
-                newEnd = std::remove_if(entities.begin(), newEnd, [this, &cameras] (Entity e) -> bool {
-                    const auto* rc = theRenderingSystem.Get(e, false);
-                    const auto* txtc = theTextSystem.Get(e, false);
-                    if (!rc && !txtc)
-                        return true;
-                    if ((rc && !rc->show) && (txtc && !txtc->show))
-                        return true;
-                    const auto* tc = theTransformationSystem.Get(e, false);
-                    if (!tc)
-                        return true;
-                    for (unsigned i=0; i<cameras.size(); i++) {
-                        if (rc) {
-                            if ((rc->cameraBitMask & (1 << i)) && IntersectionUtil::rectangleRectangle(TRANSFORM(e), cameras[i]))
-                                return false;
-                        }
-                        else {
-                            if ((txtc->cameraBitMask & (1 << i)) && IntersectionUtil::rectangleRectangle(TRANSFORM(e), cameras[i]))
-                                return false;
-                        }
-                    }
-                    return true;
-                });
-                break;
-            }
-            case EntityListMode::UnderMouse: {
-                LOGT_EVERY_N(10, "Under-mouse entity filtering");
-                break;
-            }
-
-        }
-        entities.resize(newEnd - entities.begin());
-        const auto existing = entities;
-
-        // Filter out entities already in bar
-        newEnd = std::remove_if(entities.begin(), newEnd, [this] (Entity e) -> bool {
-            return datas->barVar.find(e) != datas->barVar.end();
-        });
-        entities.resize(newEnd - entities.begin());
-
-        // Build entity groups
-        std::map<std::string, std::vector<Entity> > groups;
-        for (unsigned i=0; i<entities.size(); i++) {
-            groups[displayGroup(entities[i])].push_back(entities[i]);
-        }
-
-        // Add missing entities to bar
-        for (unsigned i=0; i<entities.size(); i++) {
-            Entity e = entities[i];
-
-            std::stringstream n;
-            n << entityToTwName(e);
-
-            std::string define = "";
-            if (groups[displayGroup(e)].size() > 1) {
-                define = "group='" + displayGroup(e) + "'";
-            }
-            uint64_t ptr = entities[i];
-            TwAddButton(entityListBar, n.str().c_str(), (TwButtonCallback)&buttonCallback, (void*)ptr, define.c_str());
-            bool added = datas->barVar.insert(std::make_pair(e, n.str())).second;
-            LOGF_IF(!added, "Added is false: " << e << '/' << n.str());
-
-        }
-        // Make sure groups are there too
-        for (const auto gp: groups) {
-            if (gp.second.size() > 1) {
-                const std::string d("EntityList/'" + gp.first + "' opened=false");
-                TwDefine(d.c_str());
-            }
-        }
-
-        // Remove deleted/filtered entities from bar
-        for (auto it=datas->barVar.begin(); it!=datas->barVar.end(); ) {
-            if (std::find(existing.begin(), existing.end(), it->first) == existing.end()) {
-                TwRemoveVar(entityListBar, it->second.c_str());
-                datas->barVar.erase(it++);
-            } else {
-                ++it;
-            }
-        }
-
-        LOGF_IF(datas->barVar.size() != existing.size(), "Incoherent var count: " << datas->barVar.size() << " != " << existing.size());
-        accum = 0;
-
-#if SAC_ENABLE_LOG
-        // update log buttons too
-        for (auto it = verboseFilenameFilters.begin(); it!=verboseFilenameFilters.end(); ++it) {
-            if (datas->logControlFiles.find(it->first) == datas->logControlFiles.end()) {
-                TwAddVarCB(logBar, it->first.c_str(), TW_TYPE_BOOLCPP, LogControlSetCallback, LogControlGetCallback, strdup(it->first.c_str()), "");
-                datas->logControlFiles.insert(it->first);
-            }
-        }
-#endif
-        unlock();
-    }
-    #endif
+    imguiInputFilter();
+    ImGui::End();
 }
 
 void LevelEditor::LevelEditorDatas::changeMode(EditorMode::Enum newMode) {

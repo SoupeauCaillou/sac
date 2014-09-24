@@ -709,13 +709,13 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
 
     {
-        glScissor(0, 0, width, LevelEditor::DebugAreaHeight / 2);
+        glScissor(0, 0, width, LevelEditor::GameViewPosition().y);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
         glScissor(0, ImGui::GetIO().DisplaySize.y - LevelEditor::DebugAreaHeight / 2, width, LevelEditor::DebugAreaHeight / 2);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
-        glScissor(0, 0, LevelEditor::DebugAreaWidth / 2, height);
+        glScissor(0, 0, LevelEditor::GameViewPosition().x, height);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
-        glScissor(width - LevelEditor::DebugAreaWidth / 2, 0, LevelEditor::DebugAreaWidth / 2, height);
+        glScissor(width - LevelEditor::DebugAreaWidth * 0.75, 0, LevelEditor::DebugAreaWidth * 0.75, height);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
     }
 

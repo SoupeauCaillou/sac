@@ -22,9 +22,13 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
+
+class Game;
+
 class LevelEditor {
     public:
-        LevelEditor();
+        LevelEditor(Game* game);
         ~LevelEditor();
         void init();
         void tick(float dt);
@@ -34,9 +38,11 @@ class LevelEditor {
     private:
         struct LevelEditorDatas;
         LevelEditorDatas* datas;
+        Game* game;
 
 #if SAC_INGAME_EDITORS
     public:
+        static glm::vec2 GameViewPosition();
         static int DebugAreaWidth;
         static int DebugAreaHeight;
 #endif
