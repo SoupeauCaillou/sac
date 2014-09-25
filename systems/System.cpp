@@ -255,13 +255,14 @@ static int updateTextureList(hash_t h, int* count) {
     int current = 0;
     const auto& ref = theRenderingSystem.textureLibrary.getAllIndexes();
     // compute size
-    *count = ref.size();
+    *count = ref.size() + 1; // + 1 == no texture
     textures_list = (char**) realloc(textures_list, (*count) * sizeof(char*));
     if ((*count) > texture_count)
         memset(&textures_list[texture_count], 0, sizeof(char*) * (*count - texture_count));
     texture_count = *count;
 
-    int i = 0;
+    textures_list[0] = "N/A";
+    int i = 1;
     for (auto p: ref) {
         const char* n = INV_HASH(p.ref);
         // exclude typo texture
