@@ -17,7 +17,7 @@ void GLState::Viewport::update(int _w, int _h, GLUpdateOption::Enum option) {
         w = _w;
         h = _h;
 #if SAC_INGAME_EDITORS
-        GL_OPERATION(glViewport(LevelEditor::GameViewPosition().x, LevelEditor::GameViewPosition().y, w, h))
+        GL_OPERATION(glViewport(LevelEditor::GameViewPosition().x, 0 + LevelEditor::DebugAreaHeight , w, h))
 #else
         GL_OPERATION(glViewport(0, 0, w, h))
 #endif

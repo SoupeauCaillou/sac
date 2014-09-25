@@ -34,6 +34,7 @@
 #include "base/PlacementHelper.h"
 #include "base/Game.h"
 #include "util/Draw.h"
+#include "util/Random.h"
 #include "api/KeyboardInputHandlerAPI.h"
 
 #include <SDL/SDL_keysym.h>
@@ -71,7 +72,7 @@ static void hideGrid();
 glm::vec2 LevelEditor::GameViewPosition() {
     return glm::vec2(
         DebugAreaWidth * LEFT_PROPORTION,
-        DebugAreaHeight * 0.5);
+        0);
 }
 
 namespace EditorMode {
@@ -540,6 +541,23 @@ void LevelEditor::tick(float dt) {
         ImGui::Value("y", (int)windowPosition.y);
 
         ImGui::Columns(1);
+    }
+
+    imguiInputFilter();
+    ImGui::End();
+
+    ImGui::Begin("Graphs", NULL, ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, DebugAreaHeight), -1.0f,
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y - DebugAreaHeight));
+
+    if (ImGui::CollapsingHeader("FPS")) {
+        static std::vector<float> fps;
+        fps.push_back(1.0f / dt);
+        if (fps.size() > 300) fps.erase(fps.begin());
+        ImGui::PlotLines("FPS", &fps[0], fps.size(), 0, NULL, FLT_MIN, FLT_MAX, ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
+    }
+    if (ImGui::CollapsingHeader("Entities")) {
+
     }
 
     imguiInputFilter();
