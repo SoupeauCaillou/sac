@@ -336,85 +336,89 @@ void LevelEditor::tick(float dt) {
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(0, 0));
 
-    /* Entity manipulation tools */
-    if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
-        Tool::Enum newTool = Tool::None;
-        if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Select (B)") || kb->isKeyReleased(Key::ByName(SDLK_b))) {
-            newTool = Tool::Select;
-        }
-        if (tool == Tool::Select) ImGui::PopStyleColor();
+    if (game->gameType == GameType::LevelEditor) {
 
-        if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Move (G)") || kb->isKeyReleased(Key::ByName(SDLK_g))) {
-            if (!selected.empty())
-                newTool = Tool::Move;
-        }
-        if (tool == Tool::Move) ImGui::PopStyleColor();
-
-        if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(Key::ByName(SDLK_r))) {
-            if (!selected.empty())
-                newTool = Tool::Rotate;
-        }
-        if (tool == Tool::Rotate) ImGui::PopStyleColor();
-
-        if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-        if (ImGui::Button("Scale (S)") || kb->isKeyReleased(Key::ByName(SDLK_s))) {
-            if (!selected.empty())
-                newTool = Tool::Scale;
-        }
-        if (tool == Tool::Scale) ImGui::PopStyleColor();
-
-        if ((newTool == tool && newTool != Tool::None)
-            || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
-            // cancel action
-            tool = Tool::None;
-            resetTransformations();
-        } else if (tool != Tool::None && theTouchInputManager.hasClicked(0)) {
-            // confirm action
-            tool = Tool::None;
-            selectedInitialTransformation.clear();
-
-            theTouchInputManager.resetState();
-        } else if (newTool != Tool::None) {
-            tool = newTool;
-            initialCursorPosition = theTouchInputManager.getOverLastPosition();
-            resetTransformations();
-            rememberInitialTransformation();
-        }
-    }
-
-    const glm::vec2& mouseWorldPos = theTouchInputManager.getOverLastPosition();
-    switch (tool) {
-        case Tool::Move : {
-            for (unsigned i=0; i<selected.size(); i++) {
-                TRANSFORM(selected[i])->position =
-                    selectedInitialTransformation[i].position + mouseWorldPos - initialCursorPosition;
+        /* Entity manipulation tools */
+        if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
+            Tool::Enum newTool = Tool::None;
+            if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (ImGui::Button("Select (B)") || kb->isKeyReleased(Key::ByName(SDLK_b))) {
+                newTool = Tool::Select;
             }
-            break;
-        }
-        case Tool::Rotate : {
-            for (unsigned i=0; i<selected.size(); i++) {
-                glm::vec2 diff[2] = {
-                    initialCursorPosition - TRANSFORM(selected[i])->position,
-                    mouseWorldPos - TRANSFORM(selected[i])->position
-                };
-                TRANSFORM(selected[i])->rotation =
-                    selectedInitialTransformation[i].rotation + glm::atan(diff[1].y, diff[1].x) - glm::atan(diff[0].y, diff[0].x);
-            }
-            break;
-        }
-        case Tool::Scale : {
-            for (unsigned i=0; i<selected.size(); i++) {
-                float scale =
-                    glm::distance(mouseWorldPos, TRANSFORM(selected[i])->position) /
-                    glm::max(0.01f, glm::distance(initialCursorPosition, TRANSFORM(selected[i])->position));
+            if (tool == Tool::Select) ImGui::PopStyleColor();
 
-                TRANSFORM(selected[i])->size =
-                    selectedInitialTransformation[i].size * scale;
+            if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (ImGui::Button("Move (G)") || kb->isKeyReleased(Key::ByName(SDLK_g))) {
+                if (!selected.empty())
+                    newTool = Tool::Move;
+            }
+            if (tool == Tool::Move) ImGui::PopStyleColor();
+
+            if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(Key::ByName(SDLK_r))) {
+                if (!selected.empty())
+                    newTool = Tool::Rotate;
+            }
+            if (tool == Tool::Rotate) ImGui::PopStyleColor();
+
+            if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (ImGui::Button("Scale (S)") || kb->isKeyReleased(Key::ByName(SDLK_s))) {
+                if (!selected.empty())
+                    newTool = Tool::Scale;
+            }
+            if (tool == Tool::Scale) ImGui::PopStyleColor();
+
+            if ((newTool == tool && newTool != Tool::None)
+                || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
+                // cancel action
+                tool = Tool::None;
+                resetTransformations();
+            } else if (tool != Tool::None && theTouchInputManager.hasClicked(0)) {
+                // confirm action
+                tool = Tool::None;
+                selectedInitialTransformation.clear();
+                theTouchInputManager.resetState();
+
+            } else if (newTool != Tool::None) {
+                tool = newTool;
+                initialCursorPosition = theTouchInputManager.getOverLastPosition();
+                resetTransformations();
+                rememberInitialTransformation();
             }
         }
+
+        const glm::vec2& mouseWorldPos = theTouchInputManager.getOverLastPosition();
+        switch (tool) {
+            case Tool::Move : {
+                for (unsigned i=0; i<selected.size(); i++) {
+                    TRANSFORM(selected[i])->position =
+                        selectedInitialTransformation[i].position + mouseWorldPos - initialCursorPosition;
+                }
+                break;
+            }
+            case Tool::Rotate : {
+                for (unsigned i=0; i<selected.size(); i++) {
+                    glm::vec2 diff[2] = {
+                        initialCursorPosition - TRANSFORM(selected[i])->position,
+                        mouseWorldPos - TRANSFORM(selected[i])->position
+                    };
+                    TRANSFORM(selected[i])->rotation =
+                        selectedInitialTransformation[i].rotation + glm::atan(diff[1].y, diff[1].x) - glm::atan(diff[0].y, diff[0].x);
+                }
+                break;
+            }
+            case Tool::Scale : {
+                for (unsigned i=0; i<selected.size(); i++) {
+                    float scale =
+                        glm::distance(mouseWorldPos, TRANSFORM(selected[i])->position) /
+                        glm::max(0.01f, glm::distance(initialCursorPosition, TRANSFORM(selected[i])->position));
+
+                    TRANSFORM(selected[i])->size =
+                        selectedInitialTransformation[i].size * scale;
+                }
+            }
+        }
+
     }
 
     {
