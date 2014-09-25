@@ -249,6 +249,7 @@ static void hashGetCB(void* valueOut, void* clientData);
 #endif
 
 static char** textures_list = NULL;
+static int texture_count = 0;
 
 static int updateTextureList(hash_t h, int* count) {
     int current = 0;
@@ -256,6 +257,9 @@ static int updateTextureList(hash_t h, int* count) {
     // compute size
     *count = ref.size();
     textures_list = (char**) realloc(textures_list, (*count) * sizeof(char*));
+    if ((*count) > texture_count)
+        memset(&textures_list[texture_count], 0, sizeof(char*) * (*count - texture_count));
+    texture_count = *count;
 
     int i = 0;
     for (auto p: ref) {
