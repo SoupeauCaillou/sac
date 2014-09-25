@@ -41,6 +41,7 @@
 #include <mutex>
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>
+#include <algorithm>
 
 #include "DebugConsole.h"
 #if SAC_NETWORK
@@ -460,6 +461,26 @@ void LevelEditor::tick(float dt) {
                         theEntityManager.DeleteEntity(e);
                     }
                     selected.clear();
+                }
+            }
+
+            if (!selected.empty()) {
+                if (ImGui::CollapsingHeader("Active systems")) {
+                    const auto& systems = ComponentSystem::registeredSystems();
+                    for (const auto& p: systems) {
+                        auto* sys = p.second;
+                        bool on = std::all_of(selected.begin(), selected.end(), [sys] (Entity e) -> bool { return (sys->componentAsVoidPtr(e) != NULL); });
+
+                        if (ImGui::Checkbox(INV_HASH(p.first), &on)) {
+                            for (auto e: selected) {
+                                if (on) {
+                                    theEntityManager.AddComponent(e, sys);
+                                } else {
+                                    theEntityManager.RemoveComponent(e, sys);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
