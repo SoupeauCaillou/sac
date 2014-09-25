@@ -713,7 +713,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
         glScissor(0, 0, LevelEditor::GameViewPosition().x, height);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
-        glScissor(width - LevelEditor::DebugAreaWidth * 0.75, 0, LevelEditor::DebugAreaWidth * 0.75, height);
+        glScissor(LevelEditor::GameViewPosition().x + theRenderingSystem.windowW, 0, width, height);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
     }
 
