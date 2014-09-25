@@ -367,7 +367,7 @@ void LevelEditor::tick(float dt) {
             // cancel action
             tool = Tool::None;
             resetTransformations();
-        } else if (theTouchInputManager.hasClicked(0)) {
+        } else if (tool != Tool::None && theTouchInputManager.hasClicked(0)) {
             // confirm action
             tool = Tool::None;
             selectedInitialTransformation.clear();
