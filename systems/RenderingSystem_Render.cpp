@@ -775,6 +775,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
         }
     }
     GL_OPERATION(glDisable(GL_SCISSOR_TEST))
+    GL_OPERATION(glEnable(GL_DEPTH_TEST))
 
     // Restore pre-multiplied alpha blending
     GL_OPERATION(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA))
