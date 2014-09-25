@@ -152,7 +152,7 @@ static void rememberInitialTransformation() {
     for (unsigned i=0; i<selected.size(); i++) {
         selectedInitialTransformation.push_back(*TRANSFORM(selected[i]));
 
-        auto* anchor = theAnchorSystem.Get(selected[i]);
+        auto* anchor = theAnchorSystem.Get(selected[i], false);
         if (anchor) {
             selectedInitialTransformation.back().position = anchor->position;
             selectedInitialTransformation.back().rotation = anchor->rotation;
@@ -440,6 +440,29 @@ void LevelEditor::tick(float dt) {
         }
         theAnchorSystem.Update(dt);
 
+        if (ImGui::CollapsingHeader("Entity Builder", NULL, true, true)) {
+            if (ImGui::Button("Add Entity")) {
+                /* Default components: Transformation and Rendering */
+                Entity e = theEntityManager.CreateEntity(Murmur::RuntimeHash("new_entity"));
+                ADD_COMPONENT(e, Transformation);
+                TRANSFORM(e)->position = TRANSFORM(theCameraSystem.RetrieveAllEntityWithComponent()[0])->position;
+                TRANSFORM(e)->z = 1.0f;
+                ADD_COMPONENT(e, Rendering);
+                RENDERING(e)->show = 1;
+
+                selected.push_back(e);
+            }
+            {
+                char tmp[100];
+                snprintf(tmp, 100, "Delete %d entities", (int)selected.size());
+                if (ImGui::Button(tmp)) {
+                    for (auto e: selected) {
+                        theEntityManager.DeleteEntity(e);
+                    }
+                    selected.clear();
+                }
+            }
+        }
     }
 
     {
@@ -466,7 +489,11 @@ void LevelEditor::tick(float dt) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
                 ImGui::Button("Play (F1)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Editor (F2)")) game->gameType = GameType::LevelEditor;
+                if (ImGui::Button("Editor (F2)")) {
+                    hideGrid();
+                    showGrid();
+                    game->gameType = GameType::LevelEditor;
+                }
                 if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
         }
     }
