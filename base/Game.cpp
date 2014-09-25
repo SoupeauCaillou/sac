@@ -249,12 +249,9 @@ void Game::buildOrderedSystemsToUpdateList() {
 }
 
 Game::~Game() {
-    Draw::ClearAll();
-
 #if !SAC_MOBILE
     JoystickManager::DestroyInstance();
 #endif
-    EntityManager::DestroyInstance();
 
     ADSRSystem::DestroyInstance();
     AnchorSystem::DestroyInstance();
@@ -314,6 +311,8 @@ Game::~Game() {
 #if SAC_ENABLE_LOG
     unusedSystems.clear();
 #endif
+
+    EntityManager::DestroyInstance();
 }
 
 void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {

@@ -82,6 +82,7 @@
 #include "api/default/InAppPurchaseAPIDebugImpl.h"
 
 #include "util/Recorder.h"
+#include "util/Draw.h"
 
 #include "MouseNativeTouchState.h"
 
@@ -466,6 +467,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     delete ctx;
 
+    Draw::ClearAll();
+
+    /* Delete before destroying game, as system will be destroyed */
     theEntityManager.deleteAllEntities();
 
     delete game;
