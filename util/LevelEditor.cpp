@@ -26,6 +26,7 @@
 #include "IntersectionUtil.h"
 #include "base/TouchInputManager.h"
 #include <base/EntityManager.h>
+#include <systems/AnchorSystem.h>
 #include <systems/TransformationSystem.h>
 #include <systems/RenderingSystem.h>
 #include <systems/CameraSystem.h>
@@ -149,12 +150,26 @@ static void rememberInitialTransformation() {
     selectedInitialTransformation.clear();
     for (unsigned i=0; i<selected.size(); i++) {
         selectedInitialTransformation.push_back(*TRANSFORM(selected[i]));
+
+        auto* anchor = theAnchorSystem.Get(selected[i]);
+        if (anchor) {
+            selectedInitialTransformation.back().position = anchor->position;
+            selectedInitialTransformation.back().rotation = anchor->rotation;
+            selectedInitialTransformation.back().z = anchor->z;
+        }
     }
 }
 
 static void resetTransformations() {
     for (unsigned i=0; i<selectedInitialTransformation.size(); i++) {
-        *TRANSFORM(selected[i]) = selectedInitialTransformation[i];
+        auto* anchor = theAnchorSystem.Get(selected[i]);
+        if (anchor) {
+            *TRANSFORM(selected[i]) = selectedInitialTransformation[i];
+        } else {
+            anchor->position = selectedInitialTransformation[i].position;
+            anchor->rotation = selectedInitialTransformation[i].rotation;
+            anchor->z = selectedInitialTransformation[i].z;
+        }
     }
 }
 
@@ -391,7 +406,9 @@ void LevelEditor::tick(float dt) {
         switch (tool) {
             case Tool::Move : {
                 for (unsigned i=0; i<selected.size(); i++) {
-                    TRANSFORM(selected[i])->position =
+                    auto* anchor = theAnchorSystem.Get(selected[i], false);
+                    glm::vec2* position = anchor ? &(anchor->position) : &TRANSFORM(selected[i])->position;
+                    (*position) =
                         selectedInitialTransformation[i].position + mouseWorldPos - initialCursorPosition;
                 }
                 break;
@@ -402,7 +419,9 @@ void LevelEditor::tick(float dt) {
                         initialCursorPosition - TRANSFORM(selected[i])->position,
                         mouseWorldPos - TRANSFORM(selected[i])->position
                     };
-                    TRANSFORM(selected[i])->rotation =
+                    auto* anchor = theAnchorSystem.Get(selected[i], false);
+                    float* rotation = anchor ? &(anchor->rotation) : &TRANSFORM(selected[i])->rotation;
+                    (*rotation) =
                         selectedInitialTransformation[i].rotation + glm::atan(diff[1].y, diff[1].x) - glm::atan(diff[0].y, diff[0].x);
                 }
                 break;
@@ -418,6 +437,7 @@ void LevelEditor::tick(float dt) {
                 }
             }
         }
+        theAnchorSystem.Update(dt);
 
     }
 
@@ -434,7 +454,7 @@ void LevelEditor::tick(float dt) {
             case GameType::LevelEditor:
                 if (ImGui::Button("Play (F1)")) game->gameType = GameType::Default;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
-                ImGui::Button("Pause (F2)");
+                ImGui::Button("Editor (F2)");
                 ImGui::PopStyleColor();
                 if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
                 break;
@@ -445,7 +465,7 @@ void LevelEditor::tick(float dt) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
                 ImGui::Button("Play (F1)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Pause (F2)")) game->gameType = GameType::LevelEditor;
+                if (ImGui::Button("Editor (F2)")) game->gameType = GameType::LevelEditor;
                 if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
         }
     }
