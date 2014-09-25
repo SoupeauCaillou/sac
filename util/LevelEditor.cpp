@@ -140,6 +140,7 @@ struct LevelEditor::LevelEditorDatas {
 
 std::vector<Entity> selected;
 std::vector<TransformationComponent> selectedInitialTransformation;
+static void markEntities(Entity* begin, int count, Color color);
 
 static void rememberInitialTransformation() {
     selectedInitialTransformation.clear();
@@ -256,6 +257,8 @@ static glm::vec2 initialCursorPosition;
 
 
 void LevelEditor::tick(float dt) {
+    Draw::Clear(HASH("__mark/rounded_corners", 0xb64de3b3));
+
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
     ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * 0.75, ImGui::GetIO().DisplaySize.y), -1.0f,
@@ -300,11 +303,14 @@ void LevelEditor::tick(float dt) {
                     highLight = ImGui::IsHovered();
                 }
 
-                if (highLight) {
+                if (highLight && theTransformationSystem.Get(e, false)) {
+                    markEntities(&e, 1, Color(1, 0, 0));
+                    /*
                     auto* rc = theRenderingSystem.Get(e, false);
                     if (rc) rc->highLight = true;
                     auto* tc = theTextSystem.Get(e, false);
                     if (tc) tc->highLight = true;
+                    */
                 }
             }
             if (p.first) ImGui::TreePop();
@@ -407,35 +413,7 @@ void LevelEditor::tick(float dt) {
     {
         float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.0f;
 
-        const float thickness = 0.05;
-        const  glm::vec2 corners[] = {
-            glm::vec2(-0.5,  0.5), // top-left
-            glm::vec2( 0.5,  0.5), // top-right
-            glm::vec2(-0.5, -0.5), // bottom-left
-            glm::vec2( 0.5, -0.5)  // bottom-right
-        };
-
-        Draw::Clear(HASH("__selection", 0xc2c4050f));
-        for (auto e: selected) {
-            // draw 4 corners
-            Color color(c,c,c,1.0f);
-            const auto* tc = TRANSFORM(e);
-
-            float length = glm::max(0.1, glm::min(tc->size.x, tc->size.y) * 0.2);
-
-            const glm::vec2 directions[] = {
-                glm::vec2(length, thickness), glm::vec2(-thickness, -length),
-                glm::vec2(-length, thickness), glm::vec2(thickness, -length),
-                glm::vec2(length, -thickness), glm::vec2(-thickness, length),
-                glm::vec2(-length, -thickness), glm::vec2(thickness, length),
-            };
-            for (int i=0; i<4; i++) {
-                const glm::vec2 corner(tc->position + glm::rotate(tc->size * corners[i], tc->rotation));
-                for (int j=0; j<2; j++) {
-                    Draw::Vec2(HASH("__selection", 0xc2c4050f), corner, glm::rotate(directions[2 * i + j], tc->rotation), color);
-                }
-            }
-        }
+        markEntities(&selected[0], selected.size(), Color(c,c,c,1.0f));
     }
 
     /* Time manipulation tools */
@@ -502,6 +480,37 @@ void LevelEditor::tick(float dt) {
 
     imguiInputFilter();
     ImGui::End();
+}
+
+static void markEntities(Entity* begin, int count, Color color) {
+    const float thickness = 0.05;
+    const  glm::vec2 corners[] = {
+        glm::vec2(-0.5,  0.5), // top-left
+        glm::vec2( 0.5,  0.5), // top-right
+        glm::vec2(-0.5, -0.5), // bottom-left
+        glm::vec2( 0.5, -0.5)  // bottom-right
+    };
+
+    for (int i=0; i<count; i++) {
+        Entity e = begin[i];
+        // draw 4 corners
+        const auto* tc = TRANSFORM(e);
+
+        float length = glm::max(0.1, glm::min(tc->size.x, tc->size.y) * 0.2);
+
+        const glm::vec2 directions[] = {
+            glm::vec2(length, thickness), glm::vec2(-thickness, -length),
+            glm::vec2(-length, thickness), glm::vec2(thickness, -length),
+            glm::vec2(length, -thickness), glm::vec2(-thickness, length),
+            glm::vec2(-length, -thickness), glm::vec2(thickness, length),
+        };
+        for (int i=0; i<4; i++) {
+            const glm::vec2 corner(tc->position + glm::rotate(tc->size * corners[i], tc->rotation));
+            for (int j=0; j<2; j++) {
+                Draw::Vec2(HASH("__mark/rounded_corners", 0xb64de3b3), corner, glm::rotate(directions[2 * i + j], tc->rotation), color);
+            }
+        }
+    }
 }
 
 void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm::vec2& /*mouseWorldPos*/, int /*wheelDiff*/) {
