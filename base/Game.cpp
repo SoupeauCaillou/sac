@@ -629,15 +629,6 @@ void Game::step() {
         levelEditor->tick(targetDT);
         PROFILE("Game", "AntTweakBar", EndEvent);
 
-        if (keystate[SDLK_F1])
-            gameType = GameType::Default;
-
-        if (keystate[SDLK_F2])
-            gameType = GameType::LevelEditor;
-
-        if (keystate[SDLK_F3])
-            gameType = GameType::SingleStep;
-
         Draw::Update();
         switch (gameType) {
             case GameType::LevelEditor:

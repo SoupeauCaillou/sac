@@ -493,15 +493,16 @@ void LevelEditor::tick(float dt) {
     }
 
     /* Time manipulation tools */
-    if (ImGui::CollapsingHeader("Time control", NULL, true, true)) {
+    {
+        ImGui::CollapsingHeader("Time control", NULL, true, true);
 
         switch (game->gameType) {
             case GameType::LevelEditor:
-                if (ImGui::Button("Play (F1)")) game->gameType = GameType::Default;
+                if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(Key::ByName(SDLK_F1)) ) game->gameType = GameType::Default;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
                 ImGui::Button("Editor (F2)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
                 break;
             case GameType::SingleStep:
                 game->gameType = GameType::SingleStep;
@@ -510,12 +511,14 @@ void LevelEditor::tick(float dt) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
                 ImGui::Button("Play (F1)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Editor (F2)")) {
-                    hideGrid();
-                    showGrid();
+                if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(Key::ByName(SDLK_F2))) {
+                    if (!gridVisible) {
+                        showGrid();
+                        gridVisible = true;
+                    }
                     game->gameType = GameType::LevelEditor;
                 }
-                if (ImGui::Button("Single-Step (F3)")) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
         }
     }
 
