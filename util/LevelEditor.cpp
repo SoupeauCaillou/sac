@@ -260,7 +260,7 @@ static glm::vec2 initialCursorPosition;
 
 
 void LevelEditor::tick(float dt) {
-    Draw::Clear(HASH("__mark/rounded_corners", 0xb64de3b3));
+    Draw::Clear(HASH("__/mark", 0x683fdb7d));
 
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
@@ -543,7 +543,7 @@ static void markEntities(Entity* begin, int count, Color color) {
         for (int i=0; i<4; i++) {
             const glm::vec2 corner(tc->position + glm::rotate(tc->size * corners[i], tc->rotation));
             for (int j=0; j<2; j++) {
-                Draw::Vec2(HASH("__mark/rounded_corners", 0xb64de3b3), corner, glm::rotate(directions[2 * i + j], tc->rotation), color);
+                Draw::Vec2(HASH("__/mark", 0x683fdb7d), corner, glm::rotate(directions[2 * i + j], tc->rotation), color);
             }
         }
     }
@@ -682,7 +682,7 @@ static void showGrid() {
         if (i == ceil(theRenderingSystem.screenW * 6) / 2) {
             c.g = c.b = 0.1; c.a = 0.5;
         }
-        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), c);
+        Draw::Vec2(HASH("__/grid", 0xa467b7c), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), c);
 
         /*for (int j=1; j<=4; j++) {
             Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
@@ -694,7 +694,7 @@ static void showGrid() {
         if (i == ceil(theRenderingSystem.screenH * 6) / 2) {
             c.g = c.b = 0.1; c.a = 0.5;
         }
-        Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), c);
+        Draw::Vec2(HASH("__/grid", 0xa467b7c), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), c);
 
         /*for (int j=1; j<=4; j++) {
             Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
@@ -703,7 +703,7 @@ static void showGrid() {
 }
 
 static void hideGrid() {
-    Draw::Clear(HASH("__grid", 0xc37ceaec));
+    Draw::Clear(HASH("__/grid", 0xa467b7c));
 }
 
 #endif

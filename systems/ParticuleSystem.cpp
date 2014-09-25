@@ -80,7 +80,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 int missing = added - (poolLastValidElement + 1);
                 pool.resize(glm::max(pool.size(), pool.size() + missing));
                 for (int i=0; i<missing; i++) {
-                    Entity e = pool[++poolLastValidElement] = theEntityManager.CreateEntity(HASH("_particule", 0xb79326d6));
+                    Entity e = pool[++poolLastValidElement] = theEntityManager.CreateEntity(HASH("__/particule", 0xb79326d6));
                     ADD_COMPONENT(e, Transformation);
                     ADD_COMPONENT(e, Rendering);
                     ADD_COMPONENT(e, Physics);
