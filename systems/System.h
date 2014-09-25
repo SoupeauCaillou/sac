@@ -145,12 +145,7 @@ class ComponentSystemImpl: public ComponentSystem {
                     free (original);
                 }
             }
-
-            LOGT_EVERY_N(1000, "Add a reset method to components");
-            // until a reset method method, do it the naive way
             new (&components[entity]) T();
-            // components[entity] = T();
-
             addEntity(entity);
         }
 

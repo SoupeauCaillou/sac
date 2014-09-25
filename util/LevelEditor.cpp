@@ -292,31 +292,35 @@ void LevelEditor::tick(float dt) {
 
     for (const auto& p: groups) {
         if (p.first == 0 || ImGui::TreeNode(groupsName[p.first])) {
+            bool highLightAllGroup = (p.first && ImGui::IsHovered() && strcmp(groupsName[p.first], "__") != 0);
+
             const auto& v = p.second;
             for (auto e: v) {
                 std::stringstream n;
                 n << entityToName(e);
 
-                bool highLight = false;
+                bool highLight = highLightAllGroup;
                 if (ImGui::TreeNode(n.str().c_str())) {
-                    highLight = ImGui::IsHovered();
+                    highLight |= ImGui::IsHovered();
                     createTweakBarForEntity(e);
                     ImGui::TreePop();
                 } else {
-                    highLight = ImGui::IsHovered();
+                    highLight |= ImGui::IsHovered();
                 }
 
                 if (highLight && theTransformationSystem.Get(e, false)) {
                     markEntities(&e, 1, Color(1, 0, 0));
-                    /*
-                    auto* rc = theRenderingSystem.Get(e, false);
-                    if (rc) rc->highLight = true;
-                    auto* tc = theTextSystem.Get(e, false);
-                    if (tc) tc->highLight = true;
-                    */
                 }
             }
             if (p.first) ImGui::TreePop();
+        } else {
+            if (ImGui::IsHovered() && strcmp(groupsName[p.first], "__") != 0) {
+                // mark all group
+                const auto& v = p.second;
+                for (auto e: v) {
+                    markEntities(&e, 1, Color(1, 0, 0));
+                }
+            }
         }
 
         if (p.first != 0) {
