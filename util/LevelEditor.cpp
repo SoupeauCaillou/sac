@@ -64,9 +64,12 @@ static bool gridVisible = false;
 static void showGrid();
 static void hideGrid();
 
+#define LEFT_PROPORTION  0.35
+#define RIGHT_PROPORTION 0.65
+
 glm::vec2 LevelEditor::GameViewPosition() {
     return glm::vec2(
-        DebugAreaWidth * 0.25,
+        DebugAreaWidth * LEFT_PROPORTION,
         DebugAreaHeight * 0.5);
 }
 
@@ -261,9 +264,9 @@ void LevelEditor::tick(float dt) {
 
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
-    ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * 0.75, ImGui::GetIO().DisplaySize.y), -1.0f,
+    ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, ImGui::GetIO().DisplaySize.y), -1.0f,
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth * 0.75, 0));
+    ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
 
     std::map<hash_t, char*> groupsName;
     std::map<hash_t, std::vector<Entity>> groups;
@@ -325,7 +328,7 @@ void LevelEditor::tick(float dt) {
     imguiInputFilter();
     ImGui::End();
 
-    ImGui::Begin("Editor tools", NULL, ImVec2(DebugAreaWidth * 0.25, ImGui::GetIO().DisplaySize.y), -1.0f,
+    ImGui::Begin("Editor tools", NULL, ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y), -1.0f,
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(0, 0));
 
@@ -476,6 +479,39 @@ void LevelEditor::tick(float dt) {
             TRANSFORM(cameras[0])->size = originalSize / zoom;
         }
         ImGui::SliderFloat2("Position", &TRANSFORM(cameras[0])->position.x, -30, 30, "%.1f");
+    }
+
+    if (ImGui::CollapsingHeader("Input Position", NULL, true, true)) {
+
+        const glm::vec2& worldPosition = theTouchInputManager.getOverLastPosition();
+        ImGui::Text("Wor");
+
+        ImGui::SameLine();
+        ImGui::Columns(2, NULL, false);
+        ImGui::Value("x", worldPosition.x, "%.2f");
+        ImGui::NextColumn();
+        ImGui::Value("y", worldPosition.y, "%.2f");
+        ImGui::Columns(1);
+
+        const glm::vec2& screenPosition = theTouchInputManager.getOverLastPositionScreen();
+        ImGui::Text("Scr");
+
+        ImGui::SameLine();
+        ImGui::Columns(2, NULL, false);
+        ImGui::Value("x", screenPosition.x, "%.2f");
+        ImGui::NextColumn();
+        ImGui::Value("y", screenPosition.y, "%.2f");
+        ImGui::Columns(1);
+
+        const ImVec2& windowPosition = ImGui::GetIO().MousePos;
+        ImGui::Text("Win");
+        ImGui::SameLine();
+        ImGui::Columns(2, NULL, false);
+        ImGui::Value("x", (int)windowPosition.x);
+        ImGui::NextColumn();
+        ImGui::Value("y", (int)windowPosition.y);
+
+        ImGui::Columns(1);
     }
 
     imguiInputFilter();
