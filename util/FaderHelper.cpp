@@ -40,7 +40,7 @@ void FaderHelper::init(Entity camera) {
 
     duration = accum = 0;
 
-    fadingEntity = theEntityManager.CreateEntity(HASH("fading", 0x724f51c0));
+    fadingEntity = theEntityManager.CreateEntity(HASH("__/fading", 0xcde7f2a6));
     ADD_COMPONENT(fadingEntity, Rendering);
     RENDERING(fadingEntity)->color = Color(0,0,0);
     RENDERING(fadingEntity)->show = false;
@@ -139,7 +139,7 @@ bool FaderHelper::update(float dt) {
     if (progress >= 0.99) {
         accum = duration = 0;
         LOGV(1, "Fading done");
-        if (type == Fading::In) {
+        if (type == Fading::In || type == Fading::OutIn) {
             RENDERING(fadingEntity)->show = false;
         }
         return true;
