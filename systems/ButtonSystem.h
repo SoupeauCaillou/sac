@@ -29,9 +29,9 @@
 class VibrateAPI;
 
 struct ButtonComponent {
-	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false), 
-	 textureActive(InvalidTextureRef), textureInactive(InvalidTextureRef), overSize(1.f) , 
-	 vibration(0.035f), type(NORMAL) { }
+	ButtonComponent() : mouseOver(false), clicked(false), lastClick(0.f), enabled(false),
+	 textureActive(InvalidTextureRef), textureInactive(InvalidTextureRef), overSize(1.f) ,
+	 vibration(0.035f), type(NORMAL), trigger(0) { }
 
     ////// READ ONLY variables
     // States of button
@@ -64,7 +64,7 @@ struct ButtonComponent {
 	////// END OF WRITE ONLY variables
 
 	// first touch
-	float firstTouch;	
+	float firstTouch;
 };
 
 #define theButtonSystem ButtonSystem::GetInstance()
