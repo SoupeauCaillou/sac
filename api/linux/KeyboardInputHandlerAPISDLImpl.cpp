@@ -34,6 +34,7 @@
 
 void KeyboardInputHandlerAPIGLFWImpl::update() {
     std::unique_lock<std::mutex> lock(mutex);
+
     //each dt, if the key is pressed, call the function
     for (auto it = keyState.begin(); it != keyState.end(); ) {
         std::map<Key, std::function<void()> >* source = 0;
@@ -54,12 +55,17 @@ void KeyboardInputHandlerAPIGLFWImpl::update() {
                 it->second = KeyState::Idle;
                 ++it;
                 break;
-            case KeyState::Idle:
+            case KeyState::Idle: {
                 // remove it and advance
                 auto jt = it;
-                ++it;
+                it++;
                 keyState.erase(jt);
                 break;
+            }
+            default: {
+                LOGE("Invalid state: " << it->second << " for key: " << it->first.keysym);
+                ++it;
+            }
         }
 
         // call callback if any
@@ -87,6 +93,7 @@ bool KeyboardInputHandlerAPIGLFWImpl::queryKeyState(Key key, KeyState::Enum stat
     std::unique_lock<std::mutex> lock(mutex);
     auto it = keyState.find(key);
     bool result = (it != keyState.end() && it->second == state);
+    LOGI_IF(it != keyState.end(), key.keysym << " -> " << result << __(it->second));
     return result;
 }
 
@@ -103,7 +110,6 @@ int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
 
     if (event->type == SDL_KEYUP) {
         LOGV(1, "key released (" << __(scancode) << ", " << __(sym) << ")");
-
         keyState[byPosition] = KeyState::Releasing;
         keyState[byName] = KeyState::Releasing;
         const auto& p1 = keyReleased2callback.find(byPosition);

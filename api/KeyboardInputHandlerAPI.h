@@ -92,9 +92,8 @@ namespace KeyboardInputHandler {
 }
 
 struct Key {
-    enum Type { byPosition, byName };
 
-    Type type;
+    enum Type { byPosition = 0, byName } type;
     union {
         int position;
         int keysym;
@@ -114,10 +113,11 @@ struct Key {
     }
 
     bool operator< (const Key & rhs) const {
-        if (type < rhs.type)
-            return true;
-        else
-            return this->position < rhs.position;
+        if (type == rhs.type) {
+            return position < rhs.position;
+        } else {
+            return type < rhs.type;
+        }
     }
 };
 
