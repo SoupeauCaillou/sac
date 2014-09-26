@@ -23,7 +23,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
-
+#if SAC_DESKTOP
+#include <SDL/SDL.h>
+#include <queue>
+#endif
 class Game;
 class KeyboardInputHandlerAPI;
 
@@ -47,5 +50,9 @@ class LevelEditor {
         static glm::vec2 GameViewPosition();
         static int DebugAreaWidth;
         static int DebugAreaHeight;
+#endif
+#if SAC_DESKTOP
+        void addSDLEvent(const SDL_Event& evt);
+        std::queue<SDL_Event> events;
 #endif
 };

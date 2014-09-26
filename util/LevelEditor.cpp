@@ -92,6 +92,10 @@ static void _unlock() {
     twMutex.unlock();
 }
 
+void LevelEditor::addSDLEvent(const SDL_Event& evt) {
+    events.push(evt);
+}
+
 static std::string entityToName(Entity e) {
     std::stringstream s;
     const char* n = theEntityManager.entityName(e);
@@ -176,6 +180,12 @@ static void resetTransformations() {
 }
 
 static void createTweakBarForEntity(Entity e) {
+    char tmp[100];
+    strncpy(tmp, theEntityManager.entityName(e), 100);
+    if (ImGui::InputText("name", tmp, 100)) {
+        theEntityManager.renameEntity(e, Murmur::RuntimeHash(tmp));
+    }
+
     if (theTransformationSystem.Get(e, false)) {
         auto it = std::find(selected.begin(), selected.end(), e);
         bool s = (it != selected.end());
@@ -277,13 +287,34 @@ static glm::vec2 initialCursorPosition;
 
 
 void LevelEditor::tick(float dt) {
+    /* Process SDL keyboard events */
+    ImGuiIO& io = ImGui::GetIO();
+
+    while(!events.empty()) {
+        const SDL_Event& event = events.front();
+        if (event.type == SDL_KEYDOWN) {
+            auto unicode = event.key.keysym.unicode;
+
+            if (unicode < 0x80 && unicode >= 32) {
+                io.AddInputCharacter(unicode);
+            } else {
+                io.KeysDown[event.key.keysym.sym] = true;
+            }
+        } else if (event.type == SDL_KEYUP) {
+            if (io.KeysDown[event.key.keysym.sym]) {
+                io.KeysDown[event.key.keysym.sym] = false;
+            }
+        }
+        events.pop();
+    }
+
     Draw::Clear(HASH("__/mark", 0x683fdb7d));
 
     // build entity-list Window
     std::vector<Entity> entities = theEntityManager.allEntities();
-    ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, ImGui::GetIO().DisplaySize.y), -1.0f,
+    ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y), -1.0f,
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
+    ImGui::SetWindowPos(ImVec2(io.DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
 
     std::map<hash_t, char*> groupsName;
     std::map<hash_t, std::vector<Entity>> groups;
@@ -317,7 +348,7 @@ void LevelEditor::tick(float dt) {
                 n << entityToName(e);
 
                 bool highLight = highLightAllGroup;
-                if (ImGui::TreeNode(n.str().c_str())) {
+                if (ImGui::TreeNode((void*)e, "%s", n.str().c_str())) {
                     highLight |= ImGui::IsHovered();
                     createTweakBarForEntity(e);
                     ImGui::TreePop();

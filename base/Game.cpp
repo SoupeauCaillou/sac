@@ -343,9 +343,9 @@ void Game::eventsHandler() {
     {
 #if SAC_INGAME_EDITORS
         levelEditor->lock();
-        #warning Fixme
-        // Send event to AntTweakBar
-        handled = false;//TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
+            levelEditor->addSDLEvent(event);
+        }
         levelEditor->unlock();
 #endif
 
@@ -512,14 +512,6 @@ void Game::sacInit(int windowW, int windowH) {
     io.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
     io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
     io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
-    /*
-    io.KeyMap[ImGuiKey_A] = SDLK_A;
-    io.KeyMap[ImGuiKey_C] = SDLK_C;
-    io.KeyMap[ImGuiKey_V] = SDLK_V;
-    io.KeyMap[ImGuiKey_X] = SDLK_X;
-    io.KeyMap[ImGuiKey_Y] = SDLK_Y;
-    io.KeyMap[ImGuiKey_Z] = SDLK_Z;
-    */
 
     // only in SDL2
     // io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;
@@ -581,6 +573,8 @@ void Game::step() {
     targetDT = accumulator;
 #endif
 
+    bool doneOnce = false;
+
     while (accumulator >= targetDT)
     {
         theTouchInputManager.Update();
@@ -595,40 +589,39 @@ void Game::step() {
 
         // update game state
     #if SAC_INGAME_EDITORS
-        LevelEditor::lock();
+        if (!doneOnce) {
+            doneOnce = true;
 
-        ImGuiIO& io = ImGui::GetIO();
-        #if SAC_DESKTOP
-        io.MouseWheel = theTouchInputManager.getWheel();
-        #endif
-        io.DeltaTime = targetDT;
+            LevelEditor::lock();
 
-        glm::vec2 p;
-        #if !SAC_DESKTOP
-        if (!theTouchInputManager.isTouched())
-            io.MousePos =ImVec2(-1.0f, -1.0f);
-        else
-            p = theTouchInputManager.getTouchLastPositionScreen();
-        #else
-        p = theTouchInputManager.getOverLastPositionScreen();
-        #endif
+            ImGuiIO& io = ImGui::GetIO();
+            #if SAC_DESKTOP
+            io.MouseWheel = theTouchInputManager.getWheel();
+            #endif
+            io.DeltaTime = targetDT;
 
-        p = glm::vec2(io.DisplaySize.x, io.DisplaySize.y) * (0.5f + p);
-        p.y = io.DisplaySize.y - p.y;
-        io.MousePos =ImVec2(p.x, p.y);
-        io.MouseDown[0] = theTouchInputManager.isTouched(0);
-        io.MouseDown[1] = theTouchInputManager.isTouched(1);
-        ImGui::NewFrame();
+            glm::vec2 p;
+            #if !SAC_DESKTOP
+            if (!theTouchInputManager.isTouched())
+                io.MousePos =ImVec2(-1.0f, -1.0f);
+            else
+                p = theTouchInputManager.getTouchLastPositionScreen();
+            #else
+            p = theTouchInputManager.getOverLastPositionScreen();
+            #endif
+
+            p = glm::vec2(io.DisplaySize.x, io.DisplaySize.y) * (0.5f + p);
+            p.y = io.DisplaySize.y - p.y;
+            io.MousePos =ImVec2(p.x, p.y);
+            io.MouseDown[0] = theTouchInputManager.isTouched(0);
+            io.MouseDown[1] = theTouchInputManager.isTouched(1);
+            ImGui::NewFrame();
+            // Always tick levelEditor (manages AntTweakBar stuff)
+            levelEditor->tick(targetDT);
+        }
 
         static float speedFactor = 1.0f;
         static bool oneStepEnabled = false;
-
-        Uint8 *keystate = SDL_GetKeyState(NULL);
-        // Always tick levelEditor (manages AntTweakBar stuff)
-        PROFILE("Game", "AntTweakBar", BeginEvent);
-        levelEditor->tick(targetDT);
-        PROFILE("Game", "AntTweakBar", EndEvent);
-
         Draw::Update();
         switch (gameType) {
             case GameType::LevelEditor:
@@ -639,18 +632,6 @@ void Game::step() {
                 gameType = GameType::LevelEditor;
                 break;
             default:
-                if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F5]) {
-                    speedFactor = glm::max(speedFactor - 1 * targetDT, 0.0f);
-                } else if (/*keystate[SDLK_KP_ADD] ||*/ keystate[SDLK_F6]) {
-                    speedFactor += 1 * targetDT;
-                } else if (/*keystate[SDLK_KP_SUBTRACT] ||*/ keystate[SDLK_F7]) {
-                    oneStepEnabled = true;
-                    levelEditor->tick(targetDT);
-                    speedFactor = 1;
-                } else if (keystate[SDLK_KP_ENTER]) {
-                    speedFactor = 1;
-                }
-
                 tick(targetDT * speedFactor);
         }
 

@@ -79,6 +79,9 @@ class EntityManager {
 #if SAC_ENABLE_LOG || SAC_INGAME_EDITORS
         const char* entityName(Entity e) const;
 #endif
+#if SAC_INGAME_EDITORS
+        void renameEntity(Entity e, hash_t id);
+#endif
 
         int getNumberofEntity() {return entityComponents.size();}
 

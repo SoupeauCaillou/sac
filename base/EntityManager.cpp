@@ -55,6 +55,12 @@ void EntityManager::DestroyInstance() {
     instance = NULL;
 }
 
+#if SAC_INGAME_EDITORS
+void EntityManager::renameEntity(Entity e, hash_t id) {
+    entityHash[e] = id;
+}
+#endif
+
 Entity EntityManager::CreateEntity(const hash_t id, EntityType::Enum type, EntityTemplateRef tmpl) {
     Entity e = 0;
 
