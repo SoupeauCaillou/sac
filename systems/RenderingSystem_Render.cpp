@@ -399,7 +399,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.texture != InvalidTextureRef) {
             if (!rcUseFbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
-                LOGF_IF(info == 0, "Invalid texture " << rc.texture << " : can not be found");
+                LOGF_IF(info == 0, "Invalid texture " << rc.texture << "(" << INV_HASH(rc.texture) << ") : can not be found");
                 if (info->atlasIndex >= 0) {
                     LOGF_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size());
                     const TextureInfo* atlasInfo = textureLibrary.get(atlas[info->atlasIndex].ref, false);

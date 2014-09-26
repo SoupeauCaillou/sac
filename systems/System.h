@@ -83,6 +83,7 @@ class ComponentSystem {
 
 #if SAC_INGAME_EDITORS
         bool addEntityPropertiesToBar(Entity e, void* bar);
+        bool saveEntityToFile(Entity e, FILE* file);
 #endif
 
     protected:

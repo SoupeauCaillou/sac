@@ -280,6 +280,82 @@ static int updateTextureList(hash_t h, int* count) {
     return current;
 }
 
+bool ComponentSystem::saveEntityToFile(Entity e, FILE* file) {
+    uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
+    if (!comp)
+        return false;
+    if (componentSerializer.getProperties().empty())
+        return false;
+
+    fprintf(file, "\n[%s]\n", INV_HASH(id));
+
+    for(IProperty* prop: componentSerializer.getProperties()) {
+
+        if (prop->getAttribute() == PropertyAttribute::Vector
+            || prop->getAttribute() == PropertyAttribute::Interval) {
+            LOGT("PropertyAttribute::Vector unhandled");
+            continue;
+        }
+
+        const char* vname = Murmur::lookup(prop->getId());
+        fprintf(file, "%s = ", vname);
+
+        switch (prop->getType()) {
+            case PropertyType::String: {
+                std::string *s = (std::string*)(comp + prop->offset);
+                fprintf(file, "%s\n", s->c_str());
+                break;
+            }
+            case PropertyType::Int: {
+                fprintf(file, "%d\n", *(int*)(comp + prop->offset));
+                break;
+            }
+
+            case PropertyType::Int8: {
+                fprintf(file, "%d\n", *(int8_t*)(comp + prop->offset));
+                break;
+            }
+            case PropertyType::Bool: {
+                fprintf(file, "%d\n", *(bool*)(comp + prop->offset));
+                break;
+            }
+            case PropertyType::Color: {
+                Color* c = (Color*)(comp + prop->offset);
+                fprintf(file, "%.3f, %.3f, %.3f, %.3f\n", c->r, c->g, c->b, c->a);
+                break;
+            }
+            case PropertyType::Float:
+                fprintf(file, "%.3f\n", *(float*)(comp + prop->offset));
+                break;
+            case PropertyType::Vec2: {
+                // x component
+                glm::vec2* v = (glm::vec2*)(comp + prop->offset);
+                fprintf(file, "%.3f, %.3f\n", v->x, v->y);
+
+                break;
+            }
+            case PropertyType::Entity:
+                fprintf(file, "%s\n", theEntityManager.entityName(*(Entity*)(comp + prop->offset)));
+                break;
+            case PropertyType::Texture:
+            case PropertyType::Hash: {
+                hash_t* h = (hash_t*)(comp + prop->offset);
+                if (*h == InvalidTextureRef) {
+                    fprintf(file, "\n");
+                    break;
+                }
+                fprintf(file, "%s\n", INV_HASH(*h));
+                break;
+            }
+            default:
+                LOGE("PropertyType " << prop->getType() << " not supported for saving");
+                fprintf(file, "\r# not supported yet - %s\n", vname);
+                break;
+        }
+    }
+
+}
+
 bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)

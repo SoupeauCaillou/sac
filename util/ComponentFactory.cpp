@@ -685,7 +685,7 @@ static bool loadSingleProperty(const std::string&,
         }
         case PropertyType::Entity: {
             if (dfp.get(section, id, temp, 512, false)) {
-                if (dfp.getModifier(section, id) == HASH("name", 0x195267c7)) {
+                if (dfp.getModifier(section, id) == 0 || dfp.getModifier(section, id) == HASH("name", 0x195267c7)) {
                     uint8_t* arr = new uint8_t[sizeof(hash_t)];
                     hash_t h = Murmur::RuntimeHash(temp);
                     memcpy(arr, &h, sizeof(hash_t));

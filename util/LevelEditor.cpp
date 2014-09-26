@@ -46,6 +46,9 @@
 #include "../systems/NetworkSystem.h"
 #endif
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #if SAC_INGAME_EDITORS
 int LevelEditor::DebugAreaWidth =
 #if SAC_DESKTOP
@@ -205,6 +208,42 @@ static void createTweakBarForEntity(Entity e) {
         ComponentSystem* system = ComponentSystem::GetById(systems[i]);
         system->addEntityPropertiesToBar(e, 0);
     }
+}
+
+static void saveEntities(const Entity* entities, int count) {
+    const char* outfolder = "/tmp/sac";
+    char fullpath[1024];
+
+    const auto& systems = ComponentSystem::registeredSystems();
+
+    for (int i=0; i<count; i++) {
+        Entity e = entities[i];
+
+        const char* name = theEntityManager.entityName(e);
+        snprintf(fullpath, 1024, "%s/%s.entity", outfolder, name);
+        // sigh
+        char* slash = fullpath + 4;
+        while ( (slash = strchr(slash, '/') )) {
+            *slash = '\0';
+            int result = mkdir(fullpath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+            LOGV(1, "mkdir: " << fullpath << "->" << result);
+            *slash = '/';
+            slash++;
+        }
+
+        FILE* file = fopen(fullpath, "w");
+        if (!file) {
+            LOGE("Cannot create '" << fullpath << "' file for saving entity");
+            continue;
+        }
+
+        for (auto& s: systems) {
+            s.second->saveEntityToFile(e, file);
+        }
+        fflush(file);
+        fclose(file);
+    }
+
 }
 
 
@@ -395,6 +434,17 @@ void LevelEditor::tick(float dt) {
     ImGui::SetWindowPos(ImVec2(0, 0));
 
     if (game->gameType == GameType::LevelEditor) {
+        if (ImGui::CollapsingHeader("Save")) {
+            if (ImGui::Button("Save All")) {
+                saveEntities(&entities[0], entities.size());
+            }
+
+            char tmp[100];
+            snprintf(tmp, 100, "Save %d selected", (int)selected.size());
+            if (ImGui::Button(tmp)) {
+                saveEntities(&selected[0], selected.size());
+            }
+        }
 
         /* Entity manipulation tools */
         if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
