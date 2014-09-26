@@ -495,33 +495,36 @@ void LevelEditor::tick(float dt) {
                         }
                     }
                 }
-                std::sort(hoveredEntities.begin(), hoveredEntities.end(), [] (const std::pair<Entity, float>& p1, const std::pair<Entity, float>& p2) -> bool {
-                    return p1.second > p2.second;
-                });
 
-                float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.5f;
-                markEntities(&hoveredEntities[0].first, 1, Color(0,c * 0.5,c,0.5f));
+                if (!hoveredEntities.empty()) {
+                    std::sort(hoveredEntities.begin(), hoveredEntities.end(), [] (const std::pair<Entity, float>& p1, const std::pair<Entity, float>& p2) -> bool {
+                        return p1.second > p2.second;
+                    });
+
+                    float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.5f;
+                    markEntities(&hoveredEntities[0].first, 1, Color(0,c * 0.5,c,0.5f));
 
 
-                if (theTouchInputManager.hasClicked(1)) {
-                    int index = 0;
-                    /* special case: if selected is hoveredEntities[0], use 1 instead */
-                    if (hoveredEntities.size() > 1 && selected.size() == 1) {
-                        if (selected[0] == hoveredEntities[0].first) {
-                            index = 1;
+                    if (theTouchInputManager.hasClicked(1)) {
+                        int index = 0;
+                        /* special case: if selected is hoveredEntities[0], use 1 instead */
+                        if (hoveredEntities.size() > 1 && selected.size() == 1) {
+                            if (selected[0] == hoveredEntities[0].first) {
+                                index = 1;
+                            }
                         }
-                    }
 
-                    if (!kb->isKeyPressed(Key::ByName(SDLK_LSHIFT))) {
-                        clearSelection();
-                    }
+                        if (!kb->isKeyPressed(Key::ByName(SDLK_LSHIFT))) {
+                            clearSelection();
+                        }
 
-                    Entity e = hoveredEntities[index].first;
-                    auto it = std::find(selected.begin(), selected.end(), e);
-                    if (it == selected.end()) {
-                        selected.push_back(e);
-                    } else {
-                        selected.erase(it);
+                        Entity e = hoveredEntities[index].first;
+                        auto it = std::find(selected.begin(), selected.end(), e);
+                        if (it == selected.end()) {
+                            selected.push_back(e);
+                        } else {
+                            selected.erase(it);
+                        }
                     }
                 }
         }
