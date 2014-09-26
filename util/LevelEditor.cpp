@@ -511,8 +511,18 @@ void LevelEditor::tick(float dt) {
                             index = 1;
                         }
                     }
-                    clearSelection();
-                    selected.push_back(hoveredEntities[index].first);
+
+                    if (!kb->isKeyPressed(Key::ByName(SDLK_LSHIFT))) {
+                        clearSelection();
+                    }
+
+                    Entity e = hoveredEntities[index].first;
+                    auto it = std::find(selected.begin(), selected.end(), e);
+                    if (it == selected.end()) {
+                        selected.push_back(e);
+                    } else {
+                        selected.erase(it);
+                    }
                 }
         }
         theAnchorSystem.Update(dt);

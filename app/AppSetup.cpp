@@ -138,27 +138,6 @@ static void updateLoop(const std::string& gameName) {
     unsigned char * keys = SDL_GetKeyState(NULL);
 
     while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
-        #if SAC_DESKTOP
-        if (keys[SDLK_LSHIFT]) {
-            LOGI("****************** Testing Restore");
-            uint8_t* ptr;
-            int size = game->saveState(&ptr);
-
-            if (size == 0) {
-                LOGI("*  Nothing saved by game... continuing execution then");
-            } else {
-                std::stringstream name;
-                name << gameName << ".restore.bin";
-                LOGI("*  " << size << " bytes saved. Writing to '" << name.str() << "' file");
-                std::ofstream of(name.str(), std::ios::binary);
-                of.write((char*)ptr, size);
-                of.close();
-                LOGI("*  Now exiting");
-                break;
-            }
-        }
-        #endif
-        // game->eventsHandler();
 
 #if SAC_BENCHMARK_MODE
     updateBench();
