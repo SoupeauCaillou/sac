@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #if SAC_INGAME_EDITORS
 
 #include "LevelEditor.h"
@@ -179,6 +177,11 @@ static void resetTransformations() {
     }
 }
 
+static void clearSelection() {
+    selected.clear();
+    selectedInitialTransformation.clear();
+}
+
 static void createTweakBarForEntity(Entity e) {
     char tmp[100];
     strncpy(tmp, theEntityManager.entityName(e), 100);
@@ -240,7 +243,9 @@ static void DumpSystemEntities(void *clientData) {
 }
 
 void LevelEditor::init(KeyboardInputHandlerAPI *k) {
+    LOGT(" * select entity with RMB\n * 2 buttons save all entities, save selected");
     kb = k;
+    ImGui::GetStyle().WindowRounding = 0;
 
 }
 
@@ -284,7 +289,7 @@ namespace Tool {
 Tool::Enum tool = Tool::None;
 
 static glm::vec2 initialCursorPosition;
-
+static std::vector<std::pair<Entity, float>> hoveredEntities;
 
 void LevelEditor::tick(float dt) {
     /* Process SDL keyboard events */
@@ -311,9 +316,9 @@ void LevelEditor::tick(float dt) {
     Draw::Clear(HASH("__/mark", 0x683fdb7d));
 
     // build entity-list Window
-    std::vector<Entity> entities = theEntityManager.allEntities();
+    const std::vector<Entity> entities = theEntityManager.allEntities();
     ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y), -1.0f,
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(io.DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
 
     std::map<hash_t, char*> groupsName;
@@ -345,9 +350,14 @@ void LevelEditor::tick(float dt) {
             const auto& v = p.second;
             for (auto e: v) {
                 std::stringstream n;
-                n << entityToName(e);
 
                 bool highLight = highLightAllGroup;
+                bool hovered = false;//(std::find(hoveredEntities.begin(), hoveredEntities.end(), e) != hoveredEntities.end());
+
+                if (hovered) n << "***";
+                n << entityToName(e);
+                if (hovered) n << "***";
+
                 if (ImGui::TreeNode((void*)e, "%s", n.str().c_str())) {
                     highLight |= ImGui::IsHovered();
                     createTweakBarForEntity(e);
@@ -381,7 +391,7 @@ void LevelEditor::tick(float dt) {
     ImGui::End();
 
     ImGui::Begin("Editor tools", NULL, ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y), -1.0f,
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(0, 0));
 
     if (game->gameType == GameType::LevelEditor) {
@@ -468,7 +478,42 @@ void LevelEditor::tick(float dt) {
                     TRANSFORM(selected[i])->size =
                         selectedInitialTransformation[i].size * scale;
                 }
+                break;
             }
+            default:
+                // hovered entities
+                hoveredEntities.clear();
+                for (auto e: entities) {
+                    const auto* rc = theRenderingSystem.Get(e, false);
+                    if (!rc) continue;
+                    if (!rc->show) continue;
+
+                    const auto* tc = theTransformationSystem.Get(e, false);
+                    if (tc) {
+                        if (IntersectionUtil::pointRectangle(mouseWorldPos, tc)) {
+                            hoveredEntities.push_back(std::make_pair(e, tc->z));
+                        }
+                    }
+                }
+                std::sort(hoveredEntities.begin(), hoveredEntities.end(), [] (const std::pair<Entity, float>& p1, const std::pair<Entity, float>& p2) -> bool {
+                    return p1.second > p2.second;
+                });
+
+                float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.5f;
+                markEntities(&hoveredEntities[0].first, 1, Color(0,c * 0.5,c,0.5f));
+
+
+                if (theTouchInputManager.hasClicked(1)) {
+                    int index = 0;
+                    /* special case: if selected is hoveredEntities[0], use 1 instead */
+                    if (hoveredEntities.size() > 1 && selected.size() == 1) {
+                        if (selected[0] == hoveredEntities[0].first) {
+                            index = 1;
+                        }
+                    }
+                    clearSelection();
+                    selected.push_back(hoveredEntities[index].first);
+                }
         }
         theAnchorSystem.Update(dt);
 
@@ -491,7 +536,7 @@ void LevelEditor::tick(float dt) {
                     for (auto e: selected) {
                         theEntityManager.DeleteEntity(e);
                     }
-                    selected.clear();
+                    clearSelection();
                 }
             }
 
@@ -519,7 +564,6 @@ void LevelEditor::tick(float dt) {
 
     {
         float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.0f;
-
         markEntities(&selected[0], selected.size(), Color(c,c,c,1.0f));
     }
 
@@ -629,7 +673,7 @@ void LevelEditor::tick(float dt) {
     ImGui::End();
 
     ImGui::Begin("Graphs", NULL, ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, DebugAreaHeight), -1.0f,
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y - DebugAreaHeight));
 
     if (ImGui::CollapsingHeader("FPS")) {
