@@ -93,7 +93,6 @@ bool KeyboardInputHandlerAPIGLFWImpl::queryKeyState(Key key, KeyState::Enum stat
     std::unique_lock<std::mutex> lock(mutex);
     auto it = keyState.find(key);
     bool result = (it != keyState.end() && it->second == state);
-    LOGI_IF(it != keyState.end(), key.keysym << " -> " << result << __(it->second));
     return result;
 }
 

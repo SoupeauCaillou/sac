@@ -331,7 +331,6 @@ bool profilerEnabled = false;
 void Game::eventsHandler() {
 #if ! SAC_ANDROID
     SDL_Event event;
-    int handled = 0;
 
     //if (! (SDL_GetAppState() & SDL_APPINPUTFOCUS)) {
         //LOGI("dont have the focus, dont treat inputs!");
@@ -341,6 +340,7 @@ void Game::eventsHandler() {
 
     while( SDL_PollEvent(&event) )
     {
+        bool handled = false;
 #if SAC_INGAME_EDITORS
         levelEditor->lock();
         if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
