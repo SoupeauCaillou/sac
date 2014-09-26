@@ -169,7 +169,7 @@ static void rememberInitialTransformation() {
 static void resetTransformations() {
     for (unsigned i=0; i<selectedInitialTransformation.size(); i++) {
         auto* anchor = theAnchorSystem.Get(selected[i]);
-        if (anchor) {
+        if (!anchor) {
             *TRANSFORM(selected[i]) = selectedInitialTransformation[i];
         } else {
             anchor->position = selectedInitialTransformation[i].position;
