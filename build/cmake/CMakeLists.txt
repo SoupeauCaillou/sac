@@ -72,6 +72,7 @@ message("Build target: " ${BUILD_TARGET})
 
 if (BUILD_TARGET STREQUAL "DEBUG")
     option(INGAME_EDITOR "Build with ingame-editor support" ON)
+    add_definitions(-D_GLIBCXX_DEBUG)
 else()
     option(INGAME_EDITOR "Build with ingame-editor support" OFF)
 endif()
