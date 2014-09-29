@@ -170,7 +170,7 @@ static void rememberInitialTransformation() {
 
 static void resetTransformations() {
     for (unsigned i=0; i<selectedInitialTransformation.size(); i++) {
-        auto* anchor = theAnchorSystem.Get(selected[i]);
+        auto* anchor = theAnchorSystem.Get(selected[i], false);
         if (!anchor) {
             *TRANSFORM(selected[i]) = selectedInitialTransformation[i];
         } else {
@@ -326,6 +326,16 @@ namespace Tool {
     };
 }
 Tool::Enum tool = Tool::None;
+namespace Modifier {
+    enum Enum {
+        None,
+        Global_X,
+        Local_X,
+        Global_Y,
+        Local_Y
+    };
+}
+Modifier::Enum modifier = Modifier::None;
 
 static glm::vec2 initialCursorPosition;
 static std::vector<std::pair<Entity, float>> hoveredEntities;
@@ -480,15 +490,18 @@ void LevelEditor::tick(float dt) {
                 || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
                 // cancel action
                 tool = Tool::None;
+                modifier = Modifier::None;
                 resetTransformations();
             } else if (tool != Tool::None && theTouchInputManager.hasClicked(0)) {
                 // confirm action
                 tool = Tool::None;
+                modifier = Modifier::None;
                 selectedInitialTransformation.clear();
                 theTouchInputManager.resetState();
 
             } else if (newTool != Tool::None) {
                 tool = newTool;
+                modifier = Modifier::None;
                 initialCursorPosition = theTouchInputManager.getOverLastPosition();
                 resetTransformations();
                 rememberInitialTransformation();
@@ -496,6 +509,42 @@ void LevelEditor::tick(float dt) {
         }
 
         const glm::vec2& mouseWorldPos = theTouchInputManager.getOverLastPosition();
+
+        if (tool == Tool::Move
+            || tool == Tool::Scale) {
+            if (kb->isKeyReleased(Key::ByName(SDLK_x))) {
+                initialCursorPosition = mouseWorldPos; // reset mouse displacement
+                switch (modifier) {
+                    case Modifier::None:
+                    case Modifier::Local_Y:
+                    case Modifier::Global_Y:
+                        modifier = Modifier::Global_X;
+                        break;
+                    case Modifier::Global_X:
+                        modifier = Modifier::Local_X;
+                        break;
+                    case Modifier::Local_X:
+                        modifier = Modifier::None;
+                        break;
+                }
+            } else if (kb->isKeyReleased(Key::ByName(SDLK_y))) {
+                initialCursorPosition = mouseWorldPos; // reset mouse displacement
+                switch (modifier) {
+                    case Modifier::None:
+                    case Modifier::Local_X:
+                    case Modifier::Global_X:
+                        modifier = Modifier::Global_Y;
+                        break;
+                    case Modifier::Global_Y:
+                        modifier = Modifier::Local_Y;
+                        break;
+                    case Modifier::Local_Y:
+                        modifier = Modifier::None;
+                        break;
+                }
+            }
+        }
+
         switch (tool) {
             case Tool::Move : {
                 glm::vec2 diff = mouseWorldPos - initialCursorPosition;
@@ -505,8 +554,28 @@ void LevelEditor::tick(float dt) {
                 for (unsigned i=0; i<selected.size(); i++) {
                     auto* anchor = theAnchorSystem.Get(selected[i], false);
                     glm::vec2* position = anchor ? &(anchor->position) : &TRANSFORM(selected[i])->position;
-                    (*position) =
-                        selectedInitialTransformation[i].position + diff;
+
+                    switch (modifier) {
+                        case Modifier::None:
+                            (*position) = selectedInitialTransformation[i].position + diff;
+                            break;
+                        case Modifier::Global_X:
+                            (*position).x = selectedInitialTransformation[i].position.x + diff.x;
+                            (*position).y = selectedInitialTransformation[i].position.y;
+                            break;
+                        case Modifier::Global_Y:
+                            (*position).x = selectedInitialTransformation[i].position.x;
+                            (*position).y = selectedInitialTransformation[i].position.y + diff.y;
+                            break;
+                        case Modifier::Local_X:
+                            (*position) = selectedInitialTransformation[i].position +
+                                glm::rotate(glm::vec2(glm::sign(diff.x) * glm::length(diff), 0.0f), selectedInitialTransformation[i].rotation);
+                            break;
+                        case Modifier::Local_Y:
+                            (*position) = selectedInitialTransformation[i].position +
+                                glm::rotate(glm::vec2(0.0f, glm::sign(diff.y) * glm::length(diff)), selectedInitialTransformation[i].rotation);
+                            break;
+                    }
                 }
                 break;
             }
@@ -525,12 +594,25 @@ void LevelEditor::tick(float dt) {
             }
             case Tool::Scale : {
                 for (unsigned i=0; i<selected.size(); i++) {
-                    float scale =
+                    glm::vec2 scale = glm::vec2(
                         glm::distance(mouseWorldPos, TRANSFORM(selected[i])->position) /
-                        glm::max(0.01f, glm::distance(initialCursorPosition, TRANSFORM(selected[i])->position));
+                        glm::max(0.01f, glm::distance(initialCursorPosition, TRANSFORM(selected[i])->position)));
 
-                    TRANSFORM(selected[i])->size =
-                        selectedInitialTransformation[i].size * scale;
+                    switch (modifier) {
+                        case Modifier::None:
+                            break;
+                        case Modifier::Global_X:
+                            scale.y = 1.0f;
+                            break;
+                        case Modifier::Global_Y:
+                            scale.x = 1.0f;
+                            break;
+                        case Modifier::Local_X:
+                        case Modifier::Local_Y:
+                            LOGT("To implement");
+                            break;
+                    }
+                    TRANSFORM(selected[i])->size = selectedInitialTransformation[i].size * scale;
                 }
                 break;
             }
@@ -632,6 +714,27 @@ void LevelEditor::tick(float dt) {
     if (!selected.empty()) {
         float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.0f;
         markEntities(&selected[0], selected.size(), Color(c,c,c,1.0f));
+
+        // draw modifier axis at entity 0, if any
+        if (modifier != Modifier::None) {
+        glm::vec2 axis;
+            switch (modifier) {
+                case Modifier::Global_X:
+                    axis = glm::vec2(1.0f, 0.0f);
+                    break;
+                case Modifier::Global_Y:
+                    axis = glm::vec2(0.0f, 1.0f);
+                    break;
+                case Modifier::Local_X:
+                    axis = glm::rotate(glm::vec2(1.0f, 0.0f), TRANSFORM(selected[0])->rotation);
+                    break;
+                case Modifier::Local_Y:
+                    axis = glm::rotate(glm::vec2(0.0f, 1.0f), TRANSFORM(selected[0])->rotation);
+            }
+
+            Draw::Vec2(HASH("__/mark", 0x683fdb7d),
+                selectedInitialTransformation[0].position - axis * theRenderingSystem.screenW, axis * ( 2 * theRenderingSystem.screenW ), Color(1.0f, 0.0, 0.0));
+        }
     }
 
     /* Time manipulation tools */
