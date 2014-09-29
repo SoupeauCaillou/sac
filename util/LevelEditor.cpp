@@ -625,7 +625,7 @@ void LevelEditor::tick(float dt) {
         }
     }
 
-    {
+    if (!selected.empty()) {
         float c = ((int)(2 * TimeUtil::GetTime()) % 2) ? 1.0f : 0.0f;
         markEntities(&selected[0], selected.size(), Color(c,c,c,1.0f));
     }
