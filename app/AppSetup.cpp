@@ -134,9 +134,7 @@ static void updateAndRender() {
 #else
 std::mutex m;
 
-static void updateLoop(const std::string& gameName) {
-    unsigned char * keys = SDL_GetKeyState(NULL);
-
+static void updateLoop(const std::string& ) {
     while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
 
 #if SAC_BENCHMARK_MODE
@@ -417,9 +415,6 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     std::thread th1(callback_thread, gameName);
     float prevT = 0;
-#if SAC_DEBUG
-    std::string currentHint = game->titleHint;
-#endif
 
 #if !SAC_BENCHMARK_MODE
     do {
@@ -431,15 +426,6 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         Recorder::Instance().record(t - prevT);
 #endif
         prevT = t;
-
-#if SAC_DEBUG
-        if (game->titleHint != currentHint) {
-            std::stringstream str;
-            str << gameName;
-            str << " / " << (currentHint = game->titleHint);
-            SDL_WM_SetCaption(str.str().c_str(), 0);
-        }
-#endif
     } while (!m.try_lock());
 #endif
     th1.join();

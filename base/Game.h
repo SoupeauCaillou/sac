@@ -23,7 +23,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <string>
 #include <vector>
 #include <set>
 #include "GameContext.h"
@@ -73,7 +72,7 @@ class Game {
         virtual void togglePause(bool) { }
 
     protected:
-        void loadFont(AssetAPI* asset, const std::string& name);
+        void loadFont(AssetAPI* asset, const char* name);
 
     public:
         GameContext* gameThreadContext, *renderThreadContext;
@@ -101,11 +100,6 @@ class Game {
 #if SAC_INGAME_EDITORS
         GameType::Enum gameType;
         LevelEditor* levelEditor;
-#endif
-#if SAC_DEBUG
-    public:
-        std::string titleHint;
-        void setTitleHint(const std::string& s) { titleHint = s; }
 #endif
     public:
         void buildOrderedSystemsToUpdateList();

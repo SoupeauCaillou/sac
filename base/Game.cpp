@@ -419,11 +419,14 @@ void Game::eventsHandler() {
 #endif
 }
 
-void Game::loadFont(AssetAPI* asset, const std::string& name) {
-    FileBuffer file = asset->loadAsset(name + ".font");
+void Game::loadFont(AssetAPI* asset, const char* name) {
+    char tmp[1024];
+    strncpy(tmp, name, 1024);
+    strncat(tmp, ".font", 1024);
+    FileBuffer file = asset->loadAsset(tmp);
     DataFileParser dfp;
-    if (!dfp.load(file, name + ".font")) {
-        LOGE("Invalid font description file: " << name);
+    if (!dfp.load(file, tmp)) {
+        LOGE("Invalid font description file: " << tmp);
         return;
     }
 
@@ -448,7 +451,7 @@ void Game::loadFont(AssetAPI* asset, const std::string& name) {
     // h2wratio[0x97] = 1;
 
     LOGV(1, "Loaded font: " << name << ". Found: " << h2wratio.size() << " entries");
-    theTextSystem.registerFont(name.c_str(), h2wratio);
+    theTextSystem.registerFont(name, h2wratio);
 }
 
 void Game::sacInit(int windowW, int windowH) {
@@ -487,7 +490,7 @@ void Game::sacInit(int windowW, int windowH) {
             ".font");
         LOGV(1, "Autoloading " << fonts.size() << " fonts");
         std::for_each(fonts.begin(), fonts.end(), [this] (const std::string& typo) -> void {
-            loadFont(renderThreadContext->assetAPI, typo);
+            loadFont(renderThreadContext->assetAPI, typo.c_str());
         });
 
     }
