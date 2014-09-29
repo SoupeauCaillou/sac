@@ -537,6 +537,14 @@ void Game::sacInit(int windowW, int windowH) {
 #if SAC_INGAME_EDITORS
     levelEditor->init(gameThreadContext->keyboardInputHandlerAPI);
 #endif
+
+    LOGV(1, "Creating default camera");
+    camera = theEntityManager.CreateEntity(HASH("camera", 0x526b9e0c));
+    ADD_COMPONENT(camera, Camera);
+    CAMERA(camera)->enable = true;
+    ADD_COMPONENT(camera, Transformation);
+    TRANSFORM(camera)->size = PlacementHelper::ScreenSize;
+    theTouchInputManager.setCamera(camera);
 }
 
 int Game::saveState(uint8_t**) {

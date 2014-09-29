@@ -27,6 +27,7 @@
 #include <vector>
 #include <set>
 #include "GameContext.h"
+#include "base/Entity.h"
 
 class AssetApi;
 class ComponentSystem;
@@ -76,6 +77,7 @@ class Game {
 
     public:
         GameContext* gameThreadContext, *renderThreadContext;
+        Entity camera;
 
         //tough... only needed for mouse events handling
         MouseNativeTouchState * mouseNativeTouchState;
