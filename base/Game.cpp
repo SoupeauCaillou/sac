@@ -545,6 +545,7 @@ void Game::sacInit(int windowW, int windowH) {
     camera = theEntityManager.CreateEntity(HASH("camera", 0x526b9e0c));
     ADD_COMPONENT(camera, Camera);
     CAMERA(camera)->enable = true;
+    CAMERA(camera)->clearColor = Color(0.5, 0.5, 0.5);
     ADD_COMPONENT(camera, Transformation);
     TRANSFORM(camera)->size = PlacementHelper::ScreenSize;
     theTouchInputManager.setCamera(camera);

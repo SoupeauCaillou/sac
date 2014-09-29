@@ -67,6 +67,7 @@ int LevelEditor::DebugAreaHeight =
 static bool gridVisible = false;
 static void showGrid();
 static void hideGrid();
+static glm::vec2 previousCameraPosition;
 
 #define LEFT_PROPORTION  0.35
 #define RIGHT_PROPORTION 0.65
@@ -282,7 +283,6 @@ static void DumpSystemEntities(void *clientData) {
 }
 
 void LevelEditor::init(KeyboardInputHandlerAPI *k) {
-    LOGT(" * select entity with RMB\n * 2 buttons save all entities, save selected");
     kb = k;
     ImGui::GetStyle().WindowRounding = 0;
 
@@ -498,11 +498,15 @@ void LevelEditor::tick(float dt) {
         const glm::vec2& mouseWorldPos = theTouchInputManager.getOverLastPosition();
         switch (tool) {
             case Tool::Move : {
+                glm::vec2 diff = mouseWorldPos - initialCursorPosition;
+                if (kb->isKeyPressed(Key::ByName(SDLK_LCTRL))) {
+                    diff = glm::round(diff);
+                }
                 for (unsigned i=0; i<selected.size(); i++) {
                     auto* anchor = theAnchorSystem.Get(selected[i], false);
                     glm::vec2* position = anchor ? &(anchor->position) : &TRANSFORM(selected[i])->position;
                     (*position) =
-                        selectedInitialTransformation[i].position + mouseWorldPos - initialCursorPosition;
+                        selectedInitialTransformation[i].position + diff;
                 }
                 break;
             }
@@ -681,6 +685,14 @@ void LevelEditor::tick(float dt) {
         ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
     }
 
+    if (gridVisible) {
+        Entity camera = theCameraSystem.RetrieveAllEntityWithComponent()[0];
+        if (glm::distance(TRANSFORM(camera)->position, previousCameraPosition) > 0.01) {
+            hideGrid();
+            showGrid();
+        }
+    }
+
     /* Camera control */
     if (ImGui::CollapsingHeader("Cameras", NULL, true, true)) {
         static int currentCamera = 0;
@@ -784,156 +796,32 @@ static void markEntities(Entity* begin, int count, Color color) {
     }
 }
 
-void LevelEditor::LevelEditorDatas::updateModeSelection(float /*dt*/, const glm::vec2& /*mouseWorldPos*/, int /*wheelDiff*/) {
-#if 0
-    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
-        if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE) {
-            if (selected)
-                selectedOriginalPos = TRANSFORM(selected)->position;
-            over = 0;
-
-            std::vector<Entity> entities = theRenderingSystem.RetrieveAllEntityWithComponent();
-            float nearest = 10000;
-            for (unsigned i=0; i<entities.size(); i++) {
-                if (entities[i] == overDisplay || entities[i] == selectionDisplay)
-                    continue;
-                if (entities[i] == selected)
-                    continue;
-                if (!RENDERING(entities[i])->show)
-                    continue;
-                if (IntersectionUtil::pointRectangle(mouseWorldPos, TRANSFORM(entities[i])->worldPosition, TRANSFORM(entities[i])->size)) {
-                    float d = glm::distance(mouseWorldPos, TRANSFORM(entities[i])->worldPosition);
-                    if (d < nearest) {
-                        over = entities[i];
-                        nearest = d;
-                    }
-                }
-            }
-
-            if (over) {
-                TRANSFORM(overDisplay)->parent = over;
-                TRANSFORM(overDisplay)->size = TRANSFORM(over)->size + glm::vec2(0.1f);
-                RENDERING(overDisplay)->show = true;
-            } else {
-                RENDERING(overDisplay)->show = false;
-            }
-        } else {
-            if (over) {
-                if (selected)
-                    deselect(selected);
-                selected = over;
-                LOGI("Selected entity: '" << theEntityManager.entityName(selected) << "'")
-                select(selected);
-                over = 0;
-                RENDERING(overDisplay)->show = false;
-            }
-        }
-    }
-#if 0
-    else {
-        if (selected) {
-            TRANSFORM(selected)->position = selectedOriginalPos + mouseWorldPos - lastMouseOverPosition;
-        }
-    }
-
-    if (selected) {
-        if (wheelDiff) {
-            bool shift = glfwGetKey( GLFW_KEY_LSHIFT );
-            bool ctrl = glfwGetKey( GLFW_KEY_LCTRL );
-
-            if (!shift && !ctrl) {
-                TRANSFORM(selected)->rotation += 2 * wheelDiff * dt;
-            } else {
-                if (shift) {
-                    TRANSFORM(selected)->size.X *= (1 + 1 * wheelDiff * dt);
-                }
-                if (ctrl) {
-                    TRANSFORM(selected)->size.Y *= (1 + 1 * wheelDiff * dt);
-                }
-            }
-        }
-    }
-#endif
-#if 0
-    // camera movement
-    {
-        RenderingSystem::Camera& camera = theRenderingSystem.cameras[activeCameraIndex];
-        float moveSpeed = glfwGetKey(GLFW_KEY_LSHIFT) ? 1 : 0.25;
-        if (glfwGetKey(GLFW_KEY_LEFT)) {
-            camera.worldPosition.X -= moveSpeed * camera.worldSize.X * dt;
-        } else if (glfwGetKey(GLFW_KEY_RIGHT)) {
-            camera.worldPosition.X += moveSpeed * camera.worldSize.X * dt;
-        }
-        if (glfwGetKey(GLFW_KEY_DOWN)) {
-            camera.worldPosition.Y -= moveSpeed * camera.worldSize.Y  * dt;
-        } else if (glfwGetKey(GLFW_KEY_UP)) {
-            camera.worldPosition.Y += moveSpeed * camera.worldSize.Y * dt;
-        }
-        float zoomSpeed = glfwGetKey(GLFW_KEY_LSHIFT) ? 2 : 1.1;
-        if (glfwGetKey(GLFW_KEY_KP_ADD)) {
-            camera.worldSize *= 1 - zoomSpeed * dt;
-        } else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT)) {
-            camera.worldSize *= 1 + zoomSpeed * dt;
-        }
-    }
-    // camera switching
-    {
-        for (unsigned i=0; i<theRenderingSystem.cameras.size(); i++) {
-            if (glfwGetKey(GLFW_KEY_KP_1 + i) && i != activeCameraIndex) {
-                LOGI("new active cam: " << i);
-                theRenderingSystem.cameras[activeCameraIndex].enable = false;
-                activeCameraIndex = i;
-                theRenderingSystem.cameras[activeCameraIndex].enable = true;
-                break;
-            }
-        }
-    }
-    // adding entities
-    if (glfwGetKey(GLFW_KEY_SPACE)) {
-        spaceWasPressed = true;
-    } else if (spaceWasPressed) {
-        spaceWasPressed = false;
-        if (!selected) {
-            // Add new entity
-            Entity e = theEntityManager.CreateEntity();
-            ADD_COMPONENT(e, Transformation);
-            TRANSFORM(e)->position = theRenderingSystem.cameras[activeCameraIndex].worldPosition;
-            TRANSFORM(e)->z = 0.95;
-            ADD_COMPONENT(e, Rendering);
-            RENDERING(e)->show = true;
-            selected = e;
-        } else
-            changeMode(EditorMode::Gallery);
-    }
-#endif
-#endif
-}
-
 static void showGrid() {
-    glm::vec2 topLeft = glm::vec2(-3 * theRenderingSystem.screenW, 3 * theRenderingSystem.screenH);
-    topLeft.x = floor(topLeft.x); topLeft.y = ceil(topLeft.y);
-    for (int i=0; i<=ceil(theRenderingSystem.screenW * 6); i++) {
-        Color c(0.2, 0.2, 0.2, 0.2);
-        if (i == ceil(theRenderingSystem.screenW * 6) / 2) {
-            c.g = c.b = 0.1; c.a = 0.5;
-        }
-        Draw::Vec2(HASH("__/grid", 0xa467b7c), topLeft + glm::vec2(i, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), c);
+    Entity camera = theCameraSystem.RetrieveAllEntityWithComponent()[0];
+    Color line = CAMERA(camera)->clearColor;
+    for (int i=0; i<3; i++) { line.rgba[i] -= 0.2; }
 
-        /*for (int j=1; j<=4; j++) {
-            Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(i + j * 0.2, 0), glm::vec2(0, -theRenderingSystem.screenH * 6), Color(0.2, 0.2, 0.2, 0.08));
-        }*/
+    previousCameraPosition = TRANSFORM(camera)->position;
+    previousCameraPosition.x = glm::round(previousCameraPosition.x);
+    previousCameraPosition.y = glm::round(previousCameraPosition.y);
+
+    glm::vec2 bottomLeft = previousCameraPosition - 0.5f * glm::vec2(theRenderingSystem.screenW, theRenderingSystem.screenH);
+    bottomLeft.x = floor(bottomLeft.x); bottomLeft.y = floor(bottomLeft.y);
+
+    for (int i=0; i<=ceil(theRenderingSystem.screenW + 1); i++) {
+        Color c(line.r, line.g, line.b, 0.2);
+        if (((int)bottomLeft.x + i) == 0) {
+            c.a = 0.8;
+        }
+        Draw::Vec2(HASH("__/grid", 0xa467b7c), bottomLeft + glm::vec2(i, 0), glm::vec2(0, theRenderingSystem.screenH + 1), c);
     }
 
-    for (int i=0; i<=ceil(theRenderingSystem.screenH * 6); i++) {
-        Color c(0.2, 0.2, 0.2, 0.2);
-        if (i == ceil(theRenderingSystem.screenH * 6) / 2) {
-            c.g = c.b = 0.1; c.a = 0.5;
+    for (int i=0; i<=theRenderingSystem.screenH + 1; i++) {
+        Color c(line.r, line.g, line.b, 0.2);
+        if (((int)bottomLeft.y + i) == 0) {
+            c.a = 0.8;
         }
-        Draw::Vec2(HASH("__/grid", 0xa467b7c), topLeft + glm::vec2(0, -i), glm::vec2(theRenderingSystem.screenW * 6, 0), c);
-
-        /*for (int j=1; j<=4; j++) {
-            Draw::Vec2(HASH("__grid", 0xc37ceaec), topLeft + glm::vec2(0, -i - j * 0.2), glm::vec2(theRenderingSystem.screenW * 6, 0), Color(0.2, 0.2, 0.2, 0.08));
-        }*/
+        Draw::Vec2(HASH("__/grid", 0xa467b7c), bottomLeft + glm::vec2(0, i), glm::vec2(theRenderingSystem.screenW + 1, 0), c);
     }
 }
 
