@@ -33,6 +33,7 @@
 #include "base/Game.h"
 #include "util/Draw.h"
 #include "util/Random.h"
+#include "util/Recorder.h"
 #include "api/KeyboardInputHandlerAPI.h"
 
 #include <SDL/SDL_keysym.h>
@@ -845,6 +846,29 @@ void LevelEditor::tick(float dt) {
         ImGui::Value("y", (int)windowPosition.y);
 
         ImGui::Columns(1);
+    }
+
+    {
+        ImGui::CollapsingHeader("Record");
+        static bool recordWholeWindow = true;
+        if (Recorder::Instance().isRecording()) {
+            if (ImGui::Button("Stop (F8)") || kb->isKeyReleased(Key::ByName(SDLK_F8))) {
+                Recorder::Instance().stop();
+                Recorder::Instance().deinit();
+            }
+        } else {
+            if (ImGui::Button("Start (F8)") || kb->isKeyReleased(Key::ByName(SDLK_F8))) {
+                if (recordWholeWindow) {
+                    Recorder::Instance().init();
+                } else {
+                    glm::vec2 position = GameViewPosition();
+                    position.y = (theRenderingSystem.windowH + DebugAreaHeight) - (position.y + theRenderingSystem.windowH);
+                    Recorder::Instance().init(position, glm::vec2(theRenderingSystem.windowW, theRenderingSystem.windowH));
+                }
+                Recorder::Instance().start();
+            }
+        }
+        ImGui::Checkbox("Include editor", &recordWholeWindow);
     }
 
     imguiInputFilter();

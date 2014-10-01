@@ -388,11 +388,6 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     theRenderingSystem.enableRendering();
 #endif
 
-#if SAC_LINUX && SAC_DESKTOP
-    Recorder::Instance().init(resolution.x, resolution.y);
-#endif
-
-
     LOGV(1, "Run game loop");
 
     SDL_EnableUNICODE(1);

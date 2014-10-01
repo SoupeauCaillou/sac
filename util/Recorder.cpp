@@ -31,6 +31,11 @@
 #include "base/Profiler.h"
 #include "base/Log.h"
 #include "base/TimeUtil.h"
+#include "systems/RenderingSystem.h"
+
+#if SAC_INGAME_EDITORS
+#include "util/LevelEditor.h"
+#endif
 
 #define VPX_CODEC_DISABLE_COMPAT 1
 #define interface (vpx_codec_vp8_cx())
@@ -153,15 +158,30 @@ Recorder & Recorder::Instance() {
     return instance;
 }
 
-void Recorder::init(int width, int height){
-    this->width = width;
-    this->height = height;
+void Recorder::init(const glm::vec2& offset, const glm::vec2& size) {
+    captureSize = size;
+
+    if (captureSize.x == 0 && captureSize.y == 0) {
+        captureSize.x = theRenderingSystem.windowW;
+        captureSize.y = theRenderingSystem.windowH;
+#if SAC_INGAME_EDITORS
+        captureSize.x += LevelEditor::DebugAreaWidth;
+        captureSize.y += LevelEditor::DebugAreaHeight;
+#endif
+    }
+    captureOffset = offset;
     outfile = NULL;
     recording = false;
     flags = 0;
 
-    initOpenGl_PBO();
     initVP8();
+}
+
+void Recorder::deinit() {
+    th1.join();
+    vpx_codec_destroy(&codec);
+    vpx_img_free (&raw);
+
 }
 
 Recorder::~Recorder(){
@@ -170,19 +190,25 @@ Recorder::~Recorder(){
             //~ LOGE("pthread_cancel error for thread");
         //~ }
     }
-    vpx_codec_destroy(&codec);
-    vpx_img_free (&raw);
-
     GL_OPERATION(glDeleteBuffers(PBO_COUNT, pboIds))
 }
 
 bool Recorder::initOpenGl_PBO (){
     // init PBOs
+    int size =
+#if SAC_INGAME_EDITORS
+        (theRenderingSystem.windowW + LevelEditor::DebugAreaWidth) *
+        (theRenderingSystem.windowH + LevelEditor::DebugAreaHeight) *
+        CHANNEL_COUNT;
+#else
+        theRenderingSystem.windowW * theRenderingSystem.windowH * CHANNEL_COUNT;
+#endif
+
     GL_OPERATION(glGenBuffers(PBO_COUNT, pboIds))
     GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]))
-    GL_OPERATION(glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ))
+    GL_OPERATION(glBufferData(GL_PIXEL_PACK_BUFFER, size, 0, GL_STREAM_READ))
     GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]))
-    GL_OPERATION(glBufferData(GL_PIXEL_PACK_BUFFER, width*height*CHANNEL_COUNT, 0, GL_STREAM_READ))
+    GL_OPERATION(glBufferData(GL_PIXEL_PACK_BUFFER, size, 0, GL_STREAM_READ))
 
     return true;
 }
@@ -197,8 +223,8 @@ bool Recorder::initVP8 (){
     }
     /* Update the default configuration with our settings */
     cfg.rc_target_bitrate =2000;//(width*height*3*8*30) /1000;
-    cfg.g_w = width;
-    cfg.g_h = height;
+    cfg.g_w = (int)captureSize.x;
+    cfg.g_h = (int)captureSize.y;
     cfg.kf_mode = VPX_KF_AUTO;
     cfg.kf_max_dist = 300;
     cfg.g_pass = VPX_RC_ONE_PASS; /* -p 1 */
@@ -224,7 +250,7 @@ bool Recorder::initVP8 (){
         }
     }
 
-    if (!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1)){
+    if (!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, cfg.g_w, cfg.g_h, 1)){
         LOGE("Failed to allocate image");
         return false;
     }
@@ -289,6 +315,10 @@ void Recorder::record(float dt){
     static int index = 0;
 
     if (recording && outfile){
+        if (pboIds[0] == 0) {
+            initOpenGl_PBO();
+        }
+
         frameGrabAccum += dt;
 
         if (frameGrabAccum >= TIME_BETWEEN_FRAME) {
@@ -301,20 +331,22 @@ void Recorder::record(float dt){
             // set the target framebuffer to read
             GL_OPERATION(glReadBuffer(GL_FRONT))
 
+            const int w = (int)captureSize.x;
+            const int h = (int)captureSize.y;
             // read pixels from framebuffer to PBO
             // glReadPixels() should return immediately.
             GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]))
-            GL_OPERATION(glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, 0))
+            GL_OPERATION(glReadPixels((int)captureOffset.x, (int)captureOffset.y, w, h, GL_BGRA, GL_UNSIGNED_BYTE, 0))
             PROFILE("Recorder", "read-request", EndEvent);
             PROFILE("Recorder", "read-back", BeginEvent);
             // map the PBO to process its data by CPU
             GL_OPERATION(glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]))
-            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER,
-                                                    GL_READ_ONLY);
+            GLubyte* ptr = NULL;
+            GL_OPERATION (ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY))
             if(ptr)
             {
-                GLubyte *test = new GLubyte[width*height * CHANNEL_COUNT];
-                memcpy (test, ptr, width*height*CHANNEL_COUNT );
+                GLubyte *test = new GLubyte[w*h * CHANNEL_COUNT];
+                memcpy (test, ptr, w*h*CHANNEL_COUNT );
 
                 mutex_buf.lock();
                 buf.push(test);
@@ -384,8 +416,8 @@ void Recorder::addFrame(GLubyte *ptr){
         //retrieve cursor position
         int x, y;
         SDL_GetMouseState(&x, &y);
-        drawPoint(ptr, width, height, CHANNEL_COUNT, x, y);
-        RGB_To_YV12(ptr, width, height, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
+        drawPoint(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, x, y);
+        RGB_To_YV12(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
     }
 
 

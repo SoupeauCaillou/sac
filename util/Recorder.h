@@ -43,6 +43,7 @@ class Recorder {
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>
 
+#include "glm/glm.hpp"
 #include "systems/opengl/OpenglHelper.h"
 
 class Recorder {
@@ -51,13 +52,15 @@ class Recorder {
         static const int CHANNEL_COUNT = 4;
 
         static Recorder & Instance();
-        void init(int width, int height);
+        void deinit();
 
         ~Recorder();
 
+        void init(const glm::vec2& captureOffset = glm::vec2(0.0f), const glm::vec2& captureSize = glm::vec2(0.0f));
         void start();
         void stop();
         void toggle();
+        bool isRecording() const { return recording; }
 
         void record(float dt);
 
@@ -71,7 +74,7 @@ class Recorder {
         bool initOpenGl_PBO();
         bool initSound();
 
-        int width, height;
+        glm::vec2 captureOffset, captureSize;
         bool recording;
         float recordingStartTime;
         float frameGrabAccum;
