@@ -1,11 +1,19 @@
 sac
 ===
 
-*sac* is [Soupe au Caillou](http://soupeaucaillou)'s game engine, featuring:
+*sac* is [Soupe au Caillou](http://soupeaucaillou)'s 2D game engine, featuring:
 * C++, OpenGL, cmake
 * multiplatform: Android, Linux, Mac, Windows and HTML5 (using [emscripten](http://emscripten.org/))
 * Entity/System paradigm
 * in game editor (a simple one though)
+
+Games using sac
+-------------------
+* Recursive Runner is an Android runner game [(grab it!)](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.recursiveRunner) where your main obstacle is yourself! Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
+
+* Heriswap is an Android match-3 game [(grab it!)](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.heriswap) which wants to be zen and smooth. Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
+
+* Assault serie is a set of tactical turn-based wargames during the WWII. A demo [Headquarters](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.headquarters) is available. First episode [Normandy](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.normandy) and second episode [Bastogne](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.bastogne) are available on the market too.
 
 Quick Start (Linux)
 -------------------
@@ -111,5 +119,5 @@ Which is a simple *sac* macro to handle offline hash computation. See [this arti
 
 Systems
 -------
-TBD: document each system, or at least a small usage example for each
+TBD: document each system, or at least a small usage example for each.
 
