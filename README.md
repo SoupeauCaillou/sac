@@ -25,7 +25,7 @@ include(sac/build/cmake/CMakeLists.txt)
 ```
 
 * Add a simple class (sources/TestGame.h)
-```
+```C++
 #pragma once
 #include "base/Game.h"
 
@@ -61,7 +61,7 @@ An entity is an id, a component is data-store for a system and a system is where
 
 Let's try to make our TestGame a little more impressive.
 
-```
+```C++
 /* Necessary includes */
 #include "PrototypeGame.h"
 #include "base/EntityManager.h"
@@ -71,9 +71,9 @@ Let's try to make our TestGame a little more impressive.
 #include "systems/RenderingSystem.h"
 #include "systems/PhysicsSystem.h"
 
-void PrototypeGame::init(const uint8_t*, int) {
+void TestGame::init(const uint8_t*, int) {
     /* Create an entity */
-    falling = theEntityManager.CreateEntity(HASH("falling", 0x82f4eb06));
+    Entity falling = theEntityManager.CreateEntity(HASH("falling", 0x82f4eb06));
     /* Add the TransformationComponent to 'falling' entity */
     ADD_COMPONENT(falling, Transformation);
     /* TransformationComponent has a few properties, but
@@ -104,11 +104,12 @@ Hashes
 *sac* tries to limit the use of string (both char* and std::string) at runtime, so most of the time it uses an hash_t type instead. To keep things more user-readable, in debug-build we have a hash-lookup mechanism to display proper strings instead of cryptic hashcode.
 
 In the example above, the entity name given to the CreateEntity method is:
-```
+```C++
 HASH("falling", 0x82f4eb06)
 ```
-Which is a simple *sac* macro to handle offline hash computation. See (this article)[http://bitsquid.blogspot.fr/2010/10/static-hash-values.html] for more background on the topic (and *constexpr* from c++11 couldn't be used because it seems there's no way to force the compiler to evaluate a constexpr)
+Which is a simple *sac* macro to handle offline hash computation. See [this article](http://bitsquid.blogspot.fr/2010/10/static-hash-values.html) for more background on the topic (and *constexpr* from c++11 couldn't be used because it seems there's no way to force the compiler to evaluate a constexpr)
 
 Systems
 -------
+TBD: document each system, or at least a small usage example for each
 
