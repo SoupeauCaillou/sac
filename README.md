@@ -20,13 +20,14 @@ Quick Start (Linux)
 
 * Clone repository
 
-```
+```sh
 mkdir mygame && cd mygame
 git clone --recursive  git@github.com:SoupeauCaillou/sac.git
 ```
 
 * Create minimum CMakeList.txt file
-```
+
+```cmake
 cmake_minimum_required(VERSION 2.8)
 project(Test)
 include(sac/build/cmake/CMakeLists.txt)
@@ -45,7 +46,8 @@ class TestGame : public Game {
 ```
 
 * Build:
-```
+
+```sh
 mkdir build
 cd build
 cmake ..
@@ -53,7 +55,8 @@ make
 ```
 
 * And run:
-```
+
+```sh
 ./TestGame
 ```
 
