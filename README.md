@@ -9,11 +9,11 @@ sac
 
 Games using sac
 -------------------
-* Recursive Runner is an Android runner game [(grab it!)](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.recursiveRunner) where your main obstacle is yourself! Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
+* Heriswap is an Android match-3 game ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.heriswap) or [F-droid](https://f-droid.org/repository/browse/?fdid=net.damsy.soupeaucaillou.heriswap) or [direct link](http://soupeaucaillou.com/games/heriswap.apk)) which wants to be zen and smooth. Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
 
-* Heriswap is an Android match-3 game [(grab it!)](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.heriswap) which wants to be zen and smooth. Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
+* Recursive Runner is an Android runner game ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.recursiveRunner) or [F-droid soon](https://github.com/SoupeauCaillou/recursive-runner/issues/1) or [direct link](http://soupeaucaillou.com/games/recursive_runner.apk)) where your main obstacle is yourself! Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
 
-* Assault serie is a set of tactical turn-based wargames during the WWII. A demo [Headquarters](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.headquarters) is available. First episode [Normandy](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.normandy) and second episode [Bastogne](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.bastogne) are available on the market too.
+* Assault serie is a set of tactical turn-based wargames during the WWII. A demo Headquarters ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.headquarters)) is available, first episode Normandy ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.normandy)) and also second episode Bastogne ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.warbler.assault.bastogne)) are available on the market.
 
 Quick Start (Linux)
 -------------------
