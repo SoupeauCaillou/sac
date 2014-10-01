@@ -121,6 +121,30 @@ HASH("falling", 0x82f4eb06)
 Which is a simple *sac* macro to handle offline hash computation. See [this article](http://bitsquid.blogspot.fr/2010/10/static-hash-values.html) for more background on the topic (and *constexpr* from c++11 couldn't be used because it seems there's no way to force the compiler to evaluate a constexpr)
 
 Systems
--------
+=======
 TBD: document each system, or at least a small usage example for each.
+AnchorSystem
+------------
+Useful when you need to attach an entity to another.
+Here's a quick example:
+```
+    ANCHOR(child[0])->position = glm::vec2(0.0f);
+    ANCHOR(child[0])->rotation = 0.35;
+    /* attach at upper-right corner of parent */
+    ANCHOR(child[1])->position = glm::vec2(2.5, 2.5);
 
+    /* attach at upper-right corner of parent too...*/
+    ANCHOR(child[2])->position = ANCHOR(child[1])->position;
+    /* but the attach point is bottom-left corner of child[2] */
+    ANCHOR(child[2])->anchor = glm::vec2(-1, -1);
+    ANCHOR(child[2])->rotation = glm::pi<float>() * 0.25;
+
+    /* attach at bottom-left corner of child[3] */
+    ANCHOR(child[3])->position = -ANCHOR(child[1])->position;
+    /* and adjust anchor point in order to have child[3] fitting
+       entirely in parent */
+    ANCHOR(child[3])->anchor = glm::vec2(-1, -1);
+```
+
+And what the output should look like:
+![screenshot anchor](http://soupeaucaillou.com/screenshots/screenshot_anchor.gif)
