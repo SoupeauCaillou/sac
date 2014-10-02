@@ -126,25 +126,46 @@ TBD: document each system, or at least a small usage example for each.
 AnchorSystem
 ------------
 Useful when you need to attach an entity to another.
+The 2 most useful properties are :
+- *position*: the position in parent's coordinate where the child will attach (default: center of parent)
+- *anchor*: the anchor point in child local coordinate (default: center of child)
+
 Here's a quick example:
+```C++
+    /* Entities (parent child) creation code omitted */
+    TRANSFORM(parent)->size = glm::vec2(5.0f);
+    TRANSFORM(child)->size = glm::vec2(2.0f);
+
+    /* example is a looping int [0, 3] */
+    switch (example) {
+        case 0:
+            /* Simplest usage, attach child at center of parent */
+            ANCHOR(child)->position = glm::vec2(0.0f);
+            ANCHOR(child)->anchor = glm::vec2(0.0f);
+            TEXT(child)->text = "1st case";
+            break;
+        case 1:
+            /* Attach at upper-right corner of parent */
+            ANCHOR(child)->position = glm::vec2(2.5, 2.5);
+            ANCHOR(child)->anchor = glm::vec2(0.0f);
+            TEXT(child)->text = "2nd case";
+            break;
+        case 2:
+            /* Attach at upper-right corner of parent */
+            ANCHOR(child)->position = glm::vec2(2.5, 2.5);
+            /* But the attach point is bottom-left corner of child */
+            ANCHOR(child)->anchor = glm::vec2(-1, -1);
+            TEXT(child)->text = "3rd case";
+            break;
+        case 3:
+            /* bottom-left corner of parent */
+            ANCHOR(child)->position = - glm::vec2(2.5, 2.5);
+            /* bottom-left corner of child[3] */
+            ANCHOR(child)->anchor = glm::vec2(-1, -1);
+            TEXT(child)->text = "4th case";
+            break;
+    }
 ```
-    ANCHOR(child[0])->position = glm::vec2(0.0f);
-    ANCHOR(child[0])->rotation = 0.35;
-    /* attach at upper-right corner of parent */
-    ANCHOR(child[1])->position = glm::vec2(2.5, 2.5);
 
-    /* attach at upper-right corner of parent too...*/
-    ANCHOR(child[2])->position = ANCHOR(child[1])->position;
-    /* but the attach point is bottom-left corner of child[2] */
-    ANCHOR(child[2])->anchor = glm::vec2(-1, -1);
-    ANCHOR(child[2])->rotation = glm::pi<float>() * 0.25;
-
-    /* attach at bottom-left corner of child[3] */
-    ANCHOR(child[3])->position = -ANCHOR(child[1])->position;
-    /* and adjust anchor point in order to have child[3] fitting
-       entirely in parent */
-    ANCHOR(child[3])->anchor = glm::vec2(-1, -1);
-```
-
-And what the output should look like:
+And what the output should look like (white squares are anchor point):
 ![screenshot anchor](http://soupeaucaillou.com/screenshots/screenshot_anchor.gif)
