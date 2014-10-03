@@ -148,7 +148,9 @@ struct LevelEditor::LevelEditorDatas {
     std::set<std::string> logControlFiles;
 #endif
 
-    void updateModeSelection(float dt, const glm::vec2& mouseWorldPos, int wheelDiff);
+    std::vector<RenderingSystem::RenderCommand> backInTime;
+    std::vector<std::pair<int, int>> backInTimeFrameOffsetSize;
+    int currentBackFrame;
 };
 
 std::vector<Entity> selected;
@@ -264,6 +266,7 @@ LevelEditor::LevelEditor(Game* _game) {
     datas->activeCameraIndex = 0;
     datas->mode = EditorMode::Selection;
     datas->selectionColorChangeSpeed = -0.5;
+    datas->currentBackFrame = -1;
     game = _game;
 
 }
@@ -749,6 +752,24 @@ void LevelEditor::tick(float dt) {
                 ImGui::Button("Editor (F2)");
                 ImGui::PopStyleColor();
                 if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Replay (F4)") || kb-> isKeyReleased(Key::ByName(SDLK_F4))) {
+                    datas->currentBackFrame = datas->backInTimeFrameOffsetSize.size() - 1;
+                    game->gameType = GameType::Replay;
+                }
+                break;
+            case GameType::Replay:
+                if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(Key::ByName(SDLK_F1)) ) game->gameType = GameType::Default;
+                if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(Key::ByName(SDLK_F2))) {
+                    if (!gridVisible) {
+                        showGrid();
+                        gridVisible = true;
+                    }
+                    game->gameType = GameType::LevelEditor;
+                }
+                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::Button("Replay (F4)");
+                ImGui::PopStyleColor();
                 break;
             case GameType::SingleStep:
                 game->gameType = GameType::SingleStep;
@@ -765,6 +786,10 @@ void LevelEditor::tick(float dt) {
                     game->gameType = GameType::LevelEditor;
                 }
                 if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Replay (F4)") || kb-> isKeyReleased(Key::ByName(SDLK_F4))) {
+                    datas->currentBackFrame = datas->backInTimeFrameOffsetSize.size() - 1;
+                    game->gameType = GameType::Replay;
+                }
         }
     }
 
@@ -879,6 +904,40 @@ void LevelEditor::tick(float dt) {
         }
         ImGui::Checkbox("Include editor", &recordWholeWindow);
     }
+    if (game->gameType == GameType::Replay) {
+        static int playback = 0;
+
+        if (ImGui::CollapsingHeader("Replay")) {
+            ImGui::Text("Frame %d/%d", datas->currentBackFrame + 1, (int)datas->backInTimeFrameOffsetSize.size());
+            if (playback == 0) {
+                if (ImGui::Button("Backward <")) {
+                    playback = -1;
+                }
+                if (ImGui::Button("Forward >")) {
+                    playback = 1;
+                }
+
+                if (kb->isKeyPressed(Key::ByName(SDLK_LEFT)))
+                    datas->currentBackFrame--;
+                if (kb->isKeyPressed(Key::ByName(SDLK_RIGHT)))
+                    datas->currentBackFrame++;
+
+
+            } else {
+                if (ImGui::Button("Pause")) {
+                    playback = 0;
+                }
+            }
+        }
+        int old = datas->currentBackFrame;
+        datas->currentBackFrame = glm::max(
+            0,
+            glm::min(
+                (int)datas->backInTimeFrameOffsetSize.size() - 1,
+                datas->currentBackFrame + playback)
+            );
+        if (datas->currentBackFrame == old) playback = 0;
+    }
 
     imguiInputFilter();
     ImGui::End();
@@ -963,6 +1022,19 @@ static void showGrid() {
 
 static void hideGrid() {
     Draw::Clear(HASH("__/grid", 0xa467b7c));
+}
+
+void LevelEditor::newFrame(RenderingSystem::RenderCommand* commands, int count) {
+    if (game->gameType == GameType::Default || game->gameType == GameType::SingleStep) {
+        datas->backInTimeFrameOffsetSize.push_back(std::make_pair((int)datas->backInTime.size(), count));
+        datas->backInTime.insert(datas->backInTime.end(), commands, commands + count);
+    }
+}
+
+RenderingSystem::RenderCommand* LevelEditor::getFrame(int* count) {
+    const auto& p = datas->backInTimeFrameOffsetSize[datas->currentBackFrame];
+    *count = p.second;
+    return &datas->backInTime[p.first];
 }
 
 #endif

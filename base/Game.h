@@ -40,7 +40,8 @@ namespace GameType {
     enum Enum {
         Default,
         LevelEditor,
-        SingleStep
+        SingleStep,
+        Replay
     };
 }
 #endif

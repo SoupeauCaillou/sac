@@ -27,6 +27,9 @@
 #include <SDL/SDL.h>
 #include <queue>
 #endif
+
+#include "systems/RenderingSystem.h"
+#include "systems/RenderingSystem_Private.h"
 class Game;
 class KeyboardInputHandlerAPI;
 
@@ -36,6 +39,9 @@ class LevelEditor {
         ~LevelEditor();
         void init(KeyboardInputHandlerAPI* kb);
         void tick(float dt);
+
+        void newFrame(RenderingSystem::RenderCommand* commands, int count);
+        RenderingSystem::RenderCommand* getFrame(int* count);
 
         static void lock();
         static void unlock();

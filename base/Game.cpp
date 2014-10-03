@@ -164,6 +164,7 @@ Game::Game() {
     lastUpdateTime = TimeUtil::GetTime();
 #if SAC_INGAME_EDITORS
     levelEditor = new LevelEditor(this);
+    theRenderingSystem.editor = levelEditor;
 #endif
 }
 
@@ -399,18 +400,6 @@ void Game::eventsHandler() {
                             profilerEnabled = !profilerEnabled;
                             break;
 #endif
-                        case SDLK_F9:
-#if SAC_LINUX && SAC_DESKTOP
-                            Recorder::Instance().toggle();
-#endif
-                            break;
-
-#if SAC_INGAME_EDITORS
-                        //if we use the editor; we need to handle some keys for it
-                        case (SDLK_F4):
-                            theDebuggingSystem.toggle();
-                            break;
-#endif
                     }
                 }
             }
@@ -641,6 +630,8 @@ void Game::step() {
                 LOGI("Single stepping the game (delta: " << targetDT << " ms)");
                 tick(targetDT);
                 break;
+            case GameType::Replay:
+                break;
             default:
                 tick(targetDT * speedFactor);
         }
@@ -655,7 +646,7 @@ void Game::step() {
         accumulator -= targetDT;
 
 #if SAC_INGAME_EDITORS
-        if (gameType != GameType::LevelEditor) {
+        if (gameType == GameType::Default || gameType == GameType::SingleStep ) {
 #endif
 
 #if SAC_ENABLE_LOG
@@ -692,7 +683,18 @@ void Game::step() {
     }
     LOGV(2, "Produce rendering frame");
     // produce 1 new frame
+#if SAC_INGAME_EDITORS
+    if (gameType == GameType::Replay) {
+        int count = 0;
+        auto* commands = levelEditor->getFrame(&count);;
+        theRenderingSystem.forceRenderCommands(commands, count);
+        ImGui::Render();
+    } else {
+        theRenderingSystem.Update(0);
+    }
+#else
     theRenderingSystem.Update(0);
+#endif
 
     PROFILE("Game", "step", EndEvent);
 }

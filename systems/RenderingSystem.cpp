@@ -43,6 +43,7 @@
 #endif
 
 #if SAC_INGAME_EDITORS
+#include "util/LevelEditor.h"
 #include "systems/opengl/shaders/level_editor_vs.h"
 #include "systems/opengl/shaders/level_editor_fs.h"
 #endif
@@ -605,6 +606,9 @@ void RenderingSystem::DoUpdate(float) {
 
 #if SAC_INGAME_EDITORS
     ImGui::Render();
+
+    /* save render queue */
+    editor->newFrame(&outQueue.commands[0], outQueue.count);
 #endif
 
 #if ! SAC_EMSCRIPTEN
@@ -621,6 +625,32 @@ void RenderingSystem::DoUpdate(float) {
     mutexes[L_RENDER].unlock();
 #endif
 }
+
+#if SAC_INGAME_EDITORS
+void RenderingSystem::forceRenderCommands(RenderCommand* commands, int count) {
+    RenderQueue& outQueue = renderQueue[currentWriteQueue];
+    outQueue.count = count;
+    if ((int)outQueue.commands.size() < count)
+        outQueue.commands.resize(count);
+    for (int i=0; i<count; i++)
+        outQueue.commands[i] = commands[i];
+
+#if ! SAC_EMSCRIPTEN
+    // Lock to not change queue while ther thread is reading it
+    mutexes[L_RENDER].lock();
+    // Lock for notifying queue change
+    mutexes[L_QUEUE].lock();
+#endif
+
+    currentWriteQueue = (currentWriteQueue + 1) % 2;
+    newFrameReady = true;
+#if ! SAC_EMSCRIPTEN
+    cond[C_FRAME_READY].notify_all();
+    mutexes[L_QUEUE].unlock();
+    mutexes[L_RENDER].unlock();
+#endif
+}
+#endif
 
 bool RenderingSystem::isVisible(Entity e) const {
     return isVisible(TRANSFORM(e));

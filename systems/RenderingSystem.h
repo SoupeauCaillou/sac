@@ -35,6 +35,10 @@
 #include "System.h"
 #include "opengl/GLState.h"
 
+#if SAC_INGAME_EDITORS
+class LevelEditor;
+#endif
+
 typedef uint8_t FramebufferRef;
 #define DefaultFrameBufferRef 0
 
@@ -159,6 +163,9 @@ public:
     ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
 
 #if SAC_INGAME_EDITORS
+    LevelEditor* editor;
+    void forceRenderCommands(RenderCommand* commands, int count);
+
     static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformMatrix;
     static GLuint fontTex;
     static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count);
