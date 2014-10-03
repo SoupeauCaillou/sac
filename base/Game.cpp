@@ -633,7 +633,6 @@ void Game::step() {
         }
 
         static float speedFactor = 1.0f;
-        static bool oneStepEnabled = false;
         Draw::Update();
         switch (gameType) {
             case GameType::LevelEditor:
@@ -641,7 +640,6 @@ void Game::step() {
             case GameType::SingleStep:
                 LOGI("Single stepping the game (delta: " << targetDT << " ms)");
                 tick(targetDT);
-                gameType = GameType::LevelEditor;
                 break;
             default:
                 tick(targetDT * speedFactor);
@@ -685,12 +683,10 @@ void Game::step() {
                 #endif
                 sys->Update(targetDT);
             }
+
+            if (gameType == GameType::SingleStep)
+                gameType = GameType::LevelEditor;
 #if SAC_INGAME_EDITORS
-        }
-        if (oneStepEnabled) {
-            LOGI("one more step");
-            oneStepEnabled = false;
-            speedFactor = 0.;
         }
 #endif
     }
