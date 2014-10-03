@@ -158,8 +158,11 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
         case SwypeIdleState::Animating:
             // idle anim drag to the middle
             if (!pastTravelPerc(pos, direction, comp, 0.4f) && comp->activeIdleTime > 0) {
+                LOGT("FIX ME");
+                /*
                 comp->speed += SteeringBehavior::arrive(
                     pos, comp->speed, comp->finalPos, 3, 0.1f);
+                */
             } else {
                 comp->speed = glm::vec2(0.0f);
                 comp->animationPlaying = SwypeIdleState::GoingBackToHalt;
@@ -200,6 +203,8 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
 
     // Button released at low speed
     if (!touching && glm::length(comp->speed) < 1.f) {
+        LOGT("FIX ME");
+        #if 0
         // If we're at < middle -> get back to idle position, otherwise continue to final position
         if (!pastTravelPerc(pos, direction, comp, 0.5f) || comp->animationPlaying == SwypeIdleState::GoingBackToHalt) {//} || (comp->animationPlaying && comp->activeIdleTime <= 0)) {
             comp->speed += SteeringBehavior::arrive(
@@ -208,6 +213,7 @@ void SwypeButtonSystem::UpdateSwypeButton(float dt, Entity entity, SwypeButtonCo
             comp->speed += SteeringBehavior::arrive(
                 pos, comp->speed, comp->finalPos, 50, 0);
         }
+        #endif
     }
 
     // check if the button is arrived at its final pos

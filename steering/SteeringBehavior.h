@@ -25,16 +25,26 @@
 #include <glm/glm.hpp>
 #include "../base/EntityManager.h"
 
-class SteeringBehavior {
-	public:
-		struct WanderParams {
-			float radius;
-			float distance;
-			float jitter;
-			glm::vec2 target, debugTarget;
-		};
-	public:
-		static glm::vec2 seek(Entity e, const glm::vec2& targetPos, float maxSpeed);
+namespace Steering
+{
+    struct Context {
+        /* clockwise
+            0 -> 0°
+            1 -> 45°
+            ...
+            7 -> 315°
+        */
+        float directions[8];
+    };
+
+    const glm::vec2& direction(int index);
+
+    template<class T>
+    void behavior(Entity e, const T& param, Context* interest, Context* priority, Context* danger);
+}
+
+#if 0
+        static glm::vec2 seek(Entity e, const glm::vec2& targetPos, float maxSpeed);
 
         static glm::vec2 seek(const glm::vec2& pos, const glm::vec2& linearVel, const glm::vec2& targetPos, float maxSpeed);
 
@@ -58,3 +68,4 @@ class SteeringBehavior {
 
         static glm::vec2 boxContainer(Entity e, const glm::vec2& velocity, const glm::vec2& position, const glm::vec2& size, float maxSpeed);
 };
+#endif

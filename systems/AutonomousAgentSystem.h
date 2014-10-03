@@ -24,6 +24,7 @@
 
 #if !DISABLE_AUTONOMOUS_SYSTEM
 #include "../steering/SteeringBehavior.h"
+#include "../steering/SimpleBehavior.h"
 
 #include "System.h"
 
@@ -35,6 +36,12 @@ struct BehaviorParams {
 };
 
 struct AutonomousAgentComponent {
+    float maxForce;
+
+    Steering::SeekParams seek;
+    Steering::FleeParams flee;
+
+#if 0
     AutonomousAgentComponent() :
         maxSpeed(1.f), maxForce(1.f),
         seekTarget(0), seekParams(),
@@ -42,7 +49,7 @@ struct AutonomousAgentComponent {
         obstaclesParams(),
         wallsParams(),
         boxParams(),
-        wanderParams(),
+        //wanderParams(),
         cohesionParams(),
         alignementParams() {}
 
@@ -72,7 +79,6 @@ struct AutonomousAgentComponent {
 
     SteeringBehavior::WanderParams wander;
     BehaviorParams wanderParams;
-
     // Group behaviors
     std::list<Entity> cohesionNeighbors;
     BehaviorParams cohesionParams;
@@ -84,6 +90,7 @@ struct AutonomousAgentComponent {
     // Group behaviors
     std::list<Entity> separationNeighbors;
     BehaviorParams separationParams;
+#endif
 };
 
 #define theAutonomousAgentSystem AutonomousAgentSystem::GetInstance()

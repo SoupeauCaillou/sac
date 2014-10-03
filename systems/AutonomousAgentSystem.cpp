@@ -30,10 +30,12 @@
 
 #include <glm/gtx/norm.hpp>
 
-#undef SAC_DEBUG
 #if SAC_DEBUG
 #include "util/Draw.h"
 #endif
+
+#include "../steering/SimpleBehavior.inl"
+
 
 INSTANCE_IMPL(AutonomousAgentSystem);
 
@@ -44,8 +46,7 @@ INSTANCE_IMPL(AutonomousAgentSystem);
     } while (false)
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>(HASH("AutonomousAgent", 0x63018d2f)) {
-    LOGT("Rendre ca moins casse pied. 1) le composant a 2 vector: hash_t (les Behavior qu'il veut), float (leur poids respectif)");
-    LOGT("2) pouvoir parametrer les behavior de manière plus générique - mais je sais pas encore comment");
+#if 0
 
     AutonomousAgentComponent ac;
     componentSerializer.add(new Property<float>(HASH("max_speed", 0x3fbe6552), OFFSET(maxSpeed, ac), 0.0001f));
@@ -58,27 +59,128 @@ AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousA
     EXPORT_BEHAVIOR_PARAM(box, 0x80280d35, 0x884321db);
     componentSerializer.add(new Property<glm::vec2>(HASH("box_position", 0x13c1e7a8), OFFSET(boxPosition, ac), glm::vec2(0.0001f)));
     componentSerializer.add(new Property<glm::vec2>(HASH("box_size", 0x7f33bd9), OFFSET(boxSize, ac), glm::vec2(0.0001f)));
+#if 0
     EXPORT_BEHAVIOR_PARAM(wander, 0x1d51e9bc, 0x275e6c94);
     componentSerializer.add(new Property<float>(HASH("wander_radius", 0xd0e7bb52), OFFSET(wander.radius, ac), 0.0001f));
     componentSerializer.add(new Property<float>(HASH("wander_distance", 0xd4de58b5), OFFSET(wander.distance, ac), 0.0001f));
     componentSerializer.add(new Property<float>(HASH("wander_jitter", 0x267a8a75), OFFSET(wander.jitter, ac), 0.0001f));
+#endif
     EXPORT_BEHAVIOR_PARAM(alignement, 0xfc9cfd08, 0x1fc5142f);
     EXPORT_BEHAVIOR_PARAM(separation, 0xe6642c0, 0xb6ca78ed);
     EXPORT_BEHAVIOR_PARAM(cohesion, 0x60651d29, 0x624454d6);
+#endif
 }
 
-bool AutonomousAgentSystem::isArrived(Entity e) {
-   return IntersectionUtil::rectangleRectangle(TRANSFORM(e), TRANSFORM(AUTONOMOUS(e)->arriveTarget));
+bool AutonomousAgentSystem::isArrived(Entity ) {
+   return false;//return IntersectionUtil::rectangleRectangle(TRANSFORM(e), TRANSFORM(AUTONOMOUS(e)->arriveTarget));
 }
 
-// TODO
-// - modifier les SteeringBehavior pour qu'ils renvoient la vitesse qu'ils désirent avoir (et dont la norme est <= maxSpeed)
-// - modifier AutonomousAgent pour faire la moyenne pondérée de ces vitesse sous la forme:
-//        vitesse_moyenne = Somme(poids * (vitesse_desiree - vitesse actuelle)) / somme(poids_des_vitesse_non_nuls)
-// - enfin, appliquer une force dont l'amplitude dépend de la vitesse_moyenne et de forceMax
 void AutonomousAgentSystem::DoUpdate(float dt) {
-
+    Draw::Clear(HASH("aa", 0x6e1cb412));
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
+        Steering::Context interest, priority, danger;
+        memset(&interest, 0, sizeof(Steering::Context));
+        memset(&priority, 0, sizeof(Steering::Context));
+        memset(&danger, 0, sizeof(Steering::Context));
+
+        /**********
+             Individual behaviors
+        */
+        if (agent->seek.target) {
+            Steering::behavior(e, agent->seek, &interest, &priority, &danger);
+        }
+
+        if (agent->flee.target) {
+            Steering::behavior(e, agent->flee, &interest, &priority, &danger);
+        }
+
+        /**********
+             Decision algorithm
+        */
+        // simple decision algorithm for now.
+        float min = FLT_MAX;
+        for (int i=0; i<8; i++) {
+            min = glm::min(min, danger.directions[i]);
+        }
+
+        // pick lowest danger direction(s)
+        std::vector<int> potentialDirections;
+        for (int i=0; i<8; i++) {
+            if (danger.directions[i] <= min) {
+                potentialDirections.push_back(i);
+            }
+        }
+        LOGE_IF(potentialDirections.empty(), "Danger context empty ?");
+
+        float max = 0;
+        for (int i=0; i<(int)potentialDirections.size(); i++) {
+            max = glm::max(max, interest.directions[potentialDirections[i]]);
+        }
+
+        // keep highest interest direction(s)
+        for (int i=0; i<(int)potentialDirections.size(); i++) {
+            if (interest.directions[potentialDirections[i]] < max) {
+                potentialDirections.erase(potentialDirections.begin() + i);
+                i--;
+            }
+        }
+
+        float maxDiff = 0.0f;
+        if (max == 0 && min == 0) {
+            // pick slot with max
+            for (int i=0; i<8; i++) {
+                if (danger.directions[i] == 0)
+                    continue;
+                float ratio = interest.directions[i] / danger.directions[i];
+                if (ratio > maxDiff) {
+                    potentialDirections.clear();
+                    maxDiff = ratio;
+                    potentialDirections.push_back(i);
+                }
+            }
+        }
+
+        int chosenDirection = -1;
+
+        for (int i=0; i<8; i++) {
+            Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Steering::direction(i) * danger.directions[i], Color(1, 0, 0, 0.5));
+            Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Steering::direction(i) * interest.directions[i], Color(0, 1, 0, 0.5));
+        }
+        LOGE("Danger:   " << danger.directions[0] << "," <<
+            danger.directions[1] << "," <<
+            danger.directions[2] << "," <<
+            danger.directions[3] << "," <<
+            danger.directions[4] << "," <<
+            danger.directions[5] << "," <<
+            danger.directions[6] << "," <<
+            danger.directions[7]);
+        LOGE("Interest: " << interest.directions[0] << "," <<
+            interest.directions[1] << "," <<
+            interest.directions[2] << "," <<
+            interest.directions[3] << "," <<
+            interest.directions[4] << "," <<
+            interest.directions[5] << "," <<
+            interest.directions[6] << "," <<
+            interest.directions[7]);
+        LOGE(__(min) << ", " << __(max) << "->" << potentialDirections[0] << "->" << Steering::direction(potentialDirections[0]));
+
+        if (potentialDirections.empty()) {
+            LOGF("Something is wrong, no direction left. " << __(min) << ", " << __(max));
+        }
+        if (potentialDirections.size() == 1) {
+            chosenDirection = potentialDirections[0];
+        } else {
+            LOGT_EVERY_N(60, "pick the closest to current direction");
+            chosenDirection = potentialDirections[0];
+        }
+
+        Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position
+            + Steering::direction(chosenDirection) * interest.directions[chosenDirection], Color(0, 0, 1, 0.5));
+
+        LOGI("FORCE:" << Steering::direction(chosenDirection) * ( priority.directions[chosenDirection] * agent->maxForce));
+        PHYSICS(e)->addForce(Steering::direction(chosenDirection) * ( priority.directions[chosenDirection] * agent->maxForce), glm::vec2(0.f), dt);
+    }
+#if 0
         LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");
         LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
         glm::vec2 force(glm::vec2(0.0f));
@@ -273,5 +375,6 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
         PHYSICS(e)->addForce(averageDelta, glm::vec2(0.f), dt);
     END_FOR_EACH()
+#endif
 }
 #endif

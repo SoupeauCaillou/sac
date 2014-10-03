@@ -1,3 +1,4 @@
+#if 0
 /*
     This file is part of Soupe Au Caillou.
 
@@ -417,3 +418,5 @@ glm::vec2 SteeringBehavior::wallAvoidance(Entity e, const glm::vec2& velocity,
         return velocity;
     }
 }
+#endif
+

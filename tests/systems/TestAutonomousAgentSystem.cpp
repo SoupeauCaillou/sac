@@ -18,6 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if 0
 #if !DISABLE_AUTONOMOUS_SYSTEM
 
 #include <UnitTest++.h>
@@ -61,4 +62,5 @@ TEST(GrooupAlignementBehavior)
     TransformationSystem::DestroyInstance();
     PhysicsSystem::DestroyInstance();
 }
+#endif
 #endif
