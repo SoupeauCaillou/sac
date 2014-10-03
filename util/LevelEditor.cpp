@@ -798,9 +798,8 @@ void LevelEditor::tick(float dt) {
     }
 
     /* Camera control */
-    if (ImGui::CollapsingHeader("Cameras", NULL, true, true)) {
-        static int currentCamera = 0;
-
+    ImGui::CollapsingHeader("Cameras", NULL, true, true);
+    {
         const auto& cameras = theCameraSystem.RetrieveAllEntityWithComponent();
         /* assume 1 camera. TODO: add Combo to select active camera */
         static float zoom = -1.0f;
@@ -812,6 +811,16 @@ void LevelEditor::tick(float dt) {
         if (ImGui::SliderFloat("Zoom", &zoom, 0.1, 10, "%.1f")) {
             TRANSFORM(cameras[0])->size = originalSize / zoom;
         }
+
+        if (game->gameType == GameType::LevelEditor) {
+            const glm::vec2& pos = theTouchInputManager.getOverLastPosition();
+            if (IntersectionUtil::pointRectangle(pos, TRANSFORM(cameras[0])) && io.MouseWheel) {
+                zoom += 2 * io.MouseWheel * dt;
+                TRANSFORM(cameras[0])->size = originalSize / zoom;
+            }
+        }
+
+
         ImGui::SliderFloat2("Position", &TRANSFORM(cameras[0])->position.x, -30, 30, "%.1f");
     }
 
