@@ -54,7 +54,7 @@ class DataFileParser {
         bool remove(hash_t section, const std::string& var);
 
         unsigned sectionSize(hash_t sectionId) const;
-    
+
         bool hasSection(hash_t sectionId) const;
 
         hash_t getModifier(hash_t section, hash_t var) const;
@@ -104,9 +104,12 @@ int DataFileParser::parse(const std::string& value, T* out, int count, bool warn
     for (int i=0; i<count; i++) {
         size_t st = startIndex;
         size_t len = endIndexes[i] - startIndex + 1;
-        // trim begin/end
-        while (value[st] == ' ' || value[st] == '\t') { st++; len--; }
-        while (value[st + len - 1] == ' ' || value[st + len - 1] == '\t') { len--; }
+
+        if (len > 0) {
+            // trim begin/end
+            while (value[st] == ' ' || value[st] == '\t') { st++; len--; }
+            while (value[st + len - 1] == ' ' || value[st + len - 1] == '\t') { len--; }
+        }
         std::string str = replaceVariables(value.substr(st, len));
         std::istringstream iss(str);
         startIndex = endIndexes[i] + 2;
