@@ -37,9 +37,11 @@ struct BehaviorParams {
 
 struct AutonomousAgentComponent {
     float maxForce;
+    float dangerThreshold;
 
     Steering::SeekParams seek;
     Steering::FleeParams flee;
+    Steering::AvoidParams avoid;
 
 #if 0
     AutonomousAgentComponent() :

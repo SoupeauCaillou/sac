@@ -52,4 +52,30 @@ void behavior(Entity e, const FleeParams& param, Context*, Context*, Context* da
     }
 }
 
+template<>
+void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* danger) {
+    if (param.count == 0)
+        return;
+
+    for (int i=0; i<param.count; i++) {
+        Entity avoid = param.entities[i];
+
+        glm::vec2 diff = TRANSFORM(avoid)->position - TRANSFORM(e)->position;
+        float sizes =
+            glm::max(TRANSFORM(avoid)->size.x, TRANSFORM(avoid)->size.y) +
+            glm::max(TRANSFORM(e)->size.x, TRANSFORM(e)->size.y);
+        float length = glm::length(diff);
+
+        if (length > sizes * 1.5)
+            continue;
+
+        diff /= length;
+
+        for (int j=0; j<8; j++) {
+            float d = glm::dot(diff, Steering::direction(j));
+            danger->directions[j] = glm::max(d, danger->directions[j]);
+        }
+    }
+}
+
 }

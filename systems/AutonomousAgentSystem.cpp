@@ -94,14 +94,15 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             Steering::behavior(e, agent->flee, &interest, &priority, &danger);
         }
 
+        if (agent->avoid.count) {
+            Steering::behavior(e, agent->avoid, &interest, &priority, &danger);
+        }
+
         /**********
              Decision algorithm
         */
         // simple decision algorithm for now.
-        float min = FLT_MAX;
-        for (int i=0; i<8; i++) {
-            min = glm::min(min, danger.directions[i]);
-        }
+        float min = agent->dangerThreshold;
 
         // pick lowest danger direction(s)
         std::vector<int> potentialDirections;
@@ -113,32 +114,23 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         LOGE_IF(potentialDirections.empty(), "Danger context empty ?");
 
         float max = 0;
-        for (int i=0; i<(int)potentialDirections.size(); i++) {
-            max = glm::max(max, interest.directions[potentialDirections[i]]);
-        }
-
-        // keep highest interest direction(s)
-        for (int i=0; i<(int)potentialDirections.size(); i++) {
-            if (interest.directions[potentialDirections[i]] < max) {
-                potentialDirections.erase(potentialDirections.begin() + i);
-                i--;
-            }
-        }
-
         float maxDiff = 0.0f;
-        if (max == 0 && min == 0) {
-            // pick slot with max
-            for (int i=0; i<8; i++) {
-                if (danger.directions[i] == 0)
-                    continue;
-                float ratio = interest.directions[i] / danger.directions[i];
-                if (ratio > maxDiff) {
-                    potentialDirections.clear();
-                    maxDiff = ratio;
-                    potentialDirections.push_back(i);
-                }
-            }
-        }
+        const glm::vec2& velocity = PHYSICS(e)->linearVelocity;
+
+        std::sort(potentialDirections.begin(), potentialDirections.end(), [velocity, &interest, &danger] (int direction1, int d2) -> bool {
+            float diff1 = interest.directions[direction1] - danger.directions[direction1];
+            float diff2 = interest.directions[d2] - danger.directions[d2];
+            if (diff1 > diff2)
+                return true;
+            if (diff1 < diff2)
+                return false;
+            /* return closest to current velocity */
+            return glm::dot(Steering::direction(direction1), velocity) >
+                glm::dot(Steering::direction(d2), velocity);
+
+        });
+
+        // if no direction available, stop
 
         int chosenDirection = -1;
 
@@ -146,6 +138,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Steering::direction(i) * danger.directions[i], Color(1, 0, 0, 0.5));
             Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Steering::direction(i) * interest.directions[i], Color(0, 1, 0, 0.5));
         }
+    #if 0
         LOGE("Danger:   " << danger.directions[0] << "," <<
             danger.directions[1] << "," <<
             danger.directions[2] << "," <<
@@ -163,22 +156,33 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             interest.directions[6] << "," <<
             interest.directions[7]);
         LOGE(__(min) << ", " << __(max) << "->" << potentialDirections[0] << "->" << Steering::direction(potentialDirections[0]));
+    #endif
 
+
+
+        bool cancelVelocity = false;
         if (potentialDirections.empty()) {
-            LOGF("Something is wrong, no direction left. " << __(min) << ", " << __(max));
-        }
-        if (potentialDirections.size() == 1) {
-            chosenDirection = potentialDirections[0];
+            cancelVelocity = true;
         } else {
-            LOGT_EVERY_N(60, "pick the closest to current direction");
             chosenDirection = potentialDirections[0];
         }
 
-        Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position
-            + Steering::direction(chosenDirection) * interest.directions[chosenDirection], Color(0, 0, 1, 0.5));
+        if (!cancelVelocity && priority.directions[chosenDirection] == 0) {
+            cancelVelocity = true;
+        }
+        if (cancelVelocity) {
+            LOGI_EVERY_N(60, "No sensible direction choice, stop here");
+            float v = glm::length(PHYSICS(e)->linearVelocity);
+            PHYSICS(e)->addForce( PHYSICS(e)->linearVelocity * (-glm::min(agent->maxForce, v)), glm::vec2(0.f), dt);
+            Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Color(1, 0, 0, 0.5));
 
-        LOGI("FORCE:" << Steering::direction(chosenDirection) * ( priority.directions[chosenDirection] * agent->maxForce));
-        PHYSICS(e)->addForce(Steering::direction(chosenDirection) * ( priority.directions[chosenDirection] * agent->maxForce), glm::vec2(0.f), dt);
+        } else {
+            Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position
+                + Steering::direction(chosenDirection) * interest.directions[chosenDirection], Color(0, 0, 1, 0.5));
+            PHYSICS(e)->addForce(Steering::direction(chosenDirection) * ( priority.directions[chosenDirection] * agent->maxForce), glm::vec2(0.f), dt);
+        }
+
+        // PHYSICS(e)->linearVelocity = Steering::direction(chosenDirection) * ( priority.directions[chosenDirection] * 5);
     }
 #if 0
         LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");

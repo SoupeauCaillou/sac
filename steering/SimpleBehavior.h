@@ -11,6 +11,11 @@ namespace Steering
         Entity target;
     };
 
+    struct AvoidParams {
+        Entity* entities;
+        int count;
+    };
+
     struct ArriveParams {
         Entity target;
         float breakingDistance;
