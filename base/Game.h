@@ -64,6 +64,7 @@ class Game {
         void resetTime();
         void eventsHandler();
 
+        virtual bool isLandscape() const { return true; }
         virtual bool wantsAPI(ContextAPI::Enum api) const;
         virtual void backPressed() {};
         virtual bool willConsumeBackEvent() { return false; }

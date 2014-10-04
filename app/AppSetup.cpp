@@ -166,14 +166,12 @@ static void* callback_thread(const std::string& gameName){
 
 // hum hum
 extern bool profilerEnabled;
-glm::vec2 resolution;
 std::string gameName;
-int initGame(const std::string& gameN, const glm::ivec2& res, const std::string& gameVersion) {
+int initGame(const std::string& gameN, const std::string& gameVersion) {
 #if SAC_DESKTOP && SAC_LINUX
     initLogColors();
 #endif
 
-    resolution = res;
     gameName = gameN;
 
     /////////////////////////////////////////////////////
@@ -268,6 +266,13 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     // Double Buffering
     // Warning! This method DOES call srand (random generator)
+    glm::vec2 resolution(0, 600);
+    if (game->isLandscape()) {
+        resolution.x = 800;
+    } else {
+        resolution.x = 375;
+    }
+
 #if SAC_INGAME_EDITORS
     if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y + LevelEditor::DebugAreaHeight, 32, SDL_OPENGL ) == 0)
 #else

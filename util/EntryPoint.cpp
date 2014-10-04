@@ -31,10 +31,10 @@ Game* buildGameInstance() {
 int main(int argc, char** argv) {
     std::string versionName = "";
     #if SAC_DEBUG
-        versionName = "TODO";//versionName + " / " + TAG_NAME + " - " + VERSION_NAME;
+        versionName = "";//versionName + " / " + TAG_NAME + " - " + VERSION_NAME;
     #endif
 
-    if (initGame(STR(PROJECT_NAME), glm::ivec2(800, 600), versionName)) {
+    if (initGame(XSTR(PROJECT_NAME), versionName)) {
         LOGE("Failed to initialize");
         return 1;
     }
