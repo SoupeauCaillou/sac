@@ -976,7 +976,8 @@ static void markEntities(Entity* begin, int count, Color color) {
     for (int i=0; i<count; i++) {
         Entity e = begin[i];
         // draw 4 corners
-        const auto* tc = TRANSFORM(e);
+        const auto* tc = theTransformationSystem.Get(e, false);
+        if (!tc) continue;
 
         float length = glm::max(0.1, glm::min(tc->size.x, tc->size.y) * 0.2);
 
