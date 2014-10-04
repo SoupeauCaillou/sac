@@ -125,6 +125,8 @@ void LevelEditor::unlock() {
     _unlock();
 }
 
+static const ImVec4 activeColor(0, 1, 0, 0.5);
+
 struct LevelEditor::LevelEditorDatas {
     EditorMode::Enum mode;
 
@@ -373,6 +375,7 @@ void LevelEditor::tick(float dt) {
     ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y), -1.0f,
         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(io.DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
+    ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
 
     std::map<hash_t, char*> groupsName;
     std::map<hash_t, std::vector<Entity>> groups;
@@ -445,6 +448,7 @@ void LevelEditor::tick(float dt) {
 
     ImGui::Begin("Editor tools", NULL, ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y), -1.0f,
         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
     ImGui::SetWindowPos(ImVec2(0, 0));
 
     if (game->gameType == GameType::LevelEditor) {
@@ -463,27 +467,27 @@ void LevelEditor::tick(float dt) {
         /* Entity manipulation tools */
         if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
             Tool::Enum newTool = Tool::None;
-            if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
             if (ImGui::Button("Select (B)") || kb->isKeyReleased(Key::ByName(SDLK_b))) {
                 newTool = Tool::Select;
             }
             if (tool == Tool::Select) ImGui::PopStyleColor();
 
-            if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
             if (ImGui::Button("Move (G)") || kb->isKeyReleased(Key::ByName(SDLK_g))) {
                 if (!selected.empty())
                     newTool = Tool::Move;
             }
             if (tool == Tool::Move) ImGui::PopStyleColor();
 
-            if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
             if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(Key::ByName(SDLK_r))) {
                 if (!selected.empty())
                     newTool = Tool::Rotate;
             }
             if (tool == Tool::Rotate) ImGui::PopStyleColor();
 
-            if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+            if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
             if (ImGui::Button("Scale (S)") || kb->isKeyReleased(Key::ByName(SDLK_s))) {
                 if (!selected.empty())
                     newTool = Tool::Scale;
@@ -748,7 +752,7 @@ void LevelEditor::tick(float dt) {
         switch (game->gameType) {
             case GameType::LevelEditor:
                 if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(Key::ByName(SDLK_F1)) ) game->gameType = GameType::Default;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
                 ImGui::Button("Editor (F2)");
                 ImGui::PopStyleColor();
                 if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
@@ -767,7 +771,7 @@ void LevelEditor::tick(float dt) {
                     game->gameType = GameType::LevelEditor;
                 }
                 if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
                 ImGui::Button("Replay (F4)");
                 ImGui::PopStyleColor();
                 break;
@@ -775,7 +779,7 @@ void LevelEditor::tick(float dt) {
                 game->gameType = GameType::SingleStep;
                 break;
             default:
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 0.5));
+                ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
                 ImGui::Button("Play (F1)");
                 ImGui::PopStyleColor();
                 if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(Key::ByName(SDLK_F2))) {
@@ -907,28 +911,28 @@ void LevelEditor::tick(float dt) {
     if (game->gameType == GameType::Replay) {
         static int playback = 0;
 
-        if (ImGui::CollapsingHeader("Replay")) {
-            ImGui::Text("Frame %d/%d", datas->currentBackFrame + 1, (int)datas->backInTimeFrameOffsetSize.size());
-            if (playback == 0) {
-                if (ImGui::Button("Backward <")) {
-                    playback = -1;
-                }
-                if (ImGui::Button("Forward >")) {
-                    playback = 1;
-                }
+        ImGui::CollapsingHeader("Replay");
+        ImGui::Text("Frame %d/%d", datas->currentBackFrame + 1, (int)datas->backInTimeFrameOffsetSize.size());
+        if (playback == 0) {
+            if (ImGui::Button("Backward <")) {
+                playback = -1;
+            }
+            if (ImGui::Button("Forward >")) {
+                playback = 1;
+            }
 
-                if (kb->isKeyPressed(Key::ByName(SDLK_LEFT)))
-                    datas->currentBackFrame--;
-                if (kb->isKeyPressed(Key::ByName(SDLK_RIGHT)))
-                    datas->currentBackFrame++;
+            if (kb->isKeyPressed(Key::ByName(SDLK_LEFT)))
+                datas->currentBackFrame--;
+            if (kb->isKeyPressed(Key::ByName(SDLK_RIGHT)))
+                datas->currentBackFrame++;
 
 
-            } else {
-                if (ImGui::Button("Pause")) {
-                    playback = 0;
-                }
+        } else {
+            if (ImGui::Button("Pause")) {
+                playback = 0;
             }
         }
+
         int old = datas->currentBackFrame;
         datas->currentBackFrame = glm::max(
             0,
