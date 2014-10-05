@@ -168,7 +168,7 @@ static void* callback_thread(const std::string& gameName){
 extern bool profilerEnabled;
 std::string gameName;
 int initGame(const std::string& gameN, const std::string& gameVersion) {
-#if SAC_DESKTOP && SAC_LINUX
+#if SAC_DESKTOP && SAC_LINUX && SAC_ENABLE_LOG
     initLogColors();
 #endif
 

@@ -190,7 +190,7 @@ bool DataFileParser::keyValue(hash_t section, const std::string& var, bool LOG_U
     return true;
 }
 
-bool DataFileParser::hashValue(hash_t section, hash_t var, bool LOG_USAGE_ONLY(warnIfNotFound), std::string& out) const {
+bool DataFileParser::hashValue(hash_t section, hash_t var, bool warnIfNotFound, std::string& out) const {
     if (!data) {
         LOGE("No data loaded before requesting key value : " << section << '/' << var);
         return false;

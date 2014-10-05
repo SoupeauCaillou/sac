@@ -675,9 +675,9 @@ void Game::step() {
                 sys->Update(targetDT);
             }
 
+#if SAC_INGAME_EDITORS
             if (gameType == GameType::SingleStep)
                 gameType = GameType::LevelEditor;
-#if SAC_INGAME_EDITORS
         }
 #endif
     }

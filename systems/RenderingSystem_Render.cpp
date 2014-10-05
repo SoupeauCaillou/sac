@@ -143,7 +143,11 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     VertexData* outVertices,
     unsigned short* outIndices,
     unsigned* verticesCount,
+#if SAC_DEBUG
     unsigned* triangleCount,
+#else
+    unsigned*,
+#endif
     unsigned* indiceCount) {
 
     uint16_t offset = *verticesCount;
@@ -198,7 +202,9 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
 
     }
     *indiceCount += 2 + polygon.indices.size();
+#if SAC_DEBUG
     *triangleCount += polygon.indices.size() / 3;
+#endif
 }
 
 EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp) {
@@ -280,8 +286,9 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.texture == BeginFrameMarker) {
             #if SAC_DEBUG
             batchSizes.push_back(std::make_pair(BatchFlushReason::NewCamera, batchTriangleCount));
+            batchTriangleCount = 0;
             #endif
-            indiceCount = batchTriangleCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
+            indiceCount = batchVertexCount = drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
 
             PROFILE("Render", "begin-render-frame", InstantEvent);
 
