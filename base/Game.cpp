@@ -574,7 +574,9 @@ void Game::step() {
     targetDT = accumulator;
 #endif
 
-    bool doneOnce = false;
+    #if SAC_INGAME_EDITORS
+        bool doneOnce = false;
+    #endif
 
     while (accumulator >= targetDT)
     {
