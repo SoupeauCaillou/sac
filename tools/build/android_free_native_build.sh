@@ -18,7 +18,7 @@ compilation() {
     CMAKE_CONFIG+=(-DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/cmake/toolchains/android.toolchain.cmake)
     CMAKE_CONFIG+=(-DANDROID_FORCE_ARM_BUILD=ON)
     CMAKE_CONFIG+=(-DCMAKE_BUILD_TYPE=release)
-    CMAKE_CONFIG+=(-DUSE_RESTRICTIVE_PLUGINS=OFF)
+    CMAKE_CONFIG+=(-DUSE_PROPRIETARY_PLUGINS=OFF)
 
 
     cmake "${CMAKE_CONFIG[@]}" $rootPath

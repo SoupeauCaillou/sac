@@ -218,7 +218,7 @@ get_APK_name() {
 launch_the_application() {
     if [ $UNINSTALL_FROM_DEVICE = 1 ]; then
         info "Uninstalling from device..."
-        adb uninstall $(cat $rootPath/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
+        adb uninstall $(cat $rootPath/android/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
     fi
 
 
@@ -264,8 +264,8 @@ Continuing..."
         fi
     fi
 
-    packageName=$(grep 'package=' $rootPath/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
-    activityName=$(grep '<activity' $rootPath/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
+    packageName=$(grep 'package=' $rootPath/android/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
+    activityName=$(grep '<activity' $rootPath/android/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
 
     #debug required
     if [ ! -z "$(echo $TARGETS | grep d)" ]; then
