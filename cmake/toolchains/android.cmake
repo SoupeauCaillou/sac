@@ -53,7 +53,7 @@ include_directories(${GAME_SOURCE_DIR}/sac/libs/)
 
     # get the list of plugins bundled with the APK, in project.properties file
     execute_process(
-        COMMAND grep android.library.reference ${PROJECT_PROPERTIES}
+        COMMAND grep "^android.library.reference" ${PROJECT_PROPERTIES}
         COMMAND grep -v SacFramework
         COMMAND cut -d= -f 2
         OUTPUT_VARIABLE PLUGINS_LIST
