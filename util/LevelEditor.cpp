@@ -950,14 +950,17 @@ void LevelEditor::tick(float dt) {
         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y - DebugAreaHeight));
 
+    if (ImGui::CollapsingHeader("Entities")) {
+        static std::vector<float> count;
+        count.push_back(theEntityManager.getNumberofEntity());
+        if (count.size() > 300) count.erase(count.begin());
+        ImGui::PlotLines("Entities", &count[0], count.size(), 0, NULL, 0, FLT_MAX, ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
+    }
     if (ImGui::CollapsingHeader("FPS")) {
         static std::vector<float> fps;
         fps.push_back(1.0f / dt);
         if (fps.size() > 300) fps.erase(fps.begin());
         ImGui::PlotLines("FPS", &fps[0], fps.size(), 0, NULL, FLT_MIN, FLT_MAX, ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
-    }
-    if (ImGui::CollapsingHeader("Entities")) {
-
     }
 
     imguiInputFilter();
