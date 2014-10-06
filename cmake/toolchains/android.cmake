@@ -1,4 +1,4 @@
-set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/build/cmake/toolchains/android.toolchain.cmake CACHE STRING "Use Android toolchain" FORCE)
+set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/sac/cmake/toolchains/android.toolchain.cmake CACHE STRING "Use Android toolchain" FORCE)
 
 ADD_DEFINITIONS(-DSAC_MOBILE=1)
 

@@ -30,7 +30,7 @@ git clone --recursive  git@github.com:SoupeauCaillou/sac.git
 ```cmake
 cmake_minimum_required(VERSION 2.8)
 project(Test)
-include(sac/build/cmake/CMakeLists.txt)
+include(sac/CMakeLists.txt)
 ```
 
 * Add a simple class (sources/TestGame.h)

@@ -77,7 +77,7 @@ else()
 endif()
 
 #import platform dependent toolchain
-include(${SAC_SOURCE_DIR}/build/cmake/toolchains/${varplatform}.cmake)
+include(${SAC_SOURCE_DIR}/cmake/toolchains/${varplatform}.cmake)
 
 #import gcc/g++ flags relative to toolchain
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing ${CXX_FLAGS_${BUILD_TARGET}}")
@@ -125,7 +125,7 @@ endif()
 #######################################################################
 ########Library path finding related tools#############################
 #######################################################################
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SAC_SOURCE_DIR}/build/cmake/Modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SAC_SOURCE_DIR}/cmake/modules")
 
 #ensure that a lib is installed and link it to "target" executable
 function (check_and_link_libs target)
@@ -209,6 +209,7 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #######################################################################
 set(SCENE_REGISTRATION_FILE ${GAME_SOURCE_DIR}/sources/scenes/Scenes.h)
 file(GLOB FILES ${GAME_SOURCE_DIR}/sources/scenes/*.cpp)
+if (NOT FILES STREQUAL "")
 foreach (FILE ${FILES})
     string(REGEX REPLACE ".*/(.*)Scene\\..*" "\\1" SCENE_NAME ${FILE})
     list(APPEND SCENES ${SCENE_NAME})
@@ -250,11 +251,7 @@ foreach (SCENE ${SCENES})
     )
 endforeach()
 file(APPEND ${SCENE_REGISTRATION_FILE} "}")
-
-
-
-
-
+endif()
 
 #######################################################################
 ######################How to build sac#################################

@@ -17,7 +17,7 @@ gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr 
 source cool_stuff.sh
 
 #get the list of available targets (need to be displayed in OPTIONS help
-TARGETS_LIST=$(grep SUPPORTED_TARGETS ../build/cmake/CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
+TARGETS_LIST=$(grep SUPPORTED_TARGETS ../CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
 
 #how to use the script
 export SAC_USAGE="$0"
@@ -59,7 +59,7 @@ token =
 password = p@ssw0rd
 hostname = https://www.transifex.com
 "
-	else 
+	else
     	info "Removing old files..."
 		rm -rf $temp
 	fi
@@ -67,7 +67,7 @@ hostname = https://www.transifex.com
 ######### These are folders with a local like fr-BE, which must be renamed fr-rbe for Android ########
 	info "Renaming values* folder (if needed)"
 	cd res/
-    
+
 	for lang in values-*; do
 		if grep -q '_' <<< $lang; then
 			suffix=r$(echo $lang | cut -d '_' -f 2 | tr [A-Z] [a-z])

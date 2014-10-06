@@ -1,5 +1,3 @@
-build/cmake/lobby_server
-build/cmake/texture_packer
 libs/tremor
 cmake_install.cmake
 Makefile

@@ -17,7 +17,7 @@ gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr 
 source ../cool_stuff.sh
 
 #get the list of available targets (need to be displayed in OPTIONS help
-TARGETS_LIST=$(grep SUPPORTED_TARGETS ../../build/cmake/CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
+TARGETS_LIST=$(grep SUPPORTED_TARGETS ../../CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
 BUILD_SYSTEM_LIST="ninja makefile"
 #how to use the script
 export SAC_USAGE="$0 [options]"
@@ -149,13 +149,13 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
 	fi
 
     init
-    
+
 #Compiling
 	if [ ! -z "$(echo $TARGETS | grep -e n)" ]; then
         info "Compiling.."
 
         check_package cmake
-        
+
         if [ ! -z "$BUILD_SYSTEM" ]; then
             REAL_NAME=""
             if ! [[ " $BUILD_SYSTEM_LIST " =~ " $BUILD_SYSTEM " ]]; then
@@ -173,8 +173,8 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         if ! cmake "${CMAKE_CONFIG[@]}" $rootPath; then
             compilation_after
 
-            error_and_quit "Error in cmake: 
-            - If this is the first time you run cmake, please view $(readlink -f ${rootPath}/sac/INSTALL). 
+            error_and_quit "Error in cmake:
+            - If this is the first time you run cmake, please view $(readlink -f ${rootPath}/sac/INSTALL).
             - Otherwise, your cmake configuration might be wrong, considere cleaning it (add parameter 'C' to $0)?\n"
         fi
 
@@ -187,7 +187,7 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         else
             error_and_quit 'No makefile/build.ninja found in $PWD'
         fi
-        
+
         check_package $BUILD_COMMAND
         if ! $BUILD_COMMAND; then
             compilation_after
