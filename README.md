@@ -168,4 +168,4 @@ Here's a quick example:
 ```
 
 And what the output should look like (white squares are anchor point):
-![screenshot anchor](http://soupeaucaillou.com/screenshots/screenshot_anchor.gif)
+![screenshot anchor](http://soupeaucaillou.com/screenshots/screenshot_anchor2.gif)
