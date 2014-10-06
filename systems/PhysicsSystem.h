@@ -37,7 +37,7 @@ struct Force {
 
 struct PhysicsComponent {
     PhysicsComponent() : linearVelocity(0.0f, 0.0f), angularVelocity(0.0f), mass(0.0f),
-    gravity(0.0f, 0.0f), frottement(0.f), maxSpeed(-1) {}
+    gravity(0.0f, 0.0f), frottement(0.f), maxSpeed(-1), instantRotation(false) {}
 
     //current velocity
     glm::vec2 linearVelocity;
@@ -63,6 +63,9 @@ struct PhysicsComponent {
     std::vector<std::pair<Force, float> > forces;
 
     float maxSpeed;
+
+    // wip
+    bool instantRotation;
 };
 
 #define thePhysicsSystem PhysicsSystem::GetInstance()

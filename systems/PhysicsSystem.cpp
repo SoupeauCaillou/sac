@@ -103,16 +103,22 @@ void PhysicsSystem::DoUpdate(float dt) {
         }
 
         TransformationComponent* tc = TRANSFORM(a);
-        const float momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6.0f;
-        angAccel /= momentOfInertia;
+
 
         tc->position += (pc->linearVelocity + nextVelocity) * dt * 0.5f;
         // velocity varies over dt: use Verlet integration for position
         pc->linearVelocity = nextVelocity;
-        const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
-        tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
-        pc->angularVelocity = nextAngularVelocity;
 
+        if (!pc->instantRotation) {
+            const float momentOfInertia = pc->mass * tc->size.x * tc->size.y / 6.0f;
+            angAccel /= momentOfInertia;
+
+            const float nextAngularVelocity = pc->angularVelocity + angAccel * dt;
+            tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
+            pc->angularVelocity = nextAngularVelocity;
+        } else {
+            tc->rotation = glm::atan(linearAccel.y, linearAccel.x);
+        }
     END_FOR_EACH()
 }
 
