@@ -214,7 +214,8 @@ foreach (FILE ${FILES})
     string(REGEX REPLACE ".*/(.*)Scene\\..*" "\\1" SCENE_NAME ${FILE})
     list(APPEND SCENES ${SCENE_NAME})
 endforeach()
-
+#sort scenes alphabetically to have a fixed enum order
+list(SORT SCENES)
 
 file(WRITE ${SCENE_REGISTRATION_FILE}
 "${LICENSE_HEADER}
