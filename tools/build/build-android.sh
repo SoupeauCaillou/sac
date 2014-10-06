@@ -162,17 +162,17 @@ compilation_before() {
 compilation_after() {
 
     if [ $USE_GRADLE = 1 ]; then
-        if [ ! -f $rootPath/libs/armeabi-v7a.jar ]; then
+        if [ ! -f $rootPath/android/libs/armeabi-v7a.jar ]; then
             error_and_quit "Missing libs/armeabi.jar (did you forgot to compile?)!"
         fi
         info "TODO for gradle" $red
     else
-        rm $rootPath/libs/armeabi-v7a.jar 2>/dev/null
+        rm $rootPath/android/libs/armeabi-v7a.jar 2>/dev/null
     fi
 
     if [ $REGENERATE_ANT_FILES = 1 ]; then
         info "Updating android project"
-        cd $rootPath
+        cd $rootPath/android
 
         # -t "android-8" is required for installLocation,
         # glEsVersion, targetSdkVersion and allowBackup attributes
@@ -193,17 +193,17 @@ get_APK_name() {
     if [ ! -z "$APK" ] && [ -e "$APK" ]; then
         info "APK variable already set to '$APK'. Aborting searching a new one."
     else
-        if [ -f "$rootPath/bin/$gameName-release.apk" ]; then
-            APK=$rootPath/bin/$gameName-release.apk
+        if [ -f "$rootPath/android/bin/$gameName-release.apk" ]; then
+            APK=$rootPath/android/bin/$gameName-release.apk
             info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
-        elif [ -f "$rootPath/bin/$gameName.apk" ]; then
-            APK=$rootPath/bin/$gameName.apk
+        elif [ -f "$rootPath/android/bin/$gameName.apk" ]; then
+            APK=$rootPath/android/bin/$gameName.apk
             info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
-        elif [ -f "$rootPath/bin/${gameName}-debug.apk" ]; then
-            APK=$rootPath/bin/${gameName}-debug.apk
+        elif [ -f "$rootPath/android/bin/${gameName}-debug.apk" ]; then
+            APK=$rootPath/android/bin/${gameName}-debug.apk
             info "Found a debug APK ($(echo $APK | sed 's|.*/||'))..."
-        elif [ -d $rootPath/bin ]; then
-            APK=$(find $rootPath/bin -name "$gameName*.apk")
+        elif [ -d $rootPath/android/bin ]; then
+            APK=$(find $rootPath/android/bin -name "$gameName*.apk")
             if [ -z "$APK" ]; then
                  error_and_quit "Could not find any APK"
             fi
@@ -227,7 +227,7 @@ launch_the_application() {
         if [ ! -e "$SIGN_APK" ]; then
             error_and_quit "File not found: '$SIGN_APK'. Beware: if it's a relative path, it must be relative to $fromWhereAmIBeingCalled location!"
         fi
-        info "Did you know that you can made it automatically? Simply add the following lines in $rootPath/project.properties:
+        info "Did you know that you can made it automatically? Simply add the following lines in $rootPath/android/project.properties:
     key.store=$SIGN_APK
     key.alias=your_key_alias_name
     key.store.password=your_keystore_passwd
@@ -251,7 +251,7 @@ Continuing..."
     fi
 
 
-    cd $rootPath
+    cd $rootPath/android/
     if [ $INSTALL_ON_DEVICE = 1 ]; then
         get_APK_name
         info "Installing '$APK' on device..."
@@ -292,6 +292,6 @@ Continuing..."
     if [ $STACK_TRACE = 1 ]; then
         info "Printing latest dump crashes"
         check_package_in_PATH "ndk-stack" "android-ndk"
-        adb logcat | ndk-stack -sym $rootPath/libs/armeabi-v7a
+        adb logcat | ndk-stack -sym $rootPath/android/libs/armeabi-v7a
     fi
 }
