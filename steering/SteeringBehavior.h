@@ -35,9 +35,13 @@ namespace Steering
             7 -> 315°
         */
         float directions[8];
+        #if SAC_DEBUG
+        Entity entities[8];
+        #endif
     };
 
-    const glm::vec2& direction(int index);
+    const glm::vec2 direction(float rotation, int index);
+    const float angle(float rotation, int index);
 
     template<class T>
     void behavior(Entity e, const T& param, Context* interest, Context* priority, Context* danger);
