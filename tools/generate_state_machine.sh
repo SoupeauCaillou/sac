@@ -24,25 +24,25 @@ export SAC_EXAMPLE="\
 "
 
 ######### 0 : Check requirements. #########
-	if [ -z "$(pwd | grep /sac/tools)" ]; then
-		error_and_quit "The script must be in sac/tools and not in $(pwd)!"
-	fi
-    check_package dot graphviz
+if [ -z "$(pwd | grep /sac/tools)" ]; then
+	error_and_quit "The script must be in sac/tools and not in $(pwd)!"
+fi
+check_package dot graphviz
 
 ######### 1 : Read arguments. #########
-    while [ "$1" != "" ]; do
-        case $1 in
-            -*)
-                error_and_quit "Unknown option: $1"
-                ;;
-            *)
-                error_and_quit "What is '$1'?! Not handled."
-        esac
-        shift
-    done
+while [ "$1" != "" ]; do
+    case $1 in
+        -*)
+            error_and_quit "Unknown option: $1"
+            ;;
+        *)
+            error_and_quit "What is '$1'?! Not handled."
+    esac
+    shift
+done
 
-    rootPath=$whereAmI"/../.."
-    gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+rootPath=$whereAmI"/../.."
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 ######### 2 :
 #first arg: method name
 #second arg: file name

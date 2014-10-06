@@ -7,7 +7,7 @@ if [ -h $0 ]; then
     whereAmI+=/$(dirname $(readlink $0))
 fi
 rootPath=$whereAmI"/../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source $whereAmI/cool_stuff.sh
@@ -38,7 +38,7 @@ fi
 
             #if entity has an 'Anchor' component, then its z is relative to its parent
             z=$(grep 'z =' $file | cut -d '=' -f 2 | tr -d ' ')
-            
+
             if (grep '\[Anchor\]' $file -q); then
                 parent=$(grep 'parent%name' $file | cut -d '=' -f 2 | tr -d ' ')
 
@@ -47,7 +47,7 @@ fi
 
                     z=$(echo $z - 1 | bc)
                 else
-                    #since we dont know if its parent has already been parsed, we store it in file with @parent 
+                    #since we dont know if its parent has already been parsed, we store it in file with @parent
                     z=$z@$parent
                 fi
             fi
@@ -68,7 +68,7 @@ fi
 
         # here rel_z contains value@parent_name
         rel_z=$(echo $line | cut -d ' ' -f 2)
-        
+
         parent_name=$(echo $rel_z | cut -d '@' -f 2)
         rel_z=$(echo $rel_z | cut -d '@' -f 1)
 
@@ -81,7 +81,7 @@ fi
             info "$my_name: Oops! $parent_name is parent of $my_name but it has a parent too! Too complicated" $orange
             parent_z=-1
         fi
-        
+
 
         abs_z=$(echo $rel_z + $parent_z | bc)
 

@@ -84,7 +84,7 @@ on server, with format {gameName}-{date}"
 ######### 2 : Configure variables #########
     info "Setting variables..."
 
-    gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+    gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
     if (!( grep -q '@' <<< "$USER_SERVER" )); then
         error_and_quit "USER_SERVER couple $USER_SERVER does not contain '@' character!"

@@ -11,13 +11,13 @@ if [  -h $0 ]; then
 	cd $whereAmI
 fi
 rootPath=$whereAmI"/../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source cool_stuff.sh
 
 #get the list of available targets (need to be displayed in OPTIONS help
-TARGETS_LIST=$(grep SUPPORTED_TARGETS ../CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
+TARGETS_LIST=$(grep SUPPORTED_TARGETS $rootPath/sac/CMakeLists.txt | head -1 | cut -d " " -f 2- | tr -d ')')
 
 #how to use the script
 export SAC_USAGE="$0"

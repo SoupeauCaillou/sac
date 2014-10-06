@@ -11,7 +11,7 @@ if [  -h $0 ]; then
     cd $whereAmI
 fi
 rootPath=$whereAmI"/../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source cool_stuff.sh

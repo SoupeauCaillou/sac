@@ -7,7 +7,7 @@ if [ -h $0 ]; then
     whereAmI+=/$(dirname $(readlink $0))
 fi
 rootPath=$whereAmI"/../../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source $whereAmI/../cool_stuff.sh

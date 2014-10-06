@@ -9,7 +9,7 @@ if [  -h $0 ]; then
 	cd $whereAmI
 fi
 rootPath=$whereAmI"/../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source cool_stuff.sh
@@ -72,8 +72,8 @@ fi
 
 for file in $files; do
     ext=.$(basename $file | rev | cut -d'.' -f1 | rev). #points are relevant!
-    
-    #warning: there is still a bug, though, if $ext is like '.i' because it will 
+
+    #warning: there is still a bug, though, if $ext is like '.i' because it will
     #match with '.inl'; this is the reason why we force one dot each side
     if [[ ! ".cpp. .h. .hpp. .c. .inl. .java." =~ "$ext" ]]; then
         continue

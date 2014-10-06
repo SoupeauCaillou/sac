@@ -11,7 +11,7 @@ if [  -h $0 ]; then
 	cd $whereAmI
 fi
 rootPath=$whereAmI"/../../.."
-gameName=$(cat $rootPath/CMakeLists.txt | grep 'project(' | cut -d '(' -f2 | tr -d ')')
+gameName=$(grep 'project(' $rootPath/CMakeLists.txt | cut -d '(' -f2 | tr -d ')')
 
 #import cool stuff
 source ../cool_stuff.sh
@@ -89,8 +89,8 @@ sed -i "s/android:versionCode=.*/android:versionCode=\"$versionCode\"/" AndroidM
 
 ######### 3 : Replace version name in Android Manifest if user wants. #########
 if [ ! -z "$versionName" ]; then
-	info "Updating version name to $versionName" 
-	sed -i "s/android:versionName=.*/android:versionName=\"$versionName\"/" AndroidManifest.xml		
+	info "Updating version name to $versionName"
+	sed -i "s/android:versionName=.*/android:versionName=\"$versionName\"/" AndroidManifest.xml
 else
     versionName=$(grep 'android:versionName' AndroidManifest.xml | cut -d= -f2 | tr -d '"')
 	info "Keeping version name to $versionName"
@@ -101,7 +101,7 @@ if ! ./sac/tools/build/build-all.sh --target android -x86 -release n -c $OTHERS_
     error_and_quit "Error when building x86 version"
 elif ! ./sac/tools/build/build-all.sh --target android -arm -release -p n -c $OTHERS_ARGS; then
     error_and_quit "Error when building ARM version"
-fi        
+fi
 info "Saving apk to $rootPath/bin/$gameName-$versionCode-$versionName.apk"
 cp $rootPath/bin/$gameName-release.apk $rootPath/bin/$gameName-$versionCode-$versionName.apk
 
