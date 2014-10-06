@@ -59,6 +59,54 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>(HAS
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
+    std::vector<Entity> recyclable;
+
+    // update emitted particules
+    {
+        unsigned eraseFromIndex = 0, eraseCount = 0;
+        unsigned count = particules.size();
+        for (unsigned i=0; i<count; i++) {
+            InternalParticule& internal = particules[i];
+            internal.time += dt;
+
+            if (internal.time >= internal.lifetime) {
+                recyclable.push_back(internal.e);
+                internal.e = 0;
+
+                if ((i - eraseFromIndex) == eraseCount) {
+                    eraseCount++;
+                } else {
+                    if (eraseCount) {
+                        particules.erase(
+                            particules.begin() + eraseFromIndex,
+                            particules.begin() + eraseFromIndex + eraseCount
+                        );
+                    }
+
+                    i -= eraseCount;
+                    count -= eraseCount;
+
+                    eraseFromIndex = i;
+                    eraseCount = 1;
+                }
+            } else {
+                const float prog = internal.time / internal.lifetime;
+                RENDERING(internal.e)->color = internal.color.lerp(prog);
+                TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(prog));
+            }
+        }
+
+        if (eraseCount) {
+            particules.erase(
+                particules.begin() + eraseFromIndex,
+                particules.begin() + eraseFromIndex + eraseCount
+            );
+        }
+    }
+
+    // then spawn particule
+    // store in a float so a 0.83 value will go in the 'spawnLeftOver' var
+    float spawnCount = 0.0f;
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         if (pc->duration >= 0) {
             pc->duration -= dt;
@@ -70,114 +118,84 @@ void ParticuleSystem::DoUpdate(float dt) {
 
         // emit particules
         if (pc->emissionRate > 0) {
-            int added = pc->emissionRate * (dt + pc->spawnLeftOver);
-            pc->spawnLeftOver += dt - added / pc->emissionRate;
-            unsigned pCount = particules.size();
-            added = glm::min(added, MAX_PARTICULE_COUNT - (int)pCount);
-            particules.resize(pCount + added);
-
-            {
-                int missing = added - (poolLastValidElement + 1);
-                pool.resize(glm::max(pool.size(), pool.size() + missing));
-                for (int i=0; i<missing; i++) {
-                    Entity e = pool[++poolLastValidElement] =
-                        theEntityManager.CreateEntity(HASH("__/particule", 0xe08bc21));
-                    ADD_COMPONENT(e, Transformation);
-                    ADD_COMPONENT(e, Rendering);
-                    ADD_COMPONENT(e, Physics);
-                    theEntityManager.SuspendEntity(e);
-                }
-            }
-
-            const TransformationComponent* ptc = TRANSFORM(a);
-            for (int i=0; i<added; i++) {
-                InternalParticule& internal = particules[pCount++];
-                internal.time = -dt;
-                internal.lifetime = pc->lifetime.random();
-
-                Entity e = internal.e = pool[poolLastValidElement--];
-                theEntityManager.ResumeEntity(e);
-
-                TransformationComponent* tc = TRANSFORM(e);
-                tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
-                tc->rotation = ptc->rotation;
-                tc->size.x = tc->size.y = pc->initialSize.random();
-                tc->z = ptc->z;
-
-                RenderingComponent* rc = RENDERING(e);
-                rc->flags = pc->renderingFlags | RenderingFlags::FastCulling;
-                rc->color = pc->initialColor.random();
-                rc->texture = pc->texture;
-                rc->show = true;
-
-                if (pc->mass) {
-                    PhysicsComponent* ppc = PHYSICS(e);
-                    ppc->linearVelocity = glm::vec2(0.0f);
-                    ppc->angularVelocity = 0;
-                    ppc->gravity = pc->gravity;
-                    ppc->mass = pc->mass;
-                    float angle = ptc->rotation + pc->forceDirection.random();
-                    ppc->addForce(
-                        glm::vec2(
-                            glm::cos(angle),
-                            glm::sin(angle)
-                        ) * pc->forceAmplitude.random(),
-                        glm::vec2(0.0f),//tc->size * glm::linearRand(-0.5f, 0.5f),
-                        0.016f);
-                    PhysicsSystem::addMoment(ppc, pc->moment.random());
-                }
-                internal.color = Interval<Color> (rc->color, pc->finalColor.random());
-                internal.size = Interval<float> (tc->size.x, pc->finalSize.random());
-            }
+            spawnCount += pc->emissionRate * (dt + pc->spawnLeftOver);
         }
     }
 
-    // update emitted particules
-    unsigned eraseFromIndex = 0, eraseCount = 0;
-    unsigned count = particules.size();
-    for (unsigned i=0; i<count; i++) {
-        InternalParticule& internal = particules[i];
-        internal.time += dt;
+    if (spawnCount == 0.0f)
+        return;
 
-        if (internal.time >= internal.lifetime) {
-            poolLastValidElement++;
-            // make sure pool is big enough
-            if ((int)pool.size() < (poolLastValidElement + 1)) {
-                pool.push_back(internal.e);
-            } else {
-                pool[poolLastValidElement] = internal.e;
-            }
-            theEntityManager.SuspendEntity(internal.e);
-            internal.e = 0;
+    int firstParticuleIndex = (int) particules.size();
 
-            if ((i - eraseFromIndex) == eraseCount) {
-                eraseCount++;
-            } else {
-                if (eraseCount) {
-                    particules.erase(
-                        particules.begin() + eraseFromIndex,
-                        particules.begin() + eraseFromIndex + eraseCount
-                    );
-                }
+    particules.resize(particules.size() + spawnCount);
 
-                i -= eraseCount;
-                count -= eraseCount;
-
-                eraseFromIndex = i;
-                eraseCount = 1;
-            }
-            // i--;
-        } else {
-            const float prog = internal.time / internal.lifetime;
-            RENDERING(internal.e)->color = internal.color.lerp(prog);
-            TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(prog));
+    {
+        // recycle particule entities
+        int recyclableCount = (int)recyclable.size();
+        for (int i=0; i<(int)spawnCount && i<recyclableCount; i++) {
+            particules[firstParticuleIndex + i].e = recyclable[i];
+        }
+        // create missing particules
+        for (int i=recyclableCount; i<(int)spawnCount; i++) {
+            Entity e = theEntityManager.CreateEntity(HASH("__/particule", 0xe08bc21));
+            ADD_COMPONENT(e, Transformation);
+            ADD_COMPONENT(e, Rendering);
+            ADD_COMPONENT(e, Physics);
+            particules[firstParticuleIndex + i].e = e;
+        }
+        // last but not least, delete unused recyclable particules
+        auto& mgr = theEntityManager;
+        for (int i=(int)spawnCount; i<recyclableCount; i++) {
+            mgr.DeleteEntity(recyclable[i]);
         }
     }
 
-    if (eraseCount) {
-        particules.erase(
-            particules.begin() + eraseFromIndex,
-            particules.begin() + eraseFromIndex + eraseCount
-        );
+    FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
+        if (pc->duration == 0)
+            continue;
+        int added = pc->emissionRate * (dt + pc->spawnLeftOver);
+        pc->spawnLeftOver += dt - added / pc->emissionRate;
+
+
+        const TransformationComponent* ptc = TRANSFORM(a);
+        for (int i=0; i<added; i++) {
+            InternalParticule& internal = particules[firstParticuleIndex++];
+            Entity e = internal.e;
+            internal.time = 0;
+            internal.lifetime = pc->lifetime.random();
+
+            TransformationComponent* tc = TRANSFORM(e);
+            tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
+            tc->rotation = ptc->rotation;
+            tc->size.x = tc->size.y = pc->initialSize.random();
+            tc->z = ptc->z;
+
+            RenderingComponent* rc = RENDERING(e);
+            rc->flags = pc->renderingFlags | RenderingFlags::FastCulling;
+            rc->color = pc->initialColor.random();
+            rc->texture = pc->texture;
+            rc->show = true;
+
+            PhysicsComponent* ppc = PHYSICS(e);
+            if (pc->mass) {
+                ppc->linearVelocity = glm::vec2(0.0f);
+                ppc->angularVelocity = 0;
+                ppc->gravity = pc->gravity;
+                ppc->mass = pc->mass;
+                float angle = ptc->rotation + pc->forceDirection.random();
+                ppc->addForce(
+                    glm::vec2(
+                        glm::cos(angle),
+                        glm::sin(angle)
+                    ) * pc->forceAmplitude.random(),
+                    glm::vec2(0.0f),//tc->size * glm::linearRand(-0.5f, 0.5f),
+                    0.016f);
+                PhysicsSystem::addMoment(ppc, pc->moment.random());
+            } else {
+                ppc->mass = 0;
+            }
+            internal.color = Interval<Color> (rc->color, pc->finalColor.random());
+            internal.size = Interval<float> (tc->size.x, pc->finalSize.random());
+        }
     }
 }
