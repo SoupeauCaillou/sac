@@ -115,31 +115,31 @@ function (others_specific_executables)
 endfunction()
 
 function (postbuild_specific_actions)
-    if (USE_GRADLE)
-        add_custom_command(
-            TARGET "sac" POST_BUILD
-            COMMAND rm -rf tmplibs/ ${GAME_SOURCE_DIR}/libs/armeabi-v7a.jar
-            COMMAND mkdir -p tmplibs/lib
-            COMMAND cp -r ${GAME_SOURCE_DIR}/libs/armeabi-v7a tmplibs/lib
-            COMMAND rm -r tmplibs/lib/armeabi-v7a/*.a
-            COMMAND cd tmplibs && zip -r ${GAME_SOURCE_DIR}/libs/armeabi-v7a.jar lib/*
-            COMMAND rm -rf tmplibs/
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMENT "Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)"
-        )
-    endif()
+    # if (USE_GRADLE)
+    #     add_custom_command(
+    #         TARGET "sac" POST_BUILD
+    #         COMMAND rm -rf tmplibs/ ${GAME_SOURCE_DIR}/libs/armeabi-v7a.jar
+    #         COMMAND mkdir -p tmplibs/lib
+    #         COMMAND cp -r ${GAME_SOURCE_DIR}/libs/armeabi-v7a tmplibs/lib
+    #         COMMAND rm -r tmplibs/lib/armeabi-v7a/*.a
+    #         COMMAND cd tmplibs && zip -r ${GAME_SOURCE_DIR}/libs/armeabi-v7a.jar lib/*
+    #         COMMAND rm -rf tmplibs/
+    #         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    #         COMMENT "Creating armeabi.jar. Hack for gradle since it does not support native-lib yet (https://groups.google.com/forum/#!msg/adt-dev/nQobKd2Gl_8/Z5yWAvCh4h4J)"
+    #     )
+    # endif()
 
     # 4. copy lib to obj
     add_custom_command(
         TARGET "sac" POST_BUILD
-        COMMAND mkdir -p ${GAME_SOURCE_DIR}/obj/local/${ANDROID_NDK_ABI_NAME}/
-        COMMAND cp ${GAME_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/libsac.so ${GAME_SOURCE_DIR}/obj/local/${ANDROID_NDK_ABI_NAME}/
+        COMMAND mkdir -p ${GAME_SOURCE_DIR}/android/obj/local/${ANDROID_NDK_ABI_NAME}/
+        COMMAND cp ${GAME_SOURCE_DIR}/android/libs/${ANDROID_NDK_ABI_NAME}/libsac.so ${GAME_SOURCE_DIR}/android/obj/local/${ANDROID_NDK_ABI_NAME}/
     )
 
     # 5. strip symbols
     add_custom_command(
         TARGET "sac" POST_BUILD
-        COMMAND ${CMAKE_STRIP} ${GAME_SOURCE_DIR}/libs/${ANDROID_NDK_ABI_NAME}/libsac.so
+        COMMAND ${CMAKE_STRIP} ${GAME_SOURCE_DIR}/android/libs/${ANDROID_NDK_ABI_NAME}/libsac.so
     )
 endfunction()
 

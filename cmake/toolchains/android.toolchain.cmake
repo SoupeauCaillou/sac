@@ -1432,7 +1432,7 @@ include_directories( SYSTEM "${ANDROID_SYSROOT}/usr/include" ${ANDROID_STL_INCLU
 link_directories( "${CMAKE_INSTALL_PREFIX}/libs/${ANDROID_NDK_ABI_NAME}" )
 
 # setup output directories
-set( LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_SOURCE_DIR} CACHE PATH "root for library output, set this to change where android libs are installed to" )
+set( LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_SOURCE_DIR}/android CACHE PATH "root for library output, set this to change where android libs are installed to" )
 set( CMAKE_INSTALL_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/user" CACHE STRING "path for installing" )
 
 if(NOT _CMAKE_IN_TRY_COMPILE)
