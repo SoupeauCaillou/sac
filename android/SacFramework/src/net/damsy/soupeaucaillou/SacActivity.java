@@ -124,7 +124,9 @@ public class SacActivity extends Activity {
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.parent_frame);
 
         GLSurfaceView mGLView = new GLSurfaceView(this);
-        mGLView.setEGLConfigChooser(8 , 8, 8, 8, 16, 0);
+        
+			//This was used for simulator, but it makes games crash on Galaxy Nexus (createContext failed:EGL_BAD_CONFIG)
+			//mGLView.setEGLConfigChooser(8 , 8, 8, 8, 16, 0);
         mGLView.setLayoutParams(new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
 
         /*SharedPreferences preferences = getSharedPreferences(PrototypeActivity.PROTOTYPE_SHARED_PREF, 0);
