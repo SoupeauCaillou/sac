@@ -35,6 +35,8 @@ TransformationSystem::TransformationSystem() : ComponentSystemImpl<Transformatio
     for (unsigned i=0; i<Shape::Count; i++) {
         shapes.push_back(Polygon::create((Shape::Enum)i));
     }
+
+    LOGT("Move 'z' property to where it belongs: Rendering/Text (and remove from Anchor too)");
 }
 
 void TransformationSystem::DoUpdate(float) {
