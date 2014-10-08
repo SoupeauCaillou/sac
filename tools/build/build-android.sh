@@ -174,16 +174,16 @@ compilation_after() {
         info "Updating android project"
         cd $rootPath/android
 
-        # -t "android-8" is required for installLocation,
-        # glEsVersion, targetSdkVersion and allowBackup attributes
+        # -t "android-8" is required for installLocation, glEsVersion, targetSdkVersion and allowBackup attributes
         # but currently all ndk <= 9 produce buggy builds for android-8, so use android-10
-        if ! android update project -p . -t "android-10" -n $gameName --subprojects; then
-            error_and_quit "Error while updating project"
+        # -n $gameName was removed because build.xml is overwritten with it, even if <!-- version-tag:custom --> is
+        # provided... but we need it to automatically sign APK with release keystore which is stored outside of repository!!!
+        if ! android update project -p . -t "android-10" --subprojects; then
+            error_and_quit "Error while updating project. You might try the following:\
+             android update project -p . -t \"android-10\" --subprojects -n $gameName"
         fi
 
-        # if ant failed, redo it in verbose mode
-        if ! ant -q release &>/dev/null; then
-            ant release
+        if ! ant -q release; then
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi
