@@ -6,7 +6,8 @@
     <uses-sdk android:minSdkVersion="8" />
 
     <application>
-	    <!-- Don't forget to add this line in your game AndroidManifest.xml! -->
-	    <!-- <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="your_google_game_app_id"/> -->
-	</application>
+        <!-- Modify this value! -->
+        <!-- the space is important since we cannot write int values without making the app crash -->
+        <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="\ 645507124800" />
+    </application>
 </manifest>
