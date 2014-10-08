@@ -117,7 +117,9 @@ void PhysicsSystem::DoUpdate(float dt) {
             tc->rotation += (pc->angularVelocity + nextAngularVelocity) * dt * 0.5f;
             pc->angularVelocity = nextAngularVelocity;
         } else {
-            tc->rotation = glm::atan(linearAccel.y, linearAccel.x);
+            if (glm::length2(linearAccel) > 0.001) {
+                tc->rotation = glm::atan(linearAccel.y, linearAccel.x);
+            }
         }
     END_FOR_EACH()
 }
