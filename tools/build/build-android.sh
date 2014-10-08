@@ -17,16 +17,17 @@ export PLATFORM_OPTIONS="\
 
 
 parse_arguments() {
-    ARCHI=arm
-    GENERATE_ATLAS=0
-    USE_GRADLE=0
-    REGENERATE_ANT_FILES=0
-    INSTALL_ON_DEVICE=0
-    UNINSTALL_FROM_DEVICE=0
-    RUN_LOGCAT=0
-    STACK_TRACE=0
-    SIGN_APK=
-    FORCE_CLEAN=0
+    ret=0
+    archi=arm
+    generate_atlas=0
+    use_gradle=0
+    regenerate_ant_files=0
+    install_on_device=0
+    uninstall_from_device=0
+    run_logcat=0
+    stack_trace=0
+    sign_apk=
+    force_clean=0
     while [ "$1" != "" ]; do
         case $1 in
             #ignore higher level commands
@@ -39,58 +40,61 @@ parse_arguments() {
                 shift
                 ;;
             "-a" | "-atlas")
-                GENERATE_ATLAS=1
-                TARGETS=$TARGETS" "
+                generate_atlas=1
+                targets=$targets" "
                 ;;
             "-g" | "-gradle")
-                USE_GRADLE=1
-                TARGETS=$TARGETS" "
+                use_gradle=1
+                targets=$targets" "
                 ;;
             "-p" | "-project")
-                REGENERATE_ANT_FILES=1
-                TARGETS=$TARGETS"n"
+                regenerate_ant_files=1
+                targets=$targets"n"
                 ;;
             "-i" | "-install")
-                INSTALL_ON_DEVICE=1
-                TARGETS=$TARGETS" "
+                install_on_device=1
+                targets=$targets" "
                 ;;
             "-u" | "-uninstall")
-                UNINSTALL_FROM_DEVICE=1
-                TARGETS=$TARGETS" "
+                uninstall_from_device=1
+                targets=$targets" "
                 ;;
             "-l" | "-log")
-                RUN_LOGCAT=1
-                TARGETS=$TARGETS" "
+                run_logcat=1
+                targets=$targets" "
                 ;;
             "-s" | "-stacktrace")
-                TARGETS=$TARGETS" "
-                STACK_TRACE=1
+                targets=$targets" "
+                stack_trace=1
                 ;;
             "-c" | "-clean")
-                TARGETS=$TARGETS" "
-                FORCE_CLEAN=1
+                targets=$targets" "
+                force_clean=1
                 ;;
             "-arm")
-                ARCHI=arm
+                archi=arm
                 ;;
             "-x86")
-                ARCHI=x86
+                archi=x86
                 ;;
             "--v" | "--validation")
-                TARGETS=$TARGETS" "
+                targets=$targets" "
                 shift
-                SIGN_APK=$1
+                sign_apk=$1
                 ;;
             --*)
+                ret=$(($ret + 1))
                 info "Unknown option '$1', ignoring it and its arg '$2'" $red
                 shift
                 ;;
             -*)
+                ret=$(($ret + 1))
                 info "Unknown option '$1', ignoring it" $red
                 ;;
         esac
         shift
     done
+    return $ret
 }
 
 check_necessary() {
@@ -127,11 +131,11 @@ check_necessary() {
     fi
 
     #change build dir!
-    builddir=$builddir-$ARCHI
+    builddir=$builddir-$archi
 }
 
 init() {
-    if [ $FORCE_CLEAN = 1 ]; then
+    if [ $force_clean = 1 ]; then
         to_trash_destination=$(find $rootPath -type d  -name bin -o -name gen)
         if [ ! -z "$to_trash_destination" ]; then
             info "Removing all bin/ and gen/ directories ($(echo $to_trash_destination | tr ' ' '\n' | rev | cut -d/ -f1-2 | rev | tr '\n' ' '))"
@@ -141,7 +145,7 @@ init() {
         fi
     fi
 
-    if [ $GENERATE_ATLAS = 1 ]; then
+    if [ $generate_atlas = 1 ]; then
         info "Generating atlas..."
         $rootPath/sac/tools/generate_atlas.sh $rootPath/unprepared_assets/*
     fi
@@ -150,18 +154,18 @@ init() {
 compilation_before() {
     info "Adding specific toolchain for android..."
 
-    if [ "$ARCHI" = "x86" ]; then
+    if [ "$archi" = "x86" ]; then
         CMAKE_CONFIG+=(-DANDROID_ABI=x86)
     fi
 
     CMAKE_CONFIG+=(-DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/cmake/toolchains/android.toolchain.cmake)
     CMAKE_CONFIG+=(-DANDROID_FORCE_ARM_BUILD=ON)
-    CMAKE_CONFIG+=(-DUSE_GRADLE=$USE_GRADLE)
+    CMAKE_CONFIG+=(-DUSE_GRADLE=$use_gradle)
 }
 
 compilation_after() {
 
-    if [ $USE_GRADLE = 1 ]; then
+    if [ $use_gradle = 1 ]; then
         if [ ! -f $rootPath/android/libs/armeabi-v7a.jar ]; then
             error_and_quit "Missing libs/armeabi.jar (did you forgot to compile?)!"
         fi
@@ -170,7 +174,7 @@ compilation_after() {
         rm $rootPath/android/libs/armeabi-v7a.jar 2>/dev/null
     fi
 
-    if [ $REGENERATE_ANT_FILES = 1 ]; then
+    if [ $regenerate_ant_files = 1 ]; then
         info "Updating android project"
         cd $rootPath/android
 
@@ -190,25 +194,25 @@ compilation_after() {
 }
 
 get_APK_name() {
-    if [ ! -z "$APK" ] && [ -e "$APK" ]; then
-        info "APK variable already set to '$APK'. Aborting searching a new one."
+    if [ ! -z "$apk" ] && [ -e "$apk" ]; then
+        info "APK variable already set to '$apk'. Aborting searching a new one."
     else
         if [ -f "$rootPath/android/bin/$gameName-release.apk" ]; then
-            APK=$rootPath/android/bin/$gameName-release.apk
-            info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
+            apk=$rootPath/android/bin/$gameName-release.apk
+            info "Found a release APK ($(echo $apk | sed 's|.*/||'))..."
         elif [ -f "$rootPath/android/bin/$gameName.apk" ]; then
-            APK=$rootPath/android/bin/$gameName.apk
-            info "Found a release APK ($(echo $APK | sed 's|.*/||'))..."
+            apk=$rootPath/android/bin/$gameName.apk
+            info "Found a release APK ($(echo $apk | sed 's|.*/||'))..."
         elif [ -f "$rootPath/android/bin/${gameName}-debug.apk" ]; then
-            APK=$rootPath/android/bin/${gameName}-debug.apk
-            info "Found a debug APK ($(echo $APK | sed 's|.*/||'))..."
+            apk=$rootPath/android/bin/${gameName}-debug.apk
+            info "Found a debug APK ($(echo $apk | sed 's|.*/||'))..."
         elif [ -d $rootPath/android/bin ]; then
-            APK=$(find $rootPath/android/bin -name "$gameName*.apk")
-            if [ -z "$APK" ]; then
+            apk=$(find $rootPath/android/bin -name "$gameName*.apk")
+            if [ -z "$apk" ]; then
                  error_and_quit "Could not find any APK"
             fi
-            APK=$(echo $APK | head -n1)
-            info "Couldn't find a usual name for the apk... will use '$(echo $APK | sed 's|.*/||')'" $orange
+            apk=$(echo $apk | head -n1)
+            info "Couldn't find a usual name for the apk... will use '$(echo $apk | sed 's|.*/||')'" $orange
         else
             error_and_quit "Could not find any APK (did you forget to use -p option?)"
         fi
@@ -216,50 +220,50 @@ get_APK_name() {
 }
 
 launch_the_application() {
-    if [ $UNINSTALL_FROM_DEVICE = 1 ]; then
+    if [ $uninstall_from_device = 1 ]; then
         info "Uninstalling from device..."
         adb uninstall $(cat $rootPath/android/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
     fi
 
 
-    if [ ! -z "$SIGN_APK" ]; then
+    if [ ! -z "$sign_apk" ]; then
         cd $fromWhereAmIBeingCalled
-        if [ ! -e "$SIGN_APK" ]; then
-            error_and_quit "File not found: '$SIGN_APK'. Beware: if it's a relative path, it must be relative to $fromWhereAmIBeingCalled location!"
+        if [ ! -e "$sign_apk" ]; then
+            error_and_quit "File not found: '$sign_apk'. Beware: if it's a relative path, it must be relative to $fromWhereAmIBeingCalled location!"
         fi
         info "Did you know that you can made it automatically? Simply add the following lines in $rootPath/android/project.properties:
-    key.store=$SIGN_APK
+    key.store=$sign_apk
     key.alias=your_key_alias_name
     key.store.password=your_keystore_passwd
     key.alias.password=your_key_passwd
 Continuing..."
 
         get_APK_name
-        info "Signing APK '$APK' with keystore located at $SIGN_APK"
+        info "Signing APK '$apk' with keystore located at $sign_apk"
 
-        info "What is the key alias? (Can be found with 'keytool -keystore $SIGN_APK -list')" $blue
+        info "What is the key alias? (Can be found with 'keytool -keystore $sign_apk -list')" $blue
         read key_alias_name
-        if (!(jarsigner -verbose -keystore $SIGN_APK $APK $key_alias_name)); then
+        if (!(jarsigner -verbose -keystore $sign_apk $apk $key_alias_name)); then
             error_and_quit "Error when signing APK."
         fi
         rm ${gameName}-release-signed-with-sac.apk -f
-        if (!(zipalign -v 4 $APK ${gameName}-release-signed-with-sac.apk)); then
+        if (!(zipalign -v 4 $apk ${gameName}-release-signed-with-sac.apk)); then
             error_and_quit "Error when zipaligning APK."
         fi
-        APK=${gameName}-release-signed-with-sac.apk
-        info "Successfully created signed APK '$APK'"
+        apk=${gameName}-release-signed-with-sac.apk
+        info "Successfully created signed APK '$apk'"
     fi
 
 
     cd $rootPath/android/
-    if [ $INSTALL_ON_DEVICE = 1 ]; then
+    if [ $install_on_device = 1 ]; then
         get_APK_name
-        info "Installing '$APK' on device..."
-        if [ $USE_GRADLE = 1 ]; then
+        info "Installing '$apk' on device..."
+        if [ $use_gradle = 1 ]; then
             info "TODO for gradle" $red
         else
-            if (!(adb install -r $APK)); then
-                error_and_quit "Could not install $APK on device!"
+            if (!(adb install -r $apk)); then
+                error_and_quit "Could not install $apk on device!"
             fi
         fi
     fi
@@ -268,7 +272,7 @@ Continuing..."
     activityName=$(grep '<activity' $rootPath/android/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
 
     #debug required
-    if [ ! -z "$(echo $TARGETS | grep d)" ]; then
+    if [ ! -z "$(echo $targets | grep d)" ]; then
         info "A bug? gdb on the way!"
         if ! ndk-gdb; then
             info "Note: this does not work with Android<2.3 and Cyanogen devices!" $orange
@@ -284,12 +288,12 @@ Continuing..."
         fi
     fi
 
-    if [ $RUN_LOGCAT = 1 ]; then
+    if [ $run_logcat = 1 ]; then
         info "Launching adb logcat..."
-        adb logcat -C | grep sac
+        adb logcat -c && adb logcat | grep sac
     fi
 
-    if [ $STACK_TRACE = 1 ]; then
+    if [ $stack_trace = 1 ]; then
         info "Printing latest dump crashes"
         check_package_in_PATH "ndk-stack" "android-ndk"
         adb logcat | ndk-stack -sym $rootPath/android/libs/armeabi-v7a

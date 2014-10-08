@@ -3,7 +3,8 @@ export PLATFORM_OPTIONS="\
 -p|-push: call push-build-on-website script to push on a distant server a build"
 
 parse_arguments() {
-    SHOULD_PUSH=""
+    ret=0
+    should_push=""
     while [ "$1" != "" ]; do
         case $1 in
             #ignore higher level commands
@@ -17,21 +18,24 @@ parse_arguments() {
                 ;;
 
             "-p" | "-push")
-                # cheating - but we don't want TARGETS to be empty (else it will display the help)
-                TARGETS=$TARGETS" "
-                SHOULD_PUSH="y"
+                # cheating - but we don't want targets to be empty (else it will display the help)
+                targets=$targets" "
+                should_push="y"
                 ;;
 
             --*)
+                ret=$(($ret + 1))
                 info "Unknown option '$1', ignoring it and its arg '$2'" $red
                 shift
                 ;;
             -*)
+                ret=$(($ret + 1))
                 info "Unknown option '$1', ignoring it" $red
                 ;;
         esac
         shift
     done
+    return $ret
 }
 
 check_necessary() {
@@ -52,13 +56,13 @@ compilation_after() {
 
 launch_the_application() {
     #push on site required
-    if [ ! -z "$SHOULD_PUSH" ]; then
+    if [ ! -z "$should_push" ]; then
         info "Pushing content on site..."
         ../../sac/tools/build/push-build-on-website.sh -d . -i
     fi
 
     #launch required
-    if [ ! -z "$(echo $TARGETS | grep r)" ]; then
+    if [ ! -z "$(echo $targets | grep r)" ]; then
         info "Finding a navigator..."
         #find a navigator...
         navigator=""

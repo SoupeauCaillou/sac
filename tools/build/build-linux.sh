@@ -9,8 +9,9 @@ You can also specify arguments:
 \t--r|--run \"arguments for game\": arguments handled by the game (--restore, --verbose, ..., whatever you did!)"
 
 parse_arguments() {
-    RUN_ARGS=""
-    COLOREDLOGS_ARGS=""
+    ret=0
+    run_args=""
+    coloredlogs_args=""
     while [ "$1" != "" ]; do
         case $1 in
             #ignore higher level commands
@@ -25,24 +26,27 @@ parse_arguments() {
 
             "--l" | "--log")
                 shift
-                TARGETS=$TARGETS"l"
-                COLOREDLOGS_ARGS=$1
+                targets=$targets"l"
+                coloredlogs_args=$1
                 ;;
             "--r" | "--run")
                 shift
-                TARGETS=$TARGETS"r"
-                RUN_ARGS=$1
+                targets=$targets"r"
+                run_args=$1
                 ;;
             --*)
                 info "Unknown option '$1', ignoring it and its arg '$2'" $red
+                ret=$(($ret + 1))
                 shift
                 ;;
             -*)
                 info "Unknown option '$1', ignoring it" $red
+                ret=$(($ret + 1))
                 ;;
         esac
         shift
     done
+    return $ret
 }
 
 check_necessary() {
@@ -62,26 +66,26 @@ compilation_after() {
 }
 
 launch_the_application() {
-    executable="./$gameName $RUN_ARGS"
+    executable="./$gameName $run_args"
     #debug required
-    if [ ! -z "$(echo $TARGETS | grep d)" ]; then
+    if [ ! -z "$(echo $targets | grep d)" ]; then
         info "A bug? Cgdb on the way!"
         check_package cgdb
         cgdb -ex run $executable
     #launch required
-    elif [ ! -z "$(echo $TARGETS | grep r)" ]; then
+    elif [ ! -z "$(echo $targets | grep r)" ]; then
         #verbose required
-        if [ ! -z "$(echo $TARGETS | grep l)" ]; then
+        if [ ! -z "$(echo $targets | grep l)" ]; then
             info "Launch with colored log."
 
             #coloredlogs shouldn't be empty
-            if [ -z "$COLOREDLOGS_ARGS" ]; then
+            if [ -z "$coloredlogs_args" ]; then
                 info "No arg for color script ?\nChoose tag with option -l" $red
                 info "I will use 'all' tag here"
-                COLOREDLOGS_ARGS='all'
+                coloredlogs_args='all'
                 sleep 3
             fi
-            $executable | $rootPath/sac/tools/build/linux-coloredLogs.sh $COLOREDLOGS_ARGS
+            $executable | $rootPath/sac/tools/build/linux-coloredLogs.sh $coloredlogs_args
 
         else
             info "Launch game."
