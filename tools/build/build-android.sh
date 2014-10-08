@@ -155,12 +155,12 @@ compilation_before() {
     info "Adding specific toolchain for android..."
 
     if [ "$archi" = "x86" ]; then
-        CMAKE_CONFIG+=(-DANDROID_ABI=x86)
+        cmake_config+=(-DANDROID_ABI=x86)
     fi
 
-    CMAKE_CONFIG+=(-DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/cmake/toolchains/android.toolchain.cmake)
-    CMAKE_CONFIG+=(-DANDROID_FORCE_ARM_BUILD=ON)
-    CMAKE_CONFIG+=(-DUSE_GRADLE=$use_gradle)
+    cmake_config+=(-DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/cmake/toolchains/android.toolchain.cmake)
+    cmake_config+=(-DANDROID_FORCE_ARM_BUILD=ON)
+    cmake_config+=(-DUSE_GRADLE=$use_gradle)
 }
 
 compilation_after() {
