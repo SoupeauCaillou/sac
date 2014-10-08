@@ -20,7 +20,7 @@ void behavior(Entity e, const SeekParams& param, Context* interest, Context* pri
 
             // to allow 'e' to go backward if forward path is blocked
         if (d <0) {
-            d = 0.3;
+            d = 0.2;
         } else {
             d = glm::min(1.0f, 0.3f + d);
         }
@@ -74,42 +74,70 @@ void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* d
     const auto* pc = PHYSICS(e);
     float speed = glm::length(pc->linearVelocity);
     const auto* tc = TRANSFORM(e);
-#define FramePrediction 0.3f
 
     // assume obstacle is not-moving
     // we calculate predicted new pos of e for each direction
     // if we intersect with an object, fill danger map
 
-    // compute size of 'e' upon 2 frame
-    // example: [0]---[1] (pos at 0 and 1)
-    // result:  [*******]
-    const glm::vec2 interpSize = glm::vec2(tc->size.x * (1 + speed * FramePrediction), tc->size.y);
+
 
     for (int i=0; i<8; i++) {
+        std::vector<Entity> avoids(param.entities, param.entities + param.count);
+
         // calculate new pos
         float maxSpeed = 5;
         float maxForce = 30;
-        // glm::vec2 movement = Steering::direction(tc->rotation, i) * speed * FramePrediction;
-        glm::vec2 accel = Steering::direction(tc->rotation, i) * maxForce / pc->mass;
-        glm::vec2 movement = (pc->linearVelocity + accel * FramePrediction) * FramePrediction;
-        glm::vec2 nextFramePosition = tc->position + movement;
-        Draw::Point(nextFramePosition);
-        glm::vec2 interpPos = (tc->position + nextFramePosition) * 0.5f;
-        Draw::Point(interpPos, Color(0, 0, 0));
         float rotation = Steering::angle(tc->rotation, i);
+        glm::vec2 accel = Steering::direction(tc->rotation, i) * maxForce / pc->mass;
+
+        // iterate over a few discrete times in future. danger value depends on when a collision would happen
+        bool atLeastOneCollision = true;
+
+        for (int step = 0; step < 10 && atLeastOneCollision; step++) {
+            atLeastOneCollision = false;
+
+            float FramePrediction = 0.3 - step * 0.03;
+            float dangerValue = step * 0.1;
+
+            // compute size of 'e' upon 2 frame
+            // example: [0]---[1] (pos at 0 and 1)
+            // result:  [*******]
+            const glm::vec2 interpSize = glm::vec2(tc->size.x * (1 + speed * FramePrediction), tc->size.y);
 
 
-        for (int j=0; j<param.count; j++) {
-            Entity avoid = param.entities[j];
-            const auto* ta = TRANSFORM(avoid);
+            glm::vec2 movement = (pc->linearVelocity + accel * FramePrediction) * FramePrediction;
+            float l = glm::length(movement);
+            if (l > maxSpeed) movement *= maxSpeed / l;
+            glm::vec2 nextFramePosition = tc->position + movement;
+            // Draw::Point(nextFramePosition);
+            glm::vec2 interpPos = (tc->position + nextFramePosition) * 0.5f;
+            // Draw::Point(interpPos, Color(0, 0, 0));
 
-            if (IntersectionUtil::rectangleRectangle(interpPos, interpSize, rotation,
-                ta->position, ta->size, ta->rotation)) {
 
-                danger->directions[i] = glm::min(1.0f, glm::length(interpSize) / glm::max(ta->size.x, ta->size.y));
-                #if SAC_DEBUG
-                danger->entities[i] = avoid;
-                #endif
+            int count = avoids.size();
+            for (int j=0; j<count; j++) {
+                Entity avoid = avoids[j];
+                if (!avoid) continue;
+
+                const auto* ta = TRANSFORM(avoid);
+
+                if (IntersectionUtil::rectangleRectangle(interpPos, interpSize, rotation,
+                    ta->position, ta->size, ta->rotation)) {
+                    atLeastOneCollision = true;
+
+                    if (dangerValue > danger->directions[i]) {
+                        danger->directions[i] = dangerValue;
+                        #if SAC_DEBUG
+                        danger->entities[i] = avoid;
+                        #endif
+                    }
+                    // no need to iterate over every possible obstacle
+                    // we only want to know if there's a collision that could occur at t + FramePrediction
+                    break;
+                } else {
+                    // remove entity from  potential collider
+                    avoids[j] = 0;
+                }
             }
         }
     }
