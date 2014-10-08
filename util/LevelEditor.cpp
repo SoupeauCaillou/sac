@@ -921,10 +921,22 @@ void LevelEditor::tick(float dt) {
                 playback = 1;
             }
 
-            if (kb->isKeyPressed(Key::ByName(SDLK_LEFT)))
-                datas->currentBackFrame--;
-            if (kb->isKeyPressed(Key::ByName(SDLK_RIGHT)))
-                datas->currentBackFrame++;
+            int inc = 1;
+            if (kb->isKeyPressed(Key::ByName(SDLK_LSHIFT))) {
+                inc = 10;
+            }
+
+            if (kb->isKeyPressed(Key::ByName(SDLK_LCTRL))) {
+                if (kb->isKeyReleased(Key::ByName(SDLK_LEFT)))
+                    datas->currentBackFrame-=inc;
+                if (kb->isKeyReleased(Key::ByName(SDLK_RIGHT)))
+                    datas->currentBackFrame+=inc;
+            } else  {
+                if (kb->isKeyPressed(Key::ByName(SDLK_LEFT)))
+                    datas->currentBackFrame-=inc;
+                if (kb->isKeyPressed(Key::ByName(SDLK_RIGHT)))
+                    datas->currentBackFrame+=inc;
+            }
 
 
         } else {
