@@ -849,6 +849,9 @@ void LevelEditor::tick(float dt) {
             }
         }
 
+        if (kb->isKeyReleased(Key::ByName(SDLK_c))) {
+            TRANSFORM(cameras[0])->position = theTouchInputManager.getOverLastPosition();
+        }
 
         ImGui::SliderFloat2("Position", &TRANSFORM(cameras[0])->position.x, -30, 30, "%.1f");
     }
