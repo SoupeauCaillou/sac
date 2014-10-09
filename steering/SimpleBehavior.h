@@ -1,8 +1,11 @@
 #pragma once
 
+#include "base/Interval.h"
+
 namespace Steering
 {
     struct SeekParams {
+        SeekParams() : weight(0) {}
         Entity* entities;
         float* weight;
         int count;
@@ -48,12 +51,10 @@ namespace Steering
     };
 
     struct WanderParams {
+        WanderParams() : change(0) {}
         float radius;
-        float distance;
-        float jitter;
         glm::vec2 target;
-        #if SAC_DEBUG
-        glm::vec2 debugTarget;
-        #endif
+        Interval<float> pauseDuration;
+        float change;
     };
 }

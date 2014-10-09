@@ -44,7 +44,7 @@ namespace Steering
     const float angle(float rotation, int index);
 
     template<class T>
-    void behavior(Entity e, const T& param, Context* interest, Context* priority, Context* danger);
+    void behavior(Entity e, float dt, T& param, Context* interest, Context* priority, Context* danger);
 }
 
 #if 0

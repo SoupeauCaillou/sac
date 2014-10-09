@@ -93,19 +93,23 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
              Individual behaviors
         */
         if (agent->seek.count) {
-            Steering::behavior(e, agent->seek, &interest, &priority, &danger);
+            Steering::behavior(e, dt, agent->seek, &interest, &priority, &danger);
         }
 
         if (agent->flee.target) {
-            Steering::behavior(e, agent->flee, &interest, &priority, &danger);
+            Steering::behavior(e, dt, agent->flee, &interest, &priority, &danger);
         }
 
         if (agent->avoid.count) {
-            Steering::behavior(e, agent->avoid, &interest, &priority, &danger);
+            Steering::behavior(e, dt, agent->avoid, &interest, &priority, &danger);
         }
 
         if (agent->group.count) {
-            Steering::behavior(e, agent->group, &interest, &priority, &danger);
+            Steering::behavior(e, dt, agent->group, &interest, &priority, &danger);
+        }
+
+        if (agent->wander.radius > 0) {
+            Steering::behavior(e, dt, agent->wander, &interest, &priority, &danger);
         }
 
         /**********
@@ -131,7 +135,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
 
             float diff1 = interest.directions[direction1] - danger.directions[direction1];
             float diff2 = interest.directions[d2] - danger.directions[d2];
-            if (glm::abs(diff1 - diff2) > 0.001) {
+            if (glm::abs(diff1 - diff2) > 0.01) {
                 if (diff1 > diff2)
                     return true;
                 if (diff1 < diff2)
@@ -149,33 +153,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         // if no direction available, stop
 
         int chosenDirection = -1;
-        #if 1
-        const glm::vec2& velocity = glm::normalize(PHYSICS(e)->linearVelocity);
-        for (int i=0; i<8; i++) {
-            glm::vec2 size = Steering::direction(rotation, i) * danger.directions[i];
-            Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, size, Color(1, 0, 0, 0.5));
-            #if SAC_DEBUG
-            if (danger.entities[i]) {
-                glm::vec2 pos = TRANSFORM(e)->position + size;
-                Draw::Vec2(HASH("aa", 0x6e1cb412),
-                    pos, TRANSFORM(danger.entities[i])->position - pos, Color(0,0,0, 0.2));
-            } else {
-                Draw::Vec2(HASH("aa", 0x6e1cb412),
-                    TRANSFORM(e)->position + size, glm::vec2(1, 0), Color(0,0,1, 0.2));
-            }
-            #endif
 
-            float d = glm::max(0.0f, glm::dot(Steering::direction(rotation, i), velocity));
-            Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Steering::direction(rotation, i) * interest.directions[i], Color(0, 1, d, 0.5));
-            #if SAC_DEBUG
-            if (interest.entities[i]) {
-                glm::vec2 pos = TRANSFORM(e)->position + size;
-                Draw::Vec2(HASH("aa", 0x6e1cb412),
-                    pos, TRANSFORM(interest.entities[i])->position - pos, Color(1,1,0, 0.2));
-            }
-            #endif
-        }
-        #endif
 
         bool cancelVelocity = false;
         if (potentialDirections.empty()) {
@@ -196,13 +174,67 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             float v = glm::length(PHYSICS(e)->linearVelocity);
             PHYSICS(e)->linearVelocity = glm::vec2(0.0f);
             // addForce( PHYSICS(e)->linearVelocity * (-glm::min(agent->maxForce, 3 * v)), glm::vec2(0.f), dt);
-            Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Color(1, 0, 0, 0.5));
+            Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Color(1, 0, 0, 1));
 
         } else {
-            Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position
-                + Steering::direction(rotation, chosenDirection), Color(0, 0, 1, 0.5));
-            PHYSICS(e)->addForce(Steering::direction(rotation, chosenDirection) * ( priority.directions[chosenDirection] * agent->maxForce), glm::vec2(0.f), dt);
+
+            glm::vec2 forceDirection = Steering::direction(rotation, chosenDirection);
+
+            // lateral speed
+            const auto& v = PHYSICS(e)->linearVelocity;
+            float t = glm::dot(v, forceDirection);
+
+            glm::vec2 desiredVelocity = forceDirection * agent->maxSpeed;
+            glm::vec2 lateralVelocity = v - t * forceDirection;
+            glm::vec2 force = glm::normalize(desiredVelocity - lateralVelocity);
+
+
+            PHYSICS(e)->maxSpeed = priority.directions[chosenDirection] * agent->maxSpeed;
+            PHYSICS(e)->addForce(
+                force * agent->maxForce,
+                glm::vec2(0.f), dt);
+            Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position + force, Color(0.5, 0.5, .4, 1));
         }
+
+        #if 1
+        const glm::vec2& velocity = glm::normalize(PHYSICS(e)->linearVelocity);
+        for (int i=0; i<8; i++) {
+            if (danger.directions[i])
+            {
+                glm::vec2 size = Steering::direction(rotation, i) * danger.directions[i];
+                Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, size, Color(1, 0, 0, 0.5));
+                #if SAC_DEBUG
+                if (danger.entities[i]) {
+                    glm::vec2 pos = TRANSFORM(e)->position + size;
+                    Draw::Vec2(HASH("aa", 0x6e1cb412),
+                        pos, TRANSFORM(danger.entities[i])->position - pos, Color(0,0,0, 0.2));
+                } else {
+                    Draw::Vec2(HASH("aa", 0x6e1cb412),
+                        TRANSFORM(e)->position + size, glm::vec2(1, 0), Color(0,0,1, 0.2));
+                }
+                #endif
+            }
+
+            if (interest.directions[i])
+            {
+                glm::vec2 size = Steering::direction(rotation, i) * interest.directions[i];
+                Draw::Vec2(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Steering::direction(rotation, i) * interest.directions[i], Color(0, 1, 0, 1));
+                if (i == chosenDirection) {
+                    Draw::Vec2(HASH("aa", 0x6e1cb412),
+                        TRANSFORM(e)->position,
+                        Steering::direction(rotation, i),
+                        Color(0, 0, 0, 1));
+                }
+                #if SAC_DEBUG
+                if (interest.entities[i]) {
+                    glm::vec2 pos = TRANSFORM(e)->position + size;
+                    Draw::Vec2(HASH("aa", 0x6e1cb412),
+                        pos, TRANSFORM(interest.entities[i])->position - pos, Color(0.5,.5,.5, 0.8));
+                }
+                #endif
+            }
+        }
+        #endif
 
         // PHYSICS(e)->linearVelocity = Steering::direction(rotation, chosenDirection) * ( priority.directions[chosenDirection] * 5);
     }

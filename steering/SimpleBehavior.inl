@@ -3,31 +3,47 @@
 
 #include "util/IntersectionUtil.h"
 #include "systems/PhysicsSystem.h"
+#if SAC_DEBUG
+#include "systems/RenderingSystem.h"
+#endif
 
 namespace Steering
 {
 
 template<>
-void behavior(Entity e, const SeekParams& param, Context* interest, Context* priority, Context*) {
+void behavior(Entity e, float, SeekParams& param, Context* interest, Context* priority, Context*) {
     if (param.count == 0)
         return;
 
+    float closestTargetDistanceSquared = FLT_MAX;
+    for (int j=0; j<param.count; j++) {
+        Entity target = param.entities[j];
+
+        glm::vec2 diff = TRANSFORM(target)->position - TRANSFORM(e)->position;
+        float l2 = glm::length2(diff);
+
+        if (l2 < closestTargetDistanceSquared)
+            closestTargetDistanceSquared = l2;
+    }
 
     for (int j=0; j<param.count; j++) {
         Entity target = param.entities[j];
 
         glm::vec2 diff = TRANSFORM(target)->position - TRANSFORM(e)->position;
         float l = glm::length(diff);
+        diff /= l;
+        float l2 = l * l;
 
         float rotation = TRANSFORM(e)->rotation;
         float w = param.weight ? param.weight[j] : 1.0f;
 
         // consider 8 move direction
         for (int i=0; i<8; i++) {
-            float d = glm::dot(diff, Steering::direction(rotation, i)) / (l * l);
+            float coeff = closestTargetDistanceSquared / l2;
+            float d = w * coeff *
+                glm::dot(diff, Steering::direction(rotation, i));
 
             if (d >= 0) {
-                d = glm::min(1.0f, w * (0.1f + d));
                 // to allow 'e' to go backward if forward path is blocked
                 if (d <0) {
                     d = 0.2;
@@ -36,7 +52,7 @@ void behavior(Entity e, const SeekParams& param, Context* interest, Context* pri
                 }
                 if (d >= interest->directions[i]) {
                     interest->directions[i] = d;
-                    priority->directions[i] = 1.0f;
+                    priority->directions[i] = 0.25;//.0f;
                     #if SAC_DEBUG
                     interest->entities[i] = target;
                     #endif
@@ -45,6 +61,7 @@ void behavior(Entity e, const SeekParams& param, Context* interest, Context* pri
         }
         // or consider stopping here
         {
+            float l = glm::length(diff);
             float overlapDistance = (
                 glm::max(TRANSFORM(e)->size.x, TRANSFORM(e)->size.y) +
                 glm::max(TRANSFORM(target)->size.x, TRANSFORM(target)->size.y)
@@ -65,7 +82,7 @@ void behavior(Entity e, const SeekParams& param, Context* interest, Context* pri
 
 
 template<>
-void behavior(Entity e, const FleeParams& param, Context*, Context*, Context* danger) {
+void behavior(Entity e, float, FleeParams& param, Context*, Context*, Context* danger) {
     if (param.target == 0)
         return;
 
@@ -96,7 +113,7 @@ void behavior(Entity e, const FleeParams& param, Context*, Context*, Context* da
 }
 
 template<>
-void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* danger) {
+void behavior(Entity e, float, AvoidParams& param, Context*, Context*, Context* danger) {
     if (param.count == 0)
         return;
 
@@ -183,7 +200,7 @@ void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* d
 }
 
 template<>
-void behavior(Entity e, const SeparationParams& param, Context* interest, Context* priority, Context* danger) {
+void behavior(Entity e, float, SeparationParams& param, Context* , Context* , Context* danger) {
     return;
     // fill danger map to avoid running into neighbors
     const auto& pos = TRANSFORM(e)->position;
@@ -205,7 +222,7 @@ void behavior(Entity e, const SeparationParams& param, Context* interest, Contex
 }
 
 template<>
-void behavior(Entity e, const AlignmentParams& param, Context* interest, Context* priority, Context*) {
+void behavior(Entity e, float, AlignmentParams& param, Context* interest, Context* priority, Context*) {
     return;
     // fill interest to move in the same direction
     float targetAngle = 0;
@@ -234,7 +251,7 @@ void behavior(Entity e, const AlignmentParams& param, Context* interest, Context
 }
 
 template<>
-void behavior(Entity e, const CohesionParams& param, Context* interest, Context* priority, Context* danger) {
+void behavior(Entity e, float, CohesionParams& param, Context* interest, Context* priority, Context*) {
     glm::vec2 targetPosition(0.0f);
     for (int j=0; j<param.count; j++) {
         targetPosition += TRANSFORM(param.entities[j])->position;
@@ -257,7 +274,7 @@ void behavior(Entity e, const CohesionParams& param, Context* interest, Context*
 }
 
 template<>
-void behavior(Entity e, const GroupParams& param, Context* interest, Context* priority, Context* danger) {
+void behavior(Entity e, float dt, GroupParams& param, Context* interest, Context* priority, Context* danger) {
     std::vector<Entity> neighbors;
     neighbors.reserve(param.count);
 
@@ -280,7 +297,7 @@ void behavior(Entity e, const GroupParams& param, Context* interest, Context* pr
         sep.entities = &neighbors[0];
         sep.count = (int) neighbors.size();
         sep.radius = param.neighborRadius;
-        behavior(e, sep, interest, priority, danger);
+        behavior(e, dt, sep, interest, priority, danger);
     }
 
     // apply alignment
@@ -289,7 +306,7 @@ void behavior(Entity e, const GroupParams& param, Context* interest, Context* pr
         ali.entities = &neighbors[0];
         ali.count = (int) neighbors.size();
         ali.radius = param.neighborRadius;
-        behavior(e, ali, interest, priority, danger);
+        behavior(e, dt, ali, interest, priority, danger);
     }
 
     // apply cohesion
@@ -298,8 +315,40 @@ void behavior(Entity e, const GroupParams& param, Context* interest, Context* pr
         coh.entities = &neighbors[0];
         coh.count = (int) neighbors.size();
         coh.radius = param.neighborRadius;
-        behavior(e, coh, interest, priority, danger);
+        behavior(e, dt, coh, interest, priority, danger);
     }
+}
+
+template<>
+void behavior(Entity e, float dt, WanderParams& param, Context* interest, Context* priority, Context* danger) {
+    static Entity eTarget = 0;
+    if (!eTarget) {
+        eTarget = theEntityManager.CreateEntity(HASH("__/wander", 0x7f43116b));
+        ADD_COMPONENT(eTarget, Transformation);
+        TRANSFORM(eTarget)->size = glm::vec2(0.01f);
+    }
+
+    auto* tc = TRANSFORM(eTarget);
+    if (glm::distance(TRANSFORM(e)->position, param.target) < TRANSFORM(e)->size.x
+        || (param.change -= dt) <= 0) {
+
+        float angle = Random::Float(0, 6.28);
+        param.target = TRANSFORM(e)->position +
+            glm::rotate(glm::vec2(param.radius), angle);
+        param.change = param.pauseDuration.random();
+    }
+    tc->position = param.target;
+
+
+
+    Draw::Point(tc->position, Color(1, 0, 0));
+    SeekParams seek;
+    seek.entities = &eTarget;
+    seek.count = 1;
+    float weight = 0.5;
+    seek.weight = &weight;
+
+    behavior(e, dt, seek, interest, priority, danger);
 }
 
 
