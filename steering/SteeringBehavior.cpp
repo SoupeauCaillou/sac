@@ -4,25 +4,24 @@
 
 static const float ContextAngle[8] = {
     0.0f,
-    glm::pi<float>() * 0.15f,
-    glm::pi<float>() * 0.3f,
-    glm::pi<float>() * 0.55f,
+    glm::pi<float>() * 0.20f,
+    glm::pi<float>() * 0.40f,
+    glm::pi<float>() * 0.70f,
     glm::pi<float>(),
-    -glm::pi<float>() * 0.55f,
-    -glm::pi<float>() * 0.3f,
-    -glm::pi<float>() * 0.15f
-
+    -glm::pi<float>() * 0.70f,
+    -glm::pi<float>() * 0.40f,
+    -glm::pi<float>() * 0.20f
 };
 
 static const glm::vec2 ContextDirection[8] = {
     glm::vec2(1.0000, 0.0000),
-    glm::vec2(0.8910, 0.4540),
-    glm::vec2(0.5878, 0.8090),
-    glm::vec2(-0.1564, 0.9877),
+    glm::vec2(0.8090, 0.5878),
+    glm::vec2(0.3090, 0.9511),
+    glm::vec2(-0.5878, 0.8090),
     glm::vec2(-1.0000, -0.0000),
-    glm::vec2(-0.1564, -0.9877),
-    glm::vec2(0.5878, -0.8090),
-    glm::vec2(0.8910, -0.4540),
+    glm::vec2(-0.5878, -0.8090),
+    glm::vec2(0.3090, -0.9511),
+    glm::vec2(0.8090, -0.5878),
 };
 
 namespace Steering

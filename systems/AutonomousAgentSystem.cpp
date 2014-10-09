@@ -173,8 +173,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         if (cancelVelocity) {
             float v = glm::length(PHYSICS(e)->linearVelocity);
             PHYSICS(e)->linearVelocity = glm::vec2(0.0f);
-            // addForce( PHYSICS(e)->linearVelocity * (-glm::min(agent->maxForce, 3 * v)), glm::vec2(0.f), dt);
+            #if 0
             Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Color(1, 0, 0, 1));
+            #endif
 
         } else {
 
@@ -193,10 +194,13 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             PHYSICS(e)->addForce(
                 force * agent->maxForce,
                 glm::vec2(0.f), dt);
+
+            #if 0
             Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position + force, Color(0.5, 0.5, .4, 1));
+            #endif
         }
 
-        #if 1
+        #if 0
         const glm::vec2& velocity = glm::normalize(PHYSICS(e)->linearVelocity);
         for (int i=0; i<8; i++) {
             if (danger.directions[i])
@@ -235,204 +239,6 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             }
         }
         #endif
-
-        // PHYSICS(e)->linearVelocity = Steering::direction(rotation, chosenDirection) * ( priority.directions[chosenDirection] * 5);
     }
-#if 0
-        LOGF_IF(e == agent->seekTarget, e << ": I can't be my own target!");
-        LOGF_IF(e == agent->fleeTarget, e << ": I can't be my own predator!");
-        glm::vec2 force(glm::vec2(0.0f));
-
-        std::vector<std::tuple<float, glm::vec2>> velocities;
-
-        auto* pc = PHYSICS(e);
-
-        if (pc->mass <= 0)
-            continue;
-
-        if (glm::abs(glm::length(pc->linearVelocity)) > 0) {
-            TRANSFORM(e)->rotation = glm::atan(pc->linearVelocity.y, pc->linearVelocity.x);
-        }
-
-        if (agent->seekTarget && agent->seekParams.weight > 0) {
-            if (agent->arriveDeceleration > 0) {
-                velocities.push_back(
-                    std::make_tuple(
-                        agent->arriveParams.weight,
-                        SteeringBehavior::arrive(e, TRANSFORM(agent->arriveTarget)->position, agent->arriveParams.coeff * agent->maxSpeed, agent->arriveDeceleration)
-                    ));
-#if SAC_DEBUG
-                const auto& v = std::get<1>(velocities.back());
-                if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                    Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "arrive");
-                }
-#endif
-            } else {
-                velocities.push_back(
-                    std::make_tuple(
-                        agent->seekParams.weight,
-                        SteeringBehavior::seek(e, TRANSFORM(agent->seekTarget)->position, agent->seekParams.coeff * agent->maxSpeed)
-                    ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "seek");
-            }
-#endif
-            }
-        }
-        if (agent->fleeTarget && agent->fleeParams.weight > 0) {
-            if (glm::distance(TRANSFORM(e)->position, TRANSFORM(agent->fleeTarget)->position) < agent->fleeRadius) {
-                velocities.push_back(
-                    std::make_tuple(
-                        agent->fleeParams.weight,
-                        SteeringBehavior::flee(e, TRANSFORM(agent->fleeTarget)->position, agent->fleeParams.coeff * agent->maxSpeed)
-                    ));
-
-#if SAC_DEBUG
-                const auto& v = std::get<1>(velocities.back());
-                if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                    Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "flee");
-                }
-#endif
-            }
-        }
-
-        if (agent->wanderParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->wanderParams.weight,
-                    SteeringBehavior::wander(e, agent->wander, agent->wanderParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "wander");
-            }
-#endif
-        }
-
-        if (! agent->obstacles.empty() && agent->obstaclesParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->obstaclesParams.weight,
-                    SteeringBehavior::obstacleAvoidance(e, pc->linearVelocity, agent->obstacles, agent->obstaclesParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "obstacle");
-            }
-#endif
-        }
-
-        if (! agent->walls.empty() && agent->wallsParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->wallsParams.weight,
-                    SteeringBehavior::wallAvoidance(e, pc->linearVelocity, agent->walls, agent->wallsParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "wall");
-            }
-#endif
-        }
-
-        if (agent->boxParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->boxParams.weight,
-                    SteeringBehavior::boxContainer(e, pc->linearVelocity, agent->boxPosition, agent->boxSize, agent->boxParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "box");
-            }
-#endif
-        }
-
-
-        //group behaviors
-        if (! agent->cohesionNeighbors.empty() && agent->cohesionParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->cohesionParams.weight,
-                    SteeringBehavior::groupCohesion(e, agent->cohesionNeighbors, agent->cohesionParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "coh");
-            }
-#endif
-        }
-        if (! agent->alignementNeighbors.empty() && agent->alignementParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->alignementParams.weight,
-                    SteeringBehavior::groupAlign(e, agent->alignementNeighbors, agent->alignementParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "ali");
-            }
-#endif
-        }
-        if (! agent->separationNeighbors.empty() && agent->separationParams.weight > 0) {
-            velocities.push_back(
-                std::make_tuple(
-                    agent->separationParams.weight,
-                    SteeringBehavior::groupSeparate(e, agent->separationNeighbors, agent->separationParams.coeff * agent->maxSpeed)
-                ));
-#if SAC_DEBUG
-            const auto& v = std::get<1>(velocities.back());
-            if (glm::length2(v - pc->linearVelocity) > 0.001) {
-                Draw::Vec2(TRANSFORM(e)->position, v, Color(0.0, 0, 0.2), "sep");
-            }
-#endif
-        }
-
-        if (velocities.empty()) {
-            continue;
-        }
-
-        // Compute weighted average of: desired_velocity - current_velocity
-        glm::vec2 averageDelta(0.0f);
-        float sumWeight = 0;
-        for (const auto& wv: velocities) {
-            const auto& v = std::get<1>(wv) - pc->linearVelocity;
-            if (glm::length2(v) > 0.0001) {
-                averageDelta += std::get<0>(wv) * v;
-                sumWeight += std::get<0>(wv);
-            }
-        }
-
-        if (sumWeight <= 0) {
-            continue;
-        }
-
-        // Weights are used only to prioritize steering behavior - so we now cancel
-        // them from averageDelta
-        averageDelta /= sumWeight;
-
-        float norm = glm::length(averageDelta);
-
-        averageDelta /= norm;
-
-        norm = agent->maxForce * norm / agent->maxSpeed;
-        averageDelta *= norm;
-
-        if (norm > agent->maxForce) {
-            averageDelta *= agent->maxForce / norm;
-        }
-        LOGI_EVERY_N(6000, __(glm::length(averageDelta)) << " vs " << __(agent->maxForce));
-
-        PHYSICS(e)->addForce(averageDelta, glm::vec2(0.f), dt);
-    END_FOR_EACH()
-#endif
 }
 #endif

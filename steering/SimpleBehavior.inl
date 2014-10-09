@@ -43,25 +43,21 @@ void behavior(Entity e, float, SeekParams& param, Context* interest, Context* pr
             float d = w * coeff *
                 glm::dot(diff, Steering::direction(rotation, i));
 
-            if (d >= 0) {
-                // to allow 'e' to go backward if forward path is blocked
-                if (d <0) {
-                    d = 0.2;
-                } else {
-                    d = glm::min(1.0f, d);
-                }
-                if (d >= interest->directions[i]) {
-                    interest->directions[i] = d;
-                    priority->directions[i] = 0.25;//.0f;
-                    #if SAC_DEBUG
-                    interest->entities[i] = target;
-                    #endif
-                }
+            if (d <0) {
+                d = 0.05;
+            } else {
+                d = glm::min(1.0f, d);
+            }
+            if (d >= interest->directions[i]) {
+                interest->directions[i] = d;
+                priority->directions[i] = w;//0.25;//.0f;
+                #if SAC_DEBUG
+                interest->entities[i] = target;
+                #endif
             }
         }
         // or consider stopping here
         {
-            float l = glm::length(diff);
             float overlapDistance = (
                 glm::max(TRANSFORM(e)->size.x, TRANSFORM(e)->size.y) +
                 glm::max(TRANSFORM(target)->size.x, TRANSFORM(target)->size.y)
@@ -74,7 +70,6 @@ void behavior(Entity e, float, SeekParams& param, Context* interest, Context* pr
                     #if SAC_DEBUG
                     interest->entities[8] = target;
                     #endif
-                LOGI_EVERY_N(200, interest->directions[8] << "/" << l << "/" << overlapDistance) ;
             }
         }
     }
@@ -82,7 +77,7 @@ void behavior(Entity e, float, SeekParams& param, Context* interest, Context* pr
 
 
 template<>
-void behavior(Entity e, float, FleeParams& param, Context*, Context*, Context* danger) {
+void behavior(Entity e, float dt, FleeParams& param, Context* interest, Context* priority, Context* danger) {
     if (param.target == 0)
         return;
 
@@ -97,17 +92,58 @@ void behavior(Entity e, float, FleeParams& param, Context*, Context*, Context* d
     if (distance > param.radius)
         return;
 
+#if 0
+    static Entity eTarget = 0;
+    if (!eTarget) {
+        eTarget = theEntityManager.CreateEntity(HASH("__/flee", 0x7f43116b));
+        ADD_COMPONENT(eTarget, Transformation);
+        TRANSFORM(eTarget)->size = glm::vec2(0.01f);
+    }
+    SeekParams seek;
+    seek.entities = &eTarget;
+    seek.count = 1;
+    TRANSFORM(eTarget)->position = TRANSFORM(e)->position - diff * (param.radius * Random::Float(1.0f, 2.0f));
+
+    behavior(e, dt, seek, interest, priority, danger);
+    return;
+#endif
+
     float coeff = 1.0f - distance / param.radius;
-
     float rotation = TRANSFORM(e)->rotation;
-    for (int i=0; i<8; i++) {
-        float d = glm::dot(diff, Steering::direction(rotation, i));
 
-        if (d > 0) {
-            danger->directions[i] = glm::min(1.0f, glm::max(d * coeff, danger->directions[i]));
-            #if SAC_DEBUG
-            danger->entities[i] = param.target;
-            #endif
+    // add danger to directions pointing at target,
+    // add interest otherwise
+    float maxDotProduct = 0.0;
+    for (int i=0; i<8; i++) {
+        float d = glm::dot(diff, Steering::direction(rotation, i)) * coeff;
+        maxDotProduct = glm::max(d, maxDotProduct);
+    }
+    maxDotProduct = 0;
+    for (int i=0; i<8; i++) {
+        float d = glm::dot(diff, Steering::direction(rotation, i)) * coeff;
+
+        if (d >= maxDotProduct) {
+            if (d > danger->directions[i]) {
+                danger->directions[i] = d;
+                #if SAC_DEBUG
+                danger->entities[i] = param.target;
+                #endif
+            }
+        } else {
+            float iValue = 0;
+            if (d > 0) {
+                iValue = d;// / maxDotProduct;
+            } else {
+                iValue = -d;
+            }
+
+            if (iValue > interest->directions[i]) {
+                interest->directions[i] = iValue;
+                #if SAC_DEBUG
+                interest->entities[i] = param.target;
+                priority->directions[i] = 1.0f;
+                #endif
+            }
         }
     }
 }
@@ -258,7 +294,6 @@ void behavior(Entity e, float, CohesionParams& param, Context* interest, Context
     }
     targetPosition /= param.count;
 
-    Draw::Point(targetPosition, Color(0, 1, 0));
     glm::vec2 diff = glm::normalize(targetPosition - TRANSFORM(e)->position);
     for (int i=0; i<8; i++) {
         glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, i);
@@ -328,24 +363,35 @@ void behavior(Entity e, float dt, WanderParams& param, Context* interest, Contex
         TRANSFORM(eTarget)->size = glm::vec2(0.01f);
     }
 
+    param.target += glm::vec2(
+        Random::Float(-1.0f, 1.0f) * param.jitter * dt,
+        Random::Float(-1.0f, 1.0f) * param.jitter * dt);
+    param.target = glm::normalize(param.target);
+    param.target *= param.radius;
+
+
+
     auto* tc = TRANSFORM(eTarget);
-    if (glm::distance(TRANSFORM(e)->position, param.target) < TRANSFORM(e)->size.x
+    /*if (glm::distance(TRANSFORM(e)->position, param.target) < TRANSFORM(e)->size.x
         || (param.change -= dt) <= 0) {
 
         float angle = Random::Float(0, 6.28);
         param.target = TRANSFORM(e)->position +
             glm::rotate(glm::vec2(param.radius), angle);
         param.change = param.pauseDuration.random();
-    }
-    tc->position = param.target;
+    }*/
+    tc->position =
+        TRANSFORM(e)->position +
+        glm::rotate(glm::vec2(param.distance, 0.0f) + param.target, TRANSFORM(e)->rotation);
 
 
-
+#if 0
     Draw::Point(tc->position, Color(1, 0, 0));
+#endif
     SeekParams seek;
     seek.entities = &eTarget;
     seek.count = 1;
-    float weight = 0.5;
+    float weight = 0.25;
     seek.weight = &weight;
 
     behavior(e, dt, seek, interest, priority, danger);

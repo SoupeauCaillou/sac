@@ -52,7 +52,7 @@ namespace Steering
 
     struct WanderParams {
         WanderParams() : change(0) {}
-        float radius;
+        float distance, radius, jitter;
         glm::vec2 target;
         Interval<float> pauseDuration;
         float change;
