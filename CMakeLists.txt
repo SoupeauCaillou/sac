@@ -95,32 +95,35 @@ if (SAC_CUSTOM_DEFINES)
 endif()
 
 #set a variable used for the window title
-#retrieve git latest tag
-execute_process(
-        COMMAND git describe --abbrev=0 COMMAND tr -d '\n'
-        OUTPUT_VARIABLE SAC_REVISION_TAG
-        WORKING_DIRECTORY ${GAME_SOURCE_DIR}
-    )
-#and git latest commit id
-execute_process(
-        COMMAND git rev-parse HEAD COMMAND head -c 8
-        OUTPUT_VARIABLE SAC_REVISION
-        WORKING_DIRECTORY ${GAME_SOURCE_DIR}
-    )
-set (NEW_BUILD_VALUES "\"${SAC_REVISION_TAG}\" - \"${SAC_REVISION}\"")
-
+#retrieve git latest tag, if any
+set (CURRENT_BUILD_VALUES "")
+set (NEW_BUILD_VALUES "unknown")
+set (SAC_REVISION_TAG "notag")
+set (SAC_REVISION_ID "noID")
+if (EXISTS ${GAME_SOURCE_DIR}/.git)
+    execute_process(
+            COMMAND git describe --abbrev=0 COMMAND tr -d '\n'
+            OUTPUT_VARIABLE SAC_REVISION_TAG
+            WORKING_DIRECTORY ${GAME_SOURCE_DIR}
+        )
+    #and git latest commit id
+    execute_process(
+            COMMAND git rev-parse HEAD COMMAND head -c 8
+            OUTPUT_VARIABLE SAC_REVISION_ID
+            WORKING_DIRECTORY ${GAME_SOURCE_DIR}
+        )
+    set (NEW_BUILD_VALUES "\"${SAC_REVISION_TAG}\" - \"${SAC_REVISION_ID}\"")
+endif()
 # get current values and don't rewrite them is their are the same
 if (EXISTS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h)
     file (STRINGS ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h BUILD_FILE)
     STRING(REGEX REPLACE ".*TAG_NAME (.*)#.*VERSION_NAME (.*)" "\\1 - \\2" CURRENT_BUILD_VALUES ${BUILD_FILE} )
-else()
-    set (CURRENT_BUILD_VALUES "")
 endif()
 
 if (NOT CURRENT_BUILD_VALUES STREQUAL NEW_BUILD_VALUES)
     message("Updating current git tag / commit version")
     file(WRITE ${CMAKE_SOURCE_DIR}/sources/${PROJECT_NAME}GitVersion.h
-        "#pragma once\n#define TAG_NAME \"${SAC_REVISION_TAG}\"\n#define VERSION_NAME \"${SAC_REVISION}\"")
+        "#pragma once\n#define TAG_NAME \"${SAC_REVISION_TAG}\"\n#define VERSION_NAME \"${SAC_REVISION_ID}\"\n")
 endif()
 #######################################################################
 ########Library path finding related tools#############################
