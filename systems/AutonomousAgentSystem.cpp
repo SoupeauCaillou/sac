@@ -104,6 +104,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             Steering::behavior(e, agent->avoid, &interest, &priority, &danger);
         }
 
+        if (agent->group.count) {
+            Steering::behavior(e, agent->group, &interest, &priority, &danger);
+        }
+
         /**********
              Decision algorithm
         */

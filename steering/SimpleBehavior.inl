@@ -74,19 +74,29 @@ void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* d
     const auto* pc = PHYSICS(e);
     float speed = glm::length(pc->linearVelocity);
     const auto* tc = TRANSFORM(e);
+    const float biggestSide = glm::max(tc->size.x, tc->size.y);
 
     // assume obstacle is not-moving
     // we calculate predicted new pos of e for each direction
     // if we intersect with an object, fill danger map
+    const float maxSpeed = 5;
+    const float maxForce = 30;
 
-
-
+    std::vector<Entity> avoids;
+    avoids.reserve(param.count);
     for (int i=0; i<8; i++) {
-        std::vector<Entity> avoids(param.entities, param.entities + param.count);
+        avoids.clear();
+        // only consider entities within reach
+        for (int j=0; j<param.count; j++) {
+            Entity a = param.entities[j];
+            const auto* t = TRANSFORM(a);
+            glm::vec2 diff = t->position - tc->position;
+            if (glm::length(diff) <= (glm::max(t->size.x, t->size.y) + biggestSide + maxSpeed * 0.3)) {
+                avoids.push_back(a);
+            }
+        }
 
         // calculate new pos
-        float maxSpeed = 5;
-        float maxForce = 30;
         float rotation = Steering::angle(tc->rotation, i);
         glm::vec2 accel = Steering::direction(tc->rotation, i) * maxForce / pc->mass;
 
@@ -117,7 +127,7 @@ void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* d
             int count = avoids.size();
             for (int j=0; j<count; j++) {
                 Entity avoid = avoids[j];
-                if (!avoid) continue;
+                if (!avoid || avoid == e) continue;
 
                 const auto* ta = TRANSFORM(avoid);
 
@@ -143,34 +153,125 @@ void behavior(Entity e, const AvoidParams& param, Context*, Context*, Context* d
     }
 }
 
-#if 0
-static bool rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
-            const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot);
+template<>
+void behavior(Entity e, const SeparationParams& param, Context* interest, Context* priority, Context* danger) {
+    return;
+    // fill danger map to avoid running into neighbors
+    const auto& pos = TRANSFORM(e)->position;
+    for (int i=0; i<8; i++) {
+        const glm::vec2 direction = Steering::direction(TRANSFORM(e)->rotation, i);
+        for (int j=0; j<param.count; j++) {
+            glm::vec2 diff = TRANSFORM(param.entities[j])->position - pos;
+            float d = glm::dot(diff, direction);
+            float dangerValue = (1.0 - d / param.radius) * 0.2;
 
-
-        glm::vec2 diff = TRANSFORM(avoid)->position - TRANSFORM(e)->position;
-        float sizes =
-            glm::max(TRANSFORM(avoid)->size.x, TRANSFORM(avoid)->size.y) +
-            glm::max(TRANSFORM(e)->size.x, TRANSFORM(e)->size.y);
-        float length = glm::length(diff);
-
-        if (length > sizes * 1.5)
-            continue;
-
-        diff /= length;
-
-        float rotation = TRANSFORM(e)->rotation;
-        for (int j=0; j<8; j++) {
-            float d = glm::dot(diff, Steering::direction(rotation, j));
-
-            if (d > danger->directions[j]) {
-                danger->directions[j] = d;
+            if (dangerValue > danger->directions[i]) {
+                danger->directions[i] = dangerValue;
                 #if SAC_DEBUG
-                danger->entities[j] = avoid;
+                danger->entities[i] = param.entities[j];
                 #endif
             }
         }
     }
 }
-#endif
+
+template<>
+void behavior(Entity e, const AlignmentParams& param, Context* interest, Context* priority, Context*) {
+    return;
+    // fill interest to move in the same direction
+    float targetAngle = 0;
+    for (int j=0; j<param.count; j++) {
+        const glm::vec2& v = PHYSICS(param.entities[j])->linearVelocity;
+        targetAngle += glm::atan(v.y, v.x);
+    }
+    targetAngle /= param.count;
+
+    for (int i=0; i<8; i++) {
+        float angle = Steering::angle(TRANSFORM(e)->rotation, i);
+
+        float d = targetAngle - angle;
+        // maximize cosinus of difference, and minimize sinus
+        float c = glm::cos(d);
+        float s = glm::abs(glm::sin(d));
+
+        if (s < 0.7) {
+            float interestValue = c * 0.5;
+            if (interestValue > interest->directions[i]) {
+                interest->directions[i] = interestValue;
+                priority->directions[i] = 0.3;
+            }
+        }
+    }
+}
+
+template<>
+void behavior(Entity e, const CohesionParams& param, Context* interest, Context* priority, Context* danger) {
+    glm::vec2 targetPosition(0.0f);
+    for (int j=0; j<param.count; j++) {
+        targetPosition += TRANSFORM(param.entities[j])->position;
+    }
+    targetPosition /= param.count;
+
+    Draw::Point(targetPosition, Color(0, 1, 0));
+    glm::vec2 diff = glm::normalize(targetPosition - TRANSFORM(e)->position);
+    for (int i=0; i<8; i++) {
+        glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, i);
+        float d = glm::dot(diff, dir);
+        if (d > 0.7) {
+            float interestValue = d * 0.5;
+            if (interestValue > interest->directions[i]) {
+                interest->directions[i] = interestValue;
+                priority->directions[i] = 0.3;
+            }
+        }
+    }
+}
+
+template<>
+void behavior(Entity e, const GroupParams& param, Context* interest, Context* priority, Context* danger) {
+    std::vector<Entity> neighbors;
+    neighbors.reserve(param.count);
+
+    // build neighbor group
+    const auto* tc = TRANSFORM(e);
+    for (int i=0; i<param.count; i++) {
+        if (param.entities[i] == e)
+            continue;
+        if (glm::distance(tc->position, TRANSFORM(param.entities[i])->position) <= param.neighborRadius) {
+            neighbors.push_back(param.entities[i]);
+        }
+    }
+
+    if (neighbors.empty())
+        return;
+
+    // apply separation
+    {
+        SeparationParams sep;
+        sep.entities = &neighbors[0];
+        sep.count = (int) neighbors.size();
+        sep.radius = param.neighborRadius;
+        behavior(e, sep, interest, priority, danger);
+    }
+
+    // apply alignment
+    {
+        AlignmentParams ali;
+        ali.entities = &neighbors[0];
+        ali.count = (int) neighbors.size();
+        ali.radius = param.neighborRadius;
+        behavior(e, ali, interest, priority, danger);
+    }
+
+    // apply cohesion
+    {
+        CohesionParams coh;
+        coh.entities = &neighbors[0];
+        coh.count = (int) neighbors.size();
+        coh.radius = param.neighborRadius;
+        behavior(e, coh, interest, priority, danger);
+    }
+}
+
+
 }

@@ -42,6 +42,7 @@ struct AutonomousAgentComponent {
     Steering::SeekParams seek;
     Steering::FleeParams flee;
     Steering::AvoidParams avoid;
+    Steering::GroupParams group;
 
 #if 0
     AutonomousAgentComponent() :

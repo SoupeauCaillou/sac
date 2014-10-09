@@ -16,6 +16,30 @@ namespace Steering
         int count;
     };
 
+    struct SeparationParams {
+        Entity* entities;
+        int count;
+        float radius;
+    };
+
+    struct AlignmentParams {
+        Entity* entities;
+        int count;
+        float radius;
+    };
+
+    struct CohesionParams {
+        Entity* entities;
+        int count;
+        float radius;
+    };
+
+    struct GroupParams {
+        Entity* entities;
+        int count;
+        float neighborRadius;
+    };
+
     struct ArriveParams {
         Entity target;
         float breakingDistance;
