@@ -9,27 +9,56 @@ namespace Steering
 
 template<>
 void behavior(Entity e, const SeekParams& param, Context* interest, Context* priority, Context*) {
-    if (param.target == 0)
+    if (param.count == 0)
         return;
 
-    glm::vec2 diff = glm::normalize(TRANSFORM(param.target)->position - TRANSFORM(e)->position);
 
-    float rotation = TRANSFORM(e)->rotation;
-    for (int i=0; i<8; i++) {
-        float d = glm::dot(diff, Steering::direction(rotation, i));
+    for (int j=0; j<param.count; j++) {
+        Entity target = param.entities[j];
 
-            // to allow 'e' to go backward if forward path is blocked
-        if (d <0) {
-            d = 0.2;
-        } else {
-            d = glm::min(1.0f, 0.3f + d);
+        glm::vec2 diff = TRANSFORM(target)->position - TRANSFORM(e)->position;
+        float l = glm::length(diff);
+
+        float rotation = TRANSFORM(e)->rotation;
+        float w = param.weight ? param.weight[j] : 1.0f;
+
+        // consider 8 move direction
+        for (int i=0; i<8; i++) {
+            float d = glm::dot(diff, Steering::direction(rotation, i)) / (l * l);
+
+            if (d >= 0) {
+                d = glm::min(1.0f, w * (0.1f + d));
+                // to allow 'e' to go backward if forward path is blocked
+                if (d <0) {
+                    d = 0.2;
+                } else {
+                    d = glm::min(1.0f, d);
+                }
+                if (d >= interest->directions[i]) {
+                    interest->directions[i] = d;
+                    priority->directions[i] = 1.0f;
+                    #if SAC_DEBUG
+                    interest->entities[i] = target;
+                    #endif
+                }
+            }
         }
-        if (d >= interest->directions[i]) {
-            interest->directions[i] = d;
-            priority->directions[i] = 1.0f;
-            #if SAC_DEBUG
-            interest->entities[i] = param.target;
-            #endif
+        // or consider stopping here
+        {
+            float overlapDistance = (
+                glm::max(TRANSFORM(e)->size.x, TRANSFORM(e)->size.y) +
+                glm::max(TRANSFORM(target)->size.x, TRANSFORM(target)->size.y)
+                ) * 0.3;
+            float d = 1.0 - (l - overlapDistance) / overlapDistance;
+            //LOGI_IF(d > 0, d);
+            if (d >= 0 && d >= interest->directions[8]) {
+                    interest->directions[8] = d * w;
+                    priority->directions[8] = 1.0f;
+                    #if SAC_DEBUG
+                    interest->entities[8] = target;
+                    #endif
+                LOGI_EVERY_N(200, interest->directions[8] << "/" << l << "/" << overlapDistance) ;
+            }
         }
     }
 }

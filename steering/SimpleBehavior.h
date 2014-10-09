@@ -3,7 +3,9 @@
 namespace Steering
 {
     struct SeekParams {
-        Entity target;
+        Entity* entities;
+        float* weight;
+        int count;
     };
 
     struct FleeParams {

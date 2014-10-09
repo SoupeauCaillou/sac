@@ -34,9 +34,9 @@ namespace Steering
             ...
             7 -> 315°
         */
-        float directions[8];
+        float directions[9];
         #if SAC_DEBUG
-        Entity entities[8];
+        Entity entities[9];
         #endif
     };
 
