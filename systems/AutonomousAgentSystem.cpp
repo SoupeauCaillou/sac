@@ -121,7 +121,7 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         // pick lowest danger direction(s)
         std::vector<int> potentialDirections;
         for (int i=0; i<9; i++) {
-            if (danger.directions[i] <= min) {
+            if (danger.directions[i] <= min && interest.directions[i] > danger.directions[i]) {
                 potentialDirections.push_back(i);
             }
         }
@@ -132,6 +132,10 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
         std::sort(potentialDirections.begin(), potentialDirections.end(), [&interest, &danger, rotation] (int direction1, int d2) -> bool {
             if (direction1 == d2)
                 return false;
+            if (direction1 == 4)
+                return false;
+            if (d2 == 4)
+                return true;
 
             float diff1 = interest.directions[direction1] - danger.directions[direction1];
             float diff2 = interest.directions[d2] - danger.directions[d2];
@@ -177,8 +181,21 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Color(1, 0, 0, 1));
             #endif
 
+            // add rotating force
+            if (potentialDirections.size() <= 1) {
+                TRANSFORM(e)->rotation += Random::Float(.0f, 3.0f) * dt;
+            }
+            /*PHYSICS(e)->addForce(
+                glm::vec2(0.0f, 1.0f),
+                TRANSFORM(e)->size * 0.5f,
+                dt);
+            PHYSICS(e)->addForce(
+                glm::vec2(0.0f, -1.0f),
+                TRANSFORM(e)->size * -0.5f,
+                dt);
+            PHYSICS(e)->instantRotation = false;*/
         } else {
-
+            PHYSICS(e)->instantRotation = true;
             glm::vec2 forceDirection = Steering::direction(rotation, chosenDirection);
 
             // lateral speed

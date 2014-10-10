@@ -119,8 +119,20 @@ void behavior(Entity e, float dt, FleeParams& param, Context* interest, Context*
         maxDotProduct = glm::max(d, maxDotProduct);
     }
     maxDotProduct = 0;
+
+    // move at all cost
     for (int i=0; i<8; i++) {
-        float d = glm::dot(diff, Steering::direction(rotation, i)) * coeff;
+        float d = -glm::dot(diff, Steering::direction(rotation, i)) * coeff;
+        d = (1 + d) * 0.5f;
+        if (d >= interest->directions[i]) {
+            interest->directions[i] = d;
+            #if SAC_DEBUG
+            interest->entities[i] = param.target;
+            priority->directions[i] = 1.0f;
+            #endif
+        }
+    }
+#if 0
 
         if (d >= maxDotProduct) {
             if (d > danger->directions[i]) {
@@ -146,6 +158,7 @@ void behavior(Entity e, float dt, FleeParams& param, Context* interest, Context*
             }
         }
     }
+#endif
 }
 
 template<>
@@ -259,7 +272,7 @@ void behavior(Entity e, float, SeparationParams& param, Context* , Context* , Co
 
 template<>
 void behavior(Entity e, float, AlignmentParams& param, Context* interest, Context* priority, Context*) {
-    return;
+    // return;
     // fill interest to move in the same direction
     float targetAngle = 0;
     for (int j=0; j<param.count; j++) {
@@ -287,22 +300,43 @@ void behavior(Entity e, float, AlignmentParams& param, Context* interest, Contex
 }
 
 template<>
-void behavior(Entity e, float, CohesionParams& param, Context* interest, Context* priority, Context*) {
+void behavior(Entity e, float dt, CohesionParams& param, Context* interest, Context* priority, Context* danger) {
+    static Entity eTarget = 0;
+    if (!eTarget) {
+        eTarget = theEntityManager.CreateEntity(HASH("__/cohesion", 0x6cdf7e4e));
+        ADD_COMPONENT(eTarget, Transformation);
+        TRANSFORM(eTarget)->size = glm::vec2(0.01f);
+    }
+
     glm::vec2 targetPosition(0.0f);
     for (int j=0; j<param.count; j++) {
         targetPosition += TRANSFORM(param.entities[j])->position;
     }
     targetPosition /= param.count;
+    glm::vec2 diff = targetPosition - TRANSFORM(e)->position;
+    float length = glm::length(diff);
+    float coeff = length / param.radius;
+    diff /= length;
 
-    glm::vec2 diff = glm::normalize(targetPosition - TRANSFORM(e)->position);
+    SeekParams seek;
+    seek.entities = &eTarget;
+    TRANSFORM(eTarget)->position = targetPosition;
+    Draw::Point(targetPosition);
+    seek.count = 1;
+    float weight = 0.3 + 0.7 * coeff;
+    seek.weight = &weight;
+
+    behavior(e, dt, seek, interest, priority, danger);
+    return;
+
     for (int i=0; i<8; i++) {
         glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, i);
         float d = glm::dot(diff, dir);
         if (d > 0.7) {
-            float interestValue = d * 0.5;
+            float interestValue = d * 0.7;
             if (interestValue > interest->directions[i]) {
                 interest->directions[i] = interestValue;
-                priority->directions[i] = 0.3;
+                priority->directions[i] = 0.3 + 0.7 * coeff;
             }
         }
     }
