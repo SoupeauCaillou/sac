@@ -372,79 +372,84 @@ void LevelEditor::tick(float dt) {
 
     // build entity-list Window
     const std::vector<Entity> entities = theEntityManager.allEntities();
-    ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y), -1.0f,
-        ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::SetWindowPos(ImVec2(io.DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
-    ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
+    {
+        ImGui::Begin("Entity List", NULL, ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y), -1.0f,
+            ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::SetWindowPos(ImVec2(io.DisplaySize.x - DebugAreaWidth * RIGHT_PROPORTION, 0));
+        ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
 
-    std::map<hash_t, char*> groupsName;
-    std::map<hash_t, std::vector<Entity>> groups;
+        std::map<hash_t, char*> groupsName;
+        std::map<hash_t, std::vector<Entity>> groups;
 
-    // CollapsingHeader
-    for (unsigned i=0; i<entities.size(); i++) {
-        Entity e = entities[i];
+        // CollapsingHeader
+        for (unsigned i=0; i<entities.size(); i++) {
+            Entity e = entities[i];
 
-        const char* n = theEntityManager.entityName(e);
-        const char* group = strchr(n, '/');
-        if (group) {
-            hash_t h = Murmur::RuntimeHash(n, group - n);
-            groups[h].push_back(e);
-            if (groupsName.find(h) == groupsName.end()) {
-                char* g = strdup(n);
-                g[group - n] = '\0';
-                groupsName.insert(std::make_pair(h, g));
+            const char* n = theEntityManager.entityName(e);
+            const char* group = strchr(n, '/');
+            if (group) {
+                hash_t h = Murmur::RuntimeHash(n, group - n);
+                groups[h].push_back(e);
+                if (groupsName.find(h) == groupsName.end()) {
+                    char* g = strdup(n);
+                    g[group - n] = '\0';
+                    groupsName.insert(std::make_pair(h, g));
+                }
+            } else {
+                groups[0].push_back(e);
             }
-        } else {
-            groups[0].push_back(e);
         }
-    }
 
-    for (const auto& p: groups) {
-        if (p.first == 0 || ImGui::TreeNode(groupsName[p.first])) {
-            bool highLightAllGroup = (p.first && ImGui::IsHovered() && strcmp(groupsName[p.first], "__") != 0);
+        for (const auto& p: groups) {
+            if (p.first == 0 || ImGui::TreeNode(groupsName[p.first])) {
+                bool highLightAllGroup = (p.first && ImGui::IsHovered() && strcmp(groupsName[p.first], "__") != 0);
 
-            const auto& v = p.second;
-            for (auto e: v) {
-                std::stringstream n;
-
-                bool highLight = highLightAllGroup;
-                bool hovered = false;//(std::find(hoveredEntities.begin(), hoveredEntities.end(), e) != hoveredEntities.end());
-
-                if (hovered) n << "***";
-                n << entityToName(e);
-                if (hovered) n << "***";
-
-                if (ImGui::TreeNode((void*)e, "%s", n.str().c_str())) {
-                    highLight |= ImGui::IsHovered();
-                    createTweakBarForEntity(e);
-                    ImGui::TreePop();
-                } else {
-                    highLight |= ImGui::IsHovered();
-                }
-
-                if (highLight && theTransformationSystem.Get(e, false)) {
-                    markEntities(&e, 1, Color(1, 0, 0));
-                }
-            }
-            if (p.first) ImGui::TreePop();
-        } else {
-            if (ImGui::IsHovered() && strcmp(groupsName[p.first], "__") != 0) {
-                // mark all group
                 const auto& v = p.second;
                 for (auto e: v) {
-                    markEntities(&e, 1, Color(1, 0, 0));
+                    std::stringstream n;
+
+                    bool highLight = highLightAllGroup;
+                    bool hovered = std::any_of(hoveredEntities.begin(), hoveredEntities.end(), [e] (const std::pair<Entity, float>& p) -> bool {
+                        return p.first == e;
+                    });
+                    bool select = (std::find(selected.begin(), selected.end(), e) != selected.end());
+
+                    if (select) n << "# ";
+                    n << entityToName(e);
+                    if (hovered) n << " *";
+
+                    if (ImGui::TreeNode((void*)e, "%s", n.str().c_str())) {
+                        highLight |= ImGui::IsHovered();
+                        createTweakBarForEntity(e);
+                        ImGui::TreePop();
+                    } else {
+                        highLight |= ImGui::IsHovered();
+                    }
+
+                    if (highLight && theTransformationSystem.Get(e, false)) {
+                        markEntities(&e, 1, Color(1, 0, 0));
+                    }
+                }
+                if (p.first) ImGui::TreePop();
+            } else {
+                if (ImGui::IsHovered() && strcmp(groupsName[p.first], "__") != 0) {
+                    // mark all group
+                    const auto& v = p.second;
+                    for (auto e: v) {
+                        markEntities(&e, 1, Color(1, 0, 0));
+                    }
                 }
             }
+
+            if (p.first != 0) {
+                free (groupsName[p.first]);
+            }
+
         }
 
-        if (p.first != 0) {
-            free (groupsName[p.first]);
-        }
-
+        imguiInputFilter();
+        ImGui::End();
     }
-
-    imguiInputFilter();
-    ImGui::End();
 
     ImGui::Begin("Editor tools", NULL, ImVec2(DebugAreaWidth * LEFT_PROPORTION, ImGui::GetIO().DisplaySize.y), -1.0f,
         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
