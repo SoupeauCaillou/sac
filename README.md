@@ -5,10 +5,16 @@ sac
 * C++, OpenGL, cmake
 * multiplatform: Android, Linux, Mac, Windows and HTML5 (using [emscripten](http://emscripten.org/))
 * Entity/System paradigm
-* in game editor (a simple one though)
+* in-game editor (a simple one though)
 
 Games using sac
--------------------
+---------------
+
+<p align="center">
+  <img src="http://soupeaucaillou.com/images/heriswap.png?raw=true" alt="Heriswap" title="Heriswap" />
+  <img src="http://soupeaucaillou.com/images/rr.png?raw=true" alt="Recursive Runner" title="Recursive Runner"/>
+</p>
+
 * Heriswap is an Android match-3 game ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.heriswap) or [F-droid](https://f-droid.org/repository/browse/?fdid=net.damsy.soupeaucaillou.heriswap) or [direct link](http://soupeaucaillou.com/games/heriswap.apk)) which wants to be zen and smooth. Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
 
 * Recursive Runner is an Android runner game ([Google Play](https://play.google.com/store/apps/details?id=net.damsy.soupeaucaillou.recursiveRunner) or [F-droid soon](https://github.com/SoupeauCaillou/recursive-runner/issues/1) or [direct link](http://soupeaucaillou.com/games/recursive_runner.apk)) where your main obstacle is yourself! Sources are available [here](https://github.com/SoupeauCaillou/recursive-runner).
@@ -22,7 +28,7 @@ Quick Start (Linux)
 
 ```sh
 mkdir mygame && cd mygame
-git clone --recursive  git@github.com:SoupeauCaillou/sac.git
+git clone --recursive https://github.com/SoupeauCaillou/sac.git
 ```
 
 * Create minimum CMakeList.txt file
@@ -57,7 +63,7 @@ make
 * And run:
 
 ```sh
-./TestGame
+./Test
 ```
 
 You should get something like this:
@@ -168,4 +174,7 @@ Here's a quick example:
 ```
 
 And what the output should look like (white squares are anchor point):
-![screenshot anchor](http://soupeaucaillou.com/screenshots/screenshot_anchor2.gif)
+
+<p align="center">
+  <img src="http://soupeaucaillou.com/screenshots/screenshot_anchor2.gif" alt="Anchor demo"/>
+</p>
