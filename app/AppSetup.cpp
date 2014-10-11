@@ -349,8 +349,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         ctx->stringInputAPI = new StringInputAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Vibrate))
         ctx->vibrateAPI = new VibrateAPILinuxImpl();
+#if SAC_HAVE_CURL
     if (game->wantsAPI(ContextAPI::WWW))
         ctx->wwwAPI = new WWWAPIcURLImpl();
+#endif
     /////////////////////////////////////////////////////
     // Init systems
     game->mouseNativeTouchState = new MouseNativeTouchState();

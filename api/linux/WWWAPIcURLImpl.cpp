@@ -18,7 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if SAC_HAVE_CURL
 
 #include "WWWAPIcURLImpl.h"
 
@@ -88,3 +88,5 @@ FileBuffer WWWAPIcURLImpl::downloadFile(const std::string &url) {
     //return empty file buffer, since we got an error
     return FileBuffer();
 }
+
+#endif
