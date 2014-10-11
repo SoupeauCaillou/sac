@@ -22,7 +22,7 @@ TARGETS_LIST=$(grep SUPPORTED_TARGETS $rootPath/sac/CMakeLists.txt | head -1 | c
 #how to use the script
 export SAC_USAGE="$0"
 export SAC_OPTIONS=""
-export SAC_EXAMPLE="$0: will download localized texts from transifex and automatically update res/values* directories"
+export SAC_EXAMPLE="$0: will download localized texts from transifex and automatically update android/res/values* directories"
 
 ######### 0 : Check requirements. #########
 	if [ $# != 0 ]; then
@@ -38,20 +38,20 @@ export SAC_EXAMPLE="$0: will download localized texts from transifex and automat
 host = https://www.transifex.com
 
 [YOUR-PROJECT-RESOURCE (automatically set by tx)]
-file_filter = res/values-<lang>/strings.xml
-source_file = res/values/strings.xml
+file_filter = android/res/values-<lang>/strings.xml
+source_file = android/res/values/strings.xml
 source_lang = en'
 		exit 1
 	fi
 
 ######### 1 : Pull files. #########
 	temp=$(mktemp -d)
-	cp -r res/. $temp
-	find res -name 'strings.xml' -exec rm {} \;
+	cp -r android/res/. $temp
+	find android/res -name 'strings.xml' -exec rm {} \;
 
     info "Pulling files..."
 	if ! tx pull -s -a 1>/dev/null; then
-		cp -r $temp/. res/
+		cp -r $temp/. android/res/
 		error_and_quit "Your credidentials are wrong! File ~/.transifexrc should look like:
 [https://www.transifex.com]
 username = user
@@ -66,7 +66,7 @@ hostname = https://www.transifex.com
 ######### 2 : Rename some folders. #########
 ######### These are folders with a local like fr-BE, which must be renamed fr-rbe for Android ########
 	info "Renaming values* folder (if needed)"
-	cd res/
+	cd android/res/
 
 	for lang in values-*; do
 		if grep -q '_' <<< $lang; then
