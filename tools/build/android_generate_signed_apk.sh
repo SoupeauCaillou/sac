@@ -102,7 +102,7 @@ if ! ./sac/tools/build/build-all.sh --target android -x86 -release n -c $others_
 elif ! ./sac/tools/build/build-all.sh --target android -arm -release -p n -c $others_args; then
     error_and_quit "Error when building ARM version"
 fi
-info "Saving apk to $rootPath/bin/$gameName-$versionCode-$versionName.apk"
+info "Saving apk to $rootPath/android/bin/$gameName-$versionCode-$versionName.apk"
 cp $rootPath/android/bin/$gameName-release.apk \
     $rootPath/android/bin/$gameName-$versionCode-$versionName.apk
 
