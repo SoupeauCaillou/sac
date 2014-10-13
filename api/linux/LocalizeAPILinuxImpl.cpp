@@ -89,7 +89,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
 
 #else
     //first parse the english version
-    parseXMLfile(assetAPI, "values/strings.xml");
+    parseXMLfile(assetAPI, "values");
 
 #if SAC_EMSCRIPTEN
     // parsing values-fr crashes the app
@@ -98,96 +98,105 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
     //then the user locale default, if different
     std::string lang = getLocaleInfo();
     if (lang != "en") {
-        parseXMLfile(assetAPI, std::string("values-") + lang + "/strings.xml");
+        parseXMLfile(assetAPI, "values-" + lang);
     }
 #endif
     return 0;
 }
 
 #if !SAC_DARWIN
-void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & filename) {
-#if SAC_EMSCRIPTEN
-    LOGI("ParseXML: " << filename);
-    // weeee
-    std::string javascript (
-                "a = FS.readFile('/assets/FILENAME', { encoding: 'utf8' });"
-        "parser = new DOMParser();"
-        "doc = parser.parseFromString(a, 'text/xml');"
-        "ssss = doc.getElementsByTagName('string');"
-        "result = '';"
-        "for (i=0; i<ssss.length; i++) {"
-        "   result += ssss[i].attributes[0].value;"
-        "   result += ',';"
-        "   result += ssss[i].childNodes[0].nodeValue;"
-        "   result += ',';"
-        "}"
-        "result;");
-    javascript.replace(javascript.find("FILENAME"), strlen("FILENAME"), filename);
+void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & folder) {
+    // get ALL .xml files in the given folder
+    for (auto & file : assetAPI->listContent(std::string(SAC_ASSETS_DIR) + "/../android/res/" + folder, ".xml")) {
+        std::string filename = folder + "/" + file + ".xml";
+    #if SAC_EMSCRIPTEN
+        LOGI("ParseXML: " << filename);
+        // weeee
+        std::string javascript (
+                    "a = FS.readFile('/assets/FILENAME', { encoding: 'utf8' });"
+            "parser = new DOMParser();"
+            "doc = parser.parseFromString(a, 'text/xml');"
+            "ssss = doc.getElementsByTagName('string');"
+            "result = '';"
+            "for (i=0; i<ssss.length; i++) {"
+            "   result += ssss[i].attributes[0].value;"
+            "   result += ',';"
+            "   result += ssss[i].childNodes[0].nodeValue;"
+            "   result += ',';"
+            "}"
+            "result;");
+        javascript.replace(javascript.find("FILENAME"), strlen("FILENAME"), filename);
 
-    std::string plop = emscripten_run_script_string (javascript.c_str());
-    int next = 0;
-    while(next < plop.length()) {
-        // find key delimiter
-        int end = plop.find(',', next);
-        if (end == std::string::npos)
-            break;
+        std::string plop = emscripten_run_script_string (javascript.c_str());
+        int next = 0;
+        while(next < plop.length()) {
+            // find key delimiter
+            int end = plop.find(',', next);
+            if (end == std::string::npos)
+                break;
 
-        std::string key = plop.substr(next, end - next);
+            std::string key = plop.substr(next, end - next);
 
-        next = end + 1;
-        // find value delimiter
-        end = plop.find(',', next);
-        // remove ""
-        std::string value = plop.substr(next + 1, end - next - 2);
-        next = end + 1;
+            next = end + 1;
+            // find value delimiter
+            end = plop.find(',', next);
+            // remove ""
+            std::string value = plop.substr(next + 1, end - next - 2);
+            next = end + 1;
 
-        _idToMessage[key] = value;
-    }
-
-#else
-    std::stringstream n;
-    n << SAC_ASSETS_DIR << "/../android/res/" << filename;
-    FileBuffer fb = assetAPI->loadFile(n.str());
-
-    if (fb.size == 0) {
-        LOGW("Cannot read '" << n.str() << "' localization file");
-        return;
-    }
-
-    tinyxml2::XMLDocument doc;
-    doc.Parse((const char*)fb.data);
-
-    tinyxml2::XMLHandle hDoc(&doc);
-    tinyxml2::XMLElement * pElem;
-
-    pElem = hDoc.FirstChildElement().ToElement();
-    tinyxml2::XMLHandle hRoot(pElem);
-
-    for (pElem = hRoot.FirstChildElement().ToElement(); pElem;
-    pElem = pElem->NextSiblingElement()) {
-
-        std::string s = pElem->GetText();
-
-        // replace new line in strings by a real new line
-        while (s.find("\\n") != std::string::npos) {
-            s.replace(s.find("\\n"), 2, "\n");
+            _idToMessage[key] = value;
         }
 
-        // and delete escape character before quote
-        if (s.find("\"") == 0) {
-            s = s.substr(1, s.length() - 2);
+    #else
+        std::stringstream n;
+        n << SAC_ASSETS_DIR << "/../android/res/" << filename;
+        FileBuffer fb = assetAPI->loadFile(n.str());
+
+        if (fb.size == 0) {
+            LOGW("Cannot read '" << n.str() << "' localization file");
+            return;
         }
 
-        // then save it in the key
-        _idToMessage[pElem->Attribute("name")] = s;
-        LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'");
+        tinyxml2::XMLDocument doc;
+        doc.Parse((const char*)fb.data);
+
+        tinyxml2::XMLHandle hDoc(&doc);
+        tinyxml2::XMLElement * pElem;
+
+        pElem = hDoc.FirstChildElement().ToElement();
+        tinyxml2::XMLHandle hRoot(pElem);
+
+        std::list<std::string> supportedNodes = { "string", "integer" };
+        for (pElem = hRoot.FirstChildElement().ToElement(); pElem;
+        pElem = pElem->NextSiblingElement()) {
+
+            if (std::find(supportedNodes.begin(), supportedNodes.end(), pElem->Value()) == supportedNodes.end()) {
+                continue;
+            }
+
+            std::string s = pElem->GetText();
+
+            // replace new line in strings by a real new line
+            while (s.find("\\n") != std::string::npos) {
+                s.replace(s.find("\\n"), 2, "\n");
+            }
+
+            // and delete escape character before quote
+            if (s.find("\"") == 0) {
+                s = s.substr(1, s.length() - 2);
+            }
+
+            // then save it in the key
+            _idToMessage[pElem->Attribute("name")] = s;
+            LOGV(1, "'" << _idToMessage[pElem->Attribute("name")] << "' = '" << s << "'");
+        }
+        LOGV(1, "Found " << _idToMessage.size() << " localized strings in file '"
+            << filename << "'. ");
+
+
+        delete[] fb.data;
+    #endif
     }
-    LOGV(1, "Found " << _idToMessage.size() << " localized strings in file '"
-        << filename << "'. ");
-
-
-    delete[] fb.data;
-#endif
 }
 #endif
 

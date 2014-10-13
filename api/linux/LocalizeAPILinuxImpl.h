@@ -29,10 +29,10 @@
 class AssetAPI;
 
 class LocalizeAPILinuxImpl : public LocalizeAPI {
-	private:
-		std::map<std::string, std::string> _idToMessage;
-        void parseXMLfile(AssetAPI* assetAPI, const std::string & filename);
-	public:
-		int init(AssetAPI* assetAPI);
-		std::string text(const std::string& s);
+    private:
+        std::map<std::string, std::string> _idToMessage;
+        void parseXMLfile(AssetAPI* assetAPI, const std::string & folder);
+    public:
+        int init(AssetAPI* assetAPI);
+        std::string text(const std::string& s);
 };
