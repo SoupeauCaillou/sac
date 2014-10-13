@@ -24,8 +24,10 @@
     -->
     <application android:label="@string/game_name" android:icon="@drawable/ic_launcher" android:allowBackup="true" android:debuggable="false" tools:node="replace" >
 
+        <!-- Warning: game_orientation is an integer (see http://developer.android.com/reference/android/R.attr.html#screenOrientation) : 0=landscape, 1=portrait
+         -->
         <activity android:name="net.damsy.soupeaucaillou.SacActivity"
-                android:label="@string/game_name" android:theme="@android:style/Theme.NoTitleBar" android:screenOrientation="@string/game_orientation"  >
+                android:label="@string/game_name" android:theme="@android:style/Theme.NoTitleBar" android:screenOrientation="@integer/game_orientation"  >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

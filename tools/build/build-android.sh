@@ -187,7 +187,7 @@ compilation_after() {
              android update project -p . -t \"android-10\" --subprojects -n $gameName"
         fi
 
-        if ! ant -q release; then
+        if ! ant release; then
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi
@@ -268,8 +268,8 @@ Continuing..."
         fi
     fi
 
-    packageName=$(grep 'package=' $rootPath/android/AndroidManifest.xml | sed 's/package=/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '"')
-    activityName=$(grep '<activity' $rootPath/android/AndroidManifest.xml | sed 's/android:name/~/' | cut -d'~' -f2 | cut -d ' ' -f 1 | tr -d '="')
+    packageName=$(grep -o "package=.*\b" $rootPath/android/bin/AndroidManifest.xml | cut -d '"' -f 2)
+    activityName=$(grep -o "<activity.*android:name=\"[^\"]*" $rootPath/android/bin/AndroidManifest.xml | rev | cut -d'"' -f1 | rev)
 
     #debug required
     if [ ! -z "$(echo $targets | grep d)" ]; then
@@ -282,15 +282,14 @@ Continuing..."
     elif [ ! -z $(echo $1 | grep r) ]; then
         info "Running app '$gameName'..."
 
-
-        if (!(adb shell am start -n $packageName/$activityName)); then
+        if ! adb shell am start -n $packageName/$activityName; then
             error_and_quit "Could not run $gameName!"
         fi
     fi
 
     if [ $run_logcat = 1 ]; then
         info "Launching adb logcat..."
-        adb logcat -c && adb logcat | grep sac
+        adb logcat -c && adb logcat
     fi
 
     if [ $stack_trace = 1 ]; then
