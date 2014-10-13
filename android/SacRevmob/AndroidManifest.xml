@@ -10,14 +10,12 @@
 	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 	<!-- Strongly recommended -->
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-	
-    <uses-sdk android:minSdkVersion="7" />
-    
+
     <application>
-        
+
         <!-- Don't forget to add this line in your game AndroidManifest.xml! -->
         <!-- <meta-data android:name="com.revmob.app.id" android:value="your_revmob_app_id"/> -->
-        
+
         <!-- Test id -->
         <!-- <meta-data android:name="com.revmob.app.id" android:value="5106bea78e5bd71500000098"/> -->
         <!-- Kindle devices test id -->
@@ -30,5 +28,5 @@
 
 
     </application>
-    
+
 </manifest>
