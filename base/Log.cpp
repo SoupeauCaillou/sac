@@ -183,7 +183,7 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
     tid = syscall(SYS_gettid);
 
     stream
-        << tid << ' '
+        << ColorPrefix << '4' << (char)('1' + (tid % 6)) << ColorSuffix << tid << ColorReset << ' '
         << ColorPrefix << color[type] << ColorSuffix << enum2Name(type) << ColorReset
         << ' '
         << std::fixed << std::setprecision(4)
