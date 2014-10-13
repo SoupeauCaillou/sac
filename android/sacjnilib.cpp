@@ -202,9 +202,12 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
     uint8_t* state = 0;
     int size = 0;
     if (jstate) {
+        /*
         size = env->GetArrayLength(jstate);
         state = (uint8_t*)env->GetByteArrayElements(jstate, NULL);
+        LOGT("Missing ReleaseCall !");
         LOGW("Restoring saved state (size:" << size << ")");
+        */
     }
     // we don't need to re-init the game
     else if (myGameHolder->initDone) {
