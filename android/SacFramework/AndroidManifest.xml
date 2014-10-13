@@ -1,29 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="net.damsy.soupeaucaillou.sacframework"
     android:versionCode="1"
     android:versionName="1.0"
     android:installLocation="auto" >
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <!-- minSdkVersion = 9 because of http://code.google.com/p/android/issues/detail?id=43819 -->
     <!-- targetSdkVersion = 11 because of https://developer.android.com/distribute/googleplay/quality/tablet.html#android-versions -->
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="11" tools:merge="remove"/>
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="11"/>
 
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- use tools:merge="remove" strategy because since we merge this manifest with the game's one,
-    it we dont use a remove strategy, game's android:glEsVersion must be equal or greater to this one.
-    But we don't want to set it in game's Manifest! -->
-    <!-- About tools:merge, see http://tools.android.com/tech-docs/new-build-system/user-guide/manifest-merger#TOC-List-of-element-merging-policy-and-key for instance -->
-    <uses-feature android:glEsVersion="0x00020000" tools:merge="remove" />
-    <supports-gl-texture android:name="GL_OES_compressed_ETC1_RGB8_texture" tools:merge="remove" />
+    <uses-feature android:glEsVersion="0x00020000" />
+    <supports-gl-texture android:name="GL_OES_compressed_ETC1_RGB8_texture" />
 
-    <!-- to change game name, simply define string "game_name" in your game res/values/strings.xml.
-    Same thing for the icon: juste add your game res/drawable-mdpi/ic_launcher.png and it will be taken instead of the SaC one -->
-    <!-- If you want to customize this in your game Manifest, please use the following merge strategy:
-        <application .... tools:merge="override"> <your stuff> </application>
-    -->
-    <application android:label="@string/game_name" android:icon="@drawable/ic_launcher" android:allowBackup="true" android:debuggable="false" tools:node="replace" >
-
+    <application android:allowBackup="true" android:debuggable="false" >
         <!-- Warning: game_orientation is an integer (see http://developer.android.com/reference/android/R.attr.html#screenOrientation) : 0=landscape, 1=portrait
          -->
         <activity android:name="net.damsy.soupeaucaillou.SacActivity"
