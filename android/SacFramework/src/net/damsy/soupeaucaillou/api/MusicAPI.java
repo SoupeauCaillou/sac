@@ -69,15 +69,12 @@ public class MusicAPI {
 	public short[] allocate(int size) {
 		synchronized (DumbAndroid.bufferPool) {
 			int s = DumbAndroid.bufferPool.size();
-			if (s > 0) {
-				// Log.i(HeriswapActivity.Tag, "Reuse old buffer (count: " + s +
-				// ")");
-				return DumbAndroid.bufferPool.remove(s - 1);
-			} else {
-				// Log.i(HeriswapActivity.Tag, "Create new buffer: " + size);
-				// assert(size <= dumb.track.getSampleRate() * 2);
-				return new short[size];
+			for (int i=0; i<s; i++) {
+				if (DumbAndroid.bufferPool.get(i).length >= size) {
+					return DumbAndroid.bufferPool.remove(i);
+				}
 			}
+			return new short[size];
 		}
 	}
 
