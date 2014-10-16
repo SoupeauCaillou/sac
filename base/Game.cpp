@@ -33,6 +33,7 @@
 #include "base/Profiler.h"
 #include "base/TouchInputManager.h"
 #include "base/JoystickManager.h"
+#include "base/Common.h"
 
 #include "systems/ADSRSystem.h"
 #include "systems/AnchorSystem.h"
@@ -401,6 +402,17 @@ void Game::eventsHandler() {
                             break;
 #endif
                     }
+                    break;
+                }
+                case SDL_VIDEORESIZE: {
+                    int w = event.resize.w, h = event.resize.h;
+                    #if SAC_INGAME_EDITORS
+                    w -= LevelEditor::DebugAreaWidth;
+                    h -= LevelEditor::DebugAreaHeight;
+                    #endif
+                    sac::setResolution(w, h);
+                    changeResolution(w, h);
+                    break;
                 }
             }
         }
@@ -443,22 +455,16 @@ void Game::loadFont(AssetAPI* asset, const char* name) {
     theTextSystem.registerFont(name, h2wratio);
 }
 
-void Game::sacInit(int windowW, int windowH) {
+void Game::changeResolution(int windowW, int windowH) {
+    if (camera) {
+        TRANSFORM(camera)->size = PlacementHelper::ScreenSize;
+    }
+}
+
+void Game::sacInit() {
 #if SAC_ENABLE_PROFILING
     initProfiler();
 #endif
-
-    if (windowW < windowH) {
-        PlacementHelper::ScreenSize = glm::vec2(10.f * windowW / (float)windowH, 10.f);
-    } else {
-        PlacementHelper::ScreenSize = glm::vec2(20.f, 20.f * windowH / (float)windowW);
-    }
-
-    PlacementHelper::WindowSize = glm::vec2(windowW, windowH);
-    PlacementHelper::GimpSize = glm::vec2(800.0f, 1280.0f);
-
-    theRenderingSystem.setWindowSize(PlacementHelper::WindowSize, PlacementHelper::ScreenSize);
-    theTouchInputManager.init(PlacementHelper::ScreenSize, PlacementHelper::WindowSize);
 
     theRenderingSystem.init();
 
@@ -486,9 +492,6 @@ void Game::sacInit(int windowW, int windowH) {
 
 #if SAC_INGAME_EDITORS
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(windowW, windowH);
-    io.DisplaySize.x += LevelEditor::DebugAreaWidth;
-    io.DisplaySize.y += LevelEditor::DebugAreaHeight;
     io.PixelCenterOffset = 0.0f;
 
 #if SAC_DESKTOP

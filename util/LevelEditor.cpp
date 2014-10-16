@@ -964,6 +964,7 @@ void LevelEditor::tick(float dt) {
     }
 
     imguiInputFilter();
+    LOGT_EVERY_N(500, "Use WantCaptureMouse instead");
     ImGui::End();
 
     ImGui::Begin("Graphs", NULL, ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, DebugAreaHeight), -1.0f,

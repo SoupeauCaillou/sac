@@ -63,6 +63,8 @@ class Game {
         void render();
         void resetTime();
         void eventsHandler();
+        /* Override to be able to react on resolution changes */
+        virtual void changeResolution(int windowW, int windowH);
 
         virtual bool isLandscape() const { return true; }
         virtual bool wantsAPI(ContextAPI::Enum api) const;
@@ -70,7 +72,7 @@ class Game {
         virtual bool willConsumeBackEvent() { return false; }
         virtual void quickInit() {};
         virtual int saveState(uint8_t** out);
-        virtual void sacInit(int windowW, int windowH);
+        virtual void sacInit();
         virtual void togglePause(bool) { }
 
     protected:

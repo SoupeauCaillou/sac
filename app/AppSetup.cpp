@@ -22,6 +22,7 @@
 
 #include "base/Game.h"
 #include "base/GameContext.h"
+#include "base/Common.h"
 
 #include <SDL.h>
 
@@ -274,9 +275,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     }
 
 #if SAC_INGAME_EDITORS
-    if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y + LevelEditor::DebugAreaHeight, 32, SDL_OPENGL ) == 0)
+    if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y + LevelEditor::DebugAreaHeight, 32, SDL_OPENGL | SDL_RESIZABLE) == 0)
 #else
-    if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL ) == 0)
+    if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL | SDL_RESIZABLE ) == 0)
 #endif
         return 1;
 
@@ -382,7 +383,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     // Init game
     LOGV(1, "Initialize sac & game");
     game->setGameContexts(ctx, ctx);
-    game->sacInit(resolution.x, resolution.y);
+    sac::setResolution(resolution.x, resolution.y);
+    game->sacInit();
 
 #if SAC_DESKTOP
     if (forceEtc1) {

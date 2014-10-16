@@ -42,12 +42,14 @@ TouchInputManager* TouchInputManager::instance = 0;
 
 
 TouchInputManager* TouchInputManager::Instance() {
-    if (instance == 0) instance = new TouchInputManager();
+    if (instance == 0) {
+        instance = new TouchInputManager();
+        instance->camera = 0;
+    }
     return instance;
 }
 
 void TouchInputManager::init(glm::vec2 pWorldSize, glm::vec2 pWindowSize) {
-    camera = 0;
     worldSize = pWorldSize;
     windowSize = pWindowSize;
 #if SAC_DEBUG
