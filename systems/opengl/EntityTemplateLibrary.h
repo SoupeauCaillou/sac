@@ -48,6 +48,7 @@ struct EntityTemplate {
 
 class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {
     protected:
+
         bool doLoad(const char* name, EntityTemplate& out, const EntityTemplateRef& ref);
 
         void doUnload(const EntityTemplate& in);
@@ -55,6 +56,7 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
         void doReload(const char* name, const EntityTemplateRef& ref);
 
     public:
+        EntityTemplateLibrary();
         void setLocalizeAPI(LocalizeAPI* api) { localizeAPI = api; }
 
         void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
@@ -77,6 +79,7 @@ class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTem
         #if SAC_LINUX && SAC_DESKTOP
         std::map<EntityTemplateRef, std::set<Entity> > template2entities;
         std::map<EntityTemplateRef, std::set<EntityTemplateRef> > template2children;
+        bool reloading;
         #endif
         std::map<EntityTemplateRef, EntityTemplateRef> template2parent;
         LocalizeAPI* localizeAPI;

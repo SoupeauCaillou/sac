@@ -28,6 +28,12 @@
 #include "systems/TransformationSystem.h"
 #include "api/LocalizeAPI.h"
 
+EntityTemplateLibrary::EntityTemplateLibrary() : NamedAssetLibrary() {
+#if SAC_LINUX && SAC_DESKTOP
+    reloading = false;
+#endif
+}
+
 EntityTemplateLibrary::~EntityTemplateLibrary() {
     for (auto& tmp: assets) {
         for (auto it: tmp.properties) {
@@ -178,7 +184,9 @@ void EntityTemplateLibrary::doReload(const char* name, const EntityTemplateRef& 
     if (doLoad(name, newTempl, ref)) {
         assets[ref2Index(ref)] = newTempl;
         #if SAC_LINUX && SAC_DESKTOP
+            reloading = true;
             applyTemplateToAll(ref);
+            reloading = false;
         #endif
     } else {
         LOGW("Unable to reload '" << name << "'");
@@ -201,6 +209,9 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
     auto transfS = TransformationSystem::GetInstancePointer();
     auto hack = templ.properties.find(transfS);
     if (hack != templ.properties.end()) {
+        #if SAC_LINUX && SAC_DESKTOP
+        if (!reloading || !transfS->Get(e, false))
+        #endif
         theEntityManager.AddComponent(e, transfS, false);
         transfS->applyEntityTemplate(e, (*hack).second, localizeAPI);
     }
@@ -208,6 +219,10 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
         ComponentSystem* s = it.first;
         if (s == transfS) continue;
 
+        #if SAC_LINUX && SAC_DESKTOP
+        // if (reloading && !s->Get(e, false))
+        LOGT_EVERY_N(100, "Fix me");
+        #endif
         theEntityManager.AddComponent(e, s, false);
         s->applyEntityTemplate(e, it.second, localizeAPI);
     }
