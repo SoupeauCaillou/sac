@@ -35,6 +35,7 @@
 #include "systems/MusicSystem.h"
 #include "base/TouchInputManager.h"
 #include "base/EntityManager.h"
+#include "base/Common.h"
 #include "AndroidNativeTouchState.h"
 
 #include "api/android/AdAPIAndroidImpl.h"
@@ -164,8 +165,19 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThr
     }
     OpenGLTextureCreator::dpi = (DPI::Enum)dpi;
 
-    myGameHolder->game->sacInit(myGameHolder->width, myGameHolder->height);
+    sac::setResolution(w, h);
+    myGameHolder->game->sacInit();
 }
+
+JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resolutionChanged
+  (JNIEnv *env, jclass, jint w, jint h) {
+    /* HUM */
+    sac::setResolution(w, h);
+    if (myGameHolder->game) {
+        myGameHolder->game->changeResolution(w, h);
+    }
+}
+
 
 static void initGameJni(JNIEnv *env) {
     myGameHolder->gameEnv = env;

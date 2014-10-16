@@ -29,34 +29,41 @@ public class SacGameThread implements Runnable {
 	final private Queue<Event> eventsToConsume;
 	final private Object queueMutex;
 	private byte[] savedState;
-	
+
 	static public enum Event {
 		BackPressed,
 		Pause,
 		Resume,
 		Kill,
+		ResolutionChanged,
 	}
-	
+
 	public void postEvent(Event type) {
 		synchronized (queueMutex) {
 			eventsToConsume.add(type);
 			queueMutex.notifyAll();
 		}
 	}
-	
+
 	public void clearSavedState() {
 		SacActivity.Log(SacActivity.I, "Clear savedState");
 		savedState = null;
 	}
-	
+
 	public SacGameThread(byte[] savedState) {
 		super();
 		this.queueMutex = new Object();
 		this.savedState = savedState;
 		eventsToConsume = new ConcurrentLinkedQueue<SacGameThread.Event>();
 	}
-	
-	
+
+	int width, height;
+	void setResolution(int w, int h) {
+		width = w;
+		height = h;
+	}
+
+
 	public void run() {
 		SacActivity.Log(SacActivity.I, "Before initFromGameThread");
 		SacJNILib.initFromGameThread(savedState);
@@ -85,12 +92,15 @@ public class SacGameThread implements Runnable {
 						runGameLoop = true;
 						SacJNILib.resetTimestep();
 						break;
+					case ResolutionChanged:
+						SacJNILib.resolutionChanged(width, height);
+						break;
 					case Kill:
 						SacActivity.Log(SacActivity.W, "Halt game thread");
 						return;
 				}
 			}
-			
+
 			if (runGameLoop) {
 				SacJNILib.step();
 			} else synchronized (queueMutex) {

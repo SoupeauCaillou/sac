@@ -34,7 +34,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 	final Thread gameThread;
 	final SacGameThread sacGame;
 	long time;
-	final int width, height;
+	int width, height;
 	int densityDpi;
 
 	public SacRenderer(SacActivity act, int width, int height, SacGameThread sacG, int densityDpi, int requestedOrientation) {
@@ -50,6 +50,7 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 			this.width = Math.max(width, height);
 			this.height = Math.min(width, height);
 		}
+		sacGame.setResolution(width, height);
 		this.densityDpi = densityDpi;
 		SacActivity.Log(SacActivity.I, "SacRenderer created w,h=" + width + "," + height);
 	}
@@ -82,5 +83,9 @@ public class SacRenderer implements GLSurfaceView.Renderer {
 
     public void onSurfaceChanged(GL10 gl, final int w, final int h) {
     	SacActivity.Log(SacActivity.I, "surface changed-> width: " + w + ", height: " + h);
+    	width = w;
+    	height = h;
+    	sacGame.setResolution(w, h);
+    	sacGame.postEvent(Event.ResolutionChanged);
     }
 }

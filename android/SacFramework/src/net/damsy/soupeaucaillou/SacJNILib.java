@@ -30,6 +30,8 @@ public class SacJNILib {
 	 */
 	public static native boolean createGame();
 
+	public static native void resolutionChanged(int w, int h);
+
 	/**
 	 * Initialize sac engine, from render thread context
 	 * @param mgr Access to assets
@@ -97,6 +99,6 @@ public class SacJNILib {
 	 * @return array holding native game state
 	 */
 	public static native byte[] serialiazeState();
-	
+
 	public static native boolean isAPIRequired(int apiId);
 }
