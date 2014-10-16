@@ -145,8 +145,8 @@ public class SacActivity extends Activity {
 
         int viewHeight = (int)(getWindowManager().getDefaultDisplay().getHeight() * factor);
         int viewWidth = (int)(getWindowManager().getDefaultDisplay().getWidth() * factor);
-        android.view.SurfaceHolder holder = mGLView.getHolder();
-        holder.setFixedSize(viewWidth, viewHeight);
+        /*android.view.SurfaceHolder holder = mGLView.getHolder();
+        holder.setFixedSize(viewWidth, viewHeight);*/
         layout.addView(mGLView, 0);
 
         DisplayMetrics metrics = new DisplayMetrics();
@@ -165,7 +165,7 @@ public class SacActivity extends Activity {
             renderer = new SacRenderer(this, viewWidth, viewHeight, gameThread, densityDPI, getRequestedOrientation());
             mGLView.setRenderer(renderer);
         }
-        holder.addCallback(new SurfaceHolder.Callback() {
+        /*holder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 Log(V, "SURFACE DESTROYED!" + holder.getSurface().hashCode());
@@ -181,7 +181,7 @@ public class SacActivity extends Activity {
                     int height) {
                 Log(V, "SURFACE CHANGED!" + holder.getSurface().hashCode());
             }
-        });
+        });*/
 
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
