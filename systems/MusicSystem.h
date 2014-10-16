@@ -110,5 +110,6 @@ UPDATABLE_SYSTEM(Music)
     public:
         MusicAPI* musicAPI;
         AssetAPI* assetAPI;
+        short* tempBuffer;
 };
 

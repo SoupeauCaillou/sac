@@ -170,7 +170,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThr
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resolutionChanged
-  (JNIEnv *env, jclass, jint w, jint h) {
+  (JNIEnv *, jclass, jint w, jint h) {
     /* HUM */
     sac::setResolution(w, h);
     if (myGameHolder->game) {

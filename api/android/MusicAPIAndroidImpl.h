@@ -51,7 +51,7 @@ class MusicAPIAndroidImpl : public MusicAPI, public JNIWrapper<jni_music_api::En
         OpaqueMusicPtr* createPlayer(int sampleRate);
         int pcmBufferSize(int sampleRate);
         int initialPacketCount(OpaqueMusicPtr* ptr);
-        void queueMusicData(OpaqueMusicPtr* ptr, short* data, int size, int sampleRate);
+        void queueMusicData(OpaqueMusicPtr* ptr, const short* data, int size, int sampleRate);
         void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
         void stopPlayer(OpaqueMusicPtr* ptr);
         void pausePlayer(OpaqueMusicPtr* ptr);

@@ -53,6 +53,8 @@ MusicSystem::MusicSystem() : ComponentSystemImpl<MusicComponent>(HASH("Music", 0
     componentSerializer.add(new Property<bool>(HASH("paused", 0x797b55df), OFFSET(paused, sc)));
     componentSerializer.add(new StringProperty(HASH("auto_loop_name", 0xa355644a), OFFSET(autoLoopName, sc)));
     componentSerializer.add(new Property<int>(HASH("control", 0x7fb8ff75), OFFSET(control, sc)));
+
+    tempBuffer = 0;
 }
 
 MusicSystem::~MusicSystem() {
@@ -66,6 +68,8 @@ MusicSystem::~MusicSystem() {
         delete[] it.second.data;
     }
     name2buffer.clear();
+
+    if (tempBuffer) free (tempBuffer);
 }
 
 void MusicSystem::init() {
@@ -180,8 +184,8 @@ void MusicSystem::DoUpdate(float dt) {
             m->positionI = musicAPI->getPosition(m->opaque[0]);
 
             LOGE_IF (m->music == InvalidMusicRef, "Invalid music ref: " << m->music);
-
             int sampleRate0 = musics[m->music].sampleRate;
+
             if ((m->music != InvalidMusicRef && m->positionI >= musics[m->music].nbSamples) || !musicAPI->isPlaying(m->opaque[0]))
             {
                 LOGV(1, "(music) " << m << " Player 0 has finished (isPlaying:" << musicAPI->isPlaying(m->opaque[0]) << " pos:" << m->positionI << " m->music:" << m->music << ')');
@@ -199,7 +203,7 @@ void MusicSystem::DoUpdate(float dt) {
                 if (m->master) {
                     loop = m->master->looped;
                 } else {
-                    loop = ((m->loopAt > 0) & (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
+                    loop = ((m->loopAt > 0) && (m->positionI >= SEC_TO_SAMPLES(m->loopAt, sampleRate0)));
                 }
 
                 if (loop) {
@@ -281,12 +285,28 @@ void MusicSystem::feed(OpaqueMusicPtr* ptr, MusicRef m, float dt) {
     if (info.queuedDuration < 0.5) {
         int avail = 0;
 
+#if !SAC_ANDROID
         while (info.queuedDuration < 0.75 && (avail = OggDecoder::availableSamples(info.handle))) {
-            LOGT_EVERY_N(100, "Consider replacing this with either a static buffer or alloca");
-            LOGT_EVERY_N(100, "Even better, let the api read directly from circularbuffer");
-            short* b = new short[avail];
-            int count = OggDecoder::readSamples(info.handle, avail, b);
-            musicAPI->queueMusicData(ptr, b, count, info.sampleRate);
+#else
+        while (info.queuedDuration < 0.75) {
+#endif
+            #if SAC_ANDROID
+            // AudioTrack buffersize is 48000 bytes (aka: 0.5 sec @48kHz/16bit per sample)
+            // We need to push the missing 0.5 sec when ogg decoding is finished,
+            // otherwise the track will never finish
+            avail = OggDecoder::availableSamples(info.handle);
+            if (!avail) {
+                avail = 24000;
+                tempBuffer = (short*) realloc(tempBuffer, avail * sizeof(short));
+                memset(tempBuffer, 0, 24000 * sizeof(short));
+                musicAPI->queueMusicData(ptr, tempBuffer, 24000, info.sampleRate);
+                break;
+            }
+            #endif
+            tempBuffer = (short*) realloc(tempBuffer, avail * sizeof(short));
+
+            int count = OggDecoder::readSamples(info.handle, avail, tempBuffer);
+            musicAPI->queueMusicData(ptr, tempBuffer, count, info.sampleRate);
 
             info.queuedDuration += count / (float)info.sampleRate;
         }
@@ -308,7 +328,7 @@ OpaqueMusicPtr* MusicSystem::startOpaque(MusicComponent* m, MusicRef r, MusicCom
     short* buf = new short[samples_1_sec];
     memset(buf, 0, samples_1_sec * sizeof(short));
 
-    LOGV(1, "Start playgin");
+    LOGV(1, "Start playing (" << SILENCE_AT_BEGINNING_SEC << " sec of silence first == " << samples_1_sec << ')');
     musicAPI->queueMusicData(ptr, buf, samples_1_sec, in.sampleRate);
     info.queuedDuration = 1;
 

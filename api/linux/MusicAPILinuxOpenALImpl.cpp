@@ -64,7 +64,7 @@ OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int) {
     return result;
 }
 
-void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, short* data, int count, int sampleRate) {
+void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, const short* data, int count, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
     // create buffer
     ALuint buffer;
@@ -77,8 +77,6 @@ void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, short* data, i
 #if SAC_EMSCRIPTEN
     openalptr->sampleRate = sampleRate;
 #endif
-
-    delete[] data;
 }
 
 void MusicAPILinuxOpenALImpl::startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) {

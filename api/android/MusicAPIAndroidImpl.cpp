@@ -69,7 +69,7 @@ int MusicAPIAndroidImpl::initialPacketCount(OpaqueMusicPtr* _ptr) {
     return env->CallIntMethod(instance, methods[jni_music_api::InitialPacketCount], ptr->audioTrack);
 }
 
-void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, short* data, int size, int sampleRate) {
+void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, const short* data, int size, int sampleRate) {
     AndroidOpaquePtr* ptr = static_cast<AndroidOpaquePtr*> (_ptr);
 
     if (!ptr->audioTrack)
@@ -78,7 +78,6 @@ void MusicAPIAndroidImpl::queueMusicData(OpaqueMusicPtr* _ptr, short* data, int 
     // retrieve byte[] from Java
     jshortArray b = (jshortArray) env->CallObjectMethod(instance, methods[jni_music_api::Allocate], size);
     env->SetShortArrayRegion(b, 0, size, (jshort*)data);
-    delete[] data;
 
     env->CallVoidMethod(instance, methods[jni_music_api::QueueMusicData], ptr->audioTrack, b, size, sampleRate);
 }
