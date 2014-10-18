@@ -39,6 +39,7 @@ AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponen
     componentSerializer.add(new Property<float>(HASH("lifetime/value", 0x6acb2726), OFFSET(params.lifetime.freq.value, ac), 0.001f));
     componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaRendering", 0x2339899d), OFFSET(params.lifetime.map2AlphaRendering, ac), false));
     componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaText", 0xde7e70c9), OFFSET(params.lifetime.map2AlphaText, ac), false));
+    componentSerializer.add(new Property<bool>(HASH("dontDestroy", 0x0), OFFSET(dontDestroy, ac), false));
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {
@@ -50,18 +51,25 @@ void AutoDestroySystem::DoUpdate(float dt) {
                 const TransformationComponent* tc = TRANSFORM(a);
                 if (!IntersectionUtil::rectangleRectangle(tc->position, tc->size, tc->rotation,
                     adc->params.area.position, adc->params.area.size, 0)) {
-                    toRemove.push_back(std::make_pair(a, adc->hasText));
 
-                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
-                        << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size);
+                    if (!adc->dontDestroy) {
+                        toRemove.push_back(std::make_pair(a, adc->hasText));
+
+                        LOGV(1, "Entity " << theEntityManager.entityName(a) << " is out of area -> destroyed ("
+                            << tc->position << " not in " << adc->params.area.position << " x " << adc->params.area.position + adc->params.area.size);
+                    }
                 }
                 break;
             }
             case AutoDestroyComponent::LIFETIME: {
                 adc->params.lifetime.freq.accum += dt;
                 if (adc->params.lifetime.freq.accum >= adc->params.lifetime.freq.value) {
-                    toRemove.push_back(std::make_pair(a, adc->hasText));
-                    LOGV(1, "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed");
+                    if (!adc->dontDestroy) {
+                        toRemove.push_back(std::make_pair(a, adc->hasText));
+                        LOGV(1, "Entity " << theEntityManager.entityName(a) << " lifetime is over -> destroyed");
+                    } else {
+                        adc->params.lifetime.freq.accum = adc->params.lifetime.freq.value;
+                    }
                 } else {
                     if (adc->params.lifetime.map2AlphaRendering) {
                         RENDERING(a)->color.a = 1 - adc->params.lifetime.freq.accum / adc->params.lifetime.freq.value;
@@ -77,13 +85,16 @@ void AutoDestroySystem::DoUpdate(float dt) {
             }
         }
     END_FOR_EACH()
-    for (unsigned i=0; i<toRemove.size(); i++) {
+    const size_t s = toRemove.size();
+    for (unsigned i=0; i<s; i++) {
         const std::pair<Entity, bool>& p = toRemove[i];
 
+        #if 0
         if (AUTO_DESTROY(p.first)->onDeletionCall) {
             LOGI("Calling onDeletionCall function for " << theEntityManager.entityName(p.first));
             AUTO_DESTROY(p.first)->onDeletionCall(p.first);
         }
+        #endif
 
         if (p.second) {
             theEntityManager.DeleteEntity(p.first);

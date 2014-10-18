@@ -27,15 +27,13 @@
 #include "base/Frequency.h"
 
 struct AutoDestroyComponent {
-    AutoDestroyComponent() : hasText(false) { }
+    AutoDestroyComponent() : hasText(false), dontDestroy(false) { }
 
     enum {
         OUT_OF_AREA = 0,
         LIFETIME,
         NONE
     } type;
-
-    std::function<void(Entity)> onDeletionCall;
 
     struct _params {
         _params() {
@@ -58,7 +56,7 @@ struct AutoDestroyComponent {
     };
     _params params;
 
-    bool hasText;
+    bool hasText, dontDestroy;
 };
 
 #define theAutoDestroySystem AutoDestroySystem::GetInstance()
