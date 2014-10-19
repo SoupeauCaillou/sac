@@ -39,7 +39,7 @@ AutoDestroySystem::AutoDestroySystem() : ComponentSystemImpl<AutoDestroyComponen
     componentSerializer.add(new Property<float>(HASH("lifetime/value", 0x6acb2726), OFFSET(params.lifetime.freq.value, ac), 0.001f));
     componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaRendering", 0x2339899d), OFFSET(params.lifetime.map2AlphaRendering, ac), false));
     componentSerializer.add(new Property<bool>(HASH("lifetime/map2AlphaText", 0xde7e70c9), OFFSET(params.lifetime.map2AlphaText, ac), false));
-    componentSerializer.add(new Property<bool>(HASH("dontDestroy", 0x0), OFFSET(dontDestroy, ac), false));
+    componentSerializer.add(new Property<bool>(HASH("dontDestroy", 0xb3826f96), OFFSET(dontDestroy, ac), false));
 }
 
 void AutoDestroySystem::DoUpdate(float dt) {

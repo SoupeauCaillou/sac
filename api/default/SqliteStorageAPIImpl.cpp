@@ -116,6 +116,16 @@ void SqliteStorageAPIImpl::createTable(const std::string & tableName, const std:
     #endif
 }
 
+void SqliteStorageAPIImpl::dropAll(IStorageProxy* proxy) {
+    #if SAC_EMSCRIPTEN
+    LOGT("sqlite3 support");
+    #else
+    char tmp[1024];
+    snprintf(tmp, 1024, "DELETE from %s", proxy->getTableName().c_str());
+    request(tmp, 0, 0);
+    #endif
+}
+
 bool SqliteStorageAPIImpl::request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**)) {
     #if SAC_EMSCRIPTEN
     LOGT("sqlite3 support");
