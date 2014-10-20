@@ -61,8 +61,19 @@ bool IntersectionUtil::lineCircle(const glm::vec2& _pA, const glm::vec2& _pB, co
     return discriminant >= 0;
 }
 
+bool IntersectionUtil::pointRectangleAABB(const glm::vec2& p, const AABB& aabb) {
+    return !(
+        p.x < aabb.left ||
+        p.x > aabb.right ||
+        p.x < aabb.bottom ||
+        p.x > aabb.top);
+}
+
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
-    glm::vec2 p(glm::rotate(point - rectPos, -rectRotation));
+    glm::vec2 p(point - rectPos);
+    if (rectRotation != 0.0) {
+        p = (glm::rotate(p, -rectRotation));
+    }
 
     return (glm::abs(p.x) < rectSize.x * 0.5 &&
         glm::abs(p.y) < rectSize.y * 0.5);

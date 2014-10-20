@@ -381,7 +381,11 @@ void RenderingSystem::DoUpdate(float dt) {
 
             const TransformationComponent* tc = TRANSFORM(a);
 
-            {
+            if (rc->flags & RenderingFlags::NoCulling) {
+                if (!IntersectionUtil::pointRectangleAABB(tc->position, camAABB)) {
+                    continue;
+                }
+            } else {
                 IntersectionUtil::AABB entityAABB;
                 IntersectionUtil::computeAABB(tc, entityAABB, !(rc->flags & RenderingFlags::FastCulling));
 

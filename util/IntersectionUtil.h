@@ -41,6 +41,7 @@ class IntersectionUtil {
 
         //rectPos is the center of the rectangle
         static bool pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation);
+        static bool pointRectangleAABB(const glm::vec2& point, const AABB& aabb);
 
         static bool lineCircle(const glm::vec2& pA, const glm::vec2& pB, const glm::vec2& center, float radius);
 

@@ -59,6 +59,7 @@ namespace RenderingFlags
     const uint8_t FastCulling      = 0x10;
     const uint8_t TextureIsFBO     = 0x20;
     const uint8_t ConstantNeedsUpdate = 0x40;
+    const uint8_t NoCulling           = 0x80;
 }
 
 struct RenderingComponent {

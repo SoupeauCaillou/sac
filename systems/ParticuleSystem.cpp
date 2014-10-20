@@ -172,7 +172,7 @@ void ParticuleSystem::DoUpdate(float dt) {
             tc->z = ptc->z;
 
             RenderingComponent* rc = RENDERING(e);
-            rc->flags = pc->renderingFlags | RenderingFlags::FastCulling;
+            rc->flags = pc->renderingFlags | RenderingFlags::NoCulling;
             rc->color = pc->initialColor.random();
             rc->texture = pc->texture;
             rc->show = true;
