@@ -9,6 +9,7 @@ varying vec2 uvVarying;
 
 void main()
 {
-    gl_FragColor = vColor;
+    gl_FragColor.rgb = (vColor.rgb) * vColor.a;
+    gl_FragColor.a = vColor.a;
 }
 
