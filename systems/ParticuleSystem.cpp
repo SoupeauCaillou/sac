@@ -121,6 +121,7 @@ void ParticuleSystem::DoUpdate(float dt) {
             spawnCount += pc->emissionRate * (dt + pc->spawnLeftOver);
         }
     }
+    return;
 
     int firstParticuleIndex = (int) particules.size();
     int recyclableCount = (int)recyclable.size();

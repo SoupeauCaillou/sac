@@ -695,10 +695,10 @@ void Game::step() {
         theRenderingSystem.forceRenderCommands(commands, count);
         ImGui::Render();
     } else {
-        theRenderingSystem.Update(0);
+        theRenderingSystem.Update(frameTime);
     }
 #else
-    theRenderingSystem.Update(0);
+    theRenderingSystem.Update(frameTime);
 #endif
 
     PROFILE("Game", "step", EndEvent);
