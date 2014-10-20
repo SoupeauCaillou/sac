@@ -194,7 +194,7 @@ void EntityTemplateLibrary::doReload(const char* name, const EntityTemplateRef& 
 }
 
 void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRef& templRef) {
-    LOGV(2, "apply template " << templRef << " to '" << theEntityManager.entityName(e) << "'");
+    LOGV(2, "apply template " << INV_HASH(templRef) << " to '" << theEntityManager.entityName(e) << "'");
 
     auto parentIt = template2parent.find(templRef);
     if (parentIt != template2parent.end()) {
