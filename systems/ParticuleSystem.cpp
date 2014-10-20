@@ -122,16 +122,13 @@ void ParticuleSystem::DoUpdate(float dt) {
         }
     }
 
-    if (spawnCount == 0.0f)
-        return;
-
     int firstParticuleIndex = (int) particules.size();
+    int recyclableCount = (int)recyclable.size();
+    if (spawnCount > 0) {
 
-    particules.resize(particules.size() + spawnCount);
+        particules.resize(particules.size() + spawnCount);
 
-    {
         // recycle particule entities
-        int recyclableCount = (int)recyclable.size();
         for (int i=0; i<(int)spawnCount && i<recyclableCount; i++) {
             particules[firstParticuleIndex + i].e = recyclable[i];
         }
@@ -143,12 +140,15 @@ void ParticuleSystem::DoUpdate(float dt) {
             ADD_COMPONENT(e, Physics);
             particules[firstParticuleIndex + i].e = e;
         }
-        // last but not least, delete unused recyclable particules
-        auto& mgr = theEntityManager;
-        for (int i=(int)spawnCount; i<recyclableCount; i++) {
-            mgr.DeleteEntity(recyclable[i]);
-        }
     }
+    // last but not least, delete unused recyclable particules
+    auto& mgr = theEntityManager;
+    for (int i=(int)spawnCount; i<recyclableCount; i++) {
+        mgr.DeleteEntity(recyclable[i]);
+    }
+
+    if (spawnCount == 0.0f)
+        return;
 
     FOR_EACH_ENTITY_COMPONENT(Particule, a, pc)
         if (pc->duration == 0)

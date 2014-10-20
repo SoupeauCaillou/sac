@@ -199,11 +199,14 @@ void EntityManager::validateEntity(Entity e) const {
 }
 #endif
 
-void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool ) {
+void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool fail) {
 #if SAC_DEBUG
     {
         const auto it = entityComponents[e];
-        LOGF_IF(std::find(it.begin(), it.end(), system) != it.end(), "Entity '" << entityName(e) << "' already has a component '" << INV_HASH(system->getId()) << "'");
+        if (std::find(it.begin(), it.end(), system) != it.end()) {
+            LOGF_IF(fail, "Entity '" << entityName(e) << "' already has a component '" << INV_HASH(system->getId()) << "'");
+            return;
+        }
     }
 #endif
     system->Add(e);
