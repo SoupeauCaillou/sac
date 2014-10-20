@@ -571,10 +571,12 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 void RenderingSystem::waitDrawingComplete() {
 #if ! SAC_EMSCRIPTEN || BENCHMARK_MODE
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
-    int readQueue = (currentWriteQueue + 1) % 2;
+    int waitOnQueue = currentWriteQueue;
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
-    while (renderQueue[readQueue].count > 0 && frameQueueWritable)
+    while (newFrameReady && frameQueueWritable) {
+        LOGV(2, "Wait for " << waitOnQueue << " to be emptied by rendering thread");
         cond[C_RENDER_DONE].wait(lock);
+    }
     lock.unlock();
     PROFILE("Renderer", "wait-drawing-donE", EndEvent);
 #endif
@@ -619,6 +621,8 @@ void RenderingSystem::render() {
     }
 #endif
 
+    LOGV(2, "RENDER #" << readQueue << '/' << renderQueue[readQueue].commands[renderQueue[readQueue].count -1]. atlasIndex);
+
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
         LOGW("Arg, nothing to render - probably a bug (queue=" << readQueue << ')');
@@ -627,6 +631,7 @@ void RenderingSystem::render() {
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
+    LOGV(2, "DONE");
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();
