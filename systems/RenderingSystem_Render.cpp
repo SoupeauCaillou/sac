@@ -272,6 +272,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     #endif
 
     int activeVertexBuffer = 1;
+    const TextureInfo* previousAtlasInfo = 0;
+    TextureRef previousAtlasRef = -1;
 
     // The idea here is to browse through the list of _ordered_ list of
     // render command to execute. We try to group (batch) them in single
@@ -406,16 +408,22 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         if (rc.texture != InvalidTextureRef) {
             if (!rcUseFbo) {
                 const TextureInfo* info = textureLibrary.get(rc.texture, false);
-                LOGF_IF(info == 0, "Invalid texture " << rc.texture << "(" << INV_HASH(rc.texture) << ") : can not be found");
-                if (info->atlasIndex >= 0) {
-                    LOGF_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size());
-                    const TextureInfo* atlasInfo = textureLibrary.get(atlas[info->atlasIndex].ref, false);
-                    LOGF_IF(!atlasInfo, "TextureInfo for atlas index: "
-                        << info->atlasIndex << " not found (ref=" << atlas[info->atlasIndex].ref << ", name='" << atlas[info->atlasIndex].name << "')");
-                    rc.glref = atlasInfo->glref;
+
+                LOGE_IF(info == 0, "Invalid texture " << rc.texture << "(" << INV_HASH(rc.texture) << ") : can not be found");
+                LOGE_IF((unsigned)info->atlasIndex >= atlas.size(), "Invalid atlas index: " << info->atlasIndex << " >= atlas count : " << atlas.size());
+
+                TextureRef aRef = atlas[info->atlasIndex].ref;
+
+                const TextureInfo* atlasInfo;
+                if (aRef == previousAtlasRef) {
+                    atlasInfo = previousAtlasInfo;
                 } else {
-                    rc.glref = info->glref;
+                    previousAtlasInfo = atlasInfo = textureLibrary.get(aRef, false);
+                    previousAtlasRef = aRef;
+                    LOGE_IF(!atlasInfo, "TextureInfo for atlas index: "
+                        << info->atlasIndex << " not found (ref=" << aRef << ", name='" << atlas[info->atlasIndex].name << "')");
                 }
+                rc.glref = atlasInfo->glref;
                 computeUV(rc, *info);
             } else {
                 rc.uv[0] = glm::vec2(0, 1);
@@ -620,8 +628,6 @@ void RenderingSystem::render() {
         mutexes[L_RENDER].lock();
     }
 #endif
-
-    LOGV(2, "RENDER #" << readQueue << '/' << renderQueue[readQueue].commands[renderQueue[readQueue].count -1]. atlasIndex);
 
     PROFILE("Renderer", "render", BeginEvent);
     if (renderQueue[readQueue].count == 0) {
