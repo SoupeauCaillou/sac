@@ -554,6 +554,7 @@ void Game::step() {
 
     theRenderingSystem.waitDrawingComplete();
 
+delta_time_computation:
     float newTime = TimeUtil::GetTime();
     float frameTime = newTime - currentTime;
     currentTime = newTime;
@@ -581,7 +582,16 @@ void Game::step() {
         bool doneOnce = false;
     #endif
 
+#if !SAC_BENCHMARK_MODE
+    if (accumulator < targetDT) {
+        TimeUtil::Wait(targetDT - accumulator);
+        goto delta_time_computation;
+    }
     while (accumulator >= targetDT)
+#else
+        targetDT = accumulator;
+#endif
+
     {
         theTouchInputManager.Update();
 

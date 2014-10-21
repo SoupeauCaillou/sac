@@ -393,9 +393,9 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #endif
     game->init(state, size);
 
-#if !SAC_BENCHMARK_MODE
+// #if !SAC_BENCHMARK_MODE
     theRenderingSystem.enableRendering();
-#endif
+// #endif
 
     LOGV(1, "Run game loop");
 
@@ -420,7 +420,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     std::thread th1(callback_thread, gameName);
     float prevT = 0;
 
-#if !SAC_BENCHMARK_MODE
+// #if !SAC_BENCHMARK_MODE
     do {
         game->eventsHandler();
         game->render();
@@ -431,7 +431,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #endif
         prevT = t;
     } while (!m.try_lock());
-#endif
+// #endif
     th1.join();
 
     delete ctx;
