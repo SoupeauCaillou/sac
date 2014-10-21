@@ -110,10 +110,12 @@ static void updateBench() {
             startTime = t;
         }
     }
+    /*
     if (t > 20) {
         std::cout << "TOTAL FRAME COUNT:" << totalFrameCount << std::endl;
         exit(0);
     }
+    */
 }
 #endif
 
@@ -133,10 +135,12 @@ static void updateAndRender() {
 #endif
 }
 #else
-std::mutex m;
+static std::mutex m;
+static bool updateThreadReady;
+static std::condition_variable cond;
 
 static void updateLoop(const std::string& ) {
-    while(! game->isFinished && (SDL_GetAppState() & SDL_APPACTIVE)) {
+    while(! game->isFinished) { // && (SDL_GetAppState() & SDL_APPACTIVE)) {
 
 #if SAC_BENCHMARK_MODE
     updateBench();
@@ -158,9 +162,13 @@ static void updateLoop(const std::string& ) {
 }
 
 static void* callback_thread(const std::string& gameName){
-    m.lock();
+    {
+        std::unique_lock<std::mutex> lock(m);
+        cond.notify_all();
+    }
+
     updateLoop(gameName);
-    m.unlock();
+
     return NULL;
 }
 #endif
@@ -235,7 +243,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     emscripten_run_script(script);
 
 #else
-    bool restore = false, verbose = false, forceEtc1 = false;
+    bool restore = false, verbose = false, forceEtc1 = false, headless = false;
 #if SAC_ENABLE_PROFILING
     profilerEnabled = false;
 #endif
@@ -243,6 +251,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         restore |= !strcmp(argv[i], "-restore");
         verbose |= !strcmp(argv[i], "-v");
         verbose |= !strcmp(argv[i], "--verbose");
+        headless |= !strcmp(argv[i], "--headless");
         forceEtc1 |= !strcmp(argv[i], "--force-etc1");
 #if SAC_INGAME_EDITORS
         if (!strcmp(argv[i], "--debug-area-width") ||
@@ -393,9 +402,8 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #endif
     game->init(state, size);
 
-// #if !SAC_BENCHMARK_MODE
-    theRenderingSystem.enableRendering();
-// #endif
+    if (!headless)
+        theRenderingSystem.enableRendering();
 
     LOGV(1, "Run game loop");
 
@@ -417,21 +425,26 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     setlocale( LC_ALL, "" );
     setlocale( LC_NUMERIC, "C" );
 
+    std::unique_lock<std::mutex> lock(m);
     std::thread th1(callback_thread, gameName);
+    cond.wait(lock);
+    lock.unlock();
+
     float prevT = 0;
 
-// #if !SAC_BENCHMARK_MODE
     do {
         game->eventsHandler();
-        game->render();
-        SDL_GL_SwapBuffers();
-        float t = TimeUtil::GetTime();
+        if (!headless) {
+            game->render();
+            SDL_GL_SwapBuffers();
+            float t = TimeUtil::GetTime();
 #if ! SAC_WINDOWS
-        Recorder::Instance().record(t - prevT);
+            Recorder::Instance().record(t - prevT);
 #endif
-        prevT = t;
-    } while (!m.try_lock());
-// #endif
+            prevT = t;
+        }
+    } while (!game->isFinished); //!m.try_lock());
+
     th1.join();
 
     delete ctx;
