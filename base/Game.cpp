@@ -589,7 +589,7 @@ delta_time_computation:
     }
     while (accumulator >= targetDT)
 #else
-        targetDT = accumulator;
+    accumulator = targetDT;
 #endif
 
     {

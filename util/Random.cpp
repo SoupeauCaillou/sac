@@ -14,6 +14,7 @@ void Random::Init (unsigned int seed) {
     if (seed == 0) {
     #if SAC_BENCHMARK_MODE
         mt.seed(0);
+        mt.seed(time(0));
     #else
         mt.seed(time(0));
     #endif
