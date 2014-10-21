@@ -65,8 +65,8 @@ bool IntersectionUtil::pointRectangleAABB(const glm::vec2& p, const AABB& aabb) 
     return !(
         p.x < aabb.left ||
         p.x > aabb.right ||
-        p.x < aabb.bottom ||
-        p.x > aabb.top);
+        p.y < aabb.bottom ||
+        p.y > aabb.top);
 }
 
 bool IntersectionUtil::pointRectangle(const glm::vec2& point, const glm::vec2& rectPos, const glm::vec2& rectSize, float rectRotation) {
