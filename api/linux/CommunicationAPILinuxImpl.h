@@ -27,9 +27,10 @@
 #include "base/Log.h"
 
 class CommunicationAPILinuxImpl : public CommunicationAPI {
-	public:
-		bool mustShowRateDialog() { LOGV(1, "always true"); return true; }
-		void rateItNow() { LOGV(1, "not handled"); }
-		void rateItLater() { LOGV(1, "not handled"); }
-		void rateItNever() { LOGV(1, "not handled"); }
+    public:
+        bool mustShowRateDialog() { LOGV(1, "always true"); return true; }
+        void rateItNow() { LOGV(1, "not handled"); }
+        void rateItLater() { LOGV(1, "not handled"); }
+        void rateItNever() { LOGV(1, "not handled"); }
+        void show(const std::string&msg) { LOGT("Implement popup autodestroy: " << msg); }
 };

@@ -27,6 +27,7 @@ CommunicationAPIAndroidImpl::CommunicationAPIAndroidImpl()  : JNIWrapper<jni_com
     declareMethod(jni_comm_api::RateItNow, "rateItNow", "()V");
     declareMethod(jni_comm_api::RateItLater, "rateItLater", "()V");
     declareMethod(jni_comm_api::RateItNever, "rateItNever", "()V");
+    declareMethod(jni_comm_api::Show, "show", "(Ljava/lang/String;)V");
 }
 
 bool CommunicationAPIAndroidImpl::mustShowRateDialog(){
@@ -44,3 +45,10 @@ void CommunicationAPIAndroidImpl::rateItLater(){
 void CommunicationAPIAndroidImpl::rateItNever(){
    env->CallVoidMethod(instance, methods[jni_comm_api::RateItNever]);
 }
+
+void CommunicationAPIAndroidImpl::show(const std::string&msg) {
+    jstring jMsg = env->NewStringUTF(msg.c_str());
+   env->CallVoidMethod(instance, methods[jni_comm_api::Show], jMsg);
+}
+
+

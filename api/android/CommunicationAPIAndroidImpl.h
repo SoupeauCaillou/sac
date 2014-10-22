@@ -32,6 +32,7 @@ namespace jni_comm_api {
         RateItNow,
         RateItLater,
         RateItNever,
+        Show,
     };
 }
 class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<jni_comm_api::Enum> {
@@ -42,4 +43,5 @@ class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<j
         void rateItNow();
         void rateItLater();
         void rateItNever();
+        void show(const std::string&msg);
 };

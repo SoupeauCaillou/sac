@@ -45,6 +45,7 @@ parse_arguments() {
                 ;;
             "-g" | "-gradle")
                 use_gradle=1
+                error_and_quit "Sorry, gradle build not supported anymore for yet"
                 targets=$targets" "
                 ;;
             "-p" | "-project")
@@ -160,7 +161,7 @@ compilation_before() {
 
     cmake_config+=(-DCMAKE_TOOLCHAIN_FILE=$rootPath/sac/cmake/toolchains/android.toolchain.cmake)
     cmake_config+=(-DANDROID_FORCE_ARM_BUILD=ON)
-    cmake_config+=(-DUSE_GRADLE=$use_gradle)
+    # cmake_config+=(-DUSE_GRADLE=$use_gradle)
 }
 
 compilation_after() {

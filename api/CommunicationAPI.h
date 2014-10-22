@@ -28,13 +28,16 @@
 #include <sstream>
 
 class CommunicationAPI {
-	public:
-		//do we need to show the app rate dialog
-		virtual bool mustShowRateDialog() = 0;
-		//if we clicked on "rateItNow"
-		virtual void rateItNow() = 0;
-		//if we clicked on "rateItLater"
-		virtual void rateItLater() = 0;
-		//if we clicked on "rateItNever"
-		virtual void rateItNever() = 0;
+    public:
+        //do we need to show the app rate dialog
+        virtual bool mustShowRateDialog() = 0;
+        //if we clicked on "rateItNow"
+        virtual void rateItNow() = 0;
+        //if we clicked on "rateItLater"
+        virtual void rateItLater() = 0;
+        //if we clicked on "rateItNever"
+        virtual void rateItNever() = 0;
+
+        // display a message to user
+        virtual void show(const std::string&msg) = 0;
 };

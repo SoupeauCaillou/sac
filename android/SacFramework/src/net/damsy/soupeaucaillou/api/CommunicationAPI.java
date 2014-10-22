@@ -26,25 +26,28 @@ import net.damsy.soupeaucaillou.SacActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.widget.Toast;
 
 public class CommunicationAPI {
-	private static CommunicationAPI instance = null;
-	public static int id = 597937595; /* MurmurHash of 'CommunicationAPI' */
-	
-	public synchronized static CommunicationAPI Instance() {
-		if (instance == null) {
-			instance = new CommunicationAPI();
-		}
-		return instance;
-	}
+    private static CommunicationAPI instance = null;
+    public static int id = 597937595; /* MurmurHash of 'CommunicationAPI' */
 
-	private Activity activity;
-	private SharedPreferences appRaterPreference;
+    public synchronized static CommunicationAPI Instance() {
+        if (instance == null) {
+            instance = new CommunicationAPI();
+        }
+        return instance;
+    }
 
-	public void init(Activity activity, SharedPreferences appRaterPreference) {
-		this.activity = activity;
-		this.appRaterPreference = appRaterPreference;
+    private Activity activity;
+    private SharedPreferences appRaterPreference;
+
+    public void init(Activity activity, SharedPreferences appRaterPreference) {
+        this.activity = activity;
+        this.appRaterPreference = appRaterPreference;
 
         /////////////////////////// INCREASE LAUNCH_COUNT
         long newValue = appRaterPreference.getLong("launch_count", 0) + 1;
@@ -52,37 +55,59 @@ public class CommunicationAPI {
         SharedPreferences.Editor editor = appRaterPreference.edit();
         editor.putLong("launch_count", newValue);
         editor.commit();
-	}
+    }
 
-	// -------------------------------------------------------------------------
-	// CommunicationAPI
-	// -------------------------------------------------------------------------
-	public boolean mustShowRateDialog() {
-		if (appRaterPreference.getBoolean("dontshowagain", false)) {
-			return false;
-		}
-		if (appRaterPreference.getLong("launch_count", 0) < 10) {
-			return false;
-		}
-		return true;
-		// return SacJNILib.activity.canShowAppRater();
-	}
+    // -------------------------------------------------------------------------
+    // CommunicationAPI
+    // -------------------------------------------------------------------------
+    public boolean mustShowRateDialog() {
+        if (appRaterPreference.getBoolean("dontshowagain", false)) {
+            return false;
+        }
+        if (appRaterPreference.getLong("launch_count", 0) < 10) {
+            return false;
+        }
+        return true;
+        // return SacJNILib.activity.canShowAppRater();
+    }
 
-	public void rateItNow() {
-		activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri
-				.parse("market://details?id=" + activity.getPackageName())));
-		rateItNever();
-	}
+    public void rateItNow() {
+        activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri
+                .parse("market://details?id=" + activity.getPackageName())));
+        rateItNever();
+    }
 
-	public void rateItLater() {
-		SharedPreferences.Editor editor = appRaterPreference.edit();
-		editor.putLong("launch_count", 0);
-		editor.commit();
-	}
+    public void rateItLater() {
+        SharedPreferences.Editor editor = appRaterPreference.edit();
+        editor.putLong("launch_count", 0);
+        editor.commit();
+    }
 
-	public void rateItNever() {
-		SharedPreferences.Editor editor = appRaterPreference.edit();
-		editor.putBoolean("dontshowagain", true);
-		editor.commit();
-	}
+    public void rateItNever() {
+        SharedPreferences.Editor editor = appRaterPreference.edit();
+        editor.putBoolean("dontshowagain", true);
+        editor.commit();
+    }
+
+    public void show(final String message) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String realMessage = message;
+                // hack: if message contains this, it means we need to display version information
+                if ("__version__".equals(message)) {
+                    try {
+                        PackageInfo pInfo = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+                        realMessage = "package=" + activity.getPackageName() +
+                                                "\nversion code=" + pInfo.versionCode +
+                                                "\nversion name=" + pInfo.versionName;
+                    } catch (NameNotFoundException e) {
+                        realMessage = "package=???\nversion code=???\nversion name=???";
+                    }
+                }
+                Toast.makeText(activity.getBaseContext(), realMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
 }
