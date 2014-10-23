@@ -755,6 +755,8 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
         unsigned verticesCount = cmd_list->vtx_buffer.size();
         unsigned size = verticesCount * sizeof(ImDrawVert);
 
+        if (!size) continue;
+
         GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[3]))
         GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, size, 0, GL_STREAM_DRAW))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
