@@ -35,7 +35,6 @@ SquareSpatialGrid::SquareSpatialGrid(int pW, int pH, float pSquareWidth) : w(pW)
             cells.insert(std::make_pair(endCell, Cell()));
         }
     }
-    std::cout << cells.size() << std::endl; 
     LOGE_IF((endCell.q != -firstCell.q) || (endCell.r != -firstCell.r), "Incoherent first/last cell");
 }
 
