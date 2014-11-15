@@ -674,6 +674,7 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
 
 // from imgui example
 void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
+    LevelEditor::lock();
     if (drawListCapacity <= cmd_lists_count) {
         imguiCommands = (ImDrawList*) realloc(imguiCommands, cmd_lists_count * sizeof(ImDrawList));
         drawListCapacity = cmd_lists_count;
@@ -703,9 +704,11 @@ void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int c
         long int offset = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
         l->vtx_write = &l->vtx_buffer[0] + offset;
     }
+    LevelEditor::unlock();
 }
 
 void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count) {
+
     GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL))
     theRenderingSystem.glState.flags.update(OpaqueFlagSet);
 
