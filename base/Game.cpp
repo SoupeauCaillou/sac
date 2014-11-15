@@ -71,7 +71,8 @@
 #include "util/LevelEditor.h"
 
 #if ! SAC_ANDROID
-#include <SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL.h>
 #endif
 
 #if SAC_INGAME_EDITORS
@@ -350,6 +351,15 @@ void Game::eventsHandler() {
         }
         levelEditor->unlock();
 #endif
+
+        if (event.type == SDL_EventType::SDL_WINDOWEVENT) {
+            //enable music only if we have the focus
+            if (event.window.event == SDL_WINDOWEVENT_ENTER) {
+                theMusicSystem.toggleMute(false);
+            } else if (event.window.event == SDL_WINDOWEVENT_LEAVE) {
+                theMusicSystem.toggleMute(true);
+            }
+        }
 
         //or try stringInputAPI
         if (!handled && wantsAPI(ContextAPI::StringInput)) {

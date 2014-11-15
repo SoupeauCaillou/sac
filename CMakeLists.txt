@@ -353,7 +353,7 @@ endif()
 
 if (DESKTOP_BUILD)
     include_directories(${SAC_SOURCE_DIR}/libs/rg_etc1_v104/)
-    check_and_link_libs("sac" GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
+    check_and_link_libs("sac" GLEW OpenAL SDL2 Sqlite3 Tinyxml2 ZLIB)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)
