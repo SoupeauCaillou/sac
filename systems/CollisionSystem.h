@@ -34,7 +34,7 @@ struct CollisionComponent {
         group(0), collideWith(0),
         restorePositionOnCollision(false), isARay(false), rayTestDone(false), prevPositionIsValid(false),
         previousPosition(0.0f), previousRotation(0.0f),
-        collidedWithLastFrame(0), collisionAt(0.0f) {}
+        collidedWithLastFrame(0), ignore(0), collisionAt(0.0f) {}
     int group;
     int collideWith;
     bool restorePositionOnCollision, isARay, rayTestDone, prevPositionIsValid;
@@ -43,6 +43,7 @@ struct CollisionComponent {
     float previousRotation;
 
     Entity collidedWithLastFrame;
+    Entity ignore;
     glm::vec2 collisionAt;
 };
 
@@ -59,7 +60,8 @@ UPDATABLE_SYSTEM(Collision)
         glm::vec2 worldSize;
 #if SAC_DEBUG
         bool showDebug;
-        float maximumRayCastPerSec, maximumRayCastPerSecAccum;
+        int maximumRayCastPerSec;
+        float maximumRayCastPerSecAccum;
 #endif
     private:
         std::vector<Entity> debug;

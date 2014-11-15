@@ -54,7 +54,18 @@ struct Coll {
     glm::vec2 normal;
 };
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame);
-static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, float& nearest, glm::vec2& point);
+static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, glm::vec2& point);
+
+
+static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const glm::vec2& worldSize) {
+    const glm::vec2& cellCenter = -worldSize * 0.5f + glm::vec2(cellSize * (x+.5f), cellSize *(y+.5f));
+    IntersectionUtil::AABB cell;
+    cell.left = cellCenter.x - (cellSize * 0.5f);
+    cell.right = cell.left + cellSize;
+    cell.bottom = cellCenter.y - (cellSize * 0.5f);
+    cell.top = cell.bottom + cellSize;
+    return IntersectionUtil::pointRectangleAABB(p, cell);
+}
 
 void CollisionSystem::DoUpdate(float dt) {
     #define CELL_SIZE 4.0f
@@ -64,6 +75,7 @@ void CollisionSystem::DoUpdate(float dt) {
     const int h = glm::floor(worldSize.y * INV_CELL_SIZE);
 
 #if SAC_DEBUG
+    Draw::Clear(HASH("Collision", 0x638cf8ed));
     if (maximumRayCastPerSec > 0)
         maximumRayCastPerSecAccum += maximumRayCastPerSec * dt;
 
@@ -71,7 +83,7 @@ void CollisionSystem::DoUpdate(float dt) {
         if (debug.empty()) {
             for (int j=0; j<h; j++) {
                 for (int i=0; i<w; i++) {
-                    Entity d = theEntityManager.CreateEntity(HASH("debug_collision_grid", 0x0));
+                    Entity d = theEntityManager.CreateEntity(HASH("debug_collision_grid", 0x9c1949ab));
                     ADD_COMPONENT(d, Transformation);
                     TRANSFORM(d)->position =
                         -worldSize * 0.5f + glm::vec2(CELL_SIZE * (i+.5f), CELL_SIZE *(j+.5f));
@@ -82,7 +94,7 @@ void CollisionSystem::DoUpdate(float dt) {
                     RENDERING(d)->show = 1;
                     RENDERING(d)->flags = RenderingFlags::NonOpaque;
                     ADD_COMPONENT(d, Text);
-                    TEXT(d)->fontName = HASH("typo", 0X0);
+                    TEXT(d)->fontName = HASH("typo", 0x5a18f4a9);
                     TEXT(d)->charHeight = CELL_SIZE * 0.2;
                     TEXT(d)->show = 1;
                     TEXT(d)->color.a = 0.3f;
@@ -118,6 +130,12 @@ void CollisionSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
         if (!cc->isARay && !cc->group)
             continue;
+        #if SAC_DEBUG
+        if (cc->group & (cc->group - 1)) {
+            LOGW("Invalid collision group '" << cc->group << "' for entity " << theEntityManager.entityName(entity) << ". Must be pow2");
+        }
+        #endif
+
         cc->collidedWithLastFrame = 0;
 
         const TransformationComponent* tc = TRANSFORM(entity);
@@ -342,7 +360,6 @@ void CollisionSystem::DoUpdate(float dt) {
                         endAxis,
                         cell2->collidingEntities.begin(),
                         cell2->collidingEntities.end(),
-                        nearest,
                         cc->collisionAt);
 
                     performRayObjectCollisionInCell(
@@ -352,10 +369,9 @@ void CollisionSystem::DoUpdate(float dt) {
                         endAxis,
                         cell2->colliderEtities.begin(),
                         cell2->colliderEtities.end(),
-                        nearest,
                         cc->collisionAt);
 
-                    if (cc->collidedWithLastFrame != 0)
+                    if (cc->collidedWithLastFrame != 0 && isInsideCell(cc->collisionAt, X, Y, CELL_SIZE, worldSize))
                         break;
 
 
@@ -373,13 +389,18 @@ void CollisionSystem::DoUpdate(float dt) {
 
                     cell2 = &cells[Y * w + X];
                 }
+
+                #if SAC_DEBUG
+                if (showDebug) {
+                    if (cc->collidedWithLastFrame) {
+                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, cc->collisionAt - origin, Color(1, 0, 0));
+                    } else {
+                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, endAxis - origin, Color(0, 0, 0));
+                    }
+                }
+                #endif
             }
         }
-        #if SAC_DEBUG
-        else if (cell.colliderEtities.empty()) {
-            // TEXT(debug[i])->text.clear();
-        }
-        #endif
     }
 
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
@@ -389,12 +410,18 @@ void CollisionSystem::DoUpdate(float dt) {
     END_FOR_EACH()
 }
 
-static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, float& nearest, glm::vec2& point) {
+static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsInside, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, glm::vec2& point) {
     // Quick exit if this cell doesn't have any entity
     // from our colliding group
     if (cc->collideWith & groupsInside) {
+        #if SAC_DEBUG
+        bool showDebug = theCollisionSystem.showDebug;
+        #endif
+        float nearest = FLT_MAX;
         for (auto it = begin; it!=end; ++it) {
             const Entity testedEntity = *it;
+            if (testedEntity == cc->ignore) continue;
+
             const CollisionComponent* cc2 = COLLISION(testedEntity);
             if (cc2->group & cc->collideWith) {
                 // Test for collision
@@ -404,7 +431,10 @@ static void performRayObjectCollisionInCell(CollisionComponent* cc, int groupsIn
                 int cnt = IntersectionUtil::lineRectangle(origin, endA, tc->position, tc->size, tc->rotation, intersectionPoints);
 
                 for (int i=0; i<cnt; i++) {
-                    // DrawSomething::DrawPoint("collision", intersectionPoints[i]);
+                    #if SAC_DEBUG
+                    if (showDebug)
+                        Draw::Point(HASH("Collision", 0x638cf8ed), intersectionPoints[i]);
+                    #endif
                     // compute distance2
                     float d = glm::distance2(origin, intersectionPoints[i]);
                     if (d < nearest) {
@@ -424,14 +454,20 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
     // Quick exit if this cell doesn't have any entity
     // from our colliding group
     if (cc->collideWith & groupsInside) {
-        const TransformationComponent* tc = TRANSFORM(refEntity);
+        const TransformationComponent* _tc = TRANSFORM(refEntity);
+        TransformationComponent tc;
+        tc.position = (_tc->position + cc->previousPosition) * 0.5f;
+        tc.size = _tc->position - cc->previousPosition + _tc->size;
+        tc.rotation = _tc->rotation;// incorrect but...
 
         for (auto it = begin; it!=end; ++it) {
             const Entity testedEntity = *it;
+            if (testedEntity == cc->ignore) continue;
+
             const CollisionComponent* cc2 = COLLISION(testedEntity);
             if (cc2->group & cc->collideWith) {
                 // Test for collision
-                if (IntersectionUtil::rectangleRectangle(tc, TRANSFORM(testedEntity))) {
+                if (IntersectionUtil::rectangleRectangle(&tc, TRANSFORM(testedEntity))) {
                     // try to find the exact collision time
                     Coll c;
                     c.other = testedEntity;
