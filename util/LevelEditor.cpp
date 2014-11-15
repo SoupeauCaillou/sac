@@ -28,6 +28,7 @@
 #include <systems/TransformationSystem.h>
 #include <systems/RenderingSystem.h>
 #include <systems/CameraSystem.h>
+#include <systems/CollisionSystem.h>
 #include <systems/TextSystem.h>
 #include "base/PlacementHelper.h"
 #include "base/Game.h"
@@ -821,6 +822,11 @@ void LevelEditor::tick(float dt) {
         ImGui::Checkbox("Mark alpha-blended", &theRenderingSystem.highLight.nonOpaque);
         ImGui::Checkbox("Mark runtime opaque", &theRenderingSystem.highLight.runtimeOpaque);
         ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
+    }
+    /* Rendering debug tools */
+    if (ImGui::CollapsingHeader("Collision", NULL, true, true)) {
+        ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
+        ImGui::SliderInt("Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 10000);
     }
 
     if (gridVisible) {
