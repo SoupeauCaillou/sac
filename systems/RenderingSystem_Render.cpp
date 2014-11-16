@@ -539,7 +539,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     #endif
     drawBatchES2(vertices, indices, batchVertexCount, indiceCount, activeVertexBuffer);
 
-    #if SAC_DEBUG
+    #if 0
+    FIXME
     static unsigned ______debug = 0;
     if ((++______debug % 3000) == 0) {
         ______debug = 0;
