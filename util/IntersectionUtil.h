@@ -64,6 +64,9 @@ class IntersectionUtil {
         static bool rectangleRectangle(const TransformationComponent* tc1,
             const TransformationComponent* tc2);
 
+        static int rectangleRectangle(const TransformationComponent* tc1,
+            const TransformationComponent* tc2, glm::vec2* intersectionPoints);
+
         static bool rectangleRectangleAABB(const TransformationComponent* tc1,
             const TransformationComponent* tc2);
 

@@ -267,6 +267,19 @@ bool IntersectionUtil::rectangleRectangleAABB(const AABB& a1, const AABB& a2) {
         a2.top < a1.bottom);
 }
 
+static void computeRectangleVertices(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot, glm::vec2* out) {
+    const static float coeff[] = {
+        -0.5, 0.5,
+        0.5, 0.5,
+        0.5, -0.5,
+        -0.5, -0.5
+    };
+
+    for (int i=0; i<4; i++) {
+        *out++ = rectAPos + glm::rotate(glm::vec2(rectASize.x * coeff[2*i], rectASize.y * coeff[2*i+1]), rectARot);
+    }
+}
+
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
             const glm::vec2& rectBPos, const glm::vec2& rectBSize, float rectBRot) {
     // quick out
@@ -276,20 +289,10 @@ bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::
     }
 
     #define SIGN(x) ((x) > 0 ? 1:-1)
-    const float coeff[] = {
-        -0.5, 0.5,
-        0.5, 0.5,
-        0.5, -0.5,
-        -0.5, -0.5
-    };
-
     glm::vec2 aPoints[4];
+    computeRectangleVertices(rectAPos, rectASize, rectARot, aPoints);
     glm::vec2 bPoints[4];
-
-    for (int i=0; i<4; i++) {
-        aPoints[i] = rectAPos + glm::rotate(glm::vec2(rectASize.x * coeff[2*i], rectASize.y * coeff[2*i+1]), rectARot);
-        bPoints[i] = rectBPos + glm::rotate(glm::vec2(rectBSize.x * coeff[2*i], rectBSize.y * coeff[2*i+1]), rectBRot);
-    }
+    computeRectangleVertices(rectBPos, rectBSize, rectBRot, bPoints);
 
     // check A edges againts B points
     for (int i=0; i<4; i++) {
@@ -357,4 +360,25 @@ bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1,
     return rectangleRectangle(
         tc1->position, tc1->size, tc1->rotation,
         rectBPos, rectBSize, rectBRot);
+}
+
+int IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1,
+            const TransformationComponent* tc2, glm::vec2* intersectionPoints) {
+    glm::vec2 aPoints[4];
+    computeRectangleVertices(tc1->position, tc1->size, tc1->rotation, aPoints);
+    glm::vec2 bPoints[4];
+    computeRectangleVertices(tc2->position, tc2->size, tc2->rotation, bPoints);
+
+    std::vector<std::tuple<glm::vec2, glm::vec2>> bLines;
+    bLines.resize(4);
+    for (int i=0; i<4; i++) {
+        bLines[i] = std::make_tuple(bPoints[i], bPoints[(i + 1) % 4]);
+    }
+
+
+    int count = 0;
+    for (int i=0; i<4; i++) {
+        count += lineLines(aPoints[i], aPoints[(i+1) % 4], bLines, intersectionPoints + count, NULL);
+    }
+    return count;
 }
