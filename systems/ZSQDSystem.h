@@ -29,7 +29,7 @@
 #include <list>
 
 struct ZSQDComponent {
-    ZSQDComponent() : currentSpeed(0.f), maxSpeed(1.f), frictionCoeff(0.1f), newDirectionCoeff(0.01f), lateralMove(true), rotateToFaceDirection(false), rotationSpeed(5), rotationSpeedStopped(10) {}
+    ZSQDComponent() : currentSpeed(0.f), maxSpeed(1.f), frictionCoeff(0.1f), newDirectionCoeff(0.01f), lateralMove(true), rotateToFaceDirection(false), rotationSpeed(5), rotationSpeedStopped(10), collideWith(0) {}
 
     //new directions are added in this list
     std::list<glm::vec2> directions;
@@ -58,6 +58,8 @@ struct ZSQDComponent {
     bool lateralMove, rotateToFaceDirection;
 
     float rotationSpeed, rotationSpeedStopped;
+
+    int collideWith;
 };
 
 #define theZSQDSystem ZSQDSystem::GetInstance()
@@ -67,5 +69,8 @@ struct ZSQDComponent {
 #define ZSQD(actor) theZSQDSystem.Get(actor)
 #endif
 UPDATABLE_SYSTEM(ZSQD)
+
+private:
+    std::vector<Entity> rays;
 };
 #endif

@@ -220,8 +220,15 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
     ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
+#if !DISABLE_ZSQD_SYSTEM
+    ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
+#endif
 #if !DISABLE_COLLISION_SYSTEM
     ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
+#if !DISABLE_ZSQD_SYSTEM
+    // 2nd pass
+    ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
+#endif
 #endif
 #if !DISABLE_SCROLLING_SYSTEM
     ADD_IF_EXISTING(ScrollingSystem::GetInstancePointer());
@@ -234,9 +241,6 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
-#if !DISABLE_ZSQD_SYSTEM
-    ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
-#endif
 #if !DISABLE_SWYPE_SYSTEM
     ADD_IF_EXISTING(SwypeButtonSystem::GetInstancePointer());
 #endif
