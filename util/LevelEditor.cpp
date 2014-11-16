@@ -36,7 +36,6 @@
 #include "util/Recorder.h"
 #include "api/KeyboardInputHandlerAPI.h"
 
-#include <SDL/SDL_keysym.h>
 #include <mutex>
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>

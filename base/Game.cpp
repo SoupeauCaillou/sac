@@ -414,14 +414,17 @@ void Game::eventsHandler() {
                     }
                     break;
                 }
-                case SDL_VIDEORESIZE: {
-                    int w = event.resize.w, h = event.resize.h;
-                    #if SAC_INGAME_EDITORS
-                    w -= LevelEditor::DebugAreaWidth;
-                    h -= LevelEditor::DebugAreaHeight;
-                    #endif
-                    sac::setResolution(w, h);
-                    changeResolution(w, h);
+                case SDL_WINDOWEVENT: {
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        int w = event.window.data1;
+                        int h = event.window.data2;
+                        #if SAC_INGAME_EDITORS
+                        w -= LevelEditor::DebugAreaWidth;
+                        h -= LevelEditor::DebugAreaHeight;
+                        #endif
+                        sac::setResolution(w, h);
+                        changeResolution(w, h);
+                    }
                     break;
                 }
             }
