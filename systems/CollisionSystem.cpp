@@ -34,6 +34,8 @@
 #include "util/Draw.h"
 INSTANCE_IMPL(CollisionSystem);
 
+#define MAX_COLLISION_COUNT_PER_ENTITY 4
+
 CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HASH("Collision", 0x638cf8ed)) {
     CollisionComponent tc;
     componentSerializer.add(new Property<int>(HASH("group", 0xbf3bf34d), OFFSET(group, tc), 0));
@@ -54,7 +56,7 @@ struct Coll {
     glm::vec2 normal;
 };
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame);
-static float performRayObjectCollisionInCell(const CollisionComponent* cc, int groupsInside, Entity& collidedWithLastFrame, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, glm::vec2& point);
+static float performRayObjectCollisionInCell(const CollisionComponent* cc, int groupsInside, Entity* collidedWithLastFrame, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, glm::vec2* point);
 
 
 static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const glm::vec2& worldSize) {
@@ -126,6 +128,8 @@ void CollisionSystem::DoUpdate(float dt) {
         cells.push_back(Cell());
     }
 
+    int minCollidingEntity = INT_MAX, maxCollidingEntity = 0;
+
     // Assign each entity to cells
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
         if (!cc->isARay && !cc->group)
@@ -136,7 +140,7 @@ void CollisionSystem::DoUpdate(float dt) {
         }
         #endif
 
-        cc->collidedWithLastFrame = 0;
+        cc->collision.count = 0;
 
         const TransformationComponent* tc = TRANSFORM(entity);
 
@@ -169,6 +173,8 @@ void CollisionSystem::DoUpdate(float dt) {
                         cell.collidingEntities.push_back(entity);
                         cell.collidingGroupsInside |= cc->group;
                     }
+                    maxCollidingEntity = glm::max(maxCollidingEntity, (int)entity);
+                    minCollidingEntity = glm::min(minCollidingEntity, (int)entity);
                 } else {
                     cell.colliderEtities.push_back(entity);
                     cell.colliderGroupsInside |= cc->group;
@@ -177,7 +183,22 @@ void CollisionSystem::DoUpdate(float dt) {
         }
     END_FOR_EACH()
 
-    // DrawSomething::Clear();
+    // ensure array is big enough
+    {
+        int arrayRequiredSize = MAX_COLLISION_COUNT_PER_ENTITY * (maxCollidingEntity - minCollidingEntity + 1);
+        if ((int)collisionEntity.size() < arrayRequiredSize) {
+            LOGV(3, "Enlarging collision arrays :" << collisionEntity.size() << " -> " << arrayRequiredSize << '(' << __(minCollidingEntity) << ',' << __(maxCollidingEntity) << ')');
+            collisionEntity.resize(arrayRequiredSize);
+            collisionPos.resize(arrayRequiredSize);
+        }
+    }
+
+    FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
+        if (cc->group > 1 || cc->isARay) {
+            cc->collision.with = &collisionEntity[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
+            cc->collision.at = &collisionPos[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
+        }
+    }
 
     for (unsigned i=0; i<cells.size(); i++) {
         const Cell& cell = cells[i];
@@ -278,33 +299,20 @@ void CollisionSystem::DoUpdate(float dt) {
                         }
                     );
 
-                    collisionDuringTheFrame.resize(1);
+                    int collCount = cc->collision.count = (int) collisionDuringTheFrame.size();
 
-                    const Coll& collision = collisionDuringTheFrame[0];
-                    auto* cc2 = COLLISION(collision.other);
-                    auto* tc2 = TRANSFORM(collision.other);
+                    for (int i=0; i<collCount; i++) {
+                        const Coll& collision = collisionDuringTheFrame[i];
 
-                    const glm::vec2 p2[] = {
-                        cc2->previousPosition,
-                        tc2->position
-                    };
-                    const float r2[2] = {
-                        cc2->previousRotation,
-                        tc2->rotation
-                    };
+                        cc->collision.with[i] = collision.other;
 
-                    if (cc->restorePositionOnCollision && cc->prevPositionIsValid) {
-                        tc->position = glm::lerp(p1[0], p1[1], collision.t);
-                        tc->rotation = glm::lerp(r1[0], r1[1], collision.t);
+                        if (cc->restorePositionOnCollision && cc->prevPositionIsValid) {
+                            tc->position = glm::lerp(p1[0], p1[1], collision.t);
+                            tc->rotation = glm::lerp(r1[0], r1[1], collision.t);
+                        }
+
+                        LOGV(2, "Collision: " << theEntityManager.entityName(refEntity) << " -> " << theEntityManager.entityName(collision.other));
                     }
-                    cc->collidedWithLastFrame = collision.other;
-
-                    if (cc2->restorePositionOnCollision && cc2->prevPositionIsValid) {
-                        tc2->position = glm::lerp(p2[0], p2[1], collision.t);
-                        tc2->rotation = glm::lerp(r2[0], r2[1], collision.t);
-                    }
-                    cc2->collidedWithLastFrame = refEntity;
-                    LOGV(2, "Collision: " << theEntityManager.entityName(refEntity) << " -> " << theEntityManager.entityName(collision.other));
                 }
             }
         }
@@ -325,11 +333,12 @@ void CollisionSystem::DoUpdate(float dt) {
                 }
 #endif
                 cc->rayTestDone = true;
-                cc->collidedWithLastFrame = 0;
+                cc->collision.count = 0;
+
                 const glm::vec2& origin = TRANSFORM(cell.rayEntities[j])->position;
                 const glm::vec2 axis = glm::rotate(glm::vec2(1.0f, 0.0f), TRANSFORM(cell.rayEntities[j])->rotation);
                 const glm::vec2 endAxis (origin + axis * glm::max(worldSize.x, worldSize.y));
-                cc->collisionAt = endAxis;
+
                 glm::vec2 point;
 
                 // from http://www.cse.yorku.ca/~amana/research/grid.pdf
@@ -349,38 +358,42 @@ void CollisionSystem::DoUpdate(float dt) {
                 int Y = yStart;
 
                 const Cell* cell2 = &cell;
+                cc->collision.with[0] = 0;
+
                 while(true) {
                     LOGV(2, "X=" << X << ", Y=" << Y << '[' << tMaxX << "," << tMaxY << ']');
 
                     float nearest1 = performRayObjectCollisionInCell(
                         cc,
                         cell2->collidingGroupsInside,
-                        cc->collidedWithLastFrame,
+                        &cc->collision.with[0],
                         origin,
                         endAxis,
                         cell2->collidingEntities.begin(),
                         cell2->collidingEntities.end(),
-                        cc->collisionAt);
+                        &cc->collision.at[0]);
 
                     Entity collidedWithLastFrame2 = 0;
                     glm::vec2 collisionAt2;
                     float nearest2 = performRayObjectCollisionInCell(
                         cc,
                         cell2->colliderGroupsInside,
-                        collidedWithLastFrame2,
+                        &collidedWithLastFrame2,
                         origin,
                         endAxis,
                         cell2->colliderEtities.begin(),
                         cell2->colliderEtities.end(),
-                        collisionAt2);
+                        &collisionAt2);
 
                     if (nearest2 < nearest1) {
-                        cc->collidedWithLastFrame = collidedWithLastFrame2;
-                        cc->collisionAt = collisionAt2;
+                        cc->collision.with[0] = collidedWithLastFrame2;
+                        cc->collision.at[0] = collisionAt2;
                     }
 
-                    if (cc->collidedWithLastFrame != 0 && isInsideCell(cc->collisionAt, X, Y, CELL_SIZE, worldSize))
+                    if (cc->collision.with[0] != 0 && isInsideCell(cc->collision.at[0], X, Y, CELL_SIZE, worldSize)) {
+                        cc->collision.count = 1;
                         break;
+                    }
 
 
                     // loop
@@ -400,8 +413,8 @@ void CollisionSystem::DoUpdate(float dt) {
 
                 #if SAC_DEBUG
                 if (showDebug) {
-                    if (cc->collidedWithLastFrame) {
-                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, cc->collisionAt - origin, Color(1, 0, 0));
+                    if (cc->collision.count) {
+                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, cc->collision.at[0] - origin, Color(1, 0, 0));
                     } else {
                         Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, endAxis - origin, Color(0, 0, 0));
                     }
@@ -418,7 +431,7 @@ void CollisionSystem::DoUpdate(float dt) {
     END_FOR_EACH()
 }
 
-static float performRayObjectCollisionInCell(const CollisionComponent* cc, int groupsInside, Entity& collidedWithLastFrame, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, glm::vec2& point) {
+static float performRayObjectCollisionInCell(const CollisionComponent* cc, int groupsInside, Entity* collidedWithLastFrame, const glm::vec2& origin, const glm::vec2& endA, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, glm::vec2* point) {
     // Quick exit if this cell doesn't have any entity
     // from our colliding group
     float nearest = FLT_MAX;
@@ -447,8 +460,8 @@ static float performRayObjectCollisionInCell(const CollisionComponent* cc, int g
                     float d = glm::distance2(origin, intersectionPoints[i]);
                     if (d < nearest) {
                         nearest = d;
-                        point = intersectionPoints[i];
-                        collidedWithLastFrame = testedEntity;
+                        *point = intersectionPoints[i];
+                        *collidedWithLastFrame = testedEntity;
                     }
                 }
             }

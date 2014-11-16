@@ -34,7 +34,7 @@ struct CollisionComponent {
         group(0), collideWith(0),
         restorePositionOnCollision(false), isARay(false), rayTestDone(false), prevPositionIsValid(false),
         previousPosition(0.0f), previousRotation(0.0f),
-        collidedWithLastFrame(0), ignore(0), collisionAt(0.0f) {}
+        ignore(0) { collision.count = 0; }
     int group;
     int collideWith;
     bool restorePositionOnCollision, isARay, rayTestDone, prevPositionIsValid;
@@ -42,9 +42,12 @@ struct CollisionComponent {
     glm::vec2 previousPosition;
     float previousRotation;
 
-    Entity collidedWithLastFrame;
-    Entity ignore;
-    glm::vec2 collisionAt;
+    struct {
+        int count;
+        Entity* with;
+        glm::vec2* at; /* Note: only valid for raycast atm */
+    } collision;
+    Entity ignore; /* TODO ignore several entities */
 };
 
 #define theCollisionSystem CollisionSystem::GetInstance()
@@ -62,8 +65,10 @@ UPDATABLE_SYSTEM(Collision)
         bool showDebug;
         int maximumRayCastPerSec;
         float maximumRayCastPerSecAccum;
-#endif
     private:
         std::vector<Entity> debug;
+#endif
+        std::vector<Entity> collisionEntity;
+        std::vector<glm::vec2> collisionPos;
 };
 #endif

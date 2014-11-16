@@ -63,53 +63,50 @@ void ZSQDSystem::DoUpdate(float dt) {
             if (zc->collideWith > 0) {
                 const auto* cc = COLLISION(a);
                 Draw::Point(HASH("ZSQD", 0xbecf877c), cc->previousPosition, Color(0, 0, 1));
-                if (cc->collidedWithLastFrame) {
-                    glm::vec2 normal, at[4];
-                    // assume collision with rectangle to deduce collision normal
-                    const auto* tcc = TRANSFORM(cc->collidedWithLastFrame);
-                    int count = IntersectionUtil::rectangleRectangle(TRANSFORM(a), tcc, at);
+                if (cc->collision.count > 0) {
 
-                    if (count == 0) {
-                        continue;
+                    /* For each collision compute normal and cancel move along it */
+                    for (int i=0; i<cc->collision.count; i++) {
+                        glm::vec2 at[4];
+                        // assume collision with rectangle to deduce collision normal
+                        const auto* tcc = TRANSFORM(cc->collision.with[i]);
+                        int count = IntersectionUtil::rectangleRectangle(TRANSFORM(a), tcc, at);
+
+                        if (count == 0) {
+                            continue;
+                        }
+
+                        /* average collision points... */
+                        glm::vec2 collisionAt;
+                        for (int i=0; i<count; i++) collisionAt += at[i];
+                        collisionAt /= count;
+
+                        glm::vec2 diffNorm = glm::rotate(collisionAt - tcc->position, -tcc->rotation) / tcc->size;
+                        glm::vec2 normal;
+
+                        if (glm::abs(diffNorm.x) >= glm::abs(diffNorm.y)) {
+                            normal = glm::vec2(glm::sign(diffNorm.x), 0.0f);
+                        } else {
+                            normal = glm::vec2(0.0f, glm::sign(diffNorm.y));
+                        }
+                        normal = glm::rotate(normal, tcc->rotation);
+
+                        Draw::Vec2(HASH("ZSQD", 0xbecf877c), collisionAt, normal, Color(1, 0, 0));
+                        // cancel direction on normal
+                        Draw::Vec2(HASH("ZSQD", 0xbecf877c), TRANSFORM(a)->position, zc->currentDirection, Color(1, 1, 1));
+
+                        zc->currentDirection = zc->currentDirection - glm::dot(zc->currentDirection, normal) * normal;
+
+                        if (zc->currentSpeed > 0.1) {
+                            do {
+                                TRANSFORM(a)->position += normal * zc->currentSpeed * dt * 0.1f;
+                            } while (IntersectionUtil::rectangleRectangle(TRANSFORM(a), tcc));
+                        } else {
+                            TRANSFORM(a)->position += glm::dot(normal, TRANSFORM(a)->size) * 0.2f;
+                        }
                     }
 
-                    /* average collision points... */
-                    glm::vec2 collisionAt;
-                    for (int i=0; i<count; i++) collisionAt += at[i];
-                    collisionAt /= count;
-
-                    glm::vec2 diffNorm = glm::rotate(collisionAt - tcc->position, -tcc->rotation) / tcc->size;
-                    LOGI_EVERY_N(60, __(diffNorm) << ',' << __(tcc->rotation));
-                    if (glm::abs(diffNorm.x) >= glm::abs(diffNorm.y)) {
-                        normal = glm::vec2(glm::sign(diffNorm.x), 0.0f);
-                    } else {
-                        normal = glm::vec2(0.0f, glm::sign(diffNorm.y));
-                    }
-                    normal = glm::rotate(normal, tcc->rotation);
-
-                    Draw::Vec2(HASH("ZSQD", 0xbecf877c), collisionAt, normal, Color(1, 0, 0));
-                    // cancel direction on normal
-                    Draw::Vec2(HASH("ZSQD", 0xbecf877c), TRANSFORM(a)->position, zc->currentDirection, Color(1, 1, 1));
-
-                    zc->currentDirection = zc->currentDirection - glm::dot(zc->currentDirection, normal) * normal;
-                    float l = glm::length(zc->currentDirection);
-
-                    if (l > 1) zc->currentDirection /= l;
                     Draw::Vec2(HASH("ZSQD", 0xbecf877c), TRANSFORM(a)->position, zc->currentDirection, Color(0, 1, 1));
-
-                    #if 1
-                    if (zc->currentSpeed > 0.1) {
-                        do {
-                            TRANSFORM(a)->position += normal * zc->currentSpeed * dt * 0.1f;
-                        } while (IntersectionUtil::rectangleRectangle(TRANSFORM(a), tcc));
-                    } else {
-                        TRANSFORM(a)->position += glm::dot(normal, TRANSFORM(a)->size) * 0.2f;
-                    }
-                    //TRANSFORM(a)->rotation = glm::atan2<float, glm::mediump>(zc->currentDirection.y, zc->currentDirection.x);
-                    #else
-                    TRANSFORM(a)->position = cc->previousPosition;// + dt * zc->currentSpeed * zc->currentDirection;// + glm::dot(normal, TRANSFORM(a)->size) * 0.2f;
-                    TRANSFORM(a)->rotation = cc->previousRotation;
-                    #endif
                 }
             }
         END_FOR_EACH()
