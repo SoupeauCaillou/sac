@@ -127,7 +127,7 @@ void ZSQDSystem::DoUpdate(float dt) {
             if (glm::abs(diffRot) > glm::pi<float>()) {
                 diffRot = diffRot - glm::sign(diffRot) * glm::pi<float>() * 2;
             }
-            TRANSFORM(a)->rotation += diffRot * 20 * dt;
+            TRANSFORM(a)->rotation += diffRot * zc->rotationSpeed * dt;
         }
         zc->directions.clear();
     END_FOR_EACH()
