@@ -29,6 +29,8 @@
 #include "base/Frequency.h"
 #endif
 
+struct TransformationComponent;
+
 struct CollisionComponent {
     CollisionComponent() :
         group(0), collideWith(0),
@@ -60,6 +62,8 @@ struct CollisionComponent {
 UPDATABLE_SYSTEM(Collision)
 
     public:
+        static glm::vec2 collisionPointToNormal(const glm::vec2& point, const TransformationComponent* tc);
+
         glm::vec2 worldSize;
 #if SAC_DEBUG
         bool showDebug;

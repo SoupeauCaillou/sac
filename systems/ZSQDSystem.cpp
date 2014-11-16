@@ -89,15 +89,7 @@ void ZSQDSystem::DoUpdate(float dt) {
                     for (int i=0; i<count; i++) collisionAt += at[i];
                         collisionAt /= count;
 
-                    glm::vec2 diffNorm = glm::rotate(collisionAt - tcc->position, -tcc->rotation) / tcc->size;
-                    glm::vec2 normal;
-
-                    if (glm::abs(diffNorm.x) >= glm::abs(diffNorm.y)) {
-                        normal = glm::vec2(glm::sign(diffNorm.x), 0.0f);
-                    } else {
-                        normal = glm::vec2(0.0f, glm::sign(diffNorm.y));
-                    }
-                    normal = glm::rotate(normal, tcc->rotation);
+                    glm::vec2 normal = CollisionSystem::collisionPointToNormal(collisionAt, tcc);
 
                     #if SAC_DEBUG
                     if (showDebug) Draw::Vec2(HASH("ZSQD", 0xbecf877c), collisionAt, normal, Color(1, 0, 0));
