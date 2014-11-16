@@ -352,7 +352,7 @@ void Game::eventsHandler() {
         levelEditor->unlock();
 #endif
 
-        if (event.type == SDL_EventType::SDL_WINDOWEVENT) {
+        if (event.type == SDL_WINDOWEVENT) {
             //enable music only if we have the focus
             if (event.window.event == SDL_WINDOWEVENT_ENTER) {
                 theMusicSystem.toggleMute(false);
