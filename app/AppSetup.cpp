@@ -334,7 +334,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #if !SAC_INGAME_EDITORS
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
 #endif
-        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPIGLFWImpl();
+        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Localize))
         ctx->localizeAPI = new LocalizeAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Music))
