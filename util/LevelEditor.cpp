@@ -30,6 +30,7 @@
 #include <systems/CameraSystem.h>
 #include <systems/CollisionSystem.h>
 #include <systems/TextSystem.h>
+#include <systems/ZSQDSystem.h>
 #include "base/PlacementHelper.h"
 #include "base/Game.h"
 #include "util/Draw.h"
@@ -804,7 +805,7 @@ void LevelEditor::tick(float dt) {
     }
 
     /* Rendering debug tools */
-    if (ImGui::CollapsingHeader("Rendering", NULL, true, true)) {
+    if (ImGui::CollapsingHeader("Rendering", NULL, true, false)) {
         if (gridVisible) {
             if (ImGui::Button("Hide Grid")) {
                 hideGrid();
@@ -823,10 +824,14 @@ void LevelEditor::tick(float dt) {
         ImGui::Checkbox("Mark runtime opaque", &theRenderingSystem.highLight.runtimeOpaque);
         ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
     }
-    /* Rendering debug tools */
-    if (ImGui::CollapsingHeader("Collision", NULL, true, true)) {
+    /* Collision debug tools */
+    if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
         ImGui::SliderInt("Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 10000);
+    }
+    /* ZSQD debug tools */
+    if (ImGui::CollapsingHeader("ZSQD", NULL, true, false)) {
+        ImGui::Checkbox("Debug", &theZSQDSystem.showDebug);
     }
 
     if (gridVisible) {

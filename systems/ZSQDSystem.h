@@ -70,6 +70,10 @@ struct ZSQDComponent {
 #endif
 UPDATABLE_SYSTEM(ZSQD)
 
+#if SAC_DEBUG
+    public:
+    bool showDebug;
+#endif
 private:
     std::vector<Entity> rays;
 };
