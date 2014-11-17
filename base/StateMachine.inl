@@ -65,7 +65,7 @@ void StateMachine<T>::start(T initState) {
 
 template<typename T>
 void StateMachine<T>::registerState(T id, StateHandler<T>* hdl) {
-    LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered");
+    LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered (" << state2handler.size() << " states registered" << ')');
 	state2handler.insert(std::make_pair(id, hdl));
 }
 
