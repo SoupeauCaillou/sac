@@ -62,6 +62,7 @@ class ComponentSystem {
 
         virtual void Add(Entity entity) = 0;
         virtual void Delete(Entity entity);
+        void deleteAllEntities();
         virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
         virtual void* componentAsVoidPtr(Entity e) = 0;
 

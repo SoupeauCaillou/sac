@@ -87,6 +87,14 @@ void ComponentSystem::Delete(Entity entity) {
     entityWithComponent.erase(it);
 }
 
+void ComponentSystem::deleteAllEntities() {
+    auto copy = entityWithComponent;
+    for (auto e: copy) {
+        theEntityManager.DeleteEntity(e);
+    }
+    LOGF_IF(!entityWithComponent.empty(), "Entity list should be empty after deleteAll");
+}
+
 void ComponentSystem::suspendEntity(Entity entity) {
     auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
     LOGF_IF(it == entityWithComponent.end(), "Suspending an invalid entity " << entity);
