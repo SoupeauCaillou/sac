@@ -41,7 +41,7 @@ namespace Steering
     };
 
     const glm::vec2 direction(float rotation, int index);
-    const float angle(float rotation, int index);
+    float angle(float rotation, int index);
 
     template<class T>
     void behavior(Entity e, float dt, T& param, Context* interest, Context* priority, Context* danger);

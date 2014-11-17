@@ -38,7 +38,6 @@
 #include "util/Recorder.h"
 #include "api/KeyboardInputHandlerAPI.h"
 
-#include <SDL/SDL_keysym.h>
 #include <mutex>
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>
@@ -354,17 +353,10 @@ void LevelEditor::tick(float dt) {
 
     while(!events.empty()) {
         const SDL_Event& event = events.front();
-        if (event.type == SDL_KEYDOWN) {
-            auto unicode = event.key.keysym.unicode;
-
-            if (unicode < 0x80 && unicode >= 32) {
-                io.AddInputCharacter(unicode);
-            } else {
-                io.KeysDown[event.key.keysym.sym] = true;
-            }
-        } else if (event.type == SDL_KEYUP) {
-            if (io.KeysDown[event.key.keysym.sym]) {
-                io.KeysDown[event.key.keysym.sym] = false;
+        if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+            // LShift is 1073742049...
+            if (event.key.keysym.sym < 512) {
+                io.KeysDown[event.key.keysym.sym] = (event.type == SDL_KEYDOWN);
             }
         }
         events.pop();
@@ -475,34 +467,34 @@ void LevelEditor::tick(float dt) {
         if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
             Tool::Enum newTool = Tool::None;
             if (tool == Tool::Select) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
-            if (ImGui::Button("Select (B)") || kb->isKeyReleased(Key::ByName(SDLK_b))) {
+            if (ImGui::Button("Select (B)") || kb->isKeyReleased(SDLK_b)) {
                 newTool = Tool::Select;
             }
             if (tool == Tool::Select) ImGui::PopStyleColor();
 
             if (tool == Tool::Move) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
-            if (ImGui::Button("Move (G)") || kb->isKeyReleased(Key::ByName(SDLK_g))) {
+            if (ImGui::Button("Move (G)") || kb->isKeyReleased(SDLK_g)) {
                 if (!selected.empty())
                     newTool = Tool::Move;
             }
             if (tool == Tool::Move) ImGui::PopStyleColor();
 
             if (tool == Tool::Rotate) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
-            if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(Key::ByName(SDLK_r))) {
+            if (ImGui::Button("Rotate (R)") || kb->isKeyReleased(SDLK_r)) {
                 if (!selected.empty())
                     newTool = Tool::Rotate;
             }
             if (tool == Tool::Rotate) ImGui::PopStyleColor();
 
             if (tool == Tool::Scale) ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
-            if (ImGui::Button("Scale (S)") || kb->isKeyReleased(Key::ByName(SDLK_s))) {
+            if (ImGui::Button("Scale (S)") || kb->isKeyReleased(SDLK_s)) {
                 if (!selected.empty())
                     newTool = Tool::Scale;
             }
             if (tool == Tool::Scale) ImGui::PopStyleColor();
 
             if ((newTool == tool && newTool != Tool::None)
-                || kb->isKeyReleased(Key::ByName(SDLK_ESCAPE))) {
+                || kb->isKeyReleased(SDLK_ESCAPE)) {
                 // cancel action
                 tool = Tool::None;
                 modifier = Modifier::None;
@@ -527,7 +519,7 @@ void LevelEditor::tick(float dt) {
 
         if (tool == Tool::Move
             || tool == Tool::Scale) {
-            if (kb->isKeyReleased(Key::ByName(SDLK_x))) {
+            if (kb->isKeyReleased(SDLK_x)) {
                 initialCursorPosition = mouseWorldPos; // reset mouse displacement
                 switch (modifier) {
                     case Modifier::None:
@@ -542,7 +534,7 @@ void LevelEditor::tick(float dt) {
                         modifier = Modifier::None;
                         break;
                 }
-            } else if (kb->isKeyReleased(Key::ByName(SDLK_y))) {
+            } else if (kb->isKeyReleased(SDLK_y)) {
                 initialCursorPosition = mouseWorldPos; // reset mouse displacement
                 switch (modifier) {
                     case Modifier::None:
@@ -563,7 +555,7 @@ void LevelEditor::tick(float dt) {
         switch (tool) {
             case Tool::Move : {
                 glm::vec2 diff = mouseWorldPos - initialCursorPosition;
-                if (kb->isKeyPressed(Key::ByName(SDLK_LCTRL))) {
+                if (kb->isKeyPressed(SDLK_LCTRL)) {
                     diff = glm::round(diff);
                 }
                 for (unsigned i=0; i<selected.size(); i++) {
@@ -665,7 +657,7 @@ void LevelEditor::tick(float dt) {
                             }
                         }
 
-                        if (!kb->isKeyPressed(Key::ByName(SDLK_LSHIFT))) {
+                        if (!kb->isKeyPressed(SDLK_LSHIFT)) {
                             clearSelection();
                         }
 
@@ -758,26 +750,26 @@ void LevelEditor::tick(float dt) {
 
         switch (game->gameType) {
             case GameType::LevelEditor:
-                if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(Key::ByName(SDLK_F1)) ) game->gameType = GameType::Default;
+                if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(SDLK_F1) ) game->gameType = GameType::Default;
                 ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
                 ImGui::Button("Editor (F2)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
-                if (ImGui::Button("Replay (F4)") || kb-> isKeyReleased(Key::ByName(SDLK_F4))) {
+                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(SDLK_F3)) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Replay (F4)") || kb-> isKeyReleased(SDLK_F4)) {
                     datas->currentBackFrame = datas->backInTimeFrameOffsetSize.size() - 1;
                     game->gameType = GameType::Replay;
                 }
                 break;
             case GameType::Replay:
-                if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(Key::ByName(SDLK_F1)) ) game->gameType = GameType::Default;
-                if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(Key::ByName(SDLK_F2))) {
+                if (ImGui::Button("Play (F1)") || kb-> isKeyReleased(SDLK_F1) ) game->gameType = GameType::Default;
+                if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(SDLK_F2)) {
                     if (!gridVisible) {
                         showGrid();
                         gridVisible = true;
                     }
                     game->gameType = GameType::LevelEditor;
                 }
-                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(SDLK_F3)) game->gameType = GameType::SingleStep;
                 ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
                 ImGui::Button("Replay (F4)");
                 ImGui::PopStyleColor();
@@ -789,15 +781,15 @@ void LevelEditor::tick(float dt) {
                 ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
                 ImGui::Button("Play (F1)");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(Key::ByName(SDLK_F2))) {
+                if (ImGui::Button("Editor (F2)") || kb-> isKeyReleased(SDLK_F2)) {
                     if (!gridVisible) {
                         showGrid();
                         gridVisible = true;
                     }
                     game->gameType = GameType::LevelEditor;
                 }
-                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(Key::ByName(SDLK_F3))) game->gameType = GameType::SingleStep;
-                if (ImGui::Button("Replay (F4)") || kb-> isKeyReleased(Key::ByName(SDLK_F4))) {
+                if (ImGui::Button("Single-Step (F3)") || kb-> isKeyReleased(SDLK_F3)) game->gameType = GameType::SingleStep;
+                if (ImGui::Button("Replay (F4)") || kb-> isKeyReleased(SDLK_F4)) {
                     datas->currentBackFrame = datas->backInTimeFrameOffsetSize.size() - 1;
                     game->gameType = GameType::Replay;
                 }
@@ -865,7 +857,7 @@ void LevelEditor::tick(float dt) {
             }
         }
 
-        if (kb->isKeyReleased(Key::ByName(SDLK_c))) {
+        if (kb->isKeyReleased(SDLK_c)) {
             TRANSFORM(cameras[0])->position = theTouchInputManager.getOverLastPosition();
         }
 
@@ -909,12 +901,12 @@ void LevelEditor::tick(float dt) {
         ImGui::CollapsingHeader("Record");
         static bool recordWholeWindow = true;
         if (Recorder::Instance().isRecording()) {
-            if (ImGui::Button("Stop (F8)") || kb->isKeyReleased(Key::ByName(SDLK_F8))) {
+            if (ImGui::Button("Stop (F8)") || kb->isKeyReleased(SDLK_F8)) {
                 Recorder::Instance().stop();
                 Recorder::Instance().deinit();
             }
         } else {
-            if (ImGui::Button("Start (F8)") || kb->isKeyReleased(Key::ByName(SDLK_F8))) {
+            if (ImGui::Button("Start (F8)") || kb->isKeyReleased(SDLK_F8)) {
                 if (recordWholeWindow) {
                     Recorder::Instance().init();
                 } else {
@@ -941,19 +933,19 @@ void LevelEditor::tick(float dt) {
             }
 
             int inc = 1;
-            if (kb->isKeyPressed(Key::ByName(SDLK_LSHIFT))) {
+            if (kb->isKeyPressed(SDLK_LSHIFT)) {
                 inc = 10;
             }
 
-            if (kb->isKeyPressed(Key::ByName(SDLK_LCTRL))) {
-                if (kb->isKeyReleased(Key::ByName(SDLK_LEFT)))
+            if (kb->isKeyPressed(SDLK_LCTRL)) {
+                if (kb->isKeyReleased(SDLK_LEFT))
                     datas->currentBackFrame-=inc;
-                if (kb->isKeyReleased(Key::ByName(SDLK_RIGHT)))
+                if (kb->isKeyReleased(SDLK_RIGHT))
                     datas->currentBackFrame+=inc;
             } else  {
-                if (kb->isKeyPressed(Key::ByName(SDLK_LEFT)))
+                if (kb->isKeyPressed(SDLK_LEFT))
                     datas->currentBackFrame-=inc;
-                if (kb->isKeyPressed(Key::ByName(SDLK_RIGHT)))
+                if (kb->isKeyPressed(SDLK_RIGHT))
                     datas->currentBackFrame+=inc;
             }
 

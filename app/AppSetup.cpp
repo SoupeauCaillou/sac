@@ -90,7 +90,7 @@
 #include "util/LevelEditor.h"
 
 Game* game = 0;
-
+SDL_Window* sdlWindow = 0;
 #if SAC_BENCHMARK_MODE
 static int frameCount = 0;
 static uint64_t totalFrameCount = 0;
@@ -136,7 +136,6 @@ static void updateAndRender() {
 }
 #else
 static std::mutex m;
-static bool updateThreadReady;
 static std::condition_variable cond;
 
 static void updateLoop(const std::string& ) {
@@ -147,16 +146,9 @@ static void updateLoop(const std::string& ) {
 #endif
         game->step();
 
-        bool focus = (SDL_GetAppState() & SDL_APPINPUTFOCUS);
-        //if we lost the focus, mute the music (release mode only)
-        if (! focus) {
-            #if ! SAC_DEBUG
-                theMusicSystem.toggleMute(true);
-            #endif
-        //otherwise, restore sound as it was before focus was lost
-        } else {
-            theMusicSystem.toggleMute(theSoundSystem.mute);
-        }
+        bool focus = (SDL_GetMouseFocus() == sdlWindow);
+        //enable music only if we have the focus
+        theMusicSystem.toggleMute(!focus);
     }
     theRenderingSystem.disableRendering();
 }
@@ -189,15 +181,29 @@ int initGame(const std::string& gameN, const std::string& gameVersion) {
         return 1;
     }
 
+    if ((sdlWindow = SDL_CreateWindow((gameName + gameVersion).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE )) == 0) {
+        LOGE("SDL create window failed: " << SDL_GetError());
+        return 1;
+    }
+
 #if !SAC_EMSCRIPTEN
     // hard coded icon path
     {
         std::stringstream iconPath;
-        iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/ic_launcher.png";
         AssetAPILinuxImpl api;
-        FileBuffer fb = api.loadFile(iconPath.str());
-        if (fb.size) {
-            ImageDesc image = ImageLoader::loadPng(iconPath.str(), fb);
+
+        // first check if android logo available (the default one)
+        iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/icon.png";
+        // if the game is not android compliant, then look for an icon.png asset
+        if (! api.doesExistFileOrDirectory(iconPath.str())) {
+            iconPath.str("");
+            iconPath << SAC_ASSETS_DIR << "icon.png";
+        }
+        LOGE(iconPath.str());
+        if (api.doesExistFileOrDirectory(iconPath.str())) {
+            FileBuffer fb;
+            ImageDesc image = ImageLoader::loadPng(iconPath.str(),fb);
             SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(image.datas,
                 image.width, image.height,
                 image.channels * 8,
@@ -205,18 +211,13 @@ int initGame(const std::string& gameN, const std::string& gameVersion) {
                 0xFF << 00, 0xFF << 8, 0xFF << 16, 0xFF << 24
                 );
 
-            SDL_WM_SetIcon(surf, NULL);
+            SDL_SetWindowIcon(sdlWindow, surf);
             SDL_FreeSurface(surf);
             delete[] fb.data;
             delete[] image.datas;
         }
     }
 #endif
-
-    //set title - display current revision too (debug purpose)
-    SDL_WM_SetCaption((gameName + gameVersion).c_str(), 0);
-
-    SDL_EnableUNICODE(1);
 
     return 0;
 }
@@ -283,12 +284,16 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         resolution.x = 375;
     }
 
+    glm::vec2 fullResolution(resolution);
 #if SAC_INGAME_EDITORS
-    if (SDL_SetVideoMode(resolution.x + LevelEditor::DebugAreaWidth, resolution.y + LevelEditor::DebugAreaHeight, 32, SDL_OPENGL | SDL_RESIZABLE) == 0)
-#else
-    if (SDL_SetVideoMode(resolution.x, resolution.y, 32, SDL_OPENGL | SDL_RESIZABLE ) == 0)
+    fullResolution.x += LevelEditor::DebugAreaWidth;
+    fullResolution.y += LevelEditor::DebugAreaHeight;
 #endif
+    SDL_SetWindowSize(sdlWindow, fullResolution.x, fullResolution.y);
+    if  (SDL_GL_CreateContext(sdlWindow) == 0) {
+        LOGE("SDL create context failed: " << SDL_GetError());
         return 1;
+    }
 
 #if ! SAC_EMSCRIPTEN
     if (glewInit() != GLEW_OK)
@@ -337,7 +342,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #if !SAC_INGAME_EDITORS
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
 #endif
-        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPIGLFWImpl();
+        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Localize))
         ctx->localizeAPI = new LocalizeAPILinuxImpl();
     if (game->wantsAPI(ContextAPI::Music))
@@ -407,9 +412,6 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     LOGV(1, "Run game loop");
 
-    SDL_EnableUNICODE(1);
-    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
 #if SAC_EMSCRIPTEN
     emscripten_set_main_loop(updateAndRender, 0, 0);
 #else
@@ -436,7 +438,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
         game->eventsHandler();
         if (!headless) {
             game->render();
-            SDL_GL_SwapBuffers();
+            SDL_GL_SwapWindow(sdlWindow);
             float t = TimeUtil::GetTime();
 #if ! SAC_WINDOWS
             Recorder::Instance().record(t - prevT);

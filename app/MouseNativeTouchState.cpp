@@ -57,9 +57,11 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
 
 
     switch(event->type) {
-        case SDL_ACTIVEEVENT:
-            // app lose focus == mouse up
-            isDownEvent = false;
+        case SDL_WINDOWEVENT:
+            if (event->window.event == SDL_WINDOWEVENT_LEAVE) {
+                // app lose focus == mouse up
+                isDownEvent = false;
+            }
             break;
         case SDL_MOUSEMOTION: {
             lastPosition.x = event->motion.x;
@@ -97,12 +99,12 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
             isButtonDown[1] = isDownEvent;
             break;
 #if !ANDROID
-        case SDL_BUTTON_WHEELUP:
-            wheel = 1;
-            break;
-        case SDL_BUTTON_WHEELDOWN:
-            wheel = -1;
-            break;
+        // case SDL_BUTTON_WHEELUP:
+        //     wheel = 1;
+        //     break;
+        // case SDL_BUTTON_WHEELDOWN:
+        //     wheel = -1;
+        //     break;
 #endif
     }
 

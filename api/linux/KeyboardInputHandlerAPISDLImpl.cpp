@@ -30,16 +30,14 @@
 #include "base/EntityManager.h"
 #include "base/Log.h"
 
-#include <SDL.h>
-
-void KeyboardInputHandlerAPIGLFWImpl::update() {
+void KeyboardInputHandlerAPISDLImpl::update() {
     std::unique_lock<std::mutex> lock(mutex);
 
-    //each dt, if the key is pressed, call the function
+    // each dt, if the key is pressed, call the function
     for (auto it = keyState.begin(); it != keyState.end(); ) {
-        std::map<Key, std::function<void()> >* source = 0;
+        std::map<SDL_Keycode, std::function<void()> >* source = 0;
 
-        const Key key = it->first;
+        const SDL_Keycode key = it->first;
         switch (it->second) {
             case KeyState::Pressed:
                 source = &keyPressed2callback;
@@ -63,7 +61,7 @@ void KeyboardInputHandlerAPIGLFWImpl::update() {
                 break;
             }
             default: {
-                LOGE("Invalid state: " << it->second << " for key: " << it->first.keysym);
+                LOGE("Invalid state: " << it->second << " for key: " << SDL_GetKeyName(it->first));
                 ++it;
             }
         }
@@ -78,50 +76,52 @@ void KeyboardInputHandlerAPIGLFWImpl::update() {
     }
 }
 
-void KeyboardInputHandlerAPIGLFWImpl::registerToKeyPress(Key value, std::function<void()> f) {
+void KeyboardInputHandlerAPISDLImpl::registerToKeyPress(SDL_Keycode value, std::function<void()> f) {
     std::unique_lock<std::mutex> lock(mutex);
     keyPressed2callback[value] = f;
 }
 
-void KeyboardInputHandlerAPIGLFWImpl::registerToKeyRelease(Key value, std::function<void()> f) {
+void KeyboardInputHandlerAPISDLImpl::registerToKeyRelease(SDL_Keycode value, std::function<void()> f) {
     std::unique_lock<std::mutex> lock(mutex);
     keyReleased2callback[value] = f;
 }
 
 
-bool KeyboardInputHandlerAPIGLFWImpl::queryKeyState(Key key, KeyState::Enum state) {
+bool KeyboardInputHandlerAPISDLImpl::queryKeyState(SDL_Keycode key, KeyState::Enum state) {
     std::unique_lock<std::mutex> lock(mutex);
     auto it = keyState.find(key);
     bool result = (it != keyState.end() && it->second == state);
     return result;
 }
 
-int KeyboardInputHandlerAPIGLFWImpl::eventSDL(const void* inEvent) {
+int KeyboardInputHandlerAPISDLImpl::eventSDL(const void* inEvent) {
     std::unique_lock<std::mutex> lock(mutex);
     auto event = (SDL_Event*)inEvent;
     if (!event || (event->type != SDL_KEYUP && event->type != SDL_KEYDOWN))
         return 0;
 
-    int scancode = event->key.keysym.scancode;
-    int sym = event->key.keysym.sym;
-    Key byPosition = Key::ByPosition(scancode);
-    Key byName = Key::ByName(sym);
+    SDL_Keycode key = event->key.keysym.sym;
+    SDL_Scancode scancode = event->key.keysym.scancode;
+    #if SAC_DEBUG
+    assert(SDL_GetScancodeFromKey(key) == scancode);
+    assert(SDL_GetKeyFromScancode(scancode) == key);
+    #endif
 
+    std::map<SDL_Keycode, std::function<void ()> > *map;
+
+    KeyState::Enum newState = KeyState::Idle;
     if (event->type == SDL_KEYUP) {
-        LOGV(1, "key released (" << __(scancode) << ", " << __(sym) << ")");
-        keyState[byPosition] = KeyState::Releasing;
-        keyState[byName] = KeyState::Releasing;
-        const auto& p1 = keyReleased2callback.find(byPosition);
-        const auto& p2 = keyReleased2callback.find(byName);
-        return (p1 != keyReleased2callback.end() || p2 != keyReleased2callback.end());
+        map = &keyReleased2callback;
+        newState = KeyState::Releasing;
     } else if (event->type == SDL_KEYDOWN) {
-        LOG_USAGE_ONLY(auto unicode = event->key.keysym.unicode);
-        LOGV(1, "key pressed (" << __(scancode) << ", " << __(sym) << ", " << __(unicode) << ")");
-        keyState[byPosition] = KeyState::Pressed;
-        keyState[byName] = KeyState::Pressed;
-        const auto& p1 = keyPressed2callback.find(byPosition);
-        const auto& p2 = keyPressed2callback.find(byName);
-        return (p1 != keyPressed2callback.end() || p2 != keyPressed2callback.end());
+        map = &keyPressed2callback;
+        newState = KeyState::Pressed;
     }
-    return 0;
+
+    auto callbackBinding = map->find(key);
+    LOGV(1,"key " << ((event->type == SDL_KEYUP) ? "released: " : "pressed: ") <<
+        __(scancode) << ", " << __(key) << "): " << ((callbackBinding != map->end()) ? "one" : "no") <<
+        " binding found.");
+    keyState[key] = newState;
+    return (callbackBinding != map->end());
 }

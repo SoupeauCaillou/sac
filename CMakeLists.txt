@@ -102,7 +102,7 @@ set (SAC_REVISION_TAG "notag")
 set (SAC_REVISION_ID "noID")
 if (EXISTS ${GAME_SOURCE_DIR}/.git)
     execute_process(
-            COMMAND git describe --abbrev=0 COMMAND tr -d '\n'
+            COMMAND git describe --always --abbrev=0 COMMAND tr -d '\n'
             OUTPUT_VARIABLE SAC_REVISION_TAG
             WORKING_DIRECTORY ${GAME_SOURCE_DIR}
         )
@@ -353,7 +353,7 @@ endif()
 
 if (DESKTOP_BUILD)
     include_directories(${SAC_SOURCE_DIR}/libs/rg_etc1_v104/)
-    check_and_link_libs("sac" GLEW OpenAL SDL Sqlite3 Tinyxml2 ZLIB)
+    check_and_link_libs("sac" SDL2 GLEW OpenAL Sqlite3 Tinyxml2 ZLIB)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)

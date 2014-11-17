@@ -24,7 +24,7 @@
 
 #include <glm/glm.hpp>
 #if SAC_DESKTOP
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <queue>
 #endif
 

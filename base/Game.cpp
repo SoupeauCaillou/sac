@@ -71,7 +71,8 @@
 #include "util/LevelEditor.h"
 
 #if ! SAC_ANDROID
-#include <SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL.h>
 #endif
 
 #if SAC_INGAME_EDITORS
@@ -355,6 +356,15 @@ void Game::eventsHandler() {
         levelEditor->unlock();
 #endif
 
+        if (event.type == SDL_WINDOWEVENT) {
+            //enable music only if we have the focus
+            if (event.window.event == SDL_WINDOWEVENT_ENTER) {
+                theMusicSystem.toggleMute(false);
+            } else if (event.window.event == SDL_WINDOWEVENT_LEAVE) {
+                theMusicSystem.toggleMute(true);
+            }
+        }
+
         //or try stringInputAPI
         if (!handled && wantsAPI(ContextAPI::StringInput)) {
             handled = gameThreadContext->stringInputAPI->eventSDL(&event);
@@ -408,14 +418,17 @@ void Game::eventsHandler() {
                     }
                     break;
                 }
-                case SDL_VIDEORESIZE: {
-                    int w = event.resize.w, h = event.resize.h;
-                    #if SAC_INGAME_EDITORS
-                    w -= LevelEditor::DebugAreaWidth;
-                    h -= LevelEditor::DebugAreaHeight;
-                    #endif
-                    sac::setResolution(w, h);
-                    changeResolution(w, h);
+                case SDL_WINDOWEVENT: {
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        int w = event.window.data1;
+                        int h = event.window.data2;
+                        #if SAC_INGAME_EDITORS
+                        w -= LevelEditor::DebugAreaWidth;
+                        h -= LevelEditor::DebugAreaHeight;
+                        #endif
+                        sac::setResolution(w, h);
+                        changeResolution(w, h);
+                    }
                     break;
                 }
             }

@@ -247,12 +247,10 @@ void AssetAPILinuxImpl::createDirectory(const std::string& fullpath, int permiss
 }
 
 bool AssetAPILinuxImpl::doesExistFileOrDirectory(const std::string& fullpath) {
-    DIR* dp;
-
-    dp = opendir(fullpath.c_str());
+    DIR* dp = opendir(fullpath.c_str());
     if (dp != 0) closedir(dp);
 
-    return dp != 0;
+    return (dp != 0) || (access(fullpath.c_str(), F_OK) != -1);
 }
 
 void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {

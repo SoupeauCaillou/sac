@@ -31,16 +31,19 @@ void StringInputAPISDLImpl::askUserInput(const std::string& initialText, const i
     currentText = initialText;
     textIsReady = false;
     maxSize = imaxSize;
+    SDL_StartTextInput();
 }
 
 void StringInputAPISDLImpl::cancelUserInput() {
     textIsReady = true;
     currentText.clear();
+    SDL_StopTextInput();
 }
 
 bool StringInputAPISDLImpl::done(std::string & final) {
     final = currentText;
     if (textIsReady && currentText.size() > 0) {
+        SDL_StopTextInput();
         return true;
     }
     return false;
@@ -52,41 +55,10 @@ int StringInputAPISDLImpl::eventSDL(const void* inEvent) {
     }
 
     auto event = (SDL_Event*)inEvent;
-    int key = event->key.keysym.sym;
-    auto unicode = event->key.keysym.unicode;
 
-    if (event->type == SDL_KEYDOWN) {
-        LOGV(2, "key pressed: " << key << " unicode value: " << unicode);
-
-        //remove last char
-        if (key == SDLK_BACKSPACE) {
-            if (currentText.size() > 0) {
-                currentText.erase(currentText.end() - 1);
-            }
-        //finish the input
-        } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-            if (currentText.size() > 0) {
-                textIsReady = true;
-            }
-        } else {
-            if ((int)currentText.size() < maxSize) {
-                // thanks to http://www.gamedev.net/topic/543442-uint16-unicode-to-utf-8-string-using-libiconv-for-sdl/
-                char buf[4] = {0};
-                if (unicode < 0x80) {
-                    buf[0] = unicode;
-                } else if (unicode < 0x800) {
-                    buf[0] = (0xC0 | unicode>>6);
-                    buf[1] = (0x80 | (unicode & 0x3F));
-                } else {
-                    buf[0] = (0xE0 | unicode>>12);
-                    buf[1] = (0x80 | (unicode>>6 & 0x3F));
-                    buf[2] = (0x80 | (unicode & 0x3F));
-                }
-
-                currentText += buf;
-            }
-        }
-
+    LOGT("Handle [Enter] press!??");
+    if (event->type == SDL_TEXTEDITING) {
+        currentText = event->edit.text;
         LOGI("current text: " << currentText);
         return 1;
     }

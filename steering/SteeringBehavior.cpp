@@ -31,7 +31,7 @@ namespace Steering
         return glm::rotate(ContextDirection[index], rotation);
     }
 
-    const float angle(float rotation, int index) {
+    float angle(float rotation, int index) {
         LOGF_IF(index < 0 || index >= 8, "Invalid index value: " << index);
         return rotation + ContextAngle[index];
     }

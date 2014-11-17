@@ -27,35 +27,36 @@
 #include <string>
 #include <map>
 #include <mutex>
+#include <SDL.h>
 
 namespace KeyState {
-	enum Enum {
+    enum Enum {
         Pressed,
         Releasing,
         Released,
         Idle,
-	};
+    };
 }
 
-class KeyboardInputHandlerAPIGLFWImpl : public KeyboardInputHandlerAPI {
+class KeyboardInputHandlerAPISDLImpl : public KeyboardInputHandlerAPI {
     public:
-        void registerToKeyPress(Key value, std::function<void()> f);
+        void registerToKeyPress(SDL_Keycode key, std::function<void()> f);
 
-        void registerToKeyRelease(Key value, std::function<void()> f);
+        void registerToKeyRelease(SDL_Keycode key, std::function<void()> f);
 
         void update();
 
         int eventSDL(const void* event);
 
-        bool isKeyPressed(Key key) { return queryKeyState(key, KeyState::Pressed); }
+        bool isKeyPressed(SDL_Keycode key) { return queryKeyState(key, KeyState::Pressed); }
 
-        bool isKeyReleased(Key key) { return queryKeyState(key, KeyState::Released); }
+        bool isKeyReleased(SDL_Keycode key) { return queryKeyState(key, KeyState::Released); }
 
-        bool queryKeyState(Key key, KeyState::Enum state);
+        bool queryKeyState(SDL_Keycode key, KeyState::Enum state);
 
     private:
         std::mutex mutex;
-        std::map<Key, KeyState::Enum> keyState;
-        std::map<Key, std::function<void()> > keyPressed2callback;
-        std::map<Key, std::function<void()> > keyReleased2callback;
+        std::map<SDL_Keycode, KeyState::Enum> keyState;
+        std::map<SDL_Keycode, std::function<void()> > keyPressed2callback;
+        std::map<SDL_Keycode, std::function<void()> > keyReleased2callback;
 };
