@@ -183,9 +183,6 @@ void TextSystem::DoUpdate(float dt) {
 
     FOR_EACH_ENTITY_COMPONENT(Text, entity, trc)
         const unsigned firstEntity = letterCount;
-        // compute cache entry
-        LOGV(3, "Text: '" << trc->text << "'");
-
         // early quit if hidden
         if (!trc->show) {
             continue;
