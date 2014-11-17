@@ -103,7 +103,6 @@ int KeyboardInputHandlerAPISDLImpl::eventSDL(const void* inEvent) {
     SDL_Keycode key = event->key.keysym.sym;
     SDL_Scancode scancode = event->key.keysym.scancode;
     #if SAC_DEBUG
-    LOGT("Remove me!"); //only for check test purpose
     assert(SDL_GetScancodeFromKey(key) == scancode);
     assert(SDL_GetKeyFromScancode(scancode) == key);
     #endif
@@ -113,22 +112,17 @@ int KeyboardInputHandlerAPISDLImpl::eventSDL(const void* inEvent) {
     KeyState::Enum newState = KeyState::Idle;
     if (event->type == SDL_KEYUP) {
         map = &keyReleased2callback;
-        newState = KeyState::Released;
+        newState = KeyState::Releasing;
     } else if (event->type == SDL_KEYDOWN) {
         map = &keyPressed2callback;
         newState = KeyState::Pressed;
     }
 
     auto callbackBinding = map->find(key);
+    LOGE(SDLK_g << " " << SDL_SCANCODE_G << " " << SDL_GetKeyFromScancode(SDL_SCANCODE_G));
     LOGI("key " << ((event->type == SDL_KEYUP) ? "released: " : "pressed: ") <<
         __(scancode) << ", " << __(key) << "): " << ((callbackBinding != map->end()) ? "one" : "no") <<
         " binding found.");
     keyState[key] = newState;
-    /*find the key associated binding, if any*/
-    // if (callbackBinding != map->end()) {
-        /*and call it*/
-        // keyReleased2callback[key];
-        // return 1;
-    // }
-    return 1;
+    return (callbackBinding != map->end());
 }
