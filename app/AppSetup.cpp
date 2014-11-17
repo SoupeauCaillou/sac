@@ -191,9 +191,17 @@ int initGame(const std::string& gameN, const std::string& gameVersion) {
     // hard coded icon path
     {
         std::stringstream iconPath;
-        iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/ic_launcher.png";
         AssetAPILinuxImpl api;
-        FileBuffer fb = api.loadFile(iconPath.str());
+        FileBuffer fb;
+
+        // first check if android logo available (the default one)
+        iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/icon.png";
+        fb = api.loadFile(iconPath.str());
+        // if the game is not android compliant, then look for an icon.png asset
+        if (!fb.size) {
+            fb = api.loadAsset("icon.png");
+        }
+
         if (fb.size) {
             ImageDesc image = ImageLoader::loadPng(iconPath.str(), fb);
             SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(image.datas,
