@@ -192,18 +192,18 @@ int initGame(const std::string& gameN, const std::string& gameVersion) {
     {
         std::stringstream iconPath;
         AssetAPILinuxImpl api;
-        FileBuffer fb;
 
         // first check if android logo available (the default one)
         iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/icon.png";
-        fb = api.loadFile(iconPath.str());
         // if the game is not android compliant, then look for an icon.png asset
-        if (!fb.size) {
-            fb = api.loadAsset("icon.png");
+        if (! api.doesExistFileOrDirectory(iconPath.str())) {
+            iconPath.str("");
+            iconPath << SAC_ASSETS_DIR << "icon.png";
         }
-
-        if (fb.size) {
-            ImageDesc image = ImageLoader::loadPng(iconPath.str(), fb);
+        LOGE(iconPath.str());
+        if (api.doesExistFileOrDirectory(iconPath.str())) {
+            FileBuffer fb;
+            ImageDesc image = ImageLoader::loadPng(iconPath.str(),fb);
             SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(image.datas,
                 image.width, image.height,
                 image.channels * 8,

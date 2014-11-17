@@ -119,8 +119,7 @@ int KeyboardInputHandlerAPISDLImpl::eventSDL(const void* inEvent) {
     }
 
     auto callbackBinding = map->find(key);
-    LOGE(SDLK_g << " " << SDL_SCANCODE_G << " " << SDL_GetKeyFromScancode(SDL_SCANCODE_G));
-    LOGI("key " << ((event->type == SDL_KEYUP) ? "released: " : "pressed: ") <<
+    LOGV(1,"key " << ((event->type == SDL_KEYUP) ? "released: " : "pressed: ") <<
         __(scancode) << ", " << __(key) << "): " << ((callbackBinding != map->end()) ? "one" : "no") <<
         " binding found.");
     keyState[key] = newState;
