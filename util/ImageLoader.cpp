@@ -40,11 +40,23 @@ struct FileBufferOffset {
 	FileBuffer file;
 	int offset;
 };
-ImageDesc ImageLoader::loadPng(const std::string& , const FileBuffer& ) {
-    LOGT("If needed, reimplement using stb_image");
-	ImageDesc result;
-	result.datas = 0;
-	result.type = ImageDesc::RAW;
+ImageDesc ImageLoader::loadPng(const std::string& filepath, const FileBuffer& ) {
+    ImageDesc result;
+    result.datas = 0;
+    result.type = ImageDesc::RAW;
+
+    int w;
+    int h;
+    int comp;
+    unsigned char* image = stbi_load(filepath.c_str(), &w, &h, &comp, STBI_rgb_alpha);
+    if(image) {
+        result.width = w;
+        result.height = h;
+        result.datas = (char*)image;
+        result.channels = comp;
+    } else {
+        LOGE("Failed to load PNG: " << __(filepath));
+    }
     return result;
 }
 
