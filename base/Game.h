@@ -107,7 +107,7 @@ class Game {
 #endif
     public:
         void buildOrderedSystemsToUpdateList();
-    protected:
+    public:
         std::vector<ComponentSystem*> orderedSystemsToUpdate;
 
         #if SAC_ENABLE_LOG
