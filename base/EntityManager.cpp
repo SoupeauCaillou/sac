@@ -80,6 +80,7 @@ Entity EntityManager::CreateEntity(const hash_t id, EntityType::Enum type, Entit
         e = nextEntity++;
     } else {
         e = recyclableEntities.front();
+        LOGV(2, "Reuse entity " << e);
         recyclableEntities.pop_front();
 #if SAC_DEBUG
         entityDeletionTime.erase(e);
@@ -184,6 +185,7 @@ void EntityManager::DeleteEntity(Entity e) {
     {
         entityHash[e] = 0;
     }
+    LOGV(2, "Entity " << e << " is ready for recycling");
     recyclableEntities.emplace_front(e);
     auto it = std::find(permanentEntities.begin(), permanentEntities.end(), e);
     if (it != permanentEntities.end())
