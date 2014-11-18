@@ -183,6 +183,7 @@ void TextSystem::DoUpdate(float dt) {
 
     FOR_EACH_ENTITY_COMPONENT(Text, entity, trc)
         const unsigned firstEntity = letterCount;
+
         // early quit if hidden
         if (!trc->show) {
             continue;
@@ -191,6 +192,21 @@ void TextSystem::DoUpdate(float dt) {
 #if SAC_DEBUG
         const TextureRef invalidCharTexture = InvalidTextureRef;
 #endif
+        // text blinking
+        if (trc->blink.onDuration > 0) {
+            if (trc->blink.accum >= 0) {
+                trc->blink.accum = glm::min(trc->blink.accum + dt, trc->blink.onDuration);
+                if (trc->blink.accum == trc->blink.onDuration) {
+                    trc->blink.accum = -trc->blink.offDuration;
+                }
+            } else {
+                trc->blink.accum += dt;
+                trc->blink.accum = glm::min(trc->blink.accum + dt, 0.0f);
+                if (trc->blink.accum >= 0)
+                    trc->blink.accum = 0;
+                continue;
+            }
+        }
 
         // append a caret if needed
         bool caretInserted = false;
@@ -203,22 +219,6 @@ void TextSystem::DoUpdate(float dt) {
 
             caretInserted = true;
             trc->text.push_back('_');
-        }
-        // text blinking
-        if (trc->blink.onDuration > 0) {
-            if (trc->blink.accum >= 0) {
-                trc->blink.accum = glm::min(trc->blink.accum + dt, trc->blink.onDuration);
-                trc->show = true;
-                if (trc->blink.accum == trc->blink.onDuration) {
-                    trc->blink.accum = -trc->blink.offDuration;
-                }
-            } else {
-                trc->blink.accum += dt;
-                trc->blink.accum = glm::min(trc->blink.accum + dt, 0.0f);
-                trc->show = false;
-                if (trc->blink.accum >= 0)
-                    trc->blink.accum = 0;
-            }
         }
 
         // Lookup font description
