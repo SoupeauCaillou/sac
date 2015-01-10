@@ -26,7 +26,7 @@
 
 #if SAC_EMSCRIPTEN
 #include <emscripten.h>
-#else
+#elif !SAC_DARWIN && !SAC_IOS
 #include <tinyxml2.h>
 
 #if SAC_WINDOWS
@@ -85,7 +85,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
     //first, clean the map
     _idToMessage.clear();
 
-#if SAC_DARWIN
+#if SAC_DARWIN || SAC_IOS
 
 #else
     //first parse the english version
@@ -104,7 +104,7 @@ int LocalizeAPILinuxImpl::init(AssetAPI* assetAPI) {
     return 0;
 }
 
-#if !SAC_DARWIN
+#if !SAC_DARWIN && !SAC_IOS
 void LocalizeAPILinuxImpl::parseXMLfile(AssetAPI* assetAPI, const std::string & folder) {
     // get ALL .xml files in the given folder
     for (auto & file : assetAPI->listContent(std::string(SAC_ASSETS_DIR) + "/../android/res/" + folder, ".xml")) {
