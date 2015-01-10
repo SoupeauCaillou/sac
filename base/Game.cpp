@@ -70,7 +70,7 @@
 #include "util/Random.h"
 #include "util/LevelEditor.h"
 
-#if ! SAC_ANDROID
+#if ! SAC_MOBILE
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL.h>
 #endif
@@ -336,7 +336,7 @@ bool profilerEnabled = false;
 #endif
 
 void Game::eventsHandler() {
-#if ! SAC_ANDROID
+#if ! SAC_MOBILE
     SDL_Event event;
 
     //if (! (SDL_GetAppState() & SDL_APPINPUTFOCUS)) {
