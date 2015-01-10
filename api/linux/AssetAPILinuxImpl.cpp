@@ -45,6 +45,13 @@
 	#include <unistd.h>
 #endif
 
+#if SAC_IOS
+#include <CoreFoundation/CFBundle.h>
+#include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFString.h>
+CFBundleRef mainBundle;
+#endif
+
 //Returns -1 if the path does not exist, 1 if path is a directory, 2 if its a file, 0 otherwise
 static int getPathType(const char* path) {
 	struct stat s_buf;
@@ -64,6 +71,9 @@ static int getPathType(const char* path) {
 
 void AssetAPILinuxImpl::init(const std::string & gName) {
     gameName = gName;
+    #if SAC_IOS
+    mainBundle = CFBundleGetMainBundle();
+    #endif
 }
 
 FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
@@ -116,10 +126,31 @@ FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
 
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
+#if SAC_IOS
+    UInt8 tmp[512];
+    CFStringRef a = CFStringCreateWithCStringNoCopy(NULL, asset.c_str(), kCFStringEncodingUTF8, NULL);
+    CFURLRef url = CFBundleCopyResourceURL(
+        mainBundle,
+        a,
+        NULL,
+        CFSTR("assets"));
+    
+    if (!CFURLGetFileSystemRepresentation(url,
+        true,
+        tmp,
+        512)) {
+        LOGE("Failed to convert CFURLRef of '" << asset << "'");
+        tmp[0] = 0;
+    }
+    std::string full((char*)tmp);
+    
+    CFRelease(a);
+#else
 #ifdef SAC_ASSETS_DIR
 	std::string full = SAC_ASSETS_DIR + asset;
 #else
     std::string full = "assets/" + asset;
+#endif
 #endif
     fb = loadFile(full);
     if (fb.data == 0) {
@@ -177,11 +208,24 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& directo
 
 std::list<std::string> AssetAPILinuxImpl::listAssetContent(const std::string& extension, const std::string& subfolder) {
 #ifdef SAC_ASSETS_DIR
-        std::string directory = SAC_ASSETS_DIR;
+    std::string directory = SAC_ASSETS_DIR;
+#elif SAC_IOS
+    CFURLRef url = CFBundleCopyResourcesDirectoryURL(mainBundle);
+    UInt8 tmp[1024];
+    if (!CFURLGetFileSystemRepresentation(url,
+                                          true,
+                                          tmp,
+                                          sizeof(tmp))) {
+        LOGE("Failed to convert CFURLRef");
+        tmp[0] = 0;
+    }
+    std::string directory((char*) tmp);
+    
+    CFRelease(url);
 #else
-        std::string directory = "assets/";
+    std::string directory = "assets/";
 #endif
-        return listContent(directory, extension, subfolder);
+    return listContent(directory, extension, subfolder);
 }
 
 const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
