@@ -20,7 +20,7 @@ function (get_platform_dependent_sources)
 endfunction()
 
 function (others_specific_executables)
-    check_and_link_libs("sac" GL)
+#    check_and_link_libs("sac" GL)
 endfunction()
 
 function (postbuild_specific_actions)
