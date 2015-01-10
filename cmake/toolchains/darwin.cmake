@@ -12,8 +12,10 @@ SET (SAC_LIB_TYPE STATIC)
 function (get_platform_dependent_sources)
     file(
         GLOB_RECURSE platform_source_files
-        ${GAME_SOURCE_DIR}/sac/app/*
+        ${GAME_SOURCE_DIR}/sac/app/AppSetupSDL.cpp
         ${GAME_SOURCE_DIR}/sac/api/linux/*
+        ${GAME_SOURCE_DIR}/sac/api/default/*
+        ${GAME_SOURCE_DIR}/sac/api/sdl/*
         ${GAME_SOURCE_DIR}/platforms/default/api/*
     )
     set (platform_source_files ${platform_source_files} PARENT_SCOPE)

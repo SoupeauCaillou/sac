@@ -18,8 +18,7 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
+#include "app/AppSetup.h"
 #include "base/Game.h"
 #include "base/GameContext.h"
 #include "base/Common.h"
@@ -45,7 +44,7 @@
 #include <thread>
 #include <mutex>
 
-#if SAC_LINUX || SAC_ANDROID
+#if SAC_LINUX
 #include <locale.h>
 #include <libintl.h>
 #endif
@@ -85,7 +84,7 @@
 #include "util/Recorder.h"
 #include "util/Draw.h"
 
-#include "MouseNativeTouchState.h"
+#include "api/sdl/MouseNativeTouchState.h"
 
 #include "util/LevelEditor.h"
 
@@ -165,15 +164,25 @@ static void* callback_thread(const std::string& gameName){
 }
 #endif
 
+static void addWindowIcon(SDL_Window* window);
+
+
 // hum hum
 extern bool profilerEnabled;
-std::string gameName;
-int initGame(const std::string& gameN, const std::string& gameVersion) {
+
+struct CommandLineOptions {
+    bool restore;
+    int verbose;
+    bool forceEtc1;
+    bool headless;
+    bool profiler;
+};
+static CommandLineOptions parseCommandLineOption(int argc, char** argv);
+
+int setupEngine(Game* _game, const SetupInfo* info) {
 #if SAC_DESKTOP && SAC_LINUX && SAC_ENABLE_LOG
     initLogColors();
 #endif
-
-    gameName = gameN;
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
@@ -181,57 +190,21 @@ int initGame(const std::string& gameN, const std::string& gameVersion) {
         return 1;
     }
 
-    if ((sdlWindow = SDL_CreateWindow((gameName + gameVersion).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    if ((sdlWindow = SDL_CreateWindow(info->name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE )) == 0) {
         LOGE("SDL create window failed: " << SDL_GetError());
         return 1;
     }
 
-#if !SAC_EMSCRIPTEN
-    // hard coded icon path
-    {
-        std::stringstream iconPath;
-        AssetAPILinuxImpl api;
+    addWindowIcon(sdlWindow);
 
-        // first check if android logo available (the default one)
-        iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/icon.png";
-        // if the game is not android compliant, then look for an icon.png asset
-        if (! api.doesExistFileOrDirectory(iconPath.str())) {
-            iconPath.str("");
-            iconPath << SAC_ASSETS_DIR << "icon.png";
-        }
-        LOGE(iconPath.str());
-        if (api.doesExistFileOrDirectory(iconPath.str())) {
-            FileBuffer fb;
-            ImageDesc image = ImageLoader::loadPng(iconPath.str(),fb);
-            SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(image.datas,
-                image.width, image.height,
-                image.channels * 8,
-                image.width * image.channels,
-                0xFF << 00, 0xFF << 8, 0xFF << 16, 0xFF << 24
-                );
-
-            SDL_SetWindowIcon(sdlWindow, surf);
-            SDL_FreeSurface(surf);
-            delete[] fb.data;
-            delete[] image.datas;
-        }
-    }
-#endif
-
-    return 0;
-}
-
-/** Engine entry point */
-int launchGame(Game* gameImpl, int argc, char** argv) {
-    game = gameImpl;
+    game = _game;
 
     /////////////////////////////////////////////////////
     // Handle --restore cmd line switch
     uint8_t* state = 0;
     int size = 0;
 
-    //emscripten doesn't handle restore functionnality
 #if SAC_EMSCRIPTEN
     const char* script = ""\
         "var r = localStorage.getItem(\"sac_root\");" \
@@ -244,39 +217,10 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     emscripten_run_script(script);
 
 #else
-    bool restore = false, verbose = false, forceEtc1 = false, headless = false;
-#if SAC_ENABLE_PROFILING
-    profilerEnabled = false;
-#endif
-    for (int i=1; i<argc; i++) {
-        restore |= !strcmp(argv[i], "-restore");
-        verbose |= !strcmp(argv[i], "-v");
-        verbose |= !strcmp(argv[i], "--verbose");
-        headless |= !strcmp(argv[i], "--headless");
-        forceEtc1 |= !strcmp(argv[i], "--force-etc1");
-#if SAC_INGAME_EDITORS
-        if (!strcmp(argv[i], "--debug-area-width") ||
-            !strcmp(argv[i], "-d-a-w")) {
-            LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
-            LevelEditor::DebugAreaWidth = std::atoi(argv[i+1]);
-            i++;
-        } else
-        if (!strcmp(argv[i], "--debug-area-height") ||
-            !strcmp(argv[i], "-d-a-h")) {
-            LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
-            LevelEditor::DebugAreaHeight = std::atoi(argv[i+1]);
-            i++;
-        }
-
-#endif
-#if SAC_ENABLE_PROFILING
-        profilerEnabled |= !strcmp("-profile", argv[i]);
-#endif
-    }
+    auto options =
+        parseCommandLineOption(info->arg.c, info->arg.v);
 
 
-    // Double Buffering
-    // Warning! This method DOES call srand (random generator)
     glm::vec2 resolution(0, 600);
     if (game->isLandscape()) {
         resolution.x = 800;
@@ -289,21 +233,21 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     fullResolution.x += LevelEditor::DebugAreaWidth;
     fullResolution.y += LevelEditor::DebugAreaHeight;
 #endif
+
     SDL_SetWindowSize(sdlWindow, fullResolution.x, fullResolution.y);
+
     if  (SDL_GL_CreateContext(sdlWindow) == 0) {
         LOGE("SDL create context failed: " << SDL_GetError());
         return 1;
     }
 
-#if ! SAC_EMSCRIPTEN
     if (glewInit() != GLEW_OK)
         return 1;
-#endif
 
-    if (restore) {
-        // TODO: portability
+    if (options.restore) {
+        LOGW("FIXME: probably broken");
         std::stringstream restoreFile;
-        restoreFile << gameName << ".restore.bin";
+        restoreFile << info->name << ".restore.bin";
         FILE* file = fopen(restoreFile.str().c_str(), "r+b");
         if (file) {
             fseek(file, 0, SEEK_END);
@@ -317,10 +261,11 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     }
 
 #if SAC_ENABLE_LOG
-    if (verbose) {
+    if (options.verbose) {
         logLevel = LogVerbosity::VERBOSE1;
     }
 #endif
+
 #endif
 
     /////////////////////////////////////////////////////
@@ -375,7 +320,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     theRenderingSystem.assetAPI = ctx->assetAPI;
 
     if (game->wantsAPI(ContextAPI::Asset) || true) {
-        static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(gameName);
+        static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(info->name);
     }
 
     if (game->wantsAPI(ContextAPI::Music)) {
@@ -400,14 +345,13 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     sac::setResolution(resolution.x, resolution.y);
     game->sacInit();
 
-#if SAC_DESKTOP
-    if (forceEtc1) {
+    if (options.forceEtc1) {
         OpenGLTextureCreator::forceEtc1Usage();
     }
-#endif
+
     game->init(state, size);
 
-    if (!headless)
+    if (!options.headless)
         theRenderingSystem.enableRendering();
 
     LOGV(1, "Run game loop");
@@ -417,7 +361,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 #else
 
 #if SAC_ENABLE_PROFILING
-    if (profilerEnabled)
+    if (options.profiler)
         startProfiler();
 #endif
 
@@ -428,7 +372,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
     setlocale( LC_NUMERIC, "C" );
 
     std::unique_lock<std::mutex> lock(m);
-    std::thread th1(callback_thread, gameName);
+    std::thread th1(callback_thread, info->name);
     cond.wait(lock);
     lock.unlock();
 
@@ -436,7 +380,7 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
     do {
         game->eventsHandler();
-        if (!headless) {
+        if (!options.headless) {
             game->render();
             SDL_GL_SwapWindow(sdlWindow);
             float t = TimeUtil::GetTime();
@@ -468,5 +412,65 @@ int launchGame(Game* gameImpl, int argc, char** argv) {
 
 
     return 0;
+}
+
+
+static void addWindowIcon(SDL_Window* window) {
+#if ! SAC_EMSCRIPTEN
+    std::stringstream iconPath;
+    AssetAPILinuxImpl api;
+
+    // first check if android logo available (the default one)
+    iconPath << SAC_ASSETS_DIR << "../android/res/drawable-hdpi/icon.png";
+    // if the game is not android compliant, then look for an icon.png asset
+    if (! api.doesExistFileOrDirectory(iconPath.str())) {
+        iconPath.str("");
+        iconPath << SAC_ASSETS_DIR << "icon.png";
+    }
+    LOGE(iconPath.str());
+    if (api.doesExistFileOrDirectory(iconPath.str())) {
+        FileBuffer fb;
+        ImageDesc image = ImageLoader::loadPng(iconPath.str(),fb);
+        SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(image.datas,
+            image.width, image.height,
+            image.channels * 8,
+            image.width * image.channels,
+            0xFF << 00, 0xFF << 8, 0xFF << 16, 0xFF << 24
+            );
+
+        SDL_SetWindowIcon(window, surf);
+        SDL_FreeSurface(surf);
+        delete[] fb.data;
+        delete[] image.datas;
+    }
+#endif
+}
+
+static CommandLineOptions parseCommandLineOption(int argc, char** argv) {
+    CommandLineOptions options;
+
+    for (int i=1; i<argc; i++) {
+        options.restore |= !strcmp(argv[i], "-restore");
+        options.verbose |= !strcmp(argv[i], "-v");
+        options.verbose |= !strcmp(argv[i], "--verbose");
+        options.headless |= !strcmp(argv[i], "--headless");
+        options.forceEtc1 |= !strcmp(argv[i], "--force-etc1");
+        options.profiler |= !strcmp("-profile", argv[i]);
+#if SAC_INGAME_EDITORS
+        if (!strcmp(argv[i], "--debug-area-width") ||
+            !strcmp(argv[i], "-d-a-w")) {
+            LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
+            LevelEditor::DebugAreaWidth = std::atoi(argv[i+1]);
+            i++;
+        } else
+        if (!strcmp(argv[i], "--debug-area-height") ||
+            !strcmp(argv[i], "-d-a-h")) {
+            LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
+            LevelEditor::DebugAreaHeight = std::atoi(argv[i+1]);
+            i++;
+        }
+#endif
+    }
+    return options;
 }
 

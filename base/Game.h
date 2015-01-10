@@ -30,7 +30,9 @@
 
 class AssetApi;
 class ComponentSystem;
+#if SAC_DESKTOP
 class MouseNativeTouchState;
+#endif
 
 #if SAC_INGAME_EDITORS
 
@@ -82,8 +84,10 @@ class Game {
         GameContext* gameThreadContext, *renderThreadContext;
         Entity camera;
 
+        #if SAC_DESKTOP
         //tough... only needed for mouse events handling
         MouseNativeTouchState * mouseNativeTouchState;
+        #endif
 
         float targetDT;
 

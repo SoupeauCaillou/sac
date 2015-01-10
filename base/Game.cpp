@@ -22,7 +22,9 @@
 
 #include "Game.h"
 
-#include "app/MouseNativeTouchState.h"
+#if SAC_DESKTOP
+#include "api/sdl/MouseNativeTouchState.h"
+#endif
 
 #include "api/AssetAPI.h"
 #include "api/KeyboardInputHandlerAPI.h"
@@ -92,7 +94,9 @@ Game::Game() {
 
     isFinished = false;
 
+#if SAC_DESKTOP
     mouseNativeTouchState = 0;
+#endif
 
     setlocale( LC_NUMERIC, "C" );
 
