@@ -20,8 +20,8 @@
 
 
 
-#if SAC_LINUX && SAC_DESKTOP
 #include "Recorder.h"
+#if SAC_RECORDER
 #include <iostream>
 #include <ctime>
 #include <SDL.h>
@@ -445,5 +445,18 @@ void Recorder::addFrame(GLubyte *ptr){
     }
     PROFILE("Recorder", "write-disk", EndEvent);
     ++this->frameCounter;
+}
+
+#else
+void Recorder::init(glm::detail::tvec2<float, (glm::precision)0> const&, glm::detail::tvec2<float, (glm::precision)0> const&) {}
+void Recorder::stop() {}
+void Recorder::start() {}
+void Recorder::deinit() {}
+void Recorder::record(float) {}
+bool Recorder::isRecording() const { return false; }
+Recorder::~Recorder() {}
+Recorder& Recorder::Instance() {
+	static Recorder r;
+	return r;
 }
 #endif

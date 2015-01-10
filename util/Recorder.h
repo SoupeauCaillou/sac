@@ -22,16 +22,13 @@
 
 #pragma once
 
-#if ! (SAC_LINUX && SAC_DESKTOP)
-class Recorder {
-    public:
-        Recorder(int, int) {}
-        void start() {}
-        void stop() {}
-        void record() {}
-};
+#if SAC_LINUX && SAC_DESKTOP
+#define SAC_RECORDER 1
 #else
+#undef SAC_RECORDER
+#endif
 
+#if SAC_RECORDER
 #include <cstdlib>
 #include <cstdio>
 #include <queue>
@@ -43,8 +40,10 @@ class Recorder {
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>
 
-#include "glm/glm.hpp"
 #include "systems/opengl/OpenglHelper.h"
+#endif
+
+#include <glm/glm.hpp>
 
 class Recorder {
     public:
@@ -60,12 +59,13 @@ class Recorder {
         void start();
         void stop();
         void toggle();
-        bool isRecording() const { return recording; }
+        bool isRecording() const;
 
         void record(float dt);
 
         void thread_video_encode();
 
+#if SAC_RECORDER
     private:
         Recorder() {}
         void addFrame(GLubyte *ptr);
@@ -95,5 +95,5 @@ class Recorder {
         std::thread th1;
         std::mutex mutex_buf;
         std::condition_variable cond;
-};
 #endif
+};
