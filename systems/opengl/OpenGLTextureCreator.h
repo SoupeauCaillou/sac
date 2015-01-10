@@ -29,6 +29,8 @@ class AssetAPI;
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
 #include <GLES2/gl2.h>
+#elif SAC_IOS
+#include <OpenGLES/ES2/gl.h>
 #else
 #include <GL/glew.h>
 #endif

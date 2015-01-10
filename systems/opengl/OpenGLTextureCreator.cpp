@@ -26,6 +26,8 @@
 #include <cstring>
 #if SAC_ANDROID
 #include <GLES2/gl2ext.h>
+#elif SAC_IOS
+#include <OpenGLES/ES2/glext.h>
 #elif SAC_EMSCRIPTEN
 #include <sstream>
 #include <SDL.h>
@@ -230,19 +232,23 @@ static GLenum imageDescToGLenum(ImageDesc desc) {
             return channelCountToGLFormat(desc.channels);
 #endif
         }
+#if SAC_MOBILE
 #if SAC_ANDROID
         case ImageDesc::ETC1: {
             LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using ETC1 compression");
             return GL_ETC1_RGB8_OES;
         }
+#endif
         case ImageDesc::PVR: {
             LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using PVR compression");
             return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
         }
 #endif
+#if ! SAC_IOS
         case ImageDesc::S3TC:
             LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using S3TC compression");
             return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+#endif
         default:
             LOGF("Invalid desc.type: " << desc.type);
             return 0;
@@ -290,7 +296,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
     const bool enableMipMapping = false;
     if (image.mipmap == 0 && enableMipMapping) {
         LOGV(1, "Generating mipmaps");
-        glGenerateMipmap(GL_TEXTURE_2D);
+        GL_OPERATION(glGenerateMipmap(GL_TEXTURE_2D))
     }
 #endif
 }
