@@ -33,7 +33,7 @@ set(LICENSE_HEADER
 ####################Target check & validation##########################
 #######################################################################
 #list of the supported OS
-SET(SUPPORTED_TARGETS linux android emscripten windows darwin)
+SET(SUPPORTED_TARGETS linux android emscripten windows darwin ios)
 
 #if target = NULL then target = current OS
 if (NOT TARGET)
@@ -353,7 +353,7 @@ endif()
 
 if (DESKTOP_BUILD)
     include_directories(${SAC_SOURCE_DIR}/libs/rg_etc1_v104/)
-    check_and_link_libs("sac" SDL2 GLEW OpenAL Sqlite3 Tinyxml2 ZLIB)
+    check_and_link_libs("sac" SDL2 GLEW OpenAL Sqlite3 ZLIB)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)
@@ -368,7 +368,11 @@ if (MOBILE_BUILD OR WEB_BUILD)
         include_directories(${SAC_SOURCE_DIR}/libs/sqlite3)
         add_library("sqlite3" STATIC ${sqlite3_sources})
 
-        target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
+        if (VARPLATFORM STREQUAL ANDROID)
+            target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
+        else()
+            target_link_libraries("sac" sqlite3)
+        endif()
     else ()
         target_link_libraries("sac" GLESv2 z)
     endif()
