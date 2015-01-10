@@ -30,6 +30,8 @@
 
 #if SAC_LINUX || SAC_ANDROID
 #include <endian.h>
+#elif SAC_DARWIN
+#include <machine/endian.h>
 #endif
 
 #if SAC_DESKTOP
@@ -61,11 +63,7 @@ ImageDesc ImageLoader::loadPng(const std::string& filepath, const FileBuffer& ) 
 }
 
 ImageDesc ImageLoader::loadEtc1(const std::string& LOG_USAGE_ONLY(context), const FileBuffer& file, bool etc1supported) {
-#if SAC_ANDROID
-    #define BE_16_TO_H betoh16
-#else
-    #define BE_16_TO_H be16toh
-#endif
+    #define BE_16_TO_H htons
 
     ImageDesc result;
     result.datas = 0;
