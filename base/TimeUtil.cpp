@@ -32,7 +32,7 @@
 
 #if SAC_LINUX || SAC_ANDROID
     struct timespec TimeUtil::startup_time;
-#elif SAC_EMSCRIPTEN || SAC_DARWIN
+#elif SAC_EMSCRIPTEN || SAC_DARWIN || SAC_IOS
     struct timeval TimeUtil::startup_time;
 #elif SAC_WINDOWS
 	__int64 TimeUtil::startup_time;
@@ -42,7 +42,7 @@
 void TimeUtil::Init() {
 #if SAC_LINUX || SAC_ANDROID
 	clock_gettime(CLOCK_MONOTONIC, &startup_time);
-#elif SAC_EMSCRIPTEN || SAC_DARWIN
+#elif SAC_EMSCRIPTEN || SAC_DARWIN || SAC_IOS
     gettimeofday(&startup_time, 0);
 #elif SAC_WINDOWS
     timeBeginPeriod(1);
@@ -57,7 +57,7 @@ void TimeUtil::Init() {
 static inline float timeconverter(const struct timespec & tv) {
 	return tv.tv_sec + (float)(tv.tv_nsec) / 1000000000.0f;
 }
-#elif SAC_EMSCRIPTEN || SAC_DARWIN
+#elif SAC_EMSCRIPTEN || SAC_DARWIN || SAC_IOS
 static inline float timeconverter(const struct timeval & tv) {
     return (tv.tv_sec + tv.tv_usec / 1000000.0f);
 }
@@ -89,7 +89,7 @@ float TimeUtil::GetTime() {
         LOGF("clock_gettime failure");
 		}
 		sub(tv, startup_time);
-#elif SAC_EMSCRIPTEN || SAC_DARWIN
+#elif SAC_EMSCRIPTEN || SAC_DARWIN || SAC_IOS
 		struct timeval tv;
 		gettimeofday(&tv, 0);
 		timersub(&tv, &startup_time, &tv);
