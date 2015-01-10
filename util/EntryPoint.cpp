@@ -16,10 +16,15 @@
 #include INCLUDE_NAME()
 
 #if SAC_DESKTOP || SAC_MOBILE
+#ifdef __cplusplus
+extern "C" {
+#endif
 Game* buildGameInstance() {
     return new GAME_CLASS(PROJECT_NAME) ();
 }
-
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 #if SAC_DESKTOP
