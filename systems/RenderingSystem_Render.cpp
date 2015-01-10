@@ -249,6 +249,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
     LOGV(2, "Begin frame rendering: " << commands.count);
 
+    #if SAC_DEBUG
+    check_GL_errors("Frame start");
+    #endif
+
     #if SAC_INGAME_EDITORS
     GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL))
     if (wireframe) {
@@ -301,7 +305,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
             FramebufferRef fboRef = camera.cameraAttr.fb;
             if (fboRef == DefaultFrameBufferRef) {
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                //glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glState.viewport.update(windowW, windowH);
             } else {
                 const Framebuffer& fb = ref2Framebuffers[fboRef];
@@ -491,11 +495,11 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 
                 /* Change texture */
                 /*   1. Color texture goes to GL_TEXTURE_0 */
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, glref.first);
+                GL_OPERATION(glActiveTexture(GL_TEXTURE0))
+                GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.first))
                 /*   2. Alpha texture goes to GL_TEXTURE_1 */
-                glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, glref.second);
+                GL_OPERATION(glActiveTexture(GL_TEXTURE1))
+                GL_OPERATION(glBindTexture(GL_TEXTURE_2D, glref.second))
             }
             if (currentColor != rc.color) {
                 currentColor = rc.color;
@@ -575,6 +579,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 #endif
 
     glState.flags.current = currentFlags;
+
+    #if SAC_DEBUG
+    check_GL_errors("Frame end");
+    #endif
 }
 
 void RenderingSystem::waitDrawingComplete() {
@@ -602,6 +610,9 @@ void RenderingSystem::render() {
     while (!newFrameReady && frameQueueWritable) {
         cond[C_FRAME_READY].wait(lock);
     }
+    #if SAC_DEBUG
+    check_GL_errors("PreFrame");
+    #endif
 #endif
     int readQueue = (currentWriteQueue + 1) % 2;
     newFrameReady = false;
