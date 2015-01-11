@@ -171,6 +171,13 @@ static void addWindowIcon(SDL_Window* window);
 extern bool profilerEnabled;
 
 struct CommandLineOptions {
+    CommandLineOptions() {
+        restore = false;
+        verbose = 0;
+        forceEtc1 = false;
+        headless = false;
+        profiler = false;
+    }
     bool restore;
     int verbose;
     bool forceEtc1;
@@ -365,7 +372,7 @@ int setupEngine(Game* _game, const SetupInfo* info) {
         startProfiler();
 #endif
 
-    SDL_JoystickEventState(SDL_ENABLE);
+    // SDL_JoystickEventState(SDL_ENABLE);
 
     //used for text translation, if needed
     setlocale( LC_ALL, "" );
