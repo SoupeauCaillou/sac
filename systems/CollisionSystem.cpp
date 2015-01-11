@@ -505,7 +505,6 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
         }
     }
 }
-#endif
 
 glm::vec2 CollisionSystem::collisionPointToNormal(const glm::vec2& point, const TransformationComponent* tc) {
     glm::vec2 diffNorm = glm::rotate(point - tc->position, -tc->rotation) / tc->size;
@@ -519,3 +518,4 @@ glm::vec2 CollisionSystem::collisionPointToNormal(const glm::vec2& point, const 
     return glm::rotate(normal, tc->rotation);
 }
 
+#endif

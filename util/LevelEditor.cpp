@@ -816,15 +816,19 @@ void LevelEditor::tick(float dt) {
         ImGui::Checkbox("Mark runtime opaque", &theRenderingSystem.highLight.runtimeOpaque);
         ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
     }
+#if !DISABLE_COLLISION_SYSTEM
     /* Collision debug tools */
     if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
         ImGui::SliderInt("Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 10000);
     }
+#endif
+#if !DISABLE_ZSQD_SYSTEM
     /* ZSQD debug tools */
     if (ImGui::CollapsingHeader("ZSQD", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theZSQDSystem.showDebug);
     }
+#endif
 
     if (gridVisible) {
         Entity camera = theCameraSystem.RetrieveAllEntityWithComponent()[0];
