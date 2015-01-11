@@ -62,7 +62,11 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 
     LOGV(1, "extensions: " << extensions );
-    pvrFormatSupported = false; // (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+#if SAC_IOS
+    pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+#else
+    pvrFormatSupported = false;
+#endif
 #if SAC_EMSCRIPTEN
     s3tcFormatSupported = (strstr((const char*)extensions, "WEBGL_compressed_texture_s3tc") != 0);
 #else
