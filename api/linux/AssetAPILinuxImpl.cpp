@@ -1,22 +1,22 @@
 /*
-    This file is part of Soupe Au Caillou.
-
-    @author Soupe au Caillou - Jordane Pelloux-Prayer
-    @author Soupe au Caillou - Gautier Pelloux-Prayer
-    @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
-
-    Soupe Au Caillou is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, version 3.
-
-    Soupe Au Caillou is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ This file is part of Soupe Au Caillou.
+ 
+ @author Soupe au Caillou - Jordane Pelloux-Prayer
+ @author Soupe au Caillou - Gautier Pelloux-Prayer
+ @author Soupe au Caillou - Pierre-Eric Pelloux-Prayer
+ 
+ Soupe Au Caillou is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, version 3.
+ 
+ Soupe Au Caillou is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 
@@ -33,16 +33,16 @@
 #include <algorithm>
 
 #if SAC_EMSCRIPTEN
-	#include <emscripten.h>
+#include <emscripten.h>
 #endif
 
 #if SAC_WINDOWS
-	#include <api/windows/dirent.h>
-	#include <shlobj.h>
-	#include <Shobjidl.h>
+#include <api/windows/dirent.h>
+#include <shlobj.h>
+#include <Shobjidl.h>
 #else
-	#include <dirent.h>
-	#include <unistd.h>
+#include <dirent.h>
+#include <unistd.h>
 #endif
 
 #if SAC_IOS
@@ -54,33 +54,33 @@ CFBundleRef mainBundle;
 
 //Returns -1 if the path does not exist, 1 if path is a directory, 2 if its a file, 0 otherwise
 static int getPathType(const char* path) {
-	struct stat s_buf;
-
-	if (stat(path, &s_buf)) {
-		LOGW("path does not exist: " << path);
-		return -1;
-	}
-
-	if (s_buf.st_mode & S_IFDIR) {
-		return 1;
-	} else if (s_buf.st_mode & S_IFREG) {
-		return 2;
-	}
-	return 0;
+    struct stat s_buf;
+    
+    if (stat(path, &s_buf)) {
+        LOGW("path does not exist: " << path);
+        return -1;
+    }
+    
+    if (s_buf.st_mode & S_IFDIR) {
+        return 1;
+    } else if (s_buf.st_mode & S_IFREG) {
+        return 2;
+    }
+    return 0;
 }
 
 void AssetAPILinuxImpl::init(const std::string & gName) {
     gameName = gName;
-    #if SAC_IOS
+#if SAC_IOS
     mainBundle = CFBundleGetMainBundle();
-    #endif
+#endif
 }
 
 FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
     FileBuffer fb;
     fb.data = 0;
     FILE* file = fopen(full.c_str(), "rb");
-
+    
     if (! file) {
         /* special case for images */
         if (full.size() > 4) {
@@ -89,14 +89,14 @@ FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
                 strncmp(ext, ".dds", 4) == 0 ||
                 strncmp(ext, ".pvr", 4) == 0 ||
                 strncmp(ext, ".pkm", 4) == 0) {
-
+                
                 int count = 0;
                 FileBuffer partial;
                 char* name = (char*)alloca(full.size() + 10);
                 do {
                     sprintf(name, "%s.%02d", full.c_str(), count);
                     partial = loadFile(name);
-
+                    
                     if (partial.size > 0) {
                         fb.data = (uint8_t*)realloc(fb.data, fb.size + partial.size);
                         memcpy(&fb.data[fb.size], partial.data, partial.size);
@@ -105,11 +105,11 @@ FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
                     count++;
                 } while (partial.size);
             }
-
+            
         }
         return fb;
     }
-
+    
     fseek(file, 0, SEEK_END);
     fb.size = ftell(file);
     rewind(file);
@@ -118,7 +118,7 @@ FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
     do {
         count += fread(&fb.data[count], 1, fb.size - count, file);
     } while (count < fb.size);
-
+    
     fclose(file);
     fb.data[fb.size] = 0;
     return fb;
@@ -128,17 +128,21 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
 #if SAC_IOS
     UInt8 tmp[512];
-    CFStringRef a = CFStringCreateWithCStringNoCopy(NULL, asset.c_str(), kCFStringEncodingUTF8, NULL);
+    
+    CFStringRef a = CFStringCreateWithCString (NULL, asset.c_str(), kCFStringEncodingUTF8);
     CFURLRef url = CFBundleCopyResourceURL(
-        mainBundle,
-        a,
-        NULL,
-        CFSTR("assets"));
+                                           mainBundle,
+                                           a,
+                                           NULL,
+                                           CFSTR("assets"));
+    
+    if (!url)
+        return fb;
     
     if (!CFURLGetFileSystemRepresentation(url,
-        true,
-        tmp,
-        512)) {
+                                          true,
+                                          tmp,
+                                          512)) {
         LOGE("Failed to convert CFURLRef of '" << asset << "'");
         tmp[0] = 0;
     }
@@ -147,7 +151,7 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     CFRelease(a);
 #else
 #ifdef SAC_ASSETS_DIR
-	std::string full = SAC_ASSETS_DIR + asset;
+    std::string full = SAC_ASSETS_DIR + asset;
 #else
     std::string full = "assets/" + asset;
 #endif
@@ -157,7 +161,7 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
         // try in pc specific folder
         full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
         fb = loadFile(full);
-
+        
         if (fb.data == 0) {
             LOGE("Error opening file '" << asset << "'");
         }
@@ -168,10 +172,10 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
 std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& directory, const std::string& extension, const std::string& subfolder) {
     std::list<std::string> content;
     std::string realDirectory = directory +  "/" + subfolder + "/";
-	size_t pos;
-	while ((pos = realDirectory.find("//")) != std::string::npos)
-		realDirectory.replace(pos, 2, "/");
-
+    size_t pos;
+    while ((pos = realDirectory.find("//")) != std::string::npos)
+        realDirectory.replace(pos, 2, "/");
+    
     DIR* dir = opendir(realDirectory.c_str());
     if (dir == NULL)
         return content;
@@ -188,11 +192,11 @@ std::list<std::string> AssetAPILinuxImpl::listContent(const std::string& directo
                     content.push_back(std::string(file->d_name) + '/' + i);
                 }
             }
-		//otherwise it might be a file
+            //otherwise it might be a file
 #if SAC_EMSCRIPTEN
         } else if (file->d_type == 8) {
 #else
-		} else if (2 == getPathType((realDirectory + file->d_name).c_str())) {
+        } else if (2 == getPathType((realDirectory + file->d_name).c_str())) {
 #endif
             std::string s = file->d_name;
             size_t pos;
@@ -220,6 +224,7 @@ std::list<std::string> AssetAPILinuxImpl::listAssetContent(const std::string& ex
         tmp[0] = 0;
     }
     std::string directory((char*) tmp);
+    directory = directory + "/assets/";
     
     CFRelease(url);
 #else
@@ -230,7 +235,7 @@ std::list<std::string> AssetAPILinuxImpl::listAssetContent(const std::string& ex
 
 const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
     static std::string path;
-
+    
     if (path.empty()) {
         std::stringstream ss;
 #if SAC_LINUX
@@ -245,20 +250,20 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
 #elif SAC_EMSCRIPTEN
         ss << "/sac_temp/";
 #elif SAC_WINDOWS
-		ss << getenv("APPDATA") << "/";
+        ss << getenv("APPDATA") << "/";
 #else
-		return "not-handled-os";
+        return "not-handled-os";
 #endif
-		//add game name to the path
-		ss << gameName;
-
+        //add game name to the path
+        ss << gameName;
+        
         //update path
         path = ss.str().c_str();
-
+        
         // remove non alphanum characters. Problem yet: it erase '/' too...
         // path.erase(std::remove_if(path.begin(), path.end(),
-            // std::not1(std::ptr_fun((int(*)(int))std::isalnum))), path.end());
-
+        // std::not1(std::ptr_fun((int(*)(int))std::isalnum))), path.end());
+        
         // create folder if needed
         int permission = 0;
 #if ! SAC_WINDOWS
@@ -269,20 +274,20 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
         }
     }
     return path;
- }
+}
 
 void AssetAPILinuxImpl::synchronize() {
 #if SAC_EMSCRIPTEN
     const char* script = "" \
-        "localStorage[\"sac_root\"] = window.JSON.stringify(FS.root.contents['sac_temp']);" \
-        "localStorage[\"sac_nextInode\"] = window.JSON.stringify(FS.nextInode);";
+    "localStorage[\"sac_root\"] = window.JSON.stringify(FS.root.contents['sac_temp']);" \
+    "localStorage[\"sac_nextInode\"] = window.JSON.stringify(FS.nextInode);";
     emscripten_run_script(script);
 #endif
 }
 
 void AssetAPILinuxImpl::createDirectory(const std::string& fullpath, int permission) {
     struct stat st;
-
+    
     if (stat(fullpath.c_str(), &st) == -1) {
         mkdir(fullpath.c_str(), permission);
     } else {
@@ -293,18 +298,18 @@ void AssetAPILinuxImpl::createDirectory(const std::string& fullpath, int permiss
 bool AssetAPILinuxImpl::doesExistFileOrDirectory(const std::string& fullpath) {
     DIR* dp = opendir(fullpath.c_str());
     if (dp != 0) closedir(dp);
-
+    
     return (dp != 0) || (access(fullpath.c_str(), F_OK) != -1);
 }
 
 void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {
     DIR*            dp;
     struct dirent*  ep;
-
+    
     std::string subfolder;
-
+    
     dp = opendir(fullpath.c_str());
-
+    
     if (dp == 0) {
         LOGE("Couldn't open fileOrDirectory at path " << fullpath << ". Does it exist?" );
         return;
@@ -323,6 +328,6 @@ void AssetAPILinuxImpl::removeFileOrDirectory(const std::string& fullpath) {
     }
     closedir(dp);
     rmdir(fullpath.c_str());
-
+    
 }
 
