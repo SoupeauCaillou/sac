@@ -36,8 +36,8 @@ struct GameHolder {
 	// RenderThreadJNIEnvCtx renderThreadJNICtx;
 
 	struct __input {
-        __input() : touching(0), moving(0) {}
-		 int touching, moving;
+        __input() : touching(0) {}
+		 int touching;
 		 float x, y;
 	};
     std::map<int, __input> input;

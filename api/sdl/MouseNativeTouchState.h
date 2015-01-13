@@ -33,8 +33,6 @@ class MouseNativeTouchState: public NativeTouchState {
 
         bool isTouching(int index, glm::vec2* windowCoords);
 
-        bool isMoving (int index) ;
-
         int maxTouchingCount() {
             return 3;
         }
@@ -44,7 +42,6 @@ class MouseNativeTouchState: public NativeTouchState {
         //return 1 if event is handled, 0 else
         int eventSDL(void* event);
 
-        bool _isMoving;
     private:
         std::mutex mutex;
         //in order : left / right / middle

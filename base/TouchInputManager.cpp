@@ -93,7 +93,6 @@ void TouchInputManager::Update() {
 
     for (unsigned i=0; i<pointers; i++) {
         wasTouching[i] = touching[i];
-        moving[i] = ptr->isMoving(i);
         touching[i] = ptr->isTouching(i, &coords);
         if (touching[i]) {
             // convert window coordinates -> world coords

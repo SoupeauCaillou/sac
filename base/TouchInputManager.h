@@ -32,7 +32,6 @@ class NativeTouchState {
 	public:
         virtual int maxTouchingCount() = 0;
 		virtual bool isTouching(int index, glm::vec2* windowCoords) = 0;
-		virtual bool isMoving (int index) = 0;
 };
 
 struct TransformationComponent;
@@ -53,8 +52,6 @@ class TouchInputManager {
 		bool wasTouched(int idx = 0) const { return wasTouching[idx]; }
 
 		bool isTouched(int idx = 0) const { return touching[idx]; }
-
-		bool hasMoved(int idx = 0) const { return moving[idx]; }
 
         bool hasClicked(int idx = 0) const { return clicked[idx]; }
 
@@ -81,10 +78,10 @@ class TouchInputManager {
 #if !ANDROID
 		int getWheel() const;
 #endif
-	private:
+	public:
 		NativeTouchState* ptr;
 
-		bool wasTouching[MAX_TOUCH_POINT], touching[MAX_TOUCH_POINT], moving[MAX_TOUCH_POINT], clicked[MAX_TOUCH_POINT], doubleclicked[MAX_TOUCH_POINT];
+		bool wasTouching[MAX_TOUCH_POINT], touching[MAX_TOUCH_POINT], clicked[MAX_TOUCH_POINT], doubleclicked[MAX_TOUCH_POINT];
 		glm::vec2 lastTouchedPosition[MAX_TOUCH_POINT], lastTouchedPositionScreen[MAX_TOUCH_POINT], lastClickPosition[MAX_TOUCH_POINT], onTouchPosition[MAX_TOUCH_POINT];
 		float lastClickTime[MAX_TOUCH_POINT];
 

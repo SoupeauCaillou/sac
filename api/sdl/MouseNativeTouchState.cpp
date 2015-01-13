@@ -38,11 +38,6 @@ bool MouseNativeTouchState::isTouching(int index, glm::vec2* windowCoords) {
     return isButtonDown[index];
 }
 
-bool MouseNativeTouchState::isMoving (int index) {
-    std::unique_lock<std::mutex> lock(mutex);
-    return _isMoving && isButtonDown[index];
-}
-
 #if SAC_ANDROID
 int MouseNativeTouchState::eventSDL(SDL_Event* event) {
     return 0;
@@ -66,7 +61,6 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
         case SDL_MOUSEMOTION: {
             lastPosition.x = event->motion.x;
             lastPosition.y = event->motion.y;
-            _isMoving = true;
             return 1;
         }
         //mouse button clicked

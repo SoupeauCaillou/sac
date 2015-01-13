@@ -23,7 +23,9 @@
 #include "IOSTouchState.h"
 #include "base/Log.h"
 
-IOSTouchState::IOSTouchState() {
+int (*iosIsTouchingFn) (int, float* winX, float* winY);
+
+IOSTouchState::IOSTouchState(){
 }
 
 int IOSTouchState::maxTouchingCount() {
@@ -31,10 +33,7 @@ int IOSTouchState::maxTouchingCount() {
 }
 
 bool IOSTouchState::isTouching (int index, glm::vec2* windowCoords) {
-	return false;
+	return (*iosIsTouchingFn)(index, &windowCoords->x, &windowCoords->y);
 }
 
-bool IOSTouchState::isMoving (int index) {
-	return false;
-}
 
