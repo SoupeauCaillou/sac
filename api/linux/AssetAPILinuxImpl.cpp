@@ -49,6 +49,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFURL.h>
 #include <CoreFoundation/CFString.h>
+#include <string.h>
 CFBundleRef mainBundle;
 #endif
 
@@ -136,8 +137,27 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
                                            NULL,
                                            CFSTR("assets"));
     
-    if (!url)
-        return fb;
+    bool splittedImageHack = false;
+    if (!url) {
+        const char* ext = asset.c_str() + asset.size() - 4;
+        if (strncmp(ext, ".pvr", 4) == 0) {
+            CFRelease(a);
+            std::string sigh(asset +".00");
+            a = CFStringCreateWithCString (NULL, sigh.c_str(), kCFStringEncodingUTF8);
+            url = CFBundleCopyResourceURL(
+                                          mainBundle,
+                                          a,
+                                          NULL,
+                                          CFSTR("assets"));
+            
+            if (!url) {
+                CFRelease(a);
+                return fb;
+            }
+            splittedImageHack = true;
+        }
+        
+    }
     
     if (!CFURLGetFileSystemRepresentation(url,
                                           true,
@@ -146,7 +166,11 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
         LOGE("Failed to convert CFURLRef of '" << asset << "'");
         tmp[0] = 0;
     }
+    
     std::string full((char*)tmp);
+    if (splittedImageHack) {
+        full.resize(full.size() - 3);
+    }
     
     CFRelease(a);
 #else
@@ -157,6 +181,7 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
 #endif
 #endif
     fb = loadFile(full);
+#if SAC_DESKTOP
     if (fb.data == 0) {
         // try in pc specific folder
         full.replace(full.find("assets/"), strlen("assets/"), "assetspc/");
@@ -166,6 +191,7 @@ FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
             LOGE("Error opening file '" << asset << "'");
         }
     }
+#endif
     return fb;
 }
 
