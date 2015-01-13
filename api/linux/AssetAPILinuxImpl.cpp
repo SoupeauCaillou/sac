@@ -125,54 +125,28 @@ FileBuffer AssetAPILinuxImpl::loadFile(const std::string& full) {
     return fb;
 }
 
+#if SAC_IOS
+static char* assetPath = NULL;
+#endif
 FileBuffer AssetAPILinuxImpl::loadAsset(const std::string& asset) {
     FileBuffer fb;
 #if SAC_IOS
-    UInt8 tmp[512];
-    
-    CFStringRef a = CFStringCreateWithCString (NULL, asset.c_str(), kCFStringEncodingUTF8);
-    CFURLRef url = CFBundleCopyResourceURL(
-                                           mainBundle,
-                                           a,
-                                           NULL,
-                                           CFSTR("assets"));
-    
-    bool splittedImageHack = false;
-    if (!url) {
-        const char* ext = asset.c_str() + asset.size() - 4;
-        if (strncmp(ext, ".pvr", 4) == 0) {
-            CFRelease(a);
-            std::string sigh(asset +".00");
-            a = CFStringCreateWithCString (NULL, sigh.c_str(), kCFStringEncodingUTF8);
-            url = CFBundleCopyResourceURL(
-                                          mainBundle,
-                                          a,
-                                          NULL,
-                                          CFSTR("assets"));
-            
-            if (!url) {
-                CFRelease(a);
-                return fb;
-            }
-            splittedImageHack = true;
+    if (!assetPath) {
+        CFURLRef url = CFBundleCopyResourcesDirectoryURL(mainBundle);
+        UInt8 tmp[1024];
+        if (!CFURLGetFileSystemRepresentation(url,
+                                              true,
+                                              tmp,
+                                              sizeof(tmp))) {
+            LOGE("Failed to convert CFURLRef");
+            tmp[0] = 0;
+        } else {
+            strcat((char*)tmp, "/assets/");
+            assetPath = strdup((char*)tmp);
         }
-        
+        CFRelease(url);
     }
-    
-    if (!CFURLGetFileSystemRepresentation(url,
-                                          true,
-                                          tmp,
-                                          512)) {
-        LOGE("Failed to convert CFURLRef of '" << asset << "'");
-        tmp[0] = 0;
-    }
-    
-    std::string full((char*)tmp);
-    if (splittedImageHack) {
-        full.resize(full.size() - 3);
-    }
-    
-    CFRelease(a);
+    std::string full = assetPath + asset;
 #else
 #ifdef SAC_ASSETS_DIR
     std::string full = SAC_ASSETS_DIR + asset;
