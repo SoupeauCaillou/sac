@@ -259,6 +259,11 @@ std::list<std::string> AssetAPILinuxImpl::listAssetContent(const std::string& ex
     return listContent(directory, extension, subfolder);
 }
 
+#if SAC_IOS
+// set by Obj-C code
+char* iosWritablePath = NULL;
+#endif
+
 const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
     static std::string path;
     
@@ -273,15 +278,23 @@ const std::string & AssetAPILinuxImpl::getWritableAppDatasPath() {
         } else {
             ss << "/tmp/";
         }
+        //add game name to the path
+        ss << gameName;
 #elif SAC_EMSCRIPTEN
         ss << "/sac_temp/";
+        //add game name to the path
+        ss << gameName;
 #elif SAC_WINDOWS
         ss << getenv("APPDATA") << "/";
+        //add game name to the path
+        ss << gameName;
+#elif SAC_IOS
+        LOGF_IF(!iosWritablePath, "iosWritablePath not set. Must be done in Obj-C before using AssetAPI");
+        ss << iosWritablePath;
 #else
         return "not-handled-os";
 #endif
-        //add game name to the path
-        ss << gameName;
+        
         
         //update path
         path = ss.str().c_str();
