@@ -260,15 +260,6 @@ static GLenum imageDescToGLenum(ImageDesc desc) {
 }
 
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type) {
-#if 0
-#if SAC_ANDROID
-    ((type == COLOR) && image.mipmap > 0);
-#elif SAC_EMSCRIPTEN
-    false;
-#else
-    (type == COLOR) || (type == COLOR_ALPHA);
-#endif
-#endif
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture))
 
     // Determine GL format based on channel count
@@ -284,6 +275,9 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         for (int level=0; level<=image.mipmap; level++) {
             int width = std::max(1, image.width >> level);
             int height = std::max(1, image.height >> level);
+#if SAC_IOS
+            width = height = glm::max(width, height);
+#endif
             unsigned imgSize = 0;
             if (pvrFormatSupported)
                 imgSize =( std::max(width, 8) * std::max(height, 8) * 4 + 7) / 8;
@@ -295,7 +289,7 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         }
     }
 
-#if SAC_ANDROID || SAC_EMSCRIPTEN
+#if SAC_MOBILE || SAC_EMSCRIPTEN
 #else
     const bool enableMipMapping = false;
     if (image.mipmap == 0 && enableMipMapping) {
