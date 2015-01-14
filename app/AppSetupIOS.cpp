@@ -9,14 +9,14 @@
 #include "api/linux/AssetAPILinuxImpl.h"
 #include "api/linux/CommunicationAPILinuxImpl.h"
 #include "api/linux/ExitAPILinuxImpl.h"
-#include "api/linux/GameCenterAPIDebugImpl.h"
-#include "api/linux/LocalizeAPILinuxImpl.h"
+#include "api/default/LocalizeAPITextImpl.h"
 #include "api/linux/MusicAPILinuxOpenALImpl.h"
 #include "api/linux/OpenURLAPILinuxImpl.h"
 #include "api/linux/SoundAPILinuxOpenALImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/linux/WWWAPIcURLImpl.h"
 #include "api/ios/IOSTouchState.h"
+#include "api/default/GameCenterAPIDebugImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/default/AdAPIDebugImpl.h"
 #include "api/default/InAppPurchaseAPIDebugImpl.h"
@@ -46,7 +46,7 @@ GameContext* setupGameContext(Game* game) {
     if (game->wantsAPI(ContextAPI::InAppPurchase))
         LOGW("TODO");
     if (game->wantsAPI(ContextAPI::Localize))
-        ctx->localizeAPI = new LocalizeAPILinuxImpl();
+        ctx->localizeAPI = new LocalizeAPITextImpl();
     if (game->wantsAPI(ContextAPI::Music))
         ctx->musicAPI = new MusicAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::OpenURL))
@@ -80,7 +80,7 @@ int setupEngine(Game* game, const struct SetupInfo* info) {
     theRenderingSystem.assetAPI = ctx->assetAPI;
 
 	static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(info->name);
-   
+
     if (game->wantsAPI(ContextAPI::Music)) {
         theMusicSystem.musicAPI = ctx->musicAPI;
         theMusicSystem.assetAPI = ctx->assetAPI;
@@ -93,7 +93,7 @@ int setupEngine(Game* game, const struct SetupInfo* info) {
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
-        static_cast<LocalizeAPILinuxImpl*>(ctx->localizeAPI)->init(ctx->assetAPI);
+        static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI);
     }
 
     /////////////////////////////////////////////////////

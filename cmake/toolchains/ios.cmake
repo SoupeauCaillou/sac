@@ -26,7 +26,7 @@ function (get_platform_dependent_sources)
         ${GAME_SOURCE_DIR}/sac/app/AppSetupIOS.*
         ${GAME_SOURCE_DIR}/sac/api/ios/*
         ${GAME_SOURCE_DIR}/sac/api/linux/AssetAPILinuxImpl.*
-        ${GAME_SOURCE_DIR}/sac/api/linux/LocalizeAPILinuxImpl.*
+        ${GAME_SOURCE_DIR}/sac/api/default/LocalizeAPITextImpl.*
         ${GAME_SOURCE_DIR}/sac/api/linux/MusicAPILinuxOpenALImpl.*
         ${GAME_SOURCE_DIR}/sac/api/linux/SoundAPILinuxOpenALImpl.*
     )

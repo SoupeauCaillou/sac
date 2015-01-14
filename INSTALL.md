@@ -3,7 +3,7 @@
 ## Linux
 
 ### Mandatory packages
-cmake libglew-dev libopenal-dev libsdl-dev libsqlite3-dev libtinyxml2-dev libvpx-dev
+cmake libglew-dev libopenal-dev libsdl-dev libsqlite3-dev libvpx-dev
 g++ OR clang++
 
 ### Optional packages

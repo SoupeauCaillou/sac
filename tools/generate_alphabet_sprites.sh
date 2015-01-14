@@ -20,7 +20,7 @@ source cool_stuff.sh
 export SAC_USAGE="$0 fonts-directory output-directory [option]"
 export SAC_OPTIONS="\
 -c|-check: test if every symbols are already in atlas
-\t--i|-inputs folder1 folder2 folder3...: inputs dir to search symbols"
+\t--i|-inputs file1 file2 file3...: inputs files where to search symbols"
 export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootPath && pwd)/unprepared_assets/alphabet"
 
 ######### 0 : Check requirements. #########
@@ -46,7 +46,7 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
     shift #second arg is output directory
 
     preview_mode=0
-    src_dir=()
+    src_files=()
 
     while [ "$1" != "" ]; do
         case $1 in
@@ -61,10 +61,10 @@ export SAC_EXAMPLE="$0 $(cd $rootPath && pwd)/external_res/my_fonts/ $(cd $rootP
                     if [ $arg = "-c" -o $arg = "--check" ]; then
                         break
                     fi
-                    src_dir[$i]="$PWD/$arg";
+                    src_files[$i]="$PWD/$arg";
                     i=$((i+1));
                 done
-                shift ${#src_dir[@]}
+                shift ${#src_files[@]}
                 ;;
             *)
                 echo "Unknown option $1"
@@ -177,10 +177,10 @@ ponct=(, - . / : \; \< = \> \? _ ! \" \# \' \( \) \@)
 iterate_through_list "${ponct[@]}"
 info "Symbols missing..."
 
-if [ ${#src_dir[@]} -gt 0 ]; then
-    files="${src_dir[@]/%//strings.xml}"
+if [ ${#src_files[@]} -gt 0 ]; then
+    files="${src_files[@]}"
 else
-    files=$(echo $rootPath/res/values*/strings.xml)
+    files=$(echo $rootPath/assets/strings/*.txt)
 fi
 specials=($(cat $files | tr -d '[:alnum:]\\\-'"$(echo "${ponct[@]}")" | grep -o . | sort -d | perl -ne 'print unless $seen{$_}++' | tr '\n' ' '))
 iterate_through_list "${specials[@]}"

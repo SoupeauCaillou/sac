@@ -67,9 +67,7 @@
 #include "api/linux/AssetAPILinuxImpl.h"
 #include "api/linux/CommunicationAPILinuxImpl.h"
 #include "api/linux/ExitAPILinuxImpl.h"
-#include "api/linux/GameCenterAPIDebugImpl.h"
 #include "api/linux/KeyboardInputHandlerAPISDLImpl.h"
-#include "api/linux/LocalizeAPILinuxImpl.h"
 #include "api/linux/MusicAPILinuxOpenALImpl.h"
 #include "api/linux/NetworkAPILinuxImpl.h"
 #include "api/linux/OpenURLAPILinuxImpl.h"
@@ -77,6 +75,8 @@
 #include "api/linux/StringInputAPISDLImpl.h"
 #include "api/linux/VibrateAPILinuxImpl.h"
 #include "api/linux/WWWAPIcURLImpl.h"
+#include "api/default/LocalizeAPITextImpl.h"
+#include "api/default/GameCenterAPIDebugImpl.h"
 #include "api/default/SqliteStorageAPIImpl.h"
 #include "api/default/AdAPIDebugImpl.h"
 #include "api/default/InAppPurchaseAPIDebugImpl.h"
@@ -296,7 +296,7 @@ int setupEngine(Game* _game, const SetupInfo* info) {
 #endif
         ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPISDLImpl();
     if (game->wantsAPI(ContextAPI::Localize))
-        ctx->localizeAPI = new LocalizeAPILinuxImpl();
+        ctx->localizeAPI = new LocalizeAPITextImpl();
     if (game->wantsAPI(ContextAPI::Music))
         ctx->musicAPI = new MusicAPILinuxOpenALImpl();
     if (game->wantsAPI(ContextAPI::OpenURL))
@@ -342,7 +342,7 @@ int setupEngine(Game* _game, const SetupInfo* info) {
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
-        static_cast<LocalizeAPILinuxImpl*>(ctx->localizeAPI)->init(ctx->assetAPI);
+        static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI);
     }
 
     /////////////////////////////////////////////////////

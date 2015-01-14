@@ -24,15 +24,20 @@
 
 #include "../LocalizeAPI.h"
 
-#include <map>
+#include <vector>
 
 class AssetAPI;
 
-class LocalizeAPILinuxImpl : public LocalizeAPI {
-    private:
-        std::map<std::string, std::string> _idToMessage;
-        void parseXMLfile(AssetAPI* assetAPI, const std::string & folder);
+class LocalizeAPITextImpl : public LocalizeAPI {
     public:
-        int init(AssetAPI* assetAPI);
+        int init(AssetAPI* assetAPI, const char * defaultLang = "en");
         std::string text(const std::string& s);
+
+    private:
+        void readTXTFile(AssetAPI* assetAPI, std::vector<std::string> & texts, const char * lang);
+
+
+    private:
+        std::vector<std::string> defaultTexts;
+        std::vector<std::string> userLanguageTexts;
 };
