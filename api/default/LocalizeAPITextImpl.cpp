@@ -31,7 +31,7 @@
 #if SAC_WINDOWS
 #include <Windows.h>
 #else
-#include <libintl.h>
+//#include <libintl.h>
 #endif
 
 #endif
@@ -67,6 +67,12 @@ static std::string getLocaleInfo() {
     #elif SAC_EMSCRIPTEN
         std::string lang = emscripten_run_script_string( "navigator.language;" );
         lang.resize(2);
+    #elif SAC_IOS
+        LOGT("[[NSLocale preferredLangagues] objectAtIndex:0]");
+        std::string lang = "en";
+    #elif SAC_ANDROID
+        LOGT("Findout user locale");
+        std::string lang = "en";
     #else
         std::string lang(getenv("LANG"));
         //cut part after the '_' underscore
@@ -99,7 +105,7 @@ int LocalizeAPITextImpl::init(AssetAPI* assetAPI, const char * defaultLang) {
 }
 
 void LocalizeAPITextImpl::readTXTFile(AssetAPI* assetAPI, std::vector<std::string> & texts, const char * lang) {
-    std::string filename = SAC_ASSETS_DIR "/strings/" + std::string(lang) + ".txt";
+    std::string filename = "strings/" + std::string(lang) + ".txt";
     #if SAC_EMSCRIPTEN
         LOGT("FixMe! " << __METHOD__ );
         LOGI("ParseXML: " << filename);
@@ -140,7 +146,7 @@ void LocalizeAPITextImpl::readTXTFile(AssetAPI* assetAPI, std::vector<std::strin
         }
 
     #else
-        FileBuffer fb = assetAPI->loadFile(filename);
+        FileBuffer fb = assetAPI->loadAsset(filename);
 
         if (fb.size == 0) {
             LOGW("Cannot read '" << filename << "' localization file");
