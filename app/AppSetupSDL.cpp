@@ -186,7 +186,7 @@ struct CommandLineOptions {
 };
 static CommandLineOptions parseCommandLineOption(int argc, char** argv);
 
-int setupEngine(Game* _game, const SetupInfo* info) {
+int setupEngine(void* _game, const SetupInfo* info) {
 #if SAC_DESKTOP && SAC_LINUX && SAC_ENABLE_LOG
     initLogColors();
 #endif
@@ -205,7 +205,7 @@ int setupEngine(Game* _game, const SetupInfo* info) {
 
     addWindowIcon(sdlWindow);
 
-    game = _game;
+    game = static_cast<Game*> (_game);
 
     /////////////////////////////////////////////////////
     // Handle --restore cmd line switch

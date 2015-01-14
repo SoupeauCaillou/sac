@@ -68,7 +68,8 @@ GameContext* setupGameContext(Game* game) {
     return ctx;
 }
 
-int setupEngine(Game* game, const struct SetupInfo* info) {
+int setupEngine(void* _game, const struct SetupInfo* info) {
+    Game* game = static_cast<Game*>(_game);
 #if SAC_ENABLE_LOG
     logLevel = LogVerbosity::VERBOSE1;
 #endif
@@ -113,7 +114,8 @@ int setupEngine(Game* game, const struct SetupInfo* info) {
     return 0;
 }
 
-int tickEngine(Game* game) {
+int tickEngine(void* _game) {
+    Game* game = static_cast<Game*>(_game);
     game->step();
     game->render();
     return 0;
