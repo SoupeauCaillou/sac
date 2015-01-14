@@ -34,10 +34,24 @@ void initLogColors();
 #include <ostream>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 #include <glm/glm.hpp>
 inline std::ostream& operator<<(std::ostream& stream, const glm::vec2 & v) {
     return stream << v.x << ", " << v.y;
+}
+template<class T>
+inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v) {
+    size_t s = v.size();
+    stream << "vector[" << s << "] = {";
+    if (s > 0) {
+        for (size_t i = 0; i < s - 1; i++) {
+            stream << v[i] << ',';
+        }
+        stream << v[s - 1];
+    }
+    stream << "}";
+    return stream;
 }
 
 #define __(var) #var <<':' << var
