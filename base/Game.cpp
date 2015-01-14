@@ -347,7 +347,6 @@ void Game::eventsHandler() {
         //LOGI("dont have the focus, dont treat inputs!");
         //return;
     //}
-    mouseNativeTouchState->_isMoving = false;
 
     while( SDL_PollEvent(&event) )
     {
@@ -476,7 +475,7 @@ void Game::loadFont(AssetAPI* asset, const char* name) {
     theTextSystem.registerFont(name, h2wratio);
 }
 
-void Game::changeResolution(int windowW, int windowH) {
+void Game::changeResolution(int /*windowW*/, int /*windowH*/) {
     if (camera) {
         TRANSFORM(camera)->size = PlacementHelper::ScreenSize;
     }

@@ -447,6 +447,8 @@ void Recorder::addFrame(GLubyte *ptr){
     ++this->frameCounter;
 }
 
+bool Recorder::isRecording() const { return recording; }
+
 #else
 void Recorder::init(glm::detail::tvec2<float, (glm::precision)0> const&, glm::detail::tvec2<float, (glm::precision)0> const&) {}
 void Recorder::stop() {}

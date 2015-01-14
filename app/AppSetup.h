@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-struct Game;
+class Game;
 
 struct SetupInfo {
     const char* name;
@@ -42,11 +42,11 @@ struct SetupInfo {
 };
 
 
-struct Game* buildGameInstance();
+class Game* buildGameInstance();
 
-int setupEngine(struct Game* game, const struct SetupInfo* info);
+int setupEngine(class Game* game, const struct SetupInfo* info);
 
-int tickEngine(struct Game* game);
+int tickEngine(class Game* game);
 
 #ifdef __cplusplus
 }

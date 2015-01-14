@@ -107,7 +107,7 @@ int KeyboardInputHandlerAPISDLImpl::eventSDL(const void* inEvent) {
     assert(SDL_GetKeyFromScancode(scancode) == key);
     #endif
 
-    std::map<SDL_Keycode, std::function<void ()> > *map;
+    std::map<SDL_Keycode, std::function<void ()> > *map = 0;
 
     KeyState::Enum newState = KeyState::Idle;
     if (event->type == SDL_KEYUP) {

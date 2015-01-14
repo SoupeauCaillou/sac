@@ -25,7 +25,7 @@
 
 #include <map>
 
-struct Game;
+class Game;
 
 struct GameHolder {
 

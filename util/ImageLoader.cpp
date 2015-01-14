@@ -29,6 +29,7 @@
 #include <stdlib.h>
 
 #if SAC_LINUX || SAC_ANDROID
+#include <arpa/inet.h>
 #include <endian.h>
 #elif SAC_DARWIN
 #include <machine/endian.h>
