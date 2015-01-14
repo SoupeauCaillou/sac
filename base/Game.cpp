@@ -359,15 +359,6 @@ void Game::eventsHandler() {
         levelEditor->unlock();
 #endif
 
-        if (event.type == SDL_WINDOWEVENT) {
-            //enable music only if we have the focus
-            if (event.window.event == SDL_WINDOWEVENT_ENTER) {
-                theMusicSystem.toggleMute(false);
-            } else if (event.window.event == SDL_WINDOWEVENT_LEAVE) {
-                theMusicSystem.toggleMute(true);
-            }
-        }
-
         //or try stringInputAPI
         if (!handled && wantsAPI(ContextAPI::StringInput)) {
             handled = gameThreadContext->stringInputAPI->eventSDL(&event);
