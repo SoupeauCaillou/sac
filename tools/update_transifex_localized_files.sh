@@ -49,7 +49,7 @@ source_lang = en'
     mv assets/strings/* $temp
 
     info "Pulling files..."
-    if ! tx pull -s -a 1>/dev/null; then
+    if ! tx pull -a -s -f; then
         mv $temp/* assets/strings
         error_and_quit "Your credidentials are wrong! File ~/.transifexrc should look like:
 [https://www.transifex.com]
