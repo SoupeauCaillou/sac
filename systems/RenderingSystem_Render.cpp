@@ -588,7 +588,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
 void RenderingSystem::waitDrawingComplete() {
 #if ! SAC_EMSCRIPTEN || BENCHMARK_MODE
     PROFILE("Renderer", "wait-drawing-donE", BeginEvent);
-    int waitOnQueue = currentWriteQueue;
+    LOG_USAGE_ONLY(int waitOnQueue = currentWriteQueue);
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
     while (newFrameReady && frameQueueWritable) {
         LOGV(2, "Wait for " << waitOnQueue << " to be emptied by rendering thread");

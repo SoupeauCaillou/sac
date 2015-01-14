@@ -181,7 +181,7 @@ std::string LocalizeAPITextImpl::text(const std::string& s) {
     #endif
 
     // otherwise find position in vector...
-    int pos = std::find(defaultTexts.begin(), defaultTexts.end(), s) - defaultTexts.begin();
+    unsigned pos = std::find(defaultTexts.begin(), defaultTexts.end(), s) - defaultTexts.begin();
     if (pos == defaultTexts.size()) {
         LOGE_EVERY_N(60, "'" << s << "' is not a valid localizable ID");
         return "INVALID-" + s + "-ID";

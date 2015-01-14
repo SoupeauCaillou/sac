@@ -331,7 +331,7 @@ void RenderingSystem::updateReload() {
     textureLibrary.updateReload();
 }
 
-void RenderingSystem::DoUpdate(float dt) {
+void RenderingSystem::DoUpdate(float LOG_USAGE_ONLY(dt)) {
     updateReload();
 
 #else

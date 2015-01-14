@@ -101,8 +101,8 @@ int KeyboardInputHandlerAPISDLImpl::eventSDL(const void* inEvent) {
         return 0;
 
     SDL_Keycode key = event->key.keysym.sym;
-    SDL_Scancode scancode = event->key.keysym.scancode;
     #if SAC_DEBUG
+    SDL_Scancode scancode = event->key.keysym.scancode;
     assert(SDL_GetScancodeFromKey(key) == scancode);
     assert(SDL_GetKeyFromScancode(scancode) == key);
     #endif

@@ -201,7 +201,7 @@ void EntityManager::validateEntity(Entity e) const {
 }
 #endif
 
-void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool fail) {
+void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool LOG_USAGE_ONLY(fail)) {
 #if SAC_DEBUG
     {
         const auto it = entityComponents[e];

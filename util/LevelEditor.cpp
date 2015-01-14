@@ -278,6 +278,13 @@ LevelEditor::~LevelEditor() {
     delete datas;
 }
 
+void LevelEditor::init(KeyboardInputHandlerAPI *k) {
+    kb = k;
+    ImGui::GetStyle().WindowRounding = 0;
+
+}
+
+#if 0
 static void DumpSystemEntities(void *clientData) {
     ComponentSystem* s = ComponentSystem::GetById(*((hash_t*) clientData));
 
@@ -287,12 +294,6 @@ static void DumpSystemEntities(void *clientData) {
         LOGW("   " << theEntityManager.entityName(e));
     });
     LOGW("##########################################################");
-}
-
-void LevelEditor::init(KeyboardInputHandlerAPI *k) {
-    kb = k;
-    ImGui::GetStyle().WindowRounding = 0;
-
 }
 
 static std::string displayGroup(Entity e) {
@@ -308,6 +309,7 @@ static std::string displayGroup(Entity e) {
 
     return name;
 }
+#endif
 
 static void imguiInputFilter() {
     ImVec2 pos, end;
@@ -724,7 +726,7 @@ void LevelEditor::tick(float dt) {
 
         // draw modifier axis at entity 0, if any
         if (modifier != Modifier::None) {
-        glm::vec2 axis;
+            glm::vec2 axis;
             switch (modifier) {
                 case Modifier::Global_X:
                     axis = glm::vec2(1.0f, 0.0f);
@@ -737,6 +739,9 @@ void LevelEditor::tick(float dt) {
                     break;
                 case Modifier::Local_Y:
                     axis = glm::rotate(glm::vec2(0.0f, 1.0f), TRANSFORM(selected[0])->rotation);
+                    break;
+                case Modifier::None:
+                    LOGF("Should not be here");
             }
 
             Draw::Vec2(HASH("__/mark", 0x683fdb7d),

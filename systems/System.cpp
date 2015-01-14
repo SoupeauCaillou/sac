@@ -201,6 +201,7 @@ namespace VarType {
     };
 }
 
+#if 0
 static std::string varLabel(const std::string& name, VarType::Enum t) {
     switch (t) {
         case VarType::NORMAL:
@@ -228,7 +229,6 @@ static std::string varParams(const std::string& group, const std::string& name, 
     return params.str();
 }
 
-#if 0
 static TwType PropertyTypeToType(PropertyType::Enum e) {
     switch (e) {
         case PropertyType::String:
@@ -361,10 +361,10 @@ bool ComponentSystem::saveEntityToFile(Entity e, FILE* file) {
                 break;
         }
     }
-
+    return true;
 }
 
-bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
+bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* /*bar*/) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
         return false;
@@ -385,8 +385,6 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
         }
 
         const std::string& vname = Murmur::lookup(prop->getId());
-        const bool itv = (prop->getAttribute() == PropertyAttribute::Interval);
-        VarType::Enum vt = itv ? VarType::INTERVAL_1 : VarType::NORMAL;
         switch (prop->getType()) {
             case PropertyType::String: {
                 std::string *s = (std::string*)(comp + prop->offset);

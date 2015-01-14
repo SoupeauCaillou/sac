@@ -77,10 +77,10 @@ int setupEngine(Game* game, const struct SetupInfo* info) {
 
     GameContext* ctx = setupGameContext(game);
 
-	theTouchInputManager.setNativeTouchStatePtr(new IOSTouchState());
+    theTouchInputManager.setNativeTouchStatePtr(new IOSTouchState());
     theRenderingSystem.assetAPI = ctx->assetAPI;
 
-	static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(info->name);
+    static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(info->name);
 
     if (game->wantsAPI(ContextAPI::Music)) {
         theMusicSystem.musicAPI = ctx->musicAPI;
@@ -110,10 +110,12 @@ int setupEngine(Game* game, const struct SetupInfo* info) {
 
     setlocale( LC_ALL, "" );
     setlocale( LC_NUMERIC, "C" );
+    return 0;
 }
 
 int tickEngine(Game* game) {
-	game->step();
+    game->step();
     game->render();
+    return 0;
 }
 #endif

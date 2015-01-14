@@ -31,13 +31,14 @@
 #include "Draw.h"
 #include "util/MurmurHash.h"
 
-static bool showGrid = false;
 
 DebugConsole & DebugConsole::Instance() {
     static DebugConsole _instance;
     return _instance;
 }
 
+#if 0
+static bool showGrid = false;
 static void setShowGridCallback(const void* value, void* ) {
     showGrid = *(static_cast<const bool*> (value));
 
@@ -68,6 +69,7 @@ static void setShowGridCallback(const void* value, void* ) {
 static void getShowGridCallback(void* value, void* ) {
     *(static_cast<bool*>(value)) = showGrid;
 }
+#endif
 
 void DebugConsole::initTW() {
     #if 0
