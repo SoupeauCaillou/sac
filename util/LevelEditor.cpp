@@ -414,7 +414,8 @@ void LevelEditor::tick(float dt) {
                     n << entityToName(e);
                     if (hovered) n << " *";
 
-                    if (ImGui::TreeNode((void*)e, "%s", n.str().c_str())) {
+                    intptr_t id = e;
+                    if (ImGui::TreeNode((void*)id, "%s", n.str().c_str())) {
                         highLight |= ImGui::IsHovered();
                         createTweakBarForEntity(e);
                         ImGui::TreePop();

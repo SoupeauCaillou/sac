@@ -85,9 +85,9 @@ int LocalizeAPITextImpl::init(AssetAPI* assetAPI, const char * defaultLang) {
     readTXTFile(assetAPI, defaultTexts, defaultLang);
 
     #if SAC_EMSCRIPTEN
-        LOGT("Still needed?
+        LOGT("Still needed?");
         // parsing values-fr crashes the app
-        return 0;");
+        return 0;
     #endif
 
     //then the user locale default, if different

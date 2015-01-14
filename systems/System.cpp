@@ -269,7 +269,7 @@ static int updateTextureList(hash_t h, int* count) {
         memset(&textures_list[texture_count], 0, sizeof(char*) * (*count - texture_count));
     texture_count = *count;
 
-    textures_list[0] = "N/A";
+    textures_list[0] = (char*)"N/A";
     int i = 1;
     for (auto p: ref) {
         const char* n = INV_HASH(p.ref);
@@ -433,7 +433,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* /*bar*/) {
             }
             case PropertyType::Hash: {
                 hash_t h = *(hash_t*)(comp + prop->offset);
-                ImGui::LabelText(vname.c_str(), (h != -1) ? (INV_HASH(h)) : "-");
+                ImGui::LabelText(vname.c_str(), (h != 0) ? (INV_HASH(h)) : "-");
                 break;
             }
             default:
