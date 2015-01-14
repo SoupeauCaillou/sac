@@ -1,3 +1,4 @@
+#if SAC_IOS
 #include "AppSetup.h"
 
 #include "base/Game.h"
@@ -115,3 +116,4 @@ int tickEngine(Game* game) {
 	game->step();
     game->render();
 }
+#endif
