@@ -46,9 +46,14 @@
     #define AL_OPERATION(x) (x);
 #endif
 
+static std::vector<ALuint> unusedSources;
+static std::vector<ALuint> unusedBuffers;
+
 struct OpenALOpaqueMusicPtr : public OpaqueMusicPtr {
     ALuint source;
     std::vector<ALuint> queuedBuffers;
+    std::vector<int> queuedSamples;
+    int samplesPlayed;
     #if SAC_EMSCRIPTEN
     float startTime;
     int sampleRate;
@@ -64,20 +69,50 @@ void MusicAPILinuxOpenALImpl::init() {
 
 OpaqueMusicPtr* MusicAPILinuxOpenALImpl::createPlayer(int) {
     OpenALOpaqueMusicPtr* result = new OpenALOpaqueMusicPtr();
-    // create source
-    AL_OPERATION(alGenSources(1, &result->source))
+    result->samplesPlayed = 0;
+
+    size_t s = unusedSources.size();
+    if (s == 0) {
+        // create source
+        AL_OPERATION(alGenSources(1, &result->source))
+    } else {
+        result->source = unusedSources[s - 1];
+        unusedSources.resize(s - 1);
+    }
     return result;
 }
 
 void MusicAPILinuxOpenALImpl::queueMusicData(OpaqueMusicPtr* ptr, const short* data, int count, int sampleRate) {
     OpenALOpaqueMusicPtr* openalptr = static_cast<OpenALOpaqueMusicPtr*> (ptr);
-    // create buffer
-    ALuint buffer;
-    AL_OPERATION(alGenBuffers(1, &buffer))
-    AL_OPERATION(alBufferData(buffer, AL_FORMAT_MONO16, data, count * 2, sampleRate))
 
+    /* remove processed buffers */
+    int done = 0;
+    AL_OPERATION(alGetSourcei(openalptr->source, AL_BUFFERS_PROCESSED, &done))
+    if (done > 0) {
+        AL_OPERATION(alSourceUnqueueBuffers(openalptr->source, done, &openalptr->queuedBuffers[0]))
+        unusedBuffers.insert(unusedBuffers.end(), openalptr->queuedBuffers.begin(), openalptr->queuedBuffers.begin() + done);
+        openalptr->queuedBuffers.erase(openalptr->queuedBuffers.begin(), openalptr->queuedBuffers.begin() + done);
+        for (int i=0; i<done; i++) {
+            openalptr->samplesPlayed += openalptr->queuedSamples[i];
+        }
+        openalptr->queuedSamples.erase(openalptr->queuedSamples.begin(), openalptr->queuedSamples.begin() + done);
+    }
+
+    /* reuse buffer if possible */
+    ALuint buffer;
+
+    if (!unusedBuffers.empty()) {
+        buffer = unusedBuffers[0];
+        unusedBuffers.erase(unusedBuffers.begin());
+    } else {
+        AL_OPERATION(alGenBuffers(1, &buffer))
+    }
+
+    // create buffer
+    AL_OPERATION(alBufferData(buffer, AL_FORMAT_MONO16, data, count * 2, sampleRate))
     AL_OPERATION(alSourceQueueBuffers(openalptr->source, 1, &buffer))
     openalptr->queuedBuffers.push_back(buffer);
+    openalptr->queuedSamples.push_back(count);
 
 #if SAC_EMSCRIPTEN
     openalptr->sampleRate = sampleRate;
@@ -117,6 +152,7 @@ int MusicAPILinuxOpenALImpl::getPosition(OpaqueMusicPtr* ptr) {
     return elapsed * openalptr->sampleRate;
     #else
     AL_OPERATION(alGetSourcei(openalptr->source, AL_SAMPLE_OFFSET, &pos))
+    pos += openalptr->samplesPlayed;
     #endif
     return pos;
 }
@@ -126,7 +162,7 @@ void MusicAPILinuxOpenALImpl::setPosition(OpaqueMusicPtr* ptr, int pos) {
     #if SAC_EMSCRIPTEN
     LOGT("AL_SAMPLE_OFFSET support missing in emscripten");
     #else
-    AL_OPERATION(alSourcei(openalptr->source, AL_SAMPLE_OFFSET, pos))
+    AL_OPERATION(alSourcei(openalptr->source, AL_SAMPLE_OFFSET, pos - openalptr->samplesPlayed))
     #endif
 }
 
@@ -149,10 +185,12 @@ void MusicAPILinuxOpenALImpl::deletePlayer(OpaqueMusicPtr* ptr) {
     // destroy buffers
     int count = (int)openalptr->queuedBuffers.size();
     AL_OPERATION(alSourceUnqueueBuffers(openalptr->source, count, &openalptr->queuedBuffers[0]))
+    unusedBuffers.insert(unusedBuffers.end(), openalptr->queuedBuffers.begin(), openalptr->queuedBuffers.end());
+    openalptr->queuedBuffers.clear();
     AL_OPERATION(alSourcei(openalptr->source, AL_BUFFER, 0))
-    AL_OPERATION(alDeleteBuffers(count, &openalptr->queuedBuffers[0]))
     // destroy source
-    AL_OPERATION(alDeleteSources(1, &openalptr->source))
+    unusedSources.push_back(openalptr->source);
+
     delete ptr;
 }
 
