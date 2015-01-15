@@ -19,7 +19,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-Game* buildGameInstance() {
+void* buildGameInstance() {
     return new GAME_CLASS(PROJECT_NAME) ();
 }
 #ifdef __cplusplus

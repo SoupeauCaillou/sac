@@ -322,6 +322,7 @@ if (INGAME_EDITOR STREQUAL "ON")
         GLOB imgui_files
         ${SAC_SOURCE_DIR}/libs/imgui/*.cpp
     )
+    set_source_files_properties(${SAC_SOURCE_DIR}/libs/imgui/imgui.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-function)
 endif()
 
 add_library(sac

@@ -27,7 +27,6 @@ SquareSpatialGrid::SquareSpatialGrid(int pW, int pH, float pSquareWidth) : w(pW)
         glm::vec2( size * (int)(-w*0.5f), size * (int)(-h*0.5f)));
 
     // varies on z (r) first
-    int qStart = firstCell.q;
     for (int z=0; z < h; z++) {
         // then, compute q
         for (int q=0; q<w; q++) {
@@ -341,14 +340,15 @@ std::vector<GridPos> SquareSpatialGrid::ringFinder(const GridPos& pos, int range
 
     // Start on the left side
     GridPos p;
-    for(int q=-range; q<range+1; ++q) { 
+    for(int q=-range; q<range+1; ++q) {
         for (int r=-range; r<range+1; ++r) {
             p = GridPos(pos.q+q, pos.r+r);
-            if (enableInvalidPos || isPosValid(p))
+            if (enableInvalidPos || isPosValid(p)) {
                 if(p != pos)
                     ring.push_back(p);
-            else
+            } else {
                 LOGI("Invalid position : '"<< p.q << "," << p.r << "'");
+            }
         }
     }
     return std::move(ring);

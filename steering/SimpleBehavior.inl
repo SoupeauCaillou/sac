@@ -77,7 +77,7 @@ void behavior(Entity e, float, SeekParams& param, Context* interest, Context* pr
 
 
 template<>
-void behavior(Entity e, float dt, FleeParams& param, Context* interest, Context* priority, Context* danger) {
+void behavior(Entity e, float /*dt*/, FleeParams& param, Context* interest, Context* priority, Context* /*danger*/) {
     if (param.target == 0)
         return;
 
