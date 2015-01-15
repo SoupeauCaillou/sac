@@ -26,17 +26,7 @@
 
 #if SAC_EMSCRIPTEN
 #include <emscripten.h>
-#else
-
-#if SAC_WINDOWS
-#include <Windows.h>
-#else
-//#include <libintl.h>
 #endif
-
-#endif
-
-
 
 #include <locale.h>
 #include "base/Log.h"
@@ -45,48 +35,7 @@
 #include <algorithm>
 #include <sstream>
 
-//return user locale (DE, EN, FR, etc.)
-static std::string getLocaleInfo() {
-    #if SAC_WINDOWS
-        WCHAR szISOLang[5] = {0};
-        WCHAR szISOCountry[5] = {0};
-
-        ::GetLocaleInfo(LOCALE_USER_DEFAULT,
-                        LOCALE_SISO639LANGNAME,
-                        (LPSTR)szISOLang,
-                        sizeof(szISOLang) / sizeof(WCHAR));
-
-        ::GetLocaleInfo(LOCALE_USER_DEFAULT,
-                        LOCALE_SISO3166CTRYNAME,
-                        (LPSTR)szISOCountry,
-                        sizeof(szISOCountry) / sizeof(WCHAR));
-
-        std::wstring ws(szISOCountry);
-
-        std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
-    #elif SAC_EMSCRIPTEN
-        std::string lang = emscripten_run_script_string( "navigator.language;" );
-        lang.resize(2);
-    #elif SAC_IOS
-        LOGT("[[NSLocale preferredLangagues] objectAtIndex:0]");
-        std::string lang = "en";
-    #elif SAC_ANDROID
-        LOGT("Findout user locale");
-        std::string lang = "en";
-    #else
-        std::string lang(getenv("LANG"));
-        //cut part after the '_' underscore
-        lang.resize(2);
-    #endif
-
-    //convert to lower case
-    transform(lang.begin(), lang.end(), lang.begin(), ::tolower);
-
-    LOGV(1, "Using locale: '" << lang << "'");
-    return lang;
-}
-
-int LocalizeAPITextImpl::init(AssetAPI* assetAPI, const char * defaultLang) {
+int LocalizeAPITextImpl::init(AssetAPI* assetAPI, const char * userLang, const char * defaultLang) {
     //first parse the English version
     readTXTFile(assetAPI, defaultTexts, defaultLang);
 
@@ -97,9 +46,8 @@ int LocalizeAPITextImpl::init(AssetAPI* assetAPI, const char * defaultLang) {
     #endif
 
     //then the user locale default, if different
-    std::string lang = getLocaleInfo();
-    if (lang != defaultLang) {
-        readTXTFile(assetAPI, userLanguageTexts, lang.c_str());
+    if (strcmp(userLang, defaultLang) != 0) {
+        readTXTFile(assetAPI, userLanguageTexts, userLang);
     }
     return 0;
 }

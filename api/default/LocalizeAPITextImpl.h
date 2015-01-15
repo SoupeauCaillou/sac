@@ -30,7 +30,7 @@ class AssetAPI;
 
 class LocalizeAPITextImpl : public LocalizeAPI {
     public:
-        int init(AssetAPI* assetAPI, const char * defaultLang = "en");
+        int init(AssetAPI* assetAPI, const char * userLang, const char * defaultLang = "en");
         std::string text(const std::string& s);
 
     private:
