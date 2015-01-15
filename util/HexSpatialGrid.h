@@ -35,10 +35,22 @@
 #include <vector>
 #include <ostream>
 
+/**
+ * Hexagonal grid object which can be used for any grid-based game.
+ *
+ * @details This object is completely space independent: you should be able
+ * to retrieve neighbors of a cell simply with cell[i+1] for instance.
+ * Space position MUST be handled with #GridPos object.
+ */
 class HexSpatialGrid: public SpatialGrid {
 
 public:
-    HexSpatialGrid(int pW, int pH, float hexagonWidth);
+    /**
+     * @param width number of cells on X-axis
+     * @param height number of cells on Y-axis
+     * @param hexagonWidth absolute space width of a cell (NB: this is the only parameter related to space problematic). See TransformationSystem for space management.
+     */
+    HexSpatialGrid(int width, int height, float hexagonWidth);
     ~HexSpatialGrid();
 
     virtual bool                    isPosValid(const GridPos& pos) const;
