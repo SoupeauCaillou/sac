@@ -95,14 +95,19 @@ if (SAC_CUSTOM_DEFINES)
 endif()
 
 #######################################################################
-####################Git hooks setup####################################
+######################### Working env setup(git hooks+editor config) ##
 #######################################################################
 # Prevent user to change spaces with tabs
 if (EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit.sample
     AND NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
-    message("Setting up git hook pre-commit in ${CMAKE_SOURCE_DIR}/.git/hooks/...")
+    message("Setting up git hook pre-commit in ${CMAKE_SOURCE_DIR}/.git/hooks/ ...")
     file(RENAME ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit.sample ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
     file(COPY ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit DESTINATION ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks/)
+endif()
+
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.editorconfig)
+    message("Setting up editor config in ${CMAKE_SOURCE_DIR}/ ...")
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/.editorconfig DESTINATION ${CMAKE_SOURCE_DIR}/)
 endif()
 
 #######################################################################
