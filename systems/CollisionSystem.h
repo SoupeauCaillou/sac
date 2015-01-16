@@ -34,15 +34,21 @@ struct TransformationComponent;
 struct CollisionComponent {
     CollisionComponent() :
         group(0), collideWith(0),
-        restorePositionOnCollision(false), isARay(false), rayTestDone(false), prevPositionIsValid(false),
+        restorePositionOnCollision(false), prevPositionIsValid(false),
         previousPosition(0.0f), previousRotation(0.0f),
-        ignore(0) { collision.count = 0; }
+        ignore(0) { collision.count = 0; ray.is = false; ray.testDone = false; ray.maxCollision = 1;}
     int group;
     int collideWith;
-    bool restorePositionOnCollision, isARay, rayTestDone, prevPositionIsValid;
+    bool restorePositionOnCollision, prevPositionIsValid;
 
     glm::vec2 previousPosition;
     float previousRotation;
+
+    struct {
+        bool is;
+        bool testDone;
+        int maxCollision;
+    } ray;
 
     struct {
         int count;

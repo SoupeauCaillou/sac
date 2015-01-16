@@ -72,6 +72,7 @@ message("Build target: " ${BUILD_TARGET})
 
 if (BUILD_TARGET STREQUAL "DEBUG")
     option(INGAME_EDITOR "Build with ingame-editor support" ON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-all")
 else()
     option(INGAME_EDITOR "Build with ingame-editor support" OFF)
 endif()

@@ -651,6 +651,7 @@ delta_time_computation:
             ImGui::NewFrame();
             // Always tick levelEditor (manages AntTweakBar stuff)
             levelEditor->tick(targetDT);
+            LevelEditor::unlock();
         }
 
         static float speedFactor = 1.0f;
@@ -668,7 +669,6 @@ delta_time_computation:
                 tick(targetDT * speedFactor);
         }
 
-        LevelEditor::unlock();
     #else
         LOGV(3, "Update game");
         Draw::Update();

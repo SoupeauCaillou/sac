@@ -221,7 +221,7 @@ void EntityTemplateLibrary::applyEntityTemplate(Entity e, const EntityTemplateRe
 
         #if SAC_LINUX && SAC_DESKTOP
         // if (reloading && !s->Get(e, false))
-        LOGT_EVERY_N(100, "Fix me");
+        LOGT_EVERY_N(1000, "Fix me");
         #endif
         theEntityManager.AddComponent(e, s, false);
         s->applyEntityTemplate(e, it.second, localizeAPI);
