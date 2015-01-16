@@ -657,7 +657,6 @@ delta_time_computation:
                 tick(targetDT * speedFactor);
         }
 
-        // LevelEditor::unlock();
     #else
         LOGV(3, "Update game");
         Draw::Update();

@@ -90,6 +90,7 @@ static void applyVec2Modifiers(const hash_t mod, glm::vec2* out, int count) {
 }
 
 static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
+    LOGI_IF(modifier, INV_HASH(modifier));
     for (int i=0; i<count; i++) {
         if (modifier == 0) {
             continue;
@@ -98,6 +99,7 @@ static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
             continue;
         } else if (modifier == HASH("screen_h", 0x14bde53f)) {
             out[i] *= PlacementHelper::ScreenSize.y;
+            LOGI(__(*out));
             continue;
         } else if (modifier == HASH("gimp_x", 0x56c07e3e)) {
             out[i] = PlacementHelper::GimpXToScreen(out[i]);
@@ -461,7 +463,7 @@ int ComponentFactory::build(
         LOGE(propertiesInFile << " declared in " << context << ".entity [" << INV_HASH(section) << "] and only " << loaded.size() << " actually loaded");
         LOGV(1, "Loaded:");
         for (auto& s: loaded) {
-            LOGV(1, "   '0x" << std::hex << INV_HASH(s) << "'" << std::dec);
+            LOGV(1, "   " << INV_HASH(s) << "'" << std::dec);
         }
         LOGV(1, "Missing:");
         for (unsigned i=0; i<propertiesInFile; ++i) {
