@@ -507,17 +507,17 @@ void Game::sacInit() {
 
 #if SAC_DESKTOP
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
-    io.KeyMap[ImGuiKey_Tab] = SDLK_ESCAPE;
-    io.KeyMap[ImGuiKey_LeftArrow] = SDLK_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = SDLK_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = SDLK_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = SDLK_DOWN;
-    io.KeyMap[ImGuiKey_Home] = SDLK_HOME;
-    io.KeyMap[ImGuiKey_End] = SDLK_END;
-    io.KeyMap[ImGuiKey_Delete] = SDLK_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
-    io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
-    io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
+    io.KeyMap[ImGuiKey_Tab] = ImGuiKey_Tab;
+    io.KeyMap[ImGuiKey_LeftArrow] = ImGuiKey_LeftArrow;
+    io.KeyMap[ImGuiKey_RightArrow] = ImGuiKey_RightArrow;
+    io.KeyMap[ImGuiKey_UpArrow] = ImGuiKey_UpArrow;
+    io.KeyMap[ImGuiKey_DownArrow] = ImGuiKey_DownArrow;
+    io.KeyMap[ImGuiKey_Home] = ImGuiKey_Home;
+    io.KeyMap[ImGuiKey_End] = ImGuiKey_End;
+    io.KeyMap[ImGuiKey_Delete] = ImGuiKey_Delete;
+    io.KeyMap[ImGuiKey_Backspace] = ImGuiKey_Backspace;
+    io.KeyMap[ImGuiKey_Enter] = ImGuiKey_Enter;
+    io.KeyMap[ImGuiKey_Escape] = ImGuiKey_Escape;
 
     // only in SDL2
     // io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;

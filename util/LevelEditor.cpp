@@ -356,11 +356,30 @@ void LevelEditor::tick(float dt) {
     while(!events.empty()) {
         const SDL_Event& event = events.front();
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-            // LShift is 1073742049...
-            if (event.key.keysym.sym < 512) {
-                io.KeysDown[event.key.keysym.sym] = (event.type == SDL_KEYDOWN);
+            bool down = (event.type == SDL_KEYDOWN);
+            switch (event.key.keysym.sym) {
+                case SDLK_TAB: io.KeysDown[ImGuiKey_Tab] = down; break;
+                case SDLK_LEFT: io.KeysDown[ImGuiKey_LeftArrow] = down; break;
+                case SDLK_RIGHT: io.KeysDown[ImGuiKey_RightArrow] = down; break;
+                case SDLK_UP: io.KeysDown[ImGuiKey_UpArrow] = down; break;
+                case SDLK_DOWN: io.KeysDown[ImGuiKey_DownArrow] = down; break;
+                case SDLK_END: io.KeysDown[ImGuiKey_End] = down; break;
+                case SDLK_DELETE: io.KeysDown[ImGuiKey_Delete] = down; break;
+                case SDLK_BACKSPACE: io.KeysDown[ImGuiKey_Backspace] = down; break;
+                case SDLK_RETURN: io.KeysDown[ImGuiKey_Enter] = down; break;
+                case SDLK_ESCAPE: io.KeysDown[ImGuiKey_Escape] = down; break;
+                default:
+                    if (event.key.keysym.sym < 255) {
+                        if (event.type == SDL_KEYDOWN && isalnum(event.key.keysym.sym))  {
+                            io.AddInputCharacter(event.key.keysym.sym);
+                        }
+                    }
+                    break;
             }
-        }
+        } /*else if (event.type == SDL_TEXTINPUT) {
+                    SDL_Scancode code = SDL_GetScancodeFromKey(event.key);
+                    io.AddInputCharacter(
+        }*/
         events.pop();
     }
 
