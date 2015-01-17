@@ -251,17 +251,17 @@ file(WRITE ${SCENE_REGISTRATION_FILE}
 #include <base/StateMachine.h>
 class ${PROJECT_NAME}Game;
 namespace Scene {
-\tenum Enum : int {
+    enum Enum : int {
 ")
 
 # Register scene in enum list
 foreach (SCENE ${SCENES})
-    file(APPEND ${SCENE_REGISTRATION_FILE} "\t\t${SCENE},\n")
+    file(APPEND ${SCENE_REGISTRATION_FILE} "        ${SCENE},\n")
 endforeach()
-file(APPEND ${SCENE_REGISTRATION_FILE} "\t};\n")
+file(APPEND ${SCENE_REGISTRATION_FILE} "    };\n")
 # Declare scene creator prototype
 foreach (SCENE ${SCENES})
-    file(APPEND ${SCENE_REGISTRATION_FILE} "\tStateHandler<Scene::Enum>* Create${SCENE}SceneHandler(${PROJECT_NAME}Game* game);\n")
+    file(APPEND ${SCENE_REGISTRATION_FILE} "    StateHandler<Scene::Enum>* Create${SCENE}SceneHandler(${PROJECT_NAME}Game* game);\n")
 endforeach()
 file(APPEND ${SCENE_REGISTRATION_FILE}
 "}
@@ -273,7 +273,7 @@ file(APPEND ${SCENE_REGISTRATION_FILE}
 foreach (SCENE ${SCENES})
     file(APPEND
         ${SCENE_REGISTRATION_FILE}
-        "\tmachine.registerState(Scene::${SCENE}, Scene::Create${SCENE}SceneHandler(game));\n"
+        "    machine.registerState(Scene::${SCENE}, Scene::Create${SCENE}SceneHandler(game));\n"
     )
 endforeach()
 file(APPEND ${SCENE_REGISTRATION_FILE} "}")
