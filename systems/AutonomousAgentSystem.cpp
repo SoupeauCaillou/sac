@@ -126,9 +126,6 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             }
         }
 
-        float max = 0;
-        float maxDiff = 0.0f;
-
         std::sort(potentialDirections.begin(), potentialDirections.end(), [&interest, &danger, rotation] (int direction1, int d2) -> bool {
             if (direction1 == d2)
                 return false;
@@ -175,7 +172,6 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             cancelVelocity = true;
         }
         if (cancelVelocity) {
-            float v = glm::length(PHYSICS(e)->linearVelocity);
             PHYSICS(e)->linearVelocity = glm::vec2(0.0f);
             #if 0
             Draw::Point(HASH("aa", 0x6e1cb412), TRANSFORM(e)->position, Color(1, 0, 0, 1));

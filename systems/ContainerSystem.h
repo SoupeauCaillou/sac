@@ -26,9 +26,9 @@
 
 
 struct ContainerComponent {
-	ContainerComponent() : enable(false), includeChildren(false) {}
-	bool enable, includeChildren;
-	std::vector<Entity> entities;
+        ContainerComponent() : enable(false), includeChildren(false) {}
+        bool enable, includeChildren;
+        std::vector<Entity> entities;
 };
 
 #define theContainerSystem ContainerSystem::GetInstance()

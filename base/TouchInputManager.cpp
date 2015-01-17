@@ -93,7 +93,6 @@ void TouchInputManager::Update() {
 
     for (unsigned i=0; i<pointers; i++) {
         wasTouching[i] = touching[i];
-        moving[i] = ptr->isMoving(i);
         touching[i] = ptr->isTouching(i, &coords);
         if (touching[i]) {
             // convert window coordinates -> world coords
@@ -201,8 +200,8 @@ glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const 
     return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
 }
 
-#if !ANDROID
-#include "app/MouseNativeTouchState.h"
+#if SAC_DESKTOP
+#include "api/sdl/MouseNativeTouchState.h"
 int TouchInputManager::getWheel() const {
     int& r = static_cast<MouseNativeTouchState*>(ptr)->wheel;
     //hum

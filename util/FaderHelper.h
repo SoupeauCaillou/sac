@@ -27,43 +27,43 @@
 #include <functional>
 
 namespace Fading {
-	enum Enum {
-		In,
-		Out,
-		OutIn
-	};
+        enum Enum {
+                In,
+                Out,
+                OutIn
+        };
 }
 
 class FaderHelper {
-	public:
-		FaderHelper();
+        public:
+                FaderHelper();
 
-		void init(Entity camera);
+                void init(Entity camera);
 
-		void registerFadingOutEntity(Entity e);
+                void registerFadingOutEntity(Entity e);
 
-		void registerFadingOutCallback(std::function<void ()> fdCb);
+                void registerFadingOutCallback(std::function<void ()> fdCb);
 
-		void registerFadingInEntity(Entity e);
+                void registerFadingInEntity(Entity e);
 
-		void registerFadingInCallback(std::function<void ()> fdCb);
+                void registerFadingInCallback(std::function<void ()> fdCb);
 
-		void start(Fading::Enum type, float duration);
+                void start(Fading::Enum type, float duration);
 
-		void clearFadingEntities();
+                void clearFadingEntities();
 
-		bool update(float dt);
+                bool update(float dt);
 
-		float getDuration() const { return duration; }
+                float getDuration() const { return duration; }
 
-	private:
-		Entity fadingEntity;
-		float duration;
-		float accum;
-		Fading::Enum type;
+        private:
+                Entity fadingEntity;
+                float duration;
+                float accum;
+                Fading::Enum type;
 
-		std::vector<Entity> fadingOut;
-		std::vector<Entity> fadingIn;
-		std::vector<std::function<void ()>> fadingOutCallbacks;
-		std::vector<std::function<void ()>> fadingInCallbacks;
+                std::vector<Entity> fadingOut;
+                std::vector<Entity> fadingIn;
+                std::vector<std::function<void ()>> fadingOutCallbacks;
+                std::vector<std::function<void ()>> fadingInCallbacks;
 };

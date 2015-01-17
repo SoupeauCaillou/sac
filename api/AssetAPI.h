@@ -46,7 +46,7 @@ class AssetAPI {
         //get the list of filenames in assets directory containing "extension" in their name
         virtual std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder = "") = 0;
 
-		virtual void createDirectory(const std::string& fullpath, int permission) = 0;
+                virtual void createDirectory(const std::string& fullpath, int permission) = 0;
         virtual bool doesExistFileOrDirectory(const std::string& fullpath) = 0;
         virtual void removeFileOrDirectory(const std::string& fullpath) = 0;
 

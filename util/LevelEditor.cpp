@@ -278,6 +278,13 @@ LevelEditor::~LevelEditor() {
     delete datas;
 }
 
+void LevelEditor::init(KeyboardInputHandlerAPI *k) {
+    kb = k;
+    ImGui::GetStyle().WindowRounding = 0;
+
+}
+
+#if 0
 static void DumpSystemEntities(void *clientData) {
     ComponentSystem* s = ComponentSystem::GetById(*((hash_t*) clientData));
 
@@ -287,12 +294,6 @@ static void DumpSystemEntities(void *clientData) {
         LOGW("   " << theEntityManager.entityName(e));
     });
     LOGW("##########################################################");
-}
-
-void LevelEditor::init(KeyboardInputHandlerAPI *k) {
-    kb = k;
-    ImGui::GetStyle().WindowRounding = 0;
-
 }
 
 static std::string displayGroup(Entity e) {
@@ -308,20 +309,7 @@ static std::string displayGroup(Entity e) {
 
     return name;
 }
-
-static void imguiInputFilter() {
-    ImVec2 pos, end;
-    pos = end = ImGui::GetWindowPos();
-    ImVec2 size = ImGui::GetWindowSize();
-    end.x += size.x;
-    end.y += size.y;
-    if (ImGui::IsMouseHoveringBox(
-        ImGui::GetWindowPos(),
-        end)) {
-        // force no click state
-        theTouchInputManager.resetState();
-    }
-}
+#endif
 
 namespace Tool {
     enum Enum {
@@ -354,11 +342,30 @@ void LevelEditor::tick(float dt) {
     while(!events.empty()) {
         const SDL_Event& event = events.front();
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-            // LShift is 1073742049...
-            if (event.key.keysym.sym < 512) {
-                io.KeysDown[event.key.keysym.sym] = (event.type == SDL_KEYDOWN);
+            bool down = (event.type == SDL_KEYDOWN);
+            switch (event.key.keysym.sym) {
+                case SDLK_TAB: io.KeysDown[ImGuiKey_Tab] = down; break;
+                case SDLK_LEFT: io.KeysDown[ImGuiKey_LeftArrow] = down; break;
+                case SDLK_RIGHT: io.KeysDown[ImGuiKey_RightArrow] = down; break;
+                case SDLK_UP: io.KeysDown[ImGuiKey_UpArrow] = down; break;
+                case SDLK_DOWN: io.KeysDown[ImGuiKey_DownArrow] = down; break;
+                case SDLK_END: io.KeysDown[ImGuiKey_End] = down; break;
+                case SDLK_DELETE: io.KeysDown[ImGuiKey_Delete] = down; break;
+                case SDLK_BACKSPACE: io.KeysDown[ImGuiKey_Backspace] = down; break;
+                case SDLK_RETURN: io.KeysDown[ImGuiKey_Enter] = down; break;
+                case SDLK_ESCAPE: io.KeysDown[ImGuiKey_Escape] = down; break;
+                default:
+                    if (event.key.keysym.sym < 255) {
+                        if (event.type == SDL_KEYDOWN && isalnum(event.key.keysym.sym))  {
+                            io.AddInputCharacter(event.key.keysym.sym);
+                        }
+                    }
+                    break;
             }
-        }
+        } /*else if (event.type == SDL_TEXTINPUT) {
+                    SDL_Scancode code = SDL_GetScancodeFromKey(event.key);
+                    io.AddInputCharacter(
+        }*/
         events.pop();
     }
 
@@ -412,7 +419,8 @@ void LevelEditor::tick(float dt) {
                     n << entityToName(e);
                     if (hovered) n << " *";
 
-                    if (ImGui::TreeNode((void*)e, "%s", n.str().c_str())) {
+                    intptr_t id = e;
+                    if (ImGui::TreeNode((void*)id, "%s", n.str().c_str())) {
                         highLight |= ImGui::IsHovered();
                         createTweakBarForEntity(e);
                         ImGui::TreePop();
@@ -441,7 +449,6 @@ void LevelEditor::tick(float dt) {
 
         }
 
-        imguiInputFilter();
         ImGui::End();
     }
 
@@ -724,7 +731,7 @@ void LevelEditor::tick(float dt) {
 
         // draw modifier axis at entity 0, if any
         if (modifier != Modifier::None) {
-        glm::vec2 axis;
+            glm::vec2 axis;
             switch (modifier) {
                 case Modifier::Global_X:
                     axis = glm::vec2(1.0f, 0.0f);
@@ -737,6 +744,9 @@ void LevelEditor::tick(float dt) {
                     break;
                 case Modifier::Local_Y:
                     axis = glm::rotate(glm::vec2(0.0f, 1.0f), TRANSFORM(selected[0])->rotation);
+                    break;
+                case Modifier::None:
+                    LOGF("Should not be here");
             }
 
             Draw::Vec2(HASH("__/mark", 0x683fdb7d),
@@ -816,15 +826,19 @@ void LevelEditor::tick(float dt) {
         ImGui::Checkbox("Mark runtime opaque", &theRenderingSystem.highLight.runtimeOpaque);
         ImGui::Checkbox("Mark z prepass", &theRenderingSystem.highLight.zPrePass);
     }
+#if !DISABLE_COLLISION_SYSTEM
     /* Collision debug tools */
     if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
         ImGui::SliderInt("Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 10000);
     }
+#endif
+#if !DISABLE_ZSQD_SYSTEM
     /* ZSQD debug tools */
     if (ImGui::CollapsingHeader("ZSQD", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theZSQDSystem.showDebug);
     }
+#endif
 
     if (gridVisible) {
         Entity camera = theCameraSystem.RetrieveAllEntityWithComponent()[0];
@@ -966,8 +980,6 @@ void LevelEditor::tick(float dt) {
         if (datas->currentBackFrame == old) playback = 0;
     }
 
-    imguiInputFilter();
-    LOGT_EVERY_N(500, "Use WantCaptureMouse instead");
     ImGui::End();
 
     ImGui::Begin("Graphs", NULL, ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, DebugAreaHeight), -1.0f,
@@ -987,8 +999,12 @@ void LevelEditor::tick(float dt) {
         ImGui::PlotLines("FPS", &fps[0], fps.size(), 0, NULL, FLT_MIN, FLT_MAX, ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
     }
 
-    imguiInputFilter();
     ImGui::End();
+
+    if (ImGui::GetIO().WantCaptureMouse) {
+        // force no click state
+        theTouchInputManager.resetState();
+    }
 }
 
 static void markEntities(Entity* begin, int count, Color color) {

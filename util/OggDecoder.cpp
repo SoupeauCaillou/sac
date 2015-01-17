@@ -31,7 +31,6 @@
 #pragma GCC diagnostic ignored "-Wunused-value"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wtautological-compare"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #define STB_VORBIS_NO_PUSHDATA_API 1
 #include "libs/stb/stb_vorbis.c"

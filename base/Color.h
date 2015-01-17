@@ -32,22 +32,22 @@
 
 struct Color {
     public:
-	PRAGMA_WARNING(warning(disable: 4201))
-	union {
-		struct {
-			float rgba[4];
-		};
-		struct {
-			float r, g, b, a;
-		};
-	};
+        PRAGMA_WARNING(warning(disable: 4201))
+        union {
+                struct {
+                        float rgba[4];
+                };
+                struct {
+                        float r, g, b, a;
+                };
+        };
 
- 	static Color random();
-	static void nameColor(const Color& c, const std::string& name);
+        static Color random();
+        static void nameColor(const Color& c, const std::string& name);
 
-	Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0);
+        Color(float _r=1.0, float _g=1.0, float _b=1.0, float _a=1.0);
     Color(float* rgba, uint32_t mask);
-	Color(const std::string& name);
+        Color(const std::string& name);
 
     Color operator*(float s) const;
     Color operator+(const Color& c) const;

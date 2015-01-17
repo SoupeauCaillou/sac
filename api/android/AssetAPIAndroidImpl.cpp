@@ -36,18 +36,18 @@ static uint8_t* loadAssetFromJava(JNIEnv *env, const std::string& assetName, int
     jstring asset = env->NewStringUTF(assetName.c_str());
     jobject _a = env->CallObjectMethod(instance, mid, asset);
 
-	if (_a) {
-		jbyteArray a = (jbyteArray)_a;
-		*length = env->GetArrayLength(a);
-		jbyte* res = new jbyte[*length + 1];
-		env->GetByteArrayRegion(a, 0, *length, res);
-		res[*length] = '\0';
+        if (_a) {
+                jbyteArray a = (jbyteArray)_a;
+                *length = env->GetArrayLength(a);
+                jbyte* res = new jbyte[*length + 1];
+                env->GetByteArrayRegion(a, 0, *length, res);
+                res[*length] = '\0';
         LOGV(1, "Loaded asset '" << assetName << "' -> size=" << *length);
-		return (uint8_t*)res;
-	} else {
-		LOGW("failed to load '" << assetName << "'");
-		return 0;
-	}
+                return (uint8_t*)res;
+        } else {
+                LOGW("failed to load '" << assetName << "'");
+                return 0;
+        }
 }
 
 FileBuffer AssetAPIAndroidImpl::loadAsset(const std::string& asset) {

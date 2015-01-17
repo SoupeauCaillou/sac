@@ -38,9 +38,9 @@ struct GraphComponent {
 
     std::list<std::pair<float, float> > pointsList;
 
-	std::string textureName;
+        std::string textureName;
 
-	float lineWidth; // between ]0:1] (percent) if 0 -> 1 pixel
+        float lineWidth; // between ]0:1] (percent) if 0 -> 1 pixel
 
     float maxY, maxX, minY, minX;
 

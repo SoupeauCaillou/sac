@@ -128,6 +128,8 @@ void AnimationSystem::loadAnim(AssetAPI* assetAPI, const std::string& name, cons
             delete desc;
         }
     } else {
+        if (!file.data)
+            return;
         LOGE("Empty animation file: " << filename << ".anim");
         delete desc;
     }

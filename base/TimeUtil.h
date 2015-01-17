@@ -24,7 +24,7 @@
 
 #if SAC_LINUX || SAC_ANDROID
 #include <time.h>
-#elif SAC_DARWIN || SAC_EMSCRIPTEN
+#elif SAC_DARWIN || SAC_EMSCRIPTEN || SAC_IOS
 #include <sys/time.h>
 #elif SAC_WINDOWS
  #include <Windows.h>
@@ -32,16 +32,16 @@
 
 class TimeUtil
 {
-	public:
-		static void Init();
-		static float GetTime();
+        public:
+                static void Init();
+                static float GetTime();
         static void Wait(float waitInSeconds);
 
-	private:
+        private:
 
 #if SAC_LINUX || SAC_ANDROID
         static struct timespec startup_time;
-#elif SAC_EMSCRIPTEN || SAC_DARWIN
+#elif SAC_EMSCRIPTEN || SAC_DARWIN || SAC_IOS
         static struct timeval startup_time;
 #elif SAC_WINDOWS
         static __int64 startup_time;

@@ -211,7 +211,7 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
         float p[8];
 
         int count = dfp.get(section, id, p, 8, false);
-
+        int ret = 0;
         switch (count) {
             case 8: {
                 Interval<Color> itv(Color(&p[0], 0xffffffff), Color(&p[4], 0xffffffff));
@@ -220,16 +220,26 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
                     case IntervalValue1: *out = itv.t1; break;
                     case IntervalValue2: *out = itv.t2; break;
                 }
-                return 1;
+                ret = 1;
+                break;
             }
             case 4:
             case 3: {
                 *out = Color(&p[0], 0xffffffff);
                 if (count == 3)
                     out->a = 1;
-                return 1;
+                ret = 1;
+                break;
+            }
+            default: break;
+        }
+        if (ret && dfp.getModifier(section, id) == HASH("rgb", 0x9482beff)) {
+            for (int i=0; i<4 && i < count; i++) {
+                out->rgba[i] /= 255.0;
             }
         }
+        if (ret)
+            return 1;
     }
 
     {

@@ -30,7 +30,7 @@
 class AssetAPI;
 
 class StorageAPI {
-	public:
+        public:
         virtual void init(AssetAPI * assetAPI, const std::string & databaseName) = 0;
 
         virtual void setOption(const std::string & name, const std::string & valueIfExisting, const std::string & valueIfNotExisting) = 0;

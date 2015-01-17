@@ -229,7 +229,7 @@ class ComponentSystemImpl: public ComponentSystem {
                 LOGV(1, #type << "System instance destroyed was: " <<  _instance);\
                 _instance = NULL;\
             } \
-            void DoUpdate(float dt); \
+            void DoUpdate(float dt) override; \
             \
             type##System(); \
         private:    \

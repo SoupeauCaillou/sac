@@ -32,7 +32,7 @@ namespace jni_exit_api {
 }
 
 class ExitAPIAndroidImpl : public ExitAPI, public JNIWrapper<jni_exit_api::Enum> {
-	public:
-		ExitAPIAndroidImpl();
-		void exitGame();
+        public:
+                ExitAPIAndroidImpl();
+                void exitGame();
 };

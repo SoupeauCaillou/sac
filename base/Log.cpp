@@ -58,7 +58,7 @@ void writeLastLogs() {
 
 class NullStream : public std::ostream {
 public:
-	NullStream(std::basic_streambuf<char, std::char_traits<char>> *t = 0) : std::ostream(t) {}
+        NullStream(std::basic_streambuf<char, std::char_traits<char>> *t = 0) : std::ostream(t) {}
 
     template<class T>
     std::ostream& operator<<(const T& ) {
@@ -69,11 +69,11 @@ NullStream slashDevslashNull;
 
 static const char* enumNames[] ={
     //5 chars length for all
-	" F ",
-	" E ",
+        " F ",
+        " E ",
     " T ",
     " W ",
-	" I ",
+        " I ",
     " V1",
     " V2",
     " V3",
@@ -85,11 +85,11 @@ static const char* keepOnlyFilename(const char* fullPath) {
     #define SIZE 28
     static char filename[SIZE];
 
-	const char* result = fullPath;
-	const char* ptr = fullPath;
-	while (*ptr++ != '\0') {
-		if (*ptr == '\\' || *ptr == '/') result = ptr + 1;
-	}
+        const char* result = fullPath;
+        const char* ptr = fullPath;
+        while (*ptr++ != '\0') {
+                if (*ptr == '\\' || *ptr == '/') result = ptr + 1;
+        }
 
     int length = strlen(result);
     memset(filename, ' ', SIZE - 1);
@@ -101,7 +101,7 @@ static const char* keepOnlyFilename(const char* fullPath) {
 }
 
 static const char* enum2Name(LogVerbosity::Enum t) {
-	return enumNames[(int)t];
+        return enumNames[(int)t];
 }
 
 #if SAC_DESKTOP && SAC_LINUX
@@ -199,7 +199,7 @@ std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const c
         << std::fixed << std::setprecision(4)
         << TimeUtil::GetTime() << ' '
         << keepOnlyFilename(file) << ':' << line << ' ';
-	return stream;
+        return stream;
 }
 
 std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line) {
@@ -209,8 +209,8 @@ std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, in
         verboseFilenameFilters.insert(std::make_pair(trimmed, true));
     else if (!it->second)
         return slashDevslashNull;
-	stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";
-	return stream;
+        stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";
+        return stream;
 }
 
 #endif

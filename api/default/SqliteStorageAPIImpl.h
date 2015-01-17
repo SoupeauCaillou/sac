@@ -31,7 +31,7 @@ class AssetAPI;
 #include "util/StorageProxy.h"
 
 class SqliteStorageAPIImpl : public StorageAPI {
-	public:
+        public:
         SqliteStorageAPIImpl() : initialized(false) {}
 
         void init(AssetAPI * assetAPI, const std::string & databaseName);

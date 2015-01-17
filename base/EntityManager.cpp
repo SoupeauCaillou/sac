@@ -25,7 +25,7 @@
 #include <cstring>
 #include "base/Log.h"
 
-#if SAC_ANDROID || SAC_WINDOWS || SAC_DARWIN
+#if SAC_ANDROID || SAC_WINDOWS || SAC_DARWIN || SAC_IOS
 static void* mempcpy(void* dst, const void* src, size_t size)
 #if SAC_ANDROID
 throw()
@@ -201,7 +201,7 @@ void EntityManager::validateEntity(Entity e) const {
 }
 #endif
 
-void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool fail) {
+void EntityManager::AddComponent(Entity e, ComponentSystem* system, bool LOG_USAGE_ONLY(fail)) {
 #if SAC_DEBUG
     {
         const auto it = entityComponents[e];

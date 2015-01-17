@@ -26,7 +26,7 @@
 #include <iostream>
 
 StringInputAPIAndroidImpl::StringInputAPIAndroidImpl() : JNIWrapper<jni_name_api::Enum>("net/damsy/soupeaucaillou/api/StringInputAPI", true) {
-	declareMethod(jni_name_api::AskUserInput, "showPlayerKeyboardUI", "()V");
+        declareMethod(jni_name_api::AskUserInput, "showPlayerKeyboardUI", "()V");
     declareMethod(jni_name_api::Done, "askUserInput", "()Ljava/lang/String;");
     declareMethod(jni_name_api::CancelUserInput, "closePlayerKeyboardUI", "()V");
     declareMethod(jni_name_api::SetNamesList, "setNamesList", "([Ljava/lang/String;)V");

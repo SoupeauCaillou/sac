@@ -16,10 +16,15 @@
 #include INCLUDE_NAME()
 
 #if SAC_DESKTOP || SAC_MOBILE
-Game* buildGameInstance() {
+#ifdef __cplusplus
+extern "C" {
+#endif
+void* buildGameInstance() {
     return new GAME_CLASS(PROJECT_NAME) ();
 }
-
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 #if SAC_DESKTOP
@@ -29,20 +34,14 @@ Game* buildGameInstance() {
 
 /* Entry Point */
 int main(int argc, char** argv) {
-    std::string versionName = "";
-    #if SAC_DEBUG
-        versionName = "";//versionName + " / " + TAG_NAME + " - " + VERSION_NAME;
-    #endif
 
-    if (initGame(XSTR(PROJECT_NAME), versionName)) {
-        LOGE("Failed to initialize");
-        return 1;
-    }
+    SetupInfo info;
+    info.name = XSTR(PROJECT_NAME);
+    info.arg.c = argc;
+    info.arg.v = argv;
 
-    return launchGame(
-        new GAME_CLASS(PROJECT_NAME) (),
-        argc,
-        argv);
+    auto* game = buildGameInstance();
+    setupEngine(game, &info);
 }
 #endif
 

@@ -20,8 +20,11 @@
 
 #pragma once
 
-#define EndFrameMarker -10
-#define BeginFrameMarker -12
+// Warning, these Marker are used instead of texture in the RenderCommand struct
+// For now let's just hope that we'll never have hash_t of a texture equal to
+// 1 or 2...
+#define EndFrameMarker   1
+#define BeginFrameMarker 2
 
 // Possible flags
 #define ZPrePassFlagSet       0x1

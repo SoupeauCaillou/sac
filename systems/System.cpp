@@ -201,6 +201,7 @@ namespace VarType {
     };
 }
 
+#if 0
 static std::string varLabel(const std::string& name, VarType::Enum t) {
     switch (t) {
         case VarType::NORMAL:
@@ -228,7 +229,6 @@ static std::string varParams(const std::string& group, const std::string& name, 
     return params.str();
 }
 
-#if 0
 static TwType PropertyTypeToType(PropertyType::Enum e) {
     switch (e) {
         case PropertyType::String:
@@ -269,7 +269,7 @@ static int updateTextureList(hash_t h, int* count) {
         memset(&textures_list[texture_count], 0, sizeof(char*) * (*count - texture_count));
     texture_count = *count;
 
-    textures_list[0] = "N/A";
+    textures_list[0] = (char*)"N/A";
     int i = 1;
     for (auto p: ref) {
         const char* n = INV_HASH(p.ref);
@@ -361,10 +361,10 @@ bool ComponentSystem::saveEntityToFile(Entity e, FILE* file) {
                 break;
         }
     }
-
+    return true;
 }
 
-bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
+bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* /*bar*/) {
     uint8_t* comp = static_cast<uint8_t*> (componentAsVoidPtr(e));
     if (!comp)
         return false;
@@ -385,8 +385,6 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
         }
 
         const std::string& vname = Murmur::lookup(prop->getId());
-        const bool itv = (prop->getAttribute() == PropertyAttribute::Interval);
-        VarType::Enum vt = itv ? VarType::INTERVAL_1 : VarType::NORMAL;
         switch (prop->getType()) {
             case PropertyType::String: {
                 std::string *s = (std::string*)(comp + prop->offset);
@@ -435,7 +433,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* bar) {
             }
             case PropertyType::Hash: {
                 hash_t h = *(hash_t*)(comp + prop->offset);
-                ImGui::LabelText(vname.c_str(), (h != -1) ? (INV_HASH(h)) : "-");
+                ImGui::LabelText(vname.c_str(), (h != 0) ? (INV_HASH(h)) : "-");
                 break;
             }
             default:

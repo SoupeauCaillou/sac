@@ -24,6 +24,6 @@
 #include <cstdlib>
 
 void ExitAPILinuxImpl::exitGame() {
-	exit(0);
+        exit(0);
 }
 

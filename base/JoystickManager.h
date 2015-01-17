@@ -27,54 +27,54 @@
 #define theJoystickManager (*JoystickManager::Instance())
 
 namespace JoystickButton {
-	enum Enum {
-		GREEN = 0,
-		RED,
-		BLUE,
-		YELLOW,
-		LB,
-		RB,
-		BACK,
-		START,
-		XBOX,
-		LEFTCLICK,
-		RIGHTCLICK,
-		TOTAL
-	};
+        enum Enum {
+                GREEN = 0,
+                RED,
+                BLUE,
+                YELLOW,
+                LB,
+                RB,
+                BACK,
+                START,
+                XBOX,
+                LEFTCLICK,
+                RIGHTCLICK,
+                TOTAL
+        };
 }
 
 namespace JoystickPad {
-	enum Enum {
-		LEFT = 0,
-		RIGHT,
-		TOTAL,
-	};
+        enum Enum {
+                LEFT = 0,
+                RIGHT,
+                TOTAL,
+        };
 }
 
 struct JoystickState {
-	bool clicked[JoystickButton::TOTAL];
-	bool doubleclicked[JoystickButton::TOTAL];
-	float lastClickTime[JoystickButton::TOTAL];
+        bool clicked[JoystickButton::TOTAL];
+        bool doubleclicked[JoystickButton::TOTAL];
+        float lastClickTime[JoystickButton::TOTAL];
 
-	glm::vec2 lastDirection[JoystickPad::TOTAL];
+        glm::vec2 lastDirection[JoystickPad::TOTAL];
 
-	JoystickState() {
-		for (unsigned b = 0; b < JoystickButton::TOTAL; ++b) {
-			clicked[b] = doubleclicked[b] = false;
-			lastClickTime[b] = 0;
-		}
-	}
+        JoystickState() {
+                for (unsigned b = 0; b < JoystickButton::TOTAL; ++b) {
+                        clicked[b] = doubleclicked[b] = false;
+                        lastClickTime[b] = 0;
+                }
+        }
 
-	void* joystickPtr;
+        void* joystickPtr;
 };
 
 class JoystickManager {
-	private:
-		static JoystickManager* instance;
-	public:
-		static JoystickManager* Instance();
-		static void DestroyInstance();
-		
+        private:
+                static JoystickManager* instance;
+        public:
+                static JoystickManager* Instance();
+                static void DestroyInstance();
+                
         bool hasClicked(int idx, JoystickButton::Enum btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].clicked[btn]; }
 
         bool hasDoubleClicked(int idx, JoystickButton::Enum btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].doubleclicked[btn]; }
@@ -90,10 +90,10 @@ class JoystickManager {
             }
         }
 
-		void Update();
+                void Update();
 
-		int eventSDL(void* event);
-	private:
-		std::vector<JoystickState> joysticks;
+                int eventSDL(void* event);
+        private:
+                std::vector<JoystickState> joysticks;
 };
 #endif

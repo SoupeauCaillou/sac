@@ -36,8 +36,8 @@ namespace jni_asset_api {
 }
 
 class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::Enum> {
-	public:
-		AssetAPIAndroidImpl();
+        public:
+                AssetAPIAndroidImpl();
 
 
         FileBuffer loadAsset(const std::string& asset);

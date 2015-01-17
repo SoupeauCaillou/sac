@@ -42,7 +42,7 @@ struct DataFileParser::DataFileParserData {
         }
         sections.clear();
     }
-    bool selectSectionByName(hash_t name, const Section** sectPtr, bool warnIfNotFound = true) const {
+    bool selectSectionByName(hash_t name, const Section** sectPtr, bool LOG_USAGE_ONLY(warnIfNotFound) = true) const {
         if (name == GlobalSection) {
             *sectPtr = &global;
         } else {
@@ -56,7 +56,7 @@ struct DataFileParser::DataFileParserData {
         return true;
     }
 
-    bool selectSectionByName(hash_t name, Section** sectPtr, bool warnIfNotFound = true) {
+    bool selectSectionByName(hash_t name, Section** sectPtr, bool LOG_USAGE_ONLY(warnIfNotFound) = true) {
         if (name == GlobalSection) {
             *sectPtr = &global;
         } else {

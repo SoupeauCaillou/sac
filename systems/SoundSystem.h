@@ -36,9 +36,9 @@ typedef int SoundRef;
 #define InvalidSoundRef -1
 
 struct SoundComponent {
-	SoundComponent() : sound(InvalidSoundRef), volume(1) { }
-	SoundRef sound;
-	float volume;
+        SoundComponent() : sound(InvalidSoundRef), volume(1) { }
+        SoundRef sound;
+        float volume;
 };
 
 #define theSoundSystem SoundSystem::GetInstance()

@@ -19,8 +19,12 @@
 */
 
 #define STB_IMAGE_IMPLEMENTATION
+#pragma GCC diagnostic push
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wparentheses-equality"
+#endif
 #include "stb_image.h"
-
+#pragma GCC diagnostic pop
 
 #include "ImageLoader.h"
 #include "../api/AssetAPI.h"
@@ -29,7 +33,10 @@
 #include <stdlib.h>
 
 #if SAC_LINUX || SAC_ANDROID
+#include <arpa/inet.h>
 #include <endian.h>
+#elif SAC_DARWIN
+#include <machine/endian.h>
 #endif
 
 #if SAC_DESKTOP
@@ -37,8 +44,8 @@
 #endif
 
 struct FileBufferOffset {
-	FileBuffer file;
-	int offset;
+        FileBuffer file;
+        int offset;
 };
 ImageDesc ImageLoader::loadPng(const std::string& filepath, const FileBuffer& ) {
     ImageDesc result;
@@ -61,11 +68,7 @@ ImageDesc ImageLoader::loadPng(const std::string& filepath, const FileBuffer& ) 
 }
 
 ImageDesc ImageLoader::loadEtc1(const std::string& LOG_USAGE_ONLY(context), const FileBuffer& file, bool etc1supported) {
-#if SAC_ANDROID
-    #define BE_16_TO_H betoh16
-#else
-    #define BE_16_TO_H be16toh
-#endif
+    #define BE_16_TO_H htons
 
     ImageDesc result;
     result.datas = 0;
@@ -132,9 +135,9 @@ ImageDesc ImageLoader::loadEtc1(const std::string& LOG_USAGE_ONLY(context), cons
 }
 
 ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
-	ImageDesc result;
-	result.datas = 0;
-	struct PVRTexHeader {
+        ImageDesc result;
+        result.datas = 0;
+        struct PVRTexHeader {
     uint32_t dwHeaderSize;
     uint32_t height;
     uint32_t width;
@@ -149,17 +152,17 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
     uint32_t dwPVR;
     uint32_t dwNumSurfs;
 };
-	PVRTexHeader* header = (PVRTexHeader*)&file.data[0];
+        PVRTexHeader* header = (PVRTexHeader*)&file.data[0];
 
-	result.width = header->width;
-	result.height = header->height;
+        result.width = header->width;
+        result.height = header->height;
     result.mipmap = header->dwMipMapCount;
     result.channels = 3;
     result.type = ImageDesc::PVR;
-	int size = file.size - sizeof(PVRTexHeader);
-	result.datas = new char[size];
-	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
-	return result;
+        int size = file.size - sizeof(PVRTexHeader);
+        result.datas = new char[size];
+        memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
+        return result;
 }
 
 ImageDesc ImageLoader::loadDDS(const std::string& /*context*/, const FileBuffer& file) {

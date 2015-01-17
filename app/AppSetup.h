@@ -22,11 +22,31 @@
 
 #pragma once
 
-#include <string>
-#include <glm/glm.hpp>
-class Game;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// SETUP WINDOW, GL, stuff
-int initGame(const std::string& title, const std::string& gameVersion);
-// START GAME
-int launchGame(Game* gameImpl, int argc, char** argv);
+
+struct SetupInfo {
+    const char* name;
+    const char* version;
+    struct { float x, y; } resolution;
+
+#if SAC_DESKTOP
+    struct {
+        int c;
+        char** v;
+    } arg;
+#endif
+};
+
+
+void* buildGameInstance();
+
+int setupEngine(void* game, const struct SetupInfo* info);
+
+int tickEngine(void* game);
+
+#ifdef __cplusplus
+}
+#endif

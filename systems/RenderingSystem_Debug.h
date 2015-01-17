@@ -16,18 +16,17 @@ namespace BatchFlushReason {
 struct BatchFlushInfo {
     BatchFlushInfo(const BatchFlushReason::Enum e) : reason(e) {}
     BatchFlushInfo(const BatchFlushReason::Enum e, unsigned f) : reason(e), newFlags(f) {}
-    BatchFlushInfo(const BatchFlushReason::Enum e, TextureRef r) : reason(e), newTexture(r) {}
     BatchFlushInfo(const BatchFlushReason::Enum e, const Color& r) : reason(e), newColor(r) {}
 
     BatchFlushReason::Enum reason;
 #if ! SAC_WINDOWS
-	union {
+        union {
 #endif
-		unsigned newFlags;
-		TextureRef newTexture;
-		Color newColor;
+                unsigned newFlags;
+                TextureRef newTexture;
+                Color newColor;
 #if ! SAC_WINDOWS
-	};
+        };
 #endif
 };
 static std::vector<std::pair<BatchFlushInfo, int> > batchSizes;

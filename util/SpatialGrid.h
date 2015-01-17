@@ -68,7 +68,7 @@ public:
     virtual GridPos                 positionToGridPos(const glm::vec2& pos) const = 0;
     virtual glm::vec2               gridPosToPosition(const GridPos& gp) const = 0;
     virtual void                    forEachCellDo(std::function<void(const GridPos& )> f) = 0;
-    virtual void                    addEntityAt(Entity e, const GridPos& p) = 0;
+    virtual void                    addEntityAt(Entity e, const GridPos& p, bool updateSpatialPosition = false) = 0;
     virtual void                    removeEntityFrom(Entity e, const GridPos& p) = 0;
     virtual std::list<Entity>&      getEntitiesAt(const GridPos& p) = 0;
     virtual void                    autoAssignEntitiesToCell(const std::vector<Entity>& entities) = 0;

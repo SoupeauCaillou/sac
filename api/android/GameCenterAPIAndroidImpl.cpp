@@ -65,20 +65,20 @@ void GameCenterAPIAndroidImpl::connectOrRegister() {
     env->CallVoidMethod(instance, methods[jni_gamecenter_api::connectOrRegister]);
 }
 void GameCenterAPIAndroidImpl::disconnect() {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::disconnect]);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::disconnect]);
 }
 
 
 void GameCenterAPIAndroidImpl::unlockAchievement(int id) {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::unlockAchievement], id);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::unlockAchievement], id);
 }
 void GameCenterAPIAndroidImpl::updateAchievementProgression(int id, int stepReached) {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::updateAchievementProgression], id, stepReached);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::updateAchievementProgression], id, stepReached);
 }
 
 void GameCenterAPIAndroidImpl::submitScore(int leaderboardID, const std::string & score) {
     jstring jscore = env->NewStringUTF(score.c_str());
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::submitScore], leaderboardID, jscore);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::submitScore], leaderboardID, jscore);
 }
 
 void GameCenterAPIAndroidImpl::getWeeklyRank(int leaderboardID, std::function<void (int rank)> func) {
@@ -87,14 +87,14 @@ void GameCenterAPIAndroidImpl::getWeeklyRank(int leaderboardID, std::function<vo
 }
 
 void GameCenterAPIAndroidImpl::openAchievement() {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openAchievement]);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::openAchievement]);
 }
 void GameCenterAPIAndroidImpl::openLeaderboards() {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openLeaderboards]);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::openLeaderboards]);
 }
 void GameCenterAPIAndroidImpl::openSpecificLeaderboard(int id) {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openSpecificLeaderboard], id);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::openSpecificLeaderboard], id);
 }
 void GameCenterAPIAndroidImpl::openDashboard() {
-	env->CallVoidMethod(instance, methods[jni_gamecenter_api::openDashboard]);
+        env->CallVoidMethod(instance, methods[jni_gamecenter_api::openDashboard]);
 }

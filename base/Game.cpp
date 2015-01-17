@@ -22,7 +22,9 @@
 
 #include "Game.h"
 
-#include "app/MouseNativeTouchState.h"
+#if SAC_DESKTOP
+#include "api/sdl/MouseNativeTouchState.h"
+#endif
 
 #include "api/AssetAPI.h"
 #include "api/KeyboardInputHandlerAPI.h"
@@ -70,7 +72,7 @@
 #include "util/Random.h"
 #include "util/LevelEditor.h"
 
-#if ! SAC_ANDROID
+#if ! SAC_MOBILE
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL.h>
 #endif
@@ -92,7 +94,9 @@ Game::Game() {
 
     isFinished = false;
 
+#if SAC_DESKTOP
     mouseNativeTouchState = 0;
+#endif
 
     setlocale( LC_NUMERIC, "C" );
 
@@ -336,14 +340,13 @@ bool profilerEnabled = false;
 #endif
 
 void Game::eventsHandler() {
-#if ! SAC_ANDROID
+#if ! SAC_MOBILE
     SDL_Event event;
 
     //if (! (SDL_GetAppState() & SDL_APPINPUTFOCUS)) {
         //LOGI("dont have the focus, dont treat inputs!");
         //return;
     //}
-    mouseNativeTouchState->_isMoving = false;
 
     while( SDL_PollEvent(&event) )
     {
@@ -355,15 +358,6 @@ void Game::eventsHandler() {
         }
         levelEditor->unlock();
 #endif
-
-        if (event.type == SDL_WINDOWEVENT) {
-            //enable music only if we have the focus
-            if (event.window.event == SDL_WINDOWEVENT_ENTER) {
-                theMusicSystem.toggleMute(false);
-            } else if (event.window.event == SDL_WINDOWEVENT_LEAVE) {
-                theMusicSystem.toggleMute(true);
-            }
-        }
 
         //or try stringInputAPI
         if (!handled && wantsAPI(ContextAPI::StringInput)) {
@@ -472,7 +466,7 @@ void Game::loadFont(AssetAPI* asset, const char* name) {
     theTextSystem.registerFont(name, h2wratio);
 }
 
-void Game::changeResolution(int windowW, int windowH) {
+void Game::changeResolution(int /*windowW*/, int /*windowH*/) {
     if (camera) {
         TRANSFORM(camera)->size = PlacementHelper::ScreenSize;
     }
@@ -513,17 +507,17 @@ void Game::sacInit() {
 
 #if SAC_DESKTOP
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
-    io.KeyMap[ImGuiKey_Tab] = SDLK_ESCAPE;
-    io.KeyMap[ImGuiKey_LeftArrow] = SDLK_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = SDLK_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = SDLK_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = SDLK_DOWN;
-    io.KeyMap[ImGuiKey_Home] = SDLK_HOME;
-    io.KeyMap[ImGuiKey_End] = SDLK_END;
-    io.KeyMap[ImGuiKey_Delete] = SDLK_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
-    io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
-    io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
+    io.KeyMap[ImGuiKey_Tab] = ImGuiKey_Tab;
+    io.KeyMap[ImGuiKey_LeftArrow] = ImGuiKey_LeftArrow;
+    io.KeyMap[ImGuiKey_RightArrow] = ImGuiKey_RightArrow;
+    io.KeyMap[ImGuiKey_UpArrow] = ImGuiKey_UpArrow;
+    io.KeyMap[ImGuiKey_DownArrow] = ImGuiKey_DownArrow;
+    io.KeyMap[ImGuiKey_Home] = ImGuiKey_Home;
+    io.KeyMap[ImGuiKey_End] = ImGuiKey_End;
+    io.KeyMap[ImGuiKey_Delete] = ImGuiKey_Delete;
+    io.KeyMap[ImGuiKey_Backspace] = ImGuiKey_Backspace;
+    io.KeyMap[ImGuiKey_Enter] = ImGuiKey_Enter;
+    io.KeyMap[ImGuiKey_Escape] = ImGuiKey_Escape;
 
     // only in SDL2
     // io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;

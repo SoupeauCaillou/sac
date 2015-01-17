@@ -35,25 +35,25 @@
 
 template<typename T>
 class CircularBuffer {
-	public:
-		CircularBuffer(unsigned int pBufferSize);
-		~CircularBuffer();
+        public:
+                CircularBuffer(unsigned int pBufferSize);
+                ~CircularBuffer();
 
-		unsigned int getBufferSize() const { return bufferSize; }
+                unsigned int getBufferSize() const { return bufferSize; }
 
-		unsigned int readDataAvailable() const;
+                unsigned int readDataAvailable() const;
 
-		unsigned int read(T* out, unsigned int size);
+                unsigned int read(T* out, unsigned int size);
 
-		unsigned int writeSpaceAvailable() const;
+                unsigned int writeSpaceAvailable() const;
 
-		unsigned int write(T* in, unsigned int size);
+                unsigned int write(T* in, unsigned int size);
 
-	private:
-		T* buffer;
-		unsigned int bufferSize;
-		unsigned int readPos, writePos;
-		unsigned int readLoopCount, writeLoopCount;
+        private:
+                T* buffer;
+                unsigned int bufferSize;
+                unsigned int readPos, writePos;
+                unsigned int readLoopCount, writeLoopCount;
 };
 
 

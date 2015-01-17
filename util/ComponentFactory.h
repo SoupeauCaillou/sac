@@ -31,9 +31,9 @@ class LocalizeAPI;
 
 class ComponentFactory {
     public:
-    	/*static int build(const DataFileParser& data,
-    		const std::string& section,
-    		const std::vector<IProperty*>& properties, void* component);*/
+        /*static int build(const DataFileParser& data,
+                const std::string& section,
+                const std::vector<IProperty*>& properties, void* component);*/
 
         static int build(const std::string& context, const DataFileParser& dfp,
             hash_t section,

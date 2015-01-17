@@ -1,12 +1,13 @@
 #######################################################################
-###############Sac and Game folders####################################
+####################Sac and Game folders###############################
 #######################################################################
-# when we use "include(...)", CMAKE_CURRENT_SOURCE_DIR is the directory of includer CMakeLists.txt
+# when we use "include(...)", CMAKE_CURRENT_SOURCE_DIR is the directory of
+# parent CMakeLists.txt
 set(SAC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sac)
 set(GAME_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
 #######################################################################
-#########################Sac License###################################
+####################Sac License########################################
 #######################################################################
 set(LICENSE_HEADER
 "/*
@@ -33,7 +34,7 @@ set(LICENSE_HEADER
 ####################Target check & validation##########################
 #######################################################################
 #list of the supported OS
-SET(SUPPORTED_TARGETS linux android emscripten windows darwin)
+SET(SUPPORTED_TARGETS linux android emscripten windows darwin ios)
 
 #if target = NULL then target = current OS
 if (NOT TARGET)
@@ -52,23 +53,22 @@ if (target_in_list EQUAL -1)
     return()
 endif()
 
-message ("Build platform: ${varplatform}")
+message ("Build platform (TARGET): ${varplatform}")
 add_definitions(-DSAC_${VARPLATFORM} -DPROJECT_NAME=${PROJECT_NAME})
 
 SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 #######################################################################
-############Check build target (release/debug)#########################
+####################Check build target (release/debug)#################
 #######################################################################
 if (NOT CMAKE_BUILD_TYPE)
-    message("No build target specified (CMAKE_BUILD_TYPE), will use ******DEBUG******.")
-    set (BUILD_TARGET "DEBUG")
+    set(BUILD_TARGET "DEBUG")
 else()
-    string (TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TARGET)
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TARGET)
 endif()
 
-message("Build target: " ${BUILD_TARGET})
+message("Build type (CMAKE_BUILD_TYPE): " ${BUILD_TARGET})
 
 if (BUILD_TARGET STREQUAL "DEBUG")
     option(INGAME_EDITOR "Build with ingame-editor support" ON)
@@ -94,6 +94,29 @@ if (SAC_CUSTOM_DEFINES)
     endforeach()
 endif()
 
+#######################################################################
+######################### Working env setup(git hooks+editor config) ##
+#######################################################################
+# Prevent user to change spaces with tabs
+set(hook_dir ${CMAKE_SOURCE_DIR}/.git/hooks)
+set(sac_hook_dir ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks)
+if (EXISTS ${hook_dir}/pre-commit.sample AND NOT EXISTS ${hook_dir}/pre-commit)
+    message("Setting up git hook pre-commit in ${hook_dir} ...")
+    file(COPY ${hook_dir}/pre-commit.sample
+        DESTINATION ${sac_hook_dir}
+        FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+    file(RENAME ${sac_hook_dir}/pre-commit.sample ${sac_hook_dir}/pre-commit)
+    file(COPY ${sac_hook_dir}/pre-commit DESTINATION ${hook_dir})
+endif()
+
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.editorconfig)
+    message("Setting up editor config in ${CMAKE_SOURCE_DIR}/ ...")
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/.editorconfig DESTINATION ${CMAKE_SOURCE_DIR}/)
+endif()
+
+#######################################################################
+#########################Version detection#############################
+#######################################################################
 #set a variable used for the window title
 #retrieve git latest tag, if any
 set (CURRENT_BUILD_VALUES "")
@@ -126,7 +149,7 @@ if (NOT CURRENT_BUILD_VALUES STREQUAL NEW_BUILD_VALUES)
         "#pragma once\n#define TAG_NAME \"${SAC_REVISION_TAG}\"\n#define VERSION_NAME \"${SAC_REVISION_ID}\"\n")
 endif()
 #######################################################################
-########Library path finding related tools#############################
+####################Library path finding related tools#################
 #######################################################################
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SAC_SOURCE_DIR}/cmake/modules")
 
@@ -147,7 +170,7 @@ function (check_and_link_libs target)
 endfunction()
 
 #######################################################################
-##########Build headers files for .vs and .fs files####################
+####################Build headers files for .vs and .fs files##########
 #######################################################################
 
 # 1st step: add a recipe to build a .h for each [vf]s files
@@ -186,7 +209,7 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 # 3rd step (see below): make sac target depends on generate_shaders target
 
 #######################################################################
-##################Make assets (from unprepared_assets)#################
+####################Make assets (from unprepared_assets)###############
 #######################################################################
 
 #file(
@@ -208,7 +231,7 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #endforeach()
 
 #######################################################################
-#######################Auto register scenes############################
+####################Auto register scenes###############################
 #######################################################################
 set(SCENE_REGISTRATION_FILE ${GAME_SOURCE_DIR}/sources/scenes/Scenes.h)
 file(GLOB FILES ${GAME_SOURCE_DIR}/sources/scenes/*.cpp)
@@ -228,17 +251,17 @@ file(WRITE ${SCENE_REGISTRATION_FILE}
 #include <base/StateMachine.h>
 class ${PROJECT_NAME}Game;
 namespace Scene {
-\tenum Enum : int {
+    enum Enum : int {
 ")
 
 # Register scene in enum list
 foreach (SCENE ${SCENES})
-    file(APPEND ${SCENE_REGISTRATION_FILE} "\t\t${SCENE},\n")
+    file(APPEND ${SCENE_REGISTRATION_FILE} "        ${SCENE},\n")
 endforeach()
-file(APPEND ${SCENE_REGISTRATION_FILE} "\t};\n")
+file(APPEND ${SCENE_REGISTRATION_FILE} "    };\n")
 # Declare scene creator prototype
 foreach (SCENE ${SCENES})
-    file(APPEND ${SCENE_REGISTRATION_FILE} "\tStateHandler<Scene::Enum>* Create${SCENE}SceneHandler(${PROJECT_NAME}Game* game);\n")
+    file(APPEND ${SCENE_REGISTRATION_FILE} "    StateHandler<Scene::Enum>* Create${SCENE}SceneHandler(${PROJECT_NAME}Game* game);\n")
 endforeach()
 file(APPEND ${SCENE_REGISTRATION_FILE}
 "}
@@ -250,14 +273,14 @@ file(APPEND ${SCENE_REGISTRATION_FILE}
 foreach (SCENE ${SCENES})
     file(APPEND
         ${SCENE_REGISTRATION_FILE}
-        "\tmachine.registerState(Scene::${SCENE}, Scene::Create${SCENE}SceneHandler(game));\n"
+        "    machine.registerState(Scene::${SCENE}, Scene::Create${SCENE}SceneHandler(game));\n"
     )
 endforeach()
 file(APPEND ${SCENE_REGISTRATION_FILE} "}")
 endif()
 
 #######################################################################
-######################How to build sac#################################
+####################How to build sac###################################
 #######################################################################
 
 if (DEFINED extra_source_directories)
@@ -308,6 +331,7 @@ if (INGAME_EDITOR STREQUAL "ON")
         GLOB imgui_files
         ${SAC_SOURCE_DIR}/libs/imgui/*.cpp
     )
+    set_source_files_properties(${SAC_SOURCE_DIR}/libs/imgui/imgui.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-function)
 endif()
 
 add_library(sac
@@ -321,7 +345,7 @@ add_library(sac
 add_dependencies( sac generate_shaders ${extra_custom_target})
 
 #######################################################################
-##########Build and link libraries per target##########################
+####################Build and link libraries per target################
 #######################################################################
 if (NETWORK_BUILD)
     ########## build enet lib ###########
@@ -353,7 +377,7 @@ endif()
 
 if (DESKTOP_BUILD)
     include_directories(${SAC_SOURCE_DIR}/libs/rg_etc1_v104/)
-    check_and_link_libs("sac" SDL2 GLEW OpenAL Sqlite3 Tinyxml2 ZLIB)
+    check_and_link_libs("sac" SDL2 GLEW OpenAL Sqlite3 ZLIB)
 endif()
 
 if (MOBILE_BUILD OR WEB_BUILD)
@@ -368,36 +392,36 @@ if (MOBILE_BUILD OR WEB_BUILD)
         include_directories(${SAC_SOURCE_DIR}/libs/sqlite3)
         add_library("sqlite3" STATIC ${sqlite3_sources})
 
-        target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
+        if (VARPLATFORM STREQUAL ANDROID)
+            target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
+        else()
+            target_link_libraries("sac" sqlite3)
+        endif()
     else ()
         target_link_libraries("sac" GLESv2 z)
     endif()
 endif()
 
 #######################################################################
-#######################Import OS-dependent libs########################
+####################Import OS-dependent libs###########################
 #######################################################################
 import_specific_libs()
 
 #######################################################################
-#######Build the game executable (except for mobile)###################
+####################Build the game executable (except for mobile)######
 #######################################################################
 if (NOT MOBILE_BUILD)
-
     add_executable(${EXECUTABLE_NAME} ${SAC_SOURCE_DIR}/util/EntryPoint.cpp)
     target_link_libraries(${EXECUTABLE_NAME} sac m)
 endif()
 
-
-
-
 #######################################################################
-#############################Post build actions########################
+####################Post build actions#################################
 #######################################################################
 postbuild_specific_actions()
 
 #######################################################################
-#############################others executables########################
+####################Others executables#################################
 #######################################################################
 others_specific_executables()
 

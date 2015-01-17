@@ -74,9 +74,9 @@ struct CreateRoomPacket : LobbyPacket {
 };
 
 struct RoomIdPacket : LobbyPacket {
-	RoomIdPacket(const std::string& r = "") : LobbyPacket(Packet::RoomId), roomId(r) {}
+        RoomIdPacket(const std::string& r = "") : LobbyPacket(Packet::RoomId), roomId(r) {}
 
-	std::string roomId;
+        std::string roomId;
     void addProperties(Serializer& );
 };
 
@@ -88,35 +88,35 @@ struct JoinRoomPacket : LobbyPacket {
 };
 
 struct InvitePacket : LobbyPacket {
-	std::string roomId;
+        std::string roomId;
 
-	InvitePacket(const std::string& r = "") : LobbyPacket(Packet::Invitation), roomId(r) {}
+        InvitePacket(const std::string& r = "") : LobbyPacket(Packet::Invitation), roomId(r) {}
 
     void addProperties(Serializer& );
 };
 
 struct RoomClosedPacket : LobbyPacket {
-	std::string roomId;
+        std::string roomId;
 
-	RoomClosedPacket(const std::string& r = "") : LobbyPacket(Packet::RoomClosed), roomId(r) {}
+        RoomClosedPacket(const std::string& r = "") : LobbyPacket(Packet::RoomClosed), roomId(r) {}
 
     void addProperties(Serializer& );
 };
 
 struct EnteringRoomPacket : LobbyPacket {
-	std::string roomId;
-	std::string playerName;
+        std::string roomId;
+        std::string playerName;
 
-	EnteringRoomPacket(const std::string& r = "", const std::string& p = "") : LobbyPacket(Packet::EnteringRoom), roomId(r), playerName(p) {}
+        EnteringRoomPacket(const std::string& r = "", const std::string& p = "") : LobbyPacket(Packet::EnteringRoom), roomId(r), playerName(p) {}
 
     void addProperties(Serializer& );
 };
 
 struct ConnectionInfoPacket : LobbyPacket {
-	ENetAddress address;
+        ENetAddress address;
 
-	ConnectionInfoPacket() : LobbyPacket(Packet::ConnectionInfo) {}
-	ConnectionInfoPacket(const ENetAddress& addr) : LobbyPacket(Packet::ConnectionInfo), address(addr) {}
+        ConnectionInfoPacket() : LobbyPacket(Packet::ConnectionInfo) {}
+        ConnectionInfoPacket(const ENetAddress& addr) : LobbyPacket(Packet::ConnectionInfo), address(addr) {}
 
     void addProperties(Serializer& );
 };

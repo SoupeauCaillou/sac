@@ -26,16 +26,9 @@
 #include "System.h"
 
 struct GridComponent {
-    enum EType {
-        Normal,
-        Pit,
-        Brush,
-        House,
-    };
+    GridComponent(): type(0), moveCost(1), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
 
-	GridComponent(): type(Normal), moveCost(1), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
-
-    EType type;
+    bitfield_t type;
     int moveCost;
     bool blocksPath;
     bool blocksVision;
@@ -50,10 +43,6 @@ struct GridComponent {
 #endif
 
 UPDATABLE_SYSTEM(Grid)
-public:
-    static int GetVisibilityCost(GridComponent::EType type, int distance);
-    static int GetDefenceBonus(GridComponent::EType type);
-    static int GetAttackBonus(GridComponent::EType type);
 };
 
 #endif

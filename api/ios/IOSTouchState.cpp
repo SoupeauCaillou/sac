@@ -20,38 +20,20 @@
 
 
 
-#pragma once
+#include "IOSTouchState.h"
+#include "base/Log.h"
 
-#include "base/TouchInputManager.h"
-#include <glm/glm.hpp>
-#include <mutex>
+int (*iosIsTouchingFn) (int, float* winX, float* winY);
 
-// Emulate touch screen with Mouse
-class MouseNativeTouchState: public NativeTouchState {
-    public:
-        MouseNativeTouchState();
+IOSTouchState::IOSTouchState(){
+}
 
-        bool isTouching(int index, glm::vec2* windowCoords);
+int IOSTouchState::maxTouchingCount() {
+        return 3;
+}
 
-        bool isMoving (int index) ;
+bool IOSTouchState::isTouching (int index, glm::vec2* windowCoords) {
+        return (*iosIsTouchingFn)(index, &windowCoords->x, &windowCoords->y);
+}
 
-        int maxTouchingCount() {
-            return 3;
-        }
 
-    public:
-        //all mouse events which have to be handled by MouseNativeTouchState
-        //return 1 if event is handled, 0 else
-        int eventSDL(void* event);
-
-        bool _isMoving;
-    private:
-        std::mutex mutex;
-        //in order : left / right / middle
-        bool isButtonDown[3];
-        glm::vec2 lastPosition;
-#if !ANDROID
-    public:
-        int wheel;
-#endif
-};

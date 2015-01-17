@@ -27,7 +27,7 @@ struct AndroidSoundOpaquePtr : public OpaqueSoundPtr {
 };
 
 SoundAPIAndroidImpl::SoundAPIAndroidImpl() : JNIWrapper<jni_sound_api::Enum>("net/damsy/soupeaucaillou/api/SoundAPI", true) {
-	declareMethod(jni_sound_api::LoadSound, "loadSound", "(Ljava/lang/String;)I");
+        declareMethod(jni_sound_api::LoadSound, "loadSound", "(Ljava/lang/String;)I");
     declareMethod(jni_sound_api::Play, "playSound", "(IF)Z");
 }
 

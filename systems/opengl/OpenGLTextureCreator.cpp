@@ -26,6 +26,8 @@
 #include <cstring>
 #if SAC_ANDROID
 #include <GLES2/gl2ext.h>
+#elif SAC_IOS
+#include <OpenGLES/ES2/glext.h>
 #elif SAC_EMSCRIPTEN
 #include <sstream>
 #include <SDL.h>
@@ -60,7 +62,11 @@ void OpenGLTextureCreator::detectSupportedTextureFormat() {
     const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 
     LOGV(1, "extensions: " << extensions );
-    pvrFormatSupported = false; // (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+#if SAC_IOS
+    pvrFormatSupported = (strstr((const char*)extensions, "GL_IMG_texture_compression_pvrtc") != 0);
+#else
+    pvrFormatSupported = false;
+#endif
 #if SAC_EMSCRIPTEN
     s3tcFormatSupported = (strstr((const char*)extensions, "WEBGL_compressed_texture_s3tc") != 0);
 #else
@@ -230,19 +236,23 @@ static GLenum imageDescToGLenum(ImageDesc desc) {
             return channelCountToGLFormat(desc.channels);
 #endif
         }
+#if SAC_MOBILE
 #if SAC_ANDROID
         case ImageDesc::ETC1: {
             LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using ETC1 compression");
             return GL_ETC1_RGB8_OES;
         }
+#endif
         case ImageDesc::PVR: {
             LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using PVR compression");
             return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
         }
 #endif
+#if ! SAC_IOS
         case ImageDesc::S3TC:
             LOGW_IF(desc.channels != 3, "Incoherent channel count " << desc.channels << " while using S3TC compression");
             return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+#endif
         default:
             LOGF("Invalid desc.type: " << desc.type);
             return 0;
@@ -250,15 +260,6 @@ static GLenum imageDescToGLenum(ImageDesc desc) {
 }
 
 void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint texture, Type) {
-#if 0
-#if SAC_ANDROID
-    ((type == COLOR) && image.mipmap > 0);
-#elif SAC_EMSCRIPTEN
-    false;
-#else
-    (type == COLOR) || (type == COLOR_ALPHA);
-#endif
-#endif
     GL_OPERATION(glBindTexture(GL_TEXTURE_2D, texture))
 
     // Determine GL format based on channel count
@@ -274,6 +275,9 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         for (int level=0; level<=image.mipmap; level++) {
             int width = std::max(1, image.width >> level);
             int height = std::max(1, image.height >> level);
+#if SAC_IOS
+            width = height = glm::max(width, height);
+#endif
             unsigned imgSize = 0;
             if (pvrFormatSupported)
                 imgSize =( std::max(width, 8) * std::max(height, 8) * 4 + 7) / 8;
@@ -285,12 +289,12 @@ void OpenGLTextureCreator::updateFromImageDesc(const ImageDesc& image, GLuint te
         }
     }
 
-#if SAC_ANDROID || SAC_EMSCRIPTEN
+#if SAC_MOBILE || SAC_EMSCRIPTEN
 #else
     const bool enableMipMapping = false;
     if (image.mipmap == 0 && enableMipMapping) {
         LOGV(1, "Generating mipmaps");
-        glGenerateMipmap(GL_TEXTURE_2D);
+        GL_OPERATION(glGenerateMipmap(GL_TEXTURE_2D))
     }
 #endif
 }

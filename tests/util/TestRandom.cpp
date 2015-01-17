@@ -38,7 +38,7 @@ TEST(IntRandomInInterval) {
             break;
         }
     }
-	CHECK_EQUAL(false, fail);
+        CHECK_EQUAL(false, fail);
 }
 
 TEST(IntRandomRepartition) {
