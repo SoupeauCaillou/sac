@@ -311,20 +311,6 @@ static std::string displayGroup(Entity e) {
 }
 #endif
 
-static void imguiInputFilter() {
-    ImVec2 pos, end;
-    pos = end = ImGui::GetWindowPos();
-    ImVec2 size = ImGui::GetWindowSize();
-    end.x += size.x;
-    end.y += size.y;
-    if (ImGui::IsMouseHoveringBox(
-        ImGui::GetWindowPos(),
-        end)) {
-        // force no click state
-        theTouchInputManager.resetState();
-    }
-}
-
 namespace Tool {
     enum Enum {
         None,
@@ -463,7 +449,6 @@ void LevelEditor::tick(float dt) {
 
         }
 
-        imguiInputFilter();
         ImGui::End();
     }
 
@@ -995,8 +980,6 @@ void LevelEditor::tick(float dt) {
         if (datas->currentBackFrame == old) playback = 0;
     }
 
-    imguiInputFilter();
-    LOGT_EVERY_N(500, "Use WantCaptureMouse instead");
     ImGui::End();
 
     ImGui::Begin("Graphs", NULL, ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, DebugAreaHeight), -1.0f,
@@ -1016,8 +999,12 @@ void LevelEditor::tick(float dt) {
         ImGui::PlotLines("FPS", &fps[0], fps.size(), 0, NULL, FLT_MIN, FLT_MAX, ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
     }
 
-    imguiInputFilter();
     ImGui::End();
+
+    if (ImGui::GetIO().WantCaptureMouse) {
+        // force no click state
+        theTouchInputManager.resetState();
+    }
 }
 
 static void markEntities(Entity* begin, int count, Color color) {
