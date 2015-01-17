@@ -180,6 +180,16 @@ TEST_FIXTURE(TestSetup, TestColorHtmlProperty)
     CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
 }
 
+TEST_FIXTURE(TestSetup, TestColorRgbProperty)
+{
+    Entity e = doTest("[Rendering]\ncolor%rgb= 255, 128, 64");
+
+    CHECK_CLOSE(255.0/255, RENDERING(e)->color.r, 0.001);
+    CHECK_CLOSE(128.0/255, RENDERING(e)->color.g, 0.001);
+    CHECK_CLOSE(64.0/255, RENDERING(e)->color.b, 0.001);
+    CHECK_CLOSE(1, RENDERING(e)->color.a, 0.001);
+}
+
 TEST_FIXTURE(TestSetup, TestSizeBasedOnTextureRatio)
 {
     // define dumb texture
