@@ -41,13 +41,13 @@ TEST(GrooupAlignementBehavior)
     TransformationSystem::CreateInstance();
     PhysicsSystem::CreateInstance();
 
-	Entity e = groupEntity(glm::vec2(0), 0);
-	std::list<Entity> group;
-	float maxSpeed = 1;
+        Entity e = groupEntity(glm::vec2(0), 0);
+        std::list<Entity> group;
+        float maxSpeed = 1;
 
-	glm::vec2 result = SteeringBehavior::groupAlign(e, group, maxSpeed);
-	CHECK_CLOSE(0, result.x, 0.0001);
-	CHECK_CLOSE(0, result.y, 0.0001);
+        glm::vec2 result = SteeringBehavior::groupAlign(e, group, maxSpeed);
+        CHECK_CLOSE(0, result.x, 0.0001);
+        CHECK_CLOSE(0, result.y, 0.0001);
 
     group.push_back(groupEntity(glm::vec2(1, 0), 90));
     result = SteeringBehavior::groupAlign(e, group, maxSpeed);

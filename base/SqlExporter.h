@@ -25,10 +25,10 @@
 #include <string>
 
 class SqlExporter {
-	public:
-		void init(const std::string& dbFile);
-		void update();
+        public:
+                void init(const std::string& dbFile);
+                void update();
 
-	private:
-		std::string dbFilename;
+        private:
+                std::string dbFilename;
 };

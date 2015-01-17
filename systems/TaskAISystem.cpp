@@ -31,16 +31,16 @@ TaskAISystem::TaskAISystem() : ComponentSystemImpl<TaskAIComponent>(HASH("TaskAI
 void TaskAISystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(TaskAI, entity, tc)
 
-		if (!tc->taskToPerform.empty()) {
-			// update first
-			TaskAI* task = tc->taskToPerform[0]->update(entity, dt);
+                if (!tc->taskToPerform.empty()) {
+                        // update first
+                        TaskAI* task = tc->taskToPerform[0]->update(entity, dt);
 
-			if (task) {
-				tc->taskToPerform.insert(tc->taskToPerform.begin(), task);
-			} else if (tc->taskToPerform[0]->complete(entity)) {
-				delete tc->taskToPerform[0];
-				tc->taskToPerform.erase(tc->taskToPerform.begin());
-			}
-		}
+                        if (task) {
+                                tc->taskToPerform.insert(tc->taskToPerform.begin(), task);
+                        } else if (tc->taskToPerform[0]->complete(entity)) {
+                                delete tc->taskToPerform[0];
+                                tc->taskToPerform.erase(tc->taskToPerform.begin());
+                        }
+                }
     END_FOR_EACH()
 }

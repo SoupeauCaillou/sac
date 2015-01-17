@@ -28,10 +28,10 @@
 #include "opengl/Polygon.h"
 
 struct SpotComponent {
-	SpotComponent(): angle(6.28318530718f), distance(10.f), resolution(36) {}
+        SpotComponent(): angle(6.28318530718f), distance(10.f), resolution(36) {}
 
-	float angle;
-	float distance;
+        float angle;
+        float distance;
     int resolution;
 
     Polygon area;

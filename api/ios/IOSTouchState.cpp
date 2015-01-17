@@ -29,11 +29,11 @@ IOSTouchState::IOSTouchState(){
 }
 
 int IOSTouchState::maxTouchingCount() {
-	return 3;
+        return 3;
 }
 
 bool IOSTouchState::isTouching (int index, glm::vec2* windowCoords) {
-	return (*iosIsTouchingFn)(index, &windowCoords->x, &windowCoords->y);
+        return (*iosIsTouchingFn)(index, &windowCoords->x, &windowCoords->y);
 }
 
 

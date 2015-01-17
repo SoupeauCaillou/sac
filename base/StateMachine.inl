@@ -66,7 +66,7 @@ void StateMachine<T>::start(T initState) {
 template<typename T>
 void StateMachine<T>::registerState(T id, StateHandler<T>* hdl) {
     LOGW_IF(state2handler.find(id) != state2handler.end(), "State id #" << id << " already registered (" << state2handler.size() << " states registered" << ')');
-	state2handler.insert(std::make_pair(id, hdl));
+        state2handler.insert(std::make_pair(id, hdl));
 }
 
 template<typename T>
@@ -87,8 +87,8 @@ void StateMachine<T>::transitionTo(T oldState, T newState) {
 
 template<typename T>
 void StateMachine<T>::update(float dt) {
-	// Override next state if requested
-	if (override) {
+        // Override next state if requested
+        if (override) {
         if (overrideNextState == currentState)
             LOGW("overrideNextState == currentState == " << currentState);
         transitionTo(currentState, overrideNextState);
@@ -97,7 +97,7 @@ void StateMachine<T>::update(float dt) {
 
     // Update active state
     if (!transitionning) {
-    	LOGF_IF(state2handler.find(currentState) == state2handler.end(), "Current state #" << currentState << " has no handler");
+        LOGF_IF(state2handler.find(currentState) == state2handler.end(), "Current state #" << currentState << " has no handler");
 
         // Update state
         PROFILE("MachineStateUpdate", state2handler[currentState]->name, BeginEvent);
@@ -109,18 +109,18 @@ void StateMachine<T>::update(float dt) {
             transitionTo(currentState, newState);
         }
     } else {
-    	if (!transition.readyExit)
-    		transition.readyExit = state2handler[transition.fromState]->updatePreExit(transition.toState, dt);
-    	if (!transition.readyEnter)
-    		transition.readyEnter = state2handler[transition.toState]->updatePreEnter(transition.fromState, dt);
+        if (!transition.readyExit)
+                transition.readyExit = state2handler[transition.fromState]->updatePreExit(transition.toState, dt);
+        if (!transition.readyEnter)
+                transition.readyEnter = state2handler[transition.toState]->updatePreEnter(transition.fromState, dt);
 
-    	// If both states are ready, change state
-    	if (transition.readyExit && transition.readyEnter) {
+        // If both states are ready, change state
+        if (transition.readyExit && transition.readyEnter) {
             LOGV(2, "Transition complete. New state: " << state2handler[transition.toState]->name);
             PROFILE("MachineStateTransitionEnd", state2handler[transition.fromState]->name + "->" + state2handler[transition.toState]->name, InstantEvent);
             changeState(transition.fromState, transition.toState, transition.dumbFrom);
             transitionning = transition.dumbFrom = false;
-    	}
+        }
     }
 }
 

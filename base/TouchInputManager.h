@@ -29,9 +29,9 @@
 #define MAX_TOUCH_POINT 3
 
 class NativeTouchState {
-	public:
+        public:
         virtual int maxTouchingCount() = 0;
-		virtual bool isTouching(int index, glm::vec2* windowCoords) = 0;
+                virtual bool isTouching(int index, glm::vec2* windowCoords) = 0;
 };
 
 struct TransformationComponent;
@@ -39,19 +39,19 @@ struct TransformationComponent;
 #define theTouchInputManager (*TouchInputManager::Instance())
 
 class TouchInputManager {
-	private:
-		static TouchInputManager* instance;
-	public:
-		static TouchInputManager* Instance();
+        private:
+                static TouchInputManager* instance;
+        public:
+                static TouchInputManager* Instance();
 
-		void init(glm::vec2 worldSize, glm::vec2 windowSize);
+                void init(glm::vec2 worldSize, glm::vec2 windowSize);
 
 #if SAC_DEBUG
-		void activateDebug(Entity camera);
+                void activateDebug(Entity camera);
 #endif
-		bool wasTouched(int idx = 0) const { return wasTouching[idx]; }
+                bool wasTouched(int idx = 0) const { return wasTouching[idx]; }
 
-		bool isTouched(int idx = 0) const { return touching[idx]; }
+                bool isTouched(int idx = 0) const { return touching[idx]; }
 
         bool hasClicked(int idx = 0) const { return clicked[idx]; }
 
@@ -65,31 +65,31 @@ class TouchInputManager {
 
         const glm::vec2& getTouchLastPositionScreen(int idx = 0) const { return lastTouchedPositionScreen[idx]; }
 
-		void Update();
+                void Update();
 
-		void setNativeTouchStatePtr(NativeTouchState* p) { ptr = p; }
+                void setNativeTouchStatePtr(NativeTouchState* p) { ptr = p; }
 
-		glm::vec2 windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const;
+                glm::vec2 windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const;
 
-		glm::vec2 windowToScreen(const glm::vec2& windowCoords) const;
+                glm::vec2 windowToScreen(const glm::vec2& windowCoords) const;
 
         void setCamera(Entity camera);
 
 #if !ANDROID
-		int getWheel() const;
+                int getWheel() const;
 #endif
-	public:
-		NativeTouchState* ptr;
+        public:
+                NativeTouchState* ptr;
 
-		bool wasTouching[MAX_TOUCH_POINT], touching[MAX_TOUCH_POINT], clicked[MAX_TOUCH_POINT], doubleclicked[MAX_TOUCH_POINT];
-		glm::vec2 lastTouchedPosition[MAX_TOUCH_POINT], lastTouchedPositionScreen[MAX_TOUCH_POINT], lastClickPosition[MAX_TOUCH_POINT], onTouchPosition[MAX_TOUCH_POINT];
-		float lastClickTime[MAX_TOUCH_POINT];
+                bool wasTouching[MAX_TOUCH_POINT], touching[MAX_TOUCH_POINT], clicked[MAX_TOUCH_POINT], doubleclicked[MAX_TOUCH_POINT];
+                glm::vec2 lastTouchedPosition[MAX_TOUCH_POINT], lastTouchedPositionScreen[MAX_TOUCH_POINT], lastClickPosition[MAX_TOUCH_POINT], onTouchPosition[MAX_TOUCH_POINT];
+                float lastClickTime[MAX_TOUCH_POINT];
 
-		glm::vec2 worldSize, windowSize;
+                glm::vec2 worldSize, windowSize;
         Entity camera;
 
 #if SAC_DEBUG
-		Entity debugState[MAX_TOUCH_POINT];
+                Entity debugState[MAX_TOUCH_POINT];
 #endif
 #if SAC_DESKTOP
         glm::vec2 lastOverPosition[MAX_TOUCH_POINT], lastOverPositionScreen[MAX_TOUCH_POINT];

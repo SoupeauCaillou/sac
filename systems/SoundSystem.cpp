@@ -41,18 +41,18 @@ SoundSystem::~SoundSystem() {
 }
 
 void SoundSystem::init() {
-	nextValidRef = 1;
-	assetSounds.clear();
-	for (std::map<SoundRef, OpaqueSoundPtr*>::iterator it=sounds.begin(); it!=sounds.end(); ++it) {
-		delete it->second;
-	}
-	sounds.clear();
+        nextValidRef = 1;
+        assetSounds.clear();
+        for (std::map<SoundRef, OpaqueSoundPtr*>::iterator it=sounds.begin(); it!=sounds.end(); ++it) {
+                delete it->second;
+        }
+        sounds.clear();
 }
 
 SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
-	PROFILE("Sound", "loadSoundFile", BeginEvent);
+        PROFILE("Sound", "loadSoundFile", BeginEvent);
     if (assetSounds.find(assetName) != assetSounds.end()) {
-	    PROFILE("Sound", "loadSoundFile", EndEvent);
+            PROFILE("Sound", "loadSoundFile", EndEvent);
         return assetSounds[assetName];
     } else {
         OpaqueSoundPtr* ptr = soundAPI->loadSound(assetName);
@@ -70,25 +70,25 @@ SoundRef SoundSystem::loadSoundFile(const std::string& assetName) {
 }
 
 void SoundSystem::DoUpdate(float) {
-	if (mute) {
+        if (mute) {
         FOR_EACH_COMPONENT(Sound, rc)
             rc->sound = InvalidSoundRef;
         END_FOR_EACH()
         return;
     }
 
-	/* play component with a valid sound ref */
+        /* play component with a valid sound ref */
     FOR_EACH_COMPONENT(Sound, rc)
-		if (rc->sound != InvalidSoundRef && !mute ) {
-			std::map<SoundRef, OpaqueSoundPtr*>::iterator jt = sounds.find(rc->sound);
-			if (jt != sounds.end()) {
-				// TODO: declare N max tries, then stop trying to play the sound
-				if (soundAPI->play(sounds[rc->sound], rc->volume) || true) {
-            		rc->sound = InvalidSoundRef;
-				}
-			} else {
-				rc->sound = InvalidSoundRef;
-			}
+                if (rc->sound != InvalidSoundRef && !mute ) {
+                        std::map<SoundRef, OpaqueSoundPtr*>::iterator jt = sounds.find(rc->sound);
+                        if (jt != sounds.end()) {
+                                // TODO: declare N max tries, then stop trying to play the sound
+                                if (soundAPI->play(sounds[rc->sound], rc->volume) || true) {
+                        rc->sound = InvalidSoundRef;
+                                }
+                        } else {
+                                rc->sound = InvalidSoundRef;
+                        }
         }
     END_FOR_EACH()
 }

@@ -28,7 +28,7 @@
 
 int main(int LOG_USAGE_ONLY(argc), char **) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-	EntityManager::CreateInstance();
+        EntityManager::CreateInstance();
     AssertOnFatal = false;
 
 #if SAC_ENABLE_LOG
@@ -38,5 +38,5 @@ int main(int LOG_USAGE_ONLY(argc), char **) {
     else
         logLevel = LogVerbosity::VERBOSE2;
 #endif
-	return UnitTest::RunAllTests();
+        return UnitTest::RunAllTests();
 }

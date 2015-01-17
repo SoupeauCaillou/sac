@@ -65,6 +65,6 @@ void PlayersInRoomPacket::addProperties(Serializer& s) {
 }
 
 void GuidPacket::addProperties(Serializer& s) {
-	s.add(new Property<int>("guid", OFFSET_PTR(guid, this)));
+        s.add(new Property<int>("guid", OFFSET_PTR(guid, this)));
 }
 #endif

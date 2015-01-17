@@ -13,5 +13,5 @@ typedef unsigned __int32 uint32_t;
 
 
 #define MEMPCPY(type, a, b, s) \
-	a = (type)memcpy(a, b, s); \
-	a += s
+        a = (type)memcpy(a, b, s); \
+        a += s

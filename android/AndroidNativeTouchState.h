@@ -26,11 +26,11 @@
 class GameHolder;
 
 struct AndroidNativeTouchState : public NativeTouchState {
-	GameHolder* holder;
+        GameHolder* holder;
 
-	AndroidNativeTouchState(GameHolder* h);
+        AndroidNativeTouchState(GameHolder* h);
 
     int maxTouchingCount();
 
-	bool isTouching (int index, glm::vec2* windowCoords);
+        bool isTouching (int index, glm::vec2* windowCoords);
 };

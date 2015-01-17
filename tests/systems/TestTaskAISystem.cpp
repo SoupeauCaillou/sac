@@ -25,86 +25,86 @@
 
 TEST(OneTask)
 {
-	class TimerTask : public TaskAI {
-		public:
-			float timeLeft;
+        class TimerTask : public TaskAI {
+                public:
+                        float timeLeft;
 
-			TaskAI* update(Entity, float dt) {
-				timeLeft -= dt;
-				return 0;
-			}
-			bool complete(Entity) {
-				return timeLeft <= 0;
-			}
-	};
+                        TaskAI* update(Entity, float dt) {
+                                timeLeft -= dt;
+                                return 0;
+                        }
+                        bool complete(Entity) {
+                                return timeLeft <= 0;
+                        }
+        };
 
-	TaskAISystem::CreateInstance();
-	Entity e = 1;
-	theTaskAISystem.Add(e);
+        TaskAISystem::CreateInstance();
+        Entity e = 1;
+        theTaskAISystem.Add(e);
 
-	TimerTask* t = new TimerTask();
-	t->timeLeft = 1.0;
-	TASK_AI(e)->taskToPerform.push_back(t);
+        TimerTask* t = new TimerTask();
+        t->timeLeft = 1.0;
+        TASK_AI(e)->taskToPerform.push_back(t);
 
-	for(int i=0; i<9; i++) {
-		theTaskAISystem.Update(0.11);
-		CHECK(!t->complete(0));
-	}
-	theTaskAISystem.Update(0.11);
-	CHECK(TASK_AI(e)->taskToPerform.empty());
+        for(int i=0; i<9; i++) {
+                theTaskAISystem.Update(0.11);
+                CHECK(!t->complete(0));
+        }
+        theTaskAISystem.Update(0.11);
+        CHECK(TASK_AI(e)->taskToPerform.empty());
 
-	TaskAISystem::DestroyInstance();
+        TaskAISystem::DestroyInstance();
 }
 
 TEST(DerivedTask)
 {
-	static bool taskAComplete = false;
-	class TaskA : public TaskAI {
-		public:
-			bool* plop;
+        static bool taskAComplete = false;
+        class TaskA : public TaskAI {
+                public:
+                        bool* plop;
 
-			TaskA(bool* b) : plop(b) { *plop = false; }
-			TaskAI* update(Entity, float) {
-				*plop = true;
-				return 0;
-			}
-			bool complete(Entity) {
-				taskAComplete = true;
-				return *plop;
-			}
-	};
-	class TaskB : public TaskAI {
-		public:
-			bool subTaskComplete;
+                        TaskA(bool* b) : plop(b) { *plop = false; }
+                        TaskAI* update(Entity, float) {
+                                *plop = true;
+                                return 0;
+                        }
+                        bool complete(Entity) {
+                                taskAComplete = true;
+                                return *plop;
+                        }
+        };
+        class TaskB : public TaskAI {
+                public:
+                        bool subTaskComplete;
 
-			TaskAI* update(Entity, float) {
-				if (!subTaskComplete) {
-					return new TaskA(&subTaskComplete);
-				} else {
-					return 0;
-				}
-			}
-			bool complete(Entity) {
-				return true;
-			}
-	};
+                        TaskAI* update(Entity, float) {
+                                if (!subTaskComplete) {
+                                        return new TaskA(&subTaskComplete);
+                                } else {
+                                        return 0;
+                                }
+                        }
+                        bool complete(Entity) {
+                                return true;
+                        }
+        };
 
-	TaskAISystem::CreateInstance();
-	Entity e = 1;
-	theTaskAISystem.Add(e);
+        TaskAISystem::CreateInstance();
+        Entity e = 1;
+        theTaskAISystem.Add(e);
 
-	CHECK(taskAComplete == false);
-	TaskB* tB = new TaskB();
-	TASK_AI(e)->taskToPerform.push_back(tB);
+        CHECK(taskAComplete == false);
+        TaskB* tB = new TaskB();
+        TASK_AI(e)->taskToPerform.push_back(tB);
 
-	theTaskAISystem.Update(0.1);
-	CHECK(taskAComplete == false);
-	CHECK(TASK_AI(e)->taskToPerform.size() == 2);
+        theTaskAISystem.Update(0.1);
+        CHECK(taskAComplete == false);
+        CHECK(TASK_AI(e)->taskToPerform.size() == 2);
 
-	theTaskAISystem.Update(0.1);
-	CHECK(taskAComplete == true);
-	CHECK(TASK_AI(e)->taskToPerform.size() == 1);
+        theTaskAISystem.Update(0.1);
+        CHECK(taskAComplete == true);
+        CHECK(TASK_AI(e)->taskToPerform.size() == 1);
 
-	TaskAISystem::DestroyInstance();
+        TaskAISystem::DestroyInstance();
 
 }

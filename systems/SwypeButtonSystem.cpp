@@ -69,11 +69,11 @@ void SwypeButtonSystem::DoUpdate(float dt) {
     theSwypeButtonSystem.forEachECDo([&] (Entity e, SwypeButtonComponent *bt) -> void {
         const auto* rc = theRenderingSystem.Get(e, false);
 
-		if (camerasAdaptedPos.empty()) {
-			LOGW_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
-		}
+                if (camerasAdaptedPos.empty()) {
+                        LOGW_EVERY_N(60000, "Warning... Gautier no-idea-what-doing fix!");
+                }
 
-		if (rc && !camerasAdaptedPos.empty()) {
+                if (rc && !camerasAdaptedPos.empty()) {
             UpdateSwypeButton(dt, e, bt, touch, camerasAdaptedPos[(int) (rc->cameraBitMask >> 1)]);
         } else {
             UpdateSwypeButton(dt, e, bt, touch, theTouchInputManager.getTouchLastPosition(0));

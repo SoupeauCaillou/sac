@@ -42,8 +42,8 @@
 #endif
 
 struct FileBufferOffset {
-	FileBuffer file;
-	int offset;
+        FileBuffer file;
+        int offset;
 };
 ImageDesc ImageLoader::loadPng(const std::string& filepath, const FileBuffer& ) {
     ImageDesc result;
@@ -133,9 +133,9 @@ ImageDesc ImageLoader::loadEtc1(const std::string& LOG_USAGE_ONLY(context), cons
 }
 
 ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
-	ImageDesc result;
-	result.datas = 0;
-	struct PVRTexHeader {
+        ImageDesc result;
+        result.datas = 0;
+        struct PVRTexHeader {
     uint32_t dwHeaderSize;
     uint32_t height;
     uint32_t width;
@@ -150,17 +150,17 @@ ImageDesc ImageLoader::loadPvr(const std::string&, const FileBuffer& file) {
     uint32_t dwPVR;
     uint32_t dwNumSurfs;
 };
-	PVRTexHeader* header = (PVRTexHeader*)&file.data[0];
+        PVRTexHeader* header = (PVRTexHeader*)&file.data[0];
 
-	result.width = header->width;
-	result.height = header->height;
+        result.width = header->width;
+        result.height = header->height;
     result.mipmap = header->dwMipMapCount;
     result.channels = 3;
     result.type = ImageDesc::PVR;
-	int size = file.size - sizeof(PVRTexHeader);
-	result.datas = new char[size];
-	memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
-	return result;
+        int size = file.size - sizeof(PVRTexHeader);
+        result.datas = new char[size];
+        memcpy(result.datas, &file.data[sizeof(PVRTexHeader)], size);
+        return result;
 }
 
 ImageDesc ImageLoader::loadDDS(const std::string& /*context*/, const FileBuffer& file) {

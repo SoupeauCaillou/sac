@@ -32,18 +32,18 @@ static uint8_t* loadFileFromJava(JNIEnv *env, const std::string& url, int* lengt
     jstring asset = env->NewStringUTF(url.c_str());
     jobject _a = env->CallObjectMethod(instance, mid, asset);
 
-	if (_a) {
-		jbyteArray a = (jbyteArray)_a;
-		*length = env->GetArrayLength(a);
-		jbyte* res = new jbyte[*length + 1];
-		env->GetByteArrayRegion(a, 0, *length, res);
-		res[*length] = '\0';
+        if (_a) {
+                jbyteArray a = (jbyteArray)_a;
+                *length = env->GetArrayLength(a);
+                jbyte* res = new jbyte[*length + 1];
+                env->GetByteArrayRegion(a, 0, *length, res);
+                res[*length] = '\0';
         LOGV(1, "Loaded url '" << url << "' -> size=" << *length);
-		return (uint8_t*)res;
-	} else {
-		LOGW("failed to load '" << url << "'");
-		return 0;
-	}
+                return (uint8_t*)res;
+        } else {
+                LOGW("failed to load '" << url << "'");
+                return 0;
+        }
 }
 
 FileBuffer WWWAPIAndroidImpl::downloadFile(const std::string& url) {

@@ -31,14 +31,14 @@
 #include "FaderHelper.h"
 
 class GameCenterAPIHelper {
-	public:
+        public:
         GameCenterAPIHelper();
 
         void init(GameCenterAPI * gameCenterAPI, bool useAchievements, 
             bool displayIfNotConnected, bool useLeaderboards, std::function<void()>);
-	    
-	    void displayUI(float alpha=1);
-		void hideUI(float alpha=0);
+            
+            void displayUI(float alpha=1);
+                void hideUI(float alpha=0);
         //do not forget to call it if you display UI otherwise inputs won't be handled!
         //return true if a button has been clicked
         bool updateUI(); 

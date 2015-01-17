@@ -458,7 +458,7 @@ void Recorder::record(float) {}
 bool Recorder::isRecording() const { return false; }
 Recorder::~Recorder() {}
 Recorder& Recorder::Instance() {
-	static Recorder r;
-	return r;
+        static Recorder r;
+        return r;
 }
 #endif

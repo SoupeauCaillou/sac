@@ -32,12 +32,12 @@
 
 class TimeUtil
 {
-	public:
-		static void Init();
-		static float GetTime();
+        public:
+                static void Init();
+                static float GetTime();
         static void Wait(float waitInSeconds);
 
-	private:
+        private:
 
 #if SAC_LINUX || SAC_ANDROID
         static struct timespec startup_time;

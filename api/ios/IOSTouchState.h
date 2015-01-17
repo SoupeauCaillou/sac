@@ -26,9 +26,9 @@
 
 struct IOSTouchState : public NativeTouchState {
 
-	IOSTouchState();
+        IOSTouchState();
 
     int maxTouchingCount();
 
-	bool isTouching (int index, glm::vec2* windowCoords);
+        bool isTouching (int index, glm::vec2* windowCoords);
 };

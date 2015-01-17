@@ -20,13 +20,13 @@ struct BatchFlushInfo {
 
     BatchFlushReason::Enum reason;
 #if ! SAC_WINDOWS
-	union {
+        union {
 #endif
-		unsigned newFlags;
-		TextureRef newTexture;
-		Color newColor;
+                unsigned newFlags;
+                TextureRef newTexture;
+                Color newColor;
 #if ! SAC_WINDOWS
-	};
+        };
 #endif
 };
 static std::vector<std::pair<BatchFlushInfo, int> > batchSizes;

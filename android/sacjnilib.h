@@ -29,21 +29,21 @@ class Game;
 
 struct GameHolder {
 
-	Game* game;
-	int width, height;
+        Game* game;
+        int width, height;
     JNIEnv* gameEnv, *renderEnv;
-	// GameThreadJNIEnvCtx* gameThreadJNICtx;
-	// RenderThreadJNIEnvCtx renderThreadJNICtx;
+        // GameThreadJNIEnvCtx* gameThreadJNICtx;
+        // RenderThreadJNIEnvCtx renderThreadJNICtx;
 
-	struct __input {
+        struct __input {
         __input() : touching(0) {}
-		 int touching;
-		 float x, y;
-	};
+                 int touching;
+                 float x, y;
+        };
     std::map<int, __input> input;
-	float dtAccumuled, time;
+        float dtAccumuled, time;
 
     float renderingDt;
 
-	bool initDone;
+        bool initDone;
 };
