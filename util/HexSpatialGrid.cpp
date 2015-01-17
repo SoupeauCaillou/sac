@@ -223,6 +223,47 @@ void HexSpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entitie
     }
 }
 
+SpatialGrid::Iterate::Result HexSpatialGrid::iterate(GridPos pos, SpatialGrid::Iterate::Options ) const {
+    Iterate::Result result;
+    result.newLine = false;
+
+    if (!isPosValid(pos)) {
+        // return top-left corner
+        result.valid = true;
+        int min = INT_MAX;
+        for (const auto& p: cells) {
+            if (p.first.q < min) {
+                min = p.first.q;
+                result.pos = p.first;
+            }
+        }
+        return result;
+    } else {
+        GridPos ret = pos;
+        ret.q += 1;
+        // if we reach the end of the line
+        if (!isPosValid(ret)) {
+            ret = pos;
+            ret.q = ret.q - w + 1;
+            // try bottom-left
+            ret.r -= 1;
+            result.newLine = true;
+            if (!isPosValid(ret)) {
+                // try bottom right
+                ret.q += 1;
+
+                if (!isPosValid(ret)) {
+                    result.valid = false;
+                    return result;
+                }
+            }
+        }
+        result.pos = ret;
+        result.valid = true;
+    }
+    return result;
+}
+
 std::map<int, std::vector<GridPos> > HexSpatialGrid::movementRange(const GridPos& p, int movement) const {
 
     auto it = cells.find(p);

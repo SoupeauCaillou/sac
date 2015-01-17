@@ -54,6 +54,16 @@ struct Cell {
 };
 
 class SpatialGrid {
+public:
+    struct Iterate {
+        enum Options {
+            LeftToRightTopToBottom
+        };
+        struct Result{
+            GridPos pos;
+            bool valid, newLine;
+        };
+    };
 
 protected:
     virtual ~SpatialGrid() {};
@@ -73,6 +83,7 @@ public:
     virtual void                    removeEntityFrom(Entity e, const GridPos& p) = 0;
     virtual std::list<Entity>&      getEntitiesAt(const GridPos& p) = 0;
     virtual void                    autoAssignEntitiesToCell(const std::vector<Entity>& entities) = 0;
+    virtual Iterate::Result         iterate(GridPos pos, Iterate::Options opt = Iterate::LeftToRightTopToBottom) const = 0;
 
     virtual int                     gridPosMoveCost(const GridPos& from, const GridPos& to) const = 0;
     virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const = 0;

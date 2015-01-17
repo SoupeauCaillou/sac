@@ -54,6 +54,7 @@ public:
     virtual void                    removeEntityFrom(Entity e, const GridPos& p);
     virtual std::list<Entity>&      getEntitiesAt(const GridPos& p);
     virtual void                    autoAssignEntitiesToCell(const std::vector<Entity>& entities);
+    virtual Iterate::Result         iterate(GridPos pos, Iterate::Options opt = Iterate::LeftToRightTopToBottom) const;
 
     virtual int                     gridPosMoveCost(const GridPos& from, const GridPos& to) const;
     virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;

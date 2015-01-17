@@ -196,6 +196,12 @@ void SquareSpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& enti
     }
 }
 
+SpatialGrid::Iterate::Result SquareSpatialGrid::iterate(GridPos, Iterate::Options ) const {
+    LOGF("TODO");
+    Iterate::Result i;
+    return i;
+}
+
 std::map<int, std::vector<GridPos> > SquareSpatialGrid::movementRange(const GridPos& p, int movement) const {
 
     auto it = cells.find(p);
