@@ -98,11 +98,15 @@ endif()
 ######################### Working env setup(git hooks+editor config) ##
 #######################################################################
 # Prevent user to change spaces with tabs
-if (EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit.sample
-    AND NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
-    message("Setting up git hook pre-commit in ${CMAKE_SOURCE_DIR}/.git/hooks/ ...")
-    file(RENAME ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit.sample ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
-    file(COPY ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit DESTINATION ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks/)
+set(hook_dir ${CMAKE_SOURCE_DIR}/.git/hooks)
+set(sac_hook_dir ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks)
+if (EXISTS ${hook_dir}/pre-commit.sample AND NOT EXISTS ${hook_dir}/pre-commit)
+    message("Setting up git hook pre-commit in ${hook_dir} ...")
+    file(COPY ${hook_dir}/pre-commit.sample
+        DESTINATION ${sac_hook_dir}
+        FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+    file(RENAME ${sac_hook_dir}/pre-commit.sample ${sac_hook_dir}/pre-commit)
+    file(COPY ${sac_hook_dir}/pre-commit DESTINATION ${hook_dir})
 endif()
 
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.editorconfig)
