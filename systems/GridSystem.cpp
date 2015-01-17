@@ -26,7 +26,7 @@ INSTANCE_IMPL(GridSystem);
 
 GridSystem::GridSystem() : ComponentSystemImpl<GridComponent>(HASH("Grid", 0xb87b426b)) {
     GridComponent tc;
-    componentSerializer.add(new Property<bitfield32_t>(HASH("type", 0xf3ebd1bf), OFFSET(type, tc)));
+    componentSerializer.add(new Property<int>(HASH("type", 0xf3ebd1bf), OFFSET(type, tc)));
     componentSerializer.add(new Property<bool>(HASH("blocks_path", 0x601b5a16), OFFSET(blocksPath, tc)));
     componentSerializer.add(new Property<bool>(HASH("blocks_vision", 0x3dc1d8a2), OFFSET(blocksVision, tc)));
     componentSerializer.add(new Property<bool>(HASH("can_be_on_multiple_cells", 0x840cdec3), OFFSET(canBeOnMultipleCells, tc)));
