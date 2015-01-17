@@ -4,7 +4,7 @@
 const char* FileBufferHelper::line(const FileBuffer& fb, Options opt) {
     uint8_t* cursor = fb.data;
     if (pos >= fb.size)
-        return "\0";
+        return NULL;
     cursor += pos;
     char* nextEndLine = static_cast<char*>(memchr(cursor, '\n', fb.size - pos));
 

@@ -38,10 +38,11 @@ TEST(TestOneLine) {
 }
 
 TEST(TestTwoLine) {
-    FileBuffer fb = FB("abcde\nfghijk\n");
+    FileBuffer fb = FB("abcde\nfghijk\n\n");
     FileBufferHelper helper;
 
     CHECK_EQUAL("abcde", std::string(helper.line(fb)));
     CHECK_EQUAL("fghijk", std::string(helper.line(fb)));
     CHECK_EQUAL("\0", std::string(helper.line(fb)));
+    CHECK(NULL == helper.line(fb));
 }
