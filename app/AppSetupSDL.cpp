@@ -207,6 +207,14 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
         game = static_cast<Game*> (_game);
 
+#if SAC_DESKTOP
+        game->arg.c = info->arg.c;
+        game->arg.v = new char*[info->arg.c];
+        for (int i=0; i<info->arg.c; i++) {
+            game->arg.v[i] = strdup(info->arg.v[i]);
+        }
+#endif
+
         /////////////////////////////////////////////////////
         // Handle --restore cmd line switch
         uint8_t* state = 0;

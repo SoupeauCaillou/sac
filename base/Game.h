@@ -87,6 +87,10 @@ class Game {
         #if SAC_DESKTOP
         //tough... only needed for mouse events handling
         MouseNativeTouchState * mouseNativeTouchState;
+        struct {
+            int c;
+            char** v;
+        } arg;
         #endif
 
         float targetDT;
