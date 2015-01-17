@@ -81,10 +81,10 @@ struct RenderingComponent {
         FramebufferRef framebuffer;
     };
     uint8_t show;           // 8 bits
-    uint8_t flags;          // 8 bits
+    bitfield8_t flags;          // 8 bits
     uint16_t indiceOffset; // 16
     EffectRef effectRef;    // 8 bits
-    uint8_t cameraBitMask;  // 8 bits
+    bitfield8_t cameraBitMask;  // 8 bits
     Color color;            // 128 bits
 
 #if SAC_INGAME_EDITORS
