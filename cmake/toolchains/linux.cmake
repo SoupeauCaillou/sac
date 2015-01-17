@@ -4,7 +4,7 @@ add_definitions(-DSAC_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets/")
 # Enable '-D_GLIBCXX_DEBUG' to debug stl containers related issues
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pthread -g -Wall -W -Werror")
-set(CXX_FLAGS_DEBUG "-O0")
+set(CXX_FLAGS_DEBUG "-O0 -Wno-unused-parameter")
 set(CXX_FLAGS_RELEASE "-O3 -fconstexpr-depth=10000")
 
 if (${BUILD_TARGET} STREQUAL "DEBUG")
