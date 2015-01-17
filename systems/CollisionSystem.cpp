@@ -61,7 +61,7 @@ static float performRayObjectCollisionInCell(const CollisionComponent* cc, int g
 
 static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const glm::vec2& worldSize) {
     const glm::vec2& cellCenter = -worldSize * 0.5f + glm::vec2(cellSize * (x+.5f), cellSize *(y+.5f));
-    IntersectionUtil::AABB cell;
+    AABB cell;
     cell.left = cellCenter.x - (cellSize * 0.5f);
     cell.right = cell.left + cellSize;
     cell.bottom = cellCenter.y - (cellSize * 0.5f);

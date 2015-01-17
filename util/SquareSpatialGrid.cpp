@@ -104,11 +104,6 @@ std::vector<GridPos> SquareSpatialGrid::getNeighbors(const GridPos& pos, bool en
     return n;
 }
 
-unsigned SquareSpatialGrid::ComputeDistance(const GridPos& p1, const GridPos& p2) const {
-    return (glm::abs(p1.q - p2.q) + glm::abs(p1.r - p2.r)
-            + glm::abs(p1.r + p1.q - p2.q - p2.r)) / 2;
-}
-
 void SquareSpatialGrid::forEachCellDo(std::function<void(const GridPos&)> fnct) {
     for (auto& a: cells) {
         fnct(a.first);
@@ -432,7 +427,7 @@ std::vector<GridPos> SquareSpatialGrid::findPath(const GridPos& from, const Grid
                 }
                 (*jt).pos = n;
                 (*jt).cost = cost;
-                (*jt).rank = cost + ComputeDistance(n, to);
+                (*jt).rank = cost + computeGridDistance(n, to);
                 (*jt).parent = pIt;
             }
         }
@@ -459,8 +454,23 @@ std::vector<GridPos> SquareSpatialGrid::findPath(const GridPos& from, const Grid
 }
 
 unsigned SquareSpatialGrid::computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const {
-    return ComputeDistance(positionToGridPos(p1), positionToGridPos(p2));
+    return computeGridDistance(positionToGridPos(p1), positionToGridPos(p2));
 }
+
+unsigned SquareSpatialGrid::computeGridDistance(const GridPos& p1, const GridPos& p2) const {
+    return (glm::abs(p1.q - p2.q) + glm::abs(p1.r - p2.r)
+            + glm::abs(p1.r + p1.q - p2.q - p2.r)) / 2;
+}
+
+float SquareSpatialGrid::computeRealDistance(const glm::vec2& p1, const glm::vec2& p2) const {
+    return computeRealDistance(positionToGridPos(p1), positionToGridPos(p2));
+}
+
+float SquareSpatialGrid::computeRealDistance(const GridPos& p1, const GridPos& p2) const {
+    //could be improved
+    return (glm::distance(gridPosToPosition(p1), gridPosToPosition(p2)));
+}
+
 
 GridPos SquareSpatialGrid::cubeCoordinateRounding(float x, float y, float z)  const {
     float rx = glm::round(x);
@@ -487,6 +497,24 @@ GridPos SquareSpatialGrid::positionSizeToGridPos(const glm::vec2& pos) const {
     int y = int( pos.y / size );
 
     return GridPos( x, y );
+}
+
+AABB SquareSpatialGrid::boundingBox(bool inner) const {
+    AABB boundingBox;
+    float width = w;
+    float height = h;
+
+    if (inner) {
+        width -= .5;
+        height -= 2 / sqrt(3);
+    }
+
+    boundingBox.bottom  = - height / 2.f;
+    boundingBox.top     = - boundingBox.bottom;
+    boundingBox.left    = - w / 2.f;
+    boundingBox.right   = - boundingBox.left;
+
+    return boundingBox;
 }
 
 #endif

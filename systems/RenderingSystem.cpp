@@ -369,7 +369,7 @@ void RenderingSystem::DoUpdate(float dt) {
         const float cameraInvSize = 1.0f / (camTrans->size.x * camTrans->size.y);
         opaqueIndex = blendedIndex = 0;
 
-        IntersectionUtil::AABB camAABB;
+        AABB camAABB;
         IntersectionUtil::computeAABB(camTrans, camAABB);
 
         /* render */
@@ -386,7 +386,7 @@ void RenderingSystem::DoUpdate(float dt) {
                     continue;
                 }
             } else {
-                IntersectionUtil::AABB entityAABB;
+                AABB entityAABB;
                 IntersectionUtil::computeAABB(tc, entityAABB, !(rc->flags & RenderingFlags::FastCulling));
 
                 if (!IntersectionUtil::rectangleRectangleAABB(camAABB, entityAABB)) {

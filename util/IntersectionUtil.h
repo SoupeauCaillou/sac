@@ -29,11 +29,12 @@
 struct TransformationComponent;
 struct Polygon;
 
+struct AABB {
+    float left, right, top, bottom;
+};
+
 class IntersectionUtil {
     public:
-        struct AABB {
-            float left, right, top, bottom;
-        };
 
         static bool pointLine(const glm::vec2& point, const glm::vec2& qA, const glm::vec2& qB);
 

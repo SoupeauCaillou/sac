@@ -28,15 +28,16 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include "util/MurmurHash.h"
 
 class Draw {
     public:
-        static void Point(uint32_t permanentGroupID,
+        static void Point(hash_t permanentGroupID,
             const glm::vec2& position, const Color & color = Color(), const std::string& text = "");
         static void Point(
             const glm::vec2& position, const Color & color = Color(), const std::string& text = "");
 
-        static void Vec2(uint32_t permanentGroupID,
+        static void Vec2(hash_t permanentGroupID,
             const glm::vec2& position, const glm::vec2& size, const Color & color = Color(), const std::string& text = "");
 
         static void Vec2(
@@ -47,22 +48,22 @@ class Draw {
             const Color & color = Color(), const std::string& name = "triangle", Entity vector = 0, int dynamicVertices = 0);
 #endif
 
-        static void Rectangle(uint32_t permanentGroupID,
+        static void Rectangle(hash_t permanentGroupID,
             const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color = Color(), const std::string& text = "");
         static void Rectangle(
             const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color = Color(), const std::string& text = "");
 
         static void Update();
 
-        static void Clear(uint32_t permanentGroupID);
+        static void Clear(hash_t permanentGroupID);
 
         static void ClearAll();
     private:
         static Draw instance;
 
-        Entity renderingEntity(uint32_t groupID);
-        Entity textEntity(uint32_t groupID);
-        std::vector<std::pair<Entity, uint32_t>> rendering;
-        std::vector<std::pair<Entity, uint32_t>> text;
+        Entity renderingEntity(hash_t groupID);
+        Entity textEntity(hash_t groupID);
+        std::vector<std::pair<Entity, hash_t>> rendering;
+        std::vector<std::pair<Entity, hash_t>> text;
 };
 

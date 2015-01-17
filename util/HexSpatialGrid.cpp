@@ -114,9 +114,22 @@ std::vector<GridPos> HexSpatialGrid::getNeighbors(const GridPos& pos, bool enabl
     return n;
 }
 
-unsigned HexSpatialGrid::ComputeDistance(const GridPos& p1, const GridPos& p2) const {
+unsigned HexSpatialGrid::computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const {
+    return computeGridDistance(positionToGridPos(p1), positionToGridPos(p2));
+}
+
+unsigned HexSpatialGrid::computeGridDistance(const GridPos& p1, const GridPos& p2) const {
     return (glm::abs(p1.q - p2.q) + glm::abs(p1.r - p2.r)
             + glm::abs(p1.r + p1.q - p2.q - p2.r)) / 2;
+}
+
+float HexSpatialGrid::computeRealDistance(const glm::vec2& p1, const glm::vec2& p2) const {
+    return computeRealDistance(positionToGridPos(p1), positionToGridPos(p2));
+}
+
+float HexSpatialGrid::computeRealDistance(const GridPos& p1, const GridPos& p2) const {
+    //could be improved
+    return (glm::distance(gridPosToPosition(p1), gridPosToPosition(p2)));
 }
 
 void HexSpatialGrid::forEachCellDo(std::function<void(const GridPos&)> fnct) {
@@ -439,7 +452,7 @@ std::vector<GridPos> HexSpatialGrid::findPath(const GridPos& from, const GridPos
                 }
                 (*jt).pos = n;
                 (*jt).cost = cost;
-                (*jt).rank = cost + ComputeDistance(n, to);
+                (*jt).rank = cost + computeGridDistance(n, to);
                 (*jt).parent = pIt;
             }
         }
@@ -463,10 +476,6 @@ std::vector<GridPos> HexSpatialGrid::findPath(const GridPos& from, const GridPos
     }
 #endif
     return result;
-}
-
-unsigned HexSpatialGrid::computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const {
-    return ComputeDistance(positionToGridPos(p1), positionToGridPos(p2));
 }
 
 GridPos HexSpatialGrid::cubeCoordinateRounding(float x, float y, float z)  const {
@@ -494,6 +503,19 @@ GridPos HexSpatialGrid::positionSizeToGridPos(const glm::vec2& pos/*, float size
         float r = 2.0f/3 * pos.y / size;
 
         return cubeCoordinateRounding(q, 0 - (q + r), r);
+}
+
+AABB HexSpatialGrid::boundingBox(bool inner) const {
+    AABB boundingBox;
+
+    // float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5f);
+    // size = hexaHeight * 0.5f;
+
+    boundingBox.bottom  = - 2.6 * h / 2.f;
+    boundingBox.top     = - boundingBox.bottom;
+    boundingBox.left    = - 2.6 * w / 2.f;
+    boundingBox.right   = - boundingBox.left;
+    return boundingBox;
 }
 
 #endif

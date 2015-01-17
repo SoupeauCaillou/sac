@@ -36,9 +36,9 @@
 
 Draw Draw::instance;
 
-static constexpr uint32_t TempGroupId = Murmur::_Hash(__FILE__);
+static constexpr hash_t TempGroupId = Murmur::_Hash(__FILE__);
 
-Entity Draw::renderingEntity(uint32_t groupID) {
+Entity Draw::renderingEntity(hash_t groupID) {
     Entity t = 0;
     auto firstUnused = rendering.begin();
     for (; firstUnused != rendering.end(); ++firstUnused) {
@@ -61,7 +61,7 @@ Entity Draw::renderingEntity(uint32_t groupID) {
     return t;
 }
 
-Entity Draw::textEntity(uint32_t groupID) {
+Entity Draw::textEntity(hash_t groupID) {
     Entity t = 0;
     auto firstUnused = text.begin();
     for (; firstUnused != text.end(); ++firstUnused) {
@@ -93,7 +93,7 @@ static void addText(Entity t, Entity parent, const std::string& text) {
     TEXT(t)->show = true;
 }
 
-void Draw::Clear(uint32_t groupID) {
+void Draw::Clear(hash_t groupID) {
     for (auto e : instance.rendering) {
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
@@ -122,7 +122,7 @@ void Draw::Point(const glm::vec2& position, const Color & color, const std::stri
     Point(TempGroupId, position, color, text);
 }
 
-void Draw::Point(uint32_t groupID, const glm::vec2& position, const Color & color, const std::string& text) {
+void Draw::Point(hash_t groupID, const glm::vec2& position, const Color & color, const std::string& text) {
     Entity pt = instance.renderingEntity(groupID);
 
     TRANSFORM(pt)->size = glm::vec2(0.2f);
@@ -140,7 +140,7 @@ void Draw::Vec2(const glm::vec2& position, const glm::vec2& size, const Color & 
     Vec2(TempGroupId, position, size, color, text);
 }
 
-void Draw::Vec2(uint32_t groupID, const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
+void Draw::Vec2(hash_t groupID, const glm::vec2& position, const glm::vec2& size, const Color & color, const std::string& text) {
     Entity vector = instance.renderingEntity(groupID);
 
     TRANSFORM(vector)->size = glm::vec2(glm::length(size), .05f);
@@ -159,7 +159,7 @@ void Draw::Vec2(uint32_t groupID, const glm::vec2& position, const glm::vec2& si
 }
 
 #if 0
-Entity Draw::Triangle(uint32_t groupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
+Entity Draw::Triangle(hash_t groupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
  const Color & color, const std::string name, Entity vector, int dynamicVertices) {
     Entity triangle = renderingEntity(groupID);
 
@@ -185,7 +185,7 @@ void Draw::Rectangle(const glm::vec2& centerPosition, const glm::vec2& size, flo
     const std::string& text) {
     Rectangle(TempGroupId, centerPosition, size, rotation, color, text);
 }
-void Draw::Rectangle(uint32_t groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
+void Draw::Rectangle(hash_t groupID, const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
     const std::string& text) {
 
     Entity rect = instance.renderingEntity(groupID);

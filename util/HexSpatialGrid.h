@@ -66,7 +66,6 @@ public:
     virtual void                    removeEntityFrom(Entity e, const GridPos& p);
     virtual std::list<Entity>&      getEntitiesAt(const GridPos& p);
     virtual void                    autoAssignEntitiesToCell(const std::vector<Entity>& entities);
-    virtual unsigned                computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const;
 
     virtual int                     gridPosMoveCost(const GridPos& from, const GridPos& to) const;
     virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const;
@@ -77,7 +76,13 @@ public:
 
     virtual std::vector<GridPos>    findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const;
 
-    virtual unsigned                ComputeDistance(const GridPos& p1, const GridPos& p2) const;
+    virtual unsigned                computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const;
+    virtual unsigned                computeGridDistance(const GridPos& p1, const GridPos& p2) const;
+
+    virtual float                   computeRealDistance(const glm::vec2& p1, const glm::vec2& p2) const;
+    virtual float                   computeRealDistance(const GridPos& p1, const GridPos& p2) const;
+
+    virtual AABB                    boundingBox(bool inner) const;
 
 private:
     GridPos                         cubeCoordinateRounding(float x, float y, float z) const;

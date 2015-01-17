@@ -33,7 +33,7 @@ TEST(HexGridNeighborsAtCenter)
         auto neighbors = grid.getNeighbors(p, false);
         CHECK_EQUAL(6u, neighbors.size());
         for(auto& n: neighbors) {
-                CHECK_EQUAL(1u, grid.ComputeDistance(p, n));
+                CHECK_EQUAL(1u, grid.computeGridDistance(p, n));
         }
 }
 
@@ -44,7 +44,7 @@ TEST(HexGridNeighborsAtTopLeft)
         auto neighbors = grid.getNeighbors(p, false);
         CHECK_EQUAL(2u, neighbors.size());
         for(auto& n: neighbors) {
-                CHECK_EQUAL(1u, grid.ComputeDistance(p, n));
+                CHECK_EQUAL(1u, grid.computeGridDistance(p, n));
         }
 }
 
@@ -63,7 +63,7 @@ TEST(HexRingAt2OfCenter)
         std::vector<GridPos> i = grid.ringFinder(p, 2, false);
         CHECK_EQUAL(12, (int)i.size());
         for (auto j: i) {
-                CHECK_EQUAL(2, (int)grid.ComputeDistance(p, j));
+                CHECK_EQUAL(2, (int)grid.computeGridDistance(p, j));
         }
 }
 
@@ -116,7 +116,7 @@ TEST(SquareGridNeighborsAtCenter)
         auto neighbors = grid.getNeighbors(p, false);
         CHECK_EQUAL(8u, neighbors.size());
         // for(auto& n: neighbors) {
-        //      CHECK_EQUAL(1u, grid.ComputeDistance(p, n));
+        //      CHECK_EQUAL(1u, grid.computeGridDistance(p, n));
         // }
 }
 
@@ -127,7 +127,7 @@ TEST(SquareGridNeighborsAtTopLeft)
         auto neighbors = grid.getNeighbors(p, false);
         CHECK_EQUAL(3u, neighbors.size());
         // for(auto& n: neighbors) {
-        //      CHECK_EQUAL(1u, grid.ComputeDistance(p, n));
+        //      CHECK_EQUAL(1u, grid.computeGridDistance(p, n));
         // }
 }
 
@@ -146,7 +146,7 @@ TEST(SquareRingAt2OfCenter)
         std::vector<GridPos> i = grid.ringFinder(p, 2, false);
         CHECK_EQUAL(24, (int)i.size());
         // for (auto j: i) {
-        //      CHECK_EQUAL(2, (int)grid.ComputeDistance(p, j));
+        //      CHECK_EQUAL(2, (int)grid.computeGridDistance(p, j));
         // }
 }
 

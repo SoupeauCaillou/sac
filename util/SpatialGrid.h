@@ -33,6 +33,7 @@
 #include <map>
 #include <vector>
 #include <ostream>
+#include <util/IntersectionUtil.h>
 
 // let's start with a dumb position data structure
 class GridPos {
@@ -40,7 +41,7 @@ class GridPos {
 public:
     GridPos(int32_t q = 0, int32_t r = 0);
 
-  bool operator<(const GridPos& p) const;
+    bool operator<(const GridPos& p) const;
     bool operator==(const GridPos& p) const;
     bool operator!=(const GridPos& p) const;
     int32_t q, r;
@@ -72,7 +73,6 @@ public:
     virtual void                    removeEntityFrom(Entity e, const GridPos& p) = 0;
     virtual std::list<Entity>&      getEntitiesAt(const GridPos& p) = 0;
     virtual void                    autoAssignEntitiesToCell(const std::vector<Entity>& entities) = 0;
-    virtual unsigned                computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const = 0;
 
     virtual int                     gridPosMoveCost(const GridPos& from, const GridPos& to) const = 0;
     virtual std::map<int, std::vector<GridPos> > movementRange(const GridPos& p, int movement) const = 0;
@@ -83,7 +83,13 @@ public:
 
     virtual std::vector<GridPos>    findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath = false) const = 0;
 
-    virtual unsigned                ComputeDistance(const GridPos& p1, const GridPos& p2) const = 0;
+    virtual unsigned                computeGridDistance(const glm::vec2& p1, const glm::vec2& p2) const = 0;
+    virtual unsigned                computeGridDistance(const GridPos& p1, const GridPos& p2) const = 0;
+
+    virtual float                   computeRealDistance(const glm::vec2& p1, const glm::vec2& p2) const = 0;
+    virtual float                   computeRealDistance(const GridPos& p1, const GridPos& p2) const = 0;
+
+    virtual AABB                    boundingBox(bool inner) const = 0;
 
 protected:
     std::map<GridPos, Cell> cells;
