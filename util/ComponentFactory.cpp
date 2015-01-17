@@ -233,7 +233,7 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
             }
             default: break;
         }
-        if (ret && dfp.getModifier(section, id) == HASH("rgb", 0x0)) {
+        if (ret && dfp.getModifier(section, id) == HASH("rgb", 0x9482beff)) {
             for (int i=0; i<4 && i < count; i++) {
                 out->rgba[i] /= 255.0;
             }

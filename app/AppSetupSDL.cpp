@@ -228,11 +228,25 @@ int setupEngine(void* _game, const SetupInfo* info) {
             parseCommandLineOption(info->arg.c, info->arg.v);
 
 
-        glm::vec2 resolution(0, 600);
-        if (game->isLandscape()) {
-            resolution.x = 800;
-        } else {
-            resolution.x = 375;
+        int largestDimension = 800;
+        float invRatio = 10 / 16.0f;
+        {
+            SDL_DisplayMode mode;
+            if (0 == SDL_GetCurrentDisplayMode(0, &mode)) {
+                if (game->isLandscape()) {
+                    std::swap(mode.w, mode.h);
+                }
+
+                while (mode.w < largestDimension ||
+                    mode.h < (largestDimension * invRatio)) {
+                    largestDimension *= 0.8;
+                }
+            }
+        }
+        glm::vec2 resolution (largestDimension, largestDimension * invRatio);
+
+        if (!game->isLandscape()) {
+            std::swap(resolution.x, resolution.y);
         }
 
         glm::vec2 fullResolution(resolution);
