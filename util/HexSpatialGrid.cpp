@@ -125,13 +125,17 @@ void HexSpatialGrid::forEachCellDo(std::function<void(const GridPos&)> fnct) {
     }
 }
 
-void HexSpatialGrid::addEntityAt(Entity e, const GridPos& p) {
+void HexSpatialGrid::addEntityAt(Entity e, const GridPos& p, bool updateSpatialPosition) {
     auto it = cells.find(p);
     if (it == cells.end())
         LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p);
 
     it->second.entities.push_back(e);
     entityToGridPos[e].push_back(p);
+
+    if (updateSpatialPosition) {
+        TRANSFORM(e)->position = gridPosToPosition(p);
+    }
 }
 
 void HexSpatialGrid::removeEntityFrom(Entity e, const GridPos& p) {

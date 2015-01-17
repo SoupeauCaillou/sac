@@ -115,13 +115,18 @@ void SquareSpatialGrid::forEachCellDo(std::function<void(const GridPos&)> fnct) 
     }
 }
 
-void SquareSpatialGrid::addEntityAt(Entity e, const GridPos& p) {
+void SquareSpatialGrid::addEntityAt(Entity e, const GridPos& p, bool updateSpatialPosition) {
     auto it = cells.find(p);
     if (it == cells.end())
         LOGF("Tried to add entity: '" << theEntityManager.entityName(e) << " at invalid pos: " << p);
 
     it->second.entities.push_back(e);
     entityToGridPos[e].push_back(p);
+
+    if (updateSpatialPosition) {
+        TRANSFORM(e)->position = gridPosToPosition(p);
+    }
+
 }
 
 void SquareSpatialGrid::removeEntityFrom(Entity e, const GridPos& p) {
