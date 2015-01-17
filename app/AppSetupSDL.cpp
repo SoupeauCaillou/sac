@@ -474,7 +474,6 @@ static void addWindowIcon(SDL_Window* window) {
         iconPath.str("");
         iconPath << SAC_ASSETS_DIR << "icon.png";
     }
-    LOGE(iconPath.str());
     if (api.doesExistFileOrDirectory(iconPath.str())) {
         FileBuffer fb;
         ImageDesc image = ImageLoader::loadPng(iconPath.str(),fb);
