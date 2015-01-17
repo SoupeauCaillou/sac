@@ -20,7 +20,9 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #pragma GCC diagnostic push
+#ifdef __clang__
 #pragma GCC diagnostic ignored "-Wparentheses-equality"
+#endif
 #include "stb_image.h"
 #pragma GCC diagnostic pop
 
