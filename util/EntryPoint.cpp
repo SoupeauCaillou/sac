@@ -36,7 +36,7 @@ void* buildGameInstance() {
 int main(int argc, char** argv) {
 
     SetupInfo info;
-    info.name = STR(PROJECT_NAME);
+    info.name = XSTR(PROJECT_NAME);
     info.arg.c = argc;
     info.arg.v = argv;
 
