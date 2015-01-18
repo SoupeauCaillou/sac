@@ -233,50 +233,58 @@ add_custom_target(generate_shaders DEPENDS ${SHADER_HEADER_FILES})
 #######################################################################
 ####################Auto register scenes###############################
 #######################################################################
-set(SCENE_REGISTRATION_FILE ${GAME_SOURCE_DIR}/sources/scenes/Scenes.h)
+set(SCENE_REGISTRATION_FILE ${CMAKE_BINARY_DIR}/Scenes.h.cmake-tmp)
 file(GLOB FILES ${GAME_SOURCE_DIR}/sources/scenes/*.cpp)
 if (NOT FILES STREQUAL "")
-foreach (FILE ${FILES})
-    string(REGEX REPLACE ".*/(.*)Scene\\..*" "\\1" SCENE_NAME ${FILE})
-    list(APPEND SCENES ${SCENE_NAME})
-endforeach()
-#sort scenes alphabetically to have a fixed enum order
-list(SORT SCENES)
+    foreach (FILE ${FILES})
+        string(REGEX REPLACE ".*/(.*)Scene\\..*" "\\1" SCENE_NAME ${FILE})
+        list(APPEND SCENES ${SCENE_NAME})
+    endforeach()
+    #sort scenes alphabetically to have a fixed enum order
+    list(SORT SCENES)
 
-file(WRITE ${SCENE_REGISTRATION_FILE}
-"${LICENSE_HEADER}
+    file(WRITE ${SCENE_REGISTRATION_FILE}
+        "${LICENSE_HEADER}\n\n"
 
-#pragma once
-#include <base/Game.h>
-#include <base/StateMachine.h>
-class ${PROJECT_NAME}Game;
-namespace Scene {
-    enum Enum : int {
-")
-
-# Register scene in enum list
-foreach (SCENE ${SCENES})
-    file(APPEND ${SCENE_REGISTRATION_FILE} "        ${SCENE},\n")
-endforeach()
-file(APPEND ${SCENE_REGISTRATION_FILE} "    };\n")
-# Declare scene creator prototype
-foreach (SCENE ${SCENES})
-    file(APPEND ${SCENE_REGISTRATION_FILE} "    StateHandler<Scene::Enum>* Create${SCENE}SceneHandler(${PROJECT_NAME}Game* game);\n")
-endforeach()
-file(APPEND ${SCENE_REGISTRATION_FILE}
-"}
-")
-
-file(APPEND ${SCENE_REGISTRATION_FILE}
-"inline void registerScenes(${PROJECT_NAME}Game * game, StateMachine<Scene::Enum> & machine) {")
-
-foreach (SCENE ${SCENES})
-    file(APPEND
-        ${SCENE_REGISTRATION_FILE}
-        "    machine.registerState(Scene::${SCENE}, Scene::Create${SCENE}SceneHandler(game));\n"
+        "#pragma once\n"
+        "#include <base/Game.h>\n"
+        "#include <base/StateMachine.h>\n"
+        "class ${PROJECT_NAME}Game;\n"
+        "namespace Scene {\n"
+        "    enum Enum : int {\n"
     )
-endforeach()
-file(APPEND ${SCENE_REGISTRATION_FILE} "}")
+
+    # Register scene in enum list
+    foreach (SCENE ${SCENES})
+        file(APPEND ${SCENE_REGISTRATION_FILE} "        ${SCENE},\n")
+    endforeach()
+    file(APPEND ${SCENE_REGISTRATION_FILE} "    };\n")
+    # Declare scene creator prototype
+    foreach (SCENE ${SCENES})
+        file(APPEND ${SCENE_REGISTRATION_FILE} "    StateHandler<Scene::Enum>* Create${SCENE}SceneHandler(${PROJECT_NAME}Game* game);\n")
+    endforeach()
+    file(APPEND ${SCENE_REGISTRATION_FILE} "}\n")
+    file(APPEND ${SCENE_REGISTRATION_FILE}
+        "inline void registerScenes(${PROJECT_NAME}Game * game, StateMachine<Scene::Enum> & machine) {\n"
+    )
+
+    foreach (SCENE ${SCENES})
+        file(APPEND
+            ${SCENE_REGISTRATION_FILE}
+            "    machine.registerState(Scene::${SCENE}, Scene::Create${SCENE}SceneHandler(game));\n"
+        )
+    endforeach()
+    file(APPEND ${SCENE_REGISTRATION_FILE} "}\n")
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E compare_files
+        ${SCENE_REGISTRATION_FILE} ${GAME_SOURCE_DIR}/sources/scenes/Scenes.h
+        RESULT_VARIABLE file_are_differents
+    )
+    # only modify file if a change has been made to avoid recompiling because of
+    # the fact that only the "last modified date" has changed.
+    if (file_are_differents)
+        file(RENAME ${SCENE_REGISTRATION_FILE} ${GAME_SOURCE_DIR}/sources/scenes/Scenes.h)
+    endif()
 endif()
 
 #######################################################################
