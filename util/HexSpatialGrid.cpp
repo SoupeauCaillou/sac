@@ -548,10 +548,7 @@ GridPos HexSpatialGrid::positionSizeToGridPos(const glm::vec2& pos/*, float size
 AABB HexSpatialGrid::boundingBox(bool inner) const {
     AABB boundingBox;
 
-    // float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5f);
-    // size = hexaHeight * 0.5f;
-    // float magic = sqrt(3) / 2;
-    float cellWidth = 2.6;
+    float cellWidth = size * sqrt(3.f);
     float width = w + 1;
     float height = h + .25 - ((int)h/2) / sqrt(12);
 
