@@ -51,6 +51,12 @@ bool GridPos::operator==(const GridPos& p) const {
 bool GridPos::operator!=(const GridPos& p) const {
     return Hash(p) != Hash(*this);
 }
+GridPos GridPos::operator-(const GridPos& p) const {
+    return GridPos(q - p.q, r - p.r);
+}
+GridPos GridPos::operator+(const GridPos& p) const {
+    return GridPos(q + p.q, r + p.r);
+}
 
 std::ostream& operator<<(std::ostream& str, const GridPos& gp) {
     str << '{' << gp.q <<',' << gp.r << '}';

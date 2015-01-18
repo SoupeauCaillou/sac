@@ -44,6 +44,8 @@ public:
     bool operator<(const GridPos& p) const;
     bool operator==(const GridPos& p) const;
     bool operator!=(const GridPos& p) const;
+    GridPos operator-(const GridPos& p) const;
+    GridPos operator+(const GridPos& p) const;
     int32_t q, r;
 
     friend std::ostream& operator<<(std::ostream& str, const GridPos& gp);
