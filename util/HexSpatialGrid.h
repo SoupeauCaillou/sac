@@ -46,8 +46,8 @@ class HexSpatialGrid: public SpatialGrid {
 
 public:
     /**
-     * @param width number of cells on X-axis
-     * @param height number of cells on Y-axis
+     * @param width number of cells on X-axis. Must be odd.
+     * @param height number of cells on Y-axis. Must be odd.
      * @param hexagonWidth absolute space width of a cell (NB: this is the only parameter related to space problematic). See TransformationSystem for space management.
      */
     HexSpatialGrid(int width, int height, float hexagonWidth);
