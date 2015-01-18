@@ -23,10 +23,9 @@ HexSpatialGrid::HexSpatialGrid(int pW, int pH, float hexagonWidth) : w(pW), h(pH
     LOGF_IF((h % 2) == 0, "Must use odd height");
     LOGF_IF((w % 2) == 0, "Must use odd width");
 
-    float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5f);
-    size = hexaHeight * 0.5f;
+    size = hexagonWidth / glm::sqrt(3.0f);
 
-    const float vertSpacing = (3.0f/4) * hexaHeight;
+    const float vertSpacing = .5f * sqrt(3) * hexagonWidth;
     const float horiSpacing = hexagonWidth;
 
     GridPos endCell, firstCell = positionSizeToGridPos(
@@ -551,11 +550,20 @@ AABB HexSpatialGrid::boundingBox(bool inner) const {
 
     // float hexaHeight = hexagonWidth / (glm::sqrt(3.0f) * 0.5f);
     // size = hexaHeight * 0.5f;
+    // float magic = sqrt(3) / 2;
+    float cellWidth = 2.6;
+    float width = w + 1;
+    float height = h + .25 - ((int)h/2) / sqrt(12);
 
-    boundingBox.bottom  = - 2.6 * h / 2.f;
+    if (inner) {
+        width -= 1;
+        height -= 1.f / sqrt(3);
+    }
+
+    boundingBox.bottom  = - cellWidth * height / 2.f;
     boundingBox.top     = - boundingBox.bottom;
-    boundingBox.left    = - 2.6 * w / 2.f;
-    boundingBox.right   = - boundingBox.left;
+    boundingBox.right   = .5*cellWidth - cellWidth * width / 2.f;
+    boundingBox.left    = .5*cellWidth - boundingBox.right;
     return boundingBox;
 }
 

@@ -507,15 +507,8 @@ GridPos SquareSpatialGrid::positionSizeToGridPos(const glm::vec2& pos) const {
 
 AABB SquareSpatialGrid::boundingBox(bool inner) const {
     AABB boundingBox;
-    float width = w;
-    float height = h;
 
-    if (inner) {
-        width -= .5;
-        height -= 2 / sqrt(3);
-    }
-
-    boundingBox.bottom  = - height / 2.f;
+    boundingBox.bottom  = - h / 2.f;
     boundingBox.top     = - boundingBox.bottom;
     boundingBox.left    = - w / 2.f;
     boundingBox.right   = - boundingBox.left;

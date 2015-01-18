@@ -29,8 +29,13 @@
 
 static std::map<std::string, Color> name2Color;
 
-Color Color::random() {
-        return (Color(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f)));
+Color Color::random(float alpha) {
+        return Color(
+            glm::linearRand(0.0f, 1.0f)
+            , glm::linearRand(0.0f, 1.0f)
+            , glm::linearRand(0.0f, 1.0f)
+            , alpha
+        );
 }
 
 void Color::nameColor(const Color& c, const std::string& name) {
