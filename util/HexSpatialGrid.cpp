@@ -560,10 +560,10 @@ AABB HexSpatialGrid::boundingBox(bool inner) const {
         height -= 1.f / sqrt(3);
     }
 
-    boundingBox.bottom  = - cellWidth * height / 2.f;
-    boundingBox.top     = - boundingBox.bottom;
-    boundingBox.right   = .5*cellWidth - cellWidth * width / 2.f;
-    boundingBox.left    = .5*cellWidth - boundingBox.right;
+    boundingBox.bottom   = - cellWidth * height / 2.f;
+    boundingBox.top      = - boundingBox.bottom;
+    boundingBox.left     = .5*cellWidth - cellWidth * width / 2.f;
+    boundingBox.right    = .5*cellWidth - boundingBox.left;
     return boundingBox;
 }
 
