@@ -416,6 +416,9 @@ void Recorder::addFrame(GLubyte *ptr){
         //retrieve cursor position
         int x, y;
         SDL_GetMouseState(&x, &y);
+        //the offset seems to be only needed on x axis
+        x -= captureOffset.x;
+        
         drawPoint(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, x, y);
         RGB_To_YV12(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
     }
