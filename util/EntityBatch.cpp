@@ -44,6 +44,9 @@ bool EntityBatch::update(float dt) {
         case Action::Enabling:
         case Action::Disabling:
             if (mode == ActivationMode::Fading) {
+                if (entities.empty())
+                    return true;
+
                 // progressively show/hide entities
                 float t = 0;
                 if (action == Action::Enabling) {
