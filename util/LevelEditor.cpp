@@ -342,13 +342,13 @@ void LevelEditor::tick(float dt) {
 
     if (io.WantCaptureKeyboard) {
         if (!kbEnabled) {
-            LOGI("enable kb");
+            LOGV(1, "enable kb");
             SDL_StartTextInput();
             kbEnabled = true;
         }
     } else {
         if (kbEnabled) {
-            LOGI("disable kb");
+            LOGV(1, "disable kb");
             SDL_StopTextInput();
             kbEnabled = false;
         }

@@ -74,6 +74,10 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
             isDownEvent = false;
             break;
         }
+        case SDL_MOUSEWHEEL: {
+            wheel = event->wheel.y;
+            break;
+        }
 
         //unrecognized event, dont handle it
         default:
