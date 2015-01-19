@@ -334,10 +334,25 @@ Modifier::Enum modifier = Modifier::None;
 
 static glm::vec2 initialCursorPosition;
 static std::vector<std::pair<Entity, float>> hoveredEntities;
+static bool kbEnabled = false;
 
 void LevelEditor::tick(float dt) {
     /* Process SDL keyboard events */
     ImGuiIO& io = ImGui::GetIO();
+
+    if (io.WantCaptureKeyboard) {
+        if (!kbEnabled) {
+            LOGI("enable kb");
+            SDL_StartTextInput();
+            kbEnabled = true;
+        }
+    } else {
+        if (kbEnabled) {
+            LOGI("disable kb");
+            SDL_StopTextInput();
+            kbEnabled = false;
+        }
+    }
 
     while(!events.empty()) {
         const SDL_Event& event = events.front();
@@ -355,6 +370,7 @@ void LevelEditor::tick(float dt) {
                 case SDLK_RETURN: io.KeysDown[ImGuiKey_Enter] = down; break;
                 case SDLK_ESCAPE: io.KeysDown[ImGuiKey_Escape] = down; break;
                 default:
+                    break;
                     if (event.key.keysym.sym < 255) {
                         if (event.type == SDL_KEYDOWN && isalnum(event.key.keysym.sym))  {
                             io.AddInputCharacter(event.key.keysym.sym);
@@ -362,10 +378,9 @@ void LevelEditor::tick(float dt) {
                     }
                     break;
             }
-        } /*else if (event.type == SDL_TEXTINPUT) {
-                    SDL_Scancode code = SDL_GetScancodeFromKey(event.key);
-                    io.AddInputCharacter(
-        }*/
+        } else if (event.type == SDL_TEXTINPUT) {
+            strncpy(io.InputCharacters, event.text.text, 16);
+        }
         events.pop();
     }
 

@@ -353,9 +353,7 @@ void Game::eventsHandler() {
         bool handled = false;
 #if SAC_INGAME_EDITORS
         levelEditor->lock();
-        if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
-            levelEditor->addSDLEvent(event);
-        }
+        levelEditor->addSDLEvent(event);
         levelEditor->unlock();
 #endif
 
