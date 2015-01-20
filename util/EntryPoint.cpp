@@ -6,7 +6,7 @@
 #define _GAME_HEADER(n) n##Game.h
 #define GAME_HEADER(n) _GAME_HEADER(n)
 
-#define _GIT_VERSION_HEADER(n) n##GitVersion.h
+#define _GIT_VERSION_HEADER(n) gen/n##GitVersion.h
 #define GIT_VERSION_HEADER(n) _GIT_VERSION_HEADER(n)
 
 #define XSTR(s) STR(s)
