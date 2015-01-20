@@ -85,6 +85,8 @@ public:
 
     virtual AABB                    boundingBox(bool inner) const;
 
+    int                             getWidth() const { return w; }
+    int                             getHeight() const { return h; }
 private:
     GridPos                         cubeCoordinateRounding(float x, float y, float z) const;
     GridPos                         positionSizeToGridPos(const glm::vec2& pos/*, float size*/) const;
