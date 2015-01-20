@@ -299,6 +299,7 @@ void Recorder::stop(){
         mutex_buf.lock();
         cond.notify_all();
         buf.push(NULL);
+        mousePosition.push(glm::vec2(-10,-10));
         mutex_buf.unlock();
         recording = false;
     }
@@ -350,6 +351,11 @@ void Recorder::record(float dt){
 
                 mutex_buf.lock();
                 buf.push(test);
+
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                mousePosition.push( glm::vec2( x, y) );
+
                 cond.notify_all();
                 mutex_buf.unlock();
 
@@ -371,9 +377,11 @@ void Recorder::thread_video_encode(){
         while (buf.empty())
             cond.wait(lock);
         GLubyte *ptr = buf.front();
+        glm::vec2 mousePos = mousePosition.front();
         buf.pop();
+        mousePosition.pop();
         lock.unlock();
-        addFrame(ptr);
+        addFrame(ptr, mousePos);
         if (ptr)
             delete [] ptr;
     }
@@ -408,18 +416,18 @@ void drawPoint(GLubyte* ptr, int width, int height, int channelCount, int cursor
     }
 }
 
-void Recorder::addFrame(GLubyte *ptr){
+void Recorder::addFrame(GLubyte *ptr, const glm::vec2& mousePos){
     vpx_codec_iter_t iter = NULL;
     const vpx_codec_cx_pkt_t *pkt;
 
     if (ptr) {
         //retrieve cursor position
-        int x, y;
-        SDL_GetMouseState(&x, &y);
+        //int x, y;
+        //SDL_GetMouseState(&x, &y);
         //the offset seems to be only needed on x axis
-        x -= captureOffset.x;
+        //x -= captureOffset.x;
         
-        drawPoint(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, x, y);
+        drawPoint(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, mousePos.x-captureOffset.x, mousePos.y);
         RGB_To_YV12(ptr, cfg.g_w, cfg.g_h, CHANNEL_COUNT, raw.planes[0], raw.planes[1], raw.planes[2]);
     }
 

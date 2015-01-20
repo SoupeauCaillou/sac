@@ -68,7 +68,7 @@ class Recorder {
 #if SAC_RECORDER
     private:
         Recorder() {}
-        void addFrame(GLubyte *ptr);
+        void addFrame(GLubyte *ptr, const glm::vec2& mousePos);
 
         bool initVP8();
         bool initOpenGl_PBO();
@@ -82,6 +82,7 @@ class Recorder {
         GLuint pboIds[PBO_COUNT];
 
         std::queue<GLubyte*> buf;
+        std::queue< glm::vec2 > mousePosition;
 
         vpx_codec_ctx_t codec;
         vpx_codec_enc_cfg_t cfg;
