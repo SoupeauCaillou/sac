@@ -222,6 +222,18 @@ void HexSpatialGrid::autoAssignEntitiesToCell(const std::vector<Entity>& entitie
     }
 }
 
+static GridPos topLeftCell(const std::map<GridPos, Cell>& cells) {
+    GridPos pos;
+    int min = INT_MAX;
+    for (const auto& p: cells) {
+        if (p.first.q < min) {
+            min = p.first.q;
+            pos = p.first;
+        }
+    }
+    return pos;
+}
+
 SpatialGrid::Iterate::Result HexSpatialGrid::iterate(GridPos pos, SpatialGrid::Iterate::Options ) const {
     Iterate::Result result;
     result.newLine = false;
@@ -229,13 +241,7 @@ SpatialGrid::Iterate::Result HexSpatialGrid::iterate(GridPos pos, SpatialGrid::I
     if (!isPosValid(pos)) {
         // return top-left corner
         result.valid = true;
-        int min = INT_MAX;
-        for (const auto& p: cells) {
-            if (p.first.q < min) {
-                min = p.first.q;
-                result.pos = p.first;
-            }
-        }
+        result.pos = topLeftCell(cells);
         return result;
     } else {
         GridPos ret = pos;
@@ -549,18 +555,21 @@ AABB HexSpatialGrid::boundingBox(bool inner) const {
     AABB boundingBox;
 
     float cellWidth = size * sqrt(3.f);
-    float width = w + 1;
     float height = h + .25 - ((int)h/2) / sqrt(12);
+    float totalWidth = (w + 0.5f) * cellWidth;
 
     if (inner) {
-        width -= 1;
+        totalWidth -= cellWidth;
         height -= 1.f / sqrt(3);
     }
 
+    glm::vec2 topLeftCenter = gridPosToPosition(topLeftCell(cells));
+    float left = topLeftCenter.x - cellWidth * 0.5;
+
     boundingBox.bottom   = - cellWidth * height / 2.f;
     boundingBox.top      = - boundingBox.bottom;
-    boundingBox.left     = .5*cellWidth - cellWidth * width / 2.f;
-    boundingBox.right    = .5*cellWidth - boundingBox.left;
+    boundingBox.left     = left;
+    boundingBox.right    = boundingBox.left + totalWidth;
     return boundingBox;
 }
 
