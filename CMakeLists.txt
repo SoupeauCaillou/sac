@@ -370,7 +370,7 @@ if (MOBILE_BUILD OR WEB_BUILD)
         include_directories(${SAC_SOURCE_DIR}/libs/sqlite3)
         add_library("sqlite3" STATIC ${sqlite3_sources})
 
-        if (VARPLATFORM STREQUAL ANDROID)
+        if (VARPLATFORM STREQUAL "ANDROID")
             target_link_libraries("sac" GLESv2 z log sqlite3 EGL)
         else()
             target_link_libraries("sac" sqlite3)
