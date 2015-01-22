@@ -545,11 +545,11 @@ void ComponentFactory::applyTemplate(Entity entity, void* component, const Prope
                     char* tmp = (char*)alloca(l);
                     memcpy(tmp, (*it).second + sizeof(int) + sizeof(bool), l);
                     tmp[l] = '\0';
-                    std::string* s = TYPE_2_PTR(std::string);
-                    if (toLocalize)
-                        *s = localizeAPI->text(tmp);
-                    else
-                        *s = std::string(tmp, l);
+                    // std::string* s = TYPE_2_PTR(std::string);
+                    // if (toLocalize)
+                    //     *s = localizeAPI->text(tmp);
+                    // else
+                    //     *s = std::string(tmp, l);
                 }
                 break;
             }

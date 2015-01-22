@@ -95,6 +95,9 @@ struct TextComponent {
     UPDATABLE_SYSTEM(Text)
 
     public :
+
+    ~TextSystem();
+
     void Delete(Entity e) override;
     void registerFont(const char* name, const std::map<uint32_t, float>& charH2Wratio);
 

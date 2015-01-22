@@ -603,3 +603,9 @@ static float computeStartX(float stringWidth, const TextComponent* trc) {
     const float result = -stringWidth * trc->positioning;
     return result;
 }
+
+TextSystem::~TextSystem() {
+    for (auto & font : _instance->fontRegistry) {
+        delete[] font.second.entries;
+    }
+}

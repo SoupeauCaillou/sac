@@ -84,6 +84,7 @@
 #include "util/Recorder.h"
 #include "util/Draw.h"
 
+#include "api/sdl/JoystickAPISDLImpl.h"
 #include "api/sdl/MouseNativeTouchState.h"
 
 #include "util/LevelEditor.h"
@@ -312,6 +313,8 @@ int setupEngine(void* _game, const SetupInfo* info) {
         ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
     if (game->wantsAPI(ContextAPI::InAppPurchase))
         ctx->inAppPurchaseAPI = new InAppPurchaseAPIDebugImpl();
+    if (game->wantsAPI(ContextAPI::Joystick))
+        ctx->joystickAPI = new JoystickAPISDLImpl();
 #if !SAC_INGAME_EDITORS
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
 #endif
@@ -420,6 +423,9 @@ int setupEngine(void* _game, const SetupInfo* info) {
     } while (!game->isFinished); //!m.try_lock());
 
     th1.join();
+
+    LOGT("We should destroy API to let them uninit stuff "
+        "(JoystickManager, MusicAPILinuxOpenALImplOpenAL, ...) + fix memory leaks");
     delete ctx;
 
 #if SAC_DESKTOP
