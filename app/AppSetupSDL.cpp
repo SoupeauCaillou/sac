@@ -193,7 +193,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
     /////////////////////////////////////////////////////
     // Init Window and Rendering
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         return 1;
     }
 
@@ -263,8 +263,8 @@ int setupEngine(void* _game, const SetupInfo* info) {
     #endif
 
     SDL_SetWindowSize(sdlWindow, fullResolution.x, fullResolution.y);
-
-    if  (SDL_GL_CreateContext(sdlWindow) == 0) {
+    SDL_GLContext sdlContext;
+    if  ((sdlContext = SDL_GL_CreateContext(sdlWindow)) == 0) {
         LOGE("SDL create context failed: " << SDL_GetError());
         return 1;
     }
@@ -432,6 +432,8 @@ int setupEngine(void* _game, const SetupInfo* info) {
     game->preDestroy();
     delete game;
  //   delete record;
+    SDL_GL_DeleteContext(sdlContext);
+    SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
 
     return 0;

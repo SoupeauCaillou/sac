@@ -29,12 +29,12 @@
 #include "api/AssetAPI.h"
 #include "api/KeyboardInputHandlerAPI.h"
 #include "api/StringInputAPI.h"
+#include "api/JoystickAPI.h"
 
 #include "base/EntityManager.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
 #include "base/TouchInputManager.h"
-#include "base/JoystickManager.h"
 #include "base/Common.h"
 
 #include "systems/ADSRSystem.h"
@@ -260,10 +260,9 @@ void Game::buildOrderedSystemsToUpdateList() {
 }
 
 Game::~Game() {
-#if !SAC_MOBILE
-    JoystickManager::DestroyInstance();
+#if SAC_INGAME_EDITORS
+    delete levelEditor;
 #endif
-
     ADSRSystem::DestroyInstance();
     AnchorSystem::DestroyInstance();
     AnimationSystem::DestroyInstance();
@@ -372,11 +371,9 @@ void Game::eventsHandler() {
         }
 
         //or try joystick
-#if !SAC_MOBILE
-        if (!handled) {
-            handled = JoystickManager::Instance()->eventSDL(&event);
+        if (!handled && gameThreadContext->joystickAPI) {
+            handled = gameThreadContext->joystickAPI->eventSDL(&event);
         }
-#endif
 
         // If event has not been handled by anyone, treat it
         if( !handled )

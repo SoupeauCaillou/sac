@@ -23,8 +23,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
-
-#define theJoystickManager (*JoystickManager::Instance())
+#include <api/JoystickAPI.h>
 
 namespace JoystickButton {
         enum Enum {
@@ -68,20 +67,18 @@ struct JoystickState {
         void* joystickPtr;
 };
 
-class JoystickManager {
-        private:
-                static JoystickManager* instance;
-        public:
-                static JoystickManager* Instance();
-                static void DestroyInstance();
-                
-        bool hasClicked(int idx, JoystickButton::Enum btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].clicked[btn]; }
+class JoystickAPISDLImpl : public JoystickAPI {
+    public:
+        JoystickAPISDLImpl();
+        ~JoystickAPISDLImpl();
 
-        bool hasDoubleClicked(int idx, JoystickButton::Enum btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].doubleclicked[btn]; }
+        bool hasClicked(int idx, int btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].clicked[btn]; }
 
-        void resetDoubleClick(int idx, JoystickButton::Enum btn);
+        bool hasDoubleClicked(int idx, int btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].doubleclicked[btn]; }
 
-        const glm::vec2& getPadDirection(int idx, JoystickPad::Enum pad) const {
+        void resetDoubleClick(int idx, int btn);
+
+        const glm::vec2& getPadDirection(int idx, int pad) const {
             if (joysticks.size() > (unsigned)idx) {
                 return joysticks[idx].lastDirection[pad];
             } else {
@@ -90,10 +87,10 @@ class JoystickManager {
             }
         }
 
-                void Update();
+        void update(float dt);
 
-                int eventSDL(void* event);
-        private:
-                std::vector<JoystickState> joysticks;
+        int eventSDL(void* event);
+    private:
+        std::vector<JoystickState> joysticks;
 };
 #endif

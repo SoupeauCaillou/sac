@@ -28,6 +28,7 @@ class CommunicationAPI;
 class ExitAPI;
 class GameCenterAPI;
 class InAppPurchaseAPI;
+class JoystickAPI;
 class KeyboardInputHandlerAPI;
 class LocalizeAPI;
 class MusicAPI;
@@ -68,6 +69,7 @@ struct GameContext {
         exitAPI(0),
         gameCenterAPI(0),
         inAppPurchaseAPI(0),
+        joystickAPI(0),
         keyboardInputHandlerAPI(0),
         localizeAPI(0),
         musicAPI(0),
@@ -86,6 +88,7 @@ struct GameContext {
     ExitAPI* exitAPI;
     GameCenterAPI* gameCenterAPI;
     InAppPurchaseAPI* inAppPurchaseAPI;
+    JoystickAPI* joystickAPI;
     KeyboardInputHandlerAPI* keyboardInputHandlerAPI;
     LocalizeAPI* localizeAPI;
     MusicAPI* musicAPI;
