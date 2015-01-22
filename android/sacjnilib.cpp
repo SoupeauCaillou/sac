@@ -391,8 +391,6 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_handleInputEvent
 
     GameHolder::__input& input = myGameHolder->input[pointerIndex];
 
-    input.moving = (evt == 2);
-
     /* ACTION_DOWN == 0 | ACTION_MOVE == 2 */
     if (evt == 0 || evt == 2) {
         input.touching = 1;
