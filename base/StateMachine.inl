@@ -87,8 +87,8 @@ void StateMachine<T>::transitionTo(T oldState, T newState) {
 
 template<typename T>
 void StateMachine<T>::update(float dt) {
-        // Override next state if requested
-        if (override) {
+    // Override next state if requested
+    if (override) {
         if (overrideNextState == currentState)
             LOGW("overrideNextState == currentState == " << currentState);
         transitionTo(currentState, overrideNextState);

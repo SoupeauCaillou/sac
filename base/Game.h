@@ -76,6 +76,7 @@ class Game {
         virtual int saveState(uint8_t** out);
         virtual void sacInit();
         virtual void togglePause(bool) { }
+        virtual void preDestroy();
 
     protected:
         void loadFont(AssetAPI* asset, const char* name);

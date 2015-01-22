@@ -65,10 +65,11 @@ void* ComponentSystem::enlargeComponentsArray(
     } else {
         ptr = malloc(newSize * compSize);
     }
-    array = ptr;
+    if (array)
+        array = ptr;
     (*size) = newSize;
 
-    return array;
+    return ptr;
 }
 
 void ComponentSystem::addEntity(Entity entity) {

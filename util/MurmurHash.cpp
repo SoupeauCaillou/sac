@@ -24,7 +24,7 @@
 
 
 #if SAC_DEBUG || SAC_INGAME_EDITORS
-std::map<uint32_t, const char*>* Murmur::_lookup = 0;
+std::map<uint32_t, char*>* Murmur::_lookup = 0;
 
 const char* Murmur::lookup(uint32_t t) {
     auto it = _lookup->find(t);
@@ -57,7 +57,6 @@ uint32_t Murmur::RuntimeHash(const void * key, int len) {
     // They're not really 'magic', they just happen to work well.
     const unsigned int m = M;
     const int r = R;
-
     // Initialize the hash to a 'random' value
     unsigned int h = seed ^ len;
 
@@ -67,8 +66,6 @@ uint32_t Murmur::RuntimeHash(const void * key, int len) {
 
     while(len >= 4) {
         unsigned int k = readAsInt(data);
-
-
         k *= m;
         k ^= k >> r;
         k *= m;
@@ -97,9 +94,25 @@ uint32_t Murmur::RuntimeHash(const void * key, int len) {
     h ^= h >> 15;
 
 #if SAC_DEBUG || SAC_INGAME_EDITORS
-    if (!_lookup) _lookup = new std::map<uint32_t, const char*>();
+    if (!_lookup) {
+        _lookup = new std::map<uint32_t, char*>();
+    }
+    if (_lookup->find(h) != _lookup->end()){
+        free((*_lookup)[h]);
+    }
     (*_lookup)[h] = strdup((const char*)key);
 #endif
 
     return h;
+}
+
+void Murmur::destroy() {
+#if SAC_DEBUG || SAC_INGAME_EDITORS
+    if (_lookup) {
+        for (auto & it : *_lookup) {
+            free(it.second);
+        }
+        delete _lookup;
+    }
+#endif
 }

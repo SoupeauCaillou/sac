@@ -643,6 +643,8 @@ delta_time_computation:
             ImGui::NewFrame();
             // Always tick levelEditor (manages AntTweakBar stuff)
             levelEditor->tick(targetDT);
+
+            LevelEditor::unlock();
         }
 
         static float speedFactor = 1.0f;
@@ -660,7 +662,7 @@ delta_time_computation:
                 tick(targetDT * speedFactor);
         }
 
-        LevelEditor::unlock();
+        // LevelEditor::unlock();
     #else
         LOGV(3, "Update game");
         Draw::Update();
@@ -756,4 +758,12 @@ void Game::render() {
 void Game::resetTime() {
     fpsStats.reset(TimeUtil::GetTime());
     lastUpdateTime = TimeUtil::GetTime();
+}
+
+void Game::preDestroy() {
+    Draw::ClearAll();
+
+    /* Delete before destroying game, as system will be destroyed */
+    theEntityManager.deleteAllEntities();
+    Murmur::destroy();
 }

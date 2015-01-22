@@ -186,7 +186,7 @@ GLuint OpenGLTextureCreator::loadSplittedFromFile(AssetAPI* assetAPI, const std:
 
     // Parse image
     ImageDesc image = parseImageContent(name, file, png);
-    delete[] file.data;
+    free(file.data);
     if (!image.datas) {
         LOGE("Could not read image, aborting");
         return 0;

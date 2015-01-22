@@ -78,9 +78,10 @@ class Murmur {
                 ((len > 0) ? leftOver(key, h, len) : h);
         }
 
+        static void destroy();
     private:
         #if SAC_DEBUG || SAC_INGAME_EDITORS
-        static std::map<uint32_t, const char*>* _lookup;
+        static std::map<uint32_t, char*>* _lookup;
     public:
         static uint32_t verifyHash(const char* txt, uint32_t hash, const char* file, int line);
         static const char* lookup(uint32_t t);

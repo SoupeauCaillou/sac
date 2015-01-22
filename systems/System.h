@@ -120,6 +120,10 @@ class ComponentSystemImpl: public ComponentSystem {
                 (enlargeComponentsArray(0, sizeof(T), &componentsSize, defaultStorageSize, false));
         }
 
+        ~ComponentSystemImpl() {
+            free(components);
+        }
+
         void Add(Entity entity) {
             LOGF_IF(
                 std::find(entityWithComponent.begin(), entityWithComponent.end(), entity) != entityWithComponent.end()

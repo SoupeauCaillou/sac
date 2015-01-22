@@ -191,103 +191,102 @@ int setupEngine(void* _game, const SetupInfo* info) {
         initLogColors();
     #endif
 
-        /////////////////////////////////////////////////////
-        // Init Window and Rendering
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
-            return 1;
-        }
+    /////////////////////////////////////////////////////
+    // Init Window and Rendering
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
+        return 1;
+    }
 
-        if ((sdlWindow = SDL_CreateWindow(info->name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE )) == 0) {
-            LOGE("SDL create window failed: " << SDL_GetError());
-            return 1;
-        }
+    if ((sdlWindow = SDL_CreateWindow(info->name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE )) == 0) {
+        LOGE("SDL create window failed: " << SDL_GetError());
+        return 1;
+    }
 
-        addWindowIcon(sdlWindow);
+    addWindowIcon(sdlWindow);
 
-        game = static_cast<Game*> (_game);
+    game = static_cast<Game*> (_game);
 
 #if SAC_DESKTOP
-        game->arg.c = info->arg.c;
-        game->arg.v = new char*[info->arg.c];
-        for (int i=0; i<info->arg.c; i++) {
-            game->arg.v[i] = strdup(info->arg.v[i]);
-        }
+    game->arg.c = info->arg.c;
+    game->arg.v = new char*[info->arg.c];
+    for (int i=0; i<info->arg.c; i++) {
+        game->arg.v[i] = strdup(info->arg.v[i]);
+    }
 #endif
 
-        /////////////////////////////////////////////////////
-        // Handle --restore cmd line switch
-        uint8_t* state = 0;
-        int size = 0;
+    /////////////////////////////////////////////////////
+    // Handle --restore cmd line switch
+    uint8_t* state = 0;
+    int size = 0;
 
-    #if SAC_EMSCRIPTEN
-        const char* script = ""\
-            "var r = localStorage.getItem(\"sac_root\");" \
-            "if (r != null) { Module.print('Restoring root');"\
-            "   FS.root.contents['sac_temp'] = window.JSON.parse(r); Module.print('Restoring nextItem');"\
-            "   FS.nextInode = window.JSON.parse(localStorage.getItem(\"sac_nextItem\"));"\
-            " } else { "\
-            "Module['FS_createFolder']('/', 'sac_temp', true, true);" \
-            "}";
-        emscripten_run_script(script);
+#if SAC_EMSCRIPTEN
+    const char* script = ""\
+        "var r = localStorage.getItem(\"sac_root\");" \
+        "if (r != null) { Module.print('Restoring root');"\
+        "   FS.root.contents['sac_temp'] = window.JSON.parse(r); Module.print('Restoring nextItem');"\
+        "   FS.nextInode = window.JSON.parse(localStorage.getItem(\"sac_nextItem\"));"\
+        " } else { "\
+        "Module['FS_createFolder']('/', 'sac_temp', true, true);" \
+        "}";
+    emscripten_run_script(script);
+#else
+    auto options =
+        parseCommandLineOption(info->arg.c, info->arg.v);
 
-    #else
-        auto options =
-            parseCommandLineOption(info->arg.c, info->arg.v);
 
+    int largestDimension = 800;
+    float invRatio = 10 / 16.0f;
+    {
+        SDL_DisplayMode mode;
+        if (0 == SDL_GetCurrentDisplayMode(0, &mode)) {
+            if (game->isLandscape()) {
+                std::swap(mode.w, mode.h);
+            }
 
-        int largestDimension = 800;
-        float invRatio = 10 / 16.0f;
-        {
-            SDL_DisplayMode mode;
-            if (0 == SDL_GetCurrentDisplayMode(0, &mode)) {
-                if (game->isLandscape()) {
-                    std::swap(mode.w, mode.h);
-                }
-
-                while (mode.w < largestDimension ||
-                    mode.h < (largestDimension * invRatio)) {
-                    largestDimension *= 0.8;
-                }
+            while (mode.w < largestDimension ||
+                mode.h < (largestDimension * invRatio)) {
+                largestDimension *= 0.8;
             }
         }
-        glm::vec2 resolution (largestDimension, largestDimension * invRatio);
+    }
+    glm::vec2 resolution (largestDimension, largestDimension * invRatio);
 
-        if (!game->isLandscape()) {
-            std::swap(resolution.x, resolution.y);
-        }
+    if (!game->isLandscape()) {
+        std::swap(resolution.x, resolution.y);
+    }
 
-        glm::vec2 fullResolution(resolution);
+    glm::vec2 fullResolution(resolution);
     #if SAC_INGAME_EDITORS
         fullResolution.x += LevelEditor::DebugAreaWidth;
         fullResolution.y += LevelEditor::DebugAreaHeight;
     #endif
 
-        SDL_SetWindowSize(sdlWindow, fullResolution.x, fullResolution.y);
+    SDL_SetWindowSize(sdlWindow, fullResolution.x, fullResolution.y);
 
-        if  (SDL_GL_CreateContext(sdlWindow) == 0) {
-            LOGE("SDL create context failed: " << SDL_GetError());
-            return 1;
+    if  (SDL_GL_CreateContext(sdlWindow) == 0) {
+        LOGE("SDL create context failed: " << SDL_GetError());
+        return 1;
+    }
+
+    if (glewInit() != GLEW_OK)
+        return 1;
+
+    if (options.restore) {
+        LOGW("FIXME: probably broken");
+        std::stringstream restoreFile;
+        restoreFile << info->name << ".restore.bin";
+        FILE* file = fopen(restoreFile.str().c_str(), "r+b");
+        if (file) {
+            fseek(file, 0, SEEK_END);
+            size = ftell(file);
+            fseek(file, 0, SEEK_SET);
+            state = new uint8_t[size];
+            fread(state, size, 1, file);
+            fclose(file);
+            LOGI("Restoring game state from file (size: " << size << ")");
         }
-
-        if (glewInit() != GLEW_OK)
-            return 1;
-
-        if (options.restore) {
-            LOGW("FIXME: probably broken");
-            std::stringstream restoreFile;
-            restoreFile << info->name << ".restore.bin";
-            FILE* file = fopen(restoreFile.str().c_str(), "r+b");
-            if (file) {
-                fseek(file, 0, SEEK_END);
-                size = ftell(file);
-                fseek(file, 0, SEEK_SET);
-                state = new uint8_t[size];
-                fread(state, size, 1, file);
-                fclose(file);
-                LOGI("Restoring game state from file (size: " << size << ")");
-            }
-        }
+    }
 
     #if SAC_ENABLE_LOG
         if (options.verbose) {
@@ -297,51 +296,51 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
     #endif
 
-        /////////////////////////////////////////////////////
-        // Game context initialisation
-        LOGV(1, "Initialize APIs");
-        GameContext* ctx = new GameContext;
-        if (game->wantsAPI(ContextAPI::Ad))
-            ctx->adAPI = new AdAPIDebugImpl();
-        if (game->wantsAPI(ContextAPI::Asset) || true)
-            ctx->assetAPI = new AssetAPILinuxImpl();
-        if (game->wantsAPI(ContextAPI::Communication))
-            ctx->communicationAPI = new CommunicationAPILinuxImpl();
-        if (game->wantsAPI(ContextAPI::Exit))
-            ctx->exitAPI = new ExitAPILinuxImpl();
-        if (game->wantsAPI(ContextAPI::GameCenter))
-            ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
-        if (game->wantsAPI(ContextAPI::InAppPurchase))
-            ctx->inAppPurchaseAPI = new InAppPurchaseAPIDebugImpl();
-    #if !SAC_INGAME_EDITORS
-        if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
-    #endif
-            ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPISDLImpl();
-        if (game->wantsAPI(ContextAPI::Localize))
-            ctx->localizeAPI = new LocalizeAPITextImpl();
-        if (game->wantsAPI(ContextAPI::Music))
-            ctx->musicAPI = new MusicAPILinuxOpenALImpl();
-        if (game->wantsAPI(ContextAPI::OpenURL))
-            ctx->openURLAPI = new OpenURLAPILinuxImpl();
-    #if SAC_NETWORK
-        if (game->wantsAPI(ContextAPI::Network))
-            theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
-    #elif SAC_DESKTOP
-        if (game->wantsAPI(ContextAPI::Network))
-            LOGF("You wanted NetworkAPI but did not used SAC_NETWORK!");
-    #endif
-        if (game->wantsAPI(ContextAPI::Sound))
-            ctx->soundAPI = new SoundAPILinuxOpenALImpl();
-        if (game->wantsAPI(ContextAPI::Storage))
-           ctx->storageAPI = new SqliteStorageAPIImpl();
-        if (game->wantsAPI(ContextAPI::StringInput))
-            ctx->stringInputAPI = new StringInputAPISDLImpl();
-        if (game->wantsAPI(ContextAPI::Vibrate))
-            ctx->vibrateAPI = new VibrateAPILinuxImpl();
-    #if SAC_HAVE_CURL
-        if (game->wantsAPI(ContextAPI::WWW))
-            ctx->wwwAPI = new WWWAPIcURLImpl();
-    #endif
+    /////////////////////////////////////////////////////
+    // Game context initialisation
+    LOGV(1, "Initialize APIs");
+    GameContext* ctx = new GameContext;
+    if (game->wantsAPI(ContextAPI::Ad))
+        ctx->adAPI = new AdAPIDebugImpl();
+    if (game->wantsAPI(ContextAPI::Asset) || true)
+        ctx->assetAPI = new AssetAPILinuxImpl();
+    if (game->wantsAPI(ContextAPI::Communication))
+        ctx->communicationAPI = new CommunicationAPILinuxImpl();
+    if (game->wantsAPI(ContextAPI::Exit))
+        ctx->exitAPI = new ExitAPILinuxImpl();
+    if (game->wantsAPI(ContextAPI::GameCenter))
+        ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
+    if (game->wantsAPI(ContextAPI::InAppPurchase))
+        ctx->inAppPurchaseAPI = new InAppPurchaseAPIDebugImpl();
+#if !SAC_INGAME_EDITORS
+    if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
+#endif
+        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPISDLImpl();
+    if (game->wantsAPI(ContextAPI::Localize))
+        ctx->localizeAPI = new LocalizeAPITextImpl();
+    if (game->wantsAPI(ContextAPI::Music))
+        ctx->musicAPI = new MusicAPILinuxOpenALImpl();
+    if (game->wantsAPI(ContextAPI::OpenURL))
+        ctx->openURLAPI = new OpenURLAPILinuxImpl();
+#if SAC_NETWORK
+    if (game->wantsAPI(ContextAPI::Network))
+        theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
+#elif SAC_DESKTOP
+    if (game->wantsAPI(ContextAPI::Network))
+        LOGF("You wanted NetworkAPI but did not used SAC_NETWORK!");
+#endif
+    if (game->wantsAPI(ContextAPI::Sound))
+        ctx->soundAPI = new SoundAPILinuxOpenALImpl();
+    if (game->wantsAPI(ContextAPI::Storage))
+       ctx->storageAPI = new SqliteStorageAPIImpl();
+    if (game->wantsAPI(ContextAPI::StringInput))
+        ctx->stringInputAPI = new StringInputAPISDLImpl();
+    if (game->wantsAPI(ContextAPI::Vibrate))
+        ctx->vibrateAPI = new VibrateAPILinuxImpl();
+#if SAC_HAVE_CURL
+    if (game->wantsAPI(ContextAPI::WWW))
+        ctx->wwwAPI = new WWWAPIcURLImpl();
+#endif
     /////////////////////////////////////////////////////
     // Init systems
     game->mouseNativeTouchState = new MouseNativeTouchState();
@@ -394,53 +393,48 @@ int setupEngine(void* _game, const SetupInfo* info) {
             startProfiler();
     #endif
 
-        // SDL_JoystickEventState(SDL_ENABLE);
+    // SDL_JoystickEventState(SDL_ENABLE);
 
-        //used for text translation, if needed
-        setlocale( LC_ALL, "" );
-        setlocale( LC_NUMERIC, "C" );
+    //used for text translation, if needed
+    setlocale( LC_ALL, "" );
+    setlocale( LC_NUMERIC, "C" );
 
-        std::unique_lock<std::mutex> lock(m);
-        std::thread th1(callback_thread, info->name);
-        cond.wait(lock);
-        lock.unlock();
+    std::unique_lock<std::mutex> lock(m);
+    std::thread th1(callback_thread, info->name);
+    cond.wait(lock);
+    lock.unlock();
 
-        float prevT = 0;
+    float prevT = 0;
 
-        do {
-            game->eventsHandler();
-            if (!options.headless) {
-                game->render();
-                SDL_GL_SwapWindow(sdlWindow);
-                float t = TimeUtil::GetTime();
-    #if ! SAC_WINDOWS
-                Recorder::Instance().record(t - prevT);
-    #endif
-                prevT = t;
-            }
-        } while (!game->isFinished); //!m.try_lock());
+    do {
+        game->eventsHandler();
+        if (!options.headless) {
+            game->render();
+            SDL_GL_SwapWindow(sdlWindow);
+            float t = TimeUtil::GetTime();
+#if ! SAC_WINDOWS
+            Recorder::Instance().record(t - prevT);
+#endif
+            prevT = t;
+        }
+    } while (!game->isFinished); //!m.try_lock());
 
-        th1.join();
+    th1.join();
+    delete ctx;
 
-        delete ctx;
+#if SAC_DESKTOP
+    for (int i=0; i<game->arg.c; i++) {
+        free(game->arg.v[i]);
+    }
+    delete[] game->arg.v;
+#endif
+#endif
+    game->preDestroy();
+    delete game;
+ //   delete record;
+    SDL_Quit();
 
-        Draw::ClearAll();
-
-        /* Delete before destroying game, as system will be destroyed */
-        theEntityManager.deleteAllEntities();
-
-        delete game;
-     //   delete record;
-        SDL_Quit();
-
-    #if SAC_INGAME_EDITORS
-
-    #endif
-
-    #endif
-
-
-        return 0;
+    return 0;
 }
 
 //return user locale (DE, EN, FR, etc.)
@@ -508,8 +502,8 @@ static void addWindowIcon(SDL_Window* window) {
 
         SDL_SetWindowIcon(window, surf);
         SDL_FreeSurface(surf);
-        delete[] fb.data;
-        delete[] image.datas;
+        free(fb.data);
+        free(image.datas);
     }
     #endif
 }
