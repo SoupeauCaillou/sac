@@ -170,7 +170,7 @@ public:
     static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformMatrix;
     static GLuint fontTex;
     static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count);
-    static void ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count);
+    static void ImImpl_RenderDrawLists2(int cmd_lists_count);
 #endif
 public:
     void enableRendering();

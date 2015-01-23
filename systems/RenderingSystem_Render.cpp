@@ -39,7 +39,7 @@
 
 #if SAC_INGAME_EDITORS
 GLuint RenderingSystem::fontTex;
-static ImDrawList* imguiCommands = 0;
+static std::vector<ImDrawList> imguiCommands;
 static int drawListCount = 0, drawListCapacity = 0;
 
 GLuint RenderingSystem::leProgram, RenderingSystem::leProgramuniformColorSampler, RenderingSystem::leProgramuniformMatrix;
@@ -653,7 +653,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();
-    RenderingSystem::ImImpl_RenderDrawLists2(imguiCommands, drawListCount);
+    RenderingSystem::ImImpl_RenderDrawLists2(drawListCount);
     LevelEditor::unlock();
 #endif
 #if ! SAC_EMSCRIPTEN
@@ -688,10 +688,10 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
 void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
     LevelEditor::lock();
     if (drawListCapacity <= cmd_lists_count) {
-        imguiCommands = (ImDrawList*) realloc(imguiCommands, cmd_lists_count * sizeof(ImDrawList));
+        /* no valid operator= for ImDrawList */
+        imguiCommands.clear();
+        imguiCommands.resize(cmd_lists_count);
         drawListCapacity = cmd_lists_count;
-        for (int i=0; i<drawListCapacity; i++)
-            new (&imguiCommands[i]) ImDrawList();
     }
 
     drawListCount = cmd_lists_count;
@@ -719,7 +719,7 @@ void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int c
     LevelEditor::unlock();
 }
 
-void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int cmd_lists_count) {
+void RenderingSystem::ImImpl_RenderDrawLists2(int cmd_lists_count) {
 
     GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL))
     theRenderingSystem.glState.flags.update(OpaqueFlagSet);
@@ -765,7 +765,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
     // Render command lists
     for (int n = 0; n < cmd_lists_count; n++)
     {
-        const ImDrawList* cmd_list = &cmd_lists[n];
+        const ImDrawList* cmd_list = &imguiCommands[n];
 
         unsigned verticesCount = cmd_list->vtx_buffer.size();
         unsigned size = verticesCount * sizeof(ImDrawVert);
@@ -786,7 +786,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(ImDrawList* const cmd_lists, int c
             verticesCount * sizeof(unsigned short), 0, GL_STREAM_DRAW))
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
             verticesCount * sizeof(unsigned short), indices))
-
+        delete[] indices;
 
         int vtx_offset = 0;
         const ImDrawCmd* pcmd_end = cmd_list->commands.end();
