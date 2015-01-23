@@ -291,7 +291,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
     #if SAC_ENABLE_LOG
         if (options.verbose) {
-            logLevel = LogVerbosity::VERBOSE1;
+            logLevel = LogVerbosity::VERBOSE2;
         }
     #endif
 
