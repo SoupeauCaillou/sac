@@ -323,6 +323,7 @@ Game::~Game() {
 #endif
 
     EntityManager::DestroyInstance();
+    Murmur::destroy();
 }
 
 void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRenderThreadContext) {
@@ -762,5 +763,4 @@ void Game::preDestroy() {
 
     /* Delete before destroying game, as system will be destroyed */
     theEntityManager.deleteAllEntities();
-    Murmur::destroy();
 }
