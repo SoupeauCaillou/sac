@@ -247,7 +247,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     // matrices
     glm::mat4 camViewPerspMatrix;
 
-    LOGV(2, "Begin frame rendering: " << commands.count);
+    LOGV(3, "Begin frame rendering: " << commands.count);
 
     #if SAC_DEBUG
     check_GL_errors("Frame start");
@@ -299,7 +299,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             PROFILE("Render", "begin-render-frame", InstantEvent);
 
             unpackCameraAttributes(rc, &camera.worldPos, &camera.cameraAttr);
-            LOGV(2, "   camera: pos=" << camera.worldPos.position.x << ',' << camera.worldPos.position.y
+            LOGV(3, "   camera: pos=" << camera.worldPos.position.x << ',' << camera.worldPos.position.y
                 << "size=" << camera.worldPos.size.x << ',' << camera.worldPos.size.y
                 << " fb=" << camera.cameraAttr.fb);
 
@@ -591,7 +591,7 @@ void RenderingSystem::waitDrawingComplete() {
     LOG_USAGE_ONLY(int waitOnQueue = currentWriteQueue);
     std::unique_lock<std::mutex> lock(mutexes[L_RENDER]);
     while (newFrameReady && frameQueueWritable) {
-        LOGV(2, "Wait for " << waitOnQueue << " to be emptied by rendering thread");
+        LOGV(3, "Wait for " << waitOnQueue << " to be emptied by rendering thread");
         cond[C_RENDER_DONE].wait(lock);
     }
     lock.unlock();
@@ -636,7 +636,7 @@ void RenderingSystem::render() {
     PROFILE("Renderer", "load-textures", EndEvent);
 #if ! SAC_EMSCRIPTEN
     if (!mutexes[L_RENDER].try_lock()) {
-        LOGV(1, "HMM Busy render lock");
+        LOGV(3, "HMM Busy render lock");
         mutexes[L_RENDER].lock();
     }
 #endif
@@ -649,7 +649,7 @@ void RenderingSystem::render() {
         drawRenderCommands(inQueue);
         inQueue.count = 0;
     }
-    LOGV(2, "DONE");
+    LOGV(3, "DONE");
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
     LevelEditor::lock();

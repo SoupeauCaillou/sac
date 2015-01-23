@@ -343,7 +343,7 @@ void RenderingSystem::DoUpdate(float dt) {
 #endif
     RenderQueue& outQueue = renderQueue[currentWriteQueue];
 
-    LOGV(2, "UPDATE #" << currentWriteQueue << '/' << cccc << ',' << __(dt));
+    LOGV(3, "UPDATE #" << currentWriteQueue << '/' << cccc << ',' << __(dt));
 
 #if SAC_DEBUG
     LOGV_IF(1, outQueue.count != 0, "Non empty queue : " << outQueue.count << " (queue=" << currentWriteQueue << ')');
@@ -625,7 +625,7 @@ void RenderingSystem::DoUpdate(float dt) {
     mutexes[L_QUEUE].lock();
 #endif
     currentWriteQueue = (currentWriteQueue + 1) % 2;
-    LOGV(2, "DONE. Next write queue: " << currentWriteQueue);
+    LOGV(3, "DONE. Next write queue: " << currentWriteQueue);
     newFrameReady = true;
 #if ! SAC_EMSCRIPTEN
     cond[C_FRAME_READY].notify_all();

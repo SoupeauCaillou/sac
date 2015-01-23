@@ -684,7 +684,7 @@ delta_time_computation:
             }
 #endif
 
-            LOGV(2, "Update systems");
+            LOGV(3, "Update systems");
 
             for (auto* sys : orderedSystemsToUpdate) {
                 #if SAC_ENABLE_LOG
@@ -705,7 +705,7 @@ delta_time_computation:
         }
 #endif
     }
-    LOGV(2, "Produce rendering frame");
+    LOGV(3, "Produce rendering frame");
     // produce 1 new frame
 #if SAC_INGAME_EDITORS
     if (gameType == GameType::Replay) {

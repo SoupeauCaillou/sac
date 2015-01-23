@@ -595,7 +595,7 @@ static float computePartialStringWidth(TextComponent* trc, size_t from, size_t t
 
 static float computeStringWidth(TextComponent* trc, float charHeight, const TextSystem::FontDesc& fontDesc) {
     float width = computePartialStringWidth(trc, 0, trc->text.length(), charHeight, fontDesc);
-    LOGV(2, "String width: '" << trc->text << "' = " << width);
+    LOGV(3, "String width: '" << trc->text << "' = " << width);
     return width;
 }
 
