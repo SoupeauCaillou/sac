@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "opengl/Polygon.h"
@@ -28,20 +26,21 @@
 
 #include "System.h"
 
-
 struct TransformationComponent {
-    TransformationComponent(): position(0.0f), size(1.0f), rotation(0), z(0.5), shape(Shape::Square) {}
+    TransformationComponent()
+        : position(0.0f), size(1.0f), rotation(0), z(0.5),
+          shape(Shape::Square) {}
 
     glm::vec2 position;
     glm::vec2 size;
-    float rotation; //in radians
+    float rotation; // in radians
     float z;
     Shape::Enum shape;
 };
 
 #define theTransformationSystem TransformationSystem::GetInstance()
 #if SAC_DEBUG
-#define TRANSFORM(e) theTransformationSystem.Get(e,true,__FILE__,__LINE__)
+#define TRANSFORM(e) theTransformationSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define TRANSFORM(e) theTransformationSystem.Get(e)
 #endif
@@ -49,17 +48,24 @@ struct TransformationComponent {
 UPDATABLE_SYSTEM(Transformation)
 
 public:
-    template<typename T>
-    static void appendVerticesTo(const TransformationComponent* tc, T& out);
+template <typename T>
+static void appendVerticesTo(const TransformationComponent* tc, T& out);
 
-    std::vector<Polygon> shapes;
-};
+std::vector<Polygon> shapes;
+}
+;
 
-template<typename T>
-inline void TransformationSystem::appendVerticesTo(const TransformationComponent* tc, T& out) {
+template <typename T>
+inline void
+TransformationSystem::appendVerticesTo(const TransformationComponent* tc,
+                                       T& out) {
     const glm::vec2 hSize = tc->size * 0.5f;
-    out.push_back(tc->position + glm::rotate(glm::vec2(hSize.x, hSize.y), tc->rotation));
-    out.push_back(tc->position + glm::rotate(glm::vec2(-hSize.x, hSize.y), tc->rotation));
-    out.push_back(tc->position + glm::rotate(glm::vec2(-hSize.x, -hSize.y), tc->rotation));
-    out.push_back(tc->position + glm::rotate(glm::vec2(hSize.x, -hSize.y), tc->rotation));
+    out.push_back(tc->position +
+                  glm::rotate(glm::vec2(hSize.x, hSize.y), tc->rotation));
+    out.push_back(tc->position +
+                  glm::rotate(glm::vec2(-hSize.x, hSize.y), tc->rotation));
+    out.push_back(tc->position +
+                  glm::rotate(glm::vec2(-hSize.x, -hSize.y), tc->rotation));
+    out.push_back(tc->position +
+                  glm::rotate(glm::vec2(hSize.x, -hSize.y), tc->rotation));
 }

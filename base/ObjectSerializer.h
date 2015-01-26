@@ -18,30 +18,27 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #include <sstream>
 #include <string>
 
-template <class T>
-class ObjectSerializer {
+template <class T> class ObjectSerializer {
     public:
-        static T string2object(const std::string & value) {
-            std::istringstream iss(value);
+    static T string2object(const std::string& value) {
+        std::istringstream iss(value);
 
-            T res;
-            iss >> res;
+        T res;
+        iss >> res;
 
-            return res;
-        }
+        return res;
+    }
 
-        static std::string object2string(T value) {
-            #if ANDROID
-            std::stringstream ss;
-            ss << value;
-            return ss.str();
-            #else
-            return std::to_string(value);
-            #endif
-        }
+    static std::string object2string(T value) {
+#if ANDROID
+        std::stringstream ss;
+        ss << value;
+        return ss.str();
+#else
+        return std::to_string(value);
+#endif
+    }
 };

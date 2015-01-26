@@ -18,17 +18,15 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/TouchInputManager.h"
 
 struct IOSTouchState : public NativeTouchState {
 
-        IOSTouchState();
+    IOSTouchState();
 
     int maxTouchingCount();
 
-        bool isTouching (int index, glm::vec2* windowCoords);
+    bool isTouching(int index, glm::vec2* windowCoords);
 };

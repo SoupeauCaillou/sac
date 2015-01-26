@@ -18,22 +18,19 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../VibrateAPI.h"
 #include "JNIWrapper.h"
 
 namespace jni_vibrate_api {
-    enum Enum {
-        Vibrate
-    };
+    enum Enum { Vibrate };
 }
 
-class VibrateAPIAndroidImpl : public VibrateAPI, public JNIWrapper<jni_vibrate_api::Enum> {
+class VibrateAPIAndroidImpl : public VibrateAPI,
+                              public JNIWrapper<jni_vibrate_api::Enum> {
     public:
-        VibrateAPIAndroidImpl();
+    VibrateAPIAndroidImpl();
 
-        void vibrate(float duration);
+    void vibrate(float duration);
 };

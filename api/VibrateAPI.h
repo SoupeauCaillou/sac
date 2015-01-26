@@ -18,11 +18,9 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 class VibrateAPI {
     public:
-        virtual void vibrate(float duration) = 0;
+    virtual void vibrate(float duration) = 0;
 };

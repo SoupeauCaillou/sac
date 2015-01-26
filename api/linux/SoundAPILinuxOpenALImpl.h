@@ -18,26 +18,21 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../SoundAPI.h"
 
 class AssetAPI;
 
-
 class SoundAPILinuxOpenALImpl : public SoundAPI {
     public:
-        ~SoundAPILinuxOpenALImpl();
-        void init(AssetAPI* assetAPI, bool openALAlreadyInit);
+    ~SoundAPILinuxOpenALImpl();
+    void init(AssetAPI* assetAPI, bool openALAlreadyInit);
 
-        OpaqueSoundPtr* loadSound(const std::string& asset);
-        bool play(OpaqueSoundPtr* p, float volume);
+    OpaqueSoundPtr* loadSound(const std::string& asset);
+    bool play(OpaqueSoundPtr* p, float volume);
 
     private:
-        AssetAPI* assetAPI;
-        unsigned int* soundSources;
+    AssetAPI* assetAPI;
+    unsigned int* soundSources;
 };
-
-

@@ -18,12 +18,10 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 class AdAPI {
     public:
-        virtual bool showAd(bool force) = 0;
-        virtual bool done() = 0;
+    virtual bool showAd(bool force) = 0;
+    virtual bool done() = 0;
 };

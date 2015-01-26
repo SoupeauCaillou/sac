@@ -18,17 +18,15 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <string>
 
 class SqlExporter {
-        public:
-                void init(const std::string& dbFile);
-                void update();
+    public:
+    void init(const std::string& dbFile);
+    void update();
 
-        private:
-                std::string dbFilename;
+    private:
+    std::string dbFilename;
 };

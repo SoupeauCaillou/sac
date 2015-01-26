@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <map>
@@ -27,37 +25,38 @@
 
 class ResourceHotReload {
     public:
-        ResourceHotReload();
+    ResourceHotReload();
 
-        virtual ~ResourceHotReload() {}
+    virtual ~ResourceHotReload() {}
 
-        void updateReload();
+    void updateReload();
 
 #if SAC_DEBUG
-        virtual void reload(const char* assetName) = 0;
+    virtual void reload(const char* assetName) = 0;
 #endif
 
-        void registerNewAsset(const std::string & assetName, const std::string & override = "");
+    void registerNewAsset(const std::string& assetName,
+                          const std::string& override = "");
 
-        virtual const char* asset2FilePrefix() const = 0;
-        virtual const char* asset2FileSuffix() const = 0;
+    virtual const char* asset2FilePrefix() const = 0;
+    virtual const char* asset2FileSuffix() const = 0;
 
     protected:
-        void asset2File(const char* assetName, char* out, int maxSize) const;
+    void asset2File(const char* assetName, char* out, int maxSize) const;
 
 #if SAC_LINUX && SAC_DESKTOP
     private:
-        //for inotify
-        struct InotifyDatas {
-            int wd;
-            std::string _filename;
-            std::string _assetname;
+    // for inotify
+    struct InotifyDatas {
+        int wd;
+        std::string _filename;
+        std::string _assetname;
 
-            InotifyDatas(int fd, const std::string & file, const std::string & asset);
-        };
+        InotifyDatas(int fd, const std::string& file, const std::string& asset);
+    };
 
-        int inotifyFd;
+    int inotifyFd;
 
-        std::map<std::string, InotifyDatas> filenames;
+    std::map<std::string, InotifyDatas> filenames;
 #endif
 };

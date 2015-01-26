@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <string>
@@ -28,15 +26,15 @@
 
 class KeyboardInputHandlerAPI {
     public:
-        virtual void registerToKeyPress(int key, std::function<void()>) = 0;
+    virtual void registerToKeyPress(int key, std::function<void()>) = 0;
 
-        virtual void registerToKeyRelease(int key, std::function<void()>) = 0;
+    virtual void registerToKeyRelease(int key, std::function<void()>) = 0;
 
-        virtual void update() = 0;
+    virtual void update() = 0;
 
-        virtual int eventSDL(const void* event) = 0;
+    virtual int eventSDL(const void* event) = 0;
 
-        virtual bool isKeyPressed(int key) = 0;
+    virtual bool isKeyPressed(int key) = 0;
 
-        virtual bool isKeyReleased(int key) = 0;
+    virtual bool isKeyReleased(int key) = 0;
 };

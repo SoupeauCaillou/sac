@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/Entity.h"
@@ -32,38 +30,53 @@
 
 class Draw {
     public:
-        static void Point(hash_t permanentGroupID,
-            const glm::vec2& position, const Color & color = Color(), const std::string& text = "");
-        static void Point(
-            const glm::vec2& position, const Color & color = Color(), const std::string& text = "");
+    static void Point(hash_t permanentGroupID,
+                      const glm::vec2& position,
+                      const Color& color = Color(),
+                      const std::string& text = "");
+    static void Point(const glm::vec2& position,
+                      const Color& color = Color(),
+                      const std::string& text = "");
 
-        static void Vec2(hash_t permanentGroupID,
-            const glm::vec2& position, const glm::vec2& size, const Color & color = Color(), const std::string& text = "");
+    static void Vec2(hash_t permanentGroupID,
+                     const glm::vec2& position,
+                     const glm::vec2& size,
+                     const Color& color = Color(),
+                     const std::string& text = "");
 
-        static void Vec2(
-            const glm::vec2& position, const glm::vec2& size, const Color & color = Color(), const std::string& text = "");
+    static void Vec2(const glm::vec2& position,
+                     const glm::vec2& size,
+                     const Color& color = Color(),
+                     const std::string& text = "");
 
 #if 0
         static Entity Triangle(const std::string& permanentGroupID, const glm::vec2& firstPoint, const glm::vec2& secondPoint, const glm::vec2& thirdPoint,
             const Color & color = Color(), const std::string& name = "triangle", Entity vector = 0, int dynamicVertices = 0);
 #endif
 
-        static void Rectangle(hash_t permanentGroupID,
-            const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color = Color(), const std::string& text = "");
-        static void Rectangle(
-            const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color = Color(), const std::string& text = "");
+    static void Rectangle(hash_t permanentGroupID,
+                          const glm::vec2& centerPosition,
+                          const glm::vec2& size,
+                          float rotation,
+                          const Color& color = Color(),
+                          const std::string& text = "");
+    static void Rectangle(const glm::vec2& centerPosition,
+                          const glm::vec2& size,
+                          float rotation,
+                          const Color& color = Color(),
+                          const std::string& text = "");
 
-        static void Update();
+    static void Update();
 
-        static void Clear(hash_t permanentGroupID);
+    static void Clear(hash_t permanentGroupID);
 
-        static void ClearAll();
+    static void ClearAll();
+
     private:
-        static Draw instance;
+    static Draw instance;
 
-        Entity renderingEntity(hash_t groupID);
-        Entity textEntity(hash_t groupID);
-        std::vector<std::pair<Entity, hash_t>> rendering;
-        std::vector<std::pair<Entity, hash_t>> text;
+    Entity renderingEntity(hash_t groupID);
+    Entity textEntity(hash_t groupID);
+    std::vector<std::pair<Entity, hash_t>> rendering;
+    std::vector<std::pair<Entity, hash_t>> text;
 };
-

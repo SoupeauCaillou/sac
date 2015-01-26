@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "api/GameCenterAPI.h"
@@ -44,25 +42,25 @@ namespace jni_gamecenter_api {
         openDashboard,
     };
 }
-class GameCenterAPIAndroidImpl : public GameCenterAPI, public JNIWrapper<jni_gamecenter_api::Enum> {
+class GameCenterAPIAndroidImpl : public GameCenterAPI,
+                                 public JNIWrapper<jni_gamecenter_api::Enum> {
     public:
-        GameCenterAPIAndroidImpl();
+    GameCenterAPIAndroidImpl();
 
-        void connectOrRegister();
-        void disconnect();
+    void connectOrRegister();
+    void disconnect();
 
-        bool isRegistered();
-        bool isConnected();
+    bool isRegistered();
+    bool isConnected();
 
-        void unlockAchievement(int id);
-        void updateAchievementProgression(int id, int stepReached);
+    void unlockAchievement(int id);
+    void updateAchievementProgression(int id, int stepReached);
 
-        void submitScore(int leaderboardID, const std::string & score);
-        void getWeeklyRank(int leaderboardID, std::function<void (int rank)> func);
+    void submitScore(int leaderboardID, const std::string& score);
+    void getWeeklyRank(int leaderboardID, std::function<void(int rank)> func);
 
-        void openAchievement();
-        void openLeaderboards();
-        void openSpecificLeaderboard(int id);
-        void openDashboard();
+    void openAchievement();
+    void openLeaderboards();
+    void openSpecificLeaderboard(int id);
+    void openDashboard();
 };
-

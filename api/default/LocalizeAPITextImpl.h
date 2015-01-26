@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../LocalizeAPI.h"
@@ -30,14 +28,17 @@ class AssetAPI;
 
 class LocalizeAPITextImpl : public LocalizeAPI {
     public:
-        int init(AssetAPI* assetAPI, const char * userLang, const char * defaultLang = "en");
-        std::string text(const std::string& s);
+    int init(AssetAPI* assetAPI,
+             const char* userLang,
+             const char* defaultLang = "en");
+    std::string text(const std::string& s);
 
     private:
-        void readTXTFile(AssetAPI* assetAPI, std::vector<std::string> & texts, const char * lang);
-
+    void readTXTFile(AssetAPI* assetAPI,
+                     std::vector<std::string>& texts,
+                     const char* lang);
 
     private:
-        std::vector<std::string> defaultTexts;
-        std::vector<std::string> userLanguageTexts;
+    std::vector<std::string> defaultTexts;
+    std::vector<std::string> userLanguageTexts;
 };

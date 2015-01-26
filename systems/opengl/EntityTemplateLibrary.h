@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/NamedAssetLibrary.h"
@@ -46,45 +44,49 @@ struct EntityTemplate {
     bool autoCreate;
 };
 
-class EntityTemplateLibrary : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {
+class EntityTemplateLibrary
+    : public NamedAssetLibrary<EntityTemplate, EntityTemplateRef, FileBuffer> {
     protected:
+    bool
+    doLoad(const char* name, EntityTemplate& out, const EntityTemplateRef& ref);
 
-        bool doLoad(const char* name, EntityTemplate& out, const EntityTemplateRef& ref);
+    void doUnload(const EntityTemplate& in);
 
-        void doUnload(const EntityTemplate& in);
-
-        void doReload(const char* name, const EntityTemplateRef& ref);
+    void doReload(const char* name, const EntityTemplateRef& ref);
 
     public:
-        EntityTemplateLibrary();
-        void setLocalizeAPI(LocalizeAPI* api) { localizeAPI = api; }
+    EntityTemplateLibrary();
+    void setLocalizeAPI(LocalizeAPI* api) { localizeAPI = api; }
 
-        void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
+    void applyEntityTemplate(Entity e, const EntityTemplateRef& templ);
 
-        void defineParent(EntityTemplateRef child, EntityTemplateRef parent);
+    void defineParent(EntityTemplateRef child, EntityTemplateRef parent);
 
-        void registerDataSource(EntityTemplateRef ref, FileBuffer fb);
-        bool isRegisteredDataSource(EntityTemplateRef r);
-        void unregisterDataSource(EntityTemplateRef r);
+    void registerDataSource(EntityTemplateRef ref, FileBuffer fb);
+    bool isRegisteredDataSource(EntityTemplateRef r);
+    void unregisterDataSource(EntityTemplateRef r);
 
-        ~EntityTemplateLibrary();
+    ~EntityTemplateLibrary();
 
-        const char* asset2FilePrefix() const;
-        const char* asset2FileSuffix() const;
+    const char* asset2FilePrefix() const;
+    const char* asset2FileSuffix() const;
 
 #if SAC_LINUX && SAC_DESKTOP
-        void remove(Entity e);
+    void remove(Entity e);
 #endif
     private:
-        #if SAC_LINUX && SAC_DESKTOP
-        std::map<EntityTemplateRef, std::set<Entity> > template2entities;
-        std::map<EntityTemplateRef, std::set<EntityTemplateRef> > template2children;
-        bool reloading;
-        #endif
-        std::map<EntityTemplateRef, EntityTemplateRef> template2parent;
-        LocalizeAPI* localizeAPI;
+#if SAC_LINUX && SAC_DESKTOP
+    std::map<EntityTemplateRef, std::set<Entity>> template2entities;
+    std::map<EntityTemplateRef, std::set<EntityTemplateRef>> template2children;
+    bool reloading;
+#endif
+    std::map<EntityTemplateRef, EntityTemplateRef> template2parent;
+    LocalizeAPI* localizeAPI;
 
-        void applyTemplateToAll(const EntityTemplateRef& ref);
+    void applyTemplateToAll(const EntityTemplateRef& ref);
 
-        int loadTemplate(const std::string& context, const DataFileParser& dfp, EntityTemplateRef r, EntityTemplate& out);
+    int loadTemplate(const std::string& context,
+                     const DataFileParser& dfp,
+                     EntityTemplateRef r,
+                     EntityTemplate& out);
 };

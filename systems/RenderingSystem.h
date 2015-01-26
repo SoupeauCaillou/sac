@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <condition_variable>
@@ -50,42 +48,38 @@ struct TransformationComponent;
 struct GLState;
 struct VertexData;
 
-namespace RenderingFlags
-{
-    const uint8_t NonOpaque        = 0x01;
+namespace RenderingFlags {
+    const uint8_t NonOpaque = 0x01;
     const uint8_t MirrorHorizontal = 0x02;
-    const uint8_t ZPrePass         = 0x04;
-    const uint8_t Constant         = 0x08;
-    const uint8_t FastCulling      = 0x10;
-    const uint8_t TextureIsFBO     = 0x20;
+    const uint8_t ZPrePass = 0x04;
+    const uint8_t Constant = 0x08;
+    const uint8_t FastCulling = 0x10;
+    const uint8_t TextureIsFBO = 0x20;
     const uint8_t ConstantNeedsUpdate = 0x40;
-    const uint8_t NoCulling           = 0x80;
+    const uint8_t NoCulling = 0x80;
 }
 
 struct RenderingComponent {
-    RenderingComponent() :
-        texture(InvalidTextureRef),
-        show(false),
-        flags(0),
-        indiceOffset(0),
-        effectRef(DefaultEffectRef),
-        cameraBitMask(1),
-        color(Color())
+    RenderingComponent()
+        : texture(InvalidTextureRef), show(false), flags(0), indiceOffset(0),
+          effectRef(DefaultEffectRef), cameraBitMask(1), color(Color())
 #if SAC_INGAME_EDITORS
-        , highLight(false)
+          ,
+          highLight(false)
 #endif
-        {}
+    {
+    }
 
     union {
         TextureRef texture; // 32 bits
         FramebufferRef framebuffer;
     };
-    uint8_t show;           // 8 bits
-    bitfield8_t flags;          // 8 bits
-    uint16_t indiceOffset; // 16
-    EffectRef effectRef;    // 8 bits
-    bitfield8_t cameraBitMask;  // 8 bits
-    Color color;            // 128 bits
+    uint8_t show;              // 8 bits
+    bitfield8_t flags;         // 8 bits
+    uint16_t indiceOffset;     // 16
+    EffectRef effectRef;       // 8 bits
+    bitfield8_t cameraBitMask; // 8 bits
+    Color color;               // 128 bits
 
 #if SAC_INGAME_EDITORS
     bool highLight;
@@ -94,7 +88,7 @@ struct RenderingComponent {
 
 #define theRenderingSystem RenderingSystem::GetInstance()
 #if SAC_DEBUG
-#define RENDERING(e) theRenderingSystem.Get(e,true,__FILE__,__LINE__)
+#define RENDERING(e) theRenderingSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define RENDERING(e) theRenderingSystem.Get(e)
 #endif
@@ -102,117 +96,124 @@ struct RenderingComponent {
 UPDATABLE_SYSTEM(Rendering)
 
 public:
-    struct RenderCommand;
-    struct RenderQueue;
+struct RenderCommand;
+struct RenderQueue;
 
-    struct Atlas {
-        std::string name;
-        TextureRef ref;
-        // InternalTexture glref;
-    };
+struct Atlas {
+    std::string name;
+    TextureRef ref;
+    // InternalTexture glref;
+};
 
-    struct Framebuffer {
-        GLuint fbo, rbo, texture;
-        int width, height;
-    };
+struct Framebuffer {
+    GLuint fbo, rbo, texture;
+    int width, height;
+};
 
-    typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
+typedef std::pair<GLuint, GLuint> ColorAlphaTextures;
 
 #if SAC_DEBUG
-    struct Stats {
-        unsigned count;
-        unsigned area;
+struct Stats {
+    unsigned count;
+    unsigned area;
 
-        void reset() {
-            count = area = 0;
-        }
-    } renderingStats[3];
+    void reset() { count = area = 0; }
+} renderingStats[3];
 #endif
 
 public:
-    ~RenderingSystem();
+~RenderingSystem();
 
-    void init();
-    void setWindowSize(int w, int h, float sW, float sH);
-    void setWindowSize(const glm::vec2& windowSize, const glm::vec2& screenSize);
+void init();
+void setWindowSize(int w, int h, float sW, float sH);
+void setWindowSize(const glm::vec2& windowSize, const glm::vec2& screenSize);
 
-    void loadAtlas(const std::string& atlasName, bool forceImmediateTextureLoading = false);
-    void unloadAtlas(const std::string& atlasName);
-    void invalidateAtlasTextures();
+void loadAtlas(const std::string& atlasName,
+               bool forceImmediateTextureLoading = false);
+void unloadAtlas(const std::string& atlasName);
+void invalidateAtlasTextures();
 
-    int saveInternalState(uint8_t** out);
-    void restoreInternalState(const uint8_t* in, int size);
+int saveInternalState(uint8_t** out);
+void restoreInternalState(const uint8_t* in, int size);
 
-    TextureRef loadTextureFile(const char* assetName);
-    FramebufferRef createFramebuffer(const std::string& fbName, int width, int height);
-    FramebufferRef getFramebuffer(const std::string& fbName) const ;
-    void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
+TextureRef loadTextureFile(const char* assetName);
+FramebufferRef
+createFramebuffer(const std::string& fbName, int width, int height);
+FramebufferRef getFramebuffer(const std::string& fbName) const;
+void unloadTexture(TextureRef ref, bool allowUnloadAtlas = false);
 
-    bool isVisible(Entity e) const;
-    bool isVisible(const TransformationComponent* tc) const;
+bool isVisible(Entity e) const;
+bool isVisible(const TransformationComponent* tc) const;
 
-    void reloadTextures();
+void reloadTextures();
 
-    void render();
-    void waitDrawingComplete();
+void render();
+void waitDrawingComplete();
 
-    EffectRef changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp);
-    glm::vec2 getTextureSize(const char* textureName);
-    glm::vec2 getTextureSize(const TextureRef& textureRef);
-    void removeExcessiveFrames(int& readQueue, int& writeQueue);
+EffectRef
+changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp);
+glm::vec2 getTextureSize(const char* textureName);
+glm::vec2 getTextureSize(const TextureRef& textureRef);
+void removeExcessiveFrames(int& readQueue, int& writeQueue);
 
-    ColorAlphaTextures chooseTextures(const InternalTexture& tex, const FramebufferRef& fbo, bool useFbo);
+ColorAlphaTextures chooseTextures(const InternalTexture& tex,
+                                  const FramebufferRef& fbo,
+                                  bool useFbo);
 
 #if SAC_INGAME_EDITORS
-    LevelEditor* editor;
-    void forceRenderCommands(RenderCommand* commands, int count);
+LevelEditor* editor;
+void forceRenderCommands(RenderCommand* commands, int count);
 
-    static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformMatrix;
-    static GLuint fontTex;
-    static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count);
-    static void ImImpl_RenderDrawLists2(int cmd_lists_count);
+static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformMatrix;
+static GLuint fontTex;
+static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists,
+                                   int cmd_lists_count);
+static void ImImpl_RenderDrawLists2(int cmd_lists_count);
 #endif
 public:
-    void enableRendering();
-    void disableRendering();
+void enableRendering();
+void disableRendering();
 
-    AssetAPI* assetAPI;
+AssetAPI* assetAPI;
 
-    int windowW, windowH;
-    float screenW, screenH;
+int windowW, windowH;
+float screenW, screenH;
 
-    std::vector<Atlas> atlas;
-    FramebufferRef nextValidFBRef;
-    std::map<std::string, FramebufferRef> nameToFramebuffer;
-    std::map<FramebufferRef, Framebuffer> ref2Framebuffers;
+std::vector<Atlas> atlas;
+FramebufferRef nextValidFBRef;
+std::map<std::string, FramebufferRef> nameToFramebuffer;
+std::map<FramebufferRef, Framebuffer> ref2Framebuffers;
 
-    bool newFrameReady, frameQueueWritable;
-    int currentWriteQueue;
-    RenderQueue* renderQueue;
+bool newFrameReady, frameQueueWritable;
+int currentWriteQueue;
+RenderQueue* renderQueue;
 
-    TextureLibrary textureLibrary;
-    EffectLibrary effectLibrary;
+TextureLibrary textureLibrary;
+EffectLibrary effectLibrary;
 
 private:
-
 void setFrameQueueWritable(bool b);
-EffectRef chooseDefaultShader(bool alphaBlendingOn, bool colorEnabled, bool hasTexture) const;
+EffectRef chooseDefaultShader(bool alphaBlendingOn,
+                              bool colorEnabled,
+                              bool hasTexture) const;
 
-#if ! SAC_EMSCRIPTEN
-    std::mutex *mutexes;
-    std::condition_variable *cond;
+#if !SAC_EMSCRIPTEN
+std::mutex* mutexes;
+std::condition_variable* cond;
 #endif
 
-    bool initDone;
+bool initDone;
+
 private:
-    void drawRenderCommands(RenderQueue& commands);
-    void processDelayedTextureJobs();
-    EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty, defaultShaderNoTexture;
-    GLuint whiteTexture;
+void drawRenderCommands(RenderQueue& commands);
+void processDelayedTextureJobs();
+EffectRef defaultShader, defaultShaderNoAlpha, defaultShaderEmpty,
+    defaultShaderNoTexture;
+GLuint whiteTexture;
 
 #if SAC_LINUX && SAC_DESKTOP
-    //reload on runtime .fs files when modified
-    void updateReload();
+// reload on runtime .fs files when modified
+void updateReload();
 #endif
 public:
 #if SAC_INGAME_EDITORS
@@ -220,27 +221,28 @@ public:
 #else
 #define GL_VBO_COUNT 3
 #endif
-    GLuint glBuffers[GL_VBO_COUNT];
+GLuint glBuffers[GL_VBO_COUNT];
 
 #if SAC_INGAME_EDITORS
-    struct {
-        bool zPrePass;
-        bool nonOpaque;
-        bool opaque;
-        bool runtimeOpaque;
-    } highLight;
+struct {
+    bool zPrePass;
+    bool nonOpaque;
+    bool opaque;
+    bool runtimeOpaque;
+} highLight;
 
-    bool wireframe;
+bool wireframe;
 #endif
-    uint16_t nextConstantOffset;
+uint16_t nextConstantOffset;
 
 private:
-    // GL state
-    GLState glState;
+// GL state
+GLState glState;
 #if SAC_ANDROID || SAC_EMSCRIPTEN
-    bool hasDiscardExtension;
-    PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT;
+bool hasDiscardExtension;
+PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT;
 #endif
-    VertexData* vertices;
-    unsigned short* indices;
-};
+VertexData* vertices;
+unsigned short* indices;
+}
+;

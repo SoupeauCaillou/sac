@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if SAC_HAVE_CURL
@@ -27,7 +25,7 @@
 #include "api/WWWAPI.h"
 class WWWAPIcURLImpl : public WWWAPI {
     public:
-        FileBuffer downloadFile(const std::string &url);
+    FileBuffer downloadFile(const std::string& url);
 };
 
 #endif

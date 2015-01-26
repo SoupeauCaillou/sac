@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../AssetAPI.h"
@@ -27,21 +25,24 @@
 #include <list>
 
 class AssetAPILinuxImpl : public AssetAPI {
-public:
-        void init(const std::string & gName);
+    public:
+    void init(const std::string& gName);
 
     FileBuffer loadFile(const std::string& full);
     FileBuffer loadAsset(const std::string& asset);
 
-    std::list<std::string> listContent(const std::string& directory, const std::string& extension, const std::string& subfolder);
-    std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder);
+    std::list<std::string> listContent(const std::string& directory,
+                                       const std::string& extension,
+                                       const std::string& subfolder);
+    std::list<std::string> listAssetContent(const std::string& extension,
+                                            const std::string& subfolder);
 
-        void createDirectory(const std::string& fullpath, int permission);
+    void createDirectory(const std::string& fullpath, int permission);
     bool doesExistFileOrDirectory(const std::string& fullpath);
     void removeFileOrDirectory(const std::string& fullpath);
 
-    std::string gameName; //used for writable app data
-    const std::string & getWritableAppDatasPath();
+    std::string gameName; // used for writable app data
+    const std::string& getWritableAppDatasPath();
 
     void synchronize();
 };

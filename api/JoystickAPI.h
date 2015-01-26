@@ -18,18 +18,16 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <glm/glm.hpp>
 
 class JoystickAPI {
     public:
-        virtual bool hasClicked(int idx, int btn) const = 0;
-        virtual bool hasDoubleClicked(int idx, int btn) const = 0;
-        virtual void resetDoubleClick(int idx, int btn) = 0;
-        virtual const glm::vec2& getPadDirection(int idx, int pad) const = 0;
-        virtual void update(float dt) = 0;
-        virtual int eventSDL(void* event) = 0;
+    virtual bool hasClicked(int idx, int btn) const = 0;
+    virtual bool hasDoubleClicked(int idx, int btn) const = 0;
+    virtual void resetDoubleClick(int idx, int btn) = 0;
+    virtual const glm::vec2& getPadDirection(int idx, int pad) const = 0;
+    virtual void update(float dt) = 0;
+    virtual int eventSDL(void* event) = 0;
 };

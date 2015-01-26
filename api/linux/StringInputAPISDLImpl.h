@@ -18,26 +18,24 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "api/StringInputAPI.h"
 
 class StringInputAPISDLImpl : public StringInputAPI {
     public:
-        StringInputAPISDLImpl() : textIsReady(true) {}
+    StringInputAPISDLImpl() : textIsReady(true) {}
 
-        void askUserInput(const std::string& initial, const int imaxSize);
-        void cancelUserInput();
-        bool done(std::string & entry);
+    void askUserInput(const std::string& initial, const int imaxSize);
+    void cancelUserInput();
+    bool done(std::string& entry);
 
-        void setNamesList(const std::vector<std::string> & names);
-        
-        int eventSDL(const void* event);
+    void setNamesList(const std::vector<std::string>& names);
+
+    int eventSDL(const void* event);
+
     private:
-        bool textIsReady;
-        std::string currentText;
-        int maxSize;
-
+    bool textIsReady;
+    std::string currentText;
+    int maxSize;
 };

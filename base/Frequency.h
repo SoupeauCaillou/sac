@@ -18,14 +18,11 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
-template <typename T>
-class Frequency {
+template <typename T> class Frequency {
     public:
-        Frequency(T inV = 0.) : value(inV), accum(0.) {}
+    Frequency(T inV = 0.) : value(inV), accum(0.) {}
 
     T value;
     float accum;

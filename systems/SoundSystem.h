@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <cstdio>
@@ -36,14 +34,14 @@ typedef int SoundRef;
 #define InvalidSoundRef -1
 
 struct SoundComponent {
-        SoundComponent() : sound(InvalidSoundRef), volume(1) { }
-        SoundRef sound;
-        float volume;
+    SoundComponent() : sound(InvalidSoundRef), volume(1) {}
+    SoundRef sound;
+    float volume;
 };
 
 #define theSoundSystem SoundSystem::GetInstance()
 #if SAC_DEBUG
-#define SOUND(e) theSoundSystem.Get(e,true,__FILE__,__LINE__)
+#define SOUND(e) theSoundSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define SOUND(e) theSoundSystem.Get(e)
 #endif
@@ -64,6 +62,5 @@ std::map<SoundRef, OpaqueSoundPtr*> sounds;
 public:
 SoundAPI* soundAPI;
 bool mute;
-
-};
-
+}
+;

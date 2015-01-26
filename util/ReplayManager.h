@@ -5,32 +5,34 @@
 
 class AssetAPI;
 
-class ReplayManager : public NativeTouchState{
+class ReplayManager : public NativeTouchState {
     public:
-        ReplayManager();
+    ReplayManager();
 
-        bool isReplayModeEnabled() const ;
-        void enableReplayMode(const char* sourceFile, AssetAPI* asset);
+    bool isReplayModeEnabled() const;
+    void enableReplayMode(const char* sourceFile, AssetAPI* asset);
 
-        unsigned int getRandomSeed() const ;
-        void saveRandomSeed(unsigned int seed);
+    unsigned int getRandomSeed() const;
+    void saveRandomSeed(unsigned int seed);
 
-        int maxTouchingCount();
-        bool isTouching(int index, glm::vec2* windowCoords);
-        bool isMoving (int index);
+    int maxTouchingCount();
+    bool isTouching(int index, glm::vec2* windowCoords);
+    bool isMoving(int index);
 
-        void saveMaxTouchingCount(int count);
-        void saveIsTouching(bool touching, int index, const glm::vec2& windowCoords);
+    void saveMaxTouchingCount(int count);
+    void
+    saveIsTouching(bool touching, int index, const glm::vec2& windowCoords);
 
-        static ReplayManager* Instance();
+    static ReplayManager* Instance();
+
     private:
-        static ReplayManager* instance;
+    static ReplayManager* instance;
 
-        bool replayMode;
-        DataFileParser sourceDfp, outDfp;
-        uint64_t frameCount;
-        int pointerCount;
-        std::pair<bool, glm::vec2>* touching;
+    bool replayMode;
+    DataFileParser sourceDfp, outDfp;
+    uint64_t frameCount;
+    int pointerCount;
+    std::pair<bool, glm::vec2>* touching;
 };
 
 #define theReplayManager (*ReplayManager::Instance())

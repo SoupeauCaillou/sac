@@ -18,20 +18,17 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #if SAC_INGAME_EDITORS
 
 #include <string>
 #include <map>
 
-
 class DebugConsole {
     public:
-        //called in LevelEditor, creating "DebugConsole" icon in Ant
-        void initTW();
+    // called in LevelEditor, creating "DebugConsole" icon in Ant
+    void initTW();
 
-        static DebugConsole & Instance();
+    static DebugConsole& Instance();
 #if 0
         //Function without args (storingPlace is unused - should be 0)
         static void RegisterMethod(const std::string & functionName, void (*callback)(void*),
@@ -59,14 +56,14 @@ class DebugConsole {
             const std::string & argumentName, TwEnumVal* availableArgs, unsigned availableArgsSize, void* storingPlace);
 #endif
     private:
-        DebugConsole() {}
-        ~DebugConsole() {}
+    DebugConsole() {}
+    ~DebugConsole() {}
 
     private:
-        std::map<std::string, void (*)(void*)> name2callback;
+    std::map<std::string, void (*)(void*)> name2callback;
 #if 0
         TwBar* bar;
-    #endif
+#endif
 };
 
 #endif

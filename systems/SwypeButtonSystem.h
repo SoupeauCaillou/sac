@@ -33,9 +33,10 @@ namespace SwypeIdleState {
     };
 }
 struct SwypeButtonComponent {
-        SwypeButtonComponent() : mouseOver(false), clicked(false),
-        lastPos(0.0f), idlePos(0.0f), animationPlaying(SwypeIdleState::Halted),
-    enabled(false), vibration(0.035f) { }
+    SwypeButtonComponent()
+        : mouseOver(false), clicked(false), lastPos(0.0f), idlePos(0.0f),
+          animationPlaying(SwypeIdleState::Halted), enabled(false),
+          vibration(0.035f) {}
 
     ////// READ ONLY variables
     // States of button
@@ -49,37 +50,43 @@ struct SwypeButtonComponent {
     SwypeIdleState::Enum animationPlaying;
     //
     float activeIdleTime;
-        ////// END OF READ ONLY variables
+    ////// END OF READ ONLY variables
 
-        ////// READ/WRITE variables
+    ////// READ/WRITE variables
     // if true, entity is clickable
     bool enabled;
     // Speed of button
     glm::vec2 speed;
     // Swype direction
     glm::vec2 finalPos;
-        ////// END OF READ/WRITE variables
+    ////// END OF READ/WRITE variables
 
-        ////// WRITE ONLY variables
-        // Vibration on clicked
-        float vibration;
-        // animated button
-        bool animated;
-        ////// END OF WRITE ONLY variables
+    ////// WRITE ONLY variables
+    // Vibration on clicked
+    float vibration;
+    // animated button
+    bool animated;
+    ////// END OF WRITE ONLY variables
 };
 
 #define theSwypeButtonSystem SwypeButtonSystem::GetInstance()
 #if SAC_DEBUG
-#define SWYPEBUTTON(actor) theSwypeButtonSystem.Get(actor,true,__FILE__,__LINE__)
+#define SWYPEBUTTON(actor)                                                     \
+    theSwypeButtonSystem.Get(actor, true, __FILE__, __LINE__)
 #else
 #define SWYPEBUTTON(actor) theSwypeButtonSystem.Get(actor)
 #endif
 UPDATABLE_SYSTEM(SwypeButton)
 
 public:
-    VibrateAPI* vibrateAPI;
-private:
-        void UpdateSwypeButton(float dt, Entity entity, SwypeButtonComponent* comp, bool touching, const glm::vec2& touchPos);
+VibrateAPI* vibrateAPI;
 
-};
+private:
+void UpdateSwypeButton(float dt,
+                       Entity entity,
+                       SwypeButtonComponent* comp,
+                       bool touching,
+                       const glm::vec2& touchPos);
+}
+;
 #endif

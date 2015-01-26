@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if !DISABLE_AUTONOMOUS_SYSTEM
@@ -99,14 +97,15 @@ struct AutonomousAgentComponent {
 
 #define theAutonomousAgentSystem AutonomousAgentSystem::GetInstance()
 #if SAC_DEBUG
-#define AUTONOMOUS(entity) theAutonomousAgentSystem.Get(entity,true,__FILE__,__LINE__)
+#define AUTONOMOUS(entity)                                                     \
+    theAutonomousAgentSystem.Get(entity, true, __FILE__, __LINE__)
 #else
 #define AUTONOMOUS(entity) theAutonomousAgentSystem.Get(entity)
 #endif
 
 UPDATABLE_SYSTEM(AutonomousAgent)
 public:
-    static bool isArrived(Entity e);
-
-};
+static bool isArrived(Entity e);
+}
+;
 #endif

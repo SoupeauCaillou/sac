@@ -18,21 +18,18 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../OpenURLAPI.h"
 #include "JNIWrapper.h"
 
 namespace jni_openurl_api {
-    enum Enum {
-        Open
-    };
+    enum Enum { Open };
 }
 
-class OpenURLAPIAndroidImpl : public OpenURLAPI, public JNIWrapper<jni_openurl_api::Enum> {
+class OpenURLAPIAndroidImpl : public OpenURLAPI,
+                              public JNIWrapper<jni_openurl_api::Enum> {
     public:
-        OpenURLAPIAndroidImpl();
-        void openURL(const std::string& url);
+    OpenURLAPIAndroidImpl();
+    void openURL(const std::string& url);
 };

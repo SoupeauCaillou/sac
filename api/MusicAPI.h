@@ -18,29 +18,31 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 #include <stdint.h>
 
-struct OpaqueMusicPtr { };
+struct OpaqueMusicPtr {};
 
 #define SAMPLES_TO_SEC(nb, freq) ((nb) / (float)freq)
-#define SEC_TO_SAMPLES(s, freq) (int) ((s) * freq)
-#define SEC_TO_BYTE(s, freq) (int)((s) * freq * 2)
+#define SEC_TO_SAMPLES(s, freq) (int)((s)*freq)
+#define SEC_TO_BYTE(s, freq) (int)((s)*freq * 2)
 #define SAMPLES_TO_BYTE(nb, freq) SEC_TO_BYTE(SAMPLES_TO_SEC(nb, freq), freq)
 
 class MusicAPI {
     public:
-        // create internal state (source for OpenAL, AudioTrack for Android, etc...)
-        virtual OpaqueMusicPtr* createPlayer(int sampleRate) = 0;
-        virtual void queueMusicData(OpaqueMusicPtr* ptr, const short* data, int count, int sampleRate)=0;
-        virtual bool isPlaying(OpaqueMusicPtr* ptr)=0;
-        virtual void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset)=0;
-        virtual void stopPlayer(OpaqueMusicPtr* ptr)=0;
-        virtual void pausePlayer(OpaqueMusicPtr* ptr)=0;
-        virtual int getPosition(OpaqueMusicPtr* ptr)=0;
-        virtual void setPosition(OpaqueMusicPtr* ptr, int pos)=0;
-        virtual void setVolume(OpaqueMusicPtr* ptr, float v)=0;
-        virtual void deletePlayer(OpaqueMusicPtr* ptr)=0;
+    // create internal state (source for OpenAL, AudioTrack for Android, etc...)
+    virtual OpaqueMusicPtr* createPlayer(int sampleRate) = 0;
+    virtual void queueMusicData(OpaqueMusicPtr* ptr,
+                                const short* data,
+                                int count,
+                                int sampleRate) = 0;
+    virtual bool isPlaying(OpaqueMusicPtr* ptr) = 0;
+    virtual void
+    startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset) = 0;
+    virtual void stopPlayer(OpaqueMusicPtr* ptr) = 0;
+    virtual void pausePlayer(OpaqueMusicPtr* ptr) = 0;
+    virtual int getPosition(OpaqueMusicPtr* ptr) = 0;
+    virtual void setPosition(OpaqueMusicPtr* ptr, int pos) = 0;
+    virtual void setVolume(OpaqueMusicPtr* ptr, float v) = 0;
+    virtual void deletePlayer(OpaqueMusicPtr* ptr) = 0;
 };

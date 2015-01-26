@@ -18,35 +18,32 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
 
 class TaskAI {
-        public:
-                TaskAI() { }
-                virtual ~TaskAI() {}
+    public:
+    TaskAI() {}
+    virtual ~TaskAI() {}
 
-                // update and/or return a prerequesite task
-                virtual TaskAI* update(Entity e, float dt) = 0;
-                // return true if task is finished
-                virtual bool complete(Entity e) = 0;
+    // update and/or return a prerequesite task
+    virtual TaskAI* update(Entity e, float dt) = 0;
+    // return true if task is finished
+    virtual bool complete(Entity e) = 0;
 };
 
 struct TaskAIComponent {
-        std::vector<TaskAI*> taskToPerform;
+    std::vector<TaskAI*> taskToPerform;
 };
 
 #define theTaskAISystem TaskAISystem::GetInstance()
 #if SAC_DEBUG
-#define TASK_AI(e) theTaskAISystem.Get(e,true,__FILE__,__LINE__)
+#define TASK_AI(e) theTaskAISystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define TASK_AI(e) theTaskAISystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(TaskAI)
-
-};
-
+}
+;

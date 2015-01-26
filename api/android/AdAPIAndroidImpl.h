@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../AdAPI.h"
@@ -34,8 +32,8 @@ namespace jni_ad_api {
 
 class AdAPIAndroidImpl : public AdAPI, public JNIWrapper<jni_ad_api::Enum> {
     public:
-        AdAPIAndroidImpl();
+    AdAPIAndroidImpl();
 
-        bool showAd(bool force);
-        bool done();
+    bool showAd(bool force);
+    bool done();
 };

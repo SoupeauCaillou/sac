@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
@@ -32,15 +30,14 @@ typedef int MusicRef;
 #define InvalidMusicRef -1
 
 namespace MusicControl {
-    enum Enum {
-        Play,
-        Stop,
-        Pause
-    };
+    enum Enum { Play, Stop, Pause };
 }
 
 struct MusicComponent {
-    MusicComponent() : music(InvalidMusicRef), loopNext(InvalidMusicRef), previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1), autoLoopName(""), control(MusicControl::Stop) {
+    MusicComponent()
+        : music(InvalidMusicRef), loopNext(InvalidMusicRef),
+          previousEnding(InvalidMusicRef), master(0), positionI(0), volume(1),
+          autoLoopName(""), control(MusicControl::Stop) {
         opaque[0] = opaque[1] = 0;
         fadeOut = fadeIn = 0;
         paused = false;
@@ -49,11 +46,11 @@ struct MusicComponent {
     MusicRef music, loopNext;
     MusicRef previousEnding;
     MusicComponent* master;
-    float loopAt; // sec
-    int positionI; // in [0,1]
+    float loopAt;          // sec
+    int positionI;         // in [0,1]
     float fadeOut, fadeIn; // sec
     float volume;
-    float currentVolume; //handled by system - do not modify
+    float currentVolume; // handled by system - do not modify
     bool looped, paused;
     std::string autoLoopName;
     MusicControl::Enum control;
@@ -64,52 +61,53 @@ struct MusicComponent {
 
 #define theMusicSystem MusicSystem::GetInstance()
 #if SAC_DEBUG
-#define MUSIC(e) theMusicSystem.Get(e,true,__FILE__,__LINE__)
+#define MUSIC(e) theMusicSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define MUSIC(e) theMusicSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Music)
 
-    public:
-        ~MusicSystem();
-        void init();
-        bool isMuted() const { return muted; }
+public:
+~MusicSystem();
+void init();
+bool isMuted() const { return muted; }
 
-        MusicRef loadMusicFile(const char* assetName);
+MusicRef loadMusicFile(const char* assetName);
 
-        void toggleMute(bool enable);
+void toggleMute(bool enable);
 
-    private:
-        /* textures cache */
-        MusicRef nextValidRef;
+private:
+/* textures cache */
+MusicRef nextValidRef;
 
-        struct MusicInfo {
-            MusicInfo() : handle(0) {}
-            OggHandle* handle;
-            // track info
-            float totalTime;
-            int nbSamples;
-            int sampleRate, numChannels;
+struct MusicInfo {
+    MusicInfo() : handle(0) {}
+    OggHandle* handle;
+    // track info
+    float totalTime;
+    int nbSamples;
+    int sampleRate, numChannels;
 
-            float queuedDuration;
-            bool toRemove;
-        };
-        std::map<MusicRef, MusicInfo> musics;
-
-        bool muted;
-        // map<filename, audio_compressed_content>
-        std::map<hash_t, FileBuffer> name2buffer;
-
-        void feed(OpaqueMusicPtr* ptr, MusicRef m, float dt);
-
-        OpaqueMusicPtr* startOpaque(MusicComponent* m, MusicRef r,
-            MusicComponent* master, int offset);
-        void stopMusic(MusicComponent* m);
-        void clearAndRemoveInfo(MusicRef ref);
-    public:
-        MusicAPI* musicAPI;
-        AssetAPI* assetAPI;
-        short* tempBuffer;
+    float queuedDuration;
+    bool toRemove;
 };
+std::map<MusicRef, MusicInfo> musics;
 
+bool muted;
+// map<filename, audio_compressed_content>
+std::map<hash_t, FileBuffer> name2buffer;
+
+void feed(OpaqueMusicPtr* ptr, MusicRef m, float dt);
+
+OpaqueMusicPtr*
+startOpaque(MusicComponent* m, MusicRef r, MusicComponent* master, int offset);
+void stopMusic(MusicComponent* m);
+void clearAndRemoveInfo(MusicRef ref);
+
+public:
+MusicAPI* musicAPI;
+AssetAPI* assetAPI;
+short* tempBuffer;
+}
+;

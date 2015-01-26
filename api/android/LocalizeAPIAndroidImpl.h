@@ -18,24 +18,21 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../LocalizeAPI.h"
 #include "JNIWrapper.h"
 
 namespace jni_loc_api {
-    enum Enum {
-        Text
-    };
+    enum Enum { Text };
 }
 
-class LocalizeAPIAndroidImpl : public LocalizeAPI, public JNIWrapper<jni_loc_api::Enum> {
-        public:
-                LocalizeAPIAndroidImpl();
-                std::string text(const std::string& s);
+class LocalizeAPIAndroidImpl : public LocalizeAPI,
+                               public JNIWrapper<jni_loc_api::Enum> {
+    public:
+    LocalizeAPIAndroidImpl();
+    std::string text(const std::string& s);
 
     private:
-        std::map<std::string, std::string> cache;
+    std::map<std::string, std::string> cache;
 };

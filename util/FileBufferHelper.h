@@ -2,12 +2,8 @@
 struct FileBuffer;
 
 class FileBufferHelper {
-public:
-    enum Options {
-        AdvanceCursor,
-        HoldCursor
-    };
-
+    public:
+    enum Options { AdvanceCursor, HoldCursor };
 
     const char* line(const FileBuffer& fb, Options opt = AdvanceCursor);
 
@@ -15,7 +11,7 @@ public:
     ~FileBufferHelper();
 
     private:
-        int pos;
-        int allocatedSize;
-        char* allocated;
+    int pos;
+    int allocatedSize;
+    char* allocated;
 };

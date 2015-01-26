@@ -18,23 +18,24 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../MusicAPI.h"
 
 class MusicAPILinuxOpenALImpl : public MusicAPI {
     public:
-        void init();
-        OpaqueMusicPtr* createPlayer(int sampleRate);
-        void queueMusicData(OpaqueMusicPtr* ptr, const short* data, int count, int sampleRate);
-        void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
-        void stopPlayer(OpaqueMusicPtr* ptr);
-        void pausePlayer(OpaqueMusicPtr* ptr);
-        int getPosition(OpaqueMusicPtr* ptr);
-        void setPosition(OpaqueMusicPtr* ptr, int pos);
-        void setVolume(OpaqueMusicPtr* ptr, float v);
-        void deletePlayer(OpaqueMusicPtr* ptr);
-        bool isPlaying(OpaqueMusicPtr* ptr);
+    void init();
+    OpaqueMusicPtr* createPlayer(int sampleRate);
+    void queueMusicData(OpaqueMusicPtr* ptr,
+                        const short* data,
+                        int count,
+                        int sampleRate);
+    void startPlaying(OpaqueMusicPtr* ptr, OpaqueMusicPtr* master, int offset);
+    void stopPlayer(OpaqueMusicPtr* ptr);
+    void pausePlayer(OpaqueMusicPtr* ptr);
+    int getPosition(OpaqueMusicPtr* ptr);
+    void setPosition(OpaqueMusicPtr* ptr, int pos);
+    void setVolume(OpaqueMusicPtr* ptr, float v);
+    void deletePlayer(OpaqueMusicPtr* ptr);
+    bool isPlaying(OpaqueMusicPtr* ptr);
 };

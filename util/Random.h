@@ -22,21 +22,29 @@
 #include <random>
 
 class Random {
-        public:
-    static void Init (unsigned int seed = 0);
-
-
-    // return value is between [min; max]
-    static float Float (float min=0.0f, float max=1.0f);
-    static float Float (std::mt19937& generator, float min=0.0f, float max=1.0f);
-
-    static void N_Floats(int n, float* out, float min=0.0f, float max=1.0f);
-    static void N_Floats(std::mt19937& generator, int n, float* out, float min=0.0f, float max=1.0f);
+    public:
+    static void Init(unsigned int seed = 0);
 
     // return value is between [min; max]
-        static int Int (int min=0, int max=1);
-    static int Int (std::mt19937& generator, int min=0, int max=1);
+    static float Float(float min = 0.0f, float max = 1.0f);
+    static float
+    Float(std::mt19937& generator, float min = 0.0f, float max = 1.0f);
 
-    static void N_Ints(int n, int* out, int min=0.0f, int max=1.0f);
-    static void N_Ints(std::mt19937& generator, int n, int* out, int min=0.0f, int max=1.0f);
+    static void N_Floats(int n, float* out, float min = 0.0f, float max = 1.0f);
+    static void N_Floats(std::mt19937& generator,
+                         int n,
+                         float* out,
+                         float min = 0.0f,
+                         float max = 1.0f);
+
+    // return value is between [min; max]
+    static int Int(int min = 0, int max = 1);
+    static int Int(std::mt19937& generator, int min = 0, int max = 1);
+
+    static void N_Ints(int n, int* out, int min = 0.0f, int max = 1.0f);
+    static void N_Ints(std::mt19937& generator,
+                       int n,
+                       int* out,
+                       int min = 0.0f,
+                       int max = 1.0f);
 };

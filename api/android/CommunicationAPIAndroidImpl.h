@@ -18,9 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
-
 #pragma once
 
 #include "../CommunicationAPI.h"
@@ -35,13 +32,14 @@ namespace jni_comm_api {
         Show,
     };
 }
-class CommunicationAPIAndroidImpl : public CommunicationAPI, public JNIWrapper<jni_comm_api::Enum> {
+class CommunicationAPIAndroidImpl : public CommunicationAPI,
+                                    public JNIWrapper<jni_comm_api::Enum> {
     public:
-        CommunicationAPIAndroidImpl();
+    CommunicationAPIAndroidImpl();
 
-        bool mustShowRateDialog();
-        void rateItNow();
-        void rateItLater();
-        void rateItNever();
-        void show(const std::string&msg);
+    bool mustShowRateDialog();
+    void rateItNow();
+    void rateItLater();
+    void rateItNever();
+    void show(const std::string& msg);
 };

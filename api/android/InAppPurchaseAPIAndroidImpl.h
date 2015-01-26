@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "api/InAppPurchaseAPI.h"
@@ -31,9 +29,9 @@ namespace jni_inapp_api {
     };
 }
 
-
-class InAppPurchaseAPIAndroidImpl : public InAppPurchaseAPI, public JNIWrapper<jni_inapp_api::Enum> {
+class InAppPurchaseAPIAndroidImpl : public InAppPurchaseAPI,
+                                    public JNIWrapper<jni_inapp_api::Enum> {
     public:
-        InAppPurchaseAPIAndroidImpl();
-        void purchase(const std::string & name);
+    InAppPurchaseAPIAndroidImpl();
+    void purchase(const std::string& name);
 };

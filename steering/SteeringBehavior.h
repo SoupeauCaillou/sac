@@ -18,15 +18,12 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <glm/glm.hpp>
 #include "../base/EntityManager.h"
 
-namespace Steering
-{
+namespace Steering {
     struct Context {
         /* clockwise
             0 -> 0°
@@ -35,16 +32,21 @@ namespace Steering
             7 -> 315°
         */
         float directions[9];
-        #if SAC_DEBUG
+#if SAC_DEBUG
         Entity entities[9];
-        #endif
+#endif
     };
 
     const glm::vec2 direction(float rotation, int index);
     float angle(float rotation, int index);
 
-    template<class T>
-    void behavior(Entity e, float dt, T& param, Context* interest, Context* priority, Context* danger);
+    template <class T>
+    void behavior(Entity e,
+                  float dt,
+                  T& param,
+                  Context* interest,
+                  Context* priority,
+                  Context* danger);
 }
 
 #if 0

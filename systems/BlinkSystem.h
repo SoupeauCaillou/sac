@@ -18,16 +18,15 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if !DISABLE_BLINK_SYSTEM
 #include "System.h"
 
-
 struct BlinkComponent {
-    BlinkComponent(): enabled(false),visibleDuration(0.0f), hiddenDuration(0.0), accum(0.0) {}
+    BlinkComponent()
+        : enabled(false), visibleDuration(0.0f), hiddenDuration(0.0),
+          accum(0.0) {}
 
     bool enabled;
     float visibleDuration;
@@ -38,11 +37,12 @@ struct BlinkComponent {
 
 #define theBlinkSystem BlinkSystem::GetInstance()
 #if SAC_DEBUG
-#define BLINK(e) theBlinkSystem.Get(e,true,__FILE__,__LINE__)
+#define BLINK(e) theBlinkSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define BLINK(e) theBlinkSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Blink)
-};
+}
+;
 #endif

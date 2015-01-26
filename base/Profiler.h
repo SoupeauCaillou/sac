@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <string>
@@ -55,12 +53,15 @@ void startProfiler();
 
 void stopProfiler(const char* filename);
 
-void addProfilePoint(const std::string& category, const std::string& name, enum ProfilePhase ph, enum InstantScope scope=ThreadScope, int id=1);
-
+void addProfilePoint(const std::string& category,
+                     const std::string& name,
+                     enum ProfilePhase ph,
+                     enum InstantScope scope = ThreadScope,
+                     int id = 1);
 
 #if SAC_ENABLE_PROFILING
-#define PROFILE(cat, name, phase) do { addProfilePoint(cat, name, phase, ThreadScope, 1); } while(false)
+#define PROFILE(cat, name, phase)                                              \
+    do { addProfilePoint(cat, name, phase, ThreadScope, 1); } while (false)
 #else
 #define PROFILE(cat, name, phase)
 #endif
-

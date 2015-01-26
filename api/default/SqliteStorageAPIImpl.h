@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <string>
@@ -31,32 +29,45 @@ class AssetAPI;
 #include "util/StorageProxy.h"
 
 class SqliteStorageAPIImpl : public StorageAPI {
-        public:
-        SqliteStorageAPIImpl() : initialized(false) {}
+    public:
+    SqliteStorageAPIImpl() : initialized(false) {}
 
-        void init(AssetAPI * assetAPI, const std::string & databaseName);
+    void init(AssetAPI* assetAPI, const std::string& databaseName);
 
-        void setOption(const std::string & name, const std::string & valueIfExisting, const std::string & valueIfNotExisting);
-        std::string getOption(const std::string & name);
-        bool isOption(const std::string & name, const std::string & compareValue);
+    void setOption(const std::string& name,
+                   const std::string& valueIfExisting,
+                   const std::string& valueIfNotExisting);
+    std::string getOption(const std::string& name);
+    bool isOption(const std::string& name, const std::string& compareValue);
 
-        void createTable(IStorageProxy * proxy);
-        void saveEntries(IStorageProxy * proxy);
-        void loadEntries(IStorageProxy * proxy, const std::string & selectArg = "*", const std::string & options = "");
-        void dropAll(IStorageProxy* proxy);
+    void createTable(IStorageProxy* proxy);
+    void saveEntries(IStorageProxy* proxy);
+    void loadEntries(IStorageProxy* proxy,
+                     const std::string& selectArg = "*",
+                     const std::string& options = "");
+    void dropAll(IStorageProxy* proxy);
 
-        int count(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "");
+    int count(IStorageProxy* proxy,
+              const std::string& selectArg,
+              const std::string& options = "");
 
-        float sum(IStorageProxy * proxy, const std::string & selectArg, const std::string & options = "");
+    float sum(IStorageProxy* proxy,
+              const std::string& selectArg,
+              const std::string& options = "");
 
     private:
-        bool request(const std::string & statement, void* res, int (*completionCallback)(void*,int,char**,char**));
-        void checkInTable(const std::string & option, const std::string & valueIfExist, const std::string & valueIf404);
-        void createTable(const std::string & tableName, const std::string & statement);
+    bool request(const std::string& statement,
+                 void* res,
+                 int (*completionCallback)(void*, int, char**, char**));
+    void checkInTable(const std::string& option,
+                      const std::string& valueIfExist,
+                      const std::string& valueIf404);
+    void createTable(const std::string& tableName,
+                     const std::string& statement);
 
-        std::string databasePath;
-        bool initialized;
+    std::string databasePath;
+    bool initialized;
 
-        /*Needed to get the datapath on filesystem which is platform dependent*/
-        AssetAPI* assetAPI;
+    /*Needed to get the datapath on filesystem which is platform dependent*/
+    AssetAPI* assetAPI;
 };

@@ -1,5 +1,3 @@
-namespace sac
-{
+namespace sac {
     void setResolution(int width, int height);
-
 }

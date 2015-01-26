@@ -18,13 +18,11 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../OpenURLAPI.h"
 
 class OpenURLAPILinuxImpl : public OpenURLAPI {
     public:
-        void openURL(const std::string& url);
+    void openURL(const std::string& url);
 };

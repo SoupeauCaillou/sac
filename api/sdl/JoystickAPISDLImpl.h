@@ -26,71 +26,78 @@
 #include <api/JoystickAPI.h>
 
 namespace JoystickButton {
-        enum Enum {
-                GREEN = 0,
-                RED,
-                BLUE,
-                YELLOW,
-                LB,
-                RB,
-                BACK,
-                START,
-                XBOX,
-                LEFTCLICK,
-                RIGHTCLICK,
-                TOTAL
-        };
+    enum Enum {
+        GREEN = 0,
+        RED,
+        BLUE,
+        YELLOW,
+        LB,
+        RB,
+        BACK,
+        START,
+        XBOX,
+        LEFTCLICK,
+        RIGHTCLICK,
+        TOTAL
+    };
 }
 
 namespace JoystickPad {
-        enum Enum {
-                LEFT = 0,
-                RIGHT,
-                TOTAL,
-        };
+    enum Enum {
+        LEFT = 0,
+        RIGHT,
+        TOTAL,
+    };
 }
 
 struct JoystickState {
-        bool clicked[JoystickButton::TOTAL];
-        bool doubleclicked[JoystickButton::TOTAL];
-        float lastClickTime[JoystickButton::TOTAL];
+    bool clicked[JoystickButton::TOTAL];
+    bool doubleclicked[JoystickButton::TOTAL];
+    float lastClickTime[JoystickButton::TOTAL];
 
-        glm::vec2 lastDirection[JoystickPad::TOTAL];
+    glm::vec2 lastDirection[JoystickPad::TOTAL];
 
-        JoystickState() {
-                for (unsigned b = 0; b < JoystickButton::TOTAL; ++b) {
-                        clicked[b] = doubleclicked[b] = false;
-                        lastClickTime[b] = 0;
-                }
+    JoystickState() {
+        for (unsigned b = 0; b < JoystickButton::TOTAL; ++b) {
+            clicked[b] = doubleclicked[b] = false;
+            lastClickTime[b] = 0;
         }
+    }
 
-        void* joystickPtr;
+    void* joystickPtr;
 };
 
 class JoystickAPISDLImpl : public JoystickAPI {
     public:
-        JoystickAPISDLImpl();
-        ~JoystickAPISDLImpl();
+    JoystickAPISDLImpl();
+    ~JoystickAPISDLImpl();
 
-        bool hasClicked(int idx, int btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].clicked[btn]; }
+    bool hasClicked(int idx, int btn) const {
+        return (joysticks.size() > (unsigned)idx) &&
+               joysticks[idx].clicked[btn];
+    }
 
-        bool hasDoubleClicked(int idx, int btn) const { return (joysticks.size() > (unsigned)idx) && joysticks[idx].doubleclicked[btn]; }
+    bool hasDoubleClicked(int idx, int btn) const {
+        return (joysticks.size() > (unsigned)idx) &&
+               joysticks[idx].doubleclicked[btn];
+    }
 
-        void resetDoubleClick(int idx, int btn);
+    void resetDoubleClick(int idx, int btn);
 
-        const glm::vec2& getPadDirection(int idx, int pad) const {
-            if (joysticks.size() > (unsigned)idx) {
-                return joysticks[idx].lastDirection[pad];
-            } else {
-                static const glm::vec2 zero(0.0f);
-                return zero;
-            }
+    const glm::vec2& getPadDirection(int idx, int pad) const {
+        if (joysticks.size() > (unsigned)idx) {
+            return joysticks[idx].lastDirection[pad];
+        } else {
+            static const glm::vec2 zero(0.0f);
+            return zero;
         }
+    }
 
-        void update(float dt);
+    void update(float dt);
 
-        int eventSDL(void* event);
+    int eventSDL(void* event);
+
     private:
-        std::vector<JoystickState> joysticks;
+    std::vector<JoystickState> joysticks;
 };
 #endif

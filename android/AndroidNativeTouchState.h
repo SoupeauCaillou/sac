@@ -18,19 +18,17 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/TouchInputManager.h"
 class GameHolder;
 
 struct AndroidNativeTouchState : public NativeTouchState {
-        GameHolder* holder;
+    GameHolder* holder;
 
-        AndroidNativeTouchState(GameHolder* h);
+    AndroidNativeTouchState(GameHolder* h);
 
     int maxTouchingCount();
 
-        bool isTouching (int index, glm::vec2* windowCoords);
+    bool isTouching(int index, glm::vec2* windowCoords);
 };

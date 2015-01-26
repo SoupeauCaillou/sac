@@ -18,19 +18,18 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
 struct SetupInfo {
     const char* name;
     const char* version;
-    struct { float x, y; } resolution;
+    struct {
+        float x, y;
+    } resolution;
 
 #if SAC_DESKTOP
     struct {
@@ -39,7 +38,6 @@ struct SetupInfo {
     } arg;
 #endif
 };
-
 
 void* buildGameInstance();
 

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
@@ -28,7 +26,9 @@
 class AnimDescriptor;
 
 struct AnimationComponent {
-    AnimationComponent() : name(0), previousName(0), accum(0), playbackSpeed(1), loopCount(-1), frameIndex(0) {
+    AnimationComponent()
+        : name(0), previousName(0), accum(0), playbackSpeed(1), loopCount(-1),
+          frameIndex(0) {
         waitAccum = 0;
     }
     hash_t name, previousName;
@@ -39,7 +39,7 @@ struct AnimationComponent {
 
 #define theAnimationSystem AnimationSystem::GetInstance()
 #if SAC_DEBUG
-#define ANIMATION(e) theAnimationSystem.Get(e,true,__FILE__,__LINE__)
+#define ANIMATION(e) theAnimationSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define ANIMATION(e) theAnimationSystem.Get(e)
 #endif
@@ -47,10 +47,15 @@ struct AnimationComponent {
 UPDATABLE_SYSTEM(Animation)
 
 public:
-    ~AnimationSystem();
+~AnimationSystem();
 
-    void loadAnim(AssetAPI* assetAPI, const std::string& name, const std::string& file, std::string* variables = 0, int varcount = 0);
+void loadAnim(AssetAPI* assetAPI,
+              const std::string& name,
+              const std::string& file,
+              std::string* variables = 0,
+              int varcount = 0);
 
 private:
-    std::map<uint32_t, AnimDescriptor*> animations;
-};
+std::map<uint32_t, AnimDescriptor*> animations;
+}
+;

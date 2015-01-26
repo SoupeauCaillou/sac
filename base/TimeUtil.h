@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if SAC_LINUX || SAC_ANDROID
@@ -27,24 +25,22 @@
 #elif SAC_DARWIN || SAC_EMSCRIPTEN || SAC_IOS
 #include <sys/time.h>
 #elif SAC_WINDOWS
- #include <Windows.h>
+#include <Windows.h>
 #endif
 
-class TimeUtil
-{
-        public:
-                static void Init();
-                static float GetTime();
-        static void Wait(float waitInSeconds);
+class TimeUtil {
+    public:
+    static void Init();
+    static float GetTime();
+    static void Wait(float waitInSeconds);
 
-        private:
-
+    private:
 #if SAC_LINUX || SAC_ANDROID
-        static struct timespec startup_time;
+    static struct timespec startup_time;
 #elif SAC_EMSCRIPTEN || SAC_DARWIN || SAC_IOS
-        static struct timeval startup_time;
+    static struct timeval startup_time;
 #elif SAC_WINDOWS
-        static __int64 startup_time;
-        static double frequency;
+    static __int64 startup_time;
+    static double frequency;
 #endif
 };

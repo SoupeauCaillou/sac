@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <glm/glm.hpp>
@@ -35,30 +33,31 @@ class KeyboardInputHandlerAPI;
 
 class LevelEditor {
     public:
-        LevelEditor(Game* game);
-        ~LevelEditor();
-        void init(KeyboardInputHandlerAPI* kb);
-        void tick(float dt);
+    LevelEditor(Game* game);
+    ~LevelEditor();
+    void init(KeyboardInputHandlerAPI* kb);
+    void tick(float dt);
 
-        void newFrame(RenderingSystem::RenderCommand* commands, int count);
-        RenderingSystem::RenderCommand* getFrame(int* count);
+    void newFrame(RenderingSystem::RenderCommand* commands, int count);
+    RenderingSystem::RenderCommand* getFrame(int* count);
 
-        static void lock();
-        static void unlock();
+    static void lock();
+    static void unlock();
+
     private:
-        struct LevelEditorDatas;
-        LevelEditorDatas* datas;
-        Game* game;
-        KeyboardInputHandlerAPI* kb;
+    struct LevelEditorDatas;
+    LevelEditorDatas* datas;
+    Game* game;
+    KeyboardInputHandlerAPI* kb;
 
 #if SAC_INGAME_EDITORS
     public:
-        static glm::vec2 GameViewPosition();
-        static int DebugAreaWidth;
-        static int DebugAreaHeight;
+    static glm::vec2 GameViewPosition();
+    static int DebugAreaWidth;
+    static int DebugAreaHeight;
 #endif
 #if SAC_DESKTOP
-        void addSDLEvent(const SDL_Event& evt);
-        std::queue<SDL_Event> events;
+    void addSDLEvent(const SDL_Event& evt);
+    std::queue<SDL_Event> events;
 #endif
 };

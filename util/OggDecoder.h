@@ -24,8 +24,7 @@ struct OggHandle;
 
 struct FileBuffer;
 
-namespace OggInfo
-{
+namespace OggInfo {
     struct Values {
         float durationSeconds;
         int durationSamples;
@@ -34,8 +33,7 @@ namespace OggInfo
     };
 }
 
-namespace OggOption
-{
+namespace OggOption {
     enum Decoding {
         Sync,
 #if !SAC_WEB
@@ -46,15 +44,17 @@ namespace OggOption
 
 class OggDecoder {
     public:
-        static OggHandle* load(const FileBuffer* fb, OggOption::Decoding d = OggOption::Sync);
+    static OggHandle* load(const FileBuffer* fb,
+                           OggOption::Decoding d = OggOption::Sync);
 
-        static const FileBuffer* release(OggHandle* handle);
+    static const FileBuffer* release(OggHandle* handle);
 
-        static int availableSamples(OggHandle* handle);
+    static int availableSamples(OggHandle* handle);
 
-        static int readSamples(OggHandle* handle, int numSamples, short* output);
+    static int readSamples(OggHandle* handle, int numSamples, short* output);
 
-        static OggInfo::Values query(OggHandle* handle);
+    static OggInfo::Values query(OggHandle* handle);
 
-        static int decode(const FileBuffer& fb, short** output, OggInfo::Values& info);
+    static int
+    decode(const FileBuffer& fb, short** output, OggInfo::Values& info);
 };

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
@@ -38,18 +36,18 @@ struct TextComponent {
     const static int AdjustHeightToFillWidthBit = 1 << 1;
     const static int MultiLineBit = 1 << 2;
 
-    TextComponent() : text(""), color(Color(1.f)), charHeight(1.),
-                    fontName(HASH("typo", 0x5a18f4a9)), positioning(CENTER),
-                    show(false), flags(0), cameraBitMask(1), maxLineToUse(-1)
+    TextComponent()
+        : text(""), color(Color(1.f)), charHeight(1.),
+          fontName(HASH("typo", 0x5a18f4a9)), positioning(CENTER), show(false),
+          flags(0), cameraBitMask(1), maxLineToUse(-1)
 #if SAC_INGAME_EDITORS
-                        , highLight(false)
+          ,
+          highLight(false)
 #endif
     {
         caret.show = false;
         caret.speed = caret.dt = 0;
-        blink.offDuration =
-        blink.onDuration =
-        blink.accum = 0;
+        blink.offDuration = blink.onDuration = blink.accum = 0;
     }
 
     std::string text;
@@ -87,31 +85,33 @@ struct TextComponent {
 #undef TEXT
 #endif
 #if SAC_DEBUG
-#define TEXT(e) theTextSystem.Get(e,true,__FILE__,__LINE__)
+#define TEXT(e) theTextSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define TEXT(e) theTextSystem.Get(e)
 #endif
 
-    UPDATABLE_SYSTEM(Text)
+UPDATABLE_SYSTEM(Text)
 
-    public :
+public:
+~TextSystem();
 
-    ~TextSystem();
+void Delete(Entity e) override;
+void registerFont(const char* name,
+                  const std::map<uint32_t, float>& charH2Wratio);
 
-    void Delete(Entity e) override;
-    void registerFont(const char* name, const std::map<uint32_t, float>& charH2Wratio);
+float computeTextComponentWidth(TextComponent* trc) const;
 
-    float computeTextComponentWidth(TextComponent* trc) const;
-
-    struct CharInfo {
-        float h2wRatio;
-        TextureRef texture;
-    };
-    struct FontDesc {
-        uint32_t highestUnicode;
-        CharInfo* entries;
-    };
-private:
-    std::vector<Entity> renderingEntitiesPool;
-    std::map<hash_t, FontDesc> fontRegistry;
+struct CharInfo {
+    float h2wRatio;
+    TextureRef texture;
 };
+struct FontDesc {
+    uint32_t highestUnicode;
+    CharInfo* entries;
+};
+
+private:
+std::vector<Entity> renderingEntitiesPool;
+std::map<hash_t, FontDesc> fontRegistry;
+}
+;

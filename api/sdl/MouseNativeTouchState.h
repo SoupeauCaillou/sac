@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/TouchInputManager.h"
@@ -27,28 +25,26 @@
 #include <mutex>
 
 // Emulate touch screen with Mouse
-class MouseNativeTouchState: public NativeTouchState {
+class MouseNativeTouchState : public NativeTouchState {
     public:
-        MouseNativeTouchState();
+    MouseNativeTouchState();
 
-        bool isTouching(int index, glm::vec2* windowCoords);
+    bool isTouching(int index, glm::vec2* windowCoords);
 
-        int maxTouchingCount() {
-            return 3;
-        }
+    int maxTouchingCount() { return 3; }
 
     public:
-        //all mouse events which have to be handled by MouseNativeTouchState
-        //return 1 if event is handled, 0 else
-        int eventSDL(void* event);
+    // all mouse events which have to be handled by MouseNativeTouchState
+    // return 1 if event is handled, 0 else
+    int eventSDL(void* event);
 
     private:
-        std::mutex mutex;
-        //in order : left / right / middle
-        bool isButtonDown[3];
-        glm::vec2 lastPosition;
+    std::mutex mutex;
+    // in order : left / right / middle
+    bool isButtonDown[3];
+    glm::vec2 lastPosition;
 #if !ANDROID
     public:
-        int wheel;
+    int wheel;
 #endif
 };

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <glm/glm.hpp>
@@ -36,36 +34,45 @@ class AssetAPI;
 #endif
 
 namespace DPI {
-    enum Enum {
-        Low,
-        Medium,
-        High
-    };
+    enum Enum { Low, Medium, High };
 }
 class OpenGLTextureCreator {
     public:
-        static DPI::Enum dpi;
-        static std::string DPI2Folder(DPI::Enum dpi);
-        static const char* DefaultFileExtension();
+    static DPI::Enum dpi;
+    static std::string DPI2Folder(DPI::Enum dpi);
+    static const char* DefaultFileExtension();
 
     public:
-        enum Type { COLOR, ALPHA_MASK, COLOR_ALPHA };
+    enum Type { COLOR, ALPHA_MASK, COLOR_ALPHA };
 
-        static void detectSupportedTextureFormat();
+    static void detectSupportedTextureFormat();
 
 #if SAC_DESKTOP
-        static void forceEtc1Usage();
+    static void forceEtc1Usage();
 #endif
 
-        static InternalTexture loadFromFile(AssetAPI* assetAPI, const std::string& name, glm::vec2& outSize);
+    static InternalTexture loadFromFile(AssetAPI* assetAPI,
+                                        const std::string& name,
+                                        glm::vec2& outSize);
 
-        static GLuint loadFromImageDesc(const ImageDesc& imageDesc, const std::string& name, Type type, glm::vec2& outSize);
+    static GLuint loadFromImageDesc(const ImageDesc& imageDesc,
+                                    const std::string& name,
+                                    Type type,
+                                    glm::vec2& outSize);
 
-        static void updateFromImageDesc(const ImageDesc& imagedesc, GLuint texture, Type type);
+    static void
+    updateFromImageDesc(const ImageDesc& imagedesc, GLuint texture, Type type);
 
-        static GLuint create(const glm::vec2& size, int channels, void* imageData = 0);
+    static GLuint
+    create(const glm::vec2& size, int channels, void* imageData = 0);
 
     private:
-        static ImageDesc parseImageContent(const std::string& filename, const FileBuffer& file, bool isPng);
-        static GLuint loadSplittedFromFile(AssetAPI* assetAPI, const std::string& name, Type type, glm::vec2& outSize, int& imgChannelCount);
+    static ImageDesc parseImageContent(const std::string& filename,
+                                       const FileBuffer& file,
+                                       bool isPng);
+    static GLuint loadSplittedFromFile(AssetAPI* assetAPI,
+                                       const std::string& name,
+                                       Type type,
+                                       glm::vec2& outSize,
+                                       int& imgChannelCount);
 };

@@ -18,7 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #if !DISABLE_NETWORK_SYSTEM
 #pragma once
 
@@ -28,9 +27,7 @@ class NetworkAPI;
 struct NetworkComponentPriv;
 
 struct NetworkComponent {
-    NetworkComponent() {
-
-    }
+    NetworkComponent() {}
     std::vector<std::string> sync;
 #if 0
     int newOwnerShipRequest;
@@ -39,7 +36,7 @@ struct NetworkComponent {
 
 #define theNetworkSystem NetworkSystem::GetInstance()
 #if SAC_DEBUG
-#define NETWORK(e) theNetworkSystem.Get(e,true,__FILE__,__LINE__)
+#define NETWORK(e) theNetworkSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define NETWORK(e) theNetworkSystem.Get(e)
 #endif
@@ -47,29 +44,32 @@ struct NetworkComponent {
 UPDATABLE_SYSTEM(Network)
 
 public:
-    void deleteAllNonLocalEntities();
-    unsigned int entityToGuid(Entity e);
-    Entity guidToEntity(unsigned int guid);
+void deleteAllNonLocalEntities();
+unsigned int entityToGuid(Entity e);
+Entity guidToEntity(unsigned int guid);
 
-    void Delete(Entity e) override;
+void Delete(Entity e) override;
 
-    bool isOwnedLocally(Entity e);
+bool isOwnedLocally(Entity e);
+
 public:
-    NetworkAPI* networkAPI;
+NetworkAPI* networkAPI;
 
 protected:
-    NetworkComponent* CreateComponent();
+NetworkComponent* CreateComponent();
+
 private:
-    NetworkComponentPriv* guidToComponent(unsigned int guid);
-    void updateEntity(Entity e, NetworkComponent* c, float dt, bool onlyCreate);
-    unsigned int nextGuid;
-    std::list<unsigned int> deletedEntities;
+NetworkComponentPriv* guidToComponent(unsigned int guid);
+void updateEntity(Entity e, NetworkComponent* c, float dt, bool onlyCreate);
+unsigned int nextGuid;
+std::list<unsigned int> deletedEntities;
 
 #if SAC_DEBUG
 public:
-    unsigned bytesSent, bytesReceived;
-    unsigned packetSent, packetRcvd;
-    float ulRate, dlRate;
+unsigned bytesSent, bytesReceived;
+unsigned packetSent, packetRcvd;
+float ulRate, dlRate;
 #endif
-};
+}
+;
 #endif

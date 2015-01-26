@@ -25,27 +25,28 @@
 #include "System.h"
 #include <vector>
 
-struct DebuggingComponent {
-};
+struct DebuggingComponent {};
 
 #define theDebuggingSystem DebuggingSystem::GetInstance()
 #if SAC_DEBUG
-#define DEBUGGING(e) theDebuggingSystem.Get(e,true,__FILE__,__LINE__)
+#define DEBUGGING(e) theDebuggingSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define DEBUGGING(e) theDebuggingSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Debugging)
 
-    public:
-        void toggle();
-    private:
-        bool enable;
-        std::map<hash_t, Entity> debugEntities;
-        std::vector<Entity> renderStatsEntities;
+public:
+void toggle();
 
-        Entity fps, entityCount, systems;
-        Entity fpsLabel, entityCountLabel;
-};
+private:
+bool enable;
+std::map<hash_t, Entity> debugEntities;
+std::vector<Entity> renderStatsEntities;
+
+Entity fps, entityCount, systems;
+Entity fpsLabel, entityCountLabel;
+}
+;
 
 #endif

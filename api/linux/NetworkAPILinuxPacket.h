@@ -45,12 +45,12 @@ namespace Packet {
 
 // Network packet type base class
 struct LobbyPacket {
-    LobbyPacket(Packet::Enum pType): type(pType) {}
+    LobbyPacket(Packet::Enum pType) : type(pType) {}
     Packet::Enum type;
 
-    static Packet::Enum getPacketType(ENetPacket * packet);
+    static Packet::Enum getPacketType(ENetPacket* packet);
 
-    void fromENetPacket(ENetPacket * packet);
+    void fromENetPacket(ENetPacket* packet);
     ENetPacket* toENetPacket();
 
     virtual void addProperties(Serializer& s) = 0;
@@ -58,67 +58,74 @@ struct LobbyPacket {
 
 struct LoginPacket : LobbyPacket {
     std::string name;
-    LoginPacket(const std::string& n = "") : LobbyPacket(Packet::Login), name(n) {}
+    LoginPacket(const std::string& n = "")
+        : LobbyPacket(Packet::Login), name(n) {}
 
     void addProperties(Serializer& s);
 };
 
 struct AckLoginPacket : LobbyPacket {
     AckLoginPacket() : LobbyPacket(Packet::AckLogin) {}
-    void addProperties(Serializer& ) {}
+    void addProperties(Serializer&) {}
 };
 
 struct CreateRoomPacket : LobbyPacket {
     CreateRoomPacket() : LobbyPacket(Packet::CreateRoom) {}
-    void addProperties(Serializer& ) {}
+    void addProperties(Serializer&) {}
 };
 
 struct RoomIdPacket : LobbyPacket {
-        RoomIdPacket(const std::string& r = "") : LobbyPacket(Packet::RoomId), roomId(r) {}
+    RoomIdPacket(const std::string& r = "")
+        : LobbyPacket(Packet::RoomId), roomId(r) {}
 
-        std::string roomId;
-    void addProperties(Serializer& );
+    std::string roomId;
+    void addProperties(Serializer&);
 };
 
 struct JoinRoomPacket : LobbyPacket {
-    JoinRoomPacket(const std::string& r = "") : LobbyPacket(Packet::JoinRoom), roomId(r) {}
+    JoinRoomPacket(const std::string& r = "")
+        : LobbyPacket(Packet::JoinRoom), roomId(r) {}
 
     std::string roomId;
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 struct InvitePacket : LobbyPacket {
-        std::string roomId;
+    std::string roomId;
 
-        InvitePacket(const std::string& r = "") : LobbyPacket(Packet::Invitation), roomId(r) {}
+    InvitePacket(const std::string& r = "")
+        : LobbyPacket(Packet::Invitation), roomId(r) {}
 
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 struct RoomClosedPacket : LobbyPacket {
-        std::string roomId;
+    std::string roomId;
 
-        RoomClosedPacket(const std::string& r = "") : LobbyPacket(Packet::RoomClosed), roomId(r) {}
+    RoomClosedPacket(const std::string& r = "")
+        : LobbyPacket(Packet::RoomClosed), roomId(r) {}
 
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 struct EnteringRoomPacket : LobbyPacket {
-        std::string roomId;
-        std::string playerName;
+    std::string roomId;
+    std::string playerName;
 
-        EnteringRoomPacket(const std::string& r = "", const std::string& p = "") : LobbyPacket(Packet::EnteringRoom), roomId(r), playerName(p) {}
+    EnteringRoomPacket(const std::string& r = "", const std::string& p = "")
+        : LobbyPacket(Packet::EnteringRoom), roomId(r), playerName(p) {}
 
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 struct ConnectionInfoPacket : LobbyPacket {
-        ENetAddress address;
+    ENetAddress address;
 
-        ConnectionInfoPacket() : LobbyPacket(Packet::ConnectionInfo) {}
-        ConnectionInfoPacket(const ENetAddress& addr) : LobbyPacket(Packet::ConnectionInfo), address(addr) {}
+    ConnectionInfoPacket() : LobbyPacket(Packet::ConnectionInfo) {}
+    ConnectionInfoPacket(const ENetAddress& addr)
+        : LobbyPacket(Packet::ConnectionInfo), address(addr) {}
 
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 struct PlayersInRoomPacket : LobbyPacket {
@@ -127,7 +134,7 @@ struct PlayersInRoomPacket : LobbyPacket {
 
     PlayersInRoomPacket() : LobbyPacket(Packet::PlayersInRoom) {}
 
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 struct GuidPacket : LobbyPacket {
@@ -135,7 +142,7 @@ struct GuidPacket : LobbyPacket {
 
     GuidPacket() : LobbyPacket(Packet::Guid) {}
 
-    void addProperties(Serializer& );
+    void addProperties(Serializer&);
 };
 
 #endif

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if SAC_ANDROID || SAC_EMSCRIPTEN
@@ -39,10 +37,9 @@
 void check_GL_errors(const char* context);
 
 #ifdef CHECK_GL_ERROR
-#define GL_OPERATION(x) \
-    (x); \
+#define GL_OPERATION(x)                                                        \
+    (x);                                                                       \
     check_GL_errors(#x);
 #else
-#define GL_OPERATION(x) \
-    (x);
+#define GL_OPERATION(x) (x);
 #endif

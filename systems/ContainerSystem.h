@@ -18,26 +18,24 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 #if !DISABLE_CONTAINER_SYSTEM
 #include "System.h"
 
-
 struct ContainerComponent {
-        ContainerComponent() : enable(false), includeChildren(false) {}
-        bool enable, includeChildren;
-        std::vector<Entity> entities;
+    ContainerComponent() : enable(false), includeChildren(false) {}
+    bool enable, includeChildren;
+    std::vector<Entity> entities;
 };
 
 #define theContainerSystem ContainerSystem::GetInstance()
 #if SAC_DEBUG
-#define CONTAINER(e) theContainerSystem.Get(e,true,__FILE__,__LINE__)
+#define CONTAINER(e) theContainerSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define CONTAINER(e) theContainerSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Container)
-};
+}
+;
 #endif

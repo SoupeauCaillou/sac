@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 #include <stdint.h>
 #include <string>
@@ -50,15 +48,15 @@ namespace NetworkStatus {
 
 class NetworkAPI {
     public:
-        virtual void connectToLobby(const std::string& , const char*) {}
-        virtual bool isConnectedToAnotherPlayer() {return false;}
+    virtual void connectToLobby(const std::string&, const char*) {}
+    virtual bool isConnectedToAnotherPlayer() { return false; }
 
-        virtual NetworkStatus::Enum getStatus() const = 0;
+    virtual NetworkStatus::Enum getStatus() const = 0;
 
-        virtual NetworkPacket pullReceivedPacket() = 0;
-        virtual void sendPacket(NetworkPacket packet) = 0;
+    virtual NetworkPacket pullReceivedPacket() = 0;
+    virtual void sendPacket(NetworkPacket packet) = 0;
 
-        virtual bool amIGameMaster() const {return false;}
+    virtual bool amIGameMaster() const { return false; }
 };
 
 #if 0
@@ -81,8 +79,6 @@ class NetworkAPI {
     You should have received a copy of the GNU General Public License
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 
 #pragma once
 #include <stdint.h>

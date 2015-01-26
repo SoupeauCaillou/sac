@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 class AdAPI;
@@ -63,24 +61,12 @@ namespace ContextAPI {
 }
 
 struct GameContext {
-    GameContext() :
-        adAPI(0),
-        assetAPI(0),
-        communicationAPI(0),
-        exitAPI(0),
-        gameCenterAPI(0),
-        inAppPurchaseAPI(0),
-        joystickAPI(0),
-        keyboardInputHandlerAPI(0),
-        localizeAPI(0),
-        musicAPI(0),
-        networkAPI(0),
-        openURLAPI(0),
-        soundAPI(0),
-        storageAPI(0),
-        stringInputAPI(0),
-        vibrateAPI(0),
-        wwwAPI(0) {}
+    GameContext()
+        : adAPI(0), assetAPI(0), communicationAPI(0), exitAPI(0),
+          gameCenterAPI(0), inAppPurchaseAPI(0), joystickAPI(0),
+          keyboardInputHandlerAPI(0), localizeAPI(0), musicAPI(0),
+          networkAPI(0), openURLAPI(0), soundAPI(0), storageAPI(0),
+          stringInputAPI(0), vibrateAPI(0), wwwAPI(0) {}
     AdAPI* adAPI;
     AssetAPI* assetAPI;
     CommunicationAPI* communicationAPI;

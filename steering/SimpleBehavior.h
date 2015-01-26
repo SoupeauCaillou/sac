@@ -2,8 +2,7 @@
 
 #include "base/Interval.h"
 
-namespace Steering
-{
+namespace Steering {
     struct SeekParams {
         SeekParams() : weight(0) {}
         Entity* entities;

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "Log.h"
@@ -31,96 +29,96 @@
 
 class AssetAPI;
 
-template<typename T>
-class StateHandler {
+template <typename T> class StateHandler {
     public:
-        StateHandler(const char* pName) : name(pName) {}
+    StateHandler(const char* pName) : name(pName) {}
 
-        // Virtual destructor
-        virtual ~StateHandler() {}
+    // Virtual destructor
+    virtual ~StateHandler() {}
 
-        // Setup internal var, states, ...
-        virtual void setup(AssetAPI*) {}
+    // Setup internal var, states, ...
+    virtual void setup(AssetAPI*) {}
 
-        // Called once, before calling updatePreEnter
-        virtual void onPreEnter(T ) {}
+    // Called once, before calling updatePreEnter
+    virtual void onPreEnter(T) {}
 
-        // Called repeteadly, before proper entering.
-        // Must return true when handler is ready to enter
-        virtual bool updatePreEnter(T , float ) {return true;}
+    // Called repeteadly, before proper entering.
+    // Must return true when handler is ready to enter
+    virtual bool updatePreEnter(T, float) { return true; }
 
-        // Called when entering the state (and old state has exited)
-        virtual void onEnter(T ) {}
+    // Called when entering the state (and old state has exited)
+    virtual void onEnter(T) {}
 
-        // Update method. Return value is next state
-        virtual T update(float dt) = 0;
+    // Update method. Return value is next state
+    virtual T update(float dt) = 0;
 
-        virtual void onPreExit(T ) {}
+    virtual void onPreExit(T) {}
 
-        // Called repeteadly, before proper exiting.
-        // Must return true when handler is ready to exit
-        virtual bool updatePreExit(T , float ) {return true;}
+    // Called repeteadly, before proper exiting.
+    // Must return true when handler is ready to exit
+    virtual bool updatePreExit(T, float) { return true; }
 
-        // Called when exiting the state (and old state has exited)
-        virtual void onExit(T ) {};
+    // Called when exiting the state (and old state has exited)
+    virtual void onExit(T){};
 
-        const char* name;
+    const char* name;
 };
 
-void initStateEntities(AssetAPI* asset, const char* stateName, std::map<hash_t, Entity>& entities);
+void initStateEntities(AssetAPI* asset,
+                       const char* stateName,
+                       std::map<hash_t, Entity>& entities);
 
-template<typename T>
-class StateMachine {
+template <typename T> class StateMachine {
 #ifdef SAC_INGAME_EDITORS
     friend class RecursiveRunnerDebugConsole;
 #endif
     public:
-        StateMachine();
+    StateMachine();
 
-        StateMachine(T initState);
+    StateMachine(T initState);
 
-        ~StateMachine();
+    ~StateMachine();
 
-        void setup(AssetAPI* asset);
+    void setup(AssetAPI* asset);
 
-        void start(T initState);
+    void start(T initState);
 
-        void registerState(T id, StateHandler<T>* hdl);
+    void registerState(T id, StateHandler<T>* hdl);
 
-        void unregisterAllStates();
+    void unregisterAllStates();
 
-        void update(float dt);
+    void update(float dt);
 
-        void forceNewState(T state);
+    void forceNewState(T state);
 
-        T getCurrentState() const;
+    T getCurrentState() const;
 
-        unsigned getStateCount() const { return state2handler.size(); }
+    unsigned getStateCount() const { return state2handler.size(); }
 
-        const std::map<T, StateHandler<T>*>& getHandlers() const;
+    const std::map<T, StateHandler<T>*>& getHandlers() const;
 
-        StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
+    StateHandler<T>* getCurrentHandler() { return state2handler[currentState]; }
 
-        // const char* getCurrentStateName() const { return getCurrentHandler->name; }
+    // const char* getCurrentStateName() const { return getCurrentHandler->name;
+    // }
 
-        int serialize(uint8_t** out) const;
-        int deserialize(const uint8_t* in, int size);
-
-    private:
-        T currentState, overrideNextState, previousState;
-        std::map<T, StateHandler<T>*> state2handler;
-
-        struct {
-            T fromState, toState;
-            bool readyExit, readyEnter;
-            bool dumbFrom;
-        } transition;
-        bool override, transitionning;
+    int serialize(uint8_t** out) const;
+    int deserialize(const uint8_t* in, int size);
 
     private:
-        void transitionTo(T oldState, T newState);
-        void changeState(T oldState, T newState, bool ignoreFromState);
+    T currentState, overrideNextState, previousState;
+    std::map<T, StateHandler<T>*> state2handler;
+
+    struct {
+        T fromState, toState;
+        bool readyExit, readyEnter;
+        bool dumbFrom;
+    } transition;
+    bool override, transitionning;
+
+    private:
+    void transitionTo(T oldState, T newState);
+    void changeState(T oldState, T newState, bool ignoreFromState);
 };
-
 
 // #include "StateMachine.inl"

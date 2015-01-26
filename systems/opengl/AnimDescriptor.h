@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/Interval.h"
@@ -31,19 +29,22 @@ struct FileBuffer;
 
 class AnimDescriptor {
     public:
-        AnimDescriptor();
+    AnimDescriptor();
 
-        bool load(const std::string& ctx, const FileBuffer& fb, std::string* variables = 0, int varcount = 0);
-
-    public:
-        struct AnimFrame {
-            TextureRef texture;
-        };
+    bool load(const std::string& ctx,
+              const FileBuffer& fb,
+              std::string* variables = 0,
+              int varcount = 0);
 
     public:
-        std::vector<AnimFrame> frames;
-        float playbackSpeed;
-        Interval<int> loopCount;
-        hash_t nextAnim;
-        Interval<float> nextAnimWait;
+    struct AnimFrame {
+        TextureRef texture;
+    };
+
+    public:
+    std::vector<AnimFrame> frames;
+    float playbackSpeed;
+    Interval<int> loopCount;
+    hash_t nextAnim;
+    Interval<float> nextAnimWait;
 };

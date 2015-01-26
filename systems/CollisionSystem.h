@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if !DISABLE_COLLISION_SYSTEM
@@ -32,11 +30,12 @@
 struct TransformationComponent;
 
 struct CollisionComponent {
-    CollisionComponent() :
-        group(0), collideWith(0),
-        restorePositionOnCollision(false), isARay(false), rayTestDone(false), prevPositionIsValid(false),
-        previousPosition(0.0f), previousRotation(0.0f),
-        ignore(0) { collision.count = 0; }
+    CollisionComponent()
+        : group(0), collideWith(0), restorePositionOnCollision(false),
+          isARay(false), rayTestDone(false), prevPositionIsValid(false),
+          previousPosition(0.0f), previousRotation(0.0f), ignore(0) {
+        collision.count = 0;
+    }
     int group;
     int collideWith;
     bool restorePositionOnCollision, isARay, rayTestDone, prevPositionIsValid;
@@ -54,25 +53,28 @@ struct CollisionComponent {
 
 #define theCollisionSystem CollisionSystem::GetInstance()
 #if SAC_DEBUG
-#define COLLISION(e) theCollisionSystem.Get(e,true,__FILE__,__LINE__)
+#define COLLISION(e) theCollisionSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define COLLISION(e) theCollisionSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Collision)
 
-    public:
-        static glm::vec2 collisionPointToNormal(const glm::vec2& point, const TransformationComponent* tc);
+public:
+static glm::vec2 collisionPointToNormal(const glm::vec2& point,
+                                        const TransformationComponent* tc);
 
-        glm::vec2 worldSize;
+glm::vec2 worldSize;
 #if SAC_DEBUG
-        bool showDebug;
-        int maximumRayCastPerSec;
-        float maximumRayCastPerSecAccum;
-    private:
-        std::vector<Entity> debug;
+bool showDebug;
+int maximumRayCastPerSec;
+float maximumRayCastPerSecAccum;
+
+private:
+std::vector<Entity> debug;
 #endif
-        std::vector<Entity> collisionEntity;
-        std::vector<glm::vec2> collisionPos;
-};
+std::vector<Entity> collisionEntity;
+std::vector<glm::vec2> collisionPos;
+}
+;
 #endif

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../KeyboardInputHandlerAPI.h"
@@ -40,23 +38,27 @@ namespace KeyState {
 
 class KeyboardInputHandlerAPISDLImpl : public KeyboardInputHandlerAPI {
     public:
-        void registerToKeyPress(SDL_Keycode key, std::function<void()> f);
+    void registerToKeyPress(SDL_Keycode key, std::function<void()> f);
 
-        void registerToKeyRelease(SDL_Keycode key, std::function<void()> f);
+    void registerToKeyRelease(SDL_Keycode key, std::function<void()> f);
 
-        void update();
+    void update();
 
-        int eventSDL(const void* event);
+    int eventSDL(const void* event);
 
-        bool isKeyPressed(SDL_Keycode key) { return queryKeyState(key, KeyState::Pressed); }
+    bool isKeyPressed(SDL_Keycode key) {
+        return queryKeyState(key, KeyState::Pressed);
+    }
 
-        bool isKeyReleased(SDL_Keycode key) { return queryKeyState(key, KeyState::Released); }
+    bool isKeyReleased(SDL_Keycode key) {
+        return queryKeyState(key, KeyState::Released);
+    }
 
-        bool queryKeyState(SDL_Keycode key, KeyState::Enum state);
+    bool queryKeyState(SDL_Keycode key, KeyState::Enum state);
 
     private:
-        std::mutex mutex;
-        std::map<SDL_Keycode, KeyState::Enum> keyState;
-        std::map<SDL_Keycode, std::function<void()> > keyPressed2callback;
-        std::map<SDL_Keycode, std::function<void()> > keyReleased2callback;
+    std::mutex mutex;
+    std::map<SDL_Keycode, KeyState::Enum> keyState;
+    std::map<SDL_Keycode, std::function<void()>> keyPressed2callback;
+    std::map<SDL_Keycode, std::function<void()>> keyReleased2callback;
 };

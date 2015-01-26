@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/Entity.h"
@@ -31,26 +29,31 @@
 #include "FaderHelper.h"
 
 class GameCenterAPIHelper {
-        public:
-        GameCenterAPIHelper();
+    public:
+    GameCenterAPIHelper();
 
-        void init(GameCenterAPI * gameCenterAPI, bool useAchievements, 
-            bool displayIfNotConnected, bool useLeaderboards, std::function<void()>);
-            
-            void displayUI(float alpha=1);
-                void hideUI(float alpha=0);
-        //do not forget to call it if you display UI otherwise inputs won't be handled!
-        //return true if a button has been clicked
-        bool updateUI(); 
+    void init(GameCenterAPI* gameCenterAPI,
+              bool useAchievements,
+              bool displayIfNotConnected,
+              bool useLeaderboards,
+              std::function<void()>);
 
-        void registerForFading(FaderHelper* fader, Fading::Enum type);
+    void displayUI(float alpha = 1);
+    void hideUI(float alpha = 0);
+    // do not forget to call it if you display UI otherwise inputs won't be
+    // handled!
+    // return true if a button has been clicked
+    bool updateUI();
 
-        Entity signButton, achievementsButton, leaderboardsButton;
+    void registerForFading(FaderHelper* fader, Fading::Enum type);
+
+    Entity signButton, achievementsButton, leaderboardsButton;
+
     private:
-        void displayFeatures(bool display);
+    void displayFeatures(bool display);
 
-        std::function<void()> onLeaderboardClick;
-        GameCenterAPI * gameCenterAPI;
-        bool bUIdisplayed;
-        bool displayIfNotConnected;
+    std::function<void()> onLeaderboardClick;
+    GameCenterAPI* gameCenterAPI;
+    bool bUIdisplayed;
+    bool displayIfNotConnected;
 };

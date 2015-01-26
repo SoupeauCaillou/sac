@@ -18,18 +18,14 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 #include <stdint.h>
 #include <string>
 
-struct OpaqueSoundPtr { };
+struct OpaqueSoundPtr {};
 
 class SoundAPI {
     public:
-        virtual OpaqueSoundPtr* loadSound(const std::string& asset) = 0;
-        virtual bool play(OpaqueSoundPtr* p, float volume) = 0;
+    virtual OpaqueSoundPtr* loadSound(const std::string& asset) = 0;
+    virtual bool play(OpaqueSoundPtr* p, float volume) = 0;
 };
-
-

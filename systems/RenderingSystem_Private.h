@@ -23,17 +23,17 @@
 // Warning, these Marker are used instead of texture in the RenderCommand struct
 // For now let's just hope that we'll never have hash_t of a texture equal to
 // 1 or 2...
-#define EndFrameMarker   1
+#define EndFrameMarker 1
 #define BeginFrameMarker 2
 
 // Possible flags
-#define ZPrePassFlagSet       0x1
-#define OpaqueFlagSet         0x5
-#define AlphaBlendedFlagSet   0x6
-#define DebugFlagSet          0x7
+#define ZPrePassFlagSet 0x1
+#define OpaqueFlagSet 0x5
+#define AlphaBlendedFlagSet 0x6
+#define DebugFlagSet 0x7
 
-#define L_RENDER  0
-#define L_QUEUE   1
+#define L_RENDER 0
+#define L_QUEUE 1
 #define L_TEXTURE 2
 
 #define C_RENDER_DONE 0
@@ -82,12 +82,10 @@ struct VertexData {
 #define MAX_VERTEX_COUNT 2048
 #define MAX_INDICE_COUNT 1024
 
-void packCameraAttributes(
-    const TransformationComponent* cameraTrans,
-    const CameraComponent* cameraComp,
-    RenderingSystem::RenderCommand& out);
+void packCameraAttributes(const TransformationComponent* cameraTrans,
+                          const CameraComponent* cameraComp,
+                          RenderingSystem::RenderCommand& out);
 
-void unpackCameraAttributes(
-    const RenderingSystem::RenderCommand& in,
-    TransformationComponent* cameraTrans,
-    CameraComponent* cameraComp);
+void unpackCameraAttributes(const RenderingSystem::RenderCommand& in,
+                            TransformationComponent* cameraTrans,
+                            CameraComponent* cameraComp);

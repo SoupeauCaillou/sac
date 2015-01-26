@@ -18,13 +18,11 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <string>
-    
+
 class InAppPurchaseAPI {
     public:
-        virtual void purchase(const std::string & name) = 0;
+    virtual void purchase(const std::string& name) = 0;
 };

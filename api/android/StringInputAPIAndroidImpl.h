@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 #if SAC_ANDROID
 
@@ -36,15 +34,15 @@ namespace jni_name_api {
     };
 }
 
-class StringInputAPIAndroidImpl : public StringInputAPI, public JNIWrapper<jni_name_api::Enum> {
+class StringInputAPIAndroidImpl : public StringInputAPI,
+                                  public JNIWrapper<jni_name_api::Enum> {
     public:
-        StringInputAPIAndroidImpl();
+    StringInputAPIAndroidImpl();
 
-        void askUserInput(const std::string& initial, const int imaxSize);
-        bool done(std::string & entry);
-        void cancelUserInput();
+    void askUserInput(const std::string& initial, const int imaxSize);
+    bool done(std::string& entry);
+    void cancelUserInput();
 
-        void setNamesList(const std::vector<std::string> & names);
-
+    void setNamesList(const std::vector<std::string>& names);
 };
 #endif

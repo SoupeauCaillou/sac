@@ -18,15 +18,15 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
 #include "RenderingSystem.h"
 
 struct CameraComponent {
-    CameraComponent() : fb(DefaultFrameBufferRef), clearColor(0,0,0), enable(false), clear(true), order(0), id(0) {}
+    CameraComponent()
+        : fb(DefaultFrameBufferRef), clearColor(0, 0, 0), enable(false),
+          clear(true), order(0), id(0) {}
     // assume complete draw of FB
     FramebufferRef fb;
     Color clearColor;
@@ -39,7 +39,7 @@ struct TransformationComponent;
 
 #define theCameraSystem CameraSystem::GetInstance()
 #if SAC_DEBUG
-#define CAMERA(e) theCameraSystem.Get(e,true,__FILE__,__LINE__)
+#define CAMERA(e) theCameraSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define CAMERA(e) theCameraSystem.Get(e)
 #endif
@@ -47,10 +47,13 @@ struct TransformationComponent;
 UPDATABLE_SYSTEM(Camera)
 
 public:
-    static bool isDisabled(Entity e);
-    static bool sort(Entity e, Entity f);
+static bool isDisabled(Entity e);
+static bool sort(Entity e, Entity f);
 
-    // Transform world coords to screen, based on Camera TransformComp
-    static glm::vec2 WorldToScreen(const TransformationComponent* tc, const glm::vec2& pos);
-    static glm::vec2 ScreenToWorld(const TransformationComponent* tc, const glm::vec2& pos);
-};
+// Transform world coords to screen, based on Camera TransformComp
+static glm::vec2 WorldToScreen(const TransformationComponent* tc,
+                               const glm::vec2& pos);
+static glm::vec2 ScreenToWorld(const TransformationComponent* tc,
+                               const glm::vec2& pos);
+}
+;

@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if !DISABLE_SCROLLING_SYSTEM
@@ -27,12 +25,9 @@
 #include "RenderingSystem.h"
 
 struct ScrollingComponent {
-    ScrollingComponent() :
-        direction(0),
-        speed(0),
-        displaySize(0),
-        show(false),
-        renderingFlags(0) {}
+    ScrollingComponent()
+        : direction(0), speed(0), displaySize(0), show(false),
+          renderingFlags(0) {}
     std::vector<hash_t> images;
     glm::vec2 direction;
     float speed;
@@ -44,7 +39,7 @@ struct ScrollingComponent {
 
 #define theScrollingSystem ScrollingSystem::GetInstance()
 #if SAC_DEBUG
-#define SCROLLING(actor) theScrollingSystem.Get(actor,true,__FILE__,__LINE__)
+#define SCROLLING(actor) theScrollingSystem.Get(actor, true, __FILE__, __LINE__)
 #else
 #define SCROLLING(actor) theScrollingSystem.Get(actor)
 #endif
@@ -59,7 +54,7 @@ struct ScrollingElement {
 void initScrolling(Entity e, ScrollingComponent* sc);
 std::map<Entity, ScrollingElement> elements;
 typedef std::map<Entity, ScrollingElement>::iterator EltIt;
-
-};
+}
+;
 
 #endif

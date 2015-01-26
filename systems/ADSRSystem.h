@@ -18,57 +18,57 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
 
-enum Mode {
-        Linear = 0,
-        Quadratic
-};
-
+enum Mode { Linear = 0, Quadratic };
 
 struct ADSRComponent {
-        ADSRComponent() : value(0), activationTime(0), active(false), idleValue(0.), attackValue(1.), attackTiming(1.), decayTiming(1.),
-    sustainValue(2.), releaseTiming(1.), attackMode(Linear), decayMode(Linear), releaseMode(Linear) {}
+    ADSRComponent()
+        : value(0), activationTime(0), active(false), idleValue(0.),
+          attackValue(1.), attackTiming(1.), decayTiming(1.), sustainValue(2.),
+          releaseTiming(1.), attackMode(Linear), decayMode(Linear),
+          releaseMode(Linear) {}
 
-////// READ ONLY variables
-    //Current value. When 'active' is set to true, it start at 'idleValue' and goes to 'attackValue' in 'attackTiming' duration.
-    //Then it goes to 'sustainValue' in 'decayTiming' duration.
-    //It stays here until 'active' is reset to false, where  it goes back to 'idleValue' in 'releaseTiming' duration.
-        float value;
-    //represents our position in the phases. When 'active' is set to true, we move forward (trying to go in Sustain mode),
-    //and when 'active' is false, we are going back to Release mode
-        float activationTime;
-////// END OF READ ONLY variables
+    ////// READ ONLY variables
+    // Current value. When 'active' is set to true, it start at 'idleValue' and
+    // goes to 'attackValue' in 'attackTiming'
+    // duration.
+    // Then it goes to 'sustainValue' in 'decayTiming' duration.
+    // It stays here until 'active' is reset to false, where  it goes back to
+    // 'idleValue' in 'releaseTiming' duration.
+    float value;
+    // represents our position in the phases. When 'active' is set to true, we
+    // move forward (trying to go in Sustain
+    // mode),
+    // and when 'active' is false, we are going back to Release mode
+    float activationTime;
+    ////// END OF READ ONLY variables
 
-
-////// READ/WRITE variables
+    ////// READ/WRITE variables
     // if false, value = idle value, else see above
     bool active;
-////// END OF READ/WRITE variables
+    ////// END OF READ/WRITE variables
 
-////// WRITE ONLY variables
-        float idleValue;
-        float attackValue;
-        float attackTiming;
-        float decayTiming;
+    ////// WRITE ONLY variables
+    float idleValue;
+    float attackValue;
+    float attackTiming;
+    float decayTiming;
     float sustainValue;
-        float releaseTiming;
-        Mode attackMode, decayMode, releaseMode;
-////// END OF WRITE ONLY variables
+    float releaseTiming;
+    Mode attackMode, decayMode, releaseMode;
+    ////// END OF WRITE ONLY variables
 };
 
 #define theADSRSystem ADSRSystem::GetInstance()
 #if SAC_DEBUG
-#define ADSR(entity) theADSRSystem.Get(entity,true,__FILE__,__LINE__)
+#define ADSR(entity) theADSRSystem.Get(entity, true, __FILE__, __LINE__)
 #else
 #define ADSR(entity) theADSRSystem.Get(entity)
 #endif
 
 UPDATABLE_SYSTEM(ADSR)
-
-};
-
+}
+;

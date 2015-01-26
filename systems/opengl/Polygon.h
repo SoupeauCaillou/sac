@@ -18,20 +18,13 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <vector>
 #include <glm/glm.hpp>
 
 namespace Shape {
-    enum Enum {
-        Square = 0,
-        Triangle,
-        Hexagon,
-        Count
-    };
+    enum Enum { Square = 0, Triangle, Hexagon, Count };
 }
 
 struct Polygon {

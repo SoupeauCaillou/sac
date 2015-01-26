@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../NetworkAPI.h"
@@ -27,27 +25,27 @@
 
 class NetworkAPILinuxImpl : public NetworkAPI {
     public:
-        NetworkAPILinuxImpl();
+    NetworkAPILinuxImpl();
 
-        void init();
+    void init();
 
-        void login(const std::string& nickName, const std::string& lobby);
+    void login(const std::string& nickName, const std::string& lobby);
 
-        void createRoom();
-        unsigned getPendingInvitationCount() const;
-        void acceptInvitation();
-        std::map<std::string, NetworkStatus::Enum> getPlayersInRoom();
+    void createRoom();
+    unsigned getPendingInvitationCount() const;
+    void acceptInvitation();
+    std::map<std::string, NetworkStatus::Enum> getPlayersInRoom();
 
-        NetworkStatus::Enum getStatus() const;
+    NetworkStatus::Enum getStatus() const;
 
-        NetworkPacket pullReceivedPacket();
-        void sendPacket(NetworkPacket packet);
+    NetworkPacket pullReceivedPacket();
+    void sendPacket(NetworkPacket packet);
 
-        unsigned guidTag() const;
+    unsigned guidTag() const;
 
     private:
-        void runLobbyThread();
+    void runLobbyThread();
 
-        struct NetworkAPILinuxImplDatas;
-        NetworkAPILinuxImplDatas* datas;
+    struct NetworkAPILinuxImplDatas;
+    NetworkAPILinuxImplDatas* datas;
 };

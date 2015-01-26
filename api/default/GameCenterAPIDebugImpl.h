@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "api/GameCenterAPI.h"
@@ -29,28 +27,27 @@
 
 class GameCenterAPIDebugImpl : public GameCenterAPI {
     public:
+    void connectOrRegister();
+    void disconnect();
 
-        void connectOrRegister();
-        void disconnect();
+    bool isConnected();
+    bool isRegistered();
 
-        bool isConnected();
-        bool isRegistered();
+    void unlockAchievement(int id);
+    void updateAchievementProgression(int id, int stepReached);
 
-        void unlockAchievement(int id);
-        void updateAchievementProgression(int id, int stepReached);
+    void submitScore(int leaderboardID, const std::string& score);
+    void getWeeklyRank(int leaderboardID, std::function<void(int rank)> func);
 
-        void submitScore(int leaderboardID, const std::string & score);
-        void getWeeklyRank(int leaderboardID, std::function<void (int rank)> func);
-
-        void openAchievement();
-        void openLeaderboards();
-        void openSpecificLeaderboard(int id);
-        void openDashboard();
+    void openAchievement();
+    void openLeaderboards();
+    void openSpecificLeaderboard(int id);
+    void openDashboard();
 
     private:
-        bool _isConnected = false;
+    bool _isConnected = false;
 
-        std::stringstream message;
-        Entity createAutodestroySuccess(float duration);
-        void  displayAction(float duration = 2.5f);
+    std::stringstream message;
+    Entity createAutodestroySuccess(float duration);
+    void displayAction(float duration = 2.5f);
 };

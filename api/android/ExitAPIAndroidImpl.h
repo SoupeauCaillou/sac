@@ -18,21 +18,18 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../ExitAPI.h"
 #include "JNIWrapper.h"
 
 namespace jni_exit_api {
-    enum Enum {
-        Exit
-    };
+    enum Enum { Exit };
 }
 
-class ExitAPIAndroidImpl : public ExitAPI, public JNIWrapper<jni_exit_api::Enum> {
-        public:
-                ExitAPIAndroidImpl();
-                void exitGame();
+class ExitAPIAndroidImpl : public ExitAPI,
+                           public JNIWrapper<jni_exit_api::Enum> {
+    public:
+    ExitAPIAndroidImpl();
+    void exitGame();
 };

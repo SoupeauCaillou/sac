@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/NamedAssetLibrary.h"
@@ -43,10 +41,9 @@ typedef int AtlasRef;
 
 class AtlasLibrary : public NamedAssetLibrary<Atlas, AtlasRef> {
     public:
-        bool doLoad(const std::string& name, Atlas& out, const AtlasRef& ref);
+    bool doLoad(const std::string& name, Atlas& out, const AtlasRef& ref);
 
-        void doUnload(const std::string& name, const Atlas& in);
+    void doUnload(const std::string& name, const Atlas& in);
 
-
-        void reload(const std::string& name, Atlas& out);
+    void reload(const std::string& name, Atlas& out);
 };

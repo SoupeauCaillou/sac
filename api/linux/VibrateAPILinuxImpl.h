@@ -18,13 +18,11 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../VibrateAPI.h"
 
 class VibrateAPILinuxImpl : public VibrateAPI {
     public:
-        void vibrate(float duration);
+    void vibrate(float duration);
 };

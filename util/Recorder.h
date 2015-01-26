@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if SAC_LINUX && SAC_DESKTOP
@@ -47,54 +45,55 @@
 
 class Recorder {
     public:
-        static const int PBO_COUNT = 2;
-        static const int CHANNEL_COUNT = 4;
+    static const int PBO_COUNT = 2;
+    static const int CHANNEL_COUNT = 4;
 
-        static Recorder & Instance();
-        void deinit();
+    static Recorder& Instance();
+    void deinit();
 
-        ~Recorder();
+    ~Recorder();
 
-        void init(const glm::vec2& captureOffset = glm::vec2(0.0f), const glm::vec2& captureSize = glm::vec2(0.0f));
-        void start();
-        void stop();
-        void toggle();
-        bool isRecording() const;
+    void init(const glm::vec2& captureOffset = glm::vec2(0.0f),
+              const glm::vec2& captureSize = glm::vec2(0.0f));
+    void start();
+    void stop();
+    void toggle();
+    bool isRecording() const;
 
-        void record(float dt);
+    void record(float dt);
 
-        void thread_video_encode();
+    void thread_video_encode();
 
 #if SAC_RECORDER
     private:
-        Recorder() {}
-        void addFrame(GLubyte *ptr, const glm::vec2& mousePos);
+    Recorder() {}
+    void addFrame(GLubyte* ptr, const glm::vec2& mousePos);
 
-        bool initVP8();
-        bool initOpenGl_PBO();
-        bool initSound();
+    bool initVP8();
+    bool initOpenGl_PBO();
+    bool initSound();
 
-        glm::vec2 captureOffset, captureSize;
-        bool recording;
-        float recordingStartTime;
-        float frameGrabAccum;
+    glm::vec2 captureOffset, captureSize;
+    bool recording;
+    float recordingStartTime;
+    float frameGrabAccum;
 
-        GLuint pboIds[PBO_COUNT];
+    GLuint pboIds[PBO_COUNT];
 
-        std::queue<GLubyte*> buf;
-        std::queue< glm::vec2 > mousePosition;
+    std::queue<GLubyte*> buf;
+    std::queue<glm::vec2> mousePosition;
 
-        vpx_codec_ctx_t codec;
-        vpx_codec_enc_cfg_t cfg;
-        vpx_image_t raw;
+    vpx_codec_ctx_t codec;
+    vpx_codec_enc_cfg_t cfg;
+    vpx_image_t raw;
 
-        int frameCounter;
-        int flags;
+    int frameCounter;
+    int flags;
 
-        FILE *outfile;
+    FILE* outfile;
 
-        std::thread th1;
-        std::mutex mutex_buf;
-        std::condition_variable cond;
+    std::thread th1;
+    std::mutex mutex_buf;
+    std::condition_variable cond;
 #endif
 };

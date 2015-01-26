@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "base/NamedAssetLibrary.h"
@@ -29,10 +27,10 @@
 typedef uint8_t EffectRef;
 #define DefaultEffectRef 0
 
-
 struct Shader {
     GLuint program;
-    GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler, uniformColor;
+    GLuint uniformMatrix, uniformColorSampler, uniformAlphaSampler,
+        uniformColor;
 };
 
 #define DEFAULT_FRAGMENT "default.fs"
@@ -42,24 +40,21 @@ struct Shader {
 
 class EffectLibrary : public NamedAssetLibrary<Shader, EffectRef, FileBuffer> {
     protected:
-        bool doLoad(const char* name, Shader& out, const EffectRef& ref);
+    bool doLoad(const char* name, Shader& out, const EffectRef& ref);
 
-        void doUnload(const Shader& in);
+    void doUnload(const Shader& in);
 
-        void doReload(const char* name, const EffectRef& ref);
+    void doReload(const char* name, const EffectRef& ref);
 
     public:
-        virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true);
+    virtual void init(AssetAPI* pAssetAPI, bool pUseDeferredLoading = true);
 
-        const char* asset2FilePrefix() const { return ""; }
-        const char* asset2FileSuffix() const { return ""; }
+    const char* asset2FilePrefix() const { return ""; }
+    const char* asset2FileSuffix() const { return ""; }
 
-        static GLuint compileShader(const std::string& context, GLuint type, const FileBuffer& fb);
+    static GLuint compileShader(const std::string& context,
+                                GLuint type,
+                                const FileBuffer& fb);
 
-        enum {
-            ATTRIB_VERTEX = 0,
-            ATTRIB_UV,
-            ATTRIB_SCALE,
-            NUM_ATTRIBS
-        };
+    enum { ATTRIB_VERTEX = 0, ATTRIB_UV, ATTRIB_SCALE, NUM_ATTRIBS };
 };

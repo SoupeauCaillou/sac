@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "api/WWWAPI.h"
@@ -36,6 +34,6 @@ namespace jni_www_api {
 
 class WWWAPIAndroidImpl : public WWWAPI, public JNIWrapper<jni_www_api::Enum> {
     public:
-        WWWAPIAndroidImpl();
-        FileBuffer downloadFile(const std::string &url);
+    WWWAPIAndroidImpl();
+    FileBuffer downloadFile(const std::string& url);
 };

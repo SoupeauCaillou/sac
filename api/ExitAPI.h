@@ -18,11 +18,9 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 class ExitAPI {
-        public :
-                virtual void exitGame() = 0;
+    public:
+    virtual void exitGame() = 0;
 };

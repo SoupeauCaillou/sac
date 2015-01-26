@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #if !DISABLE_SPOT_SYSTEM
@@ -28,10 +26,10 @@
 #include "opengl/Polygon.h"
 
 struct SpotComponent {
-        SpotComponent(): angle(6.28318530718f), distance(10.f), resolution(36) {}
+    SpotComponent() : angle(6.28318530718f), distance(10.f), resolution(36) {}
 
-        float angle;
-        float distance;
+    float angle;
+    float distance;
     int resolution;
 
     Polygon area;
@@ -39,25 +37,25 @@ struct SpotComponent {
 
 #define theSpotSystem SpotSystem::GetInstance()
 #if SAC_DEBUG
-#define SPOT(e) theSpotSystem.Get(e,true,__FILE__,__LINE__)
+#define SPOT(e) theSpotSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define SPOT(e) theSpotSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Spot)
-};
+}
+;
 
-
-struct SpotBlockComponent {
-};
+struct SpotBlockComponent {};
 
 #define theSpotBlockSystem SpotBlockSystem::GetInstance()
 #if SAC_DEBUG
-#define SPOT_BLOCK(e) theSpotBlockSystem.Get(e,true,__FILE__,__LINE__)
+#define SPOT_BLOCK(e) theSpotBlockSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define SPOT_BLOCK(e) theSpotBlockSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(SpotBlock)
-};
+}
+;
 #endif

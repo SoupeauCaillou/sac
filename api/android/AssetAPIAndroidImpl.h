@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "../AssetAPI.h"
@@ -35,25 +33,26 @@ namespace jni_asset_api {
     };
 }
 
-class AssetAPIAndroidImpl : public AssetAPI, public JNIWrapper<jni_asset_api::Enum> {
-        public:
-                AssetAPIAndroidImpl();
+class AssetAPIAndroidImpl : public AssetAPI,
+                            public JNIWrapper<jni_asset_api::Enum> {
+    public:
+    AssetAPIAndroidImpl();
 
+    FileBuffer loadAsset(const std::string& asset);
+    FileBuffer loadFile(const std::string&);
 
-        FileBuffer loadAsset(const std::string& asset);
-        FileBuffer loadFile(const std::string&);
+    std::list<std::string>
+    listContent(const std::string&, const std::string&, const std::string&);
+    std::list<std::string> listAssetContent(const std::string& extension,
+                                            const std::string& subfolder);
 
-        std::list<std::string> listContent(const std::string&, const std::string&,
-            const std::string&);
-        std::list<std::string> listAssetContent(const std::string& extension, const std::string& subfolder);
+    void createDirectory(const std::string&, int) { LOGT(""); }
+    bool doesExistFileOrDirectory(const std::string&) {
+        LOGT("");
+        return false;
+    }
+    void removeFileOrDirectory(const std::string&) { LOGT(""); }
 
-
-
-        void createDirectory(const std::string&, int) { LOGT(""); }
-        bool doesExistFileOrDirectory(const std::string& ) { LOGT(""); return false; }
-        void removeFileOrDirectory(const std::string& ) { LOGT(""); }
-
-
-        const std::string & getWritableAppDatasPath();
-        void synchronize() {}
+    const std::string& getWritableAppDatasPath();
+    void synchronize() {}
 };

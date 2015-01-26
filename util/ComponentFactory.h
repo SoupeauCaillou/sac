@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 class DataFileParser;
@@ -31,13 +29,19 @@ class LocalizeAPI;
 
 class ComponentFactory {
     public:
-        /*static int build(const DataFileParser& data,
-                const std::string& section,
-                const std::vector<IProperty*>& properties, void* component);*/
+    /*static int build(const DataFileParser& data,
+            const std::string& section,
+            const std::vector<IProperty*>& properties, void* component);*/
 
-        static int build(const std::string& context, const DataFileParser& dfp,
-            hash_t section,
-            const std::vector<IProperty*>& properties, EntityTemplate& templ);
+    static int build(const std::string& context,
+                     const DataFileParser& dfp,
+                     hash_t section,
+                     const std::vector<IProperty*>& properties,
+                     EntityTemplate& templ);
 
-        static void applyTemplate(Entity e, void* comp, const PropertyNameValueMap& propValueMap, const std::vector<IProperty*>& properties, LocalizeAPI* locAPI);
+    static void applyTemplate(Entity e,
+                              void* comp,
+                              const PropertyNameValueMap& propValueMap,
+                              const std::vector<IProperty*>& properties,
+                              LocalizeAPI* locAPI);
 };

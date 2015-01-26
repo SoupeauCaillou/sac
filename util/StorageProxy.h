@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include <string>
@@ -29,47 +27,41 @@
 
 class IStorageProxy {
     public:
-        virtual std::string getValue(const std::string& columnName) = 0;
-        virtual void setValue(const std::string& columnName, const std::string& value, bool pushNewElement) = 0;
-        virtual void pushAnElement() = 0;
-        virtual void popAnElement() = 0;
-        virtual bool isEmpty() = 0;
-        virtual const std::string & getTableName() = 0;
-        virtual const std::map<std::string, std::string> & getColumnsNameAndType() = 0;
+    virtual std::string getValue(const std::string& columnName) = 0;
+    virtual void setValue(const std::string& columnName,
+                          const std::string& value,
+                          bool pushNewElement) = 0;
+    virtual void pushAnElement() = 0;
+    virtual void popAnElement() = 0;
+    virtual bool isEmpty() = 0;
+    virtual const std::string& getTableName() = 0;
+    virtual const std::map<std::string, std::string>&
+    getColumnsNameAndType() = 0;
 };
 
-template <class T>
-class StorageProxy : public IStorageProxy {
+template <class T> class StorageProxy : public IStorageProxy {
     public:
-        virtual std::string getValue(const std::string& columnName) = 0;
-        virtual void setValue(const std::string& columnName, const std::string& value, bool pushNewElement) = 0;
+    virtual std::string getValue(const std::string& columnName) = 0;
+    virtual void setValue(const std::string& columnName,
+                          const std::string& value,
+                          bool pushNewElement) = 0;
 
-        void pushAnElement() {
-            _queue.push(T());
-        }
+    void pushAnElement() { _queue.push(T()); }
 
-        void popAnElement() {
-            _queue.pop();
-        }
+    void popAnElement() { _queue.pop(); }
 
-        bool isEmpty() {
-            return (_queue.empty());
-        }
+    bool isEmpty() { return (_queue.empty()); }
 
-        const std::string & getTableName() {
-            return _tableName;
-        }
+    const std::string& getTableName() { return _tableName; }
 
-        const std::map<std::string, std::string> & getColumnsNameAndType() {
-            return _columnsNameAndType;
-        }
+    const std::map<std::string, std::string>& getColumnsNameAndType() {
+        return _columnsNameAndType;
+    }
 
     public:
-        std::queue<T> _queue;
+    std::queue<T> _queue;
 
     protected:
-        std::string _tableName;
-        std::map<std::string, std::string> _columnsNameAndType;
+    std::string _tableName;
+    std::map<std::string, std::string> _columnsNameAndType;
 };
-
-

@@ -18,15 +18,15 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 #if !DISABLE_GRID_SYSTEM
 
 #include "System.h"
 
 struct GridComponent {
-    GridComponent(): type(0), moveCost(1), blocksPath(false), blocksVision(false), canBeOnMultipleCells(false) {}
+    GridComponent()
+        : type(0), moveCost(1), blocksPath(false), blocksVision(false),
+          canBeOnMultipleCells(false) {}
 
     bitfield_t type;
     int moveCost;
@@ -37,12 +37,13 @@ struct GridComponent {
 
 #define theGridSystem GridSystem::GetInstance()
 #if SAC_DEBUG
-#define GRID(e) theGridSystem.Get(e,true,__FILE__,__LINE__)
+#define GRID(e) theGridSystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define GRID(e) theGridSystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(Grid)
-};
+}
+;
 
 #endif

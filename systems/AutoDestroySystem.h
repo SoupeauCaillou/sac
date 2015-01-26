@@ -18,8 +18,6 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #pragma once
 
 #include "System.h"
@@ -27,18 +25,12 @@
 #include "base/Frequency.h"
 
 struct AutoDestroyComponent {
-    AutoDestroyComponent() : hasText(false), dontDestroy(false) { }
+    AutoDestroyComponent() : hasText(false), dontDestroy(false) {}
 
-    enum {
-        OUT_OF_AREA = 0,
-        LIFETIME,
-        NONE
-    } type;
+    enum { OUT_OF_AREA = 0, LIFETIME, NONE } type;
 
     struct _params {
-        _params() {
-            memset(this, 0, sizeof(_params));
-        }
+        _params() { memset(this, 0, sizeof(_params)); }
         _params& operator=(const _params& p) {
             area = p.area;
             lifetime = p.lifetime;
@@ -61,11 +53,11 @@ struct AutoDestroyComponent {
 
 #define theAutoDestroySystem AutoDestroySystem::GetInstance()
 #if SAC_DEBUG
-#define AUTO_DESTROY(e) theAutoDestroySystem.Get(e,true,__FILE__,__LINE__)
+#define AUTO_DESTROY(e) theAutoDestroySystem.Get(e, true, __FILE__, __LINE__)
 #else
 #define AUTO_DESTROY(e) theAutoDestroySystem.Get(e)
 #endif
 
 UPDATABLE_SYSTEM(AutoDestroy)
-
-};
+}
+;
