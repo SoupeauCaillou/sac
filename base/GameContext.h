@@ -22,24 +22,10 @@
 
 #pragma once
 
-class AdAPI;
-class AssetAPI;
-class CommunicationAPI;
-class ExitAPI;
-class GameCenterAPI;
-class InAppPurchaseAPI;
-class JoystickAPI;
-class KeyboardInputHandlerAPI;
-class LocalizeAPI;
-class MusicAPI;
-class NetworkAPI;
-class OpenURLAPI;
-class SoundAPI;
-class StorageAPI;
-class StringInputAPI;
-class VibrateAPI;
-class WWWAPI;
 
+#include <vector>
+
+/* Enum with all existing API - could be generated from file list: api/*API.h */
 namespace ContextAPI {
     enum Enum {
         Ad,
@@ -59,43 +45,25 @@ namespace ContextAPI {
         StringInput,
         Vibrate,
         WWW,
+        Count
     };
 }
 
+template <class T>
+ContextAPI::Enum typeToEnum();
+
+
+#include "GameContext.hpp"
+
 struct GameContext {
-    GameContext() :
-        adAPI(0),
-        assetAPI(0),
-        communicationAPI(0),
-        exitAPI(0),
-        gameCenterAPI(0),
-        inAppPurchaseAPI(0),
-        joystickAPI(0),
-        keyboardInputHandlerAPI(0),
-        localizeAPI(0),
-        musicAPI(0),
-        networkAPI(0),
-        openURLAPI(0),
-        soundAPI(0),
-        storageAPI(0),
-        stringInputAPI(0),
-        vibrateAPI(0),
-        wwwAPI(0) {}
-    AdAPI* adAPI;
-    AssetAPI* assetAPI;
-    CommunicationAPI* communicationAPI;
-    ExitAPI* exitAPI;
-    GameCenterAPI* gameCenterAPI;
-    InAppPurchaseAPI* inAppPurchaseAPI;
-    JoystickAPI* joystickAPI;
-    KeyboardInputHandlerAPI* keyboardInputHandlerAPI;
-    LocalizeAPI* localizeAPI;
-    MusicAPI* musicAPI;
-    NetworkAPI* networkAPI;
-    OpenURLAPI* openURLAPI;
-    SoundAPI* soundAPI;
-    StorageAPI* storageAPI;
-    StringInputAPI* stringInputAPI;
-    VibrateAPI* vibrateAPI;
-    WWWAPI* wwwAPI;
+    std::vector<APIWrapperI*> wrappers;
+
+    GameContext() { wrappers.resize(ContextAPI::Count); }
+
+    template<class T>
+    T* get() {
+        APIWrapperI* ptr = wrappers[typeToEnum<T>()];
+        if (!ptr) return NULL;
+        else return (static_cast<APIWrapper<T>*> (ptr))->as();
+    }
 };

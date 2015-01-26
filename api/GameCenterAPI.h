@@ -26,7 +26,8 @@
 #include <functional>
 
 class GameCenterAPI {
-        public:
+    public:
+        virtual ~GameCenterAPI() {}
 
         virtual void connectOrRegister() = 0;
         virtual void disconnect() = 0;

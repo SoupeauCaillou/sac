@@ -29,6 +29,7 @@
 
 class CommunicationAPI {
     public:
+        virtual ~CommunicationAPI() {}
         //do we need to show the app rate dialog
         virtual bool mustShowRateDialog() = 0;
         //if we clicked on "rateItNow"

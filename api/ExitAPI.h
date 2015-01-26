@@ -23,6 +23,7 @@
 #pragma once
 
 class ExitAPI {
-        public :
-                virtual void exitGame() = 0;
+    public :
+        virtual ~ExitAPI() {}
+        virtual void exitGame() = 0;
 };

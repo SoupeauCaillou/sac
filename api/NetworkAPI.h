@@ -50,6 +50,7 @@ namespace NetworkStatus {
 
 class NetworkAPI {
     public:
+        virtual ~NetworkAPI() {}
         virtual void connectToLobby(const std::string& , const char*) {}
         virtual bool isConnectedToAnotherPlayer() {return false;}
 

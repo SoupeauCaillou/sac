@@ -34,6 +34,7 @@
 class AdAPIDebugImpl : public AdAPI {
     public:
         AdAPIDebugImpl() : e(0) {}
+        virtual ~AdAPIDebugImpl() {}
         bool showAd(bool LOG_USAGE_ONLY(force)) {
             if (e == 0) {
                 e = theEntityManager.CreateEntity(HASH("ad", 0x0));

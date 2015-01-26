@@ -24,6 +24,7 @@
 
 class AdAPI {
     public:
+        virtual ~AdAPI() {}
         virtual bool showAd(bool force) = 0;
         virtual bool done() = 0;
 };

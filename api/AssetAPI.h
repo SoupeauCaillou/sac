@@ -36,6 +36,7 @@ struct FileBuffer {
 
 class AssetAPI {
     public:
+        virtual ~AssetAPI() {}
         //open file at path 'fullpath'
         virtual FileBuffer loadFile(const std::string& fullpath) = 0;
         //open a file bundled with the game, in assets/ or assetspc/

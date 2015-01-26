@@ -302,71 +302,71 @@ int setupEngine(void* _game, const SetupInfo* info) {
     LOGV(1, "Initialize APIs");
     GameContext* ctx = new GameContext;
     if (game->wantsAPI(ContextAPI::Ad))
-        ctx->adAPI = new AdAPIDebugImpl();
+        ctx->wrappers[ContextAPI::Ad] = new APIWrapperImpl<AdAPIDebugImpl, AdAPI>();
     if (game->wantsAPI(ContextAPI::Asset) || true)
-        ctx->assetAPI = new AssetAPILinuxImpl();
+        ctx->wrappers[ContextAPI::Asset] = new APIWrapperImpl<AssetAPILinuxImpl, AssetAPI>();
     if (game->wantsAPI(ContextAPI::Communication))
-        ctx->communicationAPI = new CommunicationAPILinuxImpl();
+        ctx->wrappers[ContextAPI::Communication] = new APIWrapperImpl<CommunicationAPILinuxImpl, CommunicationAPI>();
     if (game->wantsAPI(ContextAPI::Exit))
-        ctx->exitAPI = new ExitAPILinuxImpl();
+        ctx->wrappers[ContextAPI::Exit] = new APIWrapperImpl<ExitAPILinuxImpl, ExitAPI>();
     if (game->wantsAPI(ContextAPI::GameCenter))
-        ctx->gameCenterAPI = new GameCenterAPIDebugImpl();
+        ctx->wrappers[ContextAPI::GameCenter] = new APIWrapperImpl<GameCenterAPIDebugImpl, GameCenterAPI>();
     if (game->wantsAPI(ContextAPI::InAppPurchase))
-        ctx->inAppPurchaseAPI = new InAppPurchaseAPIDebugImpl();
+        ctx->wrappers[ContextAPI::InAppPurchase] = new APIWrapperImpl<InAppPurchaseAPIDebugImpl, InAppPurchaseAPI>();
     if (game->wantsAPI(ContextAPI::Joystick))
-        ctx->joystickAPI = new JoystickAPISDLImpl();
+        ctx->wrappers[ContextAPI::Joystick] = new APIWrapperImpl<JoystickAPISDLImpl, JoystickAPI>();
 #if !SAC_INGAME_EDITORS
     if (game->wantsAPI(ContextAPI::KeyboardInputHandler))
 #endif
-        ctx->keyboardInputHandlerAPI = new KeyboardInputHandlerAPISDLImpl();
+        ctx->wrappers[ContextAPI::KeyboardInputHandler] = new APIWrapperImpl<KeyboardInputHandlerAPISDLImpl, KeyboardInputHandlerAPI>();
     if (game->wantsAPI(ContextAPI::Localize))
-        ctx->localizeAPI = new LocalizeAPITextImpl();
+        ctx->wrappers[ContextAPI::Localize] = new APIWrapperImpl<LocalizeAPITextImpl, LocalizeAPI>();
     if (game->wantsAPI(ContextAPI::Music))
-        ctx->musicAPI = new MusicAPILinuxOpenALImpl();
+        ctx->wrappers[ContextAPI::Music] = new APIWrapperImpl<MusicAPILinuxOpenALImpl, MusicAPI>();
     if (game->wantsAPI(ContextAPI::OpenURL))
-        ctx->openURLAPI = new OpenURLAPILinuxImpl();
+        ctx->wrappers[ContextAPI::OpenURL] = new APIWrapperImpl<OpenURLAPILinuxImpl, OpenURLAPI>();
 #if SAC_NETWORK
     if (game->wantsAPI(ContextAPI::Network))
-        theNetworkSystem.networkAPI = ctx->networkAPI = new NetworkAPILinuxImpl();
+        theNetworkSystem.networkAPI = ctx->wrappers[ContextAPI::Network] = new APIWrapperImpl<NetworkAPILinuxImpl, NetworkAPI>();
 #elif SAC_DESKTOP
     if (game->wantsAPI(ContextAPI::Network))
         LOGF("You wanted NetworkAPI but did not used SAC_NETWORK!");
 #endif
     if (game->wantsAPI(ContextAPI::Sound))
-        ctx->soundAPI = new SoundAPILinuxOpenALImpl();
+        ctx->wrappers[ContextAPI::Sound] = new APIWrapperImpl<SoundAPILinuxOpenALImpl, SoundAPI>();
     if (game->wantsAPI(ContextAPI::Storage))
-       ctx->storageAPI = new SqliteStorageAPIImpl();
+       ctx->wrappers[ContextAPI::Storage] = new APIWrapperImpl<SqliteStorageAPIImpl, StorageAPI>();
     if (game->wantsAPI(ContextAPI::StringInput))
-        ctx->stringInputAPI = new StringInputAPISDLImpl();
+        ctx->wrappers[ContextAPI::StringInput] = new APIWrapperImpl<StringInputAPISDLImpl, StringInputAPI>();
     if (game->wantsAPI(ContextAPI::Vibrate))
-        ctx->vibrateAPI = new VibrateAPILinuxImpl();
+        ctx->wrappers[ContextAPI::Vibrate] = new APIWrapperImpl<VibrateAPILinuxImpl, VibrateAPI>();
 #if SAC_HAVE_CURL
     if (game->wantsAPI(ContextAPI::WWW))
-        ctx->wwwAPI = new WWWAPIcURLImpl();
+        ctx->wrappers[ContextAPI::WWW] = new APIWrapperImpl<WWWAPIcURLImpl, WWWAPI>();
 #endif
     /////////////////////////////////////////////////////
     // Init systems
     game->mouseNativeTouchState = new MouseNativeTouchState();
     theTouchInputManager.setNativeTouchStatePtr(game->mouseNativeTouchState);
-    theRenderingSystem.assetAPI = ctx->assetAPI;
+    theRenderingSystem.assetAPI = ctx->get<AssetAPI>();
 
     if (game->wantsAPI(ContextAPI::Asset) || true) {
-        static_cast<AssetAPILinuxImpl*>(ctx->assetAPI)->init(info->name);
+        static_cast<AssetAPILinuxImpl*>(ctx->get<AssetAPI>())->init(info->name);
     }
 
     if (game->wantsAPI(ContextAPI::Music)) {
-        theMusicSystem.musicAPI = ctx->musicAPI;
-        theMusicSystem.assetAPI = ctx->assetAPI;
-        static_cast<MusicAPILinuxOpenALImpl*>(ctx->musicAPI)->init();
+        theMusicSystem.musicAPI = ctx->get<MusicAPI>();
+        theMusicSystem.assetAPI = ctx->get<AssetAPI>();
+        static_cast<MusicAPILinuxOpenALImpl*>(ctx->get<MusicAPI>())->init();
         theMusicSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Sound)) {
-        theSoundSystem.soundAPI = ctx->soundAPI;
-        static_cast<SoundAPILinuxOpenALImpl*>(ctx->soundAPI)->init(ctx->assetAPI, game->wantsAPI(ContextAPI::Music));
+        theSoundSystem.soundAPI = ctx->get<SoundAPI>();
+        static_cast<SoundAPILinuxOpenALImpl*>(ctx->get<SoundAPI>())->init(ctx->get<AssetAPI>(), game->wantsAPI(ContextAPI::Music));
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
-        static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, getLocaleInfo().c_str());
+        static_cast<LocalizeAPITextImpl*>(ctx->get<LocalizeAPI>())->init(ctx->get<AssetAPI>(), getLocaleInfo().c_str());
     }
 
     /////////////////////////////////////////////////////

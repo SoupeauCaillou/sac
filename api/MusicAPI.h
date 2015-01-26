@@ -32,6 +32,8 @@ struct OpaqueMusicPtr { };
 
 class MusicAPI {
     public:
+        virtual ~MusicAPI() {}
+
         // create internal state (source for OpenAL, AudioTrack for Android, etc...)
         virtual OpaqueMusicPtr* createPlayer(int sampleRate) = 0;
         virtual void queueMusicData(OpaqueMusicPtr* ptr, const short* data, int count, int sampleRate)=0;

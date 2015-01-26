@@ -23,8 +23,9 @@
 #pragma once
 
 #include <string>
-    
+
 class InAppPurchaseAPI {
     public:
+        virtual ~InAppPurchaseAPI() {}
         virtual void purchase(const std::string & name) = 0;
 };

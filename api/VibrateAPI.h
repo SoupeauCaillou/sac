@@ -24,5 +24,6 @@
 
 class VibrateAPI {
     public:
+        virtual ~VibrateAPI() {}
         virtual void vibrate(float duration) = 0;
 };

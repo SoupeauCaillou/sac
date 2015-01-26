@@ -28,7 +28,7 @@
 #include "GameContext.h"
 #include "base/Entity.h"
 
-class AssetApi;
+class AssetAPI;
 class ComponentSystem;
 #if SAC_DESKTOP
 class MouseNativeTouchState;
@@ -82,6 +82,7 @@ class Game {
         void loadFont(AssetAPI* asset, const char* name);
 
     public:
+        // TODO: use thread-local-storage
         GameContext* gameThreadContext, *renderThreadContext;
         Entity camera;
 

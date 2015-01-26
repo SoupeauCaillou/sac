@@ -25,6 +25,7 @@
 #include <string>
 
 class LocalizeAPI {
-        public :
-                virtual std::string text(const std::string& s) = 0;
+    public :
+        virtual ~LocalizeAPI() {}
+        virtual std::string text(const std::string& s) = 0;
 };

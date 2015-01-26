@@ -28,6 +28,8 @@
 
 class KeyboardInputHandlerAPI {
     public:
+        virtual ~KeyboardInputHandlerAPI() {}
+
         virtual void registerToKeyPress(int key, std::function<void()>) = 0;
 
         virtual void registerToKeyRelease(int key, std::function<void()>) = 0;

@@ -25,5 +25,6 @@
 
 class OpenURLAPI {
     public:
+        virtual ~OpenURLAPI() {}
         virtual void openURL(const std::string& url) = 0;
 };

@@ -330,8 +330,9 @@ void Game::setGameContexts(GameContext* pGameThreadContext, GameContext* pRender
     gameThreadContext = pGameThreadContext;
     renderThreadContext = pRenderThreadContext;
 
-    theEntityManager.entityTemplateLibrary.init(gameThreadContext->assetAPI, false);
-    theEntityManager.entityTemplateLibrary.setLocalizeAPI(gameThreadContext->localizeAPI);
+    theEntityManager.entityTemplateLibrary.init(gameThreadContext->get<AssetAPI>(), false);
+    if (wantsAPI(ContextAPI::Localize))
+        theEntityManager.entityTemplateLibrary.setLocalizeAPI(gameThreadContext->get<LocalizeAPI>());
 }
 
 #if SAC_ENABLE_PROFILING
@@ -359,11 +360,11 @@ void Game::eventsHandler() {
 
         //or try stringInputAPI
         if (!handled && wantsAPI(ContextAPI::StringInput)) {
-            handled = gameThreadContext->stringInputAPI->eventSDL(&event);
+            handled = gameThreadContext->get<StringInputAPI>()->eventSDL(&event);
         }
         //or try keyboardAPI
-        if (!handled && gameThreadContext->keyboardInputHandlerAPI) {
-            handled = gameThreadContext->keyboardInputHandlerAPI->eventSDL(&event);
+        if (!handled && gameThreadContext->get<KeyboardInputHandlerAPI>()) {
+            handled = gameThreadContext->get<KeyboardInputHandlerAPI>()->eventSDL(&event);
         }
 
         //or try mouse
@@ -372,8 +373,8 @@ void Game::eventsHandler() {
         }
 
         //or try joystick
-        if (!handled && gameThreadContext->joystickAPI) {
-            handled = gameThreadContext->joystickAPI->eventSDL(&event);
+        if (!handled && gameThreadContext->get<JoystickAPI>()) {
+            handled = gameThreadContext->get<JoystickAPI>()->eventSDL(&event);
         }
 
         // If event has not been handled by anyone, treat it
@@ -478,7 +479,7 @@ void Game::sacInit() {
     // Auto-load all atlas
     {
         const std::string dpiFolder(OpenGLTextureCreator::DPI2Folder(OpenGLTextureCreator::dpi));
-        std::list<std::string> atlas = renderThreadContext->assetAPI->listAssetContent(
+        std::list<std::string> atlas = renderThreadContext->get<AssetAPI>()->listAssetContent(
             ".atlas", dpiFolder);
         LOGV(1, "Autoloading " << atlas.size() << " atlas");
         std::for_each(atlas.begin(), atlas.end(), [dpiFolder] (const std::string& a) -> void {
@@ -488,11 +489,11 @@ void Game::sacInit() {
 
     // Auto-load all fonts
     {
-        std::list<std::string> fonts = renderThreadContext->assetAPI->listAssetContent(
+        std::list<std::string> fonts = renderThreadContext->get<AssetAPI>()->listAssetContent(
             ".font");
         LOGV(1, "Autoloading " << fonts.size() << " fonts");
         std::for_each(fonts.begin(), fonts.end(), [this] (const std::string& typo) -> void {
-            loadFont(renderThreadContext->assetAPI, typo.c_str());
+            loadFont(renderThreadContext->get<AssetAPI>(), typo.c_str());
         });
 
     }
@@ -537,7 +538,7 @@ void Game::sacInit() {
 #endif
 
 #if SAC_INGAME_EDITORS
-    levelEditor->init(gameThreadContext->keyboardInputHandlerAPI);
+    levelEditor->init(gameThreadContext->get<KeyboardInputHandlerAPI>());
 #endif
 
     LOGV(1, "Creating default camera");
@@ -602,8 +603,8 @@ delta_time_computation:
     {
         theTouchInputManager.Update();
 
-        if (gameThreadContext->keyboardInputHandlerAPI) {
-            gameThreadContext->keyboardInputHandlerAPI->update();
+        if (gameThreadContext->get<KeyboardInputHandlerAPI>()) {
+            gameThreadContext->get<KeyboardInputHandlerAPI>()->update();
         }
 
     #if !SAC_MOBILE
