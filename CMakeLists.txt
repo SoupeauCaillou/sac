@@ -97,20 +97,22 @@ if (SAC_CUSTOM_DEFINES)
 endif()
 
 #######################################################################
-######################### Working env setup(git hooks+editor config) ##
+######################### Working env setup(clang format+editor config) ##
 #######################################################################
-# Prevent user to change spaces with tabs
+# Clang format aims to help us following the same coding style
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.clang-format)
+    message("Setting up clang format config in ${CMAKE_SOURCE_DIR}/ ...")
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/.clang-format DESTINATION ${CMAKE_SOURCE_DIR}/)
+endif()
+# Git pre-commit hook: prevent user from breaking coding style
 set(hook_dir ${CMAKE_SOURCE_DIR}/.git/hooks)
 set(sac_hook_dir ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks)
-if (EXISTS ${hook_dir}/pre-commit.sample AND NOT EXISTS ${hook_dir}/pre-commit)
+if (NOT EXISTS ${hook_dir}/pre-commit AND EXISTS ${CMAKE_SOURCE_DIR}/sac/tools/pre-commit)
     message("Setting up git hook pre-commit in ${hook_dir} ...")
-    file(COPY ${hook_dir}/pre-commit.sample
-        DESTINATION ${sac_hook_dir}
-        FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
-    file(RENAME ${sac_hook_dir}/pre-commit.sample ${sac_hook_dir}/pre-commit)
-    file(COPY ${sac_hook_dir}/pre-commit DESTINATION ${hook_dir})
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/tools/pre-commit DESTINATION ${sac_hook_dir})
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/tools/pre-commit DESTINATION ${hook_dir})
 endif()
-
+# Editor config aims to help us following coding style
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.editorconfig)
     message("Setting up editor config in ${CMAKE_SOURCE_DIR}/ ...")
     file(COPY ${CMAKE_SOURCE_DIR}/sac/.editorconfig DESTINATION ${CMAKE_SOURCE_DIR}/)
