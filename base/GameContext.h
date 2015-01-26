@@ -25,7 +25,7 @@
 
 #include <vector>
 
-/* Enum with all existing API - could be generated from file list: api/*API.h */
+// Enum with all existing API - could be generated from file list: api/*API.h
 namespace ContextAPI {
     enum Enum {
         Ad,
