@@ -59,32 +59,43 @@ RenderingSystem::ColorAlphaTextures RenderingSystem::chooseTextures(const Intern
     }
 }
 
+static Buffers::Enum previousActiveVertexBuffer = Buffers::Count; /* Invalid value */
+
+static void changeVertexBuffer(GLuint newBuffer, Buffers::Enum val) {
+    // if (previousActiveVertexBuffer ==
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, newBuffer))
+
+    GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
+
+    GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), 0))
+    GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
+    GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)sizeof(glm::vec3)))
+
+    previousActiveVertexBuffer = val;
+}
+
 static int drawBatchES2(
     const VertexData* vertices
     , const unsigned short* indices
     , int batchVertexCount
     , unsigned indiceCount
-    , int activeVertexBuffer
+    , Buffers::Enum activeVertexBuffer
     ) {
 
     if (indiceCount > 0) {
-        // update vertex buffer
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[activeVertexBuffer]))
-        if (activeVertexBuffer == 1) {
+
+        // bind proper vertex buffer (if needed)
+        if (previousActiveVertexBuffer != activeVertexBuffer) {
+            changeVertexBuffer(theRenderingSystem.glBuffers[activeVertexBuffer], activeVertexBuffer);
+        }
+
+        if (activeVertexBuffer == Buffers::Dynamic) {
             // orphan previous storage
             GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
             // update buffer
             GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
                 batchVertexCount * sizeof(VertexData), vertices))
         }
-
-        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_VERTEX))
-
-        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), 0))
-        GL_OPERATION(glEnableVertexAttribArray(EffectLibrary::ATTRIB_UV))
-        GL_OPERATION(glVertexAttribPointer(EffectLibrary::ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)sizeof(glm::vec3)))
-
-        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
 
         // orphan
         GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -194,7 +205,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
     } else if (vertexBufferUpdateNeeded) {
         LOGI("Update constant buffer @" << rc.indiceOffset);
         // update constant buffer
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[2]))
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Static]))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER,
             rc.indiceOffset * sizeof(VertexData),
             vert.size() * sizeof(VertexData),
@@ -207,7 +218,7 @@ static inline void addRenderCommandToBatch(const RenderingSystem::RenderCommand&
 #endif
 }
 
-EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp) {
+Buffers::Enum RenderingSystem::changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp) {
     const Shader& shader = *effectLibrary.get(ref, false);
     // change active shader
     GL_OPERATION(glUseProgram(shader.program))
@@ -222,7 +233,16 @@ EffectRef RenderingSystem::changeShaderProgram(EffectRef ref, const Color& color
     activeProgramColorU = shader.uniformColor;
     GL_OPERATION(glUniform4fv(activeProgramColorU, 1, color.rgba))
 
-    return ref;
+    /* Rebind vertex buffer if valid */
+    Buffers::Enum b = previousActiveVertexBuffer;
+    if (b == Buffers::Count) {
+        b = Buffers::Static;
+    }
+    changeVertexBuffer(glBuffers[b], b);
+
+    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[Buffers::Indice]))
+
+    return b;
 }
 
 void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
@@ -275,7 +295,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     batchContent.clear();
     #endif
 
-    int activeVertexBuffer = 1;
+    Buffers::Enum activeVertexBuffer = Buffers::Count; /* invalid value */
     const TextureInfo* previousAtlasInfo = 0;
     TextureRef previousAtlasRef = -1;
 
@@ -324,7 +344,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     glm::vec3(-camera.worldPos.position, 0.0f));
 
             glState.flags.update(OpaqueFlagSet);
-            activeVertexBuffer = 1;
+            changeVertexBuffer(theRenderingSystem.glBuffers[Buffers::Dynamic], Buffers::Dynamic);
+            activeVertexBuffer = Buffers::Dynamic;
             currentFlags = glState.flags.current;
             // GL_OPERATION(glDepthMask(true))
             /*GL_OPERATION(glDisable(GL_BLEND))
@@ -359,7 +380,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                         EffectRef newDefaultCandidate = chooseDefaultShader(true /* blending-on */, true /* color-on */, useTexturing);
                         if (newDefaultCandidate != activeDefaultEffect) {
                             activeDefaultEffect = newDefaultCandidate;
-                            changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
+                            activeVertexBuffer = changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
                         }
                     }
                 }
@@ -371,16 +392,16 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     EffectRef newDefaultCandidate = chooseDefaultShader((rc.flags & EnableBlendingBit), (rc.flags & EnableColorWriteBit), useTexturing);
                     if (newDefaultCandidate != activeDefaultEffect) {
                         activeDefaultEffect = newDefaultCandidate;
-                        changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
+                        activeVertexBuffer = changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
                     }
                 }
             }
 
             if (flagBitsChanged & EnableConstantBit) {
                 if (rc.rflags & RenderingFlags::Constant)
-                    activeVertexBuffer = 2;
+                    activeVertexBuffer = Buffers::Static;
                 else
-                    activeVertexBuffer = 1;
+                    activeVertexBuffer = Buffers::Dynamic;
             }
             currentFlags = glState.flags.current;
         }
@@ -397,10 +418,10 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
             currentEffect = rc.effectRef;
             if (currentEffect == DefaultEffectRef) {
                 activeDefaultEffect = chooseDefaultShader((rc.flags & EnableBlendingBit), (rc.flags & EnableColorWriteBit), useTexturing);
-                changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
+                activeVertexBuffer = changeShaderProgram(activeDefaultEffect, currentColor, camViewPerspMatrix);
             } else {
                 activeDefaultEffect = InvalidTextureRef;
-                changeShaderProgram(rc.effectRef, currentColor, camViewPerspMatrix);
+                activeVertexBuffer = changeShaderProgram(rc.effectRef, currentColor, camViewPerspMatrix);
             }
         }
 
@@ -485,7 +506,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
                     EffectRef newDefaultCandidate = chooseDefaultShader(currentFlags & EnableBlendingBit, currentFlags & EnableColorWriteBit, (boundTexture != InternalTexture::Invalid));
                     if (newDefaultCandidate != activeDefaultEffect) {
                         activeDefaultEffect = newDefaultCandidate;
-                        changeShaderProgram(activeDefaultEffect, rc.color, camViewPerspMatrix);
+                        activeVertexBuffer = changeShaderProgram(activeDefaultEffect, rc.color, camViewPerspMatrix);
                         currentColor = rc.color;
                     }
                 }
@@ -524,8 +545,8 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         }
 
         // ADD TO BATCH
-        LOGF_IF((activeVertexBuffer == 1) && (rc.rflags & RenderingFlags::Constant), "Ouch");
-        LOGF_IF((activeVertexBuffer == 2) && !(rc.rflags & RenderingFlags::Constant), "Ouch2");
+        LOGF_IF((activeVertexBuffer == Buffers::Dynamic) && (rc.rflags & RenderingFlags::Constant), "Ouch");
+        LOGF_IF((activeVertexBuffer == Buffers::Static) && !(rc.rflags & RenderingFlags::Constant), "Ouch2");
         addRenderCommandToBatch(rc,
             polygon,
             vertices + batchVertexCount,
@@ -772,7 +793,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(int cmd_lists_count) {
 
         if (!size) continue;
 
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[3]))
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Editor]))
         GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, size, 0, GL_STREAM_DRAW))
         GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
                 size, &cmd_list->vtx_buffer[0]))
@@ -781,7 +802,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(int cmd_lists_count) {
         unsigned short* indices = new unsigned short[verticesCount];
         for (unsigned i=0; i<verticesCount; i++) indices[i] = i;
         // Upload indices to indice buffer
-        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[0]))
+        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Indice]))
         GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
             verticesCount * sizeof(unsigned short), 0, GL_STREAM_DRAW))
         GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,

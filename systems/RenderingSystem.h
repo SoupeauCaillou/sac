@@ -59,6 +59,20 @@ namespace RenderingFlags {
     const uint8_t NoCulling = 0x80;
 }
 
+namespace Buffers
+{
+    enum Enum {
+        Indice = 0,
+        Dynamic,
+        Static,
+#if SAC_INGAME_EDITORS
+        Editor,
+#endif
+        Count,
+    };
+}
+
+
 struct RenderingComponent {
     RenderingComponent()
         : texture(InvalidTextureRef), show(false), flags(0), indiceOffset(0),
@@ -150,7 +164,7 @@ void reloadTextures();
 void render();
 void waitDrawingComplete();
 
-EffectRef
+Buffers::Enum
 changeShaderProgram(EffectRef ref, const Color& color, const glm::mat4& mvp);
 glm::vec2 getTextureSize(const char* textureName);
 glm::vec2 getTextureSize(const TextureRef& textureRef);
@@ -216,12 +230,7 @@ GLuint whiteTexture;
 void updateReload();
 #endif
 public:
-#if SAC_INGAME_EDITORS
-#define GL_VBO_COUNT 4
-#else
-#define GL_VBO_COUNT 3
-#endif
-GLuint glBuffers[GL_VBO_COUNT];
+GLuint glBuffers[Buffers::Count];
 
 #if SAC_INGAME_EDITORS
 struct {

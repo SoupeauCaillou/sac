@@ -146,16 +146,16 @@ void RenderingSystem::init() {
     // GL_OPERATION(glDepthRangef(0, 1))
     GL_OPERATION(glDepthMask(false))
 
-    GL_OPERATION(glGenBuffers(GL_VBO_COUNT, glBuffers))
+    GL_OPERATION(glGenBuffers(Buffers::Count, glBuffers))
 
     // create a VBO for indices
-    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[0]))
+    GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffers[Buffers::Indice]))
 
     // 4 vertices per element (2 triangles with 2 shared vertices)
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[1]))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[Buffers::Dynamic]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
             MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[2]))
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, glBuffers[Buffers::Static]))
     GL_OPERATION(glBufferData(GL_ARRAY_BUFFER,
             MAX_VERTEX_COUNT * sizeof(VertexData), 0, GL_STREAM_DRAW))
 
