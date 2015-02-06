@@ -46,8 +46,6 @@ TEST(DeleteSystems)
 
 TEST(Serialization)
 {
-    std::cerr << "TestEntityManager.Serialization is BROKEN!!!!!" << std::endl;
-    return;
     TransformationSystem::CreateInstance();
     theEntityManager.deleteAllEntities();
 
