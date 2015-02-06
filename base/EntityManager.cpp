@@ -72,6 +72,10 @@ void EntityManager::renameEntity(Entity e, hash_t id) {
 }
 #endif
 
+unsigned EntityManager::entityCount() const {
+    return entityComponents.size();
+}
+
 Entity EntityManager::CreateEntity(const hash_t id, EntityType::Enum type, EntityTemplateRef tmpl) {
     Entity e = 0;
 
