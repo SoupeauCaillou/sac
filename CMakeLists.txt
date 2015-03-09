@@ -107,10 +107,10 @@ endif()
 # Git pre-commit hook: prevent user from breaking coding style
 set(hook_dir ${CMAKE_SOURCE_DIR}/.git/hooks)
 set(sac_hook_dir ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks)
-if (NOT EXISTS ${hook_dir}/pre-commit AND EXISTS ${CMAKE_SOURCE_DIR}/sac/tools/pre-commit)
+if (NOT EXISTS ${hook_dir}/pre-commit AND EXISTS ${CMAKE_SOURCE_DIR}/sac/tools/hooks/pre-commit)
     message("Setting up git hook pre-commit in ${hook_dir} ...")
-    file(COPY ${CMAKE_SOURCE_DIR}/sac/tools/pre-commit DESTINATION ${sac_hook_dir})
-    file(COPY ${CMAKE_SOURCE_DIR}/sac/tools/pre-commit DESTINATION ${hook_dir})
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/tools/hooks/pre-commit DESTINATION ${sac_hook_dir})
+    file(COPY ${CMAKE_SOURCE_DIR}/sac/tools/hooks/pre-commit DESTINATION ${hook_dir})
 endif()
 # Editor config aims to help us following coding style
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.editorconfig)
