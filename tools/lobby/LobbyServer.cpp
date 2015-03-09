@@ -38,6 +38,8 @@
 #include "base/TimeUtil.h"
 #include "base/Frequency.h"
 
+#include <sys/socket.h>
+#include <netdb.h>
 
 /////////////////////// Example packets sequence
 // PNL: packet sent by Player N to Lobby
@@ -158,7 +160,17 @@ int main() {
                         Player* player = new Player(login.name, event.peer);
                         loggedIn.push_back(player);
 
-                        LOGI("Player '" << login.name << "' logged in from '" << event.peer->address.host << "'");
+                        struct sockaddr_in sin;
+                        sin.sin_family = AF_INET;
+                        sin.sin_port = ENET_HOST_TO_NET_16 (event.peer->address.port);
+                        sin.sin_addr.s_addr = event.peer->address.host;
+
+                        char host[128];
+                        getnameinfo((struct sockaddr*)&sin, sizeof(sin),
+                            host, sizeof(host),
+                            NULL, 0,
+                            NI_NUMERICHOST);
+                        LOGI("Player '" << login.name << "' logged in from '" << host << "'");
 
                         // send ack
                         AckLoginPacket ack;
