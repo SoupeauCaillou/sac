@@ -307,9 +307,13 @@ int main() {
                     case Packet::PlayersInRoom:
                         LOGE("Received invalid message type");
                         break;
+                    default:
+                        break;
                 }
                 enet_packet_destroy (event.packet);
             }
+            default:
+                break;
         }
         enet_host_flush(server);
 
