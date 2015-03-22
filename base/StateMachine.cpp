@@ -5,6 +5,7 @@
 #include "base/Log.h"
 #include "util/MurmurHash.h"
 #include <algorithm>
+#include <sstream>
 
 static char* buildFullName(const char* stateName, const char* filename, char* tmp) {
     auto* fullname = tmp;

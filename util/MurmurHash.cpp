@@ -1,4 +1,4 @@
-/*
+    /*
     This file is part of Soupe Au Caillou.
 
     @author Soupe au Caillou - Jordane Pelloux-Prayer
@@ -24,7 +24,8 @@
 
 
 #if SAC_DEBUG || SAC_INGAME_EDITORS
-std::map<uint32_t, char*>* Murmur::_lookup = 0;
+#include <map>
+static std::map<uint32_t, char*>* _lookup = 0;
 
 const char* Murmur::lookup(uint32_t t) {
     auto it = _lookup->find(t);
@@ -45,7 +46,7 @@ uint32_t Murmur::verifyHash(const char* txt, uint32_t hash, const char* file, in
             escaped.push_back(txt[i]);
         }
         LOGI_EVERY_N(5, "./RecursiveRunner | grep sed | cut -d: -f3 > fix_hashes then 'sh fix_hashes'");
-        LOGE("sed 's/HASH(\"" << escaped << "\", 0x" << std::hex << hash << ")/HASH(\"" << escaped << "\", 0x" << h << std::dec << ")/' -i " << file);
+        LOGE("sed 's/HASH(\"" << escaped << "\", 0x" << LogFmt("%08x") << hash << LogFmt() << ")/HASH(\"" << escaped << "\", 0x" << LogFmt("%08x") << h << LogFmt() << ")/' -i " << file);
     }
     return h;
 }

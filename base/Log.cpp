@@ -27,9 +27,11 @@ bool AssertOnFatal = true;
 #include "Log.h"
 
 #include "TimeUtil.h"
-#include <iomanip>
-#include <sstream>
+// #include <iomanip>
+// #include <sstream>
 #include "util/MurmurHash.h"
+
+char __logLineBuffer[MAX_LINE_LENGTH];
 
 LogVerbosity::Enum logLevel =
 #ifdef SAC_ANDROID
@@ -37,14 +39,15 @@ LogVerbosity::Enum logLevel =
 #else
     LogVerbosity::INFO;
 #endif
-std::map<std::string, bool> verboseFilenameFilters;
+// std::map<std::string, bool> verboseFilenameFilters;
 
 #if SAC_DESKTOP
-std::stringstream lastLogsSS;
+// std::stringstream lastLogsSS;
 std::recursive_mutex lastLogsMutex;
-std::queue<std::string> lastLogs;
+// std::queue<std::string> lastLogs;
 unsigned lastLogsCount = 100;
 void writeLastLogs() {
+    #if 0
     std::cout.flush();
     std::cerr << "**********************" << std::endl;
     std::cerr << "************ LAST LOGS" << std::endl;
@@ -53,9 +56,11 @@ void writeLastLogs() {
         lastLogs.pop();
     }
     std::cerr << "**********************" << std::endl;
+    #endif
 }
 #endif
 
+#if 0
 class NullStream : public std::ostream {
 public:
         NullStream(std::basic_streambuf<char, std::char_traits<char>> *t = 0) : std::ostream(t) {}
@@ -66,7 +71,7 @@ public:
     }
 };
 NullStream slashDevslashNull;
-
+#endif
 static const char* enumNames[] ={
     //5 chars length for all
         " F ",
@@ -164,53 +169,39 @@ void initLogColors() {
 }
 
 static const char* ColorPrefix = "\033[";
-static const char* ColorSuffix = "m";
 static const char* ColorReset = "\033[0m";
 #endif
 
-int logHeaderLength(const char* file, int line) {
-    static std::stringstream ss;
-    ss.str("");
-    logToStream(ss, LogVerbosity::INFO, file, line);
-    return ss.str().size();
-}
-
-std::ostream& logToStream(std::ostream& stream, LogVerbosity::Enum type, const char* file, int line) {
+int logPrefix(char* out, LogVerbosity::Enum type, const char* file, int line) {
 #if SAC_DESKTOP && SAC_LINUX
     if (enableColorize) {
     pid_t tid;
 
     tid = syscall(SYS_gettid);
 
-    stream
-        << ColorPrefix << '4' << (char)('1' + (tid % 6)) << ColorSuffix << tid << ColorReset << ' '
-        << ColorPrefix << color[type] << ColorSuffix << enum2Name(type) << ColorReset
-        << ' '
-        << std::fixed << std::setprecision(4)
-        << ColorPrefix << colorTs << ColorSuffix << ' ' << TimeUtil::GetTime() << ' ' << ColorReset
-        << ' '
-        << ColorPrefix << pickColorTag(file) << ColorSuffix << keepOnlyFilename(file) << ':' << std::setw(3) << line << ColorReset
-        << ' ';
+    return snprintf(out, MAX_LINE_LENGTH,
+        "%s4%cm%d%s "
+        "%s%sm%s%s "
+        "%s%sm %4.3f %s "
+        "%s%sm%s:%3d%s ",
+
+        ColorPrefix, '1' + (tid % 6), tid, ColorReset,
+        ColorPrefix, color[type], enum2Name(type), ColorReset,
+        ColorPrefix, colorTs, TimeUtil::GetTime(), ColorReset,
+        ColorPrefix, pickColorTag(file), keepOnlyFilename(file), line, ColorReset);
     } else
 #endif
 
+    // LOGT("colorless logs");
+    #if 0
     stream
         << enum2Name(type) << ' '
         << std::fixed << std::setprecision(4)
         << TimeUtil::GetTime() << ' '
         << keepOnlyFilename(file) << ':' << line << ' ';
         return stream;
-}
-
-std::ostream& vlogToStream(std::ostream& stream, int level, const char* file, int line) {
-    const char* trimmed = keepOnlyFilename(file);
-    auto it = verboseFilenameFilters.find(trimmed);
-    if (it == verboseFilenameFilters.end())
-        verboseFilenameFilters.insert(std::make_pair(trimmed, true));
-    else if (!it->second)
-        return slashDevslashNull;
-        stream << std::fixed << std::setprecision(4) << TimeUtil::GetTime() << " VERB-" << level << ' ' << trimmed << ':' << line << " : ";
-        return stream;
+    #endif
+    return 0;
 }
 
 #endif

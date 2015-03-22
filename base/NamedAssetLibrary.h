@@ -239,7 +239,7 @@ class NamedAssetLibrary : public ResourceHotReload {
 
     void registerDataSource(TRef r, SourceDataType type) {
         if (dataSource.find(r) != dataSource.end())
-            LOGW("Asset 0x" << std::hex << (int)r << std::dec
+            LOGW("Asset 0x" << LogFmt("%08x") << (int)r << LogFmt()
                             << " already have one data source registered");
         dataSource.insert(std::make_pair(r, type));
     }

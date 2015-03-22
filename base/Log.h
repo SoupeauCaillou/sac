@@ -29,12 +29,18 @@ void initLogColors();
 #endif
 
 // to handle vec2 operator<<
-#include <ostream>
-#include <sstream>
-#include <iomanip>
+// #include <ostream>
+// #include <sstream>
+// #include <iomanip>
+// #include <map>
 #include <vector>
 
 #include <glm/glm.hpp>
+
+#define MAX_LINE_LENGTH 1024
+
+extern char __logLineBuffer[MAX_LINE_LENGTH];
+#if 0
 inline std::ostream& operator<<(std::ostream& stream, const glm::vec2& v) {
     return stream << v.x << ", " << v.y;
 }
@@ -49,11 +55,11 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v) {
     stream << "}";
     return stream;
 }
+#endif
 
 #define __(var) #var << ':' << var
 
 #undef ERROR
-#include <map>
 
 namespace LogVerbosity {
     enum Enum {
@@ -70,23 +76,23 @@ namespace LogVerbosity {
 }
 
 extern LogVerbosity::Enum logLevel;
-extern std::map<std::string, bool> verboseFilenameFilters;
+// extern std::map<std::string, bool> verboseFilenameFilters;
+
 #if SAC_DESKTOP
 #include <queue>
 #include <mutex>
-extern std::stringstream lastLogsSS;
-extern std::recursive_mutex lastLogsMutex;
-extern std::queue<std::string> lastLogs;
+
+
+// extern std::stringstream lastLogsSS; to replace with [MAX_LINE_LENGTH][COUNT]
+// extern std::queue<std::string> lastLogs;
 extern unsigned lastLogsCount;
+extern std::recursive_mutex lastLogsMutex;
 extern void writeLastLogs();
 #endif
-int logHeaderLength(const char* file, int line);
-std::ostream& logToStream(std::ostream& stream,
-                          LogVerbosity::Enum type,
-                          const char* file,
-                          int line);
-std::ostream&
-vlogToStream(std::ostream& stream, int level, const char* file, int line);
+int logPrefix(char* ptr,
+                    LogVerbosity::Enum type,
+                      const char* file,
+                      int line);
 
 #include <signal.h>
 
@@ -107,7 +113,7 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
     __android_log_print(                                                       \
         level2prio[logLevel], "sac", "%s", __log_ss.str().c_str());
 #else /* if SAC_ANDROID */
-#include <iostream>
+
 #define SAC_LOG_PRE
 #define SAC_LOG_STREAM std::cout
 #define SAC_LOG_POST
@@ -117,24 +123,89 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
 #define __PRETTY_FUNCTION__ __FUNCTION__
 #endif
 
+struct LogFmt {
+    const char* cFormat;
+    LogFmt(const char* fmt = NULL) : cFormat(fmt) {}
+};
+
+struct MySimpleStream {
+    size_t position;
+    LogFmt formatOverride;
+
+    MySimpleStream(int p) : position(p) {}
+
+    template<class T>
+    const char* typeToFormat() {
+        // default implem
+        if (std::is_enum<T>::value) return "%d";
+        if (std::is_integral<T>::value) return "%d";
+        if (std::is_pointer<T>::value) return "%p";
+        if (std::is_array<T>::value) return "%p";
+        return "%d";
+    }
+
+    /* for c-types */
+    template<class T>
+    MySimpleStream& operator<<(const T& t) {
+        position += snprintf(
+            &__logLineBuffer[position], MAX_LINE_LENGTH,
+            formatOverride.cFormat ? formatOverride.cFormat : typeToFormat<T>(),
+            t);
+        return *this;
+    }
+
+    template<int N>
+    MySimpleStream& operator<<(const char (&t)[N]) {
+        position += snprintf(
+            &__logLineBuffer[position], MAX_LINE_LENGTH,
+            formatOverride.cFormat ? formatOverride.cFormat : "%s",
+            t);
+        return *this;
+    }
+
+};
+
+template<>
+inline const char* MySimpleStream::typeToFormat<int>() { return "%d"; }
+template<>
+inline const char* MySimpleStream::typeToFormat<float>() { return "%.3f"; }
+template<>
+inline const char* MySimpleStream::typeToFormat<double>() { return "%.3lf"; }
+template<>
+inline const char* MySimpleStream::typeToFormat<char*>() { return "%s"; }
+template<>
+inline const char* MySimpleStream::typeToFormat<char>() { return "%c"; }
+
+
+/* overload for c++ class */
+template<>
+inline MySimpleStream& MySimpleStream::operator<< <glm::vec2>(const glm::vec2& v) {
+    position += snprintf(&__logLineBuffer[position], MAX_LINE_LENGTH, "{%.3f, %.3f}", v.x, v.y);
+    return *this;
+}
+
+template<>
+inline MySimpleStream& MySimpleStream::operator<< <std::string>(const std::string& s) {
+    position += snprintf(&__logLineBuffer[position], MAX_LINE_LENGTH, "%s", s.c_str());
+    return *this;
+}
+
+template<>
+inline MySimpleStream& MySimpleStream::operator<< <LogFmt>(const LogFmt& v) {
+    this->formatOverride = v;
+    return *this;
+}
+
+
 #if SAC_DESKTOP
 #define __LOG(level, x)                                                        \
     do {                                                                       \
-        {                                                                      \
-            lastLogsMutex.lock();                                              \
-            lastLogsSS.str("");                                                \
-            lastLogsSS.clear();                                                \
-            logToStream(lastLogsSS, level, __FILE__, __LINE__) << x            \
-                                                               << std::endl;   \
-            lastLogs.push(lastLogsSS.str());                                   \
-            while (lastLogs.size() > lastLogsCount) lastLogs.pop();            \
-            lastLogsMutex.unlock();                                            \
-        }                                                                      \
         if ((int)logLevel >= (int)level) {                                     \
-            SAC_LOG_PRE                                                        \
-            logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__)             \
-                << x << std::endl;                                             \
-            SAC_LOG_POST                                                       \
+            int position = logPrefix(__logLineBuffer, level, __FILE__, __LINE__); \
+            MySimpleStream str(position); \
+            str << x; \
+            __logLineBuffer[MAX_LINE_LENGTH - 1] = '\0'; \
+            printf("%s\n", __logLineBuffer); \
                                                                                \
             if (level == LogVerbosity::FATAL && AssertOnFatal) {               \
                 lastLogsMutex.lock();                                          \
@@ -148,7 +219,7 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
     do {                                                                       \
         if ((int)logLevel >= (int)level) {                                     \
             SAC_LOG_PRE                                                        \
-            logToStream(SAC_LOG_STREAM, level, __FILE__, __LINE__)             \
+            logPrefix(__logLineBuffer, level, __FILE__, __LINE__)             \
                 << x << std::endl;                                             \
             SAC_LOG_POST                                                       \
                                                                                \
@@ -179,7 +250,6 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
 #if SAC_ENABLE_LOG
 #define LOG_USAGE_ONLY(x) x
 
-#define LOG_OFFSET() logHeaderLength(__FILE__, __LINE__)
 
 #define LOGF(x) __LOG_WHILE(LogVerbosity::FATAL, x)
 #define LOGE(x) __LOG_WHILE(LogVerbosity::ERROR, x)
@@ -205,7 +275,6 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
 #else
 #define LOG_USAGE_ONLY(x)
 
-#define LOG_OFFSET() 0
 #define LOGF(x)                                                                \
     do { raise(SIGABRT); } while (false)
 #define LOGE(x)                                                                \
@@ -258,3 +327,16 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
     } while (false)
 
 #endif
+
+/*
+        {                                                                      \
+            lastLogsMutex.lock();                                              \
+            lastLogsSS.str("");                                                \
+            lastLogsSS.clear();                                                \
+            logPrefix(__logLineBuffer, level, __FILE__, __LINE__);             \
+                                                               << std::endl;   \
+            lastLogs.push(lastLogsSS.str());                                   \
+            while (lastLogs.size() > lastLogsCount) lastLogs.pop();            \
+            lastLogsMutex.unlock();                                            \
+        }                                                                      \
+        */

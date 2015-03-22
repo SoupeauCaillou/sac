@@ -82,7 +82,6 @@ class Murmur {
 
     private:
 #if SAC_DEBUG || SAC_INGAME_EDITORS
-    static std::map<uint32_t, char*>* _lookup;
 
     public:
     static uint32_t
