@@ -257,7 +257,7 @@ inline int load(const DataFileParser& dfp, hash_t section, hash_t id, IntervalMo
                     , 1.f);
                 return 1;
             } else if (modifier == HASH("name", 0x195267c7)) {
-                *out = Color(html);
+                *out = Color(Murmur::RuntimeHash(html.c_str()));
 
                 return 1;
             }

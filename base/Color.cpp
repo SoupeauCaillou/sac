@@ -27,7 +27,7 @@
 #include "Log.h"
 #include <map>
 
-static std::map<std::string, Color> name2Color;
+static std::map<hash_t, Color> name2Color;
 
 Color Color::random(float alpha) {
         return Color(
@@ -38,7 +38,7 @@ Color Color::random(float alpha) {
         );
 }
 
-void Color::nameColor(const Color& c, const std::string& name) {
+void Color::nameColor(const Color& c, hash_t name) {
     LOGV(1, "Add color " << name << " = " << c);
         name2Color.insert(std::make_pair(name, c));
 }
@@ -52,13 +52,13 @@ Color::Color(float* pRgba, uint32_t) {
     memcpy(rgba, pRgba, 4 * sizeof(float));
 }
 
-Color::Color(const std::string& name) {
-        std::map<std::string, Color>::iterator it = name2Color.find(name);
-        if (it != name2Color.end()) {
-                *this = it->second;
-        } else {
-                r = g = b = a = 1.0;
-        }
+Color::Color(hash_t name) {
+    std::map<hash_t, Color>::iterator it = name2Color.find(name);
+    if (it != name2Color.end()) {
+            *this = it->second;
+    } else {
+            r = g = b = a = 1.0;
+    }
 }
 
 Color Color::operator*(float s) const {

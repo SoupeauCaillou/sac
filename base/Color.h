@@ -24,9 +24,8 @@
 //#pragma warning(disable:4201)
 #endif
 
-#include <string>
-#include <iostream>
 #include <base/SacDefs.h>
+#include "util/MurmurHash.h"
 
 struct Color {
     public:
@@ -41,11 +40,11 @@ struct Color {
     };
 
     static Color random(float _a = 1.f);
-    static void nameColor(const Color& c, const std::string& name);
+    static void nameColor(const Color& c, hash_t name);
 
     Color(float _r = 1.0, float _g = 1.0, float _b = 1.0, float _a = 1.0);
     Color(float* rgba, uint32_t mask);
-    Color(const std::string& name);
+    explicit Color(hash_t name);
 
     Color operator*(float s) const;
     Color operator+(const Color& c) const;
@@ -64,12 +63,17 @@ struct Color {
     const Color& reducePrecision(float maxPrecision);
 };
 
-inline std::ostream& operator<<(std::ostream& s, const Color& c) {
-    return s << "color = [r:" << (int)(c.r * 255) << ", g:" << (int)(c.g * 255)
-             << ", b:" << (int)(c.b * 255) << ", a:" << (int)(c.a * 255) << ']';
+inline MySimpleStream& operator<<(MySimpleStream& s, const Color& c) {
+    s.position += snprintf(
+        &__logLineBuffer[s.position], MAX_LINE_LENGTH,
+        "color=[r:%d, g:%d, b: %d, a:%d]",
+        (int)(c.r*255), (int)(c.g*255), (int)(c.b*255), (int)(c.a*255));
+    return s;
 }
 
+#if 0
 inline std::istream& operator>>(std::istream& s, Color& c) {
     s >> c.r >> c.g >> c.b >> c.a;
     return s;
 }
+#endif

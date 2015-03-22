@@ -72,7 +72,8 @@ inline std::ostream& operator<<(std::ostream& stream, const BatchFlushInfo& v) {
         stream << "]";
         break;
     case BatchFlushReason::NewColor:
-        stream << " [ " << v.newColor << " ]";
+        LOGT("fixme");
+        // stream << " [ " << v.newColor << " ]";
         break;
     case BatchFlushReason::NewTexture: {
         if (v.newTexture == InvalidTextureRef) {
