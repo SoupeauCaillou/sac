@@ -42,6 +42,7 @@
 #include <set>
 #include <glm/gtx/rotate_vector.hpp>
 #include <algorithm>
+#include <sstream>
 
 #include "DebugConsole.h"
 #if SAC_NETWORK
