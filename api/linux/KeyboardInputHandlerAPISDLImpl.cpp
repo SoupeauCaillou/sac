@@ -21,13 +21,6 @@
 
 
 #include "KeyboardInputHandlerAPISDLImpl.h"
-
-#include "systems/TextSystem.h"
-#include "systems/RenderingSystem.h"
-#include "systems/ButtonSystem.h"
-#include "systems/TransformationSystem.h"
-
-#include "base/EntityManager.h"
 #include "base/Log.h"
 
 void KeyboardInputHandlerAPISDLImpl::update() {
