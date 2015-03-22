@@ -453,7 +453,8 @@ relayout:
                 str[offset + position] = '^';
             }
             //finally, show the log!
-            LOGW_EVERY_N(60, ss.str() << std::endl << std::string(LOG_OFFSET(), ' ') << str);
+            LOGT_EVERY_N(60, "Fixme");
+            // LOGW_EVERY_N(60, ss.str() << std::endl << std::string(LOG_OFFSET(), ' ') << str);
         }
 #endif
 

@@ -28,6 +28,7 @@
 #include "GraphSystem.h"
 #include "TextSystem.h"
 #include <iomanip>
+#include <sstream>
 
 #include <base/EntityManager.h>
 

@@ -25,6 +25,7 @@
 #if SAC_DEBUG
 #include "RenderingSystem.h"
 #include "TextSystem.h"
+#include <sstream>
 #endif
 #include "util/IntersectionUtil.h"
 #include <glm/gtx/rotate_vector.hpp>
