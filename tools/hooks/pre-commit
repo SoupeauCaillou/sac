@@ -18,10 +18,15 @@ errors=$(git diff-index --cached --diff-filter=ACMR -p HEAD -- | $clang_format_d
 if [ -n "$errors" ]; then
     tmpfile=$(mktemp)
     echo "$errors" > $tmpfile
+    echo "$errors"
+    echo
+    echo "*****************"
     echo "$0: Invalid coding style detected. Please correct it using one of the following:"
-    echo "1) Apply patch located at $tmpfile using: git am $tmpfile"
-    echo "2) Use clang-format to format lines using: ${clang_format_diff/-diff/} $clang_format_diff_options <some_file.cpp>)"
+    echo "1) Apply patch located at $tmpfile using:"
+    echo "  cd $(git rev-parse --show-toplevel) && patch -p0 < $tmpfile"
+    echo "2) Use clang-format to format lines using:"
+    echo "  ${clang_format_diff/-diff/} $clang_format_diff_options -i <some_file.cpp>)"
     echo "3) Reformat these lines manually."
-    echo "Aborting commit."
+    echo "*** Aborting commit.***"
     exit 1
 fi
