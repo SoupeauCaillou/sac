@@ -15,7 +15,7 @@
 #include <list>
 #include <map>
 #include <utility>
-
+#include <algorithm>
 #include <iostream>
 
 SquareSpatialGrid::~SquareSpatialGrid(){

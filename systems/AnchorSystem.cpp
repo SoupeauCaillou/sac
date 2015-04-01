@@ -25,6 +25,7 @@
 #include "TransformationSystem.h"
 #include <forward_list>
 #include <glm/gtx/rotate_vector.hpp>
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(AnchorSystem);
 

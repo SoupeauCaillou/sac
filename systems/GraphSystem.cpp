@@ -31,6 +31,7 @@
 #endif
 
 #define SIZE 256
+#include "util/SerializerProperty.h"
 
 static void putPixel(ImageDesc &textureDesc, int pos_x, int pos_y, Color color) {
     static unsigned char colorTab[4];

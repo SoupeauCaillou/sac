@@ -34,6 +34,7 @@
 #include "RenderingSystem.h"
 
 #include "util/MurmurHash.h"
+#include "util/SerializerProperty.h"
 
 const float TextComponent::LEFT = 0.0f;
 const float TextComponent::CENTER = 0.5f;

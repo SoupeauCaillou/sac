@@ -23,6 +23,7 @@
 #include "CameraSystem.h"
 #include "TransformationSystem.h"
 #include <glm/gtx/rotate_vector.hpp>
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(CameraSystem);
 

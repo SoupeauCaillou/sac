@@ -32,6 +32,7 @@
 #include "base/TouchInputManager.h"
 
 #include "util/IntersectionUtil.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(ButtonSystem);
 

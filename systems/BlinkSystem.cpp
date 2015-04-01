@@ -22,6 +22,7 @@
 
 #include "BlinkSystem.h"
 #include "RenderingSystem.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(BlinkSystem);
 

@@ -29,13 +29,14 @@
 #include "base/Log.h"
 
 #include <glm/gtx/norm.hpp>
+#include "util/SerializerProperty.h"
 
 #if SAC_DEBUG
 #include "util/Draw.h"
 #endif
 
 #include "../steering/SimpleBehavior.inl"
-
+#include <algorithm>
 
 INSTANCE_IMPL(AutonomousAgentSystem);
 

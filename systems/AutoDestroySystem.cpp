@@ -28,6 +28,8 @@
 #include "systems/RenderingSystem.h"
 #include "systems/TextSystem.h"
 #include "util/IntersectionUtil.h"
+#include "util/SerializerProperty.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(AutoDestroySystem);
 

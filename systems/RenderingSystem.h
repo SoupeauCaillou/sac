@@ -35,6 +35,7 @@
 
 #if SAC_INGAME_EDITORS
 class LevelEditor;
+struct ImDrawList;
 #endif
 
 typedef uint8_t FramebufferRef;

@@ -28,6 +28,7 @@
 #include "TransformationSystem.h"
 #include "CameraSystem.h"
 
+#include <algorithm>
 #include <cmath>
 #include <sstream>
 #include <glm/glm.hpp>
@@ -43,10 +44,15 @@
 #endif
 
 #if SAC_INGAME_EDITORS
+#include "imgui.h"
 #include "util/LevelEditor.h"
 #include "systems/opengl/shaders/level_editor_vs.h"
 #include "systems/opengl/shaders/level_editor_fs.h"
 #endif
+
+#include "base/TimeUtil.h"
+#include "base/Profiler.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(RenderingSystem);
 

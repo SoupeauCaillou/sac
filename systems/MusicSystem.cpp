@@ -31,6 +31,8 @@
 #endif
 
 #include <glm/glm.hpp>
+#include "base/Profiler.h"
+#include "util/SerializerProperty.h"
 
 #define SILENCE_AT_BEGINNING_SEC 1.0f
 

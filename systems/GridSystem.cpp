@@ -21,6 +21,7 @@
 #if !DISABLE_GRID_SYSTEM
 
 #include "GridSystem.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(GridSystem);
 

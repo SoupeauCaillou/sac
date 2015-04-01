@@ -28,6 +28,7 @@
 #include <glm/glm.hpp>
 
 #include <limits>
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(ContainerSystem);
 

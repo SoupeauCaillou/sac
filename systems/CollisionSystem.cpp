@@ -31,8 +31,11 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/compatibility.hpp>
 #include <glm/gtx/norm.hpp>
+#include <algorithm>
 
 #include "util/Draw.h"
+#include "util/SerializerProperty.h"
+
 INSTANCE_IMPL(CollisionSystem);
 
 #define MAX_COLLISION_COUNT_PER_ENTITY 4

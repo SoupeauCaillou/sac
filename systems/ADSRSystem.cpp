@@ -24,6 +24,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include "util/SerializerProperty.h"
 
 /*
  *        /\

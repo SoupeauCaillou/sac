@@ -28,6 +28,7 @@
 
 #include "base/EntityManager.h"
 #include <glm/glm.hpp>
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(ScrollingSystem);
 

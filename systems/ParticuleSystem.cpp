@@ -28,6 +28,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/random.hpp>
+#include "util/SerializerProperty.h"
 
 
 

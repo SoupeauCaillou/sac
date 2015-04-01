@@ -36,6 +36,7 @@
 #include "base/Profiler.h"
 #include "base/TouchInputManager.h"
 #include "base/Common.h"
+#include "base/TimeUtil.h"
 
 #include "systems/ADSRSystem.h"
 #include "systems/AnchorSystem.h"

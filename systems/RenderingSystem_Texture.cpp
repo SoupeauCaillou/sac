@@ -25,6 +25,7 @@
 #include "opengl/OpenGLTextureCreator.h"
 
 #include "util/DataFileParser.h"
+#include "base/Profiler.h"
 
 #include <stdint.h>
 #include <fstream>

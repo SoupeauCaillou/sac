@@ -29,8 +29,10 @@
 #include "TextSystem.h"
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 #include <base/EntityManager.h>
+#include "util/SerializerProperty.h"
 
 #if SAC_DEBUG
 static const char* FpsTextureName = "__debug_fps_texture";

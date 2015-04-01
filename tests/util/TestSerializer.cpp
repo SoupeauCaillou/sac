@@ -23,6 +23,7 @@
 #include <UnitTest++.h>
 
 #include "util/Serializer.h"
+#include "util/SerializerProperty.h"
 
 TEST (DefaultProperty)
 {

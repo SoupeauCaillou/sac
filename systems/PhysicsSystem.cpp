@@ -26,6 +26,7 @@
 #include "RenderingSystem.h"
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/norm.hpp>
+#include "util/SerializerProperty.h"
 
 #include <utility>
 

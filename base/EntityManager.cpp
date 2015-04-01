@@ -24,6 +24,8 @@
 #include "systems/System.h"
 #include <cstring>
 #include "base/Log.h"
+#include "base/TimeUtil.h"
+#include <algorithm>
 
 #if SAC_ANDROID || SAC_WINDOWS || SAC_DARWIN || SAC_IOS
 static void* mempcpy(void* dst, const void* src, size_t size)

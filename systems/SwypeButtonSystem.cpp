@@ -36,6 +36,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtx/projection.hpp"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(SwypeButtonSystem);
 

@@ -24,6 +24,9 @@
 #include "../api/NetworkAPI.h"
 #include "../base/EntityManager.h"
 #include <queue>
+#include <algorithm>
+#include "base/TimeUtil.h"
+#include "util/SerializerProperty.h"
 
 #define USE_SYSTEM_IDX 1
 struct StatusCache {

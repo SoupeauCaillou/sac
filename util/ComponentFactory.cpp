@@ -40,6 +40,7 @@
 
 #include <alloca.h>
 #include <string>
+#include "util/SerializerProperty.h"
 
 static constexpr hash_t positionHack[] = {
     Murmur::_Hash("positionNW"),

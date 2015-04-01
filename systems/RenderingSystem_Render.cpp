@@ -25,9 +25,12 @@
 #include "RenderingSystem_Private.h"
 #include "CameraSystem.h"
 #include "TransformationSystem.h"
+#include "base/Profiler.h"
+
 #include <sstream>
 #if SAC_INGAME_EDITORS
 #include "util/LevelEditor.h"
+#include "imgui.h"
 #endif
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>

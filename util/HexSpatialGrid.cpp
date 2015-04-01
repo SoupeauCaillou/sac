@@ -15,6 +15,7 @@
 #include <list>
 #include <map>
 #include <utility>
+#include <algorithm>
 
 HexSpatialGrid::~HexSpatialGrid(){
 }

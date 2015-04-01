@@ -22,6 +22,8 @@
 
 #include "SoundSystem.h"
 #include "api/SoundAPI.h"
+#include "base/Profiler.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(SoundSystem);
 

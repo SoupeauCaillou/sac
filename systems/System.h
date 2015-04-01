@@ -20,26 +20,14 @@
 
 #pragma once
 
-#include <string>
 #include <vector>
 #include <map>
-#include <stdint.h>
-#include <iostream>
-#include <cstring>
-#include <climits>
 
 #include "base/Entity.h"
-
-#include "base/TimeUtil.h"
-#include "base/Profiler.h"
 #include "util/Serializer.h"
-#include "util/ComponentFactory.h"
 #include "base/EntityManager.h"
 
 class LocalizeAPI;
-#if SAC_INGAME_EDITORS
-#include "imgui.h"
-#endif
 
 namespace ComponentType {
     enum Enum { POD, Complex };
@@ -101,6 +89,7 @@ class ComponentSystem {
     std::list<Entity> suspended;
 
     Serializer componentSerializer;
+    static bool entityHasComponent(const std::vector<Entity>& c, Entity e);
 
     public:
     const Serializer& getSerializer() const { return componentSerializer; }
@@ -126,9 +115,7 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
     ~ComponentSystemImpl() { free(components); }
 
     void Add(Entity entity) {
-        LOGF_IF(std::find(entityWithComponent.begin(),
-                          entityWithComponent.end(),
-                          entity) != entityWithComponent.end(),
+        LOGF_IF(entityHasComponent(entityWithComponent, entity),
                 "Entity '" << theEntityManager.entityName(entity)
                            << "' has the same component('" << INV_HASH(getId())
                            << "') twice!");
@@ -185,9 +172,7 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
                     "Requesting component of type '"
                         << INV_HASH(getId()) << "' [@ " << file << ':' << line
                         << "] for null entity (" << entity << ')');
-            if (!std::binary_search(entityWithComponent.begin(),
-                                    entityWithComponent.end(),
-                                    entity)) {
+            if (!entityHasComponent(entityWithComponent, entity)) {
                 if (failIfNotfound) {
                     LOGF("Entity '"
                          << theEntityManager.entityName(entity) << "' ("

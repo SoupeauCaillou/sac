@@ -25,55 +25,84 @@
 #include "base/Color.h"
 #include "base/Log.h"
 
+
 template <>
-inline Property<float>::Property(hash_t id, unsigned long offset, float pEpsilon) :
+ Property<float>::Property(hash_t id, unsigned long offset, float pEpsilon) :
     IProperty(id, PropertyType::Float, PropertyAttribute::None, offset, sizeof(float)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<int>::Property(hash_t id, unsigned long offset, int pEpsilon) :
+ Property<int>::Property(hash_t id, unsigned long offset, int pEpsilon) :
     IProperty(id, PropertyType::Int, PropertyAttribute::None, offset, sizeof(int)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<hash_t>::Property(hash_t id, unsigned long offset, hash_t pEpsilon) :
+ Property<hash_t>::Property(hash_t id, unsigned long offset, hash_t pEpsilon) :
     IProperty(id, PropertyType::Hash, PropertyAttribute::None, offset, sizeof(hash_t)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<int8_t>::Property(hash_t id, unsigned long offset, int8_t pEpsilon) :
+ Property<int8_t>::Property(hash_t id, unsigned long offset, int8_t pEpsilon) :
     IProperty(id, PropertyType::Int8, PropertyAttribute::None, offset, sizeof(int8_t)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<uint8_t>::Property(hash_t id, unsigned long offset, uint8_t pEpsilon) :
+ Property<uint8_t>::Property(hash_t id, unsigned long offset, uint8_t pEpsilon) :
     IProperty(id, PropertyType::Int8, PropertyAttribute::None, offset, sizeof(int8_t)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<bool>::Property(hash_t id, unsigned long offset, bool pEpsilon) :
+ Property<bool>::Property(hash_t id, unsigned long offset, bool pEpsilon) :
     IProperty(id, PropertyType::Bool, PropertyAttribute::None, offset, sizeof(bool)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<Color>::Property(hash_t id, unsigned long offset, Color pEpsilon) :
+ Property<Color>::Property(hash_t id, unsigned long offset, Color pEpsilon) :
     IProperty(id, PropertyType::Color, PropertyAttribute::None, offset, sizeof(Color)), epsilon(pEpsilon) {}
 
 template <>
-inline Property<glm::vec2>::Property(hash_t id, unsigned long offset, glm::vec2 pEpsilon) :
+ Property<glm::vec2>::Property(hash_t id, unsigned long offset, glm::vec2 pEpsilon) :
     IProperty(id, PropertyType::Vec2, PropertyAttribute::None, offset, sizeof(glm::vec2)), epsilon(pEpsilon) {}
 
 template <class T>
-inline Property<T>::Property(hash_t id, unsigned long offset, T pEpsilon) :
+ Property<T>::Property(hash_t id, unsigned long offset, T pEpsilon) :
     IProperty(id, PropertyType::Unsupported, PropertyAttribute::None, offset, sizeof(T)), epsilon(pEpsilon) {}
 
 template <class T>
-inline Property<T>::Property(hash_t id, PropertyType::Enum type, unsigned long offset, T pEpsilon) :
+ Property<T>::Property(hash_t id, PropertyType::Enum type, unsigned long offset, T pEpsilon) :
     IProperty(id, type, PropertyAttribute::None, offset, sizeof(T)), epsilon(pEpsilon) {}
 
 template <>
-inline bool Property<Color>::different(void* object, void* refObject) const {
+ IntervalProperty<float>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Float, PropertyAttribute::Interval, offset, 2 * sizeof(float)) {}
+
+template <>
+ IntervalProperty<int>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Int, PropertyAttribute::Interval, offset, 2 * sizeof(int)) {}
+
+template <>
+ IntervalProperty<int8_t>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Int8, PropertyAttribute::Interval, offset, 2 * sizeof(int8_t)) {}
+
+template <>
+ IntervalProperty<uint8_t>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Int8, PropertyAttribute::Interval, offset, 2 * sizeof(int8_t)) {}
+
+template <>
+ IntervalProperty<Color>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Color, PropertyAttribute::Interval, offset, 2 * sizeof(Color)) {}
+
+template <>
+ IntervalProperty<glm::vec2>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Vec2, PropertyAttribute::Interval, offset, 2 * sizeof(glm::vec2)) {}
+
+template <typename T>
+IntervalProperty<T>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Unsupported, PropertyAttribute::Interval, offset, 2 * sizeof(T)) {}
+
+template <>
+ VectorProperty<std::string>::VectorProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::String, PropertyAttribute::Vector, offset, 0) {}
+
+template <typename T>
+VectorProperty<T>::VectorProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Unsupported, PropertyAttribute::Vector, offset, 0) {}
+
+
+template <>
+ bool Property<Color>::different(void* object, void* refObject) const {
     Color* a = (Color*) ((uint8_t*)object + offset);
     Color* b = (Color*) ((uint8_t*)refObject + offset);
     return *a != *b;
 }
 
 template <>
-inline bool Property<glm::vec2>::different(void* object, void* refObject) const {
+ bool Property<glm::vec2>::different(void* object, void* refObject) const {
     glm::vec2* a = (glm::vec2*) ((uint8_t*)object + offset);
     glm::vec2* b = (glm::vec2*) ((uint8_t*)refObject + offset);
     //~ return (*a - *b).LengthSquared() > epsilon.LengthSquared();
@@ -81,20 +110,14 @@ inline bool Property<glm::vec2>::different(void* object, void* refObject) const 
 }
 
 template <typename T>
-inline bool Property<T>::different(void* object, void* refObject) const {
+ bool Property<T>::different(void* object, void* refObject) const {
     T* a = (T*) ((uint8_t*)object + offset);
     T* b = (T*) ((uint8_t*)refObject + offset);
     return (glm::abs(*a - *b) - epsilon > 0);
 }
 
 template <>
-inline VectorProperty<std::string>::VectorProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::String, PropertyAttribute::Vector, offset, 0) {}
-
-template <typename T>
-VectorProperty<T>::VectorProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Unsupported, PropertyAttribute::Vector, offset, 0) {}
-
-template <>
-inline unsigned VectorProperty<std::string>::size(void* object) const {
+ unsigned VectorProperty<std::string>::size(void* object) const {
     std::vector<std::string>* v = (std::vector<std::string>*) ((uint8_t*)object + offset);
     unsigned s = sizeof(unsigned);
     for (unsigned i=0; i<v->size(); i++) {
@@ -104,13 +127,13 @@ inline unsigned VectorProperty<std::string>::size(void* object) const {
 }
 
 template <typename T>
-inline unsigned VectorProperty<T>::size(void* object) const {
+ unsigned VectorProperty<T>::size(void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     return sizeof(unsigned) + v->size() * sizeof(T);
 }
 
 template <typename T>
-inline bool VectorProperty<T>::different(void* object, void* refObject) const {
+ bool VectorProperty<T>::different(void* object, void* refObject) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     std::vector<T>* w = (std::vector<T>*) ((uint8_t*)refObject + offset);
     if (v->size() != w->size())
@@ -123,7 +146,7 @@ inline bool VectorProperty<T>::different(void* object, void* refObject) const {
 }
 
 template <>
-inline int VectorProperty<std::string>::serialize(uint8_t* out, void* object) const {
+ int VectorProperty<std::string>::serialize(uint8_t* out, void* object) const {
     std::vector<std::string>* v = (std::vector<std::string>*) ((uint8_t*)object + offset);
     unsigned size = v->size();
     int idx = 0;
@@ -140,7 +163,7 @@ inline int VectorProperty<std::string>::serialize(uint8_t* out, void* object) co
 }
 
 template <typename T>
-inline int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
+ int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     unsigned size = v->size();
     int idx = 0;
@@ -154,7 +177,7 @@ inline int VectorProperty<T>::serialize(uint8_t* out, void* object) const {
 }
 
 template <>
-inline int VectorProperty<std::string>::deserialize(const uint8_t* in, void* object) const {
+ int VectorProperty<std::string>::deserialize(const uint8_t* in, void* object) const {
     std::vector<std::string>* v = (std::vector<std::string>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -176,7 +199,7 @@ inline int VectorProperty<std::string>::deserialize(const uint8_t* in, void* obj
 }
 
 template <typename T>
-inline int VectorProperty<T>::deserialize(const uint8_t* in, void* object) const {
+ int VectorProperty<T>::deserialize(const uint8_t* in, void* object) const {
     std::vector<T>* v = (std::vector<T>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -192,36 +215,15 @@ inline int VectorProperty<T>::deserialize(const uint8_t* in, void* object) const
     return idx;
 }
 
-template <>
-inline IntervalProperty<float>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Float, PropertyAttribute::Interval, offset, 2 * sizeof(float)) {}
-
-template <>
-inline IntervalProperty<int>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Int, PropertyAttribute::Interval, offset, 2 * sizeof(int)) {}
-
-template <>
-inline IntervalProperty<int8_t>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Int8, PropertyAttribute::Interval, offset, 2 * sizeof(int8_t)) {}
-
-template <>
-inline IntervalProperty<uint8_t>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Int8, PropertyAttribute::Interval, offset, 2 * sizeof(int8_t)) {}
-
-template <>
-inline IntervalProperty<Color>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Color, PropertyAttribute::Interval, offset, 2 * sizeof(Color)) {}
-
-template <>
-inline IntervalProperty<glm::vec2>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Vec2, PropertyAttribute::Interval, offset, 2 * sizeof(glm::vec2)) {}
-
 template <typename T>
-IntervalProperty<T>::IntervalProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Unsupported, PropertyAttribute::Interval, offset, 2 * sizeof(T)) {}
-
-template <typename T>
-inline bool IntervalProperty<T>::different(void* object, void* refObject) const {
+ bool IntervalProperty<T>::different(void* object, void* refObject) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     Interval<T>* w = (Interval<T>*) ((uint8_t*)refObject + offset);
     return v->t1 != w->t1 || v->t2 != w->t2;
 }
 
 template <typename T>
-inline int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
+ int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     memcpy(out, &v->t1, sizeof(T));
     memcpy(out + sizeof(T), &v->t2, sizeof(T));
@@ -229,7 +231,7 @@ inline int IntervalProperty<T>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T>
-inline int IntervalProperty<T>::deserialize(const uint8_t* in, void* object) const {
+ int IntervalProperty<T>::deserialize(const uint8_t* in, void* object) const {
     Interval<T>* v = (Interval<T>*) ((uint8_t*)object + offset);
     memcpy(&v->t1, in, sizeof(T));
     memcpy(&v->t2, in + sizeof(T), sizeof(T));
@@ -240,13 +242,13 @@ template <typename T, typename U>
 MapProperty<T,U>::MapProperty(hash_t id, unsigned long offset) : IProperty(id, PropertyType::Unsupported, PropertyAttribute::None, offset, 0) {}
 
 template <typename T, typename U>
-inline unsigned MapProperty<T,U>::size(void* object) const {
+ unsigned MapProperty<T,U>::size(void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     return sizeof(unsigned) + v->size() * (sizeof(T) + sizeof(U));
 }
 
 template <typename T, typename U>
-inline bool MapProperty<T,U>::different(void* object, void* refObject) const {
+ bool MapProperty<T,U>::different(void* object, void* refObject) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     std::map<T, U>* w = (std::map<T, U>*) ((uint8_t*)refObject + offset);
     if (v->size() != w->size())
@@ -261,7 +263,7 @@ inline bool MapProperty<T,U>::different(void* object, void* refObject) const {
 }
 
 template <typename T, typename U>
-inline int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
+ int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     unsigned size = v->size();
     int idx = 0;
@@ -277,7 +279,7 @@ inline int MapProperty<T,U>::serialize(uint8_t* out, void* object) const {
 }
 
 template <typename T, typename U>
-inline int MapProperty<T,U>::deserialize(const uint8_t* in, void* object) const {
+ int MapProperty<T,U>::deserialize(const uint8_t* in, void* object) const {
     std::map<T, U>* v = (std::map<T, U>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;
@@ -296,7 +298,7 @@ inline int MapProperty<T,U>::deserialize(const uint8_t* in, void* object) const 
 }
 
 template <>
-inline unsigned MapProperty<std::string, float>::size(void* object) const {
+ unsigned MapProperty<std::string, float>::size(void* object) const {
     std::map<std::string, float>* v = (std::map<std::string, float>*) ((uint8_t*)object + offset);
     int size = sizeof(unsigned);
     for (std::map<std::string, float>::iterator it=v->begin(); it!=v->end(); ++it) {
@@ -307,7 +309,7 @@ inline unsigned MapProperty<std::string, float>::size(void* object) const {
 
 
 template <>
-inline int MapProperty<std::string, float>::serialize(uint8_t* out, void* object) const {
+ int MapProperty<std::string, float>::serialize(uint8_t* out, void* object) const {
     std::map<std::string, float>* v = (std::map<std::string, float>*) ((uint8_t*)object + offset);
     unsigned size = v->size();
     int idx = 0;
@@ -325,7 +327,7 @@ inline int MapProperty<std::string, float>::serialize(uint8_t* out, void* object
 }
 
 template <>
-inline int MapProperty<std::string, float>::deserialize(const uint8_t* in, void* object) const {
+ int MapProperty<std::string, float>::deserialize(const uint8_t* in, void* object) const {
     std::map<std::string, float>* v = (std::map<std::string, float>*) ((uint8_t*)object + offset);
     v->clear();
     unsigned size;

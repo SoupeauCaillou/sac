@@ -31,6 +31,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(ZSQDSystem);
 

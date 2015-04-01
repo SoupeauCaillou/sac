@@ -23,6 +23,7 @@
 #include "MorphingSystem.h"
 
 #include <glm/glm.hpp>
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(MorphingSystem);
 

@@ -26,6 +26,7 @@
 #include "../systems/RenderingSystem.h"
 #include "../systems/TransformationSystem.h"
 #include "base/Log.h"
+#include "base/TimeUtil.h"
 #include "PlacementHelper.h"
 #include "util/ReplayManager.h"
 

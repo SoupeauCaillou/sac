@@ -37,6 +37,8 @@
 #include "util/Random.h"
 #include "util/Recorder.h"
 #include "api/KeyboardInputHandlerAPI.h"
+#include "imgui.h"
+#include "base/TimeUtil.h"
 
 #include <mutex>
 #include <set>

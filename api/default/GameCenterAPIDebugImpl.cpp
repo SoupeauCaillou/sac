@@ -23,6 +23,7 @@
 #include "base/PlacementHelper.h"
 #include "base/EntityManager.h"
 #include "base/Frequency.h"
+#include "base/TimeUtil.h"
 
 #include "systems/TransformationSystem.h"
 #include "systems/RenderingSystem.h"

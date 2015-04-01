@@ -25,11 +25,22 @@
 #include <stdlib.h>
 #if SAC_INGAME_EDITORS
 #include "systems/opengl/TextureLibrary.h"
+#include "imgui.h"
 #endif
 #include "util/MurmurHash.h"
 
+#include "util/ComponentFactory.h"
+#include "base/TimeUtil.h"
+#include "base/Profiler.h"
+#include "util/SerializerProperty.h"
+#include <algorithm>
+
 std::map<hash_t, ComponentSystem*> ComponentSystem::registry;
 
+
+bool ComponentSystem::entityHasComponent(const std::vector<Entity>& c, Entity e) {
+    return std::binary_search(c.begin(), c.end(), e);
+}
 
 ComponentSystem::ComponentSystem(hash_t n) : type(ComponentType::POD), id(n)
 #if SAC_DEBUG

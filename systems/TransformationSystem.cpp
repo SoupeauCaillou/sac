@@ -21,6 +21,7 @@
 
 
 #include "TransformationSystem.h"
+#include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(TransformationSystem);
 
