@@ -23,6 +23,7 @@
 #include "System.h"
 #include "util/MurmurHash.h"
 
+class AssetAPI;
 class AnimDescriptor;
 
 struct AnimationComponent {

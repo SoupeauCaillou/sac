@@ -25,6 +25,7 @@
 #include "RenderingSystem.h"
 #include "opengl/AnimDescriptor.h"
 #include "util/SerializerProperty.h"
+#include "base/EntityManager.h"
 
 static void applyFrameToEntity(Entity e, const AnimationComponent*, const AnimDescriptor::AnimFrame& frame) {
     LOGV(2, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");

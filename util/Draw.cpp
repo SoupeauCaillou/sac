@@ -32,7 +32,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
-
+#include "base/EntityManager.h"
 
 Draw Draw::instance;
 

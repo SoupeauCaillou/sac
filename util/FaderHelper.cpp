@@ -28,6 +28,7 @@
 #include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 #include "util/EntityBatch.h"
+#include "base/EntityManager.h"
 
 FaderHelper::FaderHelper() : fadingEntity(0) {
 

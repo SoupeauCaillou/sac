@@ -38,6 +38,7 @@
 #endif
 
 #include <glm/gtx/norm.hpp>
+#include "base/EntityManager.h"
 
 TouchInputManager* TouchInputManager::instance = 0;
 

@@ -26,12 +26,9 @@
 #define theEntityManager (*EntityManager::Instance())
 
 #include <map>
-#include <list>
 #include <forward_list>
 #include <vector>
-#if SAC_DEBUG
-#include <string>
-#endif
+
 #define ADD_COMPONENT(entity, type) theEntityManager.AddComponent((entity), &type##System::GetInstance())
 
 #include "systems/opengl/EntityTemplateLibrary.h"

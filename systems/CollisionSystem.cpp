@@ -35,6 +35,7 @@
 
 #include "util/Draw.h"
 #include "util/SerializerProperty.h"
+#include "base/EntityManager.h"
 
 INSTANCE_IMPL(CollisionSystem);
 

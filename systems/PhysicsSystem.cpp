@@ -27,6 +27,7 @@
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/norm.hpp>
 #include "util/SerializerProperty.h"
+#include "base/EntityManager.h"
 
 #include <utility>
 

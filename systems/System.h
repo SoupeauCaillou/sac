@@ -25,7 +25,8 @@
 
 #include "base/Entity.h"
 #include "util/Serializer.h"
-#include "base/EntityManager.h"
+#include "util/MurmurHash.h"
+// #include "base/EntityManager.h"
 
 class LocalizeAPI;
 
@@ -49,12 +50,10 @@ class ComponentSystem {
     virtual void* componentAsVoidPtr(Entity e) = 0;
 
     void applyEntityTemplate(Entity entity,
-                             const PropertyNameValueMap& propMap,
+                             const std::map<hash_t, uint8_t*>& propMap,
                              LocalizeAPI* localizeAPI);
     int serialize(Entity entity, uint8_t** out, void* ref = 0);
     int deserialize(Entity entity, uint8_t* out, int size);
-    void suspendEntity(Entity entity);
-    void resumeEntity(Entity entity);
     unsigned entityCount() const;
     void forEachEntityDo(std::function<void(Entity)> func);
     const std::vector<Entity>& RetrieveAllEntityWithComponent() const;
@@ -86,7 +85,6 @@ class ComponentSystem {
     ComponentType::Enum type;
     hash_t id;
     std::vector<Entity> entityWithComponent;
-    std::list<Entity> suspended;
 
     Serializer componentSerializer;
     static bool entityHasComponent(const std::vector<Entity>& c, Entity e);
@@ -116,7 +114,7 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
 
     void Add(Entity entity) {
         LOGF_IF(entityHasComponent(entityWithComponent, entity),
-                "Entity '" << theEntityManager.entityName(entity)
+                "Entity '" /*<< theEntityManager.entityName(entity)*/
                            << "' has the same component('" << INV_HASH(getId())
                            << "') twice!");
 
@@ -133,11 +131,6 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
                     new (&components[e]) T(original[e]);
                     // components[e] = original[e];
                 }
-                for (auto e : suspended) {
-                    new (&components[e]) T(original[e]);
-                    // components[e] = original[e];
-                }
-
                 free(original);
             }
         }
@@ -151,7 +144,7 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
            const char* file = "\0",
            int line = 0) {
 
-        theEntityManager.validateEntity(entity);
+        // theEntityManager.validateEntity(entity);
 #else
     T* Get(Entity entity,
            bool failIfNotfound = true,
@@ -175,7 +168,7 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
             if (!entityHasComponent(entityWithComponent, entity)) {
                 if (failIfNotfound) {
                     LOGF("Entity '"
-                         << theEntityManager.entityName(entity) << "' ("
+                         /*<< theEntityManager.entityName(entity)*/ << "' ("
                          << entity << ") has no component of type '"
                          << INV_HASH(getId()) << "' [@ " << file << ':' << line
                          << ']');

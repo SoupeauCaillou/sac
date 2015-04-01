@@ -34,7 +34,8 @@
 #include "base/Profiler.h"
 #include "util/SerializerProperty.h"
 #include <algorithm>
-
+#include "base/EntityManager.h"
+    
 std::map<hash_t, ComponentSystem*> ComponentSystem::registry;
 
 
@@ -105,27 +106,6 @@ void ComponentSystem::deleteAllEntities() {
         theEntityManager.DeleteEntity(e);
     }
     LOGF_IF(!entityWithComponent.empty(), "Entity list should be empty after deleteAll");
-}
-
-void ComponentSystem::suspendEntity(Entity entity) {
-    auto it = std::find(entityWithComponent.begin(), entityWithComponent.end(), entity);
-    LOGF_IF(it == entityWithComponent.end(), "Suspending an invalid entity " << entity);
-    entityWithComponent.erase(it);
-    suspended.push_back(entity);
-}
-
-void ComponentSystem::resumeEntity(Entity entity) {
-    auto st = std::find(suspended.begin(), suspended.end(), entity);
-    LOGF_IF(st == suspended.end(), "Resuming a not suspended entity " << entity);
-    suspended.erase(st);
-
-    // sorted insert
-    auto it=entityWithComponent.begin();
-    for (; it!=entityWithComponent.end(); ++it) {
-        if (*it > entity)
-            break;
-    }
-    entityWithComponent.insert(it, entity);
 }
 
 unsigned ComponentSystem::entityCount() const {
