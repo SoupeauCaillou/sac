@@ -20,9 +20,8 @@
 
 #pragma once
 
-#include "base/Log.h"
 #include <cstring>
-
+#include <stdint.h>
 typedef uint32_t hash_t;
 
 class Murmur {

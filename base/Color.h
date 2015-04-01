@@ -26,6 +26,7 @@
 
 #include <base/SacDefs.h>
 #include "util/MurmurHash.h"
+#include "base/Log.h"
 
 struct Color {
     public:

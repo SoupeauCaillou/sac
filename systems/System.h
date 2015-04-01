@@ -26,6 +26,9 @@
 #include "base/Entity.h"
 #include "util/Serializer.h"
 #include "util/MurmurHash.h"
+#include <functional>
+#include "base/Log.h"
+
 // #include "base/EntityManager.h"
 
 class LocalizeAPI;
