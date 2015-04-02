@@ -84,9 +84,6 @@
 #include "stb_image.h"
 #endif
 
-
-#include <sstream>
-
 Game::Game() {
 #if SAC_INGAME_EDITORS
     gameType = GameType::Default;

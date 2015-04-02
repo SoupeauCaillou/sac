@@ -25,11 +25,8 @@
 #if SAC_DEBUG
 #include "RenderingSystem.h"
 #include "TextSystem.h"
-#include <sstream>
 #endif
 #include "util/IntersectionUtil.h"
-#include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtx/compatibility.hpp>
 #include <glm/gtx/norm.hpp>
 #include <algorithm>
 
@@ -74,6 +71,9 @@ static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const
     return IntersectionUtil::pointRectangleAABB(p, cell);
 }
 
+#if SAC_DEBUG
+static char debugText[4096];
+#endif
 void CollisionSystem::DoUpdate(float dt) {
     #define CELL_SIZE 4.0f
     #define INV_CELL_SIZE (1.0f/CELL_SIZE)
@@ -205,21 +205,25 @@ void CollisionSystem::DoUpdate(float dt) {
         }
     }
 
+#if SAC_DEBUG
+    unsigned debugTextOffset = 0;
+#endif
     for (unsigned i=0; i<cells.size(); i++) {
         const Cell& cell = cells[i];
 
 #if SAC_DEBUG
-        if (showDebug) {
+        if (showDebug && debugTextOffset < sizeof(debugTextOffset)) {
             const int x = i % w;
             const int y = i / w;
 
-            std::stringstream ss;
-            ss << x << ' ' << y << '\n'
-                << cell.collidingEntities.size() << '('
-                << cell.collidingGroupsInside << "), "
-                << cell.colliderEtities.size() << '('
-                << cell.colliderGroupsInside << ')';
-            TEXT(debug[i])->text = ss.str();
+            int len = 
+                snprintf(&debugText[debugTextOffset], sizeof(debugTextOffset),
+                    "%d %d\n%lu(%d) %lu(%d)",
+                    x, y,
+                    cell.collidingEntities.size(), cell.collidingGroupsInside,
+                    cell.colliderEtities.size(), cell.colliderGroupsInside);
+            TEXT(debug[i])->text = &debugText[debugTextOffset];
+            debugTextOffset += len;
         }
 #endif
 
