@@ -32,7 +32,7 @@
 
 
 
-#define MAX_PARTICULE_COUNT 4096
+#define MAX_PARTICULE_COUNT 40096
 
 INSTANCE_IMPL(ParticuleSystem);
 

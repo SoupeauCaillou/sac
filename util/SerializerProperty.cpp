@@ -4,6 +4,9 @@
 #include <iomanip>
 
 #include "base/Entity.h"
+#if SAC_NETWORK
+#include "systems/NetworkSystem.h"
+#endif
 
 #define PTR_OFFSET_2_PTR(ptr, offset) ((uint8_t*)ptr + offset)
 

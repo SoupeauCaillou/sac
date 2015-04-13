@@ -505,7 +505,7 @@ GridPos SquareSpatialGrid::positionSizeToGridPos(const glm::vec2& pos) const {
     return GridPos( x, y );
 }
 
-AABB SquareSpatialGrid::boundingBox(bool inner) const {
+AABB SquareSpatialGrid::boundingBox(bool ) const {
     AABB boundingBox;
 
     boundingBox.bottom  = - h / 2.f;

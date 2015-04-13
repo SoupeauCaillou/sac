@@ -26,7 +26,7 @@
 #include <SDL.h>
 #include <base/EntityManager.h>
 
-int main(int LOG_USAGE_ONLY(argc), char **) {
+int main(int argc, char **) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
         EntityManager::CreateInstance();
     AssertOnFatal = false;

@@ -77,7 +77,11 @@ void behavior(Entity e, float, SeekParams& param, Context* interest, Context* pr
 
 
 template<>
+#if SAC_DEBUG
 void behavior(Entity e, float /*dt*/, FleeParams& param, Context* interest, Context* priority, Context* /*danger*/) {
+#else
+void behavior(Entity e, float /*dt*/, FleeParams& param, Context* interest, Context* , Context* /*danger*/) {
+#endif
     if (param.target == 0)
         return;
 
@@ -321,7 +325,9 @@ void behavior(Entity e, float dt, CohesionParams& param, Context* interest, Cont
     SeekParams seek;
     seek.entities = &eTarget;
     TRANSFORM(eTarget)->position = targetPosition;
+#if SAC_DEBUG
     Draw::Point(targetPosition);
+#endif
     seek.count = 1;
     float weight = 0.3 + 0.7 * coeff;
     seek.weight = &weight;

@@ -88,21 +88,13 @@ static const char* enumNames[] ={
 
 static const char* keepOnlyFilename(const char* fullPath) {
     #define SIZE 28
-    static char filename[SIZE];
+    static char filename[SIZE + 1];
 
-        const char* result = fullPath;
-        const char* ptr = fullPath;
-        while (*ptr++ != '\0') {
-                if (*ptr == '\\' || *ptr == '/') result = ptr + 1;
-        }
-
-    int length = strlen(result);
-    memset(filename, ' ', SIZE - 1);
-    strncpy(&filename[SIZE - 1 - length], result, length);
-
-    filename[SIZE - 1] = '\0';
+    int len = (int) strlen(fullPath);
+    int offset = len - SIZE;
+    int start = offset < 0 ? 0 : offset;
+    sprintf(filename, "%*s", SIZE, &fullPath[start]);
     return filename;
-
 }
 
 static const char* enum2Name(LogVerbosity::Enum t) {
@@ -158,7 +150,7 @@ static int detect_gdb(void)
     }
 
     fclose(fd);
-    return rc;
+    return rc && 0;
 }
 
 void initLogColors() {

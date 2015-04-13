@@ -47,10 +47,6 @@ INSTANCE_IMPL(AutonomousAgentSystem);
     } while (false)
 
 AutonomousAgentSystem::AutonomousAgentSystem() : ComponentSystemImpl<AutonomousAgentComponent>(HASH("AutonomousAgent", 0x63018d2f)) {
-    for (int i=0; i<8; i++) {
-        glm::vec2 r = glm::rotate(glm::vec2(1, 0), Steering::angle(0, i));
-        LOGI("glm::vec2(" << r.x << ", " << r.y << ")");
-    }
 #if 0
 
     AutonomousAgentComponent ac;
@@ -81,7 +77,9 @@ bool AutonomousAgentSystem::isArrived(Entity ) {
 }
 
 void AutonomousAgentSystem::DoUpdate(float dt) {
+#if SAC_DEBUG
     Draw::Clear(HASH("aa", 0x6e1cb412));
+#endif
     FOR_EACH_ENTITY_COMPONENT(AutonomousAgent, e, agent)
         Steering::Context interest, priority, danger;
         memset(&interest, 0, sizeof(Steering::Context));

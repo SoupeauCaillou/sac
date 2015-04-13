@@ -73,8 +73,10 @@ static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const
 
 #if SAC_DEBUG
 static char debugText[4096];
-#endif
 void CollisionSystem::DoUpdate(float dt) {
+#else
+void CollisionSystem::DoUpdate(float) {
+#endif
     #define CELL_SIZE 4.0f
     #define INV_CELL_SIZE (1.0f/CELL_SIZE)
 

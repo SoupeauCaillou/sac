@@ -143,7 +143,7 @@ struct CharSequenceToUnicode {
         }
 
         // insert char in sequence
-        sequence[(int)index] = newChar;
+        sequence[(unsigned char)index] = newChar;
 
         if (index == LastChar) {
             unicode =

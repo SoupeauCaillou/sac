@@ -1,8 +1,11 @@
-#include "NetworkAPILinuxPacket.h"
 
-#include "util/Serializer.h"
 
 #if SAC_NETWORK
+#include "NetworkAPILinuxPacket.h"
+#include "util/Serializer.h"
+#include "base/Log.h"
+#include "util/MurmurHash.h"
+#include "util/SerializerProperty.h"
 
 Packet::Enum LobbyPacket::getPacketType(ENetPacket * packet) {
         LOGF_IF(packet->dataLength < sizeof(Packet::Enum), "Invalid packet size: " << packet->dataLength);
@@ -56,7 +59,7 @@ void EnteringRoomPacket::addProperties(Serializer& s) {
 
 void ConnectionInfoPacket::addProperties(Serializer& s) {
     s.add(new Property<int>(HASH("host", 0x0), OFFSET_PTR(address.host, this)));
-    s.add(new Property<short>(HASH("port", 0x0), OFFSET_PTR(address.port, this)));
+    s.add(new Property<unsigned short>(HASH("port", 0x0), OFFSET_PTR(address.port, this)));
 }
 
 void PlayersInRoomPacket::addProperties(Serializer& s) {

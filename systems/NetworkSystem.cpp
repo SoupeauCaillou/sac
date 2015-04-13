@@ -93,7 +93,7 @@ struct NetworkMessageHeader {
 INSTANCE_IMPL(NetworkSystem);
 
 
-NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>(HASH("Network", 0x0)), networkAPI(0) {
+NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>(HASH("Network", 0x3b7514b1)), networkAPI(0) {
     nextGuid = 1;
 
     NetworkComponentPriv nc;
@@ -358,8 +358,8 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
 }
 
 
-void NetworkSystem::Delete(Entity e) {
-    LOGT("TODO " << e);
+void NetworkSystem::Delete(Entity ) {
+
 #if 0
     // mark the entity as deleted
     auto it = components.find(e);
