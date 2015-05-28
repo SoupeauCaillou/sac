@@ -23,15 +23,16 @@
 
 #include "System.h"
 #include <list>
+#include "../api/NetworkAPI.h"
 class NetworkAPI;
-struct NetworkComponentPriv;
 
 struct NetworkComponent {
-    NetworkComponent() {}
+    NetworkComponent() : guid(0), entityExistsGlobally(false) {}
     std::vector<std::string> sync;
-#if 0
-    int newOwnerShipRequest;
-#endif
+    /* private */
+    unsigned int guid; // global unique id
+    bool entityExistsGlobally; //, ownedLocally;
+    std::queue<NetworkPacket> packetToProcess;
 };
 
 #define theNetworkSystem NetworkSystem::GetInstance()
@@ -55,11 +56,8 @@ bool isOwnedLocally(Entity e);
 public:
 NetworkAPI* networkAPI;
 
-protected:
-NetworkComponent* CreateComponent();
-
 private:
-NetworkComponentPriv* guidToComponent(unsigned int guid);
+NetworkComponent* guidToComponent(unsigned int guid);
 void updateEntity(Entity e, NetworkComponent* c, float dt, bool onlyCreate);
 unsigned int nextGuid;
 std::list<unsigned int> deletedEntities;

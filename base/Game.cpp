@@ -497,7 +497,6 @@ void Game::sacInit() {
 
 #if SAC_INGAME_EDITORS
     ImGuiIO& io = ImGui::GetIO();
-    io.PixelCenterOffset = 0.0f;
 
 #if SAC_DESKTOP
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.

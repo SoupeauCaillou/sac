@@ -293,7 +293,7 @@ bool ComponentSystem::saveEntityToFile(Entity e, FILE* file) {
 
         if (prop->getAttribute() == PropertyAttribute::Vector
             || prop->getAttribute() == PropertyAttribute::Interval) {
-            LOGT("PropertyAttribute::Vector unhandled");
+            LOGT_EVERY_N(1000, "PropertyAttribute::Vector unhandled");
             continue;
         }
 
@@ -372,7 +372,7 @@ bool ComponentSystem::addEntityPropertiesToBar(Entity e, void* /*bar*/) {
     for(IProperty* prop: componentSerializer.getProperties()) {
 
         if (prop->getAttribute() == PropertyAttribute::Vector) {
-            LOGT("PropertyAttribute::Vector unhandled");
+            LOGT_EVERY_N(1000, "PropertyAttribute::Vector unhandled");
             continue;
         }
 

@@ -70,7 +70,7 @@ void EntityManager::DestroyInstance() {
 
 #if SAC_INGAME_EDITORS
 void EntityManager::renameEntity(Entity e, hash_t id) {
-    entityHash[e] = id;
+    _entityHash[e] = id;
 }
 #endif
 
@@ -93,9 +93,9 @@ Entity EntityManager::CreateEntity(const hash_t id, EntityType::Enum type, Entit
 #endif
     }
 
-    if (e >= entityHash.size())
-        entityHash.resize(2 * (entityHash.size() + 1));
-    entityHash[e] = id;
+    if (e >= _entityHash.size())
+        _entityHash.resize(2 * (_entityHash.size() + 1));
+    _entityHash[e] = id;
 
     if (tmpl != InvalidEntityTemplateRef) {
         // add component
@@ -124,11 +124,11 @@ Entity EntityManager::CreateEntityFromTemplate(const char* name, EntityType::Enu
 const char* EntityManager::entityName(Entity e) const {
     static const char* u = "unknown";
 
-    if (e >= entityHash.size()) {
+    if (e >= _entityHash.size()) {
         LOGE("Undefined (not initialiazed ?) entity '" << e << "' used");
         return u;
     }
-    hash_t id = entityHash[e];
+    hash_t id = _entityHash[e];
     if (id)
 #if SAC_DEBUG
         return Murmur::lookup(id);
@@ -146,9 +146,9 @@ Entity EntityManager::getEntityByName(hash_t id) const {
     bool found = false;
 #endif
 
-    const auto count = entityHash.size();
+    const auto count = _entityHash.size();
     for (unsigned i=0; i<count; i++) {
-        if (entityHash[i] == id) {
+        if (_entityHash[i] == id) {
             byName = i;
 #if SAC_DEBUG
             if (found) {
@@ -189,7 +189,7 @@ void EntityManager::DeleteEntity(Entity e) {
     entityTemplateLibrary.remove(e);
 #endif
     {
-        entityHash[e] = 0;
+        _entityHash[e] = 0;
     }
     LOGV(2, "Entity " << e << " is ready for recycling");
     recyclableEntities.emplace_front(e);
@@ -232,7 +232,7 @@ void EntityManager::deleteAllEntities() {
         DeleteEntity(*it);
     nextEntity = 1;
     recyclableEntities.clear();
-    entityHash.clear();
+    _entityHash.clear();
 
     LOGF_IF (entityComponents.size() != 0, "entityComponents not empty after deleting all entities");
 }
@@ -301,7 +301,7 @@ int EntityManager::serialize(uint8_t** result) {
         // entity (id)
         out = (uint8_t*)mempcpy(out, &saves[i].e, sizeof(Entity));
         // hash
-        out = (uint8_t*) mempcpy(out, &entityHash[saves[i].e], sizeof(hash_t));
+        out = (uint8_t*) mempcpy(out, &_entityHash[saves[i].e], sizeof(hash_t));
 
         // nb component
         const int cCount = saves[i].components.size();
@@ -327,9 +327,9 @@ void EntityManager::deserialize(const uint8_t* in, int length) {
 
         hash_t id = 0;
         memcpy(&id, &in[index], sizeof(hash_t)); index += sizeof(hash_t);
-        if (e >= entityHash.size())
-            entityHash.resize(2 * (entityHash.size() + 1));
-        entityHash[e] = id;
+        if (e >= _entityHash.size())
+            _entityHash.resize(2 * (_entityHash.size() + 1));
+        _entityHash[e] = id;
 
         int cCount = 0;
         memcpy(&cCount, &in[index], sizeof(int)); index += sizeof(int);

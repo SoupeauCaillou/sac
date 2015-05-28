@@ -87,7 +87,7 @@ static const char* enumNames[] ={
 #include <cstring>
 
 static const char* keepOnlyFilename(const char* fullPath) {
-    #define SIZE 28
+    #define SIZE 20
     static char filename[SIZE + 1];
 
     int len = (int) strlen(fullPath);

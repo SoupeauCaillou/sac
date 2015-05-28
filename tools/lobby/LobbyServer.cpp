@@ -284,6 +284,7 @@ int main() {
                                         LOGE("JoinRoom packet received from '" << player->name << "'. Sending room '" << room->name << "' connection details.");
                                         // send player connection info
                                         ConnectionInfoPacket conn(room->details.address);
+                                        LOGI(conn.address.host);
                                         enet_peer_send(event.peer, 0, conn.toENetPacket());
                                         break;
                                     }

@@ -147,6 +147,9 @@ void NetworkAPILinuxImpl::login(const std::string& nickName, const std::string& 
     datas->lobby.server = lobby;
     datas->lobby.nickName = nickName;
 
+    if (datas->lobby.thread.joinable()) {
+        datas->lobby.thread.join();
+    }
     datas->lobby.thread = std::thread([this] () -> void {
         runLobbyThread();
     });
@@ -328,7 +331,7 @@ void NetworkAPILinuxImpl::runLobbyThread() {
                 break;
             }
             case NetworkStatus::JoiningRoom: {
-                if (localPort == 0) {
+                if (localPort == 0 && datas->match.host) {
                     struct sockaddr_in sin;
                     socklen_t addrlen = sizeof(sin);
                     int ret = getsockname(datas->match.host->socket, (struct sockaddr *)&sin, &addrlen);
@@ -397,13 +400,13 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                     enet_peer_send(datas->lobby.peer, 0, p.toENetPacket());
                 }
                 else {
-                    LOGI("New incoming connection");
                     datas->connectionReceived(event.peer->address);
                     datas->match.peers.push_back(event.peer);
                     // send guid
                     GuidPacket p;
                     p.guid = 1 << (30 - datas->match.peers.size());
                     enet_peer_send(event.peer, 0, p.toENetPacket());
+                    LOGI("New incoming connection, sending guid packet:" << p.guid);
                 }
                 break;
             }
@@ -422,6 +425,7 @@ NetworkPacket NetworkAPILinuxImpl::pullReceivedPacket() {
                         GuidPacket p;
                         p.fromENetPacket(event.packet);
                         datas->match.guidTag = p.guid;
+                        LOGI("Received my guid " << p.guid);
                     }
                 }
                 result.size = event.packet->dataLength;

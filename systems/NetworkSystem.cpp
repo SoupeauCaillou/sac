@@ -27,6 +27,7 @@
 #include <algorithm>
 #include "base/TimeUtil.h"
 #include "util/SerializerProperty.h"
+#include "util/Random.h"
 
 #define USE_SYSTEM_IDX 1
 struct StatusCache {
@@ -50,13 +51,6 @@ static float counterTime;
     #define GUID_TAG (static_cast<NetworkAPILinuxImpl*>(networkAPI))->guidTag()
 #endif
 
-struct NetworkComponentPriv : NetworkComponent {
-    NetworkComponentPriv() : NetworkComponent(), guid(0), entityExistsGlobally(false) /* ownedLocally(true)*/ {}
-    unsigned int guid; // global unique id
-    bool entityExistsGlobally; //, ownedLocally;
-    std::queue<NetworkPacket> packetToProcess;
-};
-
 struct NetworkMessageHeader {
     enum Type {
         HandShake = 0,
@@ -68,13 +62,13 @@ struct NetworkMessageHeader {
 #endif
     } type;
     unsigned int entityGuid;
+    hash_t entityHash;
 
     union {
         struct {
             unsigned int guidTag;
         } HANDSHAKE;
         struct {
-
         } CREATE;
         struct {
 
@@ -93,10 +87,11 @@ struct NetworkMessageHeader {
 INSTANCE_IMPL(NetworkSystem);
 
 
-NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>(HASH("Network", 0x3b7514b1)), networkAPI(0) {
+NetworkSystem::NetworkSystem() : ComponentSystemImpl<NetworkComponent>(HASH("Network", 0x3b7514b1), ComponentType::Complex), networkAPI(0) {
     nextGuid = 1;
 
-    NetworkComponentPriv nc;
+    NetworkComponent nc;
+    componentSerializer.add(new Property<int>(HASH("guid", 0x6eafbf16), OFFSET(guid, nc)));
     componentSerializer.add(new VectorProperty<std::string>(HASH("sync", 0x31a5991f), OFFSET(sync, nc)));
 
 #if SAC_DEBUG
@@ -130,14 +125,15 @@ void NetworkSystem::DoUpdate(float dt) {
 
             // if I'm the server, forward this packet to other clients
             if (isHosting) {
-                SEND(pkt);
+                // SEND(pkt);
             }
 
             switch (header->type) {
+#if 0
                 case NetworkMessageHeader::CreateEntity: {
-                    const char* name = (char*) (pkt.data + sizeof(NetworkMessageHeader));
-                    LOGT("Fixme");
-                    Entity e = theEntityManager.CreateEntity(Murmur::RuntimeHash(name));
+                    hash_t hash;
+                    memcpy(&hash, pkt.data + sizeof(NetworkMessageHeader), sizeof(hash_t));
+                    Entity e = theEntityManager.CreateEntity(hash);
                     ADD_COMPONENT(e, Network);
                     NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*>(NETWORK(e));
                     LOGV(1, "Received CREATE_ENTITY msg (guid: " << header->entityGuid << ")");
@@ -145,6 +141,7 @@ void NetworkSystem::DoUpdate(float dt) {
                     LOGV(1, "Create entity :" << e << " / " << nc->guid);
                     break;
                 }
+#endif
                 case NetworkMessageHeader::DeleteEntity: {
                     LOGV(1, "Received DELETE_ENTITY msg (guid: " << header->entityGuid << ")");
                     Entity e = guidToEntity(header->entityGuid);
@@ -156,16 +153,22 @@ void NetworkSystem::DoUpdate(float dt) {
                     break;
                 }
                 case NetworkMessageHeader::UpdateEntity: {
-                    LOGV(1, "Received UPDATE_ENTITY msg (guid: " << header->entityGuid << ")");
-                    NetworkComponentPriv* nc = guidToComponent(header->entityGuid);
-                    if (nc) {
-                        // TODO
-                        if (nc->guid & GUID_TAG) {
-                            // do not apply
-                        } else {
-                            nc->packetToProcess.push(pkt);
-                        }
+                    LOGI_EVERY_N(10, "Received UPDATE_ENTITY msg (guid: " << header->entityGuid << ")");
+                    NetworkComponent* nc = guidToComponent(header->entityGuid);
+                    if (!nc) {
+                        /* create entity */
+                        Entity e = theEntityManager.CreateEntity(header->entityHash);
+                        ADD_COMPONENT(e, Network);
+                        nc = NETWORK(e);
+                        nc->guid = header->entityGuid;
                     }
+
+                    if (nc->guid & GUID_TAG) {
+                        // do not apply our own packets
+                    } else {
+                        nc->packetToProcess.push(pkt);
+                    }
+
                     break;
                 }
 #if 0
@@ -190,6 +193,7 @@ void NetworkSystem::DoUpdate(float dt) {
             }
         }
     }
+
     // Process update type packets received
     {
 #if USE_SYSTEM_IDX
@@ -198,8 +202,7 @@ void NetworkSystem::DoUpdate(float dt) {
         uint8_t temp[1024];
 #endif
 
-        FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
-            NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
+        FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
 
             while (!nc->packetToProcess.empty()) {
                 NetworkPacket pkt = nc->packetToProcess.front();
@@ -216,21 +219,29 @@ void NetworkSystem::DoUpdate(float dt) {
                     index += nameLength;
                     ComponentSystem* system = ComponentSystem::Named((const char*)temp);
 #endif
+                    if (!system->hasComponent(e)) {
+                        LOGI("Adding component " << INV_HASH(system->getId()) << " to " << e);
+                        theEntityManager.AddComponent(e, system);
+                    }
                     int size;
                     memcpy(&size, &pkt.data[index], 4);
                     index += 4;
                     index += system->deserialize(e, &pkt.data[index], size);
                 }
-                 nc->packetToProcess.pop();
+                nc->packetToProcess.pop();
             }
         END_FOR_EACH()
     }
 
+    if (! GUID_TAG )
+        return;
+
+
     // Process local entities : send required update to others
     {
-        FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
+        /*FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
             updateEntity(e, nc, dt, true);
-        END_FOR_EACH()
+        END_FOR_EACH()*/
         FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
             updateEntity(e, nc, dt, false);
         END_FOR_EACH()
@@ -264,34 +275,36 @@ void NetworkSystem::DoUpdate(float dt) {
 #endif
 }
 
-void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool onlyCreate) {
+void NetworkSystem::updateEntity(Entity e, NetworkComponent* nc, float, bool ) {
     static uint8_t temp[1024];
-    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (comp);
 
     if (nc->guid != 0 && !(nc->guid & GUID_TAG))
         return;
     if (nc->sync.empty())
         return;
 
+    if (nc->guid == 0) {
+        nc->guid = (nextGuid++) | GUID_TAG;
+    }
+
+#if 0
     if (!nc->entityExistsGlobally && onlyCreate) {
         // later nc->entityExistsGlobally = true;
         nc->guid = (nextGuid++) | GUID_TAG;
-        LOGT("Fime");
-        #if 0
-        const std::string& name = theEntityManager.entityName(e);
+        const hash_t h = theEntityManager.entityHash(e);
         NetworkPacket pkt;
         NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
         header->type = NetworkMessageHeader::CreateEntity;
         header->entityGuid = nc->guid;
-        pkt.size = sizeof(NetworkMessageHeader) + name.length() + 1;
-        std::strcpy ((char*)&temp[sizeof(NetworkMessageHeader)], name.c_str());
+        pkt.size = sizeof(NetworkMessageHeader) + sizeof(hash_t);
+        memcpy(&temp[sizeof(NetworkMessageHeader)], &h, sizeof(h));
         pkt.data = temp;
         SEND(pkt);
         LOGV(1, "NOTIFY create : " << e << "/" << nc->guid << '/' << theEntityManager.entityName(e));
-        #endif
     }
     if (onlyCreate)
         return;
+#endif
     StatusCache& cache = statusCache[e];
 
     NetworkPacket pkt;
@@ -299,6 +312,7 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
     NetworkMessageHeader* header = (NetworkMessageHeader*)temp;
     header->type = NetworkMessageHeader::UpdateEntity;
     header->entityGuid = nc->guid;
+    header->entityHash = theEntityManager.entityHash(e);
     pkt.size = sizeof(NetworkMessageHeader);
 
 #if USE_SYSTEM_IDX
@@ -324,9 +338,10 @@ void NetworkSystem::updateEntity(Entity e, NetworkComponent* comp, float, bool o
             cacheEntry = c->second;
         }
 
+        int forceFullUpdate = Random::Float(0, 1) >= 0.99;
         uint8_t* out;
-        int size = system->serialize(e, &out, cacheEntry);
-        if (size > 0 || !nc->entityExistsGlobally) {
+        int size = system->serialize(e, &out, forceFullUpdate ? 0 : cacheEntry);
+        {
 #if USE_SYSTEM_IDX
             temp[pkt.size++] = idx;
 #else
@@ -375,13 +390,14 @@ void NetworkSystem::Delete(Entity ) {
 #endif
 }
 
-NetworkComponent* NetworkSystem::CreateComponent() {
-    return new NetworkComponentPriv(); // ahah!
-}
+/*NetworkComponent* NetworkSystem::CreateComponent() {
+    auto* nc = new NetworkComponentPriv(); // ahah!
+    nc->guid = (nextGuid++) | GUID_TAG;
+    return nc;
+}*/
 
-NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
-    FOR_EACH_COMPONENT(Network, ncc)
-        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
+NetworkComponent* NetworkSystem::guidToComponent(unsigned int guid) {
+    FOR_EACH_COMPONENT(Network, nc)
         if (nc->guid == guid)
             return nc;
     END_FOR_EACH()
@@ -392,8 +408,7 @@ NetworkComponentPriv* NetworkSystem::guidToComponent(unsigned int guid) {
 Entity NetworkSystem::guidToEntity(unsigned int guid) {
     if (guid == 0)
         return 0;
-    FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
-        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
+    FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
         if (nc->guid == guid)
             return e;
     END_FOR_EACH()
@@ -402,14 +417,13 @@ Entity NetworkSystem::guidToEntity(unsigned int guid) {
 }
 
 bool NetworkSystem::isOwnedLocally(Entity e) {
-    const NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (Get(e));
+    const NetworkComponent* nc = Get(e);
     return (nc->guid & GUID_TAG);
 }
 
 void NetworkSystem::deleteAllNonLocalEntities() {
     int count = 0;
-    FOR_EACH_ENTITY_COMPONENT(Network, e, ncc)
-        NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
+    FOR_EACH_ENTITY_COMPONENT(Network, e, nc)
         if (!(nc->guid & GUID_TAG)) {
             theEntityManager.DeleteEntity(e);
             count++;
@@ -421,12 +435,11 @@ void NetworkSystem::deleteAllNonLocalEntities() {
 unsigned int NetworkSystem::entityToGuid(Entity e) {
     if (e <= 0)
         return 0;
-    NetworkComponent* ncc = Get(e, false);
-    if (ncc == 0) {
+    NetworkComponent* nc = Get(e, false);
+    if (nc == 0) {
         LOGF("Entity " << e << " has no network component");
         return 0;
     }
-    NetworkComponentPriv* nc = static_cast<NetworkComponentPriv*> (ncc);
     return nc->guid;
 }
 

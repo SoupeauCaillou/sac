@@ -33,7 +33,7 @@
 
 INSTANCE_IMPL(PhysicsSystem);
 
-PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>(HASH("Physics", 0xecfc0aba)) {
+PhysicsSystem::PhysicsSystem() : ComponentSystemImpl<PhysicsComponent>(HASH("Physics", 0xecfc0aba), ComponentType::Complex) {
     PhysicsComponent tc;
     componentSerializer.add(new Property<glm::vec2>(HASH("linear_velocity", 0xba5da842), OFFSET(linearVelocity, tc), glm::vec2(0.001f, 0)));
     componentSerializer.add(new Property<float>(HASH("angular_velocity", 0x9d13e5d2), OFFSET(angularVelocity, tc), 0.001f));

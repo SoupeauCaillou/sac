@@ -49,6 +49,8 @@
 #include "DebugConsole.h"
 #if SAC_NETWORK
 #include "../systems/NetworkSystem.h"
+#include "../api/NetworkAPI.h"
+#include "../api/linux/NetworkAPILinuxImpl.h"
 #endif
 
 #include <sys/stat.h>
@@ -855,6 +857,114 @@ void LevelEditor::tick(float dt) {
     /* ZSQD debug tools */
     if (ImGui::CollapsingHeader("ZSQD", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theZSQDSystem.showDebug);
+    }
+#endif
+#if SAC_NETWORK
+    if (ImGui::CollapsingHeader("Network", NULL, true, true)) {
+        // show stats
+        ImGui::Columns(3, NULL, false);
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "dl %.2f", theNetworkSystem.dlRate / 1000);
+        ImGui::NextColumn();
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "up %.2f", theNetworkSystem.ulRate / 1000);
+        ImGui::NextColumn();
+        ImGui::Text(" kB/s");
+        ImGui::Columns(1);
+        ImGui::Separator();
+
+        {
+            /* hmmm */
+            static char* nickname = NULL, *lobby = NULL;
+            if (nickname == NULL && lobby == NULL) {
+                nickname = (char*)malloc(64); strcpy(nickname, "anonymous");
+                lobby = (char*)malloc(64); strcpy(lobby, "127.0.0.1");
+
+                for (int i=0; i<game->arg.c; i++) {
+                    if (!strcmp(game->arg.v[i], "--nickname")) sprintf(nickname, "%.63s", game->arg.v[++i]);
+                    if (!strcmp(game->arg.v[i], "--lobby")) sprintf(lobby, "%.63s", game->arg.v[++i]);
+                }
+            }
+
+
+            NetworkAPILinuxImpl* api = static_cast<NetworkAPILinuxImpl*> (theNetworkSystem.networkAPI);
+            /* lobby buttons */
+            switch (api->getStatus()) {
+                case NetworkStatus::None:
+                case NetworkStatus::ConnectionToLobbyFailed:
+                case NetworkStatus::LoginFailed:
+                    ImGui::InputText("nickname", nickname, 64);
+                    ImGui::InputText("lobby", lobby, 64);
+
+                    /* add button to retry connection to lobby */
+                    if (ImGui::Button("Connect")) {
+                        api->login(
+                            nickname,
+                            lobby);
+                    }
+                    break;
+                case NetworkStatus::ConnectingToLobby:
+                case NetworkStatus::ConnectedToLobby:
+                case NetworkStatus::LoginInProgress:
+                    ImGui::LabelText("nickname", nickname);
+                    ImGui::LabelText("lobby", lobby);
+                    ImGui::Button("Connecting...");
+                    break;
+                default:
+                    ImGui::LabelText("nickname", nickname);
+                    ImGui::LabelText("lobby", lobby);
+
+            }
+            ImGui::Separator();
+            /* in-lobby buttons */
+            switch (api->getStatus()) {
+                case NetworkStatus::Logged:
+                    /* display pending invitations if any */
+                    if (api->getPendingInvitationCount()) {
+                        if (ImGui::Button("Accept invit.")) {
+                            api->acceptInvitation();
+                        }
+                    } else if (ImGui::Button("Invite")) {
+                        api->createRoom();
+                    }
+                    break;
+                case NetworkStatus::CreatingRoom:
+                    ImGui::LabelText("status", "creating room");
+                    break;
+                case NetworkStatus::JoiningRoom:
+                    ImGui::LabelText("status", "joining room");
+                    break;
+                case NetworkStatus::InRoomAsMaster:
+                    ImGui::LabelText("status", "game master");
+                    break;
+                case NetworkStatus::ConnectedToServer:
+                    ImGui::LabelText("status", "connected");
+                    break;
+                default: break;
+            }
+            ImGui::Separator();
+            switch(api->getStatus()) {
+                case NetworkStatus::InRoomAsMaster:
+                case NetworkStatus::ConnectedToServer: {
+                    auto players = api->getPlayersInRoom();
+                    for (auto it: players) {
+                        switch (it.second) {
+                            case NetworkStatus::JoiningRoom:
+                                ImGui::LabelText(it.first.c_str(), "invited");
+                                break;
+                            case NetworkStatus::InRoomAsMaster:
+                                ImGui::LabelText(it.first.c_str(), "master");
+                                break;
+                            case NetworkStatus::ConnectedToServer:
+                                ImGui::LabelText(it.first.c_str(), "connected");
+                                break;
+                            default:
+                                ImGui::LabelText(it.first.c_str(), "---");
+                        }
+                    }
+                }
+                default:
+                    break;
+            }
+        }
     }
 #endif
 

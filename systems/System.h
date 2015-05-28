@@ -52,6 +52,7 @@ class ComponentSystem {
     virtual uint8_t* saveComponent(Entity entity, uint8_t* out = 0) = 0;
     virtual void* componentAsVoidPtr(Entity e) = 0;
 
+    bool hasComponent(Entity e) const { return entityHasComponent(entityWithComponent, e); }
     void applyEntityTemplate(Entity entity,
                              const std::map<hash_t, uint8_t*>& propMap,
                              LocalizeAPI* localizeAPI);

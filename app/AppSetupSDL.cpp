@@ -178,12 +178,18 @@ struct CommandLineOptions {
         forceEtc1 = false;
         headless = false;
         profiler = false;
+        nickname = NULL;
+        lobby = NULL;
     }
     bool restore;
     int verbose;
     bool forceEtc1;
     bool headless;
     bool profiler;
+#if SAC_NETWORK
+    const char* nickname;
+    const char* lobby;
+#endif
 };
 static CommandLineOptions parseCommandLineOption(int argc, char** argv);
 
@@ -382,6 +388,13 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
     game->init(state, size);
 
+    #if SAC_NETWORK
+    {
+        NetworkAPILinuxImpl* api = static_cast<NetworkAPILinuxImpl*> (theNetworkSystem.networkAPI);
+        api->init();
+    }
+    #endif
+
     if (!options.headless)
         theRenderingSystem.enableRendering();
 
@@ -538,6 +551,14 @@ static CommandLineOptions parseCommandLineOption(int argc, char** argv) {
             LOGF_IF((i+1)>= argc, "Invalid argument count. Expecting integer");
             LevelEditor::DebugAreaHeight = std::atoi(argv[i+1]);
             i++;
+        }
+    #endif
+    #if SAC_NETWORK
+        if (!strcmp(argv[i], "--nickname")) {
+            options.nickname = argv[++i];
+        }
+        if (!strcmp(argv[i], "--lobby")) {
+            options.lobby = argv[++i];
         }
     #endif
     }

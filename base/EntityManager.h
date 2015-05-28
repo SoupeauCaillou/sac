@@ -70,6 +70,7 @@ class EntityManager {
         void deserialize(const uint8_t* in, int size);
 
         Entity getEntityByName(hash_t id) const;
+        hash_t entityHash(Entity e) const { return _entityHash[e]; }
 
 #if SAC_ENABLE_LOG || SAC_INGAME_EDITORS
         const char* entityName(Entity e) const;
@@ -88,7 +89,7 @@ class EntityManager {
         std::forward_list<Entity> recyclableEntities;
 
         std::list<Entity> permanentEntities;
-        std::vector<hash_t> entityHash;
+        std::vector<hash_t> _entityHash;
         std::map<Entity, std::list<ComponentSystem*> > entityComponents;
 
 #if SAC_DEBUG

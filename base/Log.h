@@ -174,6 +174,8 @@ inline const char* MySimpleStream::typeToFormat<double>() { return "%.3lf"; }
 template<>
 inline const char* MySimpleStream::typeToFormat<char*>() { return "%s"; }
 template<>
+inline const char* MySimpleStream::typeToFormat<const char*>() { return "%s"; }
+template<>
 inline const char* MySimpleStream::typeToFormat<char>() { return "%c"; }
 
 

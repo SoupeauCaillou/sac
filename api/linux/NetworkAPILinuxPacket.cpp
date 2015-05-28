@@ -33,41 +33,41 @@ ENetPacket* LobbyPacket::toENetPacket() {
 }
 
 void LoginPacket::addProperties(Serializer& s) {
-    s.add(new StringProperty(HASH("name", 0x0), OFFSET_PTR(name, this)));
+    s.add(new StringProperty(HASH("name", 0x195267c7), OFFSET_PTR(name, this)));
 }
 
 void RoomIdPacket::addProperties(Serializer& s) {
-    s.add(new StringProperty(HASH("room_id", 0x0), OFFSET_PTR(roomId, this)));
+    s.add(new StringProperty(HASH("room_id", 0xa2d0a202), OFFSET_PTR(roomId, this)));
 }
 
 void JoinRoomPacket::addProperties(Serializer& s) {
-    s.add(new StringProperty(HASH("room_id", 0x0), OFFSET_PTR(roomId, this)));
+    s.add(new StringProperty(HASH("room_id", 0xa2d0a202), OFFSET_PTR(roomId, this)));
 }
 
 void InvitePacket::addProperties(Serializer& s) {
-    s.add(new StringProperty(HASH("room_id", 0x0), OFFSET_PTR(roomId, this)));
+    s.add(new StringProperty(HASH("room_id", 0xa2d0a202), OFFSET_PTR(roomId, this)));
 }
 
 void RoomClosedPacket::addProperties(Serializer& s) {
-    s.add(new StringProperty(HASH("room_id", 0x0), OFFSET_PTR(roomId, this)));
+    s.add(new StringProperty(HASH("room_id", 0xa2d0a202), OFFSET_PTR(roomId, this)));
 }
 
 void EnteringRoomPacket::addProperties(Serializer& s) {
-    s.add(new StringProperty(HASH("room_id", 0x0), OFFSET_PTR(roomId, this)));
-    s.add(new StringProperty(HASH("player_name", 0x0), OFFSET_PTR(playerName, this)));
+    s.add(new StringProperty(HASH("room_id", 0xa2d0a202), OFFSET_PTR(roomId, this)));
+    s.add(new StringProperty(HASH("player_name", 0x7013ae9c), OFFSET_PTR(playerName, this)));
 }
 
 void ConnectionInfoPacket::addProperties(Serializer& s) {
-    s.add(new Property<int>(HASH("host", 0x0), OFFSET_PTR(address.host, this)));
-    s.add(new Property<unsigned short>(HASH("port", 0x0), OFFSET_PTR(address.port, this)));
+    s.add(new Property<int>(HASH("host", 0xaca76024), OFFSET_PTR(address.host, this)));
+    s.add(new Property<unsigned short>(HASH("port", 0x7f2d83e5), OFFSET_PTR(address.port, this)));
 }
 
 void PlayersInRoomPacket::addProperties(Serializer& s) {
-    s.add(new VectorProperty<std::string>(HASH("names", 0x0), OFFSET_PTR(names, this)));
-    s.add(new VectorProperty<int>(HASH("states", 0x0), OFFSET_PTR(states, this)));
+    s.add(new VectorProperty<std::string>(HASH("names", 0x7184f3dc), OFFSET_PTR(names, this)));
+    s.add(new VectorProperty<int>(HASH("states", 0xa722ef48), OFFSET_PTR(states, this)));
 }
 
 void GuidPacket::addProperties(Serializer& s) {
-        s.add(new Property<int>(HASH("guid", 0x0), OFFSET_PTR(guid, this)));
+        s.add(new Property<int>(HASH("guid", 0x6eafbf16), OFFSET_PTR(guid, this)));
 }
 #endif
