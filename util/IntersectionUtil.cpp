@@ -215,20 +215,29 @@ int IntersectionUtil::linePolygon(const glm::vec2& pA1, const glm::vec2& pA2,
 int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, const std::vector<std::tuple<glm::vec2, glm::vec2>> lines, glm::vec2* intersectionPoints, glm::vec2* normalAtCollision) {
     glm::vec2 intersection;
     int count = 0;
+    float* distances = (float*)alloca(sizeof(float) * lines.size());
+    const float EPSILON = 0.0001f;
 
     for (const auto& line: lines) {
-
         const auto& pB1 (std::get<0>(line));
         const auto& pB2 (std::get<1>(line));
         if (lineLine(pA1, pA2, pB1, pB2, &intersection)) {
-            if (intersectionPoints)
-                intersectionPoints[count] = intersection;
-            if (normalAtCollision)
-                normalAtCollision[count] = produceNormal(pB1, pB2);
-            count++;
+            float d = distances[count] = glm::distance2(intersection, pA1);
+            bool ignore = false;
+
+            for (int i=0; i<count; i++) {
+                ignore |= (glm::abs(distances[i] - d) < EPSILON);
+            }
+
+            if (!ignore) {
+                if (intersectionPoints)
+                    intersectionPoints[count] = intersection;
+                if (normalAtCollision)
+                    normalAtCollision[count] = produceNormal(pB1, pB2);
+                count++;
+            }
         }
     }
-
 
     return count;
 }
