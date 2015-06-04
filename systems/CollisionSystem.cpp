@@ -238,7 +238,7 @@ void CollisionSystem::DoUpdate(float) {
             const int x = i % w;
             const int y = i / w;
 
-            int len = 
+            int len =
                 snprintf(&debugText[debugTextOffset], sizeof(debugTextOffset),
                     "%d %d\n%lu(%d) %lu(%d)",
                     x, y,
@@ -511,11 +511,6 @@ static int performRayObjectCollisionInCell(
             int cnt = IntersectionUtil::lineRectangle(origin, endA, tc->position, tc->size, tc->rotation, intersectionPoints);
 
             for (int i=0; i<cnt; i++) {
-                #if SAC_DEBUG
-                if (showDebug)
-                    Draw::Point(HASH("Collision", 0x638cf8ed), intersectionPoints[i]);
-                #endif
-
                 /* only valid if inside current cell */
                 if (!isInsideCell(intersectionPoints[i], cell.X, cell.Y, CELL_SIZE, worldSize))
                     continue;
@@ -550,6 +545,16 @@ static int performRayObjectCollisionInCell(
             }
         }
     }
+
+    #if SAC_DEBUG
+    if (showDebug) {
+        for (int i=0; i<collisionCount; i++) {
+            static char id[16];
+            sprintf(id, "%d", i);
+            Draw::Point(HASH("Collision", 0x638cf8ed), points[i], Color(1, 1, 1), id);
+        }
+    }
+    #endif
 
     return collisionCount;
 }
