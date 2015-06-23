@@ -38,15 +38,13 @@ Draw Draw::instance;
 
 static constexpr hash_t TempGroupId = Murmur::_Hash(__FILE__);
 
+static std::vector<int> unusedRenderingEntities;
+static std::vector<int> unusedTextEntities;
+
 Entity Draw::renderingEntity(hash_t groupID) {
     Entity t = 0;
-    auto firstUnused = rendering.begin();
-    for (; firstUnused != rendering.end(); ++firstUnused) {
-        if (RENDERING(firstUnused->first)->show ==false) {
-            break;
-        }
-    }
-    if (firstUnused == rendering.end()) {
+
+    if (unusedRenderingEntities.empty()) {
         t = theEntityManager.CreateEntity(HASH("__/draw_r", 0x222c4e96));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Rendering);
@@ -55,29 +53,32 @@ Entity Draw::renderingEntity(hash_t groupID) {
 
         rendering.push_back(std::make_pair(t, groupID));
     } else {
+        size_t s = unusedRenderingEntities.size();
+        int index = unusedRenderingEntities[s - 1];
+        auto* firstUnused = &rendering[index];
         firstUnused->second = groupID;
         t = firstUnused->first;
+        unusedRenderingEntities.resize(s - 1);
     }
     return t;
 }
 
 Entity Draw::textEntity(hash_t groupID) {
     Entity t = 0;
-    auto firstUnused = text.begin();
-    for (; firstUnused != text.end(); ++firstUnused) {
-        if (TEXT(firstUnused->first)->show ==false) {
-            break;
-        }
-    }
-    if (firstUnused == text.end()) {
+
+    if (unusedTextEntities.empty()) {
         t = theEntityManager.CreateEntity(HASH("__/draw_t", 0xa021a4bd));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Text);
 
         text.push_back(std::make_pair(t, groupID));
     } else {
+        size_t s = unusedTextEntities.size();
+        int index = unusedTextEntities[s - 1];
+        auto* firstUnused = &text[index];
         firstUnused->second = groupID;
         t = firstUnused->first;
+        unusedTextEntities.resize(s - 1);
     }
     return t;
 }
@@ -86,6 +87,7 @@ static void addText(Entity t, Entity parent, const std::string& text) {
     AnchorComponent c;
     c.z = -0.01; // to compensate TextSystem 0.001
     c.position = glm::vec2(0.0f, TEXT(t)->charHeight * 0.5);
+    c.rotation = 0;
     AnchorSystem::adjustTransformWithAnchor(TRANSFORM(t), TRANSFORM(parent), &c);
     TEXT(t)->charHeight = 1;//glm::min(TRANSFORM(parent)->size.x, 0.5f);
     TEXT(t)->text = text;
@@ -94,28 +96,37 @@ static void addText(Entity t, Entity parent, const std::string& text) {
 }
 
 void Draw::Clear(hash_t groupID) {
-    for (auto e : instance.rendering) {
+    const size_t sR = instance.rendering.size();
+    for (size_t i=0; i<sR; i++) {
+        const auto& e = instance.rendering[i];
         if (e.second == groupID) {
             RENDERING(e.first)->show = false;
+            unusedRenderingEntities.push_back(i);
         }
     }
-    for (auto e : instance.text) {
+    const size_t sT = instance.text.size();
+    for (size_t i=0; i<sT; i++) {
+        const auto& e = instance.text[i];
         if (e.second == groupID) {
             TEXT(e.first)->show = false;
+            unusedTextEntities.push_back(i);
         }
     }
 }
 
 void Draw::ClearAll() {
-    for (auto item : instance.rendering) {
-        theEntityManager.DeleteEntity(item.first);
+    const size_t sR = instance.rendering.size();
+    for (size_t i=0; i<sR; i++) {
+        const auto& e = instance.rendering[i];
+        RENDERING(e.first)->show = false;
+        unusedRenderingEntities.push_back(i);
     }
-    instance.rendering.clear();
-
-    for (auto item : instance.text) {
-        theEntityManager.DeleteEntity(item.first);
+    const size_t sT = instance.text.size();
+    for (size_t i=0; i<sT; i++) {
+        const auto& e = instance.text[i];
+        TEXT(e.first)->show = false;
+        unusedTextEntities.push_back(i);
     }
-    instance.text.clear();
 }
 
 void Draw::Point(const glm::vec2& position, const Color & color, const std::string& text) {
@@ -127,6 +138,7 @@ void Draw::Point(hash_t groupID, const glm::vec2& position, const Color & color,
 
     TRANSFORM(pt)->size = glm::vec2(0.2f);
     TRANSFORM(pt)->position = position;
+    TRANSFORM(pt)->rotation = 0.0f;
 
     RENDERING(pt)->color = color;
     RENDERING(pt)->show = true;
