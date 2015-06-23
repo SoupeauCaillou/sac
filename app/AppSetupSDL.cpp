@@ -178,8 +178,10 @@ struct CommandLineOptions {
         forceEtc1 = false;
         headless = false;
         profiler = false;
+#if SAC_NETWORK
         nickname = NULL;
         lobby = NULL;
+#endif
     }
     bool restore;
     int verbose;
