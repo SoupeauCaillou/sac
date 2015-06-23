@@ -445,10 +445,12 @@ void CollisionSystem::DoUpdate(float) {
 
                 #if SAC_DEBUG
                 if (showDebug) {
-                    if (cc->collision.count) {
-                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, cc->collision.at[0] - origin, Color(1, 0, 0));
-                    } else {
-                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, endAxis - origin, Color(0, 0, 0));
+                    for (int i=0; i<cc->collision.count; i++) {
+                        static char id[16];
+                        sprintf(id, "%d", i);
+                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, cc->collision.at[i] - origin, Color(1, 0, 0, 0.2));
+                        Draw::Point(HASH("Collision", 0x638cf8ed), cc->collision.at[i], Color(0.2, 0.2, 0.2, 0.6), id);
+
                     }
                 }
                 #endif
@@ -498,7 +500,8 @@ static int performRayObjectCollisionInCell(
         end = cell.colliderEtities.end();
     }
 
-    for (auto it = begin; it!=end; ++it) {
+    bool wentThroughAnEntity = false;
+    for (auto it = begin; it!=end && !wentThroughAnEntity; ++it) {
         const Entity testedEntity = *it;
         if (testedEntity == cc->ignore) continue;
 
@@ -509,6 +512,7 @@ static int performRayObjectCollisionInCell(
             glm::vec2 intersectionPoints[2];
             const auto* tc = TRANSFORM(testedEntity);
             int cnt = IntersectionUtil::lineRectangle(origin, endA, tc->position, tc->size, tc->rotation, intersectionPoints);
+            wentThroughAnEntity = (cnt > 1);
 
             for (int i=0; i<cnt; i++) {
                 /* only valid if inside current cell */
@@ -545,16 +549,6 @@ static int performRayObjectCollisionInCell(
             }
         }
     }
-
-    #if SAC_DEBUG
-    if (showDebug) {
-        for (int i=0; i<collisionCount; i++) {
-            static char id[16];
-            sprintf(id, "%d", i);
-            Draw::Point(HASH("Collision", 0x638cf8ed), points[i], Color(1, 1, 1), id);
-        }
-    }
-    #endif
 
     return collisionCount;
 }
