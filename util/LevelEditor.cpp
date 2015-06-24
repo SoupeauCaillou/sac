@@ -850,7 +850,7 @@ void LevelEditor::tick(float dt) {
     /* Collision debug tools */
     if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
         ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
-        ImGui::SliderInt("Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 10000);
+        ImGui::SliderInt("Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 100);
     }
 #endif
 #if !DISABLE_ZSQD_SYSTEM
