@@ -100,7 +100,7 @@ static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const
 }
 
 #if SAC_DEBUG
-static char debugText[4096];
+static char debugText[8096];
 void CollisionSystem::DoUpdate(float dt) {
 #else
 void CollisionSystem::DoUpdate(float) {
@@ -186,6 +186,11 @@ void CollisionSystem::DoUpdate(float) {
         if (yStart > yEnd)
             std::swap(yStart, yEnd);
 
+        if (cc->ray.is) {
+            xEnd = xStart;
+            yEnd = yStart;
+        }
+
         for (int x = xStart; x <= xEnd; x++) {
             for (int y = yStart; y <= yEnd; y++) {
                 LOGE_IF(x + y * w >=  w * h, "Incorrect cell index: " << x << '+' << y << '*' << w << " >= " << w << '*' << h);
@@ -234,7 +239,7 @@ void CollisionSystem::DoUpdate(float) {
         const Cell& cell = cells[i];
 
 #if SAC_DEBUG
-        if (showDebug && debugTextOffset < sizeof(debugTextOffset)) {
+        if (showDebug && debugTextOffset < sizeof(debugText)) {
             const int x = i % w;
             const int y = i / w;
 
@@ -246,6 +251,7 @@ void CollisionSystem::DoUpdate(float) {
                     cell.colliderEtities.size(), cell.colliderGroupsInside);
             TEXT(debug[i])->text = &debugText[debugTextOffset];
             debugTextOffset += len;
+            TEXT(debug[i])->show = true;
         }
 #endif
 
@@ -445,11 +451,16 @@ void CollisionSystem::DoUpdate(float) {
 
                 #if SAC_DEBUG
                 if (showDebug) {
+                    Color colors[] = {
+                        Color(1, 0, 0, 0.3),
+                        Color(0, 1, 0, 0.3),
+                        Color(0, 0, 1, 0.3),
+                    };
+                    const glm::vec2* prev = &origin;
                     for (int i=0; i<cc->collision.count; i++) {
-                        static char id[16];
-                        sprintf(id, "%d", i);
-                        Draw::Vec2(HASH("Collision", 0x638cf8ed), origin, cc->collision.at[i] - origin, Color(1, 0, 0, 0.2));
-                        Draw::Point(HASH("Collision", 0x638cf8ed), cc->collision.at[i], Color(0.2, 0.2, 0.2, 0.6), id);
+                        Draw::Vec2(HASH("Collision", 0x638cf8ed), (*prev), cc->collision.at[i] - (*prev), colors[i%3]);
+                        // Draw::Point(HASH("Collision", 0x638cf8ed), cc->collision.at[i], Color(0.2, 0.2, 0.2, 0.6));
+                        prev = &cc->collision.at[i];
 
                     }
                 }
@@ -500,8 +511,7 @@ static int performRayObjectCollisionInCell(
         end = cell.colliderEtities.end();
     }
 
-    bool wentThroughAnEntity = false;
-    for (auto it = begin; it!=end && !wentThroughAnEntity; ++it) {
+    for (auto it = begin; it!=end; ++it) {
         const Entity testedEntity = *it;
         if (testedEntity == cc->ignore) continue;
 
@@ -512,7 +522,6 @@ static int performRayObjectCollisionInCell(
             glm::vec2 intersectionPoints[2];
             const auto* tc = TRANSFORM(testedEntity);
             int cnt = IntersectionUtil::lineRectangle(origin, endA, tc->position, tc->size, tc->rotation, intersectionPoints);
-            wentThroughAnEntity = (cnt > 1);
 
             for (int i=0; i<cnt; i++) {
                 /* only valid if inside current cell */
