@@ -452,15 +452,18 @@ void CollisionSystem::DoUpdate(float) {
                 #if SAC_DEBUG
                 if (showDebug) {
                     Color colors[] = {
-                        Color(1, 0, 0, 0.3),
-                        Color(0, 1, 0, 0.3),
-                        Color(0, 0, 1, 0.3),
+                        Color(1, 0, 0, 0.3), Color(1, 0, 0, 0.3),
+                        Color(0, 1, 0, 0.3), Color(0.5, 0.5, 0, 0.3),
+                        Color(0, 0, 1, 0.3), Color(0, 0.5, 0.5, 0.3),
                     };
                     const glm::vec2* prev = &origin;
+                    Entity prevEntity = 0;
                     for (int i=0; i<cc->collision.count; i++) {
-                        Draw::Vec2(HASH("Collision", 0x638cf8ed), (*prev), cc->collision.at[i] - (*prev), colors[i%3]);
+                        Draw::Vec2(HASH("Collision", 0x638cf8ed), (*prev), cc->collision.at[i] - (*prev),
+                            colors[(2 * i + (prevEntity == cc->collision.with[i]) ) % 6 ]);
                         // Draw::Point(HASH("Collision", 0x638cf8ed), cc->collision.at[i], Color(0.2, 0.2, 0.2, 0.6));
                         prev = &cc->collision.at[i];
+                        prevEntity = cc->collision.with[i];
 
                     }
                 }
