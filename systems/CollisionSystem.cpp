@@ -171,6 +171,9 @@ void CollisionSystem::DoUpdate(float) {
         const TransformationComponent* tc = TRANSFORM(entity);
 
         glm::vec2 pOffset(glm::rotate(tc->size * .5f, tc->rotation));
+        if (cc->ray.is) {
+            pOffset = glm::vec2(0.0f, 0.0f);
+        }
         glm::vec2 nOffset(-pOffset);
 
         pOffset += tc->position + worldSize * 0.5f;
@@ -244,7 +247,7 @@ void CollisionSystem::DoUpdate(float) {
             const int y = i / w;
 
             int len =
-                snprintf(&debugText[debugTextOffset], sizeof(debugTextOffset),
+                snprintf(&debugText[debugTextOffset], sizeof(debugText),
                     "%d %d\n%lu(%d) %lu(%d)",
                     x, y,
                     cell.collidingEntities.size(), cell.collidingGroupsInside,
@@ -528,8 +531,9 @@ static int performRayObjectCollisionInCell(
 
             for (int i=0; i<cnt; i++) {
                 /* only valid if inside current cell */
-                if (!isInsideCell(intersectionPoints[i], cell.X, cell.Y, CELL_SIZE, worldSize))
+                if (!isInsideCell(intersectionPoints[i], cell.X, cell.Y, CELL_SIZE, worldSize)) {
                     continue;
+                }
 
                 // compute distance2
                 float d = glm::distance2(origin, intersectionPoints[i]);
