@@ -502,10 +502,6 @@ static int performRayObjectCollisionInCell(
         nearest[i] = glm::distance2(origin, points[i]);
     }
 
-    #if SAC_DEBUG
-    bool showDebug = theCollisionSystem.showDebug;
-    #endif
-
     const glm::vec2& worldSize = theCollisionSystem.worldSize;
 
     std::vector<Entity>::const_iterator begin, end;
@@ -525,7 +521,7 @@ static int performRayObjectCollisionInCell(
         if (cc2->group & cc->collideWith) {
             // Test for collision
 
-            glm::vec2 intersectionPoints[2];
+            glm::vec2 intersectionPoints[4];
             const auto* tc = TRANSFORM(testedEntity);
             int cnt = IntersectionUtil::lineRectangle(origin, endA, tc->position, tc->size, tc->rotation, intersectionPoints);
 
