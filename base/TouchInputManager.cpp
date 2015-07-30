@@ -176,29 +176,16 @@ void TouchInputManager::resetDoubleClick(int idx) {
 }
 
 glm::vec2 TouchInputManager::windowToScreen(const glm::vec2& windowCoords) const {
-#if SAC_INGAME_EDITORS
-    return glm::vec2(windowCoords.x / (LevelEditor::DebugAreaWidth + theRenderingSystem.windowW) - 0.5,
-        (theRenderingSystem.windowH + LevelEditor::DebugAreaHeight - windowCoords.y) / (theRenderingSystem.windowH + LevelEditor::DebugAreaHeight) - 0.5);
-#else
     return glm::vec2(windowCoords.x / theRenderingSystem.windowW - 0.5,
         (theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH - 0.5);
-#endif
 }
 
 glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const TransformationComponent* cameraTrans) const {
     glm::vec2 camLocal;
-#if SAC_INGAME_EDITORS
-    glm::vec2 c (windowCoords - LevelEditor::GameViewPosition());
-    camLocal.x = (c.x / theRenderingSystem.windowW) * cameraTrans->size.x
-        - cameraTrans->size.x * 0.5f;
-    camLocal.y = ((theRenderingSystem.windowH - c.y) / theRenderingSystem.windowH) * cameraTrans->size.y
-        - cameraTrans->size.y * 0.5f;
-#else
     camLocal.x = (windowCoords.x / theRenderingSystem.windowW) * cameraTrans->size.x
         - cameraTrans->size.x * 0.5f;
     camLocal.y = ((theRenderingSystem.windowH - windowCoords.y) / theRenderingSystem.windowH) * cameraTrans->size.y
         - cameraTrans->size.y * 0.5f;
-#endif
     return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
 }
 

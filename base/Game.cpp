@@ -410,10 +410,6 @@ void Game::eventsHandler() {
                     if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                         int w = event.window.data1;
                         int h = event.window.data2;
-                        #if SAC_INGAME_EDITORS
-                        w -= LevelEditor::DebugAreaWidth;
-                        h -= LevelEditor::DebugAreaHeight;
-                        #endif
                         sac::setResolution(w, h);
                         changeResolution(w, h);
                     }

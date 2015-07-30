@@ -244,15 +244,11 @@ int setupEngine(void* _game, const SetupInfo* info) {
         parseCommandLineOption(info->arg.c, info->arg.v);
 
 
-    int largestDimension = 800;
+    int largestDimension = 1024;
     float invRatio = 10 / 16.0f;
     {
         SDL_DisplayMode mode;
         if (0 == SDL_GetCurrentDisplayMode(0, &mode)) {
-            if (game->isLandscape()) {
-                std::swap(mode.w, mode.h);
-            }
-
             while (mode.w < largestDimension ||
                 mode.h < (largestDimension * invRatio)) {
                 largestDimension *= 0.8;
@@ -265,13 +261,8 @@ int setupEngine(void* _game, const SetupInfo* info) {
         std::swap(resolution.x, resolution.y);
     }
 
-    glm::vec2 fullResolution(resolution);
-    #if SAC_INGAME_EDITORS
-        fullResolution.x += LevelEditor::DebugAreaWidth;
-        fullResolution.y += LevelEditor::DebugAreaHeight;
-    #endif
 
-    SDL_SetWindowSize(sdlWindow, fullResolution.x, fullResolution.y);
+    SDL_SetWindowSize(sdlWindow, resolution.x, resolution.y);
     SDL_GLContext sdlContext;
     if  ((sdlContext = SDL_GL_CreateContext(sdlWindow)) == 0) {
         LOGE("SDL create context failed: " << SDL_GetError());

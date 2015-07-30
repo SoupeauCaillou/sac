@@ -30,7 +30,7 @@ void setResolution(int width, int height) {
     LOGI("Resolution set to: " << __(width) << ',' << __(height));
 #if SAC_INGAME_EDITORS
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(width + LevelEditor::DebugAreaWidth, height + LevelEditor::DebugAreaHeight);
+    io.DisplaySize = ImVec2(width, height);
 #endif
 }
 

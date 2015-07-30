@@ -763,7 +763,7 @@ void RenderingSystem::ImImpl_RenderDrawLists2(int cmd_lists_count) {
     GL_OPERATION(glViewport(0, 0, width, height))
     theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
 
-    {
+    if (0) {
         glScissor(0, 0, width, LevelEditor::DebugAreaHeight);
         GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
         glScissor(0, 0, LevelEditor::GameViewPosition().x, height);
