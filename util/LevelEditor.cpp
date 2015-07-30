@@ -467,10 +467,9 @@ void LevelEditor::tick(float dt) {
             }
         }
 
-        ImGui::End();
     }
+    ImGui::End();
 
-#if 1
     if (ImGui::Begin("Editor tools",
                      NULL,
                      ImVec2(DebugAreaWidth * LEFT_PROPORTION,
@@ -1223,9 +1222,8 @@ void LevelEditor::tick(float dt) {
                 playback = 0;
         }
 
-        ImGui::End();
     }
-#endif
+    ImGui::End();
 
     if (ImGui::Begin("Graphs",
                      NULL,
@@ -1263,9 +1261,8 @@ void LevelEditor::tick(float dt) {
                 FLT_MAX,
                 ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
         }
-
-        ImGui::End();
     }
+    ImGui::End();
 
     if (ImGui::GetIO().WantCaptureMouse) {
         // force no click state
