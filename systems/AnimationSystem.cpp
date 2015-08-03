@@ -28,7 +28,7 @@
 #include "base/EntityManager.h"
 
 static void applyFrameToEntity(Entity e, const AnimationComponent*, const AnimDescriptor::AnimFrame& frame) {
-    LOGV(2, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << frame.texture << "'");
+    LOGV(2, "animation: " << theEntityManager.entityName(e) << ": new frame = '" << INV_HASH(frame.texture) << "'");
 
     // hum..RENDERING(e)->show = (frame.texture != InvalidTextureRef);
     RENDERING(e)->texture = frame.texture;

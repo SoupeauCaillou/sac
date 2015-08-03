@@ -100,7 +100,7 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
                     frame.texture = Murmur::RuntimeHash(texture.c_str());
                 frames.push_back(frame);
             } else {
-                LOGF("Missing texture attribute in section '" << section << "'");
+                LOGF("Missing texture attribute in section '" << INV_HASH(section) << "'");
                 return false;
             }
         }
