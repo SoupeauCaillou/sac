@@ -402,7 +402,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
             startProfiler();
     #endif
 
-    // SDL_JoystickEventState(SDL_ENABLE);
+    SDL_JoystickEventState(SDL_ENABLE);
 
     //used for text translation, if needed
     setlocale( LC_ALL, "" );

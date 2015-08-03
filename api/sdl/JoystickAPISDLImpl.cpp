@@ -28,6 +28,7 @@
 
 JoystickAPISDLImpl::JoystickAPISDLImpl() {
     LOGF_IF(SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0, "Failed to initialize SDL Joystick subsystem");
+    SDL_JoystickEventState(SDL_ENABLE);
 }
 
 JoystickAPISDLImpl::~JoystickAPISDLImpl() {
@@ -42,8 +43,13 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
     if (!event) {
         return 0;
     }
+    int joystick = event->jaxis.which;
+    if (!joysticks[joystick].joystickPtr) {
+        LOGE("Received event for invalid joystick #" << joystick);
+        return 0;
+    }
+
     if (event->type == SDL_JOYAXISMOTION) {
-        int joystick = event->jaxis.which;
 
         //0: X left
         //1: Y left
@@ -71,7 +77,6 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
             << " axis=" << (int)event->jaxis.axis << " value=" << event->jaxis.value << " valuef=" << value);
         return 1;
     } else if (event->type == SDL_JOYBUTTONDOWN) {
-        int joystick = event->jaxis.which;
         LOGV(2, "SDL_JOYBUTTONDOWN: " << (int)event->jaxis.axis);
 
         int button = (int)event->jaxis.axis;
@@ -85,7 +90,6 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
         }
         return 1;
     } else if (event->type == SDL_JOYBUTTONUP) {
-        int joystick = event->jaxis.which;
         LOGV(2, "SDL_JOYBUTTONUP: " << (int)event->jaxis.axis);
 
         int button = (int)event->jaxis.axis;
@@ -99,7 +103,7 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
     return 0;
 }
 
-void JoystickAPISDLImpl::update(float) {
+void JoystickAPISDLImpl::update() {
     unsigned newCount = SDL_NumJoysticks();
 
     if (joysticks.size() != newCount) {
@@ -110,6 +114,10 @@ void JoystickAPISDLImpl::update(float) {
         for (unsigned j = oldCount; j < newCount; ++j) {
             LOGI("Opening joystick "<< j << "...");
             joysticks[j].joystickPtr = SDL_JoystickOpen(j);
+
+            if (!joysticks[j].joystickPtr) {
+                LOGE("Coulnd't open joystick " << j << ". Error: " << SDL_GetError());
+            }
         }
     }
 }

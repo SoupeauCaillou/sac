@@ -93,7 +93,7 @@ class JoystickAPISDLImpl : public JoystickAPI {
         }
     }
 
-    void update(float dt);
+    void update();
 
     int eventSDL(void* event);
 

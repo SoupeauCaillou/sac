@@ -565,7 +565,9 @@ delta_time_computation:
     theEntityManager.entityTemplateLibrary.updateReload();
 #endif
 
-
+#if !SAC_MOBILE
+    gameThreadContext->joystickAPI->update();
+#endif
 
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
@@ -598,10 +600,6 @@ delta_time_computation:
         if (gameThreadContext->keyboardInputHandlerAPI) {
             gameThreadContext->keyboardInputHandlerAPI->update();
         }
-
-    #if !SAC_MOBILE
-        // theJoystickManager.Update();
-    #endif
 
         // update game state
     #if SAC_INGAME_EDITORS

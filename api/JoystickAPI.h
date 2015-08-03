@@ -28,6 +28,6 @@ class JoystickAPI {
     virtual bool hasDoubleClicked(int idx, int btn) const = 0;
     virtual void resetDoubleClick(int idx, int btn) = 0;
     virtual const glm::vec2& getPadDirection(int idx, int pad) const = 0;
-    virtual void update(float dt) = 0;
+    virtual void update() = 0;
     virtual int eventSDL(void* event) = 0;
 };
