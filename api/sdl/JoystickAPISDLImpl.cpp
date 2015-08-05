@@ -43,7 +43,17 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
     if (!event) {
         return 0;
     }
+    // filter-out non joystick events
+    if (event->type != SDL_JOYAXISMOTION &&
+        event->type != SDL_JOYBUTTONDOWN &&
+        event->type != SDL_JOYBUTTONUP) {
+        return 0;
+    }
+
     int joystick = event->jaxis.which;
+    if ((int)joysticks.size() <= joystick) {
+        return 0;
+    }
     if (!joysticks[joystick].joystickPtr) {
         LOGE("Received event for invalid joystick #" << joystick);
         return 0;
