@@ -137,17 +137,17 @@ bool DataFileParser::load(const FileBuffer& fb, const std::string& pContext) {
 
             std::string key(s.substr(st, len));
             std::string value(s.substr(sep, end));
-            currentSection->keyValues.insert(std::make_pair(key, value));
+            currentSection->keyValues[key] = value;
 
             // Try something different
             const auto pct = key.find('%');
             if (pct == std::string::npos) {
-                currentSection->hashValues.insert(std::make_pair(Murmur::RuntimeHash(key.c_str()), value));
+                currentSection->hashValues[Murmur::RuntimeHash(key.c_str())] = value;
             } else {
                 hash_t h = Murmur::RuntimeHash(key.substr(0, pct).c_str());
-                currentSection->hashValues.insert(std::make_pair(h, value));
+                currentSection->hashValues[h] = value;
                 hash_t hm = Murmur::RuntimeHash(key.substr(pct + 1, std::string::npos).c_str());
-                currentSection->hashModifiers.insert(std::make_pair(h, hm));
+                currentSection->hashModifiers[h] = hm;
             }
         }
     }
