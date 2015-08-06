@@ -69,6 +69,8 @@ struct RenderingSystem::RenderCommand {
     bool rotateUV;
 #if SAC_DEBUG
     Entity e;
+    int* batchIndex;
+    RenderCommand() : batchIndex(0) {}
 #endif
 };
 

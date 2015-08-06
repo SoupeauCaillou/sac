@@ -550,6 +550,14 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
         // ADD TO BATCH
         LOGF_IF((activeVertexBuffer == Buffers::Dynamic) && (rc.rflags & RenderingFlags::Constant), "Ouch");
         LOGF_IF((activeVertexBuffer == Buffers::Static) && !(rc.rflags & RenderingFlags::Constant), "Ouch2");
+
+
+        #if SAC_DEBUG
+        if (rc.batchIndex) {
+            *(rc.batchIndex) = batchSizes.size();
+        }
+        #endif
+
         addRenderCommandToBatch(rc,
             polygon,
             vertices + batchVertexCount,
