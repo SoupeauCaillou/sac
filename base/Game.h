@@ -25,6 +25,7 @@
 #include <set>
 #include "GameContext.h"
 #include "base/Entity.h"
+#include "util/Tuning.h"
 
 class AssetApi;
 class ComponentSystem;
@@ -88,6 +89,7 @@ class Game {
 #endif
 
     float targetDT;
+    Tuning tuning;
 
     bool isFinished;
 

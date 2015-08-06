@@ -72,6 +72,7 @@
 #include "util/Recorder.h"
 #include "util/Random.h"
 #include "util/LevelEditor.h"
+#include "util/Tuning.h"
 
 #if ! SAC_MOBILE
 #include <SDL2/SDL_events.h>
@@ -363,12 +364,10 @@ void Game::eventsHandler() {
         if (!handled && gameThreadContext->keyboardInputHandlerAPI) {
             handled = gameThreadContext->keyboardInputHandlerAPI->eventSDL(&event);
         }
-
         //or try mouse
         if (!handled && mouseNativeTouchState) {
             handled = mouseNativeTouchState->eventSDL(&event);
         }
-
         //or try joystick
         if (!handled && gameThreadContext->joystickAPI) {
             handled = gameThreadContext->joystickAPI->eventSDL(&event);
@@ -541,6 +540,9 @@ void Game::sacInit() {
     ADD_COMPONENT(camera, Transformation);
     TRANSFORM(camera)->size = PlacementHelper::ScreenSize;
     theTouchInputManager.setCamera(camera);
+
+    tuning.init(gameThreadContext->assetAPI);
+    tuning.load("tuning.ini");
 }
 
 int Game::saveState(uint8_t**) {
@@ -560,6 +562,7 @@ delta_time_computation:
     currentTime = newTime;
 
     theEntityManager.entityTemplateLibrary.update();
+    tuning.updateReload();
 
 #if SAC_DESKTOP
     theEntityManager.entityTemplateLibrary.updateReload();
