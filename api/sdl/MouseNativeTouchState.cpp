@@ -107,6 +107,6 @@ int MouseNativeTouchState::eventSDL(void* inEvent) {
     }
 
     //LOGI("/!\\SDL ID " << (int)event->button.button << " is " << (isDownEvent ? "down!" : "up!"));
-    return 1;
+    return (event->type != SDL_WINDOWEVENT);
 }
 #endif
