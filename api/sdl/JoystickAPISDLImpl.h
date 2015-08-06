@@ -51,6 +51,7 @@ namespace JoystickPad {
 }
 
 struct JoystickState {
+    bool down[JoystickButton::TOTAL];
     bool clicked[JoystickButton::TOTAL];
     bool doubleclicked[JoystickButton::TOTAL];
     float lastClickTime[JoystickButton::TOTAL];
@@ -59,7 +60,7 @@ struct JoystickState {
 
     JoystickState() {
         for (unsigned b = 0; b < JoystickButton::TOTAL; ++b) {
-            clicked[b] = doubleclicked[b] = false;
+            down[b] = clicked[b] = doubleclicked[b] = false;
             lastClickTime[b] = 0;
         }
     }
@@ -71,6 +72,11 @@ class JoystickAPISDLImpl : public JoystickAPI {
     public:
     JoystickAPISDLImpl();
     ~JoystickAPISDLImpl();
+
+    bool isDown(int idx, int btn) const {
+        return (joysticks.size() > (unsigned)idx) &&
+            joysticks[idx].down[btn];
+    }
 
     bool hasClicked(int idx, int btn) const {
         return (joysticks.size() > (unsigned)idx) &&

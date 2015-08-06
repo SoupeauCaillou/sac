@@ -91,6 +91,8 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
 
         int button = (int)event->jaxis.axis;
 
+        joysticks[joystick].down[button] = true;
+
         joysticks[joystick].lastClickTime[button] = TimeUtil::GetTime();
         if (joysticks[joystick].clicked[button]) {
             joysticks[joystick].clicked[button] = false;
@@ -103,6 +105,8 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
         LOGV(2, "SDL_JOYBUTTONUP: " << (int)event->jaxis.axis);
 
         int button = (int)event->jaxis.axis;
+        joysticks[joystick].down[button] = false;
+
 
         if (TimeUtil::GetTime() - joysticks[joystick].lastClickTime[button] > 0.05) {
             joysticks[joystick].clicked[button] = false;
