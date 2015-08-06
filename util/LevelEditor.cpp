@@ -146,6 +146,7 @@ struct LevelEditor::LevelEditorDatas {
     std::vector<RenderingSystem::RenderCommand> backInTime;
     std::vector<std::pair<int, int>> backInTimeFrameOffsetSize;
     int currentBackFrame;
+    int backInTimeCountOverride;
 };
 
 std::vector<Entity> selected;
@@ -255,6 +256,7 @@ LevelEditor::LevelEditor(Game* _game) {
     datas->mode = EditorMode::Selection;
     datas->selectionColorChangeSpeed = -0.5;
     datas->currentBackFrame = -1;
+    datas->backInTimeCountOverride = -1;
     game = _game;
 }
 
@@ -466,7 +468,7 @@ void LevelEditor::tick(float dt) {
                 free(groupsName[p.first]);
             }
         }
-
+        ImGui::PopStyleColor();
     }
     ImGui::End();
 
@@ -476,8 +478,6 @@ void LevelEditor::tick(float dt) {
                             ImGui::GetIO().DisplaySize.y),
                      -1.0f,
                      ImGuiWindowFlags_ShowBorders)) {
-        ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
-        // ImGui::SetWindowPos(ImVec2(0, 0));
 
         if (game->gameType == GameType::LevelEditor) {
             if (ImGui::CollapsingHeader("Save")) {
@@ -1264,6 +1264,81 @@ void LevelEditor::tick(float dt) {
     }
     ImGui::End();
 
+    if (game->gameType == GameType::Replay) {
+        datas->backInTimeCountOverride = -1;
+        if (ImGui::Begin("Frame",
+                         NULL,
+                         ImVec2(DebugAreaWidth, DebugAreaHeight),
+                         -1.0f,
+                         ImGuiWindowFlags_ShowBorders)) {
+            int previousBatch = 0;
+            int batch = 0;
+            ImVec4 batchColor[] = {
+                ImVec4(1.0f, 0.0f, 0.0f, 1.f),
+                ImVec4(0.0f, 0.0f, 1.0f, 1.f),
+                ImVec4(0.0f, 1.0f, 0.0f, 1.f),
+                ImVec4(0.5f, 1.0f, 0.0f, 1.f),
+                ImVec4(0.0f, .5f, 0.5f, 1.f),
+                ImVec4(0.5f, .5f, 0.5f, 1.f),
+            };
+            char id[128];
+
+            /* display render commands */
+            const auto& p = datas->backInTimeFrameOffsetSize[datas->currentBackFrame];
+            for (int i=0; i<p.second; i++) {
+                const RenderingSystem::RenderCommand& rc =
+                    datas->backInTime[p.first + i];
+
+
+                if (rc.batchIndex) {
+                    if (*(rc.batchIndex) != previousBatch) {
+                        previousBatch = *(rc.batchIndex);
+                        batch++;
+                    }
+                }
+                if (i >= datas->backInTimeCountOverride && datas->backInTimeCountOverride >= 0) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, batchColor[5]);
+                } else {
+                    ImGui::PushStyleColor(ImGuiCol_Text, batchColor[batch % 5]);
+                }
+
+                if (rc.texture == BeginFrameMarker) {
+                    sprintf(id, "%d - Begin", i);
+                } else if (rc.texture == EndFrameMarker) {
+                    sprintf(id, "%d - End", i);
+                } else {
+                    sprintf(id, "%d", i);
+                }
+
+                if (ImGui::TreeNode(id)) {
+                    ImGui::PopStyleColor();
+                    ImGui::Value("entity", rc.e);
+                    ImGui::Value("z", rc.z);
+                    ImGui::Value("effect", (unsigned int) rc.effectRef);
+                    ImGui::Color("color", rc.color.asInt());
+                    // state
+                    ImGui::Value("z-pre-pass", (bool) (rc.flags & ZPrePassFlagSet));
+                    ImGui::Value("opaque", (bool) (rc.flags & OpaqueFlagSet));
+                    ImGui::Value("alpha-blended", (bool) (rc.flags & AlphaBlendedFlagSet));
+                    // texture
+                    if (rc.texture != InvalidTextureRef) {
+                        const TextureInfo* info = theRenderingSystem.textureLibrary.get(rc.texture, false);
+                        if (info) {
+                            ImGui::Text("atlas: %s", theRenderingSystem.atlas[info->atlasIndex].name.c_str());
+                        }
+                    }
+                    ImGui::TreePop();
+                } else {
+                    ImGui::PopStyleColor();
+                }
+                if (ImGui::IsHovered()) {
+                    datas->backInTimeCountOverride = i + 1;
+                }
+            }
+        }
+        ImGui::End();
+    }
+
     if (ImGui::GetIO().WantCaptureMouse) {
         // force no click state
         theTouchInputManager.resetState();
@@ -1365,8 +1440,16 @@ void LevelEditor::newFrame(RenderingSystem::RenderCommand* commands,
     }
 }
 
+static int batchIndexes[1024];
 RenderingSystem::RenderCommand* LevelEditor::getFrame(int* count) {
     const auto& p = datas->backInTimeFrameOffsetSize[datas->currentBackFrame];
     *count = p.second;
-    return &datas->backInTime[p.first];
+    if (datas->backInTimeCountOverride > 0) {
+        *count = datas->backInTimeCountOverride;
+    }
+    auto* result = &datas->backInTime[p.first];
+    for (int i=0; i<*count; i++) {
+        result[i].batchIndex = &batchIndexes[i];
+    }
+    return result;
 }
