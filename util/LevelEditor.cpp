@@ -1339,6 +1339,34 @@ void LevelEditor::tick(float dt) {
         ImGui::End();
     }
 
+    if (ImGui::Begin("Tuning",
+        NULL,
+        ImVec2(DebugAreaWidth, DebugAreaHeight),
+        -1.0f,
+        ImGuiWindowFlags_ShowBorders)) {
+        const auto& types = game->tuning.getTypeHints();
+        for (const auto& p: types) {
+            switch (p.second) {
+                case TuningType::Float: {
+                    float f = game->tuning.f(p.first);
+                    if (ImGui::InputFloat(INV_HASH(p.first), &f)) {
+                        game->tuning.setF(p.first, f);
+                    }
+                    break;
+                }
+
+                case TuningType::Int: {
+                    int i = game->tuning.i(p.first);
+                    if (ImGui::InputInt(INV_HASH(p.first), &i)) {
+                        game->tuning.setI(p.first, i);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    ImGui::End();
+
     if (ImGui::GetIO().WantCaptureMouse) {
         // force no click state
         theTouchInputManager.resetState();
