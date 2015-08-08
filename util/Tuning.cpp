@@ -1,5 +1,6 @@
 #include "Tuning.h"
 
+Tuning* Tuning::instance = NULL;
 
 void Tuning::load(const char* assetName) {
     FileBuffer fb = assetAPI->loadAsset(assetName);

@@ -15,9 +15,13 @@ namespace TuningType
 }
 
 class Tuning : public ResourceHotReload {
-
+private:
+	static Tuning* instance;
 public:
-	void init(AssetAPI* a) { assetAPI = a; }
+	static Tuning* getSingleton() { return instance; }
+public:
+
+	void init(AssetAPI* a) { assetAPI = a; instance = this;}
 	void load(const char* assetName);
 
 	void reload(const char* assetName);
@@ -38,3 +42,5 @@ private:
 	DataFileParser dfp;
 	std::map<hash_t, TuningType::Enum> typeHints;
 };
+
+#define theTuning (*(Tuning::getSingleton()))
