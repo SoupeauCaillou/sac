@@ -60,6 +60,7 @@
 #include "systems/ScrollingSystem.h"
 #include "systems/SoundSystem.h"
 #include "systems/SpotSystem.h"
+#include "systems/TagSystem.h"
 #include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/ZSQDSystem.h"
@@ -149,6 +150,7 @@ Game::Game() {
     SpotSystem::CreateInstance();
     SpotBlockSystem::CreateInstance();
 #endif
+    TagSystem::CreateInstance();
     TextSystem::CreateInstance();
     TransformationSystem::CreateInstance();
 #if !DISABLE_ZSQD_SYSTEM
@@ -242,6 +244,7 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(SpotSystem::GetInstancePointer());
     ADD_IF_EXISTING(SpotBlockSystem::GetInstancePointer());
 #endif
+    ADD_IF_EXISTING(TagSystem::GetInstancePointer());
     ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
