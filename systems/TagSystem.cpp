@@ -23,9 +23,9 @@
 
 INSTANCE_IMPL(TagSystem);
 
-TagSystem::TagSystem() : ComponentSystemImpl<TagComponent>(HASH("Tag", 0x5fd02ba7)) {
+TagSystem::TagSystem() : ComponentSystemImpl<TagComponent>(HASH("Tag", 0x33a3f073)) {
     TagComponent tc;
-    componentSerializer.add(new Property<int>(HASH("tags", 0), OFFSET(tags, tc)));
+    componentSerializer.add(new Property<int>(HASH("tags", 0x8ef76a32), OFFSET(tags, tc)));
     for (int i=0; i<MAX_TAGS; i++) {
         tags[i] = 0;
     }
