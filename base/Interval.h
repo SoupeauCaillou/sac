@@ -47,6 +47,10 @@ template <typename T> class Interval {
         return _t1 + (_t2 - _t1) * w;
     }
 
+    float invLerp(float value) const {
+        return (value - t1) / (t2 - t1);
+    }
+
     static float lerpf(float _t1, float _t2, float w) {
         return _t1 + (_t2 - _t1) * w;
     }
