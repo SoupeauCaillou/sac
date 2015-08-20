@@ -268,22 +268,22 @@ void CollisionSystem::DoUpdate(float) {
             for (unsigned j=0; j<count; j++) {
                 const Entity refEntity = cell.collidingEntities[j];
 
-                std::vector<Coll> collisionDuringTheFrame;
+                std::vector<Coll> potentialcollisionDuringTheFrame;
                 // look for collidingEntities/collidingEntities collisions first
                 findPotentialCollisions(refEntity,
                     cell.collidingGroupsInside,
                     cell.collidingEntities.begin() + (j+1),
                     cell.collidingEntities.end(),
-                    collisionDuringTheFrame);
+                    potentialcollisionDuringTheFrame);
 
                 // then look for collidingEntities/colliderEntities collisions
                 findPotentialCollisions(refEntity,
                     cell.colliderGroupsInside,
                     cell.colliderEtities.begin(),
                     cell.colliderEtities.end(),
-                    collisionDuringTheFrame);
+                    potentialcollisionDuringTheFrame);
 
-                if (!collisionDuringTheFrame.empty()) {
+                if (!potentialcollisionDuringTheFrame.empty()) {
                     auto* cc = COLLISION(refEntity);
                     auto* tc = TRANSFORM(refEntity);
 
@@ -297,7 +297,7 @@ void CollisionSystem::DoUpdate(float) {
                     };
                     const glm::vec2 s1 = tc->size * 1.01f;
 
-                    for (auto collision: collisionDuringTheFrame) {
+                    for (auto collision: potentialcollisionDuringTheFrame) {
                         const auto* cc2 = COLLISION(collision.other);
                         const auto* tc2 = TRANSFORM(collision.other);
                         const glm::vec2 p2[] = {
@@ -308,7 +308,7 @@ void CollisionSystem::DoUpdate(float) {
                             cc2->previousRotation,
                             tc2->rotation
                         };
-                        const glm::vec2 s2 = tc2->size * 1.01f;
+                        const glm::vec2 s2 = tc2->size;//    * 1.01f;
 
                         // resolve collision, and keep only 1
                         Interval<float> timing (0, 1);
@@ -335,38 +335,56 @@ void CollisionSystem::DoUpdate(float) {
                         } while (true);
                     }
 
-                    std::sort(collisionDuringTheFrame.begin(),
-                        collisionDuringTheFrame.end(),
+                    // remove
+                    std::remove_if(potentialcollisionDuringTheFrame.begin(),
+                        potentialcollisionDuringTheFrame.end(),
+                        [] (const Coll& c) -> bool {
+                            return c.t.t2 <= c.t.t1;
+                        }
+                    );
+
+                    std::sort(potentialcollisionDuringTheFrame.begin(),
+                        potentialcollisionDuringTheFrame.end(),
                         [] (const Coll& c1, const Coll& c2) -> bool {
                             return c1.t.t1 < c2.t.t1;
                         }
                     );
 
-                    const Coll& firstCollision = collisionDuringTheFrame[0];
-                    const auto& firstCollisionTime = firstCollision.t;
+                    const Coll& firstCollision = potentialcollisionDuringTheFrame[0];
+                    bool firstCollisionFound = false;
                     int collCount = 0;
-
-                    if (cc->restorePositionOnCollision && cc->prevPositionIsValid) {
-                        tc->position = glm::lerp(p1[0], p1[1], firstCollisionTime.t1);
-                        tc->rotation = glm::lerp(r1[0], r1[1], firstCollisionTime.t1);
-                    }
+                    Interval<float> firstCollisionTime;
 
                     glm::vec2 at[4], normals[4];
-                    for (unsigned i=0; i<collisionDuringTheFrame.size(); i++) {
-                        const Coll& collision = collisionDuringTheFrame[i];
+                    for (unsigned i=0; i<potentialcollisionDuringTheFrame.size(); i++) {
+                        const Coll& collision = potentialcollisionDuringTheFrame[i];
 
-                        if (collision.t.t1 > firstCollisionTime.t1) {
-                            break;
+                        if (firstCollisionFound) {
+                            if (collision.t.t1 > firstCollisionTime.t1) {
+                                break;
+                            }
                         }
-                        cc->collision.with[i] = collision.other;
 
-                        IntersectionUtil::rectangleRectangle(
-                            tc,
+                        bool valid = IntersectionUtil::rectangleRectangle(
+                            tc, // should use position @ collision.time.t2
                             TRANSFORM(collision.other),
                             at,
                             normals);
-                        cc->collision.at[i] = at[0];
-                        cc->collision.normal[i] = normals[0];
+
+                        if (!valid) {
+                            continue;
+                        }
+
+                        if (!firstCollisionFound && cc->restorePositionOnCollision && cc->prevPositionIsValid) {
+                            firstCollisionTime = collision.t;
+                            tc->position = glm::lerp(p1[0], p1[1], firstCollisionTime.t1);
+                            tc->rotation = glm::lerp(r1[0], r1[1], firstCollisionTime.t1);
+                            firstCollisionFound = true;
+                        }
+
+                        cc->collision.with[collCount] = collision.other;
+                        cc->collision.at[collCount] = at[0];
+                        cc->collision.normal[collCount] = normals[0];
                         collCount++;
 
 #if SAC_DEBUG
