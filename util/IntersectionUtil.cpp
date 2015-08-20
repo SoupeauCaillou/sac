@@ -24,8 +24,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include "../systems/TransformationSystem.h"
+#include "systems/TransformationSystem.h"
 #include <cmath>
+
+#if SAC_DEBUG
+#include "util/Draw.h"
+#include "systems/CollisionSystem.h"
+#endif
 
 //never trust floats, they're evils
 const float eps = 0.0001f;
@@ -172,8 +177,8 @@ bool IntersectionUtil::lineLine(const glm::vec2& pA, const glm::vec2& pB,
     return true;
 }
 
-static glm::vec2 produceNormal(const glm::vec2& p1, const glm::vec2& p2) {
-    glm::vec2 n (glm::normalize(p1 - p2));
+static glm::vec2 produceNormal(const glm::vec2& start, const glm::vec2& end) {
+    glm::vec2 n (glm::normalize(end - start));
     return glm::vec2(-n.y, n.x);
 }
 
@@ -230,10 +235,18 @@ int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, cons
             }
 
             if (!ignore) {
-                if (intersectionPoints)
+                if (intersectionPoints) {
                     intersectionPoints[count] = intersection;
-                if (normalAtCollision)
+                }
+                if (normalAtCollision) {
                     normalAtCollision[count] = produceNormal(pB1, pB2);
+#if SAC_DEBUG
+                    if (theCollisionSystem.showDebug) {
+                        Draw::Point(pB1, Color(1, 0, 0));
+                        Draw::Point(pB2, Color(0, 0, 1));
+                    }
+#endif
+                }
                 count++;
             }
         }
@@ -278,15 +291,26 @@ bool IntersectionUtil::rectangleRectangleAABB(const AABB& a1, const AABB& a2) {
 
 static void computeRectangleVertices(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot, glm::vec2* out) {
     const static float coeff[] = {
-        -0.5, 0.5,
-        0.5, 0.5,
+        -0.5, 0.5, // top-left
+        0.5, 0.5,  // top-right
         0.5, -0.5,
         -0.5, -0.5
     };
 
-    for (int i=0; i<4; i++) {
-        *out++ = rectAPos + glm::rotate(glm::vec2(rectASize.x * coeff[2*i], rectASize.y * coeff[2*i+1]), rectARot);
+    glm::vec2* ptr = out;
+    for (int i=0; i<2; i++) {
+        *out++ =
+            glm::rotate(
+                glm::vec2(
+                    rectASize.x * coeff[2*i],
+                    rectASize.y * coeff[2*i+1]),
+                rectARot);
     }
+
+    ptr[2] = rectAPos - ptr[0];
+    ptr[0] += rectAPos;
+    ptr[3] = rectAPos - ptr[1];
+    ptr[1] += rectAPos;
 }
 
 bool IntersectionUtil::rectangleRectangle(const glm::vec2& rectAPos, const glm::vec2& rectASize, float rectARot,
@@ -371,8 +395,11 @@ bool IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1,
         rectBPos, rectBSize, rectBRot);
 }
 
-int IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1,
-            const TransformationComponent* tc2, glm::vec2* intersectionPoints) {
+int IntersectionUtil::rectangleRectangle(
+        const TransformationComponent* tc1,
+        const TransformationComponent* tc2,
+        glm::vec2* intersectionPoints,
+        glm::vec2* normals) {
     glm::vec2 aPoints[4];
     computeRectangleVertices(tc1->position, tc1->size, tc1->rotation, aPoints);
     glm::vec2 bPoints[4];
@@ -387,7 +414,7 @@ int IntersectionUtil::rectangleRectangle(const TransformationComponent* tc1,
 
     int count = 0;
     for (int i=0; i<4; i++) {
-        count += lineLines(aPoints[i], aPoints[(i+1) % 4], bLines, intersectionPoints + count, NULL);
+        count += lineLines(aPoints[i], aPoints[(i+1) % 4], bLines, intersectionPoints + count, normals + count);
     }
     return count;
 }

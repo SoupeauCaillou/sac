@@ -52,6 +52,7 @@ struct CollisionComponent {
         int count;
         Entity* with;
         glm::vec2* at; /* Note: only valid for raycast atm */
+        glm::vec2* normal; /* only valid for objects */
     } collision;
     Entity ignore; /* TODO ignore several entities */
 };
@@ -80,6 +81,7 @@ std::vector<Entity> debug;
 #endif
 std::vector<Entity> collisionEntity;
 std::vector<glm::vec2> collisionPos;
+std::vector<glm::vec2> collisionNormal;
 }
 ;
 #endif

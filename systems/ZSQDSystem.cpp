@@ -79,7 +79,7 @@ void ZSQDSystem::DoUpdate(float dt) {
                     glm::vec2 at[4];
                     // assume collision with rectangle to deduce collision normal
                     const auto* tcc = TRANSFORM(cc->collision.with[i]);
-                    int count = IntersectionUtil::rectangleRectangle(TRANSFORM(a), tcc, at);
+                    int count = IntersectionUtil::rectangleRectangle(TRANSFORM(a), tcc, at, NULL);
 
                     if (count == 0) {
                         continue;

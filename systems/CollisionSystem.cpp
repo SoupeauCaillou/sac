@@ -54,7 +54,8 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HAS
 
 struct Coll {
     Entity other;
-    float t;
+    // real collision time is > t.t1 and < t.t2
+    Interval<float> t;
     glm::vec2 normal;
 };
 
@@ -225,6 +226,7 @@ void CollisionSystem::DoUpdate(float) {
             LOGV(3, "Enlarging collision arrays :" << collisionEntity.size() << " -> " << arrayRequiredSize << '(' << __(minCollidingEntity) << ',' << __(maxCollidingEntity) << ')');
             collisionEntity.resize(arrayRequiredSize);
             collisionPos.resize(arrayRequiredSize);
+            collisionNormal.resize(arrayRequiredSize);
         }
     }
 
@@ -232,6 +234,7 @@ void CollisionSystem::DoUpdate(float) {
         if (cc->group > 1 || cc->ray.is) {
             cc->collision.with = &collisionEntity[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
             cc->collision.at = &collisionPos[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
+            cc->collision.normal = &collisionNormal[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
         }
     }
 
@@ -326,7 +329,7 @@ void CollisionSystem::DoUpdate(float) {
                             }
 
                             if (--iteration == 0) {
-                                collision.t = timing.t1;
+                                collision.t = timing;
                                 break;
                             }
                         } while (true);
@@ -335,24 +338,49 @@ void CollisionSystem::DoUpdate(float) {
                     std::sort(collisionDuringTheFrame.begin(),
                         collisionDuringTheFrame.end(),
                         [] (const Coll& c1, const Coll& c2) -> bool {
-                            return c1.t < c2.t;
+                            return c1.t.t1 < c2.t.t1;
                         }
                     );
 
-                    int collCount = cc->collision.count = (int) collisionDuringTheFrame.size();
+                    const Coll& firstCollision = collisionDuringTheFrame[0];
+                    const auto& firstCollisionTime = firstCollision.t;
+                    int collCount = 0;
 
-                    for (int i=0; i<collCount; i++) {
+                    if (cc->restorePositionOnCollision && cc->prevPositionIsValid) {
+                        tc->position = glm::lerp(p1[0], p1[1], firstCollisionTime.t1);
+                        tc->rotation = glm::lerp(r1[0], r1[1], firstCollisionTime.t1);
+                    }
+
+                    glm::vec2 at[4], normals[4];
+                    for (unsigned i=0; i<collisionDuringTheFrame.size(); i++) {
                         const Coll& collision = collisionDuringTheFrame[i];
 
+                        if (collision.t.t1 > firstCollisionTime.t1) {
+                            break;
+                        }
                         cc->collision.with[i] = collision.other;
 
-                        if (cc->restorePositionOnCollision && cc->prevPositionIsValid) {
-                            tc->position = glm::lerp(p1[0], p1[1], collision.t);
-                            tc->rotation = glm::lerp(r1[0], r1[1], collision.t);
-                        }
+                        IntersectionUtil::rectangleRectangle(
+                            tc,
+                            TRANSFORM(collision.other),
+                            at,
+                            normals);
+                        cc->collision.at[i] = at[0];
+                        cc->collision.normal[i] = normals[0];
+                        collCount++;
 
+#if SAC_DEBUG
+                        if (showDebug) {
+                            Draw::Vec2(cc->collision.at[i],
+                                cc->collision.normal[i],
+                                Color(0,0,0));
+                        }
+#endif
                         LOGV(2, "Collision: " << theEntityManager.entityName(refEntity) << " -> " << theEntityManager.entityName(collision.other));
                     }
+
+                    cc->collision.count = collCount;
+
                 }
             }
         }
