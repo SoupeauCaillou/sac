@@ -28,6 +28,8 @@
 #include "systems/TransformationSystem.h"
 #include "api/LocalizeAPI.h"
 
+#include <alloca.h>
+
 EntityTemplateLibrary::EntityTemplateLibrary() : NamedAssetLibrary() {
 #if SAC_LINUX && SAC_DESKTOP
     reloading = false;

@@ -350,7 +350,6 @@ void CollisionSystem::DoUpdate(float) {
                         }
                     );
 
-                    const Coll& firstCollision = potentialcollisionDuringTheFrame[0];
                     bool firstCollisionFound = false;
                     int collCount = 0;
                     Interval<float> firstCollisionTime;

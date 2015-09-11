@@ -26,6 +26,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include "systems/TransformationSystem.h"
 #include <cmath>
+#include <alloca.h>
 
 #if SAC_DEBUG
 #include "util/Draw.h"

@@ -23,6 +23,7 @@
 
 #include "System.h"
 #include <list>
+#include <queue>
 #include "../api/NetworkAPI.h"
 class NetworkAPI;
 

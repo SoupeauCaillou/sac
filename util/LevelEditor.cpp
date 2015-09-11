@@ -749,7 +749,7 @@ void LevelEditor::tick(float dt) {
                     }
                 }
             }
-#endif
+
             theAnchorSystem.Update(dt);
 
             if (ImGui::CollapsingHeader("Entity Builder", NULL, true, true)) {
@@ -1481,3 +1481,4 @@ RenderingSystem::RenderCommand* LevelEditor::getFrame(int* count) {
     }
     return result;
 }
+#endif

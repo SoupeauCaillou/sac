@@ -57,6 +57,7 @@
 
 #include <algorithm>
 
+#include "base/TimeUtil.h"
 #include <sys/time.h>
 
 /* Defined in EntryPoint.cpp */
