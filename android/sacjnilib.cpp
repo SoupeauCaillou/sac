@@ -61,7 +61,7 @@
 #include <sys/time.h>
 
 /* Defined in EntryPoint.cpp */
-extern Game* buildGameInstance();
+extern "C" void* buildGameInstance();
 
 static GameHolder* myGameHolder = 0;
 
@@ -89,7 +89,7 @@ JNIEXPORT jboolean JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_createGame
         TimeUtil::Init();
         LOGI("Create new native game instance");
         myGameHolder = new GameHolder();
-        myGameHolder->game = buildGameInstance();
+        myGameHolder->game = static_cast<Game*>(buildGameInstance());
         myGameHolder->initDone = false;
 
         Game* game = myGameHolder->game;
