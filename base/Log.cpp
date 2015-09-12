@@ -123,13 +123,13 @@ static const char* colorTs = {
 };
 
 static const char* validColors[] = {
-    "31",
-    "32",
-    "33",
-    "34",
-    "35",
-    "36",
-    "37"
+    "31", // Red
+    "32", // Green
+    "33", // Yellow
+    "34", // Light Blue
+    "35", // Light Purple
+    "36", // Light Cyan
+    "37" // White
 };
 
 const char* pickColorTag(const char* tag) {
@@ -150,7 +150,7 @@ static int detect_gdb(void)
     }
 
     fclose(fd);
-    return rc && 0;
+    return 0;//rc;
 }
 
 void initLogColors() {
@@ -177,7 +177,7 @@ int logPrefix(char* out, LogVerbosity::Enum type, const char* file, int line) {
         "%s%sm %4.3f %s "
         "%s%sm%s:%3d%s ",
 
-        ColorPrefix, '1' + (tid % 6), tid, ColorReset,
+        ColorPrefix, '1' + (2 + tid % 4), tid, ColorReset,
         ColorPrefix, color[type], enum2Name(type), ColorReset,
         ColorPrefix, colorTs, TimeUtil::GetTime(), ColorReset,
         ColorPrefix, pickColorTag(file), keepOnlyFilename(file), line, ColorReset);
