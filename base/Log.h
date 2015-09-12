@@ -76,28 +76,16 @@ namespace LogVerbosity {
 }
 
 extern LogVerbosity::Enum logLevel;
-// extern std::map<std::string, bool> verboseFilenameFilters;
 
-#if SAC_DESKTOP
-#include <queue>
-#include <mutex>
-
-
-// extern std::stringstream lastLogsSS; to replace with [MAX_LINE_LENGTH][COUNT]
-// extern std::queue<std::string> lastLogs;
-extern unsigned lastLogsCount;
-extern std::recursive_mutex lastLogsMutex;
-extern void writeLastLogs();
-#endif
 int logPrefix(char* ptr,
                     LogVerbosity::Enum type,
                       const char* file,
                       int line);
 
 #include <signal.h>
-
+#include <string>
 #if SAC_ANDROID
-
+#include <stdio.h>
 #include <android/log.h>
 static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
                                               ANDROID_LOG_ERROR,
@@ -106,18 +94,8 @@ static const android_LogPriority level2prio[]{ANDROID_LOG_FATAL,
                                               ANDROID_LOG_INFO,
                                               ANDROID_LOG_VERBOSE,
                                               ANDROID_LOG_VERBOSE};
-#include <sstream>
-#define SAC_LOG_PRE std::stringstream __log_ss;
-#define SAC_LOG_STREAM __log_ss
-#define SAC_LOG_POST                                                           \
-    __android_log_print(                                                       \
-        level2prio[logLevel], "sac", "%s", __log_ss.str().c_str());
-#else /* if SAC_ANDROID */
-
-#define SAC_LOG_PRE
-#define SAC_LOG_STREAM std::cout
-#define SAC_LOG_POST
 #endif
+
 
 #if SAC_WINDOWS
 #define __PRETTY_FUNCTION__ __FUNCTION__
@@ -198,39 +176,25 @@ inline MySimpleStream& MySimpleStream::operator<< <LogFmt>(const LogFmt& v) {
     return *this;
 }
 
-
-#if SAC_DESKTOP
-#define __LOG(level, x)                                                        \
-    do {                                                                       \
-        if ((int)logLevel >= (int)level) {                                     \
-            int position = logPrefix(__logLineBuffer, level, __FILE__, __LINE__); \
-            MySimpleStream str(position); \
-            str << x; \
-            __logLineBuffer[MAX_LINE_LENGTH - 1] = '\0'; \
-            printf("%s\n", __logLineBuffer); \
-                                                                               \
-            if (level == LogVerbosity::FATAL && AssertOnFatal) {               \
-                lastLogsMutex.lock();                                          \
-                writeLastLogs();                                               \
-                raise(SIGABRT);                                                \
-            }                                                                  \
-        }                                                                      \
-    } while (false)
+#if SAC_ANDROID
+#define __PRINT_LOG_LINE __android_log_print(level2prio[logLevel], "sac", "%s", __logLineBuffer);
 #else
+#define __PRINT_LOG_LINE printf("%s\n", __logLineBuffer);
+#endif
+
 #define __LOG(level, x)                                                        \
     do {                                                                       \
         if ((int)logLevel >= (int)level) {                                     \
-            SAC_LOG_PRE                                                        \
-            logPrefix(__logLineBuffer, level, __FILE__, __LINE__)             \
-                << x << std::endl;                                             \
-            SAC_LOG_POST                                                       \
-                                                                               \
+            MySimpleStream _____str(                                           \
+                logPrefix(__logLineBuffer, level, __FILE__, __LINE__));        \
+            _____str << x;                                                     \
+            __logLineBuffer[MAX_LINE_LENGTH - 1] = '\0';                       \
+            __PRINT_LOG_LINE                                                   \
             if (level == LogVerbosity::FATAL && AssertOnFatal) {               \
                 raise(SIGABRT);                                                \
             }                                                                  \
         }                                                                      \
     } while (false)
-#endif
 
 #define __LOG_WHILE(level, x)                                                  \
     PRAGMA_WARNING(warning(disable : 4127))                                    \
@@ -330,15 +294,3 @@ inline MySimpleStream& MySimpleStream::operator<< <LogFmt>(const LogFmt& v) {
 
 #endif
 
-/*
-        {                                                                      \
-            lastLogsMutex.lock();                                              \
-            lastLogsSS.str("");                                                \
-            lastLogsSS.clear();                                                \
-            logPrefix(__logLineBuffer, level, __FILE__, __LINE__);             \
-                                                               << std::endl;   \
-            lastLogs.push(lastLogsSS.str());                                   \
-            while (lastLogs.size() > lastLogsCount) lastLogs.pop();            \
-            lastLogsMutex.unlock();                                            \
-        }                                                                      \
-        */
