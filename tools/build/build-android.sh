@@ -188,7 +188,14 @@ compilation_after() {
              android update project -p . -t \"android-10\" --subprojects -n $gameName"
         fi
 
-        if ! ant release; then
+        if echo $cmake_config | grep -q release; then
+            build_type=release
+        else
+            build_type=debug
+        fi
+
+        info "Running ant $build_type"
+        if ! ant $build_type; then
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi
