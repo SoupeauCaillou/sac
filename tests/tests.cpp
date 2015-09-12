@@ -32,7 +32,6 @@ int main(int argc, char **) {
     AssertOnFatal = false;
 
 #if SAC_ENABLE_LOG
-    lastLogsCount = 0;
     if (argc == 1)
         logLevel = LogVerbosity::FATAL;
     else

@@ -68,7 +68,8 @@ class Game {
     virtual bool willConsumeBackEvent() { return false; }
     virtual void quickInit(){};
     virtual int saveState(uint8_t** out);
-    virtual void sacInit();
+    virtual void sacInitFromGameThread();
+    virtual void sacInitFromRenderThread();
     virtual void togglePause(bool) {}
     virtual void preDestroy();
 

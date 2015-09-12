@@ -464,7 +464,7 @@ void Game::changeResolution(int /*windowW*/, int /*windowH*/) {
     }
 }
 
-void Game::sacInit() {
+void Game::sacInitFromRenderThread() {
 #if SAC_ENABLE_PROFILING
     initProfiler();
 #endif
@@ -530,7 +530,9 @@ void Game::sacInit() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_x, tex_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data);
     stbi_image_free(tex_data);
 #endif
+}
 
+void Game::sacInitFromGameThread() {
 #if SAC_INGAME_EDITORS
     levelEditor->init(gameThreadContext->keyboardInputHandlerAPI);
 #endif

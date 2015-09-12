@@ -373,13 +373,14 @@ int setupEngine(void* _game, const SetupInfo* info) {
     LOGV(1, "Initialize sac & game");
     game->setGameContexts(ctx, ctx);
     sac::setResolution(resolution.x, resolution.y);
-    game->sacInit();
+    game->sacInitFromRenderThread();
 
     if (options.forceEtc1) {
         OpenGLTextureCreator::forceEtc1Usage();
     }
 
     game->init(state, size);
+    game->sacInitFromGameThread();
 
     #if SAC_NETWORK
     {

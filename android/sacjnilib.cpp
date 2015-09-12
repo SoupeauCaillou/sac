@@ -167,7 +167,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromRenderThr
     OpenGLTextureCreator::dpi = (DPI::Enum)dpi;
 
     sac::setResolution(w, h);
-    myGameHolder->game->sacInit();
+    myGameHolder->game->sacInitFromRenderThread();
 }
 
 JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_resolutionChanged
@@ -237,6 +237,7 @@ JNIEXPORT void JNICALL Java_net_damsy_soupeaucaillou_SacJNILib_initFromGameThrea
 
     myGameHolder->dtAccumuled = 0;
 
+    myGameHolder->game->sacInitFromGameThread();
     myGameHolder->game->init(state, size);
     myGameHolder->initDone = true;
 
