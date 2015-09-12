@@ -39,39 +39,7 @@ LogVerbosity::Enum logLevel =
 #else
     LogVerbosity::INFO;
 #endif
-// std::map<std::string, bool> verboseFilenameFilters;
 
-#if SAC_DESKTOP
-// std::stringstream lastLogsSS;
-std::recursive_mutex lastLogsMutex;
-// std::queue<std::string> lastLogs;
-unsigned lastLogsCount = 100;
-void writeLastLogs() {
-    #if 0
-    std::cout.flush();
-    std::cerr << "**********************" << std::endl;
-    std::cerr << "************ LAST LOGS" << std::endl;
-    while (!lastLogs.empty()) {
-        std::cerr << lastLogs.front();
-        lastLogs.pop();
-    }
-    std::cerr << "**********************" << std::endl;
-    #endif
-}
-#endif
-
-#if 0
-class NullStream : public std::ostream {
-public:
-        NullStream(std::basic_streambuf<char, std::char_traits<char>> *t = 0) : std::ostream(t) {}
-
-    template<class T>
-    std::ostream& operator<<(const T& ) {
-        return *this;
-    }
-};
-NullStream slashDevslashNull;
-#endif
 static const char* enumNames[] ={
     //5 chars length for all
         " F ",
