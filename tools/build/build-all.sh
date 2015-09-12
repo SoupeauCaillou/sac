@@ -146,7 +146,6 @@ export SAC_EXAMPLE="${green}TODO${default_color}"
         info "Are you sure you want to clean current build('$builddir') directory? Press enter to confirm..." $yellow
         read aaa${RANDOM}ndomav
         info "Cleaning.."
-        # rm -r CMakeCache.txt CMakeFiles cmake_install.cmake linux Makefile sac sources 2>/dev/null
         rm -r * &>/dev/null
     fi
 

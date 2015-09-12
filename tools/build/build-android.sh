@@ -165,7 +165,10 @@ compilation_before() {
 }
 
 compilation_after() {
+    :
+}
 
+android_compilation() {
     if [ $use_gradle = 1 ]; then
         if [ ! -f $rootPath/android/libs/armeabi-v7a.jar ]; then
             error_and_quit "Missing libs/armeabi.jar (did you forgot to compile?)!"
@@ -188,14 +191,8 @@ compilation_after() {
              android update project -p . -t \"android-10\" --subprojects -n $gameName"
         fi
 
-        if echo $cmake_config | grep -q release; then
-            build_type=release
-        else
-            build_type=debug
-        fi
-
-        info "Running ant $build_type"
-        if ! ant $build_type; then
+        info "Running ant $cmake_build_type"
+        if ! ant $cmake_build_type; then
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi
@@ -228,6 +225,8 @@ get_APK_name() {
 }
 
 launch_the_application() {
+    android_compilation
+
     if [ $uninstall_from_device = 1 ]; then
         info "Uninstalling from device..."
         adb uninstall $(cat $rootPath/android/AndroidManifest.xml | grep package | cut -d "=" -f 2 | tr -d '"')
