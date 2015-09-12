@@ -379,8 +379,8 @@ int setupEngine(void* _game, const SetupInfo* info) {
         OpenGLTextureCreator::forceEtc1Usage();
     }
 
-    game->init(state, size);
     game->sacInitFromGameThread();
+    game->init(state, size);
 
     #if SAC_NETWORK
     {
