@@ -52,8 +52,7 @@ template <typename T>
 static void appendVerticesTo(const TransformationComponent* tc, T& out);
 
 std::vector<Polygon> shapes;
-}
-;
+};
 
 template <typename T>
 inline void

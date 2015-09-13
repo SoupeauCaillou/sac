@@ -186,13 +186,14 @@ android_compilation() {
         # but currently all ndk <= 9 produce buggy builds for android-8, so use android-10
         # -n $gameName was removed because build.xml is overwritten with it, even if <!-- version-tag:custom --> is
         # provided... but we need it to automatically sign APK with release keystore which is stored outside of repository!!!
-        if ! android update project -p . -t "android-10" --subprojects; then
+        if ! android update project -p . -t "android-10" --subprojects -n $gameName; then
             error_and_quit "Error while updating project. You might try the following:\
              android update project -p . -t \"android-10\" --subprojects -n $gameName"
         fi
 
-        info "Running ant $cmake_build_type"
-        if ! ant $cmake_build_type; then
+
+        info "Running ant debug"
+        if ! ant debug; then
             error_and_quit "Ant failed - see above for the reason"
         fi
     fi
