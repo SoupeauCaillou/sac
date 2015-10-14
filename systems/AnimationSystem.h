@@ -56,6 +56,8 @@ void loadAnim(AssetAPI* assetAPI,
               std::string* variables = 0,
               int varcount = 0);
 
+int queryAttributes(AnimationComponent* anim, hash_t attribute, float* out, int maxValues);
+
 private:
 std::map<uint32_t, AnimDescriptor*> animations;
 }

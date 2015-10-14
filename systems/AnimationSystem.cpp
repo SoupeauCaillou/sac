@@ -53,6 +53,24 @@ AnimationSystem::~AnimationSystem() {
     animations.clear();
 }
 
+int AnimationSystem::queryAttributes(AnimationComponent* comp, hash_t attribute, float* out, int maxValues) {
+    auto jt = animations.find(comp->name);
+    if (jt == animations.end()) {
+        return 0;
+    }
+    const AnimDescriptor* anim = jt->second;
+    const AnimDescriptor::AnimFrame& frame = anim->frames[comp->frameIndex];
+
+    for (int i=0; i<frame.attributesCount; i++) {
+        if (frame.attributes[i].id == attribute) {
+            int c = glm::min(maxValues, frame.attributes[i].count);
+            memcpy(out, frame.attributes[i].f, c * sizeof(float));
+            return c;
+        }
+    }
+    return 0;
+}
+
 void AnimationSystem::DoUpdate(float dt) {
     FOR_EACH_ENTITY_COMPONENT(Animation, a, bc)
         if (!bc->name)
