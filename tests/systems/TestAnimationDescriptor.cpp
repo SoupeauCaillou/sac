@@ -76,3 +76,58 @@ TEST(LoadFramesTexture)
     CHECK_EQUAL(desc.frames[0].texture, desc.frames[2].texture);
     RenderingSystem::DestroyInstance();
 }
+
+TEST(LoadFramesAttribute)
+{
+    RenderingSystem::CreateInstance();
+    const char* content = "[meta]\n" \
+        "num_frames=3\n" \
+        "[frame0]\n" \
+        "texture=plop\n" \
+        "attr = 1\n" \
+        "[frame1]\n" \
+        "texture=zou\n" \
+        "attr = 2\n" \
+        "[frame2]\n" \
+        "attr = 3\n" \
+        "texture=plop\n";
+    AnimDescriptor desc;
+    CHECK(desc.load(__FUNCTION__, FB(content)));
+    CHECK_EQUAL((unsigned)3, desc.frames.size());
+    for (int i=0; i<3; i++) {
+        CHECK_EQUAL(1, desc.frames[i].attributesCount);
+        CHECK_EQUAL(1, desc.frames[i].attributes[0].count);
+        CHECK_EQUAL(i+1, desc.frames[i].attributes[0].f[0]);
+    }
+    RenderingSystem::DestroyInstance();
+}
+
+TEST(LoadFramesAttributeMultiValue)
+{
+    RenderingSystem::CreateInstance();
+    const char* content = "[meta]\n" \
+        "num_frames=2\n" \
+        "[frame0]\n" \
+        "texture=plop\n" \
+        "attr1 = 0.1, 0.2, 0.3\n" \
+        "attr2 = 1\n" \
+        "[frame1]\n" \
+        "texture=zou\n" \
+        "attr1 = 0.4, 0.5, 0.6\n" \
+        "attr2 = 2\n";
+    AnimDescriptor desc;
+    CHECK(desc.load(__FUNCTION__, FB(content)));
+    CHECK_EQUAL((unsigned)2, desc.frames.size());
+    for (int i=0; i<2; i++) {
+        CHECK_EQUAL(2, desc.frames[i].attributesCount);
+
+        CHECK_EQUAL(3, desc.frames[i].attributes[0].count);
+        CHECK_EQUAL(1, desc.frames[i].attributes[1].count);
+
+        for (int j=0; j<3; j++) {
+            CHECK_CLOSE(i * 0.3 + (1+j)*0.1, desc.frames[i].attributes[0].f[j], 0.001);
+        }
+        CHECK_EQUAL(i+1, desc.frames[i].attributes[1].f[0]);
+    }
+    RenderingSystem::DestroyInstance();
+}

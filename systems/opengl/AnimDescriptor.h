@@ -25,7 +25,16 @@
 #include <vector>
 #include "util/MurmurHash.h"
 
+#define MAX_VALUE_PER_ATTRIBUTE 4
+#define MAX_ATTR_PER_FRAME 8
+
 struct FileBuffer;
+
+struct AnimFrameAttribute {
+    hash_t id;
+    int count;
+    float f[MAX_VALUE_PER_ATTRIBUTE];
+};
 
 class AnimDescriptor {
     public:
@@ -37,8 +46,13 @@ class AnimDescriptor {
               int varcount = 0);
 
     public:
+
+
     struct AnimFrame {
+        AnimFrame() : texture(InvalidTextureRef), attributesCount(0) {}
         TextureRef texture;
+        int attributesCount;
+        AnimFrameAttribute attributes[MAX_ATTR_PER_FRAME];
     };
 
     public:

@@ -60,10 +60,10 @@ void AnimationSystem::DoUpdate(float dt) {
 
         auto jt = animations.find(bc->name);
         if (jt == animations.end()) {
-            LOGW("Animation '" << bc->name << "' not found. " << animations.size() << " defined animation(s):");
+            LOGW("Animation '" << INV_HASH(bc->name) << "' not found. " << animations.size() << " defined animation(s):");
             #if SAC_ENABLE_LOG
             for (auto an: animations) {
-                LOGW("   '" << an.first << "' - " << an.second->frames.size() << " frames");
+                LOGW("   '" << INV_HASH(an.first) << "' - " << an.second->frames.size() << " frames");
             }
             #endif
             LOGF_IF(animations.empty(), "Weird, no animations loaded");

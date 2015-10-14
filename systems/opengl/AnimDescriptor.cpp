@@ -94,15 +94,44 @@ bool AnimDescriptor::load(const std::string& ctx, const FileBuffer& fb, std::str
             if (dfp.get(section, "texture", &texture, 1)) {
                 LOGV(1, "    - " << section << ':' << texture);
                 AnimFrame frame;
+                frame.attributesCount = 0;
                 if (texture.empty())
                     frame.texture = InvalidTextureRef;
                 else
                     frame.texture = Murmur::RuntimeHash(texture.c_str());
+
+                // load other keys as attributes
+                int keys = dfp.sectionSize(section);
+                for (int j=0; j<keys; j++) {
+                    std::string name;
+                    float values[MAX_VALUE_PER_ATTRIBUTE];
+                    int valueCount = 0;
+                    if ((valueCount = dfp.get(section, j, name, values, MAX_VALUE_PER_ATTRIBUTE))) {
+                        hash_t attrH = Murmur::RuntimeHash(name.c_str());
+                        if (attrH == HASH("texture", 0x3d4e3ff8)) {
+                            continue;
+                        } else {
+                            frame.attributes[frame.attributesCount].id = attrH;
+                            frame.attributes[frame.attributesCount].count = valueCount;
+                            for (int k=0; k<valueCount; k++) {
+                                frame.attributes[frame.attributesCount].f[k] = values[k];
+                            }
+                            ++frame.attributesCount;
+                        }
+                    }
+
+                    if (frame.attributesCount >= MAX_ATTR_PER_FRAME) {
+                        break;
+                    }
+                }
+
                 frames.push_back(frame);
             } else {
                 LOGF("Missing texture attribute in section '" << INV_HASH(section) << "'");
                 return false;
             }
+
+
         }
     }
 
