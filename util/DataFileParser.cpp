@@ -298,7 +298,7 @@ int DataFileParser::determineSubStringIndexes(const std::string& str, int count,
     for (int i=0; i<count-1; i++) {
         index = str.find(',', index);
         if (index == std::string::npos) {
-            LOGW_IF(warnIfNotFound, context << ": entry '" << str << "' does not contain '" << count << "' values");
+            LOGV_IF(1, warnIfNotFound, context << ": entry '" << str << "' does not contain '" << count << "' values");
             outIndexes[i] = str.size() - 1;
             return (i + 1);
         } else {

@@ -355,7 +355,7 @@ void CollisionSystem::DoUpdate(float) {
                     Interval<float> firstCollisionTime;
 
                     glm::vec2 at[4], normals[4];
-                    for (unsigned i=0; i<potentialcollisionDuringTheFrame.size(); i++) {
+                    for (unsigned i=0; i<potentialcollisionDuringTheFrame.size() && collCount < 4; i++) {
                         const Coll& collision = potentialcollisionDuringTheFrame[i];
 
                         if (firstCollisionFound) {
