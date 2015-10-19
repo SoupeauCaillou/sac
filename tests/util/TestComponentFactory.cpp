@@ -35,7 +35,6 @@
 
 struct TestSetup {
     TestSetup() {
-        CHECK_EQUAL(0u, theEntityManager.entityCount());
         ADSRSystem::CreateInstance();
         TransformationSystem::CreateInstance();
         ParticuleSystem::CreateInstance();
