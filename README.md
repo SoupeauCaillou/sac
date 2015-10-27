@@ -3,19 +3,26 @@ sac
 
 *sac* is [Soupe au Caillou](http://soupeaucaillou)'s 2D C++ game engine.
 
+Disclaimer
+----------
+This engine has been done for experimentation and learning purpose. It's not suitable for production and contains lots of ugly hacks - but with limited free time available we chose to work on what was fun (adding features, publishing games).
+If you can't stand the varing coding-style or other horrors you might find, send a PR to fix it :)
+
 Features
 --------
+
+
 * Entity/System design. Game objects do not have to inherit from a base class like Node or GameObject but are instead a simple identifier (32 bit integer). We then use composition to add/remove features to individual objects. See ([0](http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/)) and ([1](http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/)) for more details on the concept.
 
 * Multithreaded OpenGL renderer. Or more precisley: game logic updates happen on 1 thread, and rendering using OpenGL is done in another thread. The 2 threads only share 1 data structure: a rendering commands queue. The queue itself is built by transforming all renderable entities in render commands. In a second step this queue is sorted using a 64 bits key containing rendering states (which texture atlas, blending enabled or not, etc). See ([2](http://realtimecollisiondetection.net/blog/?p=86)) for a more in-depth article
 
 * Debug UI using ([imgui](https://github.com/ocornut/imgui)). Allow inspection and manipulation of all entities/components as well as enabling debug info on various systems.
 
-* Rewind: at any time you can pause the game and rewind (or move backward/forward frame by frame). This is really handy when debugging.
+* Rewind: at any time you can pause the game and rewind (or move backward/forward frame by frame). This is really handy when debugging. You can also see graphic batches.
 
 * The engine is multiplatform (Android, Linux, Mac, Windows, Web) but uses a single build system: cmake
 
-* Music and Sound playing is supported as well. While Sound is really simple, Music can do some nice things: looping at specific time, blending, etc
+* Music and Sound playing is supported as well. While Sound is really simple, Music can do some nice things: multi-tracks, looping at specific time, blending, etc
 
 * Entities can be defined in resources files, in a pseudo-ini format.
 
