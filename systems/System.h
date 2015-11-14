@@ -29,6 +29,8 @@
 #include <functional>
 #include "base/Log.h"
 
+#include <cstdlib>
+
 // #include "base/EntityManager.h"
 
 class LocalizeAPI;

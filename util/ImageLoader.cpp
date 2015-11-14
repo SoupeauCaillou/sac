@@ -31,8 +31,9 @@
 #include "base/Log.h"
 
 #include <stdlib.h>
+#include <arpa/inet.h>
 
-#if SAC_LINUX || SAC_ANDROID
+#if SAC_LINUX || SAC_ANDROID || SAC_EMSCRIPTEN
 #include <arpa/inet.h>
 #include <endian.h>
 #elif SAC_DARWIN

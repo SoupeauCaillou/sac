@@ -15,7 +15,6 @@
 #define INCLUDE_NAME() XSTR(GAME_HEADER(PROJECT_NAME))
 #include INCLUDE_NAME()
 
-#if SAC_DESKTOP || SAC_MOBILE
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,9 +24,8 @@ void* buildGameInstance() {
 #ifdef __cplusplus
 }
 #endif
-#endif
 
-#if SAC_DESKTOP
+#if !SAC_MOBILE
 #define INCLUDE_VERSION() XSTR(GIT_VERSION_HEADER(PROJECT_NAME))
 #include INCLUDE_VERSION()
 #include "app/AppSetup.h"

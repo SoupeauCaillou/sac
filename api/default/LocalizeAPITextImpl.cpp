@@ -55,8 +55,7 @@ int LocalizeAPITextImpl::init(AssetAPI* assetAPI, const char * userLang, const c
 void LocalizeAPITextImpl::readTXTFile(AssetAPI* assetAPI, std::vector<std::string> & texts, const char * lang) {
     std::string filename = "strings/" + std::string(lang) + ".txt";
     #if SAC_EMSCRIPTEN
-        LOGT("FixMe! " << __METHOD__ );
-        LOGI("ParseXML: " << filename);
+        LOGI("Fixme ParseXML: " << filename);
         // weeee
         std::string javascript (
                     "a = FS.readFile('/assets/FILENAME', { encoding: 'utf8' });"
@@ -90,7 +89,7 @@ void LocalizeAPITextImpl::readTXTFile(AssetAPI* assetAPI, std::vector<std::strin
             std::string value = plop.substr(next + 1, end - next - 2);
             next = end + 1;
 
-            _idToMessage[key] = value;
+            //_idToMessage[key] = value;
         }
 
     #else

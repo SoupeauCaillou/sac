@@ -22,6 +22,7 @@
 
 #include "MurmurHash.h"
 #include "base/Log.h"
+#include <cstdlib>
 
 #if SAC_DEBUG || SAC_INGAME_EDITORS
 #include <map>

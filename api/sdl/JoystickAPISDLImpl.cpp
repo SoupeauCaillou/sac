@@ -25,7 +25,6 @@
 
 #include <SDL.h>
 
-
 JoystickAPISDLImpl::JoystickAPISDLImpl() {
     LOGF_IF(SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0, "Failed to initialize SDL Joystick subsystem");
     SDL_JoystickEventState(SDL_ENABLE);

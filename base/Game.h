@@ -29,7 +29,7 @@
 
 class AssetApi;
 class ComponentSystem;
-#if SAC_DESKTOP
+#if !SAC_MOBILE
 class MouseNativeTouchState;
 #endif
 
@@ -80,7 +80,7 @@ class Game {
     GameContext* gameThreadContext, *renderThreadContext;
     Entity camera;
 
-#if SAC_DESKTOP
+#if !SAC_MOBILE
     // tough... only needed for mouse events handling
     MouseNativeTouchState* mouseNativeTouchState;
     struct {

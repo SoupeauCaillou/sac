@@ -239,9 +239,11 @@ int setupEngine(void* _game, const SetupInfo* info) {
         "Module['FS_createFolder']('/', 'sac_temp', true, true);" \
         "}";
     emscripten_run_script(script);
+    CommandLineOptions options;
 #else
     auto options =
         parseCommandLineOption(info->arg.c, info->arg.v);
+#endif
 
 
     int largestDimension = 1024;
@@ -269,6 +271,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
         return 1;
     }
 
+#if !SAC_EMSCRIPTEN
     if (glewInit() != GLEW_OK)
         return 1;
 
@@ -287,6 +290,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
             LOGI("Restoring game state from file (size: " << size << ")");
         }
     }
+#endif
 
     #if SAC_ENABLE_LOG
         if (options.verbose) {
@@ -294,7 +298,6 @@ int setupEngine(void* _game, const SetupInfo* info) {
         }
     #endif
 
-    #endif
 
     /////////////////////////////////////////////////////
     // Game context initialisation
@@ -365,7 +368,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
-        static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, getLocaleInfo().c_str());
+        //static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, getLocaleInfo().c_str());
     }
 
     /////////////////////////////////////////////////////
@@ -375,9 +378,11 @@ int setupEngine(void* _game, const SetupInfo* info) {
     sac::setResolution(resolution.x, resolution.y);
     game->sacInitFromRenderThread();
 
+#if SAC_DESKTOP
     if (options.forceEtc1) {
         OpenGLTextureCreator::forceEtc1Usage();
     }
+#endif
 
     game->sacInitFromGameThread();
     game->init(state, size);
@@ -396,6 +401,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
     #if SAC_EMSCRIPTEN
         emscripten_set_main_loop(updateAndRender, 0, 0);
+        return 0;
     #else
 
     #if SAC_ENABLE_PROFILING

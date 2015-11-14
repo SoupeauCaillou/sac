@@ -22,7 +22,7 @@
 
 #include "Game.h"
 
-#if SAC_DESKTOP
+#if !SAC_MOBILE
 #include "api/sdl/MouseNativeTouchState.h"
 #endif
 
@@ -94,7 +94,7 @@ Game::Game() {
 
     isFinished = false;
 
-#if SAC_DESKTOP
+#if !SAC_MOBILE
     mouseNativeTouchState = 0;
 #endif
 

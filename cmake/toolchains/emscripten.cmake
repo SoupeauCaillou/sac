@@ -4,8 +4,8 @@ ADD_DEFINITIONS(-DSAC_WEB=1)
 set(CMAKE_C_COMPILER emcc)
 set(CMAKE_CXX_COMPILER emcc)
 
-#set(EMSCRIPTEN_OPTIONS "-O0 --llvm-lto 0 -s ASSERTIONS=1 -s ASM_JS=0 --closure 0 -s ALLOW_MEMORY_GROW=1 -s TOTAL_MEMORY=1073741824 -s WARN_ON_UNDEFINED_SYMBOLS=1")
-set(EMSCRIPTEN_OPTIONS "-g -O2 --llvm-lto 1 --llvm-lto 1 -s ASM_JS=1 --closure 0 -s TOTAL_MEMORY=67108864 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s PRECISE_I64_MATH=0")
+# set(EMSCRIPTEN_OPTIONS "-O0 --llvm-lto 0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s ASSERTIONS=1 -s ASM_JS=1 --closure 0 -s TOTAL_MEMORY=1073741824 -s WARN_ON_UNDEFINED_SYMBOLS=1")
+set(EMSCRIPTEN_OPTIONS "-s USE_SDL=2 -s USE_SDL_IMAGE=2  -g -O2 --llvm-lto 1 --llvm-lto 1 -s ASM_JS=1 --closure 0 -s TOTAL_MEMORY=67108864 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s PRECISE_I64_MATH=0")
 
 STRING(REPLACE " " ";" EMSCRIPTEN_OPTIONS_LIST ${EMSCRIPTEN_OPTIONS})
 
@@ -14,8 +14,8 @@ if (${BUILD_TARGET} STREQUAL "DEBUG")
     add_definitions(-DSAC_DEBUG=1)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -Wno-warn-absolute-paths ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -std=c++0x -Wno-warn-absolute-paths")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments  ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -std=c++0x ")
 set(CXX_FLAGS_DEBUG ${EMSCRIPTEN_OPTIONS})
 set(CXX_FLAGS_RELEASE ${EMSCRIPTEN_OPTIONS})
 
@@ -30,7 +30,8 @@ function (get_platform_dependent_sources)
         GLOB_RECURSE platform_source_files
         ${GAME_SOURCE_DIR}/sac/app/*
         ${GAME_SOURCE_DIR}/sac/api/linux/*
-        ${GAME_SOURCE_DIR}/platforms/default/api/*
+        ${GAME_SOURCE_DIR}/sac/api/default/*
+        ${GAME_SOURCE_DIR}/sac/api/sdl/*
     )
     set (platform_source_files ${platform_source_files} PARENT_SCOPE)
 endfunction()

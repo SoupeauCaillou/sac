@@ -31,7 +31,7 @@ struct SetupInfo {
         float x, y;
     } resolution;
 
-#if SAC_DESKTOP
+#if ! SAC_MOBILE
     struct {
         int c;
         char** v;

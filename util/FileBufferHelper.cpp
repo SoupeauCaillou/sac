@@ -1,5 +1,6 @@
 #include "FileBufferHelper.h"
 #include "api/AssetAPI.h"
+#include <cstdlib>
 
 const char* FileBufferHelper::line(const FileBuffer& fb, Options opt) {
     uint8_t* cursor = fb.data;

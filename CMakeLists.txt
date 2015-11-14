@@ -288,6 +288,10 @@ file(GLOB_RECURSE source_files
     ${SAC_SOURCE_DIR}/api/default/*
 )
 
+if (NOT MOBILE_BUILD)
+    list(REMOVE_ITEM source_files ${SAC_SOURCE_DIR}/util/EntryPoint.cpp)
+endif()
+
 if (WEB_BUILD)
     set(EXECUTABLE_NAME ${PROJECT_NAME}.bc)
 endif()
