@@ -567,14 +567,16 @@ delta_time_computation:
     currentTime = newTime;
 
     theEntityManager.entityTemplateLibrary.update();
-    tuning.updateReload();
 
 #if SAC_DESKTOP
+    tuning.updateReload();
     theEntityManager.entityTemplateLibrary.updateReload();
 #endif
 
 #if !SAC_MOBILE
-    gameThreadContext->joystickAPI->update();
+    if (gameThreadContext->joystickAPI) {
+        gameThreadContext->joystickAPI->update();
+    }
 #endif
 
 #if SAC_ENABLE_PROFILING

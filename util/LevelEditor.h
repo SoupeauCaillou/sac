@@ -21,7 +21,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#if SAC_DESKTOP
+#if !SAC_MOBILE
 #include <SDL.h>
 #include <queue>
 #endif
@@ -56,7 +56,7 @@ class LevelEditor {
     static int DebugAreaWidth;
     static int DebugAreaHeight;
 #endif
-#if SAC_DESKTOP
+#if !SAC_MOBILE
     void addSDLEvent(const SDL_Event& evt);
     std::queue<SDL_Event> events;
 #endif

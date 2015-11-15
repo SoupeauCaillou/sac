@@ -28,7 +28,7 @@
 #include <cmath>
 #include <alloca.h>
 
-#if SAC_DEBUG
+#if SAC_DEBUG && !DISABLE_COLLISION_SYSTEM
 #include "util/Draw.h"
 #include "systems/CollisionSystem.h"
 #endif
@@ -241,7 +241,7 @@ int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, cons
                 }
                 if (normalAtCollision) {
                     normalAtCollision[count] = produceNormal(pB1, pB2);
-#if SAC_DEBUG
+#if SAC_DEBUG && !DISABLE_COLLISION_SYSTEM
                     if (theCollisionSystem.showDebug) {
                         Draw::Point(pB1, Color(1, 0, 0));
                         Draw::Point(pB2, Color(0, 0, 1));

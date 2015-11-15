@@ -90,7 +90,7 @@ static void applyVec2Modifiers(const hash_t mod, glm::vec2* out, int count) {
 }
 
 static void applyFloatModifiers(const hash_t modifier, float* out, int count) {
-    LOGI_IF(modifier, INV_HASH(modifier));
+    LOGV_IF(1, modifier, INV_HASH(modifier));
     for (int i=0; i<count; i++) {
         if (modifier == 0) {
             continue;

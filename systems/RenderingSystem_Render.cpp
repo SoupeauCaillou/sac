@@ -276,7 +276,7 @@ void RenderingSystem::drawRenderCommands(RenderQueue& commands) {
     check_GL_errors("Frame start");
     #endif
 
-    #if SAC_INGAME_EDITORS
+    #if SAC_INGAME_EDITORS && SAC_DESKTOP
     GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL))
     if (wireframe) {
         GL_OPERATION(glLineWidth(2))
@@ -752,8 +752,9 @@ void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int c
 }
 
 void RenderingSystem::ImImpl_RenderDrawLists2(int cmd_lists_count) {
-
+#if SAC_INGAME_EDITORS && SAC_DESKTOP
     GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL))
+#endif
     theRenderingSystem.glState.flags.update(OpaqueFlagSet);
 
     GL_OPERATION(glEnable(GL_BLEND))

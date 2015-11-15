@@ -105,7 +105,7 @@ void TouchInputManager::Update() {
                 onTouchPosition[i] = lastTouchedPositionScreen[i];
             }
         }
-        #if SAC_DESKTOP
+        #if !SAC_MOBILE
         {
             lastOverPositionScreen[i] = windowToScreen(coords);
             lastOverPosition[i] = windowToWorld(coords, tc);
@@ -189,7 +189,7 @@ glm::vec2 TouchInputManager::windowToWorld(const glm::vec2& windowCoords, const 
     return cameraTrans->position + glm::rotate(camLocal, cameraTrans->rotation);
 }
 
-#if SAC_DESKTOP
+#if !SAC_MOBILE
 #include "api/sdl/MouseNativeTouchState.h"
 int TouchInputManager::getWheel() const {
     int& r = static_cast<MouseNativeTouchState*>(ptr)->wheel;

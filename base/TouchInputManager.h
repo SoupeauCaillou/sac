@@ -79,7 +79,7 @@ class TouchInputManager {
 
     void setCamera(Entity camera);
 
-#if !ANDROID
+#if !SAC_MOBILE
     int getWheel() const;
 #endif
     public:
@@ -98,7 +98,7 @@ class TouchInputManager {
 #if SAC_DEBUG
     Entity debugState[MAX_TOUCH_POINT];
 #endif
-#if SAC_DESKTOP
+#if !SAC_MOBILE
     glm::vec2 lastOverPosition[MAX_TOUCH_POINT],
         lastOverPositionScreen[MAX_TOUCH_POINT];
 
