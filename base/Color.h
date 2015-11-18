@@ -40,6 +40,7 @@ struct Color {
         };
     };
 
+    static Color palette(float t, float alpha);
     static Color random(float _a = 1.f);
     static void nameColor(const Color& c, hash_t name);
 

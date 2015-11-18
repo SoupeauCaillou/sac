@@ -29,6 +29,21 @@
 
 static std::map<hash_t, Color> name2Color;
 
+Color Color::palette(float t, float alpha) {
+    glm::vec3 a(0.5f, 0.5f, 0.5f);
+    glm::vec3 b(0.5f, 0.5f, 0.5f);
+    glm::vec3 c(1.0f, 1.0f, 1.0f);
+    glm::vec3 d(0.0f, 0.1f, 0.2f);
+
+    Color result;
+    for (int i=0; i<3; i++) {
+        result.rgba[i] =
+            a[i] + b[i] * glm::cos(2 * 3.14157 * (c[i] * t + d[i]));
+    }
+    result.a = alpha;
+    return result;
+}
+
 Color Color::random(float alpha) {
         return Color(
             glm::linearRand(0.0f, 1.0f)
