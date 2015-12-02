@@ -245,8 +245,8 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(SpotBlockSystem::GetInstancePointer());
 #endif
     ADD_IF_EXISTING(TagSystem::GetInstancePointer());
-    ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
+    ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
 #if !DISABLE_SWYPE_SYSTEM
     ADD_IF_EXISTING(SwypeButtonSystem::GetInstancePointer());
