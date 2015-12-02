@@ -66,6 +66,7 @@ struct ZSQDComponent {
     float rotationSpeed, rotationSpeedStopped;
 
     int collideWith;
+    glm::vec2 previousPosition;
 };
 
 #define theZSQDSystem ZSQDSystem::GetInstance()
