@@ -475,7 +475,7 @@ void LevelEditor::tick(float dt) {
     if (ImGui::Begin("Editor tools",
                      NULL,
                      ImVec2(DebugAreaWidth * LEFT_PROPORTION,
-                            ImGui::GetIO().DisplaySize.y),
+                            ImGui::GetIO().DisplaySize.y * 0.8),
                      -1.0f,
                      ImGuiWindowFlags_ShowBorders)) {
 
