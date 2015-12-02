@@ -257,21 +257,37 @@ int IntersectionUtil::lineLines(const glm::vec2& pA1, const glm::vec2& pA2, cons
 }
 
 void IntersectionUtil::computeAABB(const TransformationComponent* tc, AABB& aabb, bool useRotation) {
+    computeAABB(tc->position, tc->size, useRotation ? tc->rotation : 0.0f, aabb);
+}
+
+void IntersectionUtil::computeAABB(const glm::vec2& position, const glm::vec2& size, float rotation, AABB& aabb) {
     glm::vec2 halfsize(0.0f);
-    if (!useRotation || glm::abs(tc->rotation) < 0.001) {
-        halfsize = tc->size * 0.5f;
+    if (glm::abs(rotation) < 0.001) {
+        halfsize = size * 0.5f;
     } else {
-        glm::vec2 p = tc->size * glm::vec2(0.5, 0.5);
-        glm::vec2 q = tc->size * glm::vec2(0.5, -0.5);
-        p = glm::rotate(p, tc->rotation);
-        q = glm::rotate(q, tc->rotation);
+        glm::vec2 p = size * glm::vec2(0.5, 0.5);
+        glm::vec2 q = size * glm::vec2(0.5, -0.5);
+        p = glm::rotate(p, rotation);
+        q = glm::rotate(q, rotation);
         halfsize.x = glm::max(glm::abs(p.x), glm::abs(q.x));
         halfsize.y = glm::max(glm::abs(p.y), glm::abs(q.y));
     }
-    aabb.left = tc->position.x - halfsize.x;
-    aabb.right = tc->position.x + halfsize.x;
-    aabb.bottom = tc->position.y - halfsize.y;
-    aabb.top = tc->position.y + halfsize.y;
+    aabb.left = position.x - halfsize.x;
+    aabb.right = position.x + halfsize.x;
+    aabb.bottom = position.y - halfsize.y;
+    aabb.top = position.y + halfsize.y;
+}
+
+AABB IntersectionUtil::mergeAABB(const AABB* aabb, int count) {
+    LOGF_IF(count <= 0, "count should be > 0");
+    AABB result = aabb[0];
+    for (int i=1; i<count; i++) {
+        result.left = glm::min(result.left, aabb[i].left);
+        result.right = glm::max(result.right, aabb[i].right);
+        result.bottom = glm::min(result.bottom, aabb[i].bottom);
+        result.top = glm::max(result.top, aabb[i].top);
+    }
+    return result;
 }
 
 bool IntersectionUtil::rectangleRectangleAABB(const TransformationComponent* tc1, const TransformationComponent* tc2) {
@@ -412,10 +428,26 @@ int IntersectionUtil::rectangleRectangle(
         bLines[i] = std::make_tuple(bPoints[i], bPoints[(i + 1) % 4]);
     }
 
-
     int count = 0;
     for (int i=0; i<4; i++) {
         count += lineLines(aPoints[i], aPoints[(i+1) % 4], bLines, intersectionPoints + count, normals + count);
+    }
+
+    bool inside[4] = { false, false, false, false };
+    for (int i=0; i<4; i++) {
+        inside[i] = pointRectangle(bPoints[i], tc1);
+    }
+    for (int i=0; i<4 && count < 4; i++) {
+        // B edge in A edge
+        if (inside[i] && inside[(i+1)%4]) {
+            if (intersectionPoints) {
+                intersectionPoints[count] = (bPoints[i] + bPoints[(i + 1) % 4]) * 0.5f;
+            }
+            if (normals) {
+                normals[count] = produceNormal(bPoints[i], bPoints[(i + 1) % 4]);
+            }
+            count++;
+        }
     }
     return count;
 }

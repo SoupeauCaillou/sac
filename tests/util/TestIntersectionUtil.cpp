@@ -135,3 +135,13 @@ TEST(lineRectangleSimple3)
     TransformationSystem::DestroyInstance();
 }
 
+TEST(rectangleRectangleOverlapping)
+{
+    TransformationComponent rectA, rectB;
+    rectA.position = glm::vec2(0.0f);
+    rectA.size = glm::vec2(3.0f);
+    rectB.position = glm::vec2(1.0f, 0.0f);
+    rectB.size = glm::vec2(2.0f);
+
+    CHECK_EQUAL(3, IntersectionUtil::rectangleRectangle(&rectA, &rectB, NULL, NULL));
+}

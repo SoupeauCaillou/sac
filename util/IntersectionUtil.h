@@ -115,4 +115,9 @@ class IntersectionUtil {
     static void computeAABB(const TransformationComponent* tc,
                             AABB& aabb,
                             bool useRotation = true);
+    static void computeAABB(const glm::vec2& position,
+                            const glm::vec2& size,
+                            float rotation,
+                            AABB& aabb);
+    static AABB mergeAABB(const AABB* aabb, int count);
 };
