@@ -548,6 +548,31 @@ void Game::sacInitFromGameThread() {
 
     tuning.init(gameThreadContext->assetAPI);
     tuning.load("tuning.ini");
+
+#if SAC_DEBUG
+    glm::vec2 size = glm::vec2(TRANSFORM(camera)->size.x / FPS_DEBUG_N, 0);
+    glm::vec2 bottomLeft = TRANSFORM(camera)->size * glm::vec2(-0.5f, -0.5f) - size.x  * 0.5f;
+
+    for (int i=0; i<FPS_DEBUG_N; i++) {
+        fpsStats.square[i] = theEntityManager.CreateEntity(HASH("square", 0x51dc8081));
+        ADD_COMPONENT(fpsStats.square[i], Transformation);
+        TRANSFORM(fpsStats.square[i])->size = size;
+        TRANSFORM(fpsStats.square[i])->position = bottomLeft + size * (float)i;
+        ADD_COMPONENT(fpsStats.square[i], Rendering);
+        // RENDERING(fpsStats.square[i])->show = true;
+        RENDERING(fpsStats.square[i])->color = Color::palette(i / (float)FPS_DEBUG_N, 0.5f);
+        RENDERING(fpsStats.square[i])->flags = RenderingFlags::NonOpaque;
+
+        fpsStats.text[i] = theEntityManager.CreateEntity(HASH("text", 0x4106ae4e));
+        ADD_COMPONENT(fpsStats.text[i], Transformation);
+        TRANSFORM(fpsStats.text[i])->position = glm::vec2(TRANSFORM(fpsStats.square[i])->position.x, (i % 2) * size.x * 2);
+        ADD_COMPONENT(fpsStats.text[i], Text);
+        TEXT(fpsStats.text[i])->text = "0.016";
+        TEXT(fpsStats.text[i])->color = Color(0, 0, 0);
+        // TEXT(fpsStats.text[i])->show = true;
+        TEXT(fpsStats.text[i])->charHeight = 2 * size.x;
+    }
+#endif
 }
 
 int Game::saveState(uint8_t**) {
@@ -587,21 +612,54 @@ delta_time_computation:
 
     accumulator += frameTime;
 #if SAC_EMSCRIPTEN
-    targetDT = accumulator;
+    // targetDT = accumulator;
 #endif
+
+    /** dt calculation
+     * rawFrameTime = raw calculated elpased time since last update
+     * we want to always update with dt = 16ms
+     * If rawFrameTime > 16, we do several successive updates
+     * If < 16 it depends on the env:
+     *    -> if multithreaded: we wait until it's >= 16
+     *    -> if single-thread (emscripten): we assume it's 16, and keep the negative
+     *       difference in the accumulator
+     */
 
     #if SAC_INGAME_EDITORS
         bool doneOnce = false;
     #endif
 
+    float dtFix = 0;
 #if !SAC_BENCHMARK_MODE
+
     if (accumulator < targetDT) {
+#if !SAC_EMSCRIPTEN
         TimeUtil::Wait(targetDT - accumulator);
         goto delta_time_computation;
-    }
-    while (accumulator >= targetDT)
 #else
-    accumulator = targetDT;
+        dtFix = accumulator - targetDT;
+        accumulator = targetDT;
+#endif
+    }
+
+#if SAC_DEBUG
+    {
+        static int current = 0;
+        char tmp[64];
+        sprintf(tmp, "%d", (int)(accumulator * 1000));
+
+        float height = accumulator / (5 * targetDT);
+        TRANSFORM(fpsStats.square[current])->size.y = height;
+        TRANSFORM(fpsStats.square[current])->position.y =
+            TRANSFORM(camera)->size.y * (-0.5f) +
+            height * 0.5f;
+        TEXT(fpsStats.text[current])->text = tmp;
+        current = (current + 1) % FPS_DEBUG_N;
+        TEXT(fpsStats.text[current])->text = "...";
+    }
+#endif
+
+    while (accumulator >= targetDT)
 #endif
 
     {
@@ -619,13 +677,13 @@ delta_time_computation:
             LevelEditor::lock();
 
             ImGuiIO& io = ImGui::GetIO();
-            #if SAC_DESKTOP
+            #if !SAC_MOBILE
             io.MouseWheel = theTouchInputManager.getWheel();
             #endif
             io.DeltaTime = targetDT;
 
             glm::vec2 p;
-            #if !SAC_DESKTOP
+            #if SAC_MOBILE
             if (!theTouchInputManager.isTouched())
                 io.MousePos =ImVec2(-1.0f, -1.0f);
             else
@@ -705,6 +763,9 @@ delta_time_computation:
         }
 #endif
     }
+
+    accumulator += dtFix;
+
     LOGV(3, "Produce rendering frame");
     // produce 1 new frame
 #if SAC_INGAME_EDITORS

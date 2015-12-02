@@ -33,6 +33,10 @@ class ComponentSystem;
 class MouseNativeTouchState;
 #endif
 
+#if SAC_DEBUG
+#define FPS_DEBUG_N 120
+#endif
+
 #if SAC_INGAME_EDITORS
 
 class LevelEditor;
@@ -104,6 +108,10 @@ class Game {
             since = timeMark;
             frameCount = 0;
         }
+#if SAC_DEBUG
+        Entity square[FPS_DEBUG_N];
+        Entity text[FPS_DEBUG_N];
+#endif
     } fpsStats;
     float lastUpdateTime;
 #if SAC_INGAME_EDITORS
@@ -119,4 +127,5 @@ class Game {
 #if SAC_ENABLE_LOG
     std::set<ComponentSystem*> unusedSystems;
 #endif
+
 };
