@@ -364,7 +364,7 @@ void CollisionSystem::DoUpdate(float) {
                             }
                         }
 
-                        bool valid = IntersectionUtil::rectangleRectangle(
+                        int valid = IntersectionUtil::rectangleRectangle(
                             tc, // should use position @ collision.time.t2
                             TRANSFORM(collision.other),
                             at,
@@ -381,10 +381,12 @@ void CollisionSystem::DoUpdate(float) {
                             firstCollisionFound = true;
                         }
 
-                        cc->collision.with[collCount] = collision.other;
-                        cc->collision.at[collCount] = at[0];
-                        cc->collision.normal[collCount] = normals[0];
-                        collCount++;
+                        for (int j=0; j<valid && collCount < 4; j++) {
+                            cc->collision.with[collCount] = collision.other;
+                            cc->collision.at[collCount] = at[j];
+                            cc->collision.normal[collCount] = normals[j];
+                            collCount++;
+                        }
 
 #if SAC_DEBUG
                         if (showDebug) {
@@ -617,10 +619,12 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
     // from our colliding group
     if (cc->collideWith & groupsInside) {
         const TransformationComponent* _tc = TRANSFORM(refEntity);
-        TransformationComponent tc;
-        tc.position = (_tc->position + cc->previousPosition) * 0.5f;
-        tc.size = _tc->position - cc->previousPosition + _tc->size;
-        tc.rotation = _tc->rotation;// incorrect but...
+
+        AABB aabb[2];
+        IntersectionUtil::computeAABB(_tc, aabb[0]);
+        IntersectionUtil::computeAABB(cc->previousPosition, _tc->size, cc->previousRotation, aabb[1]);
+
+        AABB merge = IntersectionUtil::mergeAABB(aabb, 2);
 
         for (auto it = begin; it!=end; ++it) {
             const Entity testedEntity = *it;
@@ -628,8 +632,11 @@ static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vec
 
             const CollisionComponent* cc2 = COLLISION(testedEntity);
             if (cc2->group & cc->collideWith) {
+                AABB other;
+                IntersectionUtil::computeAABB(TRANSFORM(testedEntity), other, true);
+
                 // Test for collision
-                if (IntersectionUtil::rectangleRectangle(&tc, TRANSFORM(testedEntity))) {
+                if (IntersectionUtil::rectangleRectangleAABB(merge, other)) {
                     // try to find the exact collision time
                     Coll c;
                     c.other = testedEntity;
