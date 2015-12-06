@@ -29,6 +29,7 @@
 #include <systems/RenderingSystem.h>
 #include <systems/CameraSystem.h>
 #include <systems/CollisionSystem.h>
+#include <systems/SpatialPartitionSystem.h>
 #include <systems/TextSystem.h>
 #include <systems/ZSQDSystem.h>
 #include "base/PlacementHelper.h"
@@ -938,7 +939,7 @@ void LevelEditor::tick(float dt) {
 #if !DISABLE_COLLISION_SYSTEM
         /* Collision debug tools */
         if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
-            ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
+            ImGui::Checkbox("Debug", &theSpatialPartitionSystem.showDebug);
             ImGui::SliderInt(
                 "Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 100);
         }

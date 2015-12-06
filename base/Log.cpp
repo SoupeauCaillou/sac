@@ -26,6 +26,9 @@ bool AssertOnFatal = true;
 
 #include "Log.h"
 
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "TimeUtil.h"
 // #include <iomanip>
 // #include <sstream>
@@ -75,6 +78,7 @@ static const char* enum2Name(LogVerbosity::Enum t) {
 #include <sys/syscall.h>
 #include <sys/types.h>
 
+// TODO: use truecolor https://gist.github.com/XVilka/8346728
 static const char* color[LogVerbosity::COUNT] = {
     "30;41", /* FATAL, default: fg=black, bg=red */
     "30;41", /* ERROR, default: fg=black, bg=red */
@@ -107,22 +111,33 @@ static bool enableColorize = true;
 
 // from http://stackoverflow.com/questions/3596781/detect-if-gdb-is-running
 // gdb apparently opens FD(s) 3,4,5 (whereas a typical prog uses only stdin=0, stdout=1,stderr=2)
-static int detect_gdb(void)
+static bool detect_gdb(void)
 {
-    int rc = 0;
-    FILE *fd = fopen("/tmp", "r");
+    char buf[1024];
+    int debugger_present = 0;
 
-    if (fileno(fd) > 5)
+    int status_fd = open("/proc/self/status", O_RDONLY);
+    if (status_fd == -1)
+        return 0;
+
+    ssize_t num_read = read(status_fd, buf, sizeof(buf));
+
+    if (num_read > 0)
     {
-        rc = 1;
+        static const char TracerPid[] = "TracerPid:";
+        char *tracer_pid;
+
+        buf[num_read] = 0;
+        tracer_pid    = strstr(buf, TracerPid);
+        if (tracer_pid)
+            debugger_present = !!atoi(tracer_pid + sizeof(TracerPid) - 1);
     }
 
-    fclose(fd);
-    return 0;//rc;
+    return debugger_present;
 }
 
 void initLogColors() {
-    enableColorize = detect_gdb() == 0;
+    enableColorize = !detect_gdb();
 
     // read from env var
 

@@ -58,6 +58,7 @@
 #include "systems/PhysicsSystem.h"
 #include "systems/RenderingSystem.h"
 #include "systems/ScrollingSystem.h"
+#include "systems/SpatialPartitionSystem.h"
 #include "systems/SoundSystem.h"
 #include "systems/SpotSystem.h"
 #include "systems/TagSystem.h"
@@ -141,6 +142,7 @@ Game::Game() {
     MusicSystem::CreateInstance();
     ParticuleSystem::CreateInstance();
     PhysicsSystem::CreateInstance();
+    SpatialPartitionSystem::CreateInstance();
     RenderingSystem::CreateInstance();
 #if !DISABLE_SCROLLING_SYSTEM
     ScrollingSystem::CreateInstance();
@@ -225,7 +227,9 @@ void Game::buildOrderedSystemsToUpdateList() {
 #endif
     ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
     ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
+    ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
+    ADD_IF_EXISTING(SpatialPartitionSystem::GetInstancePointer());
 #if !DISABLE_ZSQD_SYSTEM
     ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
 #endif
@@ -245,7 +249,6 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(SpotBlockSystem::GetInstancePointer());
 #endif
     ADD_IF_EXISTING(TagSystem::GetInstancePointer());
-    ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(TextSystem::GetInstancePointer());
     ADD_IF_EXISTING(TransformationSystem::GetInstancePointer());
 #if !DISABLE_SWYPE_SYSTEM
@@ -298,6 +301,7 @@ Game::~Game() {
     MusicSystem::DestroyInstance();
     ParticuleSystem::DestroyInstance();
     PhysicsSystem::DestroyInstance();
+    SpatialPartitionSystem::DestroyInstance();
     RenderingSystem::DestroyInstance();
 #if !DISABLE_SCROLLING_SYSTEM
     ScrollingSystem::DestroyInstance();

@@ -18,24 +18,38 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
 
+#include "System.h"
 
-#include <UnitTest++.h>
-#undef CHECK
-#define GLEW_STATIC
-#include <SDL.h>
-#include <base/EntityManager.h>
+struct TransformationComponent;
 
-int main(int argc, char **) {
-    AssertOnFatal = false;
-
-#if SAC_ENABLE_LOG
-    initLogColors();
-    if (argc == 1)
-        logLevel = LogVerbosity::FATAL;
-    else
-        logLevel = LogVerbosity::VERBOSE2;
-#endif
-    EntityManager::CreateInstance();
-    return UnitTest::RunAllTests();
+namespace spatial_partition_update_mode
+{
+    enum Enum { Automatic = 0, Manual };
 }
+
+struct SpatialPartitionComponent {
+    SpatialPartitionComponent() :
+        mode(spatial_partition_update_mode::Automatic),
+        partitionId(0) {}
+    spatial_partition_update_mode::Enum mode;
+
+    uint32_t partitionId;
+};
+
+#define theSpatialPartitionSystem SpatialPartitionSystem::GetInstance()
+#if SAC_DEBUG
+#define SPATIAL_PARTITION(e) theSpatialPartitionSystem.Get(e, true, __FILE__, __LINE__)
+#else
+#define SPATIAL_PARTITION(e) theSpatialPartitionSystem.Get(e)
+#endif
+
+UPDATABLE_SYSTEM(SpatialPartition)
+
+#if SAC_DEBUG
+    public:
+        bool showDebug;
+#endif
+
+};
