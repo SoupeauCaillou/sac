@@ -22,20 +22,12 @@
 
 #include "System.h"
 
-struct TransformationComponent;
-
-namespace spatial_partition_update_mode
-{
-    enum Enum { Automatic = 0, Manual };
-}
-
 struct SpatialPartitionComponent {
     SpatialPartitionComponent() :
-        mode(spatial_partition_update_mode::Automatic),
-        partitionId(0) {}
-    spatial_partition_update_mode::Enum mode;
+        cells(0), count(0) {}
 
-    uint32_t partitionId;
+    glm::ivec2* cells;
+    int count;
 };
 
 #define theSpatialPartitionSystem SpatialPartitionSystem::GetInstance()
@@ -47,8 +39,9 @@ struct SpatialPartitionComponent {
 
 UPDATABLE_SYSTEM(SpatialPartition)
 
-#if SAC_DEBUG
     public:
+        float cellSize;
+#if SAC_DEBUG
         bool showDebug;
 #endif
 

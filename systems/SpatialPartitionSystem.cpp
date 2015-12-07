@@ -27,223 +27,102 @@
 #include "util/Draw.h"
 #endif
 
-/* Build a simple quadtree */
-#define MAX_OBJECT_PER_NODE 10
-#define MAX_DEPTH 16
-struct QuadTree {
-    QuadTree() {
-        memset(entities, 0, sizeof(entities));
-        parent = 0;
-        memset(children, 0, sizeof(children));
-    }
-    Entity entities[MAX_OBJECT_PER_NODE];
-    uint32_t parent;
-    uint32_t children[4];
-    int size;
-};
 
-std::vector<QuadTree> tree;
+typedef glm::ivec2 CellCoords;
+typedef std::vector<Entity> Cell; //...
 
-static float halfSizes[MAX_DEPTH];
+std::vector<Cell> cells;
+glm::ivec2 gridSize;
+std::vector<glm::ivec2> coords;
 
 INSTANCE_IMPL(SpatialPartitionSystem);
 
 SpatialPartitionSystem::SpatialPartitionSystem() : ComponentSystemImpl<SpatialPartitionComponent>(HASH("SpatialPartition", 0x35df9814)) {
     SpatialPartitionComponent tc;
-    componentSerializer.add(new Property<int>(HASH("mode", 0xbfaa2be1), OFFSET(mode, tc)));
-    componentSerializer.add(new Property<int>(HASH("partition_id", 0x3d899463), OFFSET(partitionId, tc)));
+    componentSerializer.add(new Property<int>(HASH("count", 0), OFFSET(count, tc)));
+    cellSize = 3;
 
     #if SAC_DEBUG
     showDebug = false;
     #endif
-
-    halfSizes[0] = 10000.0f * 0.5f;
-
-    for (int i=1; i<MAX_DEPTH; i++) {
-        halfSizes[i] = halfSizes[0] / glm::pow(2.0f, (float)i);
-    }
 }
 
-static void updateEntity(Entity e, SpatialPartitionComponent* spc);
-
 #if SAC_DEBUG
-void drawDebug(int index, const glm::vec2& position, int depth = 0) {
-    const QuadTree& node = tree[index];
-    // top-left, top-right, bottom-left, bottom-right
-    const glm::vec2 offset[] = {
-        glm::vec2(-0.5f, 0.5f), glm::vec2(0.5f), glm::vec2(-0.5f), glm::vec2(0.5f, -0.5f)
-    };
-
-    LOGI(__(position) << '/' << (halfSizes[node.size]*2) << ' ' << __(depth));
-    bool hasNoChild = true;
-    for (int i=0; i<4; i++) {
-        if (node.children[i]) {
-            drawDebug(
-                node.children[i],
-                position + glm::vec2(halfSizes[node.size]) * offset[i],
-                depth +1);
-            hasNoChild = false;
+void drawDebug(float cellSize, const glm::vec2& minPos, int total) {
+    float avg = total / (float)cells.size();
+    for (size_t i=0; i<cells.size(); i++) {
+        if (cells[i].empty()) {
+            continue;
         }
-    }
+        int y = i / gridSize.x;
+        int x = i % gridSize.x;
 
-    if (hasNoChild) {
-        Draw::Rectangle(position, glm::vec2(halfSizes[node.size] * 2), 0.0f, Color::palette(index / (float)tree.size(), 0.9));
-    } else {
-        LOGI("NO " << __(position) << '/' << glm::vec2(halfSizes[node.size] * 2));
+        Draw::Rectangle(
+            minPos + glm::vec2(cellSize * (x + 0.5f), cellSize * (y + 0.5f)),
+            glm::vec2(cellSize, cellSize), 0.0f,
+            Color::palette(cells[i].size() / avg, 0.8));
     }
 }
 #endif
 
+
+CellCoords positionToCellCoords(const glm::vec2& position, float invCellSize) {
+    CellCoords result = CellCoords((int) glm::floor(position.x * invCellSize), (int) glm::floor(position.y * invCellSize));
+    return result;
+}
+
 void SpatialPartitionSystem::DoUpdate(float) {
-    QuadTree root;
-    root.size = 0;
-    tree.clear();
-    tree.push_back(root);
+    const float invCellSize = 1.0f / cellSize;
+    glm::vec2 minPos(FLT_MAX, FLT_MAX), maxPos(-FLT_MAX, -FLT_MAX);
 
     FOR_EACH_ENTITY_COMPONENT(SpatialPartition, e, comp)
-        updateEntity(e, comp);
+        const auto* tc = TRANSFORM(e);
+        glm::vec2 size(glm::max(tc->size.x, tc->size.y));
+        minPos = glm::min(minPos, tc->position - size);
+        maxPos = glm::max(maxPos, tc->position + size);
+    }
+
+    // make sure cell storage is correctly sized
+    // and reset storage
+    CellCoords ma = positionToCellCoords(maxPos, invCellSize);
+    CellCoords mi = positionToCellCoords(minPos, invCellSize);
+
+    gridSize.x = (ma.x - mi.x + 1);
+    gridSize.y = (ma.y - mi.y + 1);
+    int cellCount = gridSize.x *gridSize.y;
+    cells.resize(cellCount);
+    for (int i=0; i<cellCount; i++) {
+        cells[i].clear();
+    }
+    coords.clear();
+
+    FOR_EACH_ENTITY_COMPONENT(SpatialPartition, e, comp)
+        AABB aabb;
+        const auto* tc = TRANSFORM(e);
+        IntersectionUtil::computeAABB(
+            tc->position - minPos,
+            tc->size,
+            tc->rotation,
+            aabb);
+
+        // insert entity in all cells covered by AABB
+        CellCoords cellTopLeft = positionToCellCoords(glm::vec2(aabb.left, aabb.top), invCellSize);
+        CellCoords cellBottomRight = positionToCellCoords(glm::vec2(aabb.right, aabb.bottom), invCellSize);
+
+        comp->cells = &coords[coords.size()];
+        comp->count = 0;
+        for (int y=cellBottomRight.y; y<=cellTopLeft.y; y++) {
+            for (int x=cellTopLeft.x; x<=cellBottomRight.x; x++) {
+                cells[y * gridSize.x + x].push_back(e);
+                coords.push_back(glm::ivec2(x, y));
+                comp->count++;
+            }
+        }
     }
 
     #if SAC_DEBUG
     if (showDebug) {
-        Draw::Point(glm::vec2(0.0f));
-        LOGI("debug");
-        drawDebug(0, glm::vec2(0.0f));
+        drawDebug(cellSize, minPos, entityWithComponent.size());
     }
     #endif
-}
-
-
-static uint32_t computeNode(const glm::vec2* points, int node);
-static void computePoints(Entity e, glm::vec2* out);
-static uint32_t insertEntity(Entity e);
-static int splitNode(uint32_t node);
-static void insertEntityInNode(Entity e, uint32_t node);
-
-static int nextFreeSpotInNode(const QuadTree& node) {
-    int i = 0;
-    do {
-        if (node.entities[i] == 0) {
-            break;
-        }
-    } while ((++i) < MAX_OBJECT_PER_NODE);
-
-    return i;
-}
-
-static void updateEntity(Entity e, SpatialPartitionComponent* spc) {
-    uint32_t current = spc->partitionId;
-    bool found = false;
-    /*for (int i=0; i<MAX_OBJECT_PER_NODE && !found; i++) {
-        if (tree[current].entities[i] == e) {
-            found = true;
-            tree[current].entities[i] = 0;
-
-            for (int j=MAX_OBJECT_PER_NODE - 1; j>=0; j--) {
-                if (tree[current].entities[j]) {
-                    tree[current].entities[i] = tree[current].entities[j];
-                    tree[current].entities[j] = 0;
-                    break;
-                }
-            }
-        }
-    }*/
-    insertEntity(e);
-}
-
-static uint32_t insertEntity(Entity e) {
-    glm::vec2 points[4];
-
-    computePoints(e, points);
-    uint32_t node = computeNode(points, 0);
-
-    insertEntityInNode(e, node);
-    return node;
-}
-
-static void insertEntityInNode(Entity e, uint32_t node) {
-    int freeSpot = nextFreeSpotInNode(tree[node]);
-
-    if (freeSpot < MAX_OBJECT_PER_NODE) {
-    } else {
-        //LOGV(2, "Split node");
-        freeSpot = splitNode(node);
-    }
-
-    if (freeSpot == -1) {
-        LOGI("Meh unassigned");
-        return;
-    }
-    //LOGV(2, "insert " << e << " in " << node << " at spot " << freeSpot);
-    tree[node].entities[freeSpot] = e;
-
-    SPATIAL_PARTITION(e)->partitionId = node;
-}
-
-static void computePoints(Entity e, glm::vec2* out) {
-    AABB aabb;
-    IntersectionUtil::computeAABB(TRANSFORM(e), aabb);
-    out[0] = glm::vec2(aabb.left, aabb.top);
-    out[1] = glm::vec2(aabb.right, aabb.top);
-    out[2] = glm::vec2(aabb.right, aabb.bottom);
-    out[3] = glm::vec2(aabb.left, aabb.bottom);
-}
-
-static int splitNode(uint32_t node)
-    {glm::vec2 points[4];
-
-    for (int i=0; i<MAX_OBJECT_PER_NODE; i++) {
-        Entity e = tree[node].entities[i];
-        computePoints(e, points);
-        // /LOGI("splitNode: " << e);
-        uint32_t newNode = computeNode(points, node);
-        if (newNode != node) {
-            insertEntityInNode(e, newNode);
-            return i;
-        }
-    }
-    return -1;
-}
-
-static uint32_t computeNode(const glm::vec2* points, int node) {
-    const float childHalfSize = halfSizes[node] * 0.5f;
-
-    // top-left, top-right, bottom-left, bottom-right
-    const float leftCoeff[] =   { -1,  0, -1,  0 };
-    const float rightCoeff[] =   {  0,  1,  0,  1 };
-    const float topCoeff[] =    {  1,  1,  0,  0 };
-    const float bottomCoeff[] = {  0,  0,  -1, -1 };
-
-    // if the 4 points belongs to a node, insert
-    for (int i=0; i<4; i++) {
-        AABB aabb;
-        aabb.left = leftCoeff[i] * childHalfSize;
-        aabb.right = rightCoeff[i] * childHalfSize;
-        aabb.top = topCoeff[i] * childHalfSize;
-        aabb.bottom = bottomCoeff[i] * childHalfSize;
-
-        // if all points are inside this node
-        bool inside = true;
-        for (int j=0; j<4 && inside; j++) {
-            inside &= IntersectionUtil::pointRectangleAABB(points[j], aabb);
-        }
-        if (inside) {
-            //LOGI("ASSIGN");
-            QuadTree& currentNode = tree[node];
-            if (currentNode.children[i] == 0) {
-                currentNode.children[i] = tree.size();
-
-                QuadTree child;
-                child.size = tree[node].size + 1;
-                LOGF_IF(child.size == MAX_DEPTH, "oops MAX_DEPTH reached, need plan B");
-                child.parent = node;
-                tree.push_back(child);
-            }
-            return currentNode.children[i];
-        }
-    }
-    //LOGI(points[0] <<' ' << points[1] << ' ' << points[2] << ' ' << points[3]);
-
-    // if it cannot fit in a child, assign to current node
-    return node;
 }

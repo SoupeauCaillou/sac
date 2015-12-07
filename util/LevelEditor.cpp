@@ -939,11 +939,19 @@ void LevelEditor::tick(float dt) {
 #if !DISABLE_COLLISION_SYSTEM
         /* Collision debug tools */
         if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
-            ImGui::Checkbox("Debug", &theSpatialPartitionSystem.showDebug);
+            ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
             ImGui::SliderInt(
                 "Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 100);
         }
 #endif
+
+
+        /* Parition debug tools */
+        if (ImGui::CollapsingHeader("Partition", NULL, true, false)) {
+            ImGui::Checkbox("Debug", &theSpatialPartitionSystem.showDebug);
+            ImGui::SliderFloat(
+                "CellSize", &theSpatialPartitionSystem.cellSize, 1, 10);
+        }
 
 #if !DISABLE_ZSQD_SYSTEM
         /* ZSQD debug tools */
