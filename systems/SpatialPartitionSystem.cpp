@@ -39,7 +39,7 @@ INSTANCE_IMPL(SpatialPartitionSystem);
 
 SpatialPartitionSystem::SpatialPartitionSystem() : ComponentSystemImpl<SpatialPartitionComponent>(HASH("SpatialPartition", 0x35df9814)) {
     SpatialPartitionComponent tc;
-    componentSerializer.add(new Property<int>(HASH("count", 0), OFFSET(count, tc)));
+    componentSerializer.add(new Property<int>(HASH("count", 0x78b8273a), OFFSET(count, tc)));
     cellSize = 3;
 
     #if SAC_DEBUG
