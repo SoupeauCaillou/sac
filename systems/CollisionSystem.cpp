@@ -43,7 +43,8 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HAS
     componentSerializer.add(new Property<int>(HASH("group", 0xbf3bf34d), OFFSET(group, tc), 0));
     componentSerializer.add(new Property<int>(HASH("collide_with", 0x6b658240), OFFSET(collideWith, tc), 0));
     componentSerializer.add(new Property<bool>(HASH("restore_position_on_collision", 0x9c45df9f), OFFSET(restorePositionOnCollision, tc)));
-    componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x78a2c1f4), OFFSET(ray.is, tc)));
+    // componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x78a2c1f4), OFFSET(ray.is, tc)));
+    componentSerializer.add(new Property<bool>(HASH("is_static", 0x104445ee), OFFSET(isStatic, tc)));
 
 #if SAC_DEBUG
     showDebug = false;
@@ -100,60 +101,23 @@ static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const
     return IntersectionUtil::pointRectangleAABB(p, cell);
 }
 
+static void updateAABBWithPreviousFrame(const TransformationComponent* tc, const CollisionComponent* cc, AABB& aabb) {
+    AABB frames[2];
+    frames[1] = aabb;
+    IntersectionUtil::computeAABB(
+        cc->previousPosition, tc->size, cc->previousRotation, frames[0]);
+    aabb = IntersectionUtil::mergeAABB(frames, 2);
+}
+
 #if SAC_DEBUG
 static char debugText[8096];
 void CollisionSystem::DoUpdate(float dt) {
 #else
 void CollisionSystem::DoUpdate(float) {
 #endif
-    #define CELL_SIZE 4.0f
-    #define INV_CELL_SIZE (1.0f/CELL_SIZE)
-
-    const int w = glm::floor(worldSize.x * INV_CELL_SIZE);
-    const int h = glm::floor(worldSize.y * INV_CELL_SIZE);
-
-#if SAC_DEBUG
-    Draw::Clear(HASH("Collision", 0x638cf8ed));
-    if (maximumRayCastPerSec > 0)
-        maximumRayCastPerSecAccum += maximumRayCastPerSec * dt;
-
-    if (showDebug) {
-        if (debug.empty()) {
-            for (int j=0; j<h; j++) {
-                for (int i=0; i<w; i++) {
-                    Entity d = theEntityManager.CreateEntity(HASH("debug_collision_grid", 0x9c1949ab));
-                    ADD_COMPONENT(d, Transformation);
-                    TRANSFORM(d)->position =
-                        -worldSize * 0.5f + glm::vec2(CELL_SIZE * (i+.5f), CELL_SIZE *(j+.5f));
-                    TRANSFORM(d)->size = glm::vec2(CELL_SIZE);
-                    TRANSFORM(d)->z = 0.95f;
-                    ADD_COMPONENT(d, Rendering);
-                    RENDERING(d)->color = Color(i%2,j%2,0, 0.1);
-                    RENDERING(d)->show = 1;
-                    RENDERING(d)->flags = RenderingFlags::NonOpaque;
-                    ADD_COMPONENT(d, Text);
-                    TEXT(d)->fontName = HASH("typo", 0x5a18f4a9);
-                    TEXT(d)->charHeight = CELL_SIZE * 0.2;
-                    TEXT(d)->show = 1;
-                    TEXT(d)->color.a = 0.3f;
-                    TEXT(d)->flags = TextComponent::MultiLineBit;
-                    debug.push_back(d);
-                }
-            }
-        }
-    } else {
-        for (auto d: debug) {
-            RENDERING(d)->show = TEXT(d)->show = false;
-        }
-    }
-#endif
-
-    std::vector<Cell> cells;
-
-    cells.reserve(w * h);
-    while ((int)cells.size() < w * h) {
-        cells.push_back(Cell());
-    }
+    #if 1
+    LOGT_EVERY_N(600, "finish me");
+    #else
 
     int minCollidingEntity = INT_MAX, maxCollidingEntity = 0;
 
@@ -161,46 +125,26 @@ void CollisionSystem::DoUpdate(float) {
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
         if (!cc->ray.is && !cc->group)
             continue;
+
         #if SAC_DEBUG
         if (cc->group & (cc->group - 1)) {
             LOGW("Invalid collision group '" << cc->group << "' for entity " << theEntityManager.entityName(entity) << ". Must be pow2");
         }
+        LOGF_IF(theSpatialPartitionSystem.Get(entity, false) == NULL,
+            "Entity with Collision component must also have SpatialPartition component");
         #endif
 
         cc->collision.count = 0;
 
         const TransformationComponent* tc = TRANSFORM(entity);
-
-        glm::vec2 pOffset(glm::rotate(tc->size * .5f, tc->rotation));
         if (cc->ray.is) {
-            pOffset = glm::vec2(0.0f, 0.0f);
-        }
-        glm::vec2 nOffset(-pOffset);
-
-        pOffset += tc->position + worldSize * 0.5f;
-        nOffset += tc->position + worldSize * 0.5f;
-
-        int xStart = glm::max(0, glm::min(w-1, (int)glm::floor(pOffset.x * INV_CELL_SIZE)));
-        int xEnd = glm::max(0, glm::min(w-1, (int)glm::floor(nOffset.x * INV_CELL_SIZE)));
-        if (xStart > xEnd)
-            std::swap(xStart, xEnd);
-
-        int yStart = glm::max(0, glm::min(h-1, (int)glm::floor(pOffset.y * INV_CELL_SIZE)));
-        int yEnd = glm::max(0, glm::min(h-1, (int)glm::floor(nOffset.y * INV_CELL_SIZE)));
-        if (yStart > yEnd)
-            std::swap(yStart, yEnd);
-
-        if (cc->ray.is) {
-            xEnd = xStart;
-            yEnd = yStart;
+            tc->size = glm::vec2(0.0f);
         }
 
         for (int x = xStart; x <= xEnd; x++) {
             for (int y = yStart; y <= yEnd; y++) {
-                LOGE_IF(x + y * w >=  w * h, "Incorrect cell index: " << x << '+' << y << '*' << w << " >= " << w << '*' << h);
-                Cell& cell = cells[x + y * w];
-                cell.X = x; cell.Y = y;
-                if (cc->group > 1 || cc->ray.is) {
+
+                if (!cc->isStatic || cc->ray.is) {
                     if (cc->ray.is) {
                         if (!cc->ray.testDone) {
                             cell.rayEntities.push_back(entity);
@@ -218,6 +162,49 @@ void CollisionSystem::DoUpdate(float) {
             }
         }
     END_FOR_EACH()
+
+    for (size_t i=0; i<cells.size(); i++) {
+        const Cell& cell = cells[i];
+
+        size_t entityCount = cell.size();
+        for (size_t j=0; j<entityCount; j++) {
+            Entity e1 = cell[j];
+            CollisionComponent* cc1 = COLLISION(e1);
+
+            // skip static entities
+            if (cc1->isStatic) {
+                continue;
+            }
+
+            const TransformationComponent* tc1 = TRANSFORM(e1);
+            // build aabb covering previous position and current position
+            AABB aabb1;
+            IntersectionUtil::computeAABB(tc1, aabb1);
+            updateAABBWithPreviousFrame(tc1, cc1, aabb1);
+
+            // collide with all others
+            for (size_t k=0; k<entityCount; k++) {
+                Entity e2 = cell[k];
+                CollisionComponent* cc2 = COLLISION(e2);
+
+                // can't collide with each other
+                if (!(cc1->collideWith & cc2->group)) {
+                    continue;
+                }
+
+                const TransformationComponent* tc2 = TRANSFORM(e2);
+                AABB aabb2;
+                IntersectionUtil::computeAABB(tc2, aabb2);
+                if (!cc2->isStatic) {
+                    updateAABBWithPreviousFrame(tc2, cc2, aabb2);
+                }
+
+                if (IntersectionUtil::rectangleRectangleAABB(aabb1, aabb2)) {
+                    // potential collision during the frame
+                }
+            }
+        }
+    }
 
     // ensure array is big enough
     {
@@ -527,8 +514,10 @@ void CollisionSystem::DoUpdate(float) {
         cc->previousRotation = TRANSFORM(entity)->rotation;
         cc->prevPositionIsValid = true;
     END_FOR_EACH()
+    #endif
 }
 
+#if 0
 static int performRayObjectCollisionInCell(
     const CollisionComponent* cc,
     const glm::vec2& origin,
@@ -664,5 +653,6 @@ glm::vec2 CollisionSystem::collisionPointToNormal(const glm::vec2& point, const 
     }
     return glm::rotate(normal, tc->rotation);
 }
+#endif
 
 #endif

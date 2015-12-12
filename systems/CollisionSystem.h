@@ -32,22 +32,26 @@ struct TransformationComponent;
 struct CollisionComponent {
     CollisionComponent() :
         group(0), collideWith(0),
-        restorePositionOnCollision(false), prevPositionIsValid(false),
+        restorePositionOnCollision(false), prevPositionIsValid(false), isStatic(true),
         previousPosition(0.0f), previousRotation(0.0f),
-        ignore(0) { collision.count = 0; ray.is = false; ray.testDone = false; ray.maxCollision = 1;}
+        ignore(0) { collision.count = 0;
+        #if 0
+        ray.is = false; ray.testDone = false; ray.maxCollision = 1;
+        #endif
+    }
     int group;
     int collideWith;
-    bool restorePositionOnCollision, prevPositionIsValid;
+    bool restorePositionOnCollision, prevPositionIsValid, isStatic;
 
     glm::vec2 previousPosition;
     float previousRotation;
-
+#if 0
     struct {
         bool is;
         bool testDone;
         int maxCollision;
     } ray;
-
+#endif
     struct {
         int count;
         Entity* with;
@@ -70,7 +74,6 @@ public:
 static glm::vec2 collisionPointToNormal(const glm::vec2& point,
                                         const TransformationComponent* tc);
 
-glm::vec2 worldSize;
 #if SAC_DEBUG
 bool showDebug;
 int maximumRayCastPerSec;
