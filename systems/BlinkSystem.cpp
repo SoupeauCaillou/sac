@@ -22,6 +22,7 @@
 
 #include "BlinkSystem.h"
 #include "RenderingSystem.h"
+#include "TextSystem.h"
 #include "util/SerializerProperty.h"
 
 INSTANCE_IMPL(BlinkSystem);
@@ -39,7 +40,14 @@ void BlinkSystem::DoUpdate(float dt) {
 
         bc->accum += dt;
 
-        RENDERING(entity)->show = (bc->accum < bc->visibleDuration);
+        auto* rendering = theRenderingSystem.Get(entity, false);
+        if (rendering) {
+            rendering->show = (bc->accum < bc->visibleDuration);
+        }
+        auto* text = theTextSystem.Get(entity, false);
+        if (text) {
+            text->show = (bc->accum < bc->visibleDuration);
+        }
 
         float total = bc->visibleDuration + bc->hiddenDuration;
         LOGF_IF(total <= 0, "Invalid params: " <<bc->visibleDuration << "/" << bc->hiddenDuration);
