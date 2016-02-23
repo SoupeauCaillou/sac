@@ -24,6 +24,7 @@
 
 #include "AnchorSystem.h"
 #include "TransformationSystem.h"
+#include "TextSystem.h"
 
 #include <glm/glm.hpp>
 
@@ -32,7 +33,7 @@
 
 INSTANCE_IMPL(ContainerSystem);
 
-ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>(HASH("Container", 0x82b2596e)) {
+ContainerSystem::ContainerSystem() : ComponentSystemImpl<ContainerComponent>(HASH("Container", 0x82b2596e), ComponentType::Complex) {
     /* nothing saved */
     ContainerComponent cc;
     componentSerializer.add(new Property<bool>(HASH("enable", 0x5d70851c), OFFSET(enable, cc)));
@@ -70,14 +71,22 @@ void ContainerSystem::DoUpdate(float) {
         float minX = std::numeric_limits<float>().max(), minY = std::numeric_limits<float>().max();
         float maxX = std::numeric_limits<float>().min(), maxY = std::numeric_limits<float>().min();
         for(auto jt : bc->entities) {
-            TransformationComponent* tc = TRANSFORM(jt);
-            updateMinMax(minX, minY, maxX, maxY, tc);
+            auto* text = theTextSystem.Get(jt, false);
+            if (text) {
+                minX = glm::min(minX, text->aabb.left);
+                maxX = glm::max(maxX, text->aabb.right);
+                minY = glm::min(minY, text->aabb.bottom);
+                maxY = glm::max(maxY, text->aabb.top);
+            } else {
+                TransformationComponent* tc = TRANSFORM(jt);
+                updateMinMax(minX, minY, maxX, maxY, tc);
 
-            if (bc->includeChildren) {
-                theAnchorSystem.forEachECDo([jt, &minX, &minY, &maxX, &maxY] (Entity e, AnchorComponent *ac) -> void {
-                    if (ac->parent == jt)
-                        updateMinMax(minX, minY, maxX, maxY, TRANSFORM(e));
-                });
+                if (bc->includeChildren) {
+                    theAnchorSystem.forEachECDo([jt, &minX, &minY, &maxX, &maxY] (Entity e, AnchorComponent *ac) -> void {
+                        if (ac->parent == jt)
+                            updateMinMax(minX, minY, maxX, maxY, TRANSFORM(e));
+                    });
+                }
             }
         }
 

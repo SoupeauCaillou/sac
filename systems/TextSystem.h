@@ -24,6 +24,7 @@
 #include "base/Color.h"
 
 #include "opengl/TextureLibrary.h"
+#include "util/IntersectionUtil.h"
 
 #include <vector>
 
@@ -52,6 +53,7 @@ struct TextComponent {
 
     std::string text;
     Color color;
+    AABB aabb;
 
     union {
         float charHeight;

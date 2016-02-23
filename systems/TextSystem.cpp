@@ -433,11 +433,21 @@ relayout:
             "'" << theEntityManager.entityName(entity) << "' (text='"
                 << trc->text << "') has z = " << trans->z << " -> letters won't be visible");
         #endif
+        AABB tempAABB[2];
+        tempAABB[0].left = tempAABB[0].right = trans->position.x;
+        tempAABB[0].bottom = tempAABB[0].top = trans->position.y;
         for (unsigned i=firstEntity; i<letterCount; i++) {
             auto* tc = TRANSFORM(renderingEntitiesPool[i]);
             ac.position = tc->position;
             AnchorSystem::adjustTransformWithAnchor(tc, trans, &ac);
+            IntersectionUtil::computeAABB(tc, tempAABB[1], false);
+            if (i == firstEntity) {
+                tempAABB[0] = tempAABB[1];
+            } else {
+                tempAABB[0] = IntersectionUtil::mergeAABB(tempAABB, 2);
+            }
         }
+        trc->aabb = tempAABB[0];
 
 
 #if SAC_DEBUG
