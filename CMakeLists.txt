@@ -101,10 +101,12 @@ endif()
 ######################### Working env setup(clang format+editor config) ##
 #######################################################################
 # Clang format aims to help us following the same coding style
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.clang-format)
-    message("Setting up clang format config in ${CMAKE_SOURCE_DIR}/ ...")
-    file(COPY ${CMAKE_SOURCE_DIR}/sac/.clang-format DESTINATION ${CMAKE_SOURCE_DIR}/)
-endif()
+# temporary disabled because it's not user-friendly
+    # if (NOT EXISTS ${CMAKE_SOURCE_DIR}/.clang-format)
+    #     message("Setting up clang format config in ${CMAKE_SOURCE_DIR}/ ...")
+    #     file(COPY ${CMAKE_SOURCE_DIR}/sac/.clang-format DESTINATION ${CMAKE_SOURCE_DIR}/)
+    # endif()
+
 # Git pre-commit hook: prevent user from breaking coding style
 set(hook_dir ${CMAKE_SOURCE_DIR}/.git/hooks)
 set(sac_hook_dir ${CMAKE_SOURCE_DIR}/.git/submodule/sac/hooks)
