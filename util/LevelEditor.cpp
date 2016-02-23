@@ -247,9 +247,9 @@ static void saveEntities(const Entity* entities, int count) {
 }
 
 namespace EntityListMode {
-    enum Enum { All = 0, VisibleOnly, UnderMouse };
+    enum Enum { All = 0, VisibleOnly };
 }
-EntityListMode::Enum listMode = EntityListMode::All;
+EntityListMode::Enum listMode = EntityListMode::VisibleOnly;
 
 LevelEditor::LevelEditor(Game* _game) {
     datas = new LevelEditorDatas();
@@ -388,6 +388,12 @@ void LevelEditor::tick(float dt) {
             ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y),
             -1.0f,
             ImGuiWindowFlags_ShowBorders)) {
+
+        bool showOnlyVisible = (listMode == EntityListMode::VisibleOnly);
+        if (ImGui::Checkbox("Show only Visible", &showOnlyVisible)) {
+            listMode = showOnlyVisible ? EntityListMode::VisibleOnly : EntityListMode::All;
+        }
+
         ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
 
         std::map<hash_t, char*> groupsName;
@@ -398,6 +404,19 @@ void LevelEditor::tick(float dt) {
             Entity e = entities[i];
 
             const char* n = theEntityManager.entityName(e);
+
+            if (listMode == EntityListMode::VisibleOnly) {
+                auto* rc = theRenderingSystem.Get(e, false);
+                auto* tc = theTextSystem.Get(e, false);
+                if (rc && rc->show) {
+                    // keep it
+                } else if (tc && tc->show) {
+                     // keep it
+                } else {
+                    // discard
+                    continue;
+                }
+            }
             const char* group = strchr(n, '/');
             if (group) {
                 hash_t h = Murmur::RuntimeHash(n, group - n);
