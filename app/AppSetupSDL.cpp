@@ -247,22 +247,21 @@ int setupEngine(void* _game, const SetupInfo* info) {
 
 
     int largestDimension = 1024;
-    float invRatio = 10 / 16.0f;
+    float w2hRatio = 10 / 16.0f;
+    if (!game->isLandscape()) {
+        w2hRatio = 1.0f / w2hRatio;
+    }
+
     {
         SDL_DisplayMode mode;
         if (0 == SDL_GetCurrentDisplayMode(0, &mode)) {
             while (mode.w < largestDimension ||
-                mode.h < (largestDimension * invRatio)) {
+                mode.h < (largestDimension * w2hRatio)) {
                 largestDimension *= 0.8;
             }
         }
     }
-    glm::vec2 resolution (largestDimension, largestDimension * invRatio);
-
-    if (!game->isLandscape()) {
-        std::swap(resolution.x, resolution.y);
-    }
-
+    glm::vec2 resolution (largestDimension, largestDimension * w2hRatio);
 
     SDL_SetWindowSize(sdlWindow, resolution.x, resolution.y);
     SDL_GLContext sdlContext;
