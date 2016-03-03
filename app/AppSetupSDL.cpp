@@ -369,7 +369,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
         theSoundSystem.init();
     }
     if (game->wantsAPI(ContextAPI::Localize)) {
-        //static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, getLocaleInfo().c_str());
+        static_cast<LocalizeAPITextImpl*>(ctx->localizeAPI)->init(ctx->assetAPI, getLocaleInfo().c_str());
     }
 
     /////////////////////////////////////////////////////
