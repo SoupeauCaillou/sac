@@ -64,6 +64,7 @@ void ZSQDSystem::DoUpdate(float dt) {
     if (showDebug) Draw::Clear(HASH("ZSQD", 0xbecf877c));
     #endif
 
+    #if 0
     if (pass == Pass::Second) {
         FOR_EACH_ENTITY_COMPONENT(ZSQD, a, zc)
         /* check collision */
@@ -141,7 +142,7 @@ void ZSQDSystem::DoUpdate(float dt) {
         }
         END_FOR_EACH()
     }
-
+    #endif
     if (pass == Pass::First) {
         FOR_EACH_ENTITY_COMPONENT(ZSQD, a, zc)
         zc->previousPosition = TRANSFORM(a)->position;

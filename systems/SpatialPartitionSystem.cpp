@@ -32,7 +32,6 @@ typedef glm::ivec2 CellCoords;
 typedef std::vector<Entity> Cell; //...
 
 std::vector<Cell> cells;
-glm::ivec2 gridSize;
 std::vector<glm::ivec2> coords;
 
 INSTANCE_IMPL(SpatialPartitionSystem);
@@ -48,7 +47,7 @@ SpatialPartitionSystem::SpatialPartitionSystem() : ComponentSystemImpl<SpatialPa
 }
 
 #if SAC_DEBUG
-void drawDebug(float cellSize, const glm::vec2& minPos, int total) {
+void drawDebug(float cellSize, const glm::vec2& minPos, int total, glm::ivec2 gridSize) {
     float avg = total / (float)cells.size();
     for (size_t i=0; i<cells.size(); i++) {
         if (cells[i].empty()) {
@@ -77,9 +76,10 @@ void SpatialPartitionSystem::DoUpdate(float) {
 
     FOR_EACH_ENTITY_COMPONENT(SpatialPartition, e, comp)
         const auto* tc = TRANSFORM(e);
-        glm::vec2 size(glm::max(tc->size.x, tc->size.y));
-        minPos = glm::min(minPos, tc->position - size);
-        maxPos = glm::max(maxPos, tc->position + size);
+        float maxSizeComp =
+            glm::max(tc->size.x, glm::max(tc->size.y, glm::max(comp->previous.size.x, comp->previous.size.y)));
+        minPos = glm::min(minPos, glm::min(tc->position, comp->previous.position) - maxSizeComp);
+        maxPos = glm::max(maxPos, glm::max(tc->position, comp->previous.position) + maxSizeComp);
     }
 
     // make sure cell storage is correctly sized
@@ -95,34 +95,61 @@ void SpatialPartitionSystem::DoUpdate(float) {
         cells[i].clear();
     }
     coords.clear();
+    int count = 0;
 
     FOR_EACH_ENTITY_COMPONENT(SpatialPartition, e, comp)
-        AABB aabb;
         const auto* tc = TRANSFORM(e);
-        IntersectionUtil::computeAABB(
-            tc->position - minPos,
-            tc->size,
-            tc->rotation,
-            aabb);
+        AABB aabb;
+        {
+            AABB frames[2];
+            IntersectionUtil::computeAABB(
+                tc->position - minPos,
+                tc->size,
+                tc->rotation,
+                frames[0]);
+            if (comp->previous.valid) {
+                IntersectionUtil::computeAABB(
+                    comp->previous.position - minPos,
+                    comp->previous.size,
+                    comp->previous.rotation,
+                    frames[1]);
+                aabb = IntersectionUtil::mergeAABB(frames, 2);
+            } else {
+                aabb = frames[0];
+            }
+        }
 
         // insert entity in all cells covered by AABB
         CellCoords cellTopLeft = positionToCellCoords(glm::vec2(aabb.left, aabb.top), invCellSize);
         CellCoords cellBottomRight = positionToCellCoords(glm::vec2(aabb.right, aabb.bottom), invCellSize);
 
-        comp->cells = &coords[coords.size()];
+        int cellCount = (cellTopLeft.y - cellBottomRight.y + 1) *
+            (cellBottomRight.x - cellTopLeft.x + 1);
+        coords.resize(count + cellCount);
+        comp->cellOffset = count;
         comp->count = 0;
         for (int y=cellBottomRight.y; y<=cellTopLeft.y; y++) {
             for (int x=cellTopLeft.x; x<=cellBottomRight.x; x++) {
                 cells[y * gridSize.x + x].push_back(e);
-                coords.push_back(glm::ivec2(x, y));
+                coords[count] = glm::ivec2(x, y);
+                count++;
                 comp->count++;
             }
         }
+        comp->previous.position = tc->position;
+        comp->previous.size = tc->size;
+        comp->previous.rotation = tc->rotation;
+        comp->previous.valid = true;
     }
 
     #if SAC_DEBUG
     if (showDebug) {
-        drawDebug(cellSize, minPos, entityWithComponent.size());
+        drawDebug(cellSize, minPos, entityWithComponent.size(), gridSize);
     }
     #endif
+}
+
+glm::ivec2* SpatialPartitionSystem::getCells(int offset) {
+    LOGF_IF(offset >= coords.size(), "Invalid cell offset " << __(offset) << ". Size is " << __(coords.size()));
+    return &coords[offset];
 }

@@ -32,7 +32,7 @@ struct TransformationComponent;
 struct CollisionComponent {
     CollisionComponent() :
         group(0), collideWith(0),
-        restorePositionOnCollision(false), prevPositionIsValid(false), isStatic(true),
+        restorePositionOnCollision(false), prevPositionIsValid(false),
         previousPosition(0.0f), previousRotation(0.0f),
         ignore(0) { collision.count = 0;
         #if 0
@@ -40,8 +40,11 @@ struct CollisionComponent {
         #endif
     }
     int group;
-    int collideWith;
-    bool restorePositionOnCollision, prevPositionIsValid, isStatic;
+    // bitfield to indicate which groups to test for collision
+    // special value 0 indicates static entity
+    uint32_t collideWith;
+
+    bool restorePositionOnCollision, prevPositionIsValid;
 
     glm::vec2 previousPosition;
     float previousRotation;
@@ -55,7 +58,7 @@ struct CollisionComponent {
     struct {
         int count;
         Entity* with;
-        glm::vec2* at; /* Note: only valid for raycast atm */
+        float* at;
         glm::vec2* normal; /* only valid for objects */
     } collision;
     Entity ignore; /* TODO ignore several entities */
@@ -83,7 +86,7 @@ private:
 std::vector<Entity> debug;
 #endif
 std::vector<Entity> collisionEntity;
-std::vector<glm::vec2> collisionPos;
+std::vector<float> collisionTimestamp;
 std::vector<glm::vec2> collisionNormal;
 }
 ;

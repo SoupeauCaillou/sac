@@ -33,6 +33,9 @@
 #include "util/Draw.h"
 #include "util/SerializerProperty.h"
 #include "base/EntityManager.h"
+#include "SpatialPartitionSystem.h"
+
+#include <sac/tweak.h>
 
 INSTANCE_IMPL(CollisionSystem);
 
@@ -44,7 +47,6 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HAS
     componentSerializer.add(new Property<int>(HASH("collide_with", 0x6b658240), OFFSET(collideWith, tc), 0));
     componentSerializer.add(new Property<bool>(HASH("restore_position_on_collision", 0x9c45df9f), OFFSET(restorePositionOnCollision, tc)));
     // componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x78a2c1f4), OFFSET(ray.is, tc)));
-    componentSerializer.add(new Property<bool>(HASH("is_static", 0x104445ee), OFFSET(isStatic, tc)));
 
 #if SAC_DEBUG
     showDebug = false;
@@ -60,14 +62,22 @@ struct Coll {
     glm::vec2 normal;
 };
 
+struct EntityData {
+    Entity e;
+    int group;
+    int collideWith;
+    AABB aabb;
+};
+
 struct Cell {
-    Cell() : collidingGroupsInside(0), colliderGroupsInside(0) {}
-    // collider/collider collisions forbidden
-    std::vector<Entity> collidingEntities;
-    std::vector<Entity> colliderEtities;
-    std::vector<Entity> rayEntities;
-    int collidingGroupsInside, colliderGroupsInside;
-    int X, Y;
+    Cell() : movingGroups(0) {}
+
+    std::vector<EntityData> staticEntities;
+    std::vector<EntityData> movingEntities;
+    int movingGroups;
+
+    // std::vector<Entity> rayEntities;
+    // int X, Y;
 };
 
 static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame);
@@ -109,61 +119,152 @@ static void updateAABBWithPreviousFrame(const TransformationComponent* tc, const
     aabb = IntersectionUtil::mergeAABB(frames, 2);
 }
 
+struct TransformInterpolation {
+    glm::vec2 position[2];
+    glm::vec2 size[2];
+    float rotation[2];
+    bool moving;
+
+    TransformInterpolation(bool _moving, const TransformationComponent* tc, const SpatialPartitionComponent* spc) {
+        position[1] = tc->position; position[0] = spc->previous.position;
+        size[1] = tc->size; size[0] = spc->previous.size;
+        rotation[1] = tc->rotation; rotation[0] = spc->previous.rotation;
+        moving = _moving;
+    }
+
+    glm::vec2 pos(float t) { return moving ? glm::lerp(position[0], position[1], t) : position[1]; }
+    glm::vec2 s(float t) { return moving ? glm::lerp(size[0], size[1], t) : size[1]; }
+    float rot(float t) { return moving ? glm::lerp(rotation[0], rotation[1], t) : rotation[1]; }
+};
+
+static float determineCollisionTimestamp(EntityData e1, EntityData e2, bool e2Moves) {
+    TransformInterpolation ti1(true, TRANSFORM(e1.e), SPATIAL_PARTITION(e1.e));
+    TransformInterpolation ti2(e2Moves, TRANSFORM(e2.e), SPATIAL_PARTITION(e2.e));
+
+    // test at t0 first
+    if (IntersectionUtil::rectangleRectangle(
+        ti1.pos(0.0f), ti1.s(0.0f), ti1.rot(0.0f),
+        ti2.pos(0.0f), ti2.s(0.0f), ti2.rot(0.0f))) {
+        return 0.0f;
+    }
+
+    TWEAK(int, collisionIterationSteps) = 10;
+    float best = FLT_MAX;
+    float t0 = 0.0f;
+    float increment = 1.0f / collisionIterationSteps;
+    int idx = 1;
+
+    for (int step=0; step<collisionIterationSteps; step++) {
+        float t = t0 + increment * idx;
+        if (IntersectionUtil::rectangleRectangle(
+            ti1.pos(t), ti1.s(t), ti1.rot(t),
+            ti2.pos(t), ti2.s(t), ti2.rot(t))) {
+            best = t;
+            // position t0 to the last non-interescting time
+            t0 = t - increment;
+            // reduce increment
+            increment = increment / (1 + collisionIterationSteps - step);
+            idx = 1;
+        } else {
+            idx++;
+        }
+    }
+    return best;
+}
+
+static void insertCollisionResult(CollisionComponent* cc, Entity e, float ts) {
+    int insertionIndex = -1;
+    for (int i=0; i<cc->collision.count; i++) {
+        if (ts < cc->collision.at[i]) {
+            // insert
+            int toMove =
+                glm::min(cc->collision.count, MAX_COLLISION_COUNT_PER_ENTITY - 1) -
+                i;
+
+            if (toMove) {
+                memmove(
+                    &cc->collision.with[i+1],
+                    &cc->collision.with[i],
+                    sizeof(Entity) * toMove);
+                memmove(
+                    &cc->collision.at[i+1],
+                    &cc->collision.at[i],
+                    sizeof(float) * toMove);
+            }
+            cc->collision.with[i] = e;
+            cc->collision.at[i] = ts;
+            return;
+        }
+    }
+    if (cc->collision.count < MAX_COLLISION_COUNT_PER_ENTITY) {
+        cc->collision.with[cc->collision.count] = e;
+        cc->collision.at[cc->collision.count] = ts;
+        cc->collision.count++;
+    }
+}
+
 #if SAC_DEBUG
 static char debugText[8096];
-void CollisionSystem::DoUpdate(float dt) {
-#else
-void CollisionSystem::DoUpdate(float) {
 #endif
-    #if 1
-    LOGT_EVERY_N(600, "finish me");
-    #else
+void CollisionSystem::DoUpdate(float dt) {
 
-    int minCollidingEntity = INT_MAX, maxCollidingEntity = 0;
+    // int minCollidingEntity = INT_MAX, maxCollidingEntity = 0;
+    std::vector<Cell> cells;
+    int gridPitch = theSpatialPartitionSystem.gridSize.x;
+    cells.resize(gridPitch * theSpatialPartitionSystem.gridSize.y);
+    int collidingEntitiesCount = 0;
 
-    // Assign each entity to cells
     FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
-        if (!cc->ray.is && !cc->group)
-            continue;
-
-        #if SAC_DEBUG
-        if (cc->group & (cc->group - 1)) {
-            LOGW("Invalid collision group '" << cc->group << "' for entity " << theEntityManager.entityName(entity) << ". Must be pow2");
-        }
-        LOGF_IF(theSpatialPartitionSystem.Get(entity, false) == NULL,
-            "Entity with Collision component must also have SpatialPartition component");
-        #endif
-
         cc->collision.count = 0;
 
-        const TransformationComponent* tc = TRANSFORM(entity);
-        if (cc->ray.is) {
-            tc->size = glm::vec2(0.0f);
+        // ignore disabled (group == 0) entities
+        if (cc->group == 0) {
+            continue;
         }
 
-        for (int x = xStart; x <= xEnd; x++) {
-            for (int y = yStart; y <= yEnd; y++) {
+        collidingEntitiesCount += (cc->collideWith > 0);
 
-                if (!cc->isStatic || cc->ray.is) {
-                    if (cc->ray.is) {
-                        if (!cc->ray.testDone) {
-                            cell.rayEntities.push_back(entity);
-                        }
-                    } else {
-                        cell.collidingEntities.push_back(entity);
-                        cell.collidingGroupsInside |= cc->group;
-                    }
-                    maxCollidingEntity = glm::max(maxCollidingEntity, (int)entity);
-                    minCollidingEntity = glm::min(minCollidingEntity, (int)entity);
-                } else {
-                    cell.colliderEtities.push_back(entity);
-                    cell.colliderGroupsInside |= cc->group;
+        const auto* sp = SPATIAL_PARTITION(entity);
+
+        if (sp->count == 0) {
+            continue;
+        }
+        const auto* spCells = theSpatialPartitionSystem.getCells(sp->cellOffset);
+        for (int i=0; i<sp->count; i++) {
+            glm::ivec2 coords = spCells[i];
+            Cell& cell = cells[gridPitch * coords.y + coords.x];
+            if (cc->collideWith > 0) {
+                EntityData d;
+                d.e = entity;
+                AABB nowBefore[2];
+                IntersectionUtil::computeAABB(TRANSFORM(entity), nowBefore[0]);
+                if (cc->prevPositionIsValid) {
+                    IntersectionUtil::computeAABB(
+                        cc->previousPosition,
+                        TRANSFORM(entity)->size,
+                        cc->previousRotation,
+                        nowBefore[1]);
+                    nowBefore[0] = IntersectionUtil::mergeAABB(nowBefore, 2);
                 }
+                d.aabb = nowBefore[0];
+                d.group = cc->group;
+                d.collideWith = cc->collideWith;
+                cell.movingEntities.push_back(d);
+                cell.movingGroups |= cc->group;
+            } else {
+                EntityData d;
+                d.e = entity;
+                d.group = cc->group;
+                d.collideWith = cc->collideWith;
+                IntersectionUtil::computeAABB(TRANSFORM(entity), d.aabb);
+                cell.staticEntities.push_back(d);
             }
         }
     END_FOR_EACH()
 
-    for (size_t i=0; i<cells.size(); i++) {
+#if 0
+    const int cellCount = (int)cells.size();
+    for (int i=0; i<cellCount; i++) {
         const Cell& cell = cells[i];
 
         size_t entityCount = cell.size();
@@ -205,57 +306,105 @@ void CollisionSystem::DoUpdate(float) {
             }
         }
     }
+#endif
 
-    // ensure array is big enough
+    if (collidingEntitiesCount == 0) {
+        LOGT_EVERY_N(60, "...");
+        return;
+    }
+    // ensure results array is big enough
     {
-        int arrayRequiredSize = MAX_COLLISION_COUNT_PER_ENTITY * (maxCollidingEntity - minCollidingEntity + 1);
+        int arrayRequiredSize = MAX_COLLISION_COUNT_PER_ENTITY * collidingEntitiesCount;
         if ((int)collisionEntity.size() < arrayRequiredSize) {
-            LOGV(3, "Enlarging collision arrays :" << collisionEntity.size() << " -> " << arrayRequiredSize << '(' << __(minCollidingEntity) << ',' << __(maxCollidingEntity) << ')');
+            LOGV(3, "Enlarging collision arrays :" << collisionEntity.size() << " -> " << arrayRequiredSize);
             collisionEntity.resize(arrayRequiredSize);
-            collisionPos.resize(arrayRequiredSize);
+            collisionTimestamp.resize(arrayRequiredSize);
             collisionNormal.resize(arrayRequiredSize);
         }
     }
 
-    FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
-        if (cc->group > 1 || cc->ray.is) {
-            cc->collision.with = &collisionEntity[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
-            cc->collision.at = &collisionPos[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
-            cc->collision.normal = &collisionNormal[MAX_COLLISION_COUNT_PER_ENTITY * (entity - minCollidingEntity)];
+    // assign results locations
+    {
+        int index = 0;
+        FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
+            if (cc->collideWith > 0 /*|| cc->ray.is*/) {
+                cc->collision.with = &collisionEntity[MAX_COLLISION_COUNT_PER_ENTITY * index];
+                cc->collision.at = &collisionTimestamp[MAX_COLLISION_COUNT_PER_ENTITY * index];
+                cc->collision.normal = &collisionNormal[MAX_COLLISION_COUNT_PER_ENTITY * index];
+                index++;
+            }
         }
     }
 
-#if SAC_DEBUG
-    unsigned debugTextOffset = 0;
-#endif
-    for (unsigned i=0; i<cells.size(); i++) {
+    for (int i=0; i<(int)cells.size(); i++) {
         const Cell& cell = cells[i];
 
-#if SAC_DEBUG
-        if (showDebug && debugTextOffset < sizeof(debugText)) {
-            const int x = i % w;
-            const int y = i / w;
+        // Browse moving entities in this cell
+        if (!cell.movingEntities.empty()) {
+            const int movingCount = (int)cell.movingEntities.size();
+            const int staticCount = (int)cell.staticEntities.size();
 
-            int len =
-                snprintf(&debugText[debugTextOffset], sizeof(debugText),
-                    "%d %d\n%lu(%d) %lu(%d)",
-                    x, y,
-                    cell.collidingEntities.size(), cell.collidingGroupsInside,
-                    cell.colliderEtities.size(), cell.colliderGroupsInside);
-            TEXT(debug[i])->text = &debugText[debugTextOffset];
-            debugTextOffset += len;
-            TEXT(debug[i])->show = true;
+            for (int j=0; j<movingCount; j++) {
+                const EntityData& reference = cell.movingEntities[j];
+
+                for (int k=j+1; k<movingCount; k++) {
+                    const EntityData& test = cell.movingEntities[k];
+                    bool checkNeeded =
+                        (reference.collideWith & test.group) |
+                        (test.collideWith & reference.group);
+
+                    if (!checkNeeded) {
+                        continue;
+                    }
+                    if (IntersectionUtil::rectangleRectangleAABB(
+                        reference.aabb,
+                        test.aabb)) {
+                        // determine the time of collision
+                        float ts = determineCollisionTimestamp(reference, test, true);
+
+                        if (ts == FLT_MAX) {
+                            continue;
+                        }
+
+                        if (reference.collideWith & test.group) {
+                            insertCollisionResult(COLLISION(reference.e), test.e, ts * dt);
+                        }
+                        if (test.collideWith & reference.group) {
+                            insertCollisionResult(COLLISION(test.e), reference.e, ts * dt);
+                        }
+                    }
+                }
+
+                for (int k=0; k<staticCount; k++) {
+                    const EntityData& test = cell.movingEntities[k];
+                    bool checkNeeded =
+                        (reference.collideWith & test.group);
+
+                    if (!checkNeeded) {
+                        continue;
+                    }
+
+                    if (IntersectionUtil::rectangleRectangleAABB(
+                        reference.aabb,
+                        test.aabb)) {
+                        float ts = determineCollisionTimestamp(reference, test, false);
+
+                        if (ts == FLT_MAX) {
+                            continue;
+                        }
+                        insertCollisionResult(COLLISION(reference.e), test.e, ts);
+                    }
+                }
+            }
         }
-#endif
-
-        // Browse colliding entities in this cell
-        if (!cell.collidingEntities.empty()) {
-            const unsigned count = cell.collidingEntities.size();
-
-            for (unsigned j=0; j<count; j++) {
-                const Entity refEntity = cell.collidingEntities[j];
+    }
+#if 0
 
                 std::vector<Coll> potentialcollisionDuringTheFrame;
+
+
+
+
                 // look for collidingEntities/collidingEntities collisions first
                 findPotentialCollisions(refEntity,
                     cell.collidingGroupsInside,
