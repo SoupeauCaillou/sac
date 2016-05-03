@@ -558,7 +558,7 @@ void Game::sacInitFromGameThread() {
     glm::vec2 bottomLeft = TRANSFORM(camera)->size * glm::vec2(-0.5f, -0.5f) - size.x  * 0.5f;
 
     for (int i=0; i<FPS_DEBUG_N; i++) {
-        fpsStats.square[i] = theEntityManager.CreateEntity(HASH("square", 0x51dc8081));
+        fpsStats.square[i] = theEntityManager.CreateEntity(HASH("__/square", 0x5b913efb));
         ADD_COMPONENT(fpsStats.square[i], Transformation);
         TRANSFORM(fpsStats.square[i])->size = size;
         TRANSFORM(fpsStats.square[i])->position = bottomLeft + size * (float)i;
@@ -567,7 +567,7 @@ void Game::sacInitFromGameThread() {
         RENDERING(fpsStats.square[i])->color = Color::palette(i / (float)FPS_DEBUG_N, 0.5f);
         RENDERING(fpsStats.square[i])->flags = RenderingFlags::NonOpaque;
 
-        fpsStats.text[i] = theEntityManager.CreateEntity(HASH("text", 0x4106ae4e));
+        fpsStats.text[i] = theEntityManager.CreateEntity(HASH("__/text", 0xba2ddac9));
         ADD_COMPONENT(fpsStats.text[i], Transformation);
         TRANSFORM(fpsStats.text[i])->position = glm::vec2(TRANSFORM(fpsStats.square[i])->position.x, (i % 2) * size.x * 2);
         ADD_COMPONENT(fpsStats.text[i], Text);
