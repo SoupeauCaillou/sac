@@ -711,29 +711,7 @@ delta_time_computation:
 
             LevelEditor::unlock();
         }
-
-        static float speedFactor = 1.0f;
-        Draw::Update();
-        switch (gameType) {
-            case GameType::LevelEditor:
-                break;
-            case GameType::SingleStep:
-                LOGI("Single stepping the game (delta: " << targetDT << " ms)");
-                tick(targetDT);
-                break;
-            case GameType::Replay:
-                break;
-            default:
-                tick(targetDT * speedFactor);
-        }
-
-    #else
-        LOGV(3, "Update game");
-        Draw::Update();
-        tick(targetDT);
     #endif
-
-        accumulator -= targetDT;
 
 #if SAC_INGAME_EDITORS
         if (gameType == GameType::Default || gameType == GameType::SingleStep ) {
@@ -770,6 +748,30 @@ delta_time_computation:
                 gameType = GameType::LevelEditor;
         }
 #endif
+
+        #if SAC_INGAME_EDITORS
+        static float speedFactor = 1.0f;
+        Draw::Update();
+        switch (gameType) {
+            case GameType::LevelEditor:
+                break;
+            case GameType::SingleStep:
+                LOGI("Single stepping the game (delta: " << targetDT << " ms)");
+                tick(targetDT);
+                break;
+            case GameType::Replay:
+                break;
+            default:
+                tick(targetDT * speedFactor);
+        }
+
+    #else
+        LOGV(3, "Update game");
+        Draw::Update();
+        tick(targetDT);
+    #endif
+
+        accumulator -= targetDT;
     }
 
     accumulator += dtFix;
