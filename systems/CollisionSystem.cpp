@@ -34,6 +34,7 @@
 #include "util/SerializerProperty.h"
 #include "base/EntityManager.h"
 #include "SpatialPartitionSystem.h"
+#include "BackInTimeSystem.h"
 
 #include <sac/tweak.h>
 
@@ -100,35 +101,16 @@ static int performRayObjectCollisionInCell(
     int collisionCount,
     int maxColl);
 
-
-static bool isInsideCell(const glm::vec2& p, int x, int y, float cellSize, const glm::vec2& worldSize) {
-    const glm::vec2& cellCenter = -worldSize * 0.5f + glm::vec2(cellSize * (x+.5f), cellSize *(y+.5f));
-    AABB cell;
-    cell.left = cellCenter.x - (cellSize * 0.5f);
-    cell.right = cell.left + cellSize;
-    cell.bottom = cellCenter.y - (cellSize * 0.5f);
-    cell.top = cell.bottom + cellSize;
-    return IntersectionUtil::pointRectangleAABB(p, cell);
-}
-
-static void updateAABBWithPreviousFrame(const TransformationComponent* tc, const CollisionComponent* cc, AABB& aabb) {
-    AABB frames[2];
-    frames[1] = aabb;
-    IntersectionUtil::computeAABB(
-        cc->previousPosition, tc->size, cc->previousRotation, frames[0]);
-    aabb = IntersectionUtil::mergeAABB(frames, 2);
-}
-
 struct TransformInterpolation {
     glm::vec2 position[2];
     glm::vec2 size[2];
     float rotation[2];
     bool moving;
 
-    TransformInterpolation(bool _moving, const TransformationComponent* tc, const SpatialPartitionComponent* spc) {
-        position[1] = tc->position; position[0] = spc->previous.position;
-        size[1] = tc->size; size[0] = spc->previous.size;
-        rotation[1] = tc->rotation; rotation[0] = spc->previous.rotation;
+    TransformInterpolation(bool _moving, const TransformationComponent* tc, const BackInTimeComponent* spc) {
+        position[1] = tc->position; position[0] = spc->position;
+        size[1] = tc->size; size[0] = spc->size;
+        rotation[1] = tc->rotation; rotation[0] = spc->rotation;
         moving = _moving;
     }
 
@@ -138,8 +120,8 @@ struct TransformInterpolation {
 };
 
 static float determineCollisionTimestamp(EntityData e1, EntityData e2, bool e2Moves) {
-    TransformInterpolation ti1(true, TRANSFORM(e1.e), SPATIAL_PARTITION(e1.e));
-    TransformInterpolation ti2(e2Moves, TRANSFORM(e2.e), SPATIAL_PARTITION(e2.e));
+    TransformInterpolation ti1(true, TRANSFORM(e1.e), BACK_IN_TIME(e1.e));
+    TransformInterpolation ti2(e2Moves, TRANSFORM(e2.e), BACK_IN_TIME(e2.e));
 
     // test at t0 first
     if (IntersectionUtil::rectangleRectangle(
@@ -234,18 +216,17 @@ void CollisionSystem::DoUpdate(float dt) {
             glm::ivec2 coords = spCells[i];
             Cell& cell = cells[gridPitch * coords.y + coords.x];
             if (cc->collideWith > 0) {
+                const auto* hc = BACK_IN_TIME(entity);
                 EntityData d;
                 d.e = entity;
                 AABB nowBefore[2];
                 IntersectionUtil::computeAABB(TRANSFORM(entity), nowBefore[0]);
-                if (cc->prevPositionIsValid) {
-                    IntersectionUtil::computeAABB(
-                        cc->previousPosition,
-                        TRANSFORM(entity)->size,
-                        cc->previousRotation,
-                        nowBefore[1]);
-                    nowBefore[0] = IntersectionUtil::mergeAABB(nowBefore, 2);
-                }
+                IntersectionUtil::computeAABB(
+                    hc->position,// cc->previousPosition,
+                    hc->size,
+                    hc->rotation,
+                    nowBefore[1]);
+                nowBefore[0] = IntersectionUtil::mergeAABB(nowBefore, 2);
                 d.aabb = nowBefore[0];
                 d.group = cc->group;
                 d.collideWith = cc->collideWith;
@@ -367,16 +348,16 @@ void CollisionSystem::DoUpdate(float dt) {
                         }
 
                         if (reference.collideWith & test.group) {
-                            insertCollisionResult(COLLISION(reference.e), test.e, ts * dt);
+                            insertCollisionResult(COLLISION(reference.e), test.e, ts);
                         }
                         if (test.collideWith & reference.group) {
-                            insertCollisionResult(COLLISION(test.e), reference.e, ts * dt);
+                            insertCollisionResult(COLLISION(test.e), reference.e, ts);
                         }
                     }
                 }
 
                 for (int k=0; k<staticCount; k++) {
-                    const EntityData& test = cell.movingEntities[k];
+                    const EntityData& test = cell.staticEntities[k];
                     bool checkNeeded =
                         (reference.collideWith & test.group);
 
@@ -657,12 +638,6 @@ void CollisionSystem::DoUpdate(float dt) {
             }
         }
     }
-
-    FOR_EACH_ENTITY_COMPONENT(Collision, entity, cc)
-        cc->previousPosition = TRANSFORM(entity)->position;
-        cc->previousRotation = TRANSFORM(entity)->rotation;
-        cc->prevPositionIsValid = true;
-    END_FOR_EACH()
     #endif
 }
 

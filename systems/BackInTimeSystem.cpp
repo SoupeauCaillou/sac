@@ -18,36 +18,22 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
 
-#include "System.h"
 
-struct SpatialPartitionComponent {
-    SpatialPartitionComponent() :
-        cellOffset(0), count(0) {
-        }
+#include "BackInTimeSystem.h"
+#include "TransformationSystem.h"
 
-    int cellOffset;
-    int count;
-};
 
-#define theSpatialPartitionSystem SpatialPartitionSystem::GetInstance()
-#if SAC_DEBUG
-#define SPATIAL_PARTITION(e) theSpatialPartitionSystem.Get(e, true, __FILE__, __LINE__)
-#else
-#define SPATIAL_PARTITION(e) theSpatialPartitionSystem.Get(e)
-#endif
+INSTANCE_IMPL(BackInTimeSystem);
 
-UPDATABLE_SYSTEM(SpatialPartition)
+BackInTimeSystem::BackInTimeSystem() : ComponentSystemImpl<BackInTimeComponent>(HASH("BackInTime", 0x7c9eb7e5)) {
+}
 
-    public:
-    glm::ivec2* getCells(int offset);
-
-    public:
-        float cellSize;
-        glm::ivec2 gridSize;
-#if SAC_DEBUG
-        bool showDebug;
-#endif
-
-};
+void BackInTimeSystem::DoUpdate(float) {
+    FOR_EACH_ENTITY_COMPONENT(BackInTime, e, comp)
+        const auto* tc = TRANSFORM(e);
+        comp->position = tc->position;
+        comp->size = tc->size;
+        comp->rotation = tc->rotation;
+    }
+}

@@ -32,8 +32,8 @@ struct TransformationComponent;
 struct CollisionComponent {
     CollisionComponent() :
         group(0), collideWith(0),
-        restorePositionOnCollision(false), prevPositionIsValid(false),
-        previousPosition(0.0f), previousRotation(0.0f),
+        restorePositionOnCollision(false),
+        // previousPosition(0.0f), previousRotation(0.0f),
         ignore(0) { collision.count = 0;
         #if 0
         ray.is = false; ray.testDone = false; ray.maxCollision = 1;
@@ -44,11 +44,11 @@ struct CollisionComponent {
     // special value 0 indicates static entity
     uint32_t collideWith;
 
-    bool restorePositionOnCollision, prevPositionIsValid;
+    bool restorePositionOnCollision;
 
+#if 0
     glm::vec2 previousPosition;
     float previousRotation;
-#if 0
     struct {
         bool is;
         bool testDone;

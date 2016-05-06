@@ -51,6 +51,7 @@
 #include "systems/DebuggingSystem.h"
 #include "systems/GraphSystem.h"
 #include "systems/GridSystem.h"
+#include "systems/BackInTimeSystem.h"
 #include "systems/MorphingSystem.h"
 #include "systems/MusicSystem.h"
 #include "systems/NetworkSystem.h"
@@ -161,6 +162,7 @@ Game::Game() {
 #if !DISABLE_SWYPE_SYSTEM
     SwypeButtonSystem::CreateInstance();
 #endif
+    BackInTimeSystem::CreateInstance();
 
 #if SAC_NETWORK
     NetworkSystem::CreateInstance();
@@ -198,6 +200,7 @@ void Game::buildOrderedSystemsToUpdateList() {
 #if SAC_NETWORK
     ADD_IF_EXISTING(NetworkSystem::GetInstancePointer());
 #endif
+    ADD_IF_EXISTING(BackInTimeSystem::GetInstancePointer());
 
     ADD_IF_EXISTING(CameraSystem::GetInstancePointer());
     ADD_IF_EXISTING(ADSRSystem::GetInstancePointer());
@@ -295,6 +298,7 @@ Game::~Game() {
 #if !DISABLE_GRID_SYSTEM
     GridSystem::DestroyInstance();
 #endif
+    BackInTimeSystem::DestroyInstance();
 #if !DISABLE_MORPHING_SYSTEM
     MorphingSystem::DestroyInstance();
 #endif

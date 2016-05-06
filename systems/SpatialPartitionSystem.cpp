@@ -22,6 +22,7 @@
 #include "util/SerializerProperty.h"
 #include "util/IntersectionUtil.h"
 #include "TransformationSystem.h"
+#include "BackInTimeSystem.h"
 
 #if SAC_DEBUG
 #include "util/Draw.h"
@@ -76,10 +77,11 @@ void SpatialPartitionSystem::DoUpdate(float) {
 
     FOR_EACH_ENTITY_COMPONENT(SpatialPartition, e, comp)
         const auto* tc = TRANSFORM(e);
+        const auto* hc = BACK_IN_TIME(e);
         float maxSizeComp =
-            glm::max(tc->size.x, glm::max(tc->size.y, glm::max(comp->previous.size.x, comp->previous.size.y)));
-        minPos = glm::min(minPos, glm::min(tc->position, comp->previous.position) - maxSizeComp);
-        maxPos = glm::max(maxPos, glm::max(tc->position, comp->previous.position) + maxSizeComp);
+            glm::max(tc->size.x, glm::max(tc->size.y, glm::max(hc->size.x, hc->size.y)));
+        minPos = glm::min(minPos, glm::min(tc->position, hc->position) - maxSizeComp);
+        maxPos = glm::max(maxPos, glm::max(tc->position, hc->position) + maxSizeComp);
     }
 
     // make sure cell storage is correctly sized
@@ -101,22 +103,19 @@ void SpatialPartitionSystem::DoUpdate(float) {
         const auto* tc = TRANSFORM(e);
         AABB aabb;
         {
+            const auto* hc = BACK_IN_TIME(e);
             AABB frames[2];
             IntersectionUtil::computeAABB(
                 tc->position - minPos,
                 tc->size,
                 tc->rotation,
                 frames[0]);
-            if (comp->previous.valid) {
-                IntersectionUtil::computeAABB(
-                    comp->previous.position - minPos,
-                    comp->previous.size,
-                    comp->previous.rotation,
-                    frames[1]);
-                aabb = IntersectionUtil::mergeAABB(frames, 2);
-            } else {
-                aabb = frames[0];
-            }
+            IntersectionUtil::computeAABB(
+                hc->position - minPos,
+                hc->size,
+                hc->rotation,
+                frames[1]);
+            aabb = IntersectionUtil::mergeAABB(frames, 2);
         }
 
         // insert entity in all cells covered by AABB
@@ -136,10 +135,6 @@ void SpatialPartitionSystem::DoUpdate(float) {
                 comp->count++;
             }
         }
-        comp->previous.position = tc->position;
-        comp->previous.size = tc->size;
-        comp->previous.rotation = tc->rotation;
-        comp->previous.valid = true;
     }
 
     #if SAC_DEBUG

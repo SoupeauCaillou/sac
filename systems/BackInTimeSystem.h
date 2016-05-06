@@ -20,34 +20,25 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "System.h"
 
-struct SpatialPartitionComponent {
-    SpatialPartitionComponent() :
-        cellOffset(0), count(0) {
-        }
+struct BackInTimeComponent {
+    BackInTimeComponent()
+        : position(0.0f), size(1.0f), rotation(0) {}
 
-    int cellOffset;
-    int count;
+    glm::vec2 position;
+    glm::vec2 size;
+    float rotation;
 };
 
-#define theSpatialPartitionSystem SpatialPartitionSystem::GetInstance()
+#define theBackInTimeSystem BackInTimeSystem::GetInstance()
 #if SAC_DEBUG
-#define SPATIAL_PARTITION(e) theSpatialPartitionSystem.Get(e, true, __FILE__, __LINE__)
+#define BACK_IN_TIME(e) theBackInTimeSystem.Get(e, true, __FILE__, __LINE__)
 #else
-#define SPATIAL_PARTITION(e) theSpatialPartitionSystem.Get(e)
+#define BACK_IN_TIME(e) theBackInTimeSystem.Get(e)
 #endif
 
-UPDATABLE_SYSTEM(SpatialPartition)
-
-    public:
-    glm::ivec2* getCells(int offset);
-
-    public:
-        float cellSize;
-        glm::ivec2 gridSize;
-#if SAC_DEBUG
-        bool showDebug;
-#endif
-
+UPDATABLE_SYSTEM(BackInTime)
 };
