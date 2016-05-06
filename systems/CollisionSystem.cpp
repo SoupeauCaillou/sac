@@ -105,23 +105,25 @@ struct TransformInterpolation {
     glm::vec2 position[2];
     glm::vec2 size[2];
     float rotation[2];
-    bool moving;
+    bool moving, scaling, rotating;
 
-    TransformInterpolation(bool _moving, const TransformationComponent* tc, const BackInTimeComponent* spc) {
+    TransformInterpolation(const TransformationComponent* tc, const BackInTimeComponent* spc) {
         position[1] = tc->position; position[0] = spc->position;
+        moving = position[1] != position[0];
         size[1] = tc->size; size[0] = spc->size;
+        scaling = size[1] != size[0];
         rotation[1] = tc->rotation; rotation[0] = spc->rotation;
-        moving = _moving;
+        rotating = rotation[1] != rotation[0];
     }
 
     glm::vec2 pos(float t) { return moving ? glm::lerp(position[0], position[1], t) : position[1]; }
-    glm::vec2 s(float t) { return moving ? glm::lerp(size[0], size[1], t) : size[1]; }
-    float rot(float t) { return moving ? glm::lerp(rotation[0], rotation[1], t) : rotation[1]; }
+    glm::vec2 s(float t) { return scaling ? glm::lerp(size[0], size[1], t) : size[1]; }
+    float rot(float t) { return rotation ? glm::lerp(rotation[0], rotation[1], t) : rotation[1]; }
 };
 
-static float determineCollisionTimestamp(EntityData e1, EntityData e2, bool e2Moves) {
-    TransformInterpolation ti1(true, TRANSFORM(e1.e), BACK_IN_TIME(e1.e));
-    TransformInterpolation ti2(e2Moves, TRANSFORM(e2.e), BACK_IN_TIME(e2.e));
+static float determineCollisionTimestamp(EntityData e1, EntityData e2) {
+    TransformInterpolation ti1(TRANSFORM(e1.e), BACK_IN_TIME(e1.e));
+    TransformInterpolation ti2(TRANSFORM(e2.e), BACK_IN_TIME(e2.e));
 
     // test at t0 first
     if (IntersectionUtil::rectangleRectangle(
@@ -341,7 +343,7 @@ void CollisionSystem::DoUpdate(float dt) {
                         reference.aabb,
                         test.aabb)) {
                         // determine the time of collision
-                        float ts = determineCollisionTimestamp(reference, test, true);
+                        float ts = determineCollisionTimestamp(reference, test);
 
                         if (ts == FLT_MAX) {
                             continue;
@@ -368,7 +370,7 @@ void CollisionSystem::DoUpdate(float dt) {
                     if (IntersectionUtil::rectangleRectangleAABB(
                         reference.aabb,
                         test.aabb)) {
-                        float ts = determineCollisionTimestamp(reference, test, false);
+                        float ts = determineCollisionTimestamp(reference, test);
 
                         if (ts == FLT_MAX) {
                             continue;
