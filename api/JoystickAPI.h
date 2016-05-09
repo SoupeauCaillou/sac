@@ -24,6 +24,7 @@
 
 class JoystickAPI {
     public:
+    virtual int availableJoystick() const = 0;
     virtual bool hasClicked(int idx, int btn) const = 0;
     virtual bool isDown(int idx, int btn) const = 0;
     virtual bool hasDoubleClicked(int idx, int btn) const = 0;

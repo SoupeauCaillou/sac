@@ -63,6 +63,9 @@ struct JoystickState {
             down[b] = clicked[b] = doubleclicked[b] = false;
             lastClickTime[b] = 0;
         }
+        for (size_t p = 0; p<JoystickPad::TOTAL; p++) {
+            lastDirection[p] = glm::vec2(0.0f);
+        }
     }
 
     void* joystickPtr;
@@ -72,6 +75,8 @@ class JoystickAPISDLImpl : public JoystickAPI {
     public:
     JoystickAPISDLImpl();
     ~JoystickAPISDLImpl();
+
+    int availableJoystick() const;
 
     bool isDown(int idx, int btn) const {
         return (joysticks.size() > (unsigned)idx) &&

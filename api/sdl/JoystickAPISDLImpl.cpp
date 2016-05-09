@@ -37,6 +37,10 @@ JoystickAPISDLImpl::~JoystickAPISDLImpl() {
     }
 }
 
+int JoystickAPISDLImpl::availableJoystick() const {
+    return joysticks.size();
+}
+
 int JoystickAPISDLImpl::eventSDL(void* inEvent) {
     auto event = (SDL_Event*)inEvent;
     if (!event) {
@@ -50,6 +54,7 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
     }
 
     int joystick = event->jaxis.which;
+
     if ((int)joysticks.size() <= joystick) {
         return 0;
     }
@@ -66,22 +71,23 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
         //3: Y right
         //4: Right trigger RT
         //5: Left trigger LT
-        int pad = event->jaxis.axis / 2;
+        int pad = (event->jaxis.axis < 2) ? 0 : 1;
 
         float value = event->jaxis.value / 32768.f;
         if (glm::abs(value) < .2f) value = 0.f;
 
         if (event->jaxis.axis == 5) {
             // LT
-        } else if (event->jaxis.axis == 4) {
+        } else if (event->jaxis.axis == 2) {
             // RT
-        } else if (event->jaxis.axis % 2 == 0) {
-            // Left stick
+        } else if (event->jaxis.axis == 0 || event->jaxis.axis == 3) {
+            // X axis
             joysticks[joystick].lastDirection[pad].x = value;
         } else {
-            // Right stick
+            // Y axis
             joysticks[joystick].lastDirection[pad].y = - value;
         }
+
         LOGV(2, "SDL_JOYAXISMOTION: direction=" << joysticks[joystick].lastDirection[pad]
             << " axis=" << (int)event->jaxis.axis << " value=" << event->jaxis.value << " valuef=" << value);
         return 1;
@@ -91,26 +97,14 @@ int JoystickAPISDLImpl::eventSDL(void* inEvent) {
         int button = (int)event->jaxis.axis;
 
         joysticks[joystick].down[button] = true;
-
-        joysticks[joystick].lastClickTime[button] = TimeUtil::GetTime();
-        if (joysticks[joystick].clicked[button]) {
-            joysticks[joystick].clicked[button] = false;
-            joysticks[joystick].doubleclicked[button] = true;
-        } else {
-            joysticks[joystick].clicked[button] = true;
-        }
         return 1;
     } else if (event->type == SDL_JOYBUTTONUP) {
         LOGV(2, "SDL_JOYBUTTONUP: " << (int)event->jaxis.axis);
 
         int button = (int)event->jaxis.axis;
         joysticks[joystick].down[button] = false;
+        joysticks[joystick].clicked[button] = true;
 
-
-        if (TimeUtil::GetTime() - joysticks[joystick].lastClickTime[button] > 0.05) {
-            joysticks[joystick].clicked[button] = false;
-            joysticks[joystick].doubleclicked[button] = false;
-        }
         return 1;
     }
     return 0;
@@ -131,6 +125,12 @@ void JoystickAPISDLImpl::update() {
             if (!joysticks[j].joystickPtr) {
                 LOGE("Coulnd't open joystick " << j << ". Error: " << SDL_GetError());
             }
+        }
+    }
+
+    for (auto& j: joysticks) {
+        for (size_t b = 0; b < JoystickButton::TOTAL; ++b) {
+            j.clicked[b] = false;
         }
     }
 }

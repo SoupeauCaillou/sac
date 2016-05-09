@@ -351,6 +351,12 @@ bool profilerEnabled = false;
 
 void Game::eventsHandler() {
 #if ! SAC_MOBILE
+
+
+    if (gameThreadContext->joystickAPI) {
+        gameThreadContext->joystickAPI->update();
+    }
+
     SDL_Event event;
 
     //if (! (SDL_GetAppState() & SDL_APPINPUTFOCUS)) {
@@ -606,12 +612,6 @@ delta_time_computation:
     theEntityManager.entityTemplateLibrary.updateReload();
 #endif
 
-#if !SAC_MOBILE
-    if (gameThreadContext->joystickAPI) {
-        gameThreadContext->joystickAPI->update();
-    }
-#endif
-
 #if SAC_ENABLE_PROFILING
     std::stringstream framename;
     framename << "update-" << (int)(delta * 1000000);
@@ -713,6 +713,8 @@ delta_time_computation:
         }
     #endif
 
+        Draw::Update();
+
 #if SAC_INGAME_EDITORS
         if (gameType == GameType::Default || gameType == GameType::SingleStep ) {
 #endif
@@ -751,7 +753,6 @@ delta_time_computation:
 
         #if SAC_INGAME_EDITORS
         static float speedFactor = 1.0f;
-        Draw::Update();
         switch (gameType) {
             case GameType::LevelEditor:
                 break;
@@ -767,7 +768,6 @@ delta_time_computation:
 
     #else
         LOGV(3, "Update game");
-        Draw::Update();
         tick(targetDT);
     #endif
 
