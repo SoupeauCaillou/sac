@@ -33,6 +33,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include "base/EntityManager.h"
+#include "util/IntersectionUtil.h"
 
 Draw Draw::instance;
 
@@ -48,7 +49,7 @@ Entity Draw::renderingEntity(hash_t groupID) {
         t = theEntityManager.CreateEntity(HASH("__/draw_r", 0x222c4e96));
         ADD_COMPONENT(t, Transformation);
         ADD_COMPONENT(t, Rendering);
-        TRANSFORM(t)->z = 1;
+        TRANSFORM(t)->z = 0.95;
         RENDERING(t)->flags = RenderingFlags::NonOpaque;
 
         rendering.push_back(std::make_pair(t, groupID));
@@ -84,15 +85,14 @@ Entity Draw::textEntity(hash_t groupID) {
 }
 
 static void addText(Entity t, Entity parent, const std::string& text) {
-    AnchorComponent c;
-    c.z = -0.01; // to compensate TextSystem 0.001
-    c.position = glm::vec2(0.0f, TEXT(t)->charHeight * 0.5);
-    c.rotation = 0;
-    AnchorSystem::adjustTransformWithAnchor(TRANSFORM(t), TRANSFORM(parent), &c);
-    TEXT(t)->charHeight = 1;//glm::min(TRANSFORM(parent)->size.x, 0.5f);
+    TEXT(t)->charHeight = 1.0f;
     TEXT(t)->text = text;
     TEXT(t)->color = Color(0,0,0);
     TEXT(t)->show = true;
+    TRANSFORM(t)->z = 0.99f;
+    TRANSFORM(t)->size = 2.0f * TRANSFORM(parent)->size;
+    TRANSFORM(t)->position = TRANSFORM(parent)->position;
+    TEXT(t)->flags = 0;
 }
 
 void Draw::Clear(hash_t groupID) {
@@ -144,7 +144,9 @@ void Draw::Point(hash_t groupID, const glm::vec2& position, const Color & color,
     RENDERING(pt)->show = true;
 
     if (!text.empty()) {
-        addText(instance.textEntity(groupID), pt, text);
+        Entity tx = instance.textEntity(groupID);
+        addText(tx, pt, text);
+        TEXT(tx)->flags = TextComponent::AdjustHeightToFillWidthBit;
     }
 }
 
@@ -192,6 +194,19 @@ Entity Draw::Triangle(hash_t groupID, const glm::vec2& firstPoint, const glm::ve
     return vector;
 }
 #endif
+
+void Draw::RectangleAABB(const AABB& aabb,
+        const Color& color,
+        const std::string& text) {
+    Rectangle(TempGroupId,
+        glm::vec2(
+            (aabb.right + aabb.left) * 0.5f,
+            (aabb.top + aabb.bottom) * 0.5f),
+        glm::vec2(
+            aabb.right - aabb.left,
+            aabb.top - aabb.bottom),
+        0.0f, color, text);
+}
 
 void Draw::Rectangle(const glm::vec2& centerPosition, const glm::vec2& size, float rotation, const Color & color,
     const std::string& text) {

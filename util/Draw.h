@@ -28,6 +28,8 @@
 #include <vector>
 #include "util/MurmurHash.h"
 
+struct AABB;
+
 class Draw {
     public:
     static void Point(hash_t permanentGroupID,
@@ -65,6 +67,10 @@ class Draw {
                           float rotation,
                           const Color& color = Color(),
                           const std::string& text = "");
+
+    static void RectangleAABB(const AABB& aabb,
+        const Color& color = Color(),
+        const std::string& text = "");
 
     static void Update();
 
