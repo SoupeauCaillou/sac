@@ -229,7 +229,6 @@ void Game::buildOrderedSystemsToUpdateList() {
     ADD_IF_EXISTING(MorphingSystem::GetInstancePointer());
 #endif
     ADD_IF_EXISTING(MusicSystem::GetInstancePointer());
-    ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
     ADD_IF_EXISTING(AnchorSystem::GetInstancePointer());
     ADD_IF_EXISTING(PhysicsSystem::GetInstancePointer());
     ADD_IF_EXISTING(SpatialPartitionSystem::GetInstancePointer());
@@ -239,6 +238,7 @@ void Game::buildOrderedSystemsToUpdateList() {
 #if !DISABLE_COLLISION_SYSTEM
     ADD_IF_EXISTING(CollisionSystem::GetInstancePointer());
 #if !DISABLE_ZSQD_SYSTEM
+    ADD_IF_EXISTING(ParticuleSystem::GetInstancePointer());
     // 2nd pass
     ADD_IF_EXISTING(ZSQDSystem::GetInstancePointer());
 #endif
