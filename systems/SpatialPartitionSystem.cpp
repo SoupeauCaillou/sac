@@ -57,10 +57,13 @@ void drawDebug(float cellSize, const glm::vec2& minPos, int total, glm::ivec2 gr
         int y = i / gridSize.x;
         int x = i % gridSize.x;
 
+        char tmp[64];
+        sprintf(tmp, "%u", cells[i].size());
         Draw::Rectangle(
             minPos + glm::vec2(cellSize * (x + 0.5f), cellSize * (y + 0.5f)),
             glm::vec2(cellSize, cellSize), 0.0f,
-            Color::palette(cells[i].size() / avg, 0.8));
+            Color::palette((x % 2 + y % 2) * 0.5f, 0.8),
+            tmp);
     }
 }
 #endif
