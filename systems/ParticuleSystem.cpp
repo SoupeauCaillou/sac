@@ -24,13 +24,14 @@
 #include "TransformationSystem.h"
 #include "PhysicsSystem.h"
 #include "base/EntityManager.h"
-
+#include "BackInTimeSystem.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/random.hpp>
 #include "util/SerializerProperty.h"
 
-
+#include "util/Draw.h"
+#include "util/Random.h"
 
 #define MAX_PARTICULE_COUNT 40096
 
@@ -57,6 +58,11 @@ ParticuleSystem::ParticuleSystem() : ComponentSystemImpl<ParticuleComponent>(HAS
     componentSerializer.add(new Property<int8_t>(HASH("rendering_flags", 0x77a0455a), OFFSET(renderingFlags, tc)));
 
     poolLastValidElement = -1;
+}
+
+static void updateInternal(InternalParticule internal, float t) {
+    RENDERING(internal.e)->color = internal.color.lerp(t);
+    TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(t));
 }
 
 void ParticuleSystem::DoUpdate(float dt) {
@@ -92,8 +98,7 @@ void ParticuleSystem::DoUpdate(float dt) {
                 }
             } else {
                 const float prog = internal.time / internal.lifetime;
-                RENDERING(internal.e)->color = internal.color.lerp(prog);
-                TRANSFORM(internal.e)->size = glm::vec2(internal.size.lerp(prog));
+                updateInternal(internal, prog);
             }
         }
 
@@ -157,16 +162,33 @@ void ParticuleSystem::DoUpdate(float dt) {
         int added = pc->emissionRate * (dt + pc->spawnLeftOver);
         pc->spawnLeftOver += dt - added / pc->emissionRate;
 
-
         const TransformationComponent* ptc = TRANSFORM(a);
+
+        glm::vec2 position = ptc->position;
+        glm::vec2 size = ptc->size;
+        const auto* back = theBackInTimeSystem.Get(a, false);
+        if (back) {
+            position = (ptc->position + back->position) * 0.5f;
+            size += glm::rotate(ptc->position - back->position, -ptc->rotation);
+        }
+
+
+        float* randoms = new float[added * 3];
+        Random::N_Floats(added, randoms, -0.5f * size.x, 0.5f * size.x);
+        Random::N_Floats(added, &randoms[added], -0.5f * size.y, 0.5f * size.y);
+        Random::N_Floats(added, &randoms[2 * added], 0, dt);
+
         for (int i=0; i<added; i++) {
             InternalParticule& internal = particules[firstParticuleIndex++];
             Entity e = internal.e;
-            internal.time = 0;
             internal.lifetime = pc->lifetime.random();
 
             TransformationComponent* tc = TRANSFORM(e);
-            tc->position = ptc->position + glm::rotate(glm::vec2(glm::linearRand(-0.5f, 0.5f) * ptc->size.x, glm::linearRand(-0.5f, 0.5f) * ptc->size.y), ptc->rotation);
+            tc->position =
+                position +
+                glm::rotate(
+                    glm::vec2(randoms[i], randoms[added + i]),
+                    ptc->rotation);
             tc->rotation = ptc->rotation;
             tc->size.x = tc->size.y = pc->initialSize.random();
             tc->z = ptc->z;
@@ -197,6 +219,8 @@ void ParticuleSystem::DoUpdate(float dt) {
             }
             internal.color = Interval<Color> (rc->color, pc->finalColor.random());
             internal.size = Interval<float> (tc->size.x, pc->finalSize.random());
+            internal.time = randoms[2*added + i];
+            updateInternal(internal, internal.time / internal.lifetime);
         }
     }
 }
