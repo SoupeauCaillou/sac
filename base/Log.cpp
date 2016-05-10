@@ -43,16 +43,16 @@ LogVerbosity::Enum logLevel =
     LogVerbosity::INFO;
 #endif
 
-static const char* enumNames[] ={
+static const char enumNames[] ={
     //5 chars length for all
-        " F ",
-        " E ",
-    " T ",
-    " W ",
-        " I ",
-    " V1",
-    " V2",
-    " V3",
+    'F',
+    'E',
+    'T',
+    'W',
+    'I',
+    'V',
+    'V',
+    'V',
 };
 
 #include <cstring>
@@ -68,7 +68,7 @@ static const char* keepOnlyFilename(const char* fullPath) {
     return filename;
 }
 
-static const char* enum2Name(LogVerbosity::Enum t) {
+static char enum2Name(LogVerbosity::Enum t) {
         return enumNames[(int)t];
 }
 
@@ -155,13 +155,10 @@ int logPrefix(char* out, LogVerbosity::Enum type, const char* file, int line) {
     tid = syscall(SYS_gettid);
 
     return snprintf(out, MAX_LINE_LENGTH,
-        "%s4%cm%d%s "
-        "%s%sm%s%s "
-        "%s%sm %4.3f %s "
+        "%s%sm%d|%c%s"
+        "%s%sm%4.3f%s"
         "%s%sm%s:%3d%s ",
-
-        ColorPrefix, '1' + (2 + tid % 4), tid, ColorReset,
-        ColorPrefix, color[type], enum2Name(type), ColorReset,
+        ColorPrefix, color[type], tid & 0xff, enum2Name(type), ColorReset,
         ColorPrefix, colorTs, TimeUtil::GetTime(), ColorReset,
         ColorPrefix, pickColorTag(file), keepOnlyFilename(file), line, ColorReset);
     } else
