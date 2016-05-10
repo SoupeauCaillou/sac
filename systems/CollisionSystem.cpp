@@ -46,7 +46,8 @@ CollisionSystem::CollisionSystem() : ComponentSystemImpl<CollisionComponent>(HAS
     CollisionComponent tc;
     componentSerializer.add(new Property<int>(HASH("group", 0xbf3bf34d), OFFSET(group, tc), 0));
     componentSerializer.add(new Property<int>(HASH("collide_with", 0x6b658240), OFFSET(collideWith, tc), 0));
-    componentSerializer.add(new Property<bool>(HASH("restore_position_on_collision", 0x9c45df9f), OFFSET(restorePositionOnCollision, tc)));
+    componentSerializer.add(new Property<bool>(HASH("restore_transformation_at_collision", 0x34ec9de3), OFFSET(restoreTransformation.atCollision, tc)));
+    componentSerializer.add(new Property<bool>(HASH("restore_transformation_before_collision", 0x9d4fb7b7), OFFSET(restoreTransformation.beforeCollision, tc)));
     // componentSerializer.add(new Property<bool>(HASH("is_a_ray", 0x78a2c1f4), OFFSET(ray.is, tc)));
 
 #if SAC_DEBUG
@@ -71,35 +72,15 @@ struct EntityData {
 };
 
 struct Cell {
-    Cell() : movingGroups(0) {}
+    Cell() : collidingGroups(0) {}
 
-    std::vector<EntityData> staticEntities;
-    std::vector<EntityData> movingEntities;
-    int movingGroups;
+    std::vector<EntityData> entities;
+
+    int collidingGroups;
 
     // std::vector<Entity> rayEntities;
     // int X, Y;
 };
-
-static void findPotentialCollisions(Entity refEntity, int groupsInside, std::vector<Entity>::const_iterator begin, std::vector<Entity>::const_iterator end, std::vector<Coll>& collisionDuringTheFrame);
-
-namespace Category
-{
-    enum Enum {
-        Colliding,
-        Collider,
-    };
-}
-static int performRayObjectCollisionInCell(
-    const CollisionComponent* cc,
-    const glm::vec2& origin,
-    const glm::vec2& endA,
-    const Cell& cell,
-    Category::Enum tested,
-    Entity* withs,
-    glm::vec2* points,
-    int collisionCount,
-    int maxColl);
 
 struct TransformInterpolation {
     glm::vec2 position[2];
@@ -121,39 +102,53 @@ struct TransformInterpolation {
     float rot(float t) { return rotation ? glm::lerp(rotation[0], rotation[1], t) : rotation[1]; }
 };
 
-static float determineCollisionTimestamp(EntityData e1, EntityData e2) {
+static bool determineCollisionTimestamp(EntityData e1, EntityData e2, float* timeBefore, float* timeAt) {
     TransformInterpolation ti1(TRANSFORM(e1.e), BACK_IN_TIME(e1.e));
     TransformInterpolation ti2(TRANSFORM(e2.e), BACK_IN_TIME(e2.e));
 
-    // test at t0 first
-    if (IntersectionUtil::rectangleRectangle(
-        ti1.pos(0.0f), ti1.s(0.0f), ti1.rot(0.0f),
-        ti2.pos(0.0f), ti2.s(0.0f), ti2.rot(0.0f))) {
-        return 0.0f;
+    float tNope = 0.0f;
+    float tYes = FLT_MAX;
+
+    TWEAK(int, collision1PassIterationSteps) = 10;
+    for (int step = 0; step < collision1PassIterationSteps; step++) {
+        float t = step / (float)collision1PassIterationSteps;
+        bool collision =
+            IntersectionUtil::rectangleRectangle(
+                ti1.pos(t), ti1.s(t), ti1.rot(t),
+                ti2.pos(t), ti2.s(t), ti2.rot(t));
+        if (collision) {
+            tYes = t;
+            break;
+        } else {
+            tNope = t;
+        }
     }
 
-    TWEAK(int, collisionIterationSteps) = 10;
-    float best = FLT_MAX;
-    float t0 = 0.0f;
-    float increment = 1.0f / collisionIterationSteps;
-    int idx = 1;
+    if (tYes == tNope) {
+        *timeBefore = *timeAt = 0;
+        return true;
+    }
+    if (tYes == FLT_MAX) {
+        return false;
+    }
 
-    for (int step=0; step<collisionIterationSteps; step++) {
-        float t = t0 + increment * idx;
+    // refine tYes
+    TWEAK(int, collision2ndPassIterationSteps) = 10;
+    int step = 0;
+    for (step=0; step<collision2ndPassIterationSteps && (tYes - tNope) > 0.01; step++) {
+        float t = (tNope + tYes) * 0.5f;
+
         if (IntersectionUtil::rectangleRectangle(
             ti1.pos(t), ti1.s(t), ti1.rot(t),
             ti2.pos(t), ti2.s(t), ti2.rot(t))) {
-            best = t;
-            // position t0 to the last non-interescting time
-            t0 = t - increment;
-            // reduce increment
-            increment = increment / (1 + collisionIterationSteps - step);
-            idx = 1;
+            tYes = t;
         } else {
-            idx++;
+            tNope = t;
         }
     }
-    return best;
+    *timeBefore = tNope;
+    *timeAt = tYes;
+    return true;
 }
 
 static void insertCollisionResult(CollisionComponent* cc, Entity e, float ts) {
@@ -217,79 +212,27 @@ void CollisionSystem::DoUpdate(float dt) {
         for (int i=0; i<sp->count; i++) {
             glm::ivec2 coords = spCells[i];
             Cell& cell = cells[gridPitch * coords.y + coords.x];
+            const auto* hc = BACK_IN_TIME(entity);
+            EntityData d;
+            d.e = entity;
+            AABB nowBefore[2];
+            IntersectionUtil::computeAABB(
+                TRANSFORM(entity),
+                nowBefore[0]);
+            IntersectionUtil::computeAABB(
+                hc->position,
+                hc->size,
+                hc->rotation,
+                nowBefore[1]);
+            d.aabb = IntersectionUtil::mergeAABB(nowBefore, 2);
+            d.group = cc->group;
+            d.collideWith = cc->collideWith;
+            cell.entities.push_back(d);
             if (cc->collideWith > 0) {
-                const auto* hc = BACK_IN_TIME(entity);
-                EntityData d;
-                d.e = entity;
-                AABB nowBefore[2];
-                IntersectionUtil::computeAABB(TRANSFORM(entity), nowBefore[0]);
-                IntersectionUtil::computeAABB(
-                    hc->position,// cc->previousPosition,
-                    hc->size,
-                    hc->rotation,
-                    nowBefore[1]);
-                nowBefore[0] = IntersectionUtil::mergeAABB(nowBefore, 2);
-                d.aabb = nowBefore[0];
-                d.group = cc->group;
-                d.collideWith = cc->collideWith;
-                cell.movingEntities.push_back(d);
-                cell.movingGroups |= cc->group;
-            } else {
-                EntityData d;
-                d.e = entity;
-                d.group = cc->group;
-                d.collideWith = cc->collideWith;
-                IntersectionUtil::computeAABB(TRANSFORM(entity), d.aabb);
-                cell.staticEntities.push_back(d);
+                cell.collidingGroups |= cc->group;
             }
         }
     END_FOR_EACH()
-
-#if 0
-    const int cellCount = (int)cells.size();
-    for (int i=0; i<cellCount; i++) {
-        const Cell& cell = cells[i];
-
-        size_t entityCount = cell.size();
-        for (size_t j=0; j<entityCount; j++) {
-            Entity e1 = cell[j];
-            CollisionComponent* cc1 = COLLISION(e1);
-
-            // skip static entities
-            if (cc1->isStatic) {
-                continue;
-            }
-
-            const TransformationComponent* tc1 = TRANSFORM(e1);
-            // build aabb covering previous position and current position
-            AABB aabb1;
-            IntersectionUtil::computeAABB(tc1, aabb1);
-            updateAABBWithPreviousFrame(tc1, cc1, aabb1);
-
-            // collide with all others
-            for (size_t k=0; k<entityCount; k++) {
-                Entity e2 = cell[k];
-                CollisionComponent* cc2 = COLLISION(e2);
-
-                // can't collide with each other
-                if (!(cc1->collideWith & cc2->group)) {
-                    continue;
-                }
-
-                const TransformationComponent* tc2 = TRANSFORM(e2);
-                AABB aabb2;
-                IntersectionUtil::computeAABB(tc2, aabb2);
-                if (!cc2->isStatic) {
-                    updateAABBWithPreviousFrame(tc2, cc2, aabb2);
-                }
-
-                if (IntersectionUtil::rectangleRectangleAABB(aabb1, aabb2)) {
-                    // potential collision during the frame
-                }
-            }
-        }
-    }
-#endif
 
     if (collidingEntitiesCount == 0) {
         LOGT_EVERY_N(60, "...");
@@ -322,16 +265,23 @@ void CollisionSystem::DoUpdate(float dt) {
     for (int i=0; i<(int)cells.size(); i++) {
         const Cell& cell = cells[i];
 
-        // Browse moving entities in this cell
-        if (!cell.movingEntities.empty()) {
-            const int movingCount = (int)cell.movingEntities.size();
-            const int staticCount = (int)cell.staticEntities.size();
+        // Browse entities in this cell
+        if (!cell.entities.empty()) {
+            const int count = (int)cell.entities.size();
 
-            for (int j=0; j<movingCount; j++) {
-                const EntityData& reference = cell.movingEntities[j];
+            for (int j=0; j<count; j++) {
+                const EntityData& reference = cell.entities[j];
 
-                for (int k=j+1; k<movingCount; k++) {
-                    const EntityData& test = cell.movingEntities[k];
+                if (reference.collideWith == 0) {
+                    continue;
+                }
+
+                for (int k=0; k<count; k++) {
+                    if (k == j) {
+                        continue;
+                    }
+
+                    const EntityData& test = cell.entities[k];
                     bool checkNeeded =
                         (reference.collideWith & test.group) |
                         (test.collideWith & reference.group);
@@ -342,40 +292,54 @@ void CollisionSystem::DoUpdate(float dt) {
                     if (IntersectionUtil::rectangleRectangleAABB(
                         reference.aabb,
                         test.aabb)) {
+                        #if SAC_DEBUG
+                        if (showDebug) {
+                            Color color = Color::random(0.8f);
+                            Draw::RectangleAABB(reference.aabb, color);
+                            Draw::RectangleAABB(test.aabb, color);
+                        }
+                        #endif
+
                         // determine the time of collision
-                        float ts = determineCollisionTimestamp(reference, test);
+                        float tBefore, tAt;
 
-                        if (ts == FLT_MAX) {
+                        if (!determineCollisionTimestamp(reference, test, &tBefore, &tAt)) {
                             continue;
                         }
 
-                        if (reference.collideWith & test.group) {
-                            insertCollisionResult(COLLISION(reference.e), test.e, ts);
+                        {
+                            auto* cc = COLLISION(reference.e);
+                            if (reference.collideWith & test.group) {
+                                insertCollisionResult(cc, test.e, tAt);
+                            }
+                            if (cc->restoreTransformation.atCollision ||
+                                cc->restoreTransformation.beforeCollision) {
+                                float ts = cc->restoreTransformation.atCollision ?
+                                    tAt : tBefore;
+                                auto* tc = TRANSFORM(reference.e);
+                                auto* bc = BACK_IN_TIME(reference.e);
+                                tc->position = glm::lerp(bc->position, tc->position, ts);
+                                tc->size = glm::lerp(bc->size, tc->size, ts);
+                                tc->rotation = glm::lerp(bc->rotation, tc->rotation, ts);
+                            }
                         }
-                        if (test.collideWith & reference.group) {
-                            insertCollisionResult(COLLISION(test.e), reference.e, ts);
+
+                        {
+                            auto* cc = COLLISION(test.e);
+                            if (test.collideWith & reference.group) {
+                                insertCollisionResult(cc, reference.e, tAt);
+                            }
+                            if (cc->restoreTransformation.atCollision ||
+                                cc->restoreTransformation.beforeCollision) {
+                                float ts = cc->restoreTransformation.atCollision ?
+                                    tAt : tBefore;
+                                auto* tc = TRANSFORM(test.e);
+                                auto* bc = BACK_IN_TIME(test.e);
+                                tc->position = glm::lerp(bc->position, tc->position, ts);
+                                tc->size = glm::lerp(bc->size, tc->size, ts);
+                                tc->rotation = glm::lerp(bc->rotation, tc->rotation, ts);
+                            }
                         }
-                    }
-                }
-
-                for (int k=0; k<staticCount; k++) {
-                    const EntityData& test = cell.staticEntities[k];
-                    bool checkNeeded =
-                        (reference.collideWith & test.group);
-
-                    if (!checkNeeded) {
-                        continue;
-                    }
-
-                    if (IntersectionUtil::rectangleRectangleAABB(
-                        reference.aabb,
-                        test.aabb)) {
-                        float ts = determineCollisionTimestamp(reference, test);
-
-                        if (ts == FLT_MAX) {
-                            continue;
-                        }
-                        insertCollisionResult(COLLISION(reference.e), test.e, ts);
                     }
                 }
             }
