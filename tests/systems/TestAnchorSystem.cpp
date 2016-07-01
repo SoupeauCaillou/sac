@@ -29,11 +29,22 @@
 #include "systems/TransformationSystem.h"
 
 #include "util/Random.h"
+#include "tests_utils.h"
 
-TEST(AnchorParentingChain)
+struct AnchorTestSetup : public NeedsEntityManager {
+    AnchorTestSetup() : NeedsEntityManager() {
+        AnchorSystem::CreateInstance();
+        TransformationSystem::CreateInstance();
+    }
+    ~AnchorTestSetup() {
+        uninit();
+        AnchorSystem::DestroyInstance();
+        TransformationSystem::DestroyInstance();
+    }
+};
+
+TEST_FIXTURE(AnchorTestSetup, AnchorParentingChain)
 {
-    TransformationSystem::CreateInstance();
-    AnchorSystem::CreateInstance();
     Entity e[3];
     for (int i=0; i<3; i++) {
         e[i] = i + 1;
@@ -52,14 +63,10 @@ TEST(AnchorParentingChain)
     CHECK_CLOSE(1, TRANSFORM(e[0])->position.x, 0.001);
     CHECK_CLOSE(2, TRANSFORM(e[1])->position.x, 0.001);
     CHECK_CLOSE(3, TRANSFORM(e[2])->position.x, 0.001);
-    TransformationSystem::DestroyInstance();
-    AnchorSystem::DestroyInstance();
 }
 
-TEST(AnchorParentingChainReverse)
+TEST_FIXTURE(AnchorTestSetup, AnchorParentingChainReverse)
 {
-    TransformationSystem::CreateInstance();
-    AnchorSystem::CreateInstance();
     Entity e[3];
     for (int i=0; i<3; i++) {
         int idx = 3 - i;
@@ -79,8 +86,6 @@ TEST(AnchorParentingChainReverse)
     CHECK_CLOSE(1, TRANSFORM(e[0])->position.x, 0.001);
     CHECK_CLOSE(2, TRANSFORM(e[1])->position.x, 0.001);
     CHECK_CLOSE(3, TRANSFORM(e[2])->position.x, 0.001);
-    TransformationSystem::DestroyInstance();
-    AnchorSystem::DestroyInstance();
 }
 
 /*
@@ -100,9 +105,7 @@ static const std::vector<glm::vec2> rectanglePoints(const TransformationComponen
 }
 */
 
-TEST(TransformationTestCentralRotationRandomDegrees) {
-    TransformationSystem::CreateInstance();
-    AnchorSystem::CreateInstance();
+TEST_FIXTURE(AnchorTestSetup, TransformationTestCentralRotationRandomDegrees) {
     Entity e = 1, f = 2;
     // This two entities are position vector and anchor vector of children anchor
     // These must be in same position
@@ -138,14 +141,9 @@ TEST(TransformationTestCentralRotationRandomDegrees) {
         CHECK_CLOSE(TRANSFORM(ref1)->position.x, TRANSFORM(ref2)->position.x, 0.001);
         CHECK_CLOSE(TRANSFORM(ref1)->position.y, TRANSFORM(ref2)->position.y, 0.001);
     }
-
-    AnchorSystem::DestroyInstance();
-    TransformationSystem::DestroyInstance();
 }
 
-TEST(TransformationTestNorthWestRotationRandomDegrees) {
-    TransformationSystem::CreateInstance();
-    AnchorSystem::CreateInstance();
+TEST_FIXTURE(AnchorTestSetup, TransformationTestNorthWestRotationRandomDegrees) {
     Entity e = 1, f = 2;
     // This two entities are position vector and anchor vector of children anchor
     // These must be in same position
@@ -181,14 +179,9 @@ TEST(TransformationTestNorthWestRotationRandomDegrees) {
         CHECK_CLOSE(TRANSFORM(ref1)->position.x, TRANSFORM(ref2)->position.x, 0.001);
         CHECK_CLOSE(TRANSFORM(ref1)->position.y, TRANSFORM(ref2)->position.y, 0.001);
     }
-
-    AnchorSystem::DestroyInstance();
-    TransformationSystem::DestroyInstance();
 }
 
-TEST(TransformationTestSouthRotationRandomDegrees) {
- TransformationSystem::CreateInstance();
-    AnchorSystem::CreateInstance();
+TEST_FIXTURE(AnchorTestSetup, TransformationTestSouthRotationRandomDegrees) {
     Entity e = 1, f = 2;
     // This two entities are position vector and anchor vector of children anchor
     // These must be in same position
@@ -224,7 +217,4 @@ TEST(TransformationTestSouthRotationRandomDegrees) {
         CHECK_CLOSE(TRANSFORM(ref1)->position.x, TRANSFORM(ref2)->position.x, 0.001);
         CHECK_CLOSE(TRANSFORM(ref1)->position.y, TRANSFORM(ref2)->position.y, 0.001);
     }
-
-    AnchorSystem::DestroyInstance();
-    TransformationSystem::DestroyInstance();
 }

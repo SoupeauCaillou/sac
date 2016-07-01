@@ -33,8 +33,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-struct TestSetup {
-    TestSetup() {
+#include "tests_utils.h"
+
+namespace {
+
+struct TestSetup : public NeedsEntityManager {
+    TestSetup() : NeedsEntityManager() {
         ADSRSystem::CreateInstance();
         TransformationSystem::CreateInstance();
         ParticuleSystem::CreateInstance();
@@ -42,8 +46,7 @@ struct TestSetup {
         RenderingSystem::CreateInstance();
     }
     ~TestSetup() {
-        theEntityManager.entityTemplateLibrary.unload("test");
-        theEntityManager.deleteAllEntities();
+        uninit();
         ADSRSystem::DestroyInstance();
         TransformationSystem::DestroyInstance();
         ParticuleSystem::DestroyInstance();
@@ -249,4 +252,6 @@ TEST_FIXTURE(TestSetup, TestInt8)
                         "flags = 1");
 
     CHECK_EQUAL(1, RENDERING(e)->flags);
+}
+
 }

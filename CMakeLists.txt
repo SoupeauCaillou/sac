@@ -425,6 +425,7 @@ if (DESKTOP_BUILD)
 
         #the necessary libs
         include_directories(${UNITTEST_INCLUDE_DIR})
+        include_directories(${SAC_SOURCE_DIR}/tests)
         target_link_libraries ("sac_tests" ${UNITTEST_LIBRARY})
 
         target_link_libraries("sac_tests" sac)

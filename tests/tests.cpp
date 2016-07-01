@@ -36,6 +36,5 @@ int main(int argc, char **) {
     else
         logLevel = LogVerbosity::VERBOSE2;
 #endif
-    EntityManager::CreateInstance();
     return UnitTest::RunAllTests();
 }
