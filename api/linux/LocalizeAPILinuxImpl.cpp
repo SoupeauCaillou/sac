@@ -58,13 +58,17 @@ static std::string getLocaleInfo() {
 	std::wstring ws(szISOCountry);
 
 	std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
-#elif SAC_EMSCRIPTEN
+#else
+#if SAC_EMSCRIPTEN
     std::string lang = emscripten_run_script_string( "navigator.language;" );
-    lang.resize(2);
 #else
     std::string lang(getenv("LANG"));
+#endif
     //cut part after the '_' underscore
-    lang.resize(2);
+    auto underscore = lang.find("_");
+    if (underscore != std::string::npos) {
+        lang.resize(underscore);
+    }
 #endif
 
     //convert to lower case
