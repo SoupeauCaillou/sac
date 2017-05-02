@@ -478,9 +478,6 @@ static std::string getLocaleInfo() {
         std::wstring ws(szISOCountry);
 
         std::string lang((const char*)&ws[0], sizeof(wchar_t)/sizeof(char)*ws.size());
-    #elif SAC_EMSCRIPTEN
-        std::string lang = emscripten_run_script_string( "navigator.language;" );
-        lang.resize(2);
     #elif SAC_IOS
         LOGT("[[NSLocale preferredLangagues] objectAtIndex:0]");
         std::string lang = "en";
@@ -488,9 +485,16 @@ static std::string getLocaleInfo() {
         LOGT("Findout user locale");
         std::string lang = "en";
     #else
-        std::string lang(getenv("LANG"));
-        //cut part after the '_' underscore
-        lang.resize(2);
+#if SAC_EMSCRIPTEN
+    std::string lang = emscripten_run_script_string( "navigator.language;" );
+#else
+    std::string lang(getenv("LANG"));
+#endif
+    //cut part after the '_' underscore
+    auto underscore = lang.find("_");
+    if (underscore != std::string::npos) {
+        lang.resize(underscore);
+    }
     #endif
 
     //convert to lower case
