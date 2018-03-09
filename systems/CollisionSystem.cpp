@@ -30,13 +30,13 @@
 #include <glm/gtx/norm.hpp>
 #include <algorithm>
 
+#include "BackInTimeSystem.h"
+#include "SpatialPartitionSystem.h"
+#include "base/EntityManager.h"
 #include "util/Draw.h"
 #include "util/SerializerProperty.h"
-#include "base/EntityManager.h"
-#include "SpatialPartitionSystem.h"
-#include "BackInTimeSystem.h"
-
-#include <sac/tweak.h>
+#define SAC_TWEAK_IMPLEMENTATION
+#include "util/Tweak.h"
 
 INSTANCE_IMPL(CollisionSystem);
 
