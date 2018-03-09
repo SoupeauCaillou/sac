@@ -18,27 +18,27 @@
     along with Soupe Au Caillou.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
-#include <glm/gtx/rotate_vector.hpp>
 #include "TouchInputManager.h"
 #include "Log.h"
-#include "../systems/RenderingSystem.h"
-#include "../systems/TransformationSystem.h"
+#include "PlacementHelper.h"
+#include "base/EntityManager.h"
 #include "base/Log.h"
 #include "base/TimeUtil.h"
-#include "PlacementHelper.h"
+#include "systems/RenderingSystem.h"
+#include "systems/TransformationSystem.h"
 #include "util/ReplayManager.h"
 
 #if SAC_DEBUG
-#include "../systems/AnchorSystem.h"
+#include "systems/AnchorSystem.h"
 #endif
 #if SAC_INGAME_EDITORS
 #include "util/LevelEditor.h"
 #endif
 
+
 #include <glm/gtx/norm.hpp>
-#include "base/EntityManager.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/rotate_vector.hpp>
 
 TouchInputManager* TouchInputManager::instance = 0;
 

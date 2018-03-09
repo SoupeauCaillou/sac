@@ -22,14 +22,16 @@
 
 #include <UnitTest++.h>
 
-#include <glm/gtx/vector_angle.hpp>
-#include <glm/gtc/constants.hpp>
-#include <glm/glm.hpp>
 #include "systems/AnchorSystem.h"
 #include "systems/TransformationSystem.h"
-
-#include "util/Random.h"
 #include "tests_utils.h"
+#include "util/Random.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/vector_angle.hpp>
+
 
 struct AnchorTestSetup : public NeedsEntityManager {
     AnchorTestSetup() : NeedsEntityManager() {

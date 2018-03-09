@@ -22,9 +22,11 @@
 
 #include "ADSRSystem.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtx/compatibility.hpp>
 #include "util/SerializerProperty.h"
+
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/compatibility.hpp>
 
 /*
  *        /\

@@ -20,11 +20,13 @@
 
 #pragma once
 
+#include "base/Color.h"
+#include "base/Log.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
-#include "base/Log.h"
-#include "base/Color.h"
 
 #if SAC_DEBUG
 #define CHECK_ITV_RESULT                                                       \

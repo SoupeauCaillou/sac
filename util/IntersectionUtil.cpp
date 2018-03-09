@@ -21,10 +21,14 @@
 
 
 #include "IntersectionUtil.h"
+
+#include "systems/TransformationSystem.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
-#include "systems/TransformationSystem.h"
+
 #include <cmath>
 #include <alloca.h>
 

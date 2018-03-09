@@ -22,8 +22,10 @@
 
 #include "Polygon.h"
 #include "base/Log.h"
-#include <glm/gtx/rotate_vector.hpp>
+
 #include <glm/gtc/constants.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/rotate_vector.hpp>
 
 Polygon Polygon::create(Shape::Enum e) {
     Polygon p;
