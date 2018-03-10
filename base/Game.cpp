@@ -27,22 +27,23 @@
 #endif
 
 #include "api/AssetAPI.h"
+#include "api/JoystickAPI.h"
 #include "api/KeyboardInputHandlerAPI.h"
 #include "api/StringInputAPI.h"
-#include "api/JoystickAPI.h"
 
+#include "base/Common.h"
 #include "base/EntityManager.h"
 #include "base/PlacementHelper.h"
 #include "base/Profiler.h"
-#include "base/TouchInputManager.h"
-#include "base/Common.h"
 #include "base/TimeUtil.h"
+#include "base/TouchInputManager.h"
 
 #include "systems/ADSRSystem.h"
 #include "systems/AnchorSystem.h"
 #include "systems/AnimationSystem.h"
 #include "systems/AutoDestroySystem.h"
 #include "systems/AutonomousAgentSystem.h"
+#include "systems/BackInTimeSystem.h"
 #include "systems/BlinkSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/CameraSystem.h"
@@ -51,7 +52,6 @@
 #include "systems/DebuggingSystem.h"
 #include "systems/GraphSystem.h"
 #include "systems/GridSystem.h"
-#include "systems/BackInTimeSystem.h"
 #include "systems/MorphingSystem.h"
 #include "systems/MusicSystem.h"
 #include "systems/NetworkSystem.h"
@@ -59,33 +59,31 @@
 #include "systems/PhysicsSystem.h"
 #include "systems/RenderingSystem.h"
 #include "systems/ScrollingSystem.h"
-#include "systems/SpatialPartitionSystem.h"
 #include "systems/SoundSystem.h"
+#include "systems/SpatialPartitionSystem.h"
 #include "systems/SpotSystem.h"
+#include "systems/SwypeButtonSystem.h"
 #include "systems/TagSystem.h"
 #include "systems/TextSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/ZSQDSystem.h"
-#include "systems/SwypeButtonSystem.h"
-
 #include "systems/opengl/OpenGLTextureCreator.h"
 
 #include "util/DataFileParser.h"
 #include "util/Draw.h"
-#include "util/Recorder.h"
-#include "util/Random.h"
 #include "util/LevelEditor.h"
+#include "util/Random.h"
+#include "util/Recorder.h"
 #include "util/Tuning.h"
 
 #if ! SAC_MOBILE
-#include <SDL2/SDL_events.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
 #endif
 
 #if SAC_INGAME_EDITORS
 #include "imgui.h"
 #include "systems/opengl/OpenglHelper.h"
-#include "stb_image.h"
 #endif
 
 Game::Game() {
@@ -529,20 +527,19 @@ void Game::sacInitFromRenderThread() {
     // io.GetClipboardTextFn = SDL_GetClipboardText;
 #endif
 
-    io.RenderDrawListsFn = RenderingSystem::ImImpl_RenderDrawLists;
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
     // Load font texture
     glGenTextures(1, &RenderingSystem::fontTex);
     glBindTexture(GL_TEXTURE_2D, RenderingSystem::fontTex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    const void* png_data;
-    unsigned int png_size;
-    ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
-    int tex_x, tex_y, tex_comp;
-    void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_x, tex_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data);
-    stbi_image_free(tex_data);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    io.Fonts->TexID = (void*)(intptr_t)RenderingSystem::fontTex;
 #endif
 }
 

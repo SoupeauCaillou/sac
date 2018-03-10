@@ -35,7 +35,7 @@
 
 #if SAC_INGAME_EDITORS
 class LevelEditor;
-struct ImDrawList;
+struct ImDrawData;
 #endif
 
 typedef uint8_t FramebufferRef;
@@ -181,9 +181,7 @@ void forceRenderCommands(RenderCommand* commands, int count);
 
 static GLuint leProgram, leProgramuniformColorSampler, leProgramuniformMatrix;
 static GLuint fontTex;
-static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists,
-                                   int cmd_lists_count);
-static void ImImpl_RenderDrawLists2(int cmd_lists_count);
+static void ImImpl_RenderDrawLists(ImDrawData* draw_data);
 #endif
 public:
 void enableRendering();

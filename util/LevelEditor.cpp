@@ -372,7 +372,7 @@ void LevelEditor::tick(float dt) {
                 break;
             }
         } else if (event.type == SDL_TEXTINPUT) {
-            strncpy(io.InputCharacters, event.text.text, 16);
+            io.AddInputCharactersUTF8(event.text.text);
         }
         events.pop();
     }
@@ -387,14 +387,14 @@ void LevelEditor::tick(float dt) {
             NULL,
             ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y),
             -1.0f,
-            ImGuiWindowFlags_ShowBorders)) {
-
+            0)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         bool showOnlyVisible = (listMode == EntityListMode::VisibleOnly);
         if (ImGui::Checkbox("Show only Visible", &showOnlyVisible)) {
             listMode = showOnlyVisible ? EntityListMode::VisibleOnly : EntityListMode::All;
         }
 
-        ImGui::PushStyleColor(ImGuiCol_CheckActive, activeColor);
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, activeColor);
 
         std::map<hash_t, char*> groupsName;
         std::map<hash_t, std::vector<Entity>> groups;
@@ -434,7 +434,7 @@ void LevelEditor::tick(float dt) {
         for (const auto& p : groups) {
             if (p.first == 0 || ImGui::TreeNode(groupsName[p.first])) {
                 bool highLightAllGroup =
-                    (p.first && ImGui::IsHovered() &&
+                    (p.first && ImGui::IsItemHovered() &&
                      strcmp(groupsName[p.first], "__") != 0);
 
                 const auto& v = p.second;
@@ -460,11 +460,11 @@ void LevelEditor::tick(float dt) {
 
                     intptr_t id = e;
                     if (ImGui::TreeNode((void*)id, "%s", n.str().c_str())) {
-                        highLight |= ImGui::IsHovered();
+                        highLight |= ImGui::IsItemHovered();
                         createTweakBarForEntity(e);
                         ImGui::TreePop();
                     } else {
-                        highLight |= ImGui::IsHovered();
+                        highLight |= ImGui::IsItemHovered();
                     }
 
                     if (highLight && theTransformationSystem.Get(e, false)) {
@@ -474,7 +474,7 @@ void LevelEditor::tick(float dt) {
                 if (p.first)
                     ImGui::TreePop();
             } else {
-                if (ImGui::IsHovered() &&
+                if (ImGui::IsItemHovered() &&
                     strcmp(groupsName[p.first], "__") != 0) {
                     // mark all group
                     const auto& v = p.second;
@@ -489,6 +489,7 @@ void LevelEditor::tick(float dt) {
             }
         }
         ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
     }
     ImGui::End();
 
@@ -497,8 +498,8 @@ void LevelEditor::tick(float dt) {
                      ImVec2(DebugAreaWidth * LEFT_PROPORTION,
                             ImGui::GetIO().DisplaySize.y * 0.8),
                      -1.0f,
-                     ImGuiWindowFlags_ShowBorders)) {
-
+                     0)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         if (game->gameType == GameType::LevelEditor) {
             if (ImGui::CollapsingHeader("Save")) {
                 if (ImGui::Button("Save All")) {
@@ -819,8 +820,7 @@ void LevelEditor::tick(float dt) {
                                     if (on) {
                                         theEntityManager.AddComponent(e, sys);
                                     } else {
-                                        theEntityManager.RemoveComponent(e,
-                                                                         sys);
+                                        theEntityManager.RemoveComponent(e, sys);
                                     }
                                 }
                             }
@@ -1249,7 +1249,7 @@ void LevelEditor::tick(float dt) {
             if (datas->currentBackFrame == old)
                 playback = 0;
         }
-
+        ImGui::PopStyleVar();
     }
     ImGui::End();
 
@@ -1258,7 +1258,8 @@ void LevelEditor::tick(float dt) {
                      ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth,
                             DebugAreaHeight),
                      -1.0f,
-                     ImGuiWindowFlags_ShowBorders)) {
+                     0)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         if (ImGui::CollapsingHeader("Entities")) {
             static std::vector<float> count;
             count.push_back(theEntityManager.getNumberofEntity());
@@ -1289,6 +1290,7 @@ void LevelEditor::tick(float dt) {
                 FLT_MAX,
                 ImVec2(DebugAreaWidth * 0.8, DebugAreaHeight * 0.7));
         }
+        ImGui::PopStyleVar();
     }
     ImGui::End();
 
@@ -1298,7 +1300,8 @@ void LevelEditor::tick(float dt) {
                          NULL,
                          ImVec2(DebugAreaWidth, DebugAreaHeight),
                          -1.0f,
-                         ImGuiWindowFlags_ShowBorders)) {
+                         0)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             int previousBatch = 0;
             int batch = 0;
             ImVec4 batchColor[] = {
@@ -1343,7 +1346,9 @@ void LevelEditor::tick(float dt) {
                     ImGui::Value("entity", rc.e);
                     ImGui::Value("z", rc.z);
                     ImGui::Value("effect", (unsigned int) rc.effectRef);
-                    ImGui::Color("color", rc.color.asInt());
+                    ImGui::Text("%s: %08X", "color", rc.color.asInt());
+                    ImGui::SameLine();
+                    ImGui::ColorButton("color", ImGui::ColorConvertU32ToFloat4(rc.color.asInt()));
                     // state
                     ImGui::Value("z-pre-pass", (bool) (rc.flags & ZPrePassFlagSet));
                     ImGui::Value("opaque", (bool) (rc.flags & OpaqueFlagSet));
@@ -1359,10 +1364,11 @@ void LevelEditor::tick(float dt) {
                 } else {
                     ImGui::PopStyleColor();
                 }
-                if (ImGui::IsHovered()) {
+                if (ImGui::IsItemHovered()) {
                     datas->backInTimeCountOverride = i + 1;
                 }
             }
+            ImGui::PopStyleVar();
         }
         ImGui::End();
     }
@@ -1371,7 +1377,8 @@ void LevelEditor::tick(float dt) {
         NULL,
         ImVec2(DebugAreaWidth, DebugAreaHeight),
         -1.0f,
-        ImGuiWindowFlags_ShowBorders)) {
+        0)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         const auto& types = game->tuning.getTypeHints();
         for (const auto& p: types) {
             switch (p.second) {
@@ -1392,6 +1399,7 @@ void LevelEditor::tick(float dt) {
                 }
             }
         }
+        ImGui::PopStyleVar();
     }
     ImGui::End();
 

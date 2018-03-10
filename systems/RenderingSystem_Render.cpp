@@ -42,9 +42,6 @@
 
 #if SAC_INGAME_EDITORS
 GLuint RenderingSystem::fontTex;
-static std::vector<ImDrawList> imguiCommands;
-static int drawListCount = 0, drawListCapacity = 0;
-
 GLuint RenderingSystem::leProgram, RenderingSystem::leProgramuniformColorSampler, RenderingSystem::leProgramuniformMatrix;
 #endif
 
@@ -684,9 +681,7 @@ void RenderingSystem::render() {
     LOGV(3, "DONE");
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
-    LevelEditor::lock();
-    RenderingSystem::ImImpl_RenderDrawLists2(drawListCount);
-    LevelEditor::unlock();
+    RenderingSystem::ImImpl_RenderDrawLists(ImGui::GetDrawData());
 #endif
 #if ! SAC_EMSCRIPTEN
     cond[C_RENDER_DONE].notify_all();
@@ -717,133 +712,88 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
 #if SAC_INGAME_EDITORS
 
 // from imgui example
-void RenderingSystem::ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
+void RenderingSystem::ImImpl_RenderDrawLists(ImDrawData* draw_data) {
     LevelEditor::lock();
-    if (drawListCapacity <= cmd_lists_count) {
-        /* no valid operator= for ImDrawList */
-        imguiCommands.clear();
-        imguiCommands.resize(cmd_lists_count);
-        drawListCapacity = cmd_lists_count;
-    }
 
-    drawListCount = cmd_lists_count;
-
-    if (cmd_lists_count == 0)
+    // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+    ImGuiIO& io = ImGui::GetIO();
+    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+    int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+    if (fb_width == 0 || fb_height == 0)
         return;
+    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
-    for (int n = 0; n < cmd_lists_count; n++)
+    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
+    GL_OPERATION(glEnable(GL_BLEND));
+    GL_OPERATION(glBlendEquation(GL_FUNC_ADD));
+    GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    GL_OPERATION(glDisable(GL_CULL_FACE));
+    GL_OPERATION(glDisable(GL_DEPTH_TEST));
+    GL_OPERATION(glEnable(GL_SCISSOR_TEST));
+    GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+
+    // Setup viewport, orthographic projection matrix
+    theRenderingSystem.glState.viewport.update(fb_width, fb_height);
+    GL_OPERATION(glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height));
+    theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
+
+    GL_OPERATION(glUseProgram(leProgram));
+    glm::mat4 mvp;
+    mvp = glm::ortho(0.0f, float(fb_width), float(fb_height), 0.0f, 0.0f, 1.0f);
+    GL_OPERATION(glUniform1i(leProgramuniformColorSampler, 0));
+    GL_OPERATION(glUniformMatrix4fv(leProgramuniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)));
+    GL_OPERATION(glBindSampler(0, 0)); // Rely on combined texture/sampler state.
+
+    // Recreate the VAO every time
+    // (This is to easily allow multiple GL contexts. VAO are not shared among GL contexts, and we don't track creation/deletion of windows so we don't have an obvious key to use to cache them.)
+    GLuint vao_handle = 0;
+    GL_OPERATION(glGenVertexArrays(1, &vao_handle));
+    GL_OPERATION(glBindVertexArray(vao_handle));
+    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Editor]));
+    GL_OPERATION(glEnableVertexAttribArray(0));
+    GL_OPERATION(glEnableVertexAttribArray(1));
+    GL_OPERATION(glEnableVertexAttribArray(2));
+    GL_OPERATION(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos)));
+    GL_OPERATION(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv)));
+    GL_OPERATION(glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col)));
+
+    // Draw
+    for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
-        const ImDrawList* cmd_list = cmd_lists[n];
-        // copy list
-        ImDrawList* l = &imguiCommands[n];
-        l->Clear();
+        const ImDrawList* cmd_list = draw_data->CmdLists[n];
+        const ImDrawIdx* idx_buffer_offset = 0;
 
-        for (size_t i=0; i<cmd_list->commands.size(); i++)
-            l->commands.push_back(cmd_list->commands[i]);
-        for (size_t i=0; i<cmd_list->vtx_buffer.size(); i++)
-            l->vtx_buffer.push_back(cmd_list->vtx_buffer[i]);
-        for (size_t i=0; i<cmd_list->clip_rect_stack.size(); i++)
-            l->clip_rect_stack.push_back(cmd_list->clip_rect_stack[i]);
+        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Editor]));
+        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW));
 
-        long int offset = cmd_list->vtx_write - &cmd_list->vtx_buffer[0];
-        l->vtx_write = &l->vtx_buffer[0] + offset;
+        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Indice]));
+        GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW));
+
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+        {
+            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+            if (pcmd->UserCallback)
+            {
+                pcmd->UserCallback(cmd_list, pcmd);
+            }
+            else
+            {
+                GL_OPERATION(glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId));
+                GL_OPERATION(glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y)));
+                GL_OPERATION(glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset));
+            }
+            idx_buffer_offset += pcmd->ElemCount;
+        }
     }
+    GL_OPERATION(glDeleteVertexArrays(1, &vao_handle));
+
+    GL_OPERATION(glDisable(GL_SCISSOR_TEST));
+    GL_OPERATION(glEnable(GL_DEPTH_TEST));
+
+    // Restore pre-multiplied alpha blending
+    GL_OPERATION(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+
     LevelEditor::unlock();
 }
 
-void RenderingSystem::ImImpl_RenderDrawLists2(int cmd_lists_count) {
-#if SAC_INGAME_EDITORS && SAC_DESKTOP
-    GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL))
-#endif
-    theRenderingSystem.glState.flags.update(OpaqueFlagSet);
-
-    GL_OPERATION(glEnable(GL_BLEND))
-    GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
-    GL_OPERATION(glDisable(GL_CULL_FACE))
-    GL_OPERATION(glDisable(GL_DEPTH_TEST))
-    GL_OPERATION(glEnable(GL_SCISSOR_TEST))
-
-
-    GL_OPERATION(glUseProgram(leProgram))
-    const float width = ImGui::GetIO().DisplaySize.x;
-    const float height = ImGui::GetIO().DisplaySize.y;
-
-    theRenderingSystem.glState.viewport.update(width, height);
-    GL_OPERATION(glViewport(0, 0, width, height))
-    theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
-
-    if (0) {
-        glScissor(0, 0, width, LevelEditor::DebugAreaHeight);
-        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
-        glScissor(0, 0, LevelEditor::GameViewPosition().x, height);
-        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
-        glScissor(LevelEditor::GameViewPosition().x + theRenderingSystem.windowW, 0, width, height);
-        GL_OPERATION(glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT))
-    }
-
-    glScissor(0, 0, width, height);
-
-    glm::mat4 mvp;
-    mvp = glm::ortho(0.0f, width, height, 0.0f, 0.0f, 1.0f);
-    GL_OPERATION( glUniformMatrix4fv(leProgramuniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)))
-    GL_OPERATION(glUniform1i(leProgramuniformColorSampler, 0))
-    GL_OPERATION(glActiveTexture(GL_TEXTURE0))
-    GL_OPERATION(glBindTexture(GL_TEXTURE_2D, fontTex))
-
-    // Enable hard-coded attributes
-    GL_OPERATION(glEnableVertexAttribArray(0))
-    GL_OPERATION(glEnableVertexAttribArray(1))
-    GL_OPERATION(glEnableVertexAttribArray(2))
-
-    // Render command lists
-    for (int n = 0; n < cmd_lists_count; n++)
-    {
-        const ImDrawList* cmd_list = &imguiCommands[n];
-
-        unsigned verticesCount = cmd_list->vtx_buffer.size();
-        unsigned size = verticesCount * sizeof(ImDrawVert);
-
-        if (!size) continue;
-
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Editor]))
-        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, size, 0, GL_STREAM_DRAW))
-        GL_OPERATION(glBufferSubData(GL_ARRAY_BUFFER, 0,
-                size, &cmd_list->vtx_buffer[0]))
-
-        // Fill index buffer with a simple sequence
-        unsigned short* indices = new unsigned short[verticesCount];
-        for (unsigned i=0; i<verticesCount; i++) indices[i] = i;
-        // Upload indices to indice buffer
-        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Indice]))
-        GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            verticesCount * sizeof(unsigned short), 0, GL_STREAM_DRAW))
-        GL_OPERATION(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-            verticesCount * sizeof(unsigned short), indices))
-        delete[] indices;
-
-        int vtx_offset = 0;
-        const ImDrawCmd* pcmd_end = cmd_list->commands.end();
-
-        for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
-        {
-            GL_OPERATION(glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y)))
-
-            GL_OPERATION(
-                glVertexAttribPointer(0 /*aWindowPosition*/, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert))))
-            GL_OPERATION(
-                glVertexAttribPointer(1 /*aTexCoord*/, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert) + 8)))
-            GL_OPERATION(
-                glVertexAttribPointer(2 /*aColor*/, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (void*)(vtx_offset * sizeof(ImDrawVert) + 16)))
-
-            GL_OPERATION(glDrawElements(GL_TRIANGLES, pcmd->vtx_count, GL_UNSIGNED_SHORT, 0))
-            vtx_offset += pcmd->vtx_count;
-
-        }
-    }
-    GL_OPERATION(glDisable(GL_SCISSOR_TEST))
-    GL_OPERATION(glEnable(GL_DEPTH_TEST))
-
-    // Restore pre-multiplied alpha blending
-    GL_OPERATION(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA))
-}
 #endif
