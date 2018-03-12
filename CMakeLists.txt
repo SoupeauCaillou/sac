@@ -305,6 +305,7 @@ if (DESKTOP_BUILD)
         GLOB_RECURSE opt_source_files
         ${SAC_SOURCE_DIR}/libs/rg_etc1_v104/*.cpp
     )
+    set_source_files_properties(${opt_source_files} PROPERTIES COMPILE_FLAGS -w)
 endif()
 
 #include platform dependent APIs
@@ -316,9 +317,7 @@ if (INGAME_EDITOR STREQUAL "ON")
     file(GLOB imgui_files
         ${SAC_SOURCE_DIR}/libs/imgui/*.cpp
     )
-    set_source_files_properties(${SAC_SOURCE_DIR}/libs/imgui/imgui.cpp
-                                PROPERTIES COMPILE_FLAGS -Wno-unused-function
-    )
+    set_source_files_properties(${imgui_files} PROPERTIES COMPILE_FLAGS -w)
 endif()
 
 add_library(sac

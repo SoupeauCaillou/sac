@@ -49,7 +49,7 @@ SpatialPartitionSystem::SpatialPartitionSystem() : ComponentSystemImpl<SpatialPa
 
 #if SAC_DEBUG
 void drawDebug(float cellSize, const glm::vec2& minPos, int total, glm::ivec2 gridSize) {
-    float avg = total / (float)cells.size();
+    // float avg = total / (float)cells.size();
     for (size_t i=0; i<cells.size(); i++) {
         if (cells[i].empty()) {
             continue;
@@ -58,7 +58,7 @@ void drawDebug(float cellSize, const glm::vec2& minPos, int total, glm::ivec2 gr
         int x = i % gridSize.x;
 
         char tmp[64];
-        sprintf(tmp, "%u", cells[i].size());
+        sprintf(tmp, "%lu", cells[i].size());
         Draw::Rectangle(
             minPos + glm::vec2(cellSize * (x + 0.5f), cellSize * (y + 0.5f)),
             glm::vec2(cellSize, cellSize), 0.0f,
@@ -78,14 +78,14 @@ void SpatialPartitionSystem::DoUpdate(float) {
     const float invCellSize = 1.0f / cellSize;
     glm::vec2 minPos(FLT_MAX, FLT_MAX), maxPos(-FLT_MAX, -FLT_MAX);
 
-    FOR_EACH_ENTITY_COMPONENT(SpatialPartition, e, comp)
+    FOR_EACH_ENTITY(SpatialPartition, e)
         const auto* tc = TRANSFORM(e);
         const auto* hc = BACK_IN_TIME(e);
         float maxSizeComp =
             glm::max(tc->size.x, glm::max(tc->size.y, glm::max(hc->size.x, hc->size.y)));
         minPos = glm::min(minPos, glm::min(tc->position, hc->position) - maxSizeComp);
         maxPos = glm::max(maxPos, glm::max(tc->position, hc->position) + maxSizeComp);
-    }
+    END_FOR_EACH()
 
     // make sure cell storage is correctly sized
     // and reset storage
@@ -138,7 +138,7 @@ void SpatialPartitionSystem::DoUpdate(float) {
                 comp->count++;
             }
         }
-    }
+    END_FOR_EACH()
 
     #if SAC_DEBUG
     if (showDebug) {
@@ -148,6 +148,6 @@ void SpatialPartitionSystem::DoUpdate(float) {
 }
 
 glm::ivec2* SpatialPartitionSystem::getCells(int offset) {
-    LOGF_IF(offset >= coords.size(), "Invalid cell offset " << __(offset) << ". Size is " << __(coords.size()));
+    LOGF_IF(uint(offset) >= coords.size(), "Invalid cell offset " << __(offset) << ". Size is " << __(coords.size()));
     return &coords[offset];
 }

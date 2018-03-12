@@ -245,5 +245,8 @@ template <typename T> class ComponentSystemImpl : public ComponentSystem {
     for (auto ent : entityWithComponent) {                                     \
         auto* comp = &components[ent];
 
+#define FOR_EACH_ENTITY(type, ent)                             \
+    for (auto ent : entityWithComponent) {
+
 // this macro is used to avoid IDE highlighting problems with brace missing...
 #define END_FOR_EACH() }
