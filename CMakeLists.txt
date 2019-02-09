@@ -364,6 +364,7 @@ endif()
 
 if (DESKTOP_BUILD)
     include_directories(${SAC_SOURCE_DIR}/libs/rg_etc1_v104/)
+    include_directories(/usr/include/SDL)
     check_and_link_libs("sac" SDL2 GLEW OpenAL Sqlite3 ZLIB)
 endif()
 
@@ -423,6 +424,7 @@ if (DESKTOP_BUILD)
         )
         add_executable(sac_tests ${test_source_files})
 
+        message(${UNITTEST_INCLUDE_DIR})
         #the necessary libs
         include_directories(${UNITTEST_INCLUDE_DIR})
         include_directories(${SAC_SOURCE_DIR}/tests)

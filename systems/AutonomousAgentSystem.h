@@ -43,6 +43,7 @@ struct AutonomousAgentComponent {
     Steering::AvoidParams avoid;
     Steering::GroupParams group;
     Steering::WanderParams wander;
+    Steering::LimitParams limit;
 #if 0
     AutonomousAgentComponent() :
         maxSpeed(1.f), maxForce(1.f),

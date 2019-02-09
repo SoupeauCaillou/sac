@@ -111,35 +111,64 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             Steering::behavior(e, dt, agent->wander, &interest, &priority, &danger);
         }
 
+        if (agent->limit.limit) {
+            Steering::behavior(e, dt, agent->limit, &interest, &priority, &danger);
+        }
+
         /**********
              Decision algorithm
         */
         // simple decision algorithm for now.
         float min = agent->dangerThreshold;
 
-        // pick lowest danger direction(s)
-        std::vector<int> potentialDirections;
-        for (int i=0; i<9; i++) {
-            if (danger.directions[i] <= min && interest.directions[i] > danger.directions[i]) {
-                potentialDirections.push_back(i);
+        float score = interest.directions[0] - danger.directions[0];
+
+        int bestDirection = 0;
+        for (int i=1; i<4; i++) {
+            float score1 = interest.directions[i] - danger.directions[i];
+            if (score1 > score) {
+                bestDirection = i;
+                score = score1;
+            } else {
+                break;
+            }
+        }
+        for (int i=1; i<4; i++) {
+            float score1 = interest.directions[8-i] - danger.directions[8-i];
+            if (score1 > score) {
+                bestDirection = 8-i;
+                score = score1;
+            } else {
+                break;
             }
         }
 
+        // pick lowest danger direction(s)
+        std::vector<int> potentialDirections;
+        for (int i=0; i<8; i++) {
+            if (danger.directions[i] <= min) {
+                potentialDirections.push_back(i);
+            }
+            #if SAC_DEBUG
+            else {
+                char tmp[64];
+                sprintf(tmp, "%.2f", danger.directions[i]);
+                glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, i);
+                Draw::Point(TRANSFORM(e)->position + dir, Color(1, 0, 0),
+                tmp);
+            }
+            #endif
+        }
+
+        #if 0
         std::sort(potentialDirections.begin(), potentialDirections.end(), [&interest, &danger, rotation] (int direction1, int d2) -> bool {
             if (direction1 == d2)
                 return false;
-            if (direction1 == 4)
-                return false;
-            if (d2 == 4)
-                return true;
 
             float diff1 = interest.directions[direction1] - danger.directions[direction1];
             float diff2 = interest.directions[d2] - danger.directions[d2];
             if (glm::abs(diff1 - diff2) > 0.01) {
-                if (diff1 > diff2)
-                    return true;
-                if (diff1 < diff2)
-                    return false;
+                return (diff1 > diff2);
             }
 
             if (direction1 == 8)
@@ -166,6 +195,22 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                 cancelVelocity = true;
             }
         }
+        #endif
+        bool cancelVelocity = danger.directions[bestDirection] >= agent->dangerThreshold;
+        int chosenDirection = bestDirection;
+
+        #if SAC_DEBUG
+        for (int i: potentialDirections) {
+            char tmp[64];
+            sprintf(tmp, "%d %d",
+                (int)(10 * interest.directions[i]),
+                (int)(10 * danger.directions[i]));
+            glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, i);
+            Draw::Point(TRANSFORM(e)->position + dir,
+                (i == chosenDirection) ? Color(0, 1, 0) : Color(1, 1, 0),
+                tmp);
+        }
+        #endif
 
         if (!cancelVelocity && priority.directions[chosenDirection] == 0) {
             cancelVelocity = true;
@@ -177,9 +222,9 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
             #endif
 
             // add rotating force
-            if (potentialDirections.size() <= 1) {
+            /*if (potentialDirections.size() <= 1) {
                 TRANSFORM(e)->rotation += Random::Float(.0f, 3.0f) * dt;
-            }
+            }*/
             /*PHYSICS(e)->addForce(
                 glm::vec2(0.0f, 1.0f),
                 TRANSFORM(e)->size * 0.5f,
@@ -190,12 +235,14 @@ void AutonomousAgentSystem::DoUpdate(float dt) {
                 dt);
             PHYSICS(e)->instantRotation = false;*/
         } else {
-            PHYSICS(e)->instantRotation = true;
+            PHYSICS(e)->instantRotation = false;
             glm::vec2 forceDirection = Steering::direction(rotation, chosenDirection);
 
             // lateral speed
             const auto& v = PHYSICS(e)->linearVelocity;
             float t = glm::dot(v, forceDirection);
+
+            PHYSICS(e)->instantRotation = true;//(glm::length(v) >= 0.1);
 
             glm::vec2 desiredVelocity = forceDirection * agent->maxSpeed;
             glm::vec2 lateralVelocity = v - t * forceDirection;

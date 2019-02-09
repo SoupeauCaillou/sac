@@ -130,9 +130,9 @@ void behavior(Entity e, float /*dt*/, FleeParams& param, Context* interest, Cont
         d = (1 + d) * 0.5f;
         if (d >= interest->directions[i]) {
             interest->directions[i] = d;
+            priority->directions[i] = 1.0f - distance / param.radius;
             #if SAC_DEBUG
             interest->entities[i] = param.target;
-            priority->directions[i] = 1.0f;
             #endif
         }
     }
@@ -425,8 +425,9 @@ void behavior(Entity e, float dt, WanderParams& param, Context* interest, Contex
         glm::rotate(glm::vec2(param.distance, 0.0f) + param.target, TRANSFORM(e)->rotation);
 
 
-#if 0
-    Draw::Point(tc->position, Color(1, 0, 0));
+#if 1
+    Draw::Point(tc->position, Color(0, 0, 0));
+    LOGI_EVERY_N(30, tc->position);
 #endif
     SeekParams seek;
     seek.entities = &eTarget;
@@ -437,5 +438,74 @@ void behavior(Entity e, float dt, WanderParams& param, Context* interest, Contex
     behavior(e, dt, seek, interest, priority, danger);
 }
 
+
+template<>
+void behavior(Entity e, float, LimitParams& param, Context* interest, Context* priority, Context* danger) {
+    const auto* tc1 = TRANSFORM(e);
+    const auto* tc2 = TRANSFORM(param.limit);
+    LOGF_IF(tc2->rotation != 0, "limit entity must be axis-ligned");
+    std::vector<std::tuple<glm::vec2, glm::vec2>> lines;
+    const auto p = theTransformationSystem.shapes[tc1->shape];
+    size_t count = p.vertices.size();
+    for (size_t i=0; i<count; ++i) {
+        lines.push_back(
+            std::make_tuple(
+                tc2->position + p.vertices[i] * tc2->size,
+                tc2->position + p.vertices[(i + 1) % count] * tc2->size));
+    }
+
+    float size = glm::max(tc1->size.x, tc1->size.y) + param.epsilon;
+    for (size_t i=0; i<count; ++i) {
+        glm::vec2 A = std::get<0>(lines[i]);
+        glm::vec2 B = std::get<1>(lines[i]);
+
+        glm::vec2 diff = tc1->position - A;
+        /* normal pointing inside */
+        glm::vec2 l = glm::normalize(B - A);
+        glm::vec2 normal = glm::vec2(-l.y, l.x);
+
+        /* how close are we from this border */
+        float d2 = glm::dot(diff, normal);
+
+        for (size_t j=0; j<8; j++) {
+            glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, j);
+            /* test if moving in this direction brings us closer to the limit */
+            float d = glm::dot(dir, normal);
+            if (d2 < size) {
+                if (d < 0) {
+                    float value = (0.6 - d * 0.4);// * (1.0f - d2 / size);
+                    danger->directions[j] = glm::max(value, danger->directions[j]);
+                } else {
+                    interest->directions[j] = glm::max(interest->directions[j], d * 0.25f);
+                }
+            }
+        }
+
+        Draw::Vec2((A + B) * 0.5f, normal * 2.0f);
+    }
+
+    /*
+    glm::vec2 intersectionPoints[2];
+    for (size_t i=0; i<8; i++) {
+        glm::vec2 dir = Steering::direction(TRANSFORM(e)->rotation, i);
+
+        Draw::Point(tc1->position + dir * (size + param.epsilon), Color(1, 0, 1));
+        int intersect = IntersectionUtil::lineLines(
+            tc1->position, tc1->position + dir * (size + param.epsilon),
+            lines,
+            intersectionPoints,
+            nullptr);
+
+        for (size_t j=0; j<intersect; j++) {
+            Draw::Point(intersectionPoints[j], Color(1, 0, 0));
+            float l = glm::distance(intersectionPoints[j], tc1->position);
+            l /= (size + param.epsilon);
+            if (l < 1) {
+                danger->directions[i] = 1.0f;
+            }
+        }
+    }
+    */
+}
 
 }

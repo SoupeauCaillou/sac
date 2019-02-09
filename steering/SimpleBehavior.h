@@ -56,4 +56,9 @@ namespace Steering {
         Interval<float> pauseDuration;
         float change;
     };
+
+    struct LimitParams {
+        Entity limit;
+        float epsilon;
+    };
 }

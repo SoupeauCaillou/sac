@@ -257,10 +257,11 @@ int setupEngine(void* _game, const SetupInfo* info) {
     {
         SDL_DisplayMode mode;
         if (0 == SDL_GetCurrentDisplayMode(0, &mode)) {
-            while (mode.w < largestDimension ||
-                mode.h < (largestDimension * w2hRatio)) {
-                largestDimension *= 0.8;
-            }
+            largestDimension = mode.w;
+            // while (mode.w < largestDimension ||
+            //     mode.h < (largestDimension * w2hRatio)) {
+            //     largestDimension *= 0.8;
+            // }
         }
     }
     glm::vec2 resolution (largestDimension, largestDimension * w2hRatio);

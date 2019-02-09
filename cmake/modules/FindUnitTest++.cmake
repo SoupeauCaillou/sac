@@ -2,10 +2,10 @@
 set(NAME "UNITTEST")
 
 #names of the 'physic' lib directory
-set(DIR_POSSIBLE_NAMES UNITTEST unittest Unittest UnitTest unittest++)
+set(DIR_POSSIBLE_NAMES UNITTEST unittest Unittest UnitTest unittest++ UnitTest++)
 
 #headers' directory name
-set(HEADER_DIR include include/unittest++)
+set(HEADER_DIR include include/UnitTest++)
 
 #libraries' directory name
 set(LIBRARY_DIR lib64 lib libs64 libs libs/Win32 libs/Win64)
