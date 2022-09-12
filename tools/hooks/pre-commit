@@ -6,7 +6,7 @@
 # From https://github.com/tatsuhiro-t/nghttp2/blob/master/pre-commit
 
 # Maybe this is a totally wrong way of detecting clang-format-diff availability..
-clang_format_diff=$(find /usr/bin/ -name 'clang-format-diff*' -type f | head -n1)
+clang_format_diff=$(which 2>/dev/null clang-format-diff || find /usr/bin/ -name 'clang-format-diff*' -not -type d | head -n1)
 clang_format_diff_options="-style=file"
 
 if [ -z "$clang_format_diff" ]; then
