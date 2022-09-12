@@ -382,12 +382,10 @@ void LevelEditor::tick(float dt) {
     // build entity-list Window
     const std::vector<Entity> entities = theEntityManager.allEntities();
 
+    ImGui::SetNextWindowSize(ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y));
     if (ImGui::Begin(
             "Entity List",
-            NULL,
-            ImVec2(DebugAreaWidth * RIGHT_PROPORTION, io.DisplaySize.y),
-            -1.0f,
-            0)) {
+            NULL)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         bool showOnlyVisible = (listMode == EntityListMode::VisibleOnly);
         if (ImGui::Checkbox("Show only Visible", &showOnlyVisible)) {
@@ -493,12 +491,9 @@ void LevelEditor::tick(float dt) {
     }
     ImGui::End();
 
-    if (ImGui::Begin("Editor tools",
-                     NULL,
-                     ImVec2(DebugAreaWidth * LEFT_PROPORTION,
-                            ImGui::GetIO().DisplaySize.y * 0.8),
-                     -1.0f,
-                     0)) {
+    ImGui::SetNextWindowSize(ImVec2(DebugAreaWidth * LEFT_PROPORTION,
+                            ImGui::GetIO().DisplaySize.y * 0.8));
+    if (ImGui::Begin("Editor tools", NULL)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         if (game->gameType == GameType::LevelEditor) {
             if (ImGui::CollapsingHeader("Save")) {
@@ -514,7 +509,7 @@ void LevelEditor::tick(float dt) {
             }
 
             /* Entity manipulation tools */
-            if (ImGui::CollapsingHeader("Active tool", NULL, true, true)) {
+            if (ImGui::CollapsingHeader("Active tool", NULL, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen )) {
                 Tool::Enum newTool = Tool::None;
                 if (tool == Tool::Select)
                     ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
@@ -773,7 +768,7 @@ void LevelEditor::tick(float dt) {
 
             theAnchorSystem.Update(dt);
 
-            if (ImGui::CollapsingHeader("Entity Builder", NULL, true, true)) {
+            if (ImGui::CollapsingHeader("Entity Builder", NULL, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::Button("Add Entity")) {
                     /* Default components: Transformation and Rendering */
                     Entity e = theEntityManager.CreateEntity(
@@ -866,7 +861,7 @@ void LevelEditor::tick(float dt) {
 
         /* Time manipulation tools */
         {
-            ImGui::CollapsingHeader("Time control", NULL, true, true);
+            ImGui::CollapsingHeader("Time control", NULL, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
 
             switch (game->gameType) {
             case GameType::LevelEditor:
@@ -931,7 +926,7 @@ void LevelEditor::tick(float dt) {
         }
 
         /* Rendering debug tools */
-        if (ImGui::CollapsingHeader("Rendering", NULL, true, false)) {
+        if (ImGui::CollapsingHeader("Rendering", NULL, ImGuiTreeNodeFlags_Framed)) {
             if (gridVisible) {
                 if (ImGui::Button("Hide Grid")) {
                     hideGrid();
@@ -957,7 +952,7 @@ void LevelEditor::tick(float dt) {
 
 #if !DISABLE_COLLISION_SYSTEM
         /* Collision debug tools */
-        if (ImGui::CollapsingHeader("Collision", NULL, true, false)) {
+        if (ImGui::CollapsingHeader("Collision", NULL, ImGuiTreeNodeFlags_Framed)) {
             ImGui::Checkbox("Debug", &theCollisionSystem.showDebug);
             ImGui::SliderInt(
                 "Raycast/s", &theCollisionSystem.maximumRayCastPerSec, -1, 100);
@@ -966,7 +961,7 @@ void LevelEditor::tick(float dt) {
 
 
         /* Parition debug tools */
-        if (ImGui::CollapsingHeader("Partition", NULL, true, false)) {
+        if (ImGui::CollapsingHeader("Partition", NULL, ImGuiTreeNodeFlags_Framed)) {
             ImGui::Checkbox("Debug", &theSpatialPartitionSystem.showDebug);
             ImGui::SliderFloat(
                 "CellSize", &theSpatialPartitionSystem.cellSize, 1, 10);
@@ -974,12 +969,12 @@ void LevelEditor::tick(float dt) {
 
 #if !DISABLE_ZSQD_SYSTEM
         /* ZSQD debug tools */
-        if (ImGui::CollapsingHeader("ZSQD", NULL, true, false)) {
+        if (ImGui::CollapsingHeader("ZSQD", NULL, ImGuiTreeNodeFlags_Framed)) {
             ImGui::Checkbox("Debug", &theZSQDSystem.showDebug);
         }
 #endif
 #if SAC_NETWORK
-        if (ImGui::CollapsingHeader("Network", NULL, true, true)) {
+        if (ImGui::CollapsingHeader("Network", NULL, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
             // show stats
             ImGui::Columns(3, NULL, false);
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
@@ -1103,7 +1098,7 @@ void LevelEditor::tick(float dt) {
         }
 
         /* Camera control */
-        ImGui::CollapsingHeader("Cameras", NULL, true, true);
+        ImGui::CollapsingHeader("Cameras", NULL, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
         {
             const auto& cameras =
                 theCameraSystem.RetrieveAllEntityWithComponent();
@@ -1141,7 +1136,7 @@ void LevelEditor::tick(float dt) {
                                 "%.1f");
         }
 
-        if (ImGui::CollapsingHeader("Input Position", NULL, true, true)) {
+        if (ImGui::CollapsingHeader("Input Position", NULL, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 
             const glm::vec2& worldPosition =
                 theTouchInputManager.getOverLastPosition();
@@ -1253,12 +1248,8 @@ void LevelEditor::tick(float dt) {
     }
     ImGui::End();
 
-    if (ImGui::Begin("Graphs",
-                     NULL,
-                     ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth,
-                            DebugAreaHeight),
-                     -1.0f,
-                     0)) {
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x - DebugAreaWidth, DebugAreaHeight));
+    if (ImGui::Begin("Graphs")) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         if (ImGui::CollapsingHeader("Entities")) {
             static std::vector<float> count;
@@ -1296,11 +1287,8 @@ void LevelEditor::tick(float dt) {
 
     if (game->gameType == GameType::Replay) {
         datas->backInTimeCountOverride = -1;
-        if (ImGui::Begin("Frame",
-                         NULL,
-                         ImVec2(DebugAreaWidth, DebugAreaHeight),
-                         -1.0f,
-                         0)) {
+        ImGui::SetNextWindowSize(ImVec2(DebugAreaWidth, DebugAreaHeight));
+        if (ImGui::Begin("Frame")) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             int previousBatch = 0;
             int batch = 0;
@@ -1373,11 +1361,8 @@ void LevelEditor::tick(float dt) {
         ImGui::End();
     }
 
-    if (ImGui::Begin("Tuning",
-        NULL,
-        ImVec2(DebugAreaWidth, DebugAreaHeight),
-        -1.0f,
-        0)) {
+    ImGui::SetNextWindowSize(ImVec2(DebugAreaWidth, DebugAreaHeight));
+    if (ImGui::Begin("Tuning")) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         const auto& types = game->tuning.getTypeHints();
         for (const auto& p: types) {
