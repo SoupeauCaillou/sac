@@ -3,7 +3,7 @@
 	url = https://github.com/lsalzman/enet.git
 [submodule "libs/glm"]
 	path = libs/glm
-	url = git://github.com/g-truc/glm.git
+	url = https://github.com/g-truc/glm.git
 [submodule "libs/imgui"]
 	path = libs/imgui
 	url = https://github.com/ocornut/imgui.git
