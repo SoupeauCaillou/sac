@@ -146,8 +146,8 @@ static void updateLoop(const std::string& ) {
 #endif
         game->step();
 
-        bool focus = (SDL_GetKeyboardFocus() == sdlWindow);
 #if !SAC_DEBUG
+        bool focus = (SDL_GetKeyboardFocus() == sdlWindow);
         //enable music only if we have the focus
         theMusicSystem.toggleMute(!focus);
 #endif

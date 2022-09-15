@@ -818,7 +818,7 @@ FramebufferRef RenderingSystem::createFramebuffer(const std::string& name, int w
     GL_OPERATION(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb.rbo))
 
     // check FBO status
-    GLenum status = GL_OPERATION(glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
         LOGE("FBO not complete: " << status);
 

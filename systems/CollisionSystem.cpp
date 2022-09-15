@@ -99,7 +99,7 @@ struct TransformInterpolation {
 
     glm::vec2 pos(float t) { return moving ? glm::lerp(position[0], position[1], t) : position[1]; }
     glm::vec2 s(float t) { return scaling ? glm::lerp(size[0], size[1], t) : size[1]; }
-    float rot(float t) { return rotation ? glm::lerp(rotation[0], rotation[1], t) : rotation[1]; }
+    float rot(float t) { return rotating ? glm::lerp(rotation[0], rotation[1], t) : rotation[1]; }
 };
 
 static bool determineCollisionTimestamp(EntityData e1, EntityData e2, float* timeBefore, float* timeAt) {
@@ -152,7 +152,6 @@ static bool determineCollisionTimestamp(EntityData e1, EntityData e2, float* tim
 }
 
 static void insertCollisionResult(CollisionComponent* cc, Entity e, float ts) {
-    int insertionIndex = -1;
     for (int i=0; i<cc->collision.count; i++) {
         if (ts < cc->collision.at[i]) {
             // insert
@@ -182,9 +181,6 @@ static void insertCollisionResult(CollisionComponent* cc, Entity e, float ts) {
     }
 }
 
-#if SAC_DEBUG
-static char debugText[8096];
-#endif
 void CollisionSystem::DoUpdate(float dt) {
 
     // int minCollidingEntity = INT_MAX, maxCollidingEntity = 0;

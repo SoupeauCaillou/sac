@@ -40,19 +40,7 @@ throw()
 
 EntityManager* EntityManager::instance = 0;
 
-EntityManager::EntityManager() : nextEntity(1) {
-    LOGT("audit if System::entityComponents is needed - could be replaced by: if (entities[e] & TransformationSystemBit)");
-    LOGT("audit if EntityManager::entityComponents is needed. Lot of duplicated info");
-    LOGT("audit if EntityManager::permanentEntities is still useful");
-    LOGT("CreateEntities(int N)");
-    LOGT("addComponentsToEntities(int N, system1, system2, null)");
-    LOGT("DeleteEntities(int N);");
-    LOGT("DeleteEntities(int N, system1, system2, null);");
-    LOGT("benchmark 0 emitter");
-    LOGT("benchmark 1 emitter 50, 200, 1000");
-    LOGT("benchmark 2 emitter 50, 200, 1000");
-    LOGT("benchmark 3 emitter 50, 200, 1000");
-}
+EntityManager::EntityManager() : nextEntity(1) { }
 
 EntityManager* EntityManager::Instance() {
     return instance;

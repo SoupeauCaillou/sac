@@ -254,7 +254,7 @@ std::map<int, std::vector<GridPos> > SquareSpatialGrid::movementRange(const Grid
         range[v.second].push_back(v.first);
     }
 
-    return std::move(range);
+    return range;
 }
 
 std::vector<GridPos> SquareSpatialGrid::viewRange(const GridPos& position, int size) const {
@@ -291,7 +291,7 @@ std::vector<GridPos> SquareSpatialGrid::viewRange(const GridPos& position, int s
         }
     }
     std::copy(visibleButBlocking.begin(), visibleButBlocking.end(), std::back_inserter(range));
-    return std::move(range);
+    return range;
 }
 
 std::vector<GridPos> SquareSpatialGrid::lineDrawer(const GridPos& from, const GridPos& to, bool positiveEps) const {
@@ -324,7 +324,7 @@ std::vector<GridPos> SquareSpatialGrid::lineDrawer(const GridPos& from, const Gr
             prev = p;
         }
     }
-    return std::move(line);
+    return line;
 }
 
 int SquareSpatialGrid::canDrawLine(const GridPos& p1, const GridPos& p2) const {
@@ -357,7 +357,7 @@ std::vector<GridPos> SquareSpatialGrid::ringFinder(const GridPos& pos, int range
             }
         }
     }
-    return std::move(ring);
+    return ring;
 }
 
 std::vector<GridPos> SquareSpatialGrid::findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath) const {

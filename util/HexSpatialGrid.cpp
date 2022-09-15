@@ -322,7 +322,7 @@ std::map<int, std::vector<GridPos> > HexSpatialGrid::movementRange(const GridPos
         range[v.second].push_back(v.first);
     }
 
-    return std::move(range);
+    return range;
 }
 
 std::vector<GridPos> HexSpatialGrid::viewRange(const GridPos& position, int size) const {
@@ -359,7 +359,7 @@ std::vector<GridPos> HexSpatialGrid::viewRange(const GridPos& position, int size
         }
     }
     std::copy(visibleButBlocking.begin(), visibleButBlocking.end(), std::back_inserter(range));
-    return std::move(range);
+    return range;
 }
 
 std::vector<GridPos> HexSpatialGrid::lineDrawer(const GridPos& from, const GridPos& to, bool positiveEps) const {
@@ -392,7 +392,7 @@ std::vector<GridPos> HexSpatialGrid::lineDrawer(const GridPos& from, const GridP
             prev = p;
         }
     }
-    return std::move(line);
+    return line;
 }
 
 int HexSpatialGrid::canDrawLine(const GridPos& p1, const GridPos& p2) const {
@@ -423,7 +423,7 @@ std::vector<GridPos> HexSpatialGrid::ringFinder(const GridPos& pos, int range, b
             p = getNeighbors(p, true)[i];
         }
     }
-    return std::move(ring);
+    return ring;
 }
 
 std::vector<GridPos> HexSpatialGrid::findPath(const GridPos& from, const GridPos& to, bool ignoreBlockedEndPath) const {

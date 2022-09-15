@@ -30,7 +30,7 @@ struct AutoDestroyComponent {
     enum { OUT_OF_AREA = 0, LIFETIME, NONE } type;
 
     struct _params {
-        _params() { memset(this, 0, sizeof(_params)); }
+        _params() { }
         _params& operator=(const _params& p) {
             area = p.area;
             lifetime = p.lifetime;

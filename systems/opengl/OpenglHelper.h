@@ -37,9 +37,11 @@
 void check_GL_errors(const char* context);
 
 #ifdef CHECK_GL_ERROR
-#define GL_OPERATION(x)                                                        \
-    (x);                                                                       \
-    check_GL_errors(#x);
+#define GL_OPERATION(x)        \
+    do {                       \
+        (x);                   \
+        check_GL_errors(#x);   \
+    } while (false);
 #else
 #define GL_OPERATION(x) (x);
 #endif

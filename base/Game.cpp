@@ -439,8 +439,8 @@ void Game::eventsHandler() {
 
 void Game::loadFont(AssetAPI* asset, const char* name) {
     char tmp[1024];
-    strncpy(tmp, name, 1024);
-    strncat(tmp, ".font", 1024);
+    strncpy(tmp, name, 1023);
+    strncat(tmp, ".font", 1023);
     FileBuffer file = asset->loadAsset(tmp);
     DataFileParser dfp;
     if (!dfp.load(file, tmp)) {
