@@ -248,7 +248,7 @@ int setupEngine(void* _game, const SetupInfo* info) {
 #endif
 
 
-    int largestDimension = 1024;
+    int largestDimension = 1280;
     float w2hRatio = 10 / 16.0f;
     if (!game->isLandscape()) {
         w2hRatio = 1.0f / w2hRatio;
