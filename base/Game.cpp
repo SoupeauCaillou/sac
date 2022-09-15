@@ -84,6 +84,8 @@
 #if SAC_INGAME_EDITORS
 #include "imgui.h"
 #include "systems/opengl/OpenglHelper.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "systems/opengl/OpenglHelper.h"
 #endif
 
 Game::Game() {

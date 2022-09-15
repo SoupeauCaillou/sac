@@ -35,6 +35,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include "backends/imgui_impl_opengl3.h"
 
 #if SAC_DEBUG
 #include "RenderingSystem_Debug.h"
@@ -681,7 +682,10 @@ void RenderingSystem::render() {
     LOGV(3, "DONE");
     PROFILE("Renderer", "render", EndEvent);
 #if SAC_INGAME_EDITORS
-    RenderingSystem::ImImpl_RenderDrawLists(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_NewFrame();
+    LevelEditor::lock();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    LevelEditor::unlock();
 #endif
 #if ! SAC_EMSCRIPTEN
     cond[C_RENDER_DONE].notify_all();
@@ -708,92 +712,3 @@ EffectRef RenderingSystem::chooseDefaultShader(bool alphaBlendingOn, bool colorE
         return defaultShaderEmpty;
     }
 }
-
-#if SAC_INGAME_EDITORS
-
-// from imgui example
-void RenderingSystem::ImImpl_RenderDrawLists(ImDrawData* draw_data) {
-    LevelEditor::lock();
-
-    // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-    ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
-    if (fb_width == 0 || fb_height == 0)
-        return;
-    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
-
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
-    GL_OPERATION(glEnable(GL_BLEND));
-    GL_OPERATION(glBlendEquation(GL_FUNC_ADD));
-    GL_OPERATION(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    GL_OPERATION(glDisable(GL_CULL_FACE));
-    GL_OPERATION(glDisable(GL_DEPTH_TEST));
-    GL_OPERATION(glEnable(GL_SCISSOR_TEST));
-    GL_OPERATION(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-
-    // Setup viewport, orthographic projection matrix
-    theRenderingSystem.glState.viewport.update(fb_width, fb_height);
-    GL_OPERATION(glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height));
-    theRenderingSystem.glState.clear.update(Color(1, 1, 1, 1));
-
-    GL_OPERATION(glUseProgram(leProgram));
-    glm::mat4 mvp;
-    mvp = glm::ortho(0.0f, float(fb_width), float(fb_height), 0.0f, 0.0f, 1.0f);
-    GL_OPERATION(glUniform1i(leProgramuniformColorSampler, 0));
-    GL_OPERATION(glUniformMatrix4fv(leProgramuniformMatrix, 1, GL_FALSE, glm::value_ptr(mvp)));
-    GL_OPERATION(glBindSampler(0, 0)); // Rely on combined texture/sampler state.
-
-    // Recreate the VAO every time
-    // (This is to easily allow multiple GL contexts. VAO are not shared among GL contexts, and we don't track creation/deletion of windows so we don't have an obvious key to use to cache them.)
-    GLuint vao_handle = 0;
-    GL_OPERATION(glGenVertexArrays(1, &vao_handle));
-    GL_OPERATION(glBindVertexArray(vao_handle));
-    GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Editor]));
-    GL_OPERATION(glEnableVertexAttribArray(0));
-    GL_OPERATION(glEnableVertexAttribArray(1));
-    GL_OPERATION(glEnableVertexAttribArray(2));
-    GL_OPERATION(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos)));
-    GL_OPERATION(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv)));
-    GL_OPERATION(glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col)));
-
-    // Draw
-    for (int n = 0; n < draw_data->CmdListsCount; n++)
-    {
-        const ImDrawList* cmd_list = draw_data->CmdLists[n];
-        const ImDrawIdx* idx_buffer_offset = 0;
-
-        GL_OPERATION(glBindBuffer(GL_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Editor]));
-        GL_OPERATION(glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW));
-
-        GL_OPERATION(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theRenderingSystem.glBuffers[Buffers::Indice]));
-        GL_OPERATION(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW));
-
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-        {
-            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-            if (pcmd->UserCallback)
-            {
-                pcmd->UserCallback(cmd_list, pcmd);
-            }
-            else
-            {
-                GL_OPERATION(glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId));
-                GL_OPERATION(glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y)));
-                GL_OPERATION(glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset));
-            }
-            idx_buffer_offset += pcmd->ElemCount;
-        }
-    }
-    GL_OPERATION(glDeleteVertexArrays(1, &vao_handle));
-
-    GL_OPERATION(glDisable(GL_SCISSOR_TEST));
-    GL_OPERATION(glEnable(GL_DEPTH_TEST));
-
-    // Restore pre-multiplied alpha blending
-    GL_OPERATION(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-
-    LevelEditor::unlock();
-}
-
-#endif

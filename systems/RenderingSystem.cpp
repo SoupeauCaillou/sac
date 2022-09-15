@@ -44,10 +44,13 @@
 #endif
 
 #if SAC_INGAME_EDITORS
+#include "opengl/OpenglHelper.h"
 #include "imgui.h"
 #include "util/LevelEditor.h"
 #include "systems/opengl/shaders/level_editor_vs.h"
 #include "systems/opengl/shaders/level_editor_fs.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_opengl3.cpp"
 #endif
 
 #include "base/TimeUtil.h"
@@ -201,6 +204,7 @@ void RenderingSystem::init() {
     GL_OPERATION(glDeleteShader(vs))
     GL_OPERATION(glDeleteShader(fs))
 
+    ImGui_ImplOpenGL3_Init();
 #endif
 }
 

@@ -314,6 +314,8 @@ get_platform_dependent_sources()
 if (INGAME_EDITOR STREQUAL "ON")
     include_directories(${SAC_SOURCE_DIR}/libs/imgui)
 
+    add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_CUSTOM)
+
     file(GLOB imgui_files
         ${SAC_SOURCE_DIR}/libs/imgui/*.cpp
     )
